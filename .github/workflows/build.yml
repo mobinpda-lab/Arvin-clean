@@ -18,6 +18,8 @@ jobs:
           cache: true
       - name: Generate Android platform
         run: flutter create --platforms=android --project-name arvin .
+      - name: Ensure notification dependency
+        run: flutter pub add flutter_local_notifications:^9.9.1
       - name: Get dependencies
         run: flutter pub get
       - name: Analyze
@@ -34,4 +36,4 @@ jobs:
           name: arvin-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-# Trigger CI for the latest backup filename fix.
+# Ensure generated Android projects retain the notification dependency.
