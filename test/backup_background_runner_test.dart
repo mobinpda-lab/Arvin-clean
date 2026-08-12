@@ -1,6 +1,7 @@
 import 'package:arvin/backup_background_runner.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_notification_service.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +43,13 @@ class _FakeNotificationSink implements BackupNotificationSink {
   @override
   Future<void> showFailure(String message) async {
     failures.add(message);
+  }
+}
+
+class _ThrowingTaskStore extends TaskStore {
+  @override
+  Future<List<dynamic>> load() async {
+    throw const FormatException('invalid stored tasks');
   }
 }
 
@@ -163,16 +171,15 @@ void main() {
       payload: <String, dynamic>{'tasks': <dynamic>[]},
     );
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('arvin.tasks', '{"invalid":true}');
-
     final notifications = _FakeNotificationSink();
     final result = await BackupBackgroundRunner(
       backupService: _FakeBackupService(),
       notificationSink: notifications,
+      taskStore: _ThrowingTaskStore(),
     ).run();
 
     expect(result, isFalse);
     expect(notifications.failures, hasLength(1));
+    expect(notifications.failures.single, contains('invalid stored tasks'));
   });
 }
