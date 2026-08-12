@@ -16,10 +16,14 @@ jobs:
         with:
           channel: stable
           cache: true
+      # The clean repository intentionally contains only Flutter source.
+      # Generate the Android platform scaffold in CI before building the APK.
+      - run: flutter create --platforms=android --project-name arvin .
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
       - run: flutter build apk --release
+      - run: test -f build/app/outputs/flutter-apk/app-release.apk
       - uses: actions/upload-artifact@v4
         with:
           name: arvin-release-apk
