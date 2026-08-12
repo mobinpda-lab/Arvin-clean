@@ -1,19 +1,15 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
+import 'backup_background_runner.dart';
 import 'backup_schedule.dart';
 import 'backup_scheduler_adapter.dart';
 
 const int backupAlarmId = 41001;
 
 /// Entry point invoked by Android AlarmManager.
-///
-/// The actual backup operation is intentionally connected in a later step.
-/// Keeping this callback top-level makes it valid for Android's background
-/// isolate and lets us verify scheduling independently first.
 @pragma('vm:entry-point')
-void arvinBackupAlarmCallback() {
-  // Intentionally empty for this phase. The next phase will invoke the
-  // backup service from this background isolate.
+Future<void> arvinBackupAlarmCallback() async {
+  await BackupBackgroundRunner().run();
 }
 
 class AndroidBackupScheduler implements BackupSchedulerAdapter {
