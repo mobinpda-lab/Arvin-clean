@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/backup_schedule_page.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('backup schedule page shows Persian controls', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: BackupSchedulePage()),
