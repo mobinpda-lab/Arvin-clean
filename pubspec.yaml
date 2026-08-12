@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.5.3
-  persistent_user_dir_access_android: ^0.0.3
+  saf: ^2.1.0
 
 dev_dependencies:
   flutter_test:
