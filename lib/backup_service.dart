@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:persistent_user_dir_access_android/persistent_user_dir_access_android.dart';
+import 'package:saf/saf.dart';
 
-/// Android backup storage using the system directory picker (SAF).
+/// Portable Android backup service based on the Storage Access Framework.
 ///
-/// The selected directory URI can be persisted by the application and reused
-/// after restarts. Backup files are ordinary JSON files and can therefore be
-/// copied to another phone and restored there.
+/// The selected folder is granted by Android and can be used again after
+/// application restarts. Backup files are ordinary JSON documents, so they
+/// can be copied to another phone and restored there.
 class ArvinBackupService {
-  const ArvinBackupService({this.userDirs = const PersistentUserDirAccessAndroid()});
+  ArvinBackupService({Saf? safClient}) : saf = safClient ?? Saf();
 
-  final PersistentUserDirAccessAndroid userDirs;
+  final Saf saf;
 
-  Future<String> chooseDirectory() => userDirs.requestDirectoryUri();
+  Future<String?> chooseDirectory() async {
+    final directory = await saf.pickDirectory();
+    return directory?.uri;
+  }
 
   Future<void> writeBackup({
     required String directoryUri,
@@ -23,12 +26,17 @@ class ArvinBackupService {
     final bytes = Uint8List.fromList(
       utf8.encode(const JsonEncoder.withIndent('  ').convert(payload)),
     );
-    await userDirs.writeFile(
-      directoryUri,
-      fileName,
-      'application/json',
-      bytes,
-      true,
-    );
+    await saf.writeFileBytes(directoryUri, fileName, 'application/json', bytes);
+  }
+
+  Future<Map<String, dynamic>?> readBackup() async {
+    final file = await saf.pickFile();
+    if (file == null) return null;
+    final bytes = await saf.readFileBytes(file.uri);
+    final decoded = jsonDecode(utf8.decode(bytes));
+    if (decoded is! Map) {
+      throw const FormatException('Invalid Arvin backup format');
+    }
+    return Map<String, dynamic>.from(decoded);
   }
 }
