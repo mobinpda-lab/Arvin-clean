@@ -23,19 +23,33 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('android/app/build.gradle')
+
+          groovy = Path('android/app/build.gradle')
+          kotlin = Path('android/app/build.gradle.kts')
+          path = groovy if groovy.exists() else kotlin
+          if not path.exists():
+              raise SystemExit('Android app Gradle file not found')
+
           text = path.read_text()
-          start = text.index('compileOptions {')
-          end = text.index('}', start)
-          block = text[start:end]
-          if 'coreLibraryDesugaringEnabled true' not in block:
-              block = block.rstrip() + '\n        coreLibraryDesugaringEnabled true\n'
-              text = text[:start] + block + text[end:]
-          if 'com.android.tools:desugar_jdk_libs' not in text:
-              marker = 'dependencies {'
-              pos = text.index(marker) + len(marker)
-              text = text[:pos] + "\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'" + text[pos:]
+          if path.suffix == '.kts':
+              if 'isCoreLibraryDesugaringEnabled = true' not in text:
+                  start = text.index('compileOptions {')
+                  end = text.index('}', start)
+                  text = text[:end] + '\n        isCoreLibraryDesugaringEnabled = true' + text[end:]
+              if 'desugar_jdk_libs:2.1.5' not in text:
+                  pos = text.index('dependencies {') + len('dependencies {')
+                  text = text[:pos] + '\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' + text[pos:]
+          else:
+              if 'coreLibraryDesugaringEnabled true' not in text:
+                  start = text.index('compileOptions {')
+                  end = text.index('}', start)
+                  text = text[:end] + '\n        coreLibraryDesugaringEnabled true' + text[end:]
+              if 'desugar_jdk_libs:2.1.5' not in text:
+                  pos = text.index('dependencies {') + len('dependencies {')
+                  text = text[:pos] + "\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'" + text[pos:]
+
           path.write_text(text)
+          print(f'Configured {path}')
           PY
       - name: Ensure notification dependency
         run: flutter pub add flutter_local_notifications:^22.3.0
