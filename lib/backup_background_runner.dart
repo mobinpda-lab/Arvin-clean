@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'backup_notification_service.dart';
 import 'backup_service.dart';
+import 'services/task_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Runs the scheduled backup without depending on Flutter UI state.
@@ -9,13 +10,19 @@ class BackupBackgroundRunner {
   const BackupBackgroundRunner({
     ArvinBackupService? backupService,
     BackupNotificationSink? notificationSink,
+    TaskStore? taskStore,
   })  : _backupService = backupService,
-        _notificationSink = notificationSink;
+        _notificationSink = notificationSink,
+        _taskStore = taskStore;
 
   final ArvinBackupService? _backupService;
   final BackupNotificationSink? _notificationSink;
+  final TaskStore? _taskStore;
 
   static const String directoryUriKey = 'arvin.backup.directoryUri';
+
+  // Kept for backward compatibility with existing scheduled-backup settings.
+  // The runner no longer uses this snapshot when creating a backup.
   static const String payloadKey = 'arvin.backup.payload';
 
   static Future<void> saveConfiguration({
@@ -49,20 +56,29 @@ class BackupBackgroundRunner {
   Future<bool> run() async {
     final prefs = await SharedPreferences.getInstance();
     final directoryUri = prefs.getString(directoryUriKey);
-    final encodedPayload = prefs.getString(payloadKey);
 
-    if (directoryUri == null || directoryUri.isEmpty || encodedPayload == null) {
+    if (directoryUri == null || directoryUri.isEmpty) {
       return false;
     }
 
     try {
-      final decoded = jsonDecode(encodedPayload);
-      if (decoded is! Map) {
-        await _notifyFailure('تنظیمات پشتیبان‌گیری نامعتبر است.');
-        return false;
-      }
+      final tasks = await (_taskStore ?? TaskStore()).load();
+      final payload = <String, dynamic>{
+        'tasks': tasks
+            .map(
+              (task) => <String, dynamic>{
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'followUpDate': task.followUpDate?.toIso8601String(),
+                'tags': task.tags,
+                'archived': task.archived,
+                'trashed': task.trashed,
+              },
+            )
+            .toList(),
+      };
 
-      final payload = Map<String, dynamic>.from(decoded);
       final service = _backupService ?? ArvinBackupService();
       final fileName = service.createBackupFileName(DateTime.now());
       await service.writeBackup(
