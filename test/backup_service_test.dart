@@ -15,5 +15,58 @@ void main() {
       final name = service.createBackupFileName(DateTime(2026, 1, 2, 3, 4));
       expect(name, 'Arvin_Backup_1404-10-12_03-04.json');
     });
+
+    test('accepts a valid backup document', () {
+      final document = ArvinBackupService.validateBackupDocument({
+        'type': 'arvin_backup',
+        'formatVersion': 1,
+        'createdAt': '2026-08-12T15:00:00Z',
+        'tasks': <dynamic>[],
+      });
+
+      expect(document['type'], 'arvin_backup');
+      expect(document['formatVersion'], 1);
+      expect(document['tasks'], isEmpty);
+    });
+
+    test('rejects a non-map backup document', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument(<dynamic>[]),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a backup with the wrong type', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'other_app',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects an unsupported backup version', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 2,
+          'tasks': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects invalid tasks data', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
   });
 }
