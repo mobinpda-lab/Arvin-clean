@@ -70,46 +70,38 @@ class ArvinBackupService {
     final day = jalali.$3.toString().padLeft(2, '0');
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    return 'Arvin_Backup_$year-$month-$day-$hour-$minute.json';
+    return 'Arvin_Backup_$year-$month-${day}_$hour-$minute.json';
   }
 
   /// Converts a Gregorian date to the Jalali/Persian calendar.
   (int, int, int) _toJalali(int gy, int gm, int gd) {
-    final gregorianDay = _daysFromGregorianEpoch(gy, gm, gd);
-    var jy = 1 + ((gregorianDay - _jalaliEpochDay) ~/ 12053) * 33;
-    var remaining = (gregorianDay - _jalaliEpochDay) % 12053;
-    if (remaining < 0) {
-      jy -= 33;
-      remaining += 12053;
+    const gregorianMonthDays = <int>[0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+    var jy = gy > 1600 ? 979 : 0;
+    gy -= gy > 1600 ? 1600 : 621;
+
+    final gy2 = gm > 2 ? gy + 1 : gy;
+    var days =
+        365 * gy +
+        ((gy2 + 3) ~/ 4) -
+        ((gy2 + 99) ~/ 100) +
+        ((gy2 + 399) ~/ 400) -
+        80 +
+        gd +
+        gregorianMonthDays[gm - 1];
+
+    jy += 33 * (days ~/ 12053);
+    days %= 12053;
+    jy += 4 * (days ~/ 1461);
+    days %= 1461;
+
+    if (days > 365) {
+      jy += (days - 1) ~/ 365;
+      days = (days - 1) % 365;
     }
 
-    jy += (remaining ~/ 1461) * 4;
-    remaining %= 1461;
-
-    if (remaining > 365) {
-      jy += (remaining - 1) ~/ 365;
-      remaining = (remaining - 1) % 365;
-    }
-
-    final jd = remaining + 1;
-    final jm = jd <= 186 ? ((jd - 1) ~/ 31) + 1 : ((jd - 187) ~/ 30) + 7;
-    final day = jd <= 186 ? ((jd - 1) % 31) + 1 : ((jd - 187) % 30) + 1;
-    return (jy, jm, day);
+    final jm = days < 186 ? 1 + (days ~/ 31) : 7 + ((days - 186) ~/ 30);
+    final jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30);
+    return (jy, jm, jd);
   }
-
-  int _daysFromGregorianEpoch(int year, int month, int day) {
-    final a = (14 - month) ~/ 12;
-    final y = year + 4800 - a;
-    final m = month + 12 * a - 3;
-    return day +
-        ((153 * m + 2) ~/ 5) +
-        365 * y +
-        (y ~/ 4) -
-        (y ~/ 100) +
-        (y ~/ 400) -
-        32045;
-  }
-
-  // Julian day number for 1 Farvardin 1 (Jalali).
-  static const int _jalaliEpochDay = 1948320;
 }
