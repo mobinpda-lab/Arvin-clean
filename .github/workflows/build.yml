@@ -23,31 +23,35 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
-          groovy = Path('android/app/build.gradle')
-          kotlin = Path('android/app/build.gradle.kts')
-          path = groovy if groovy.exists() else kotlin
-          if not path.exists():
+          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
+          path = next((p for p in candidates if p.exists()), None)
+          if path is None:
+              found = sorted(Path('android').glob('**/build.gradle*'))
+              print('Gradle files found:', [str(p) for p in found])
               raise SystemExit('Android app Gradle file not found')
 
           text = path.read_text()
-          if 'compileOptions {' not in text:
-              raise SystemExit(f'compileOptions block not found in {path}')
+          is_kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
+          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
 
-          if path.name.endswith('.kts'):
-              if 'isCoreLibraryDesugaringEnabled = true' not in text:
-                  text = text.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
-              dependency = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")'
-          else:
-              if 'coreLibraryDesugaringEnabled true' not in text:
-                  text = text.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
-              dependency = "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
+          if flag not in text:
+              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
+              else:
+                  block = '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+                  dep_pos = text.find('dependencies {')
+                  text = text[:dep_pos] + block + text[dep_pos:] if dep_pos >= 0 else text + block
 
           if 'desugar_jdk_libs:2.1.5' not in text:
-              if 'dependencies {' in text:
-                  text = text.replace('dependencies {', f'dependencies {{\n    {dependency}', 1)
+              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
               else:
-                  text += f'\n\ndependencies {{\n    {dependency}\n}}\n'
+                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
 
           path.write_text(text)
           print(f'Configured {path}')
