@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_manager.dart';
@@ -223,77 +222,121 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
-  Future<void> _backup() async {
-    final fileName = await backupManager.backupTasks(
-      tasks.map((task) => task.toJson()).toList(),
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          fileName == null
-              ? 'ابتدا پوشه پشتیبان را انتخاب کنید'
-              : 'پشتیبان ذخیره شد: $fileName',
+  Future<void> _chooseBackupDirectory() async {
+    try {
+      final uri = await backupManager.chooseAndRememberDirectory();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uri == null
+                ? 'انتخاب پوشه لغو شد'
+                : 'پوشه پشتیبان با موفقیت انتخاب شد',
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('انتخاب پوشه ناموفق بود: $error')),
+        );
+      }
+    }
   }
 
-  Future<void> _chooseBackupDirectory() async {
-    final uri = await backupManager.chooseAndRememberDirectory();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          uri == null ? 'انتخاب پوشه لغو شد' : 'پوشه پشتیبان انتخاب و ذخیره شد',
+  Future<void> _backupToFolder() async {
+    try {
+      var directory = await backupManager.getDirectory();
+      if (directory == null || directory.isEmpty) {
+        directory = await backupManager.chooseAndRememberDirectory();
+      }
+      if (directory == null || directory.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ابتدا یک پوشه برای پشتیبان انتخاب کنید')),
+          );
+        }
+        return;
+      }
+
+      final fileName = await backupManager.backupTasks(
+        tasks.map((task) => task.toJson()).toList(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            fileName == null
+                ? 'پشتیبان‌گیری انجام نشد'
+                : 'پشتیبان ذخیره شد: $fileName',
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('پشتیبان‌گیری ناموفق بود: $error')),
+        );
+      }
+    }
   }
 
   Future<void> _restoreFromFile() async {
-    final currentDirectory = await backupManager.getDirectory();
-    if (currentDirectory != null && currentDirectory.isNotEmpty && tasks.isNotEmpty) {
-      await backupManager.backupTasks(
+    try {
+      final backup = await backupManager.restoreBackup();
+      if (backup == null) return;
+
+      final rawTasks = backup['tasks'];
+      if (rawTasks is! List) {
+        throw const FormatException('فهرست کارهای پشتیبان نامعتبر است');
+      }
+
+      final list = rawTasks
+          .map((item) => ArvinTask.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ))
+          .toList();
+
+      final emergencyBackup = await backupManager.backupTasks(
         tasks.map((task) => task.toJson()).toList(),
       );
-    }
 
-    final document = await backupManager.restoreBackup();
-    if (document == null) return;
-
-    final rawTasks = document['tasks'];
-    if (rawTasks is! List) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فایل پشتیبان فاقد اطلاعات معتبر است')),
-        );
-      }
-      return;
-    }
-
-    final restored = <ArvinTask>[];
-    try {
-      for (final item in rawTasks) {
-        restored.add(
-          ArvinTask.fromJson(Map<String, dynamic>.from(item as Map)),
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('اطلاعات داخل فایل پشتیبان نامعتبر است')),
-        );
-      }
-      return;
-    }
-
-    setState(() => tasks = restored);
-    await _save();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${restored.length} کار بازیابی شد')),
+      if (!mounted) return;
+      final approved = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('بازیابی اطلاعات'),
+          content: Text(
+            'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n\n'
+            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری نیز ساخته شد.'}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('لغو'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('بازیابی'),
+            ),
+          ],
+        ),
       );
+      if (approved != true) return;
+
+      setState(() => tasks = list);
+      await _save();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${list.length} کار با موفقیت بازیابی شد')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('بازیابی ناموفق بود: $error')),
+        );
+      }
     }
   }
 
@@ -318,7 +361,7 @@ class _HomePageState extends State<HomePage> {
                 title: const Text('ایجاد Backup'),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  _backup();
+                  _backupToFolder();
                 },
               ),
               ListTile(
@@ -329,27 +372,10 @@ class _HomePageState extends State<HomePage> {
                   _restoreFromFile();
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.content_copy),
-                title: const Text('کپی Backup قدیمی به کلیپ‌بورد'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _copyLegacyBackup();
-                },
-              ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Future<void> _copyLegacyBackup() async {
-    final text = jsonEncode(tasks.map((task) => task.toJson()).toList());
-    await Clipboard.setData(ClipboardData(text: text));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('نسخه پشتیبان در کلیپ‌بورد کپی شد')),
     );
   }
 
