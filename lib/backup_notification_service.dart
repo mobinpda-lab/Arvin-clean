@@ -24,7 +24,9 @@ class BackupNotificationService implements BackupNotificationSink {
     if (_initialized) return;
 
     const settings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(const InitializationSettings(android: settings));
+    await _plugin.initialize(
+      settings: const InitializationSettings(android: settings),
+    );
 
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -36,10 +38,10 @@ class BackupNotificationService implements BackupNotificationSink {
   Future<void> showSuccess(String fileName) async {
     await _ensureInitialized();
     await _plugin.show(
-      41002,
-      'پشتیبان‌گیری آروین',
-      'پشتیبان با موفقیت ساخته شد: $fileName',
-      const NotificationDetails(
+      id: 41002,
+      title: 'پشتیبان‌گیری آروین',
+      body: 'پشتیبان با موفقیت ساخته شد: $fileName',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'arvin_backup',
           'پشتیبان‌گیری آروین',
@@ -55,10 +57,10 @@ class BackupNotificationService implements BackupNotificationSink {
   Future<void> showFailure(String message) async {
     await _ensureInitialized();
     await _plugin.show(
-      41003,
-      'خطا در پشتیبان‌گیری آروین',
-      message,
-      const NotificationDetails(
+      id: 41003,
+      title: 'خطا در پشتیبان‌گیری آروین',
+      body: message,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'arvin_backup',
           'پشتیبان‌گیری آروین',
