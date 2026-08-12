@@ -26,6 +26,9 @@ Future<void> _pumpPage(
   required _RecordingScheduler scheduler,
   bool enabled = true,
 }) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(BackupSchedule.enabledKey, enabled);
+
   await tester.pumpWidget(
     MaterialApp(
       home: BackupSchedulePage(
@@ -35,11 +38,6 @@ Future<void> _pumpPage(
     ),
   );
   await tester.pumpAndSettle();
-
-  if (!enabled) {
-    await tester.tap(find.text('پشتیبان‌گیری خودکار'));
-    await tester.pump();
-  }
 }
 
 void main() {
@@ -58,7 +56,7 @@ void main() {
 
   testWidgets('saving an enabled schedule calls the scheduler', (tester) async {
     final scheduler = _RecordingScheduler();
-    await _pumpPage(tester, scheduler: scheduler);
+    await _pumpPage(tester, scheduler: scheduler, enabled: true);
 
     await tester.tap(find.text('ذخیره تنظیمات'));
     await tester.pumpAndSettle();
