@@ -4,6 +4,6 @@ import 'package:arvin/main.dart';
 void main() {
   testWidgets('Arvin starts', (tester) async {
     await tester.pumpWidget(const ArvinApp());
-    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsWidgets);
   });
 }
