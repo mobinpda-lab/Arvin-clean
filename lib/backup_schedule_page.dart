@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'android_backup_scheduler.dart';
+import 'backup_background_runner.dart';
+import 'backup_manager.dart';
 import 'backup_schedule.dart';
+import 'backup_scheduler_adapter.dart';
 
 class BackupSchedulePage extends StatefulWidget {
-  const BackupSchedulePage({super.key});
+  const BackupSchedulePage({
+    super.key,
+    this.loadTasks,
+    this.scheduler,
+    this.backupManager,
+  });
+
+  final Future<List<Map<String, dynamic>>> Function()? loadTasks;
+  final BackupSchedulerAdapter? scheduler;
+  final ArvinBackupManager? backupManager;
 
   @override
   State<BackupSchedulePage> createState() => _BackupSchedulePageState();
@@ -14,9 +27,14 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
   TimeOfDay? _time;
   bool _saving = false;
 
+  late final BackupSchedulerAdapter _scheduler;
+  late final ArvinBackupManager _backupManager;
+
   @override
   void initState() {
     super.initState();
+    _scheduler = widget.scheduler ?? AndroidBackupScheduler();
+    _backupManager = widget.backupManager ?? ArvinBackupManager();
     _load();
   }
 
@@ -44,13 +62,39 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
   Future<void> _save() async {
     final schedule = _schedule;
     if (schedule == null) return;
+
     setState(() => _saving = true);
-    await schedule.save();
-    if (!mounted) return;
-    setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تنظیمات پشتیبان‌گیری ذخیره شد')),
-    );
+    try {
+      await schedule.save();
+
+      if (!schedule.enabled) {
+        await BackupBackgroundRunner.clearConfiguration();
+        await _scheduler.cancel();
+      } else {
+        final directory = await _backupManager.getDirectory();
+        final loadTasks = widget.loadTasks;
+        if (directory != null && directory.isNotEmpty && loadTasks != null) {
+          final tasks = await loadTasks();
+          await BackupBackgroundRunner.saveConfiguration(
+            directoryUri: directory,
+            payload: <String, dynamic>{'tasks': tasks},
+          );
+        }
+        await _scheduler.schedule(schedule);
+      }
+
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تنظیمات پشتیبان‌گیری ذخیره شد')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ذخیره تنظیمات ناموفق بود: $error')),
+      );
+    }
   }
 
   @override
@@ -104,8 +148,10 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
   }
 
   String _formatDateTime(DateTime value) {
-    final date = '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    final date =
+        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
+    final time =
+        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
     return '$date ساعت $time';
   }
 }
