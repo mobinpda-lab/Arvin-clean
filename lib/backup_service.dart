@@ -45,6 +45,14 @@ class ArvinBackupService {
 
     final bytes = await saf.readFileBytes(file.uri);
     final decoded = jsonDecode(utf8.decode(bytes));
+    return validateBackupDocument(decoded);
+  }
+
+  /// Validates and normalizes a decoded backup document.
+  ///
+  /// Kept separate from Storage Access Framework I/O so the format contract
+  /// can be tested without requiring Android file-picker behavior.
+  static Map<String, dynamic> validateBackupDocument(Object? decoded) {
     if (decoded is! Map) {
       throw const FormatException('Invalid Arvin backup format');
     }
