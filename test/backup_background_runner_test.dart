@@ -76,6 +76,42 @@ void main() {
     expect(prefs.containsKey(BackupBackgroundRunner.payloadKey), isFalse);
   });
 
+  test('backs up the current TaskStore data end to end', () async {
+    final taskStore = TaskStore();
+    final task = Task(
+      id: 'e2e-1',
+      title: 'پشتیبان‌گیری واقعی',
+      description: 'آخرین اطلاعات کاربر',
+      tags: <String>['کار'],
+    );
+    await taskStore.save(<Task>[task]);
+    await BackupBackgroundRunner.saveConfiguration(
+      directoryUri: 'content://arvin/backups',
+      payload: <String, dynamic>{
+        'tasks': <Map<String, dynamic>>[
+          {'id': 'stale', 'title': 'Old snapshot'},
+        ],
+      },
+    );
+
+    final service = _FakeBackupService();
+    final notifications = _FakeNotificationSink();
+    final result = await BackupBackgroundRunner(
+      backupService: service,
+      notificationSink: notifications,
+      taskStore: taskStore,
+    ).run();
+
+    expect(result, isTrue);
+    final backedUpTasks = service.writtenPayload?['tasks'] as List;
+    expect(backedUpTasks, hasLength(1));
+    expect(backedUpTasks.single['id'], 'e2e-1');
+    expect(backedUpTasks.single['title'], 'پشتیبان‌گیری واقعی');
+    expect(backedUpTasks.single['description'], 'آخرین اطلاعات کاربر');
+    expect(backedUpTasks.single['tags'], ['کار']);
+    expect(notifications.successes, ['test-backup.json']);
+  });
+
   test('uses the latest tasks from TaskStore instead of the scheduled snapshot', () async {
     await BackupBackgroundRunner.saveConfiguration(
       directoryUri: 'content://arvin/backups',
