@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const ArvinApp());
@@ -72,8 +73,37 @@ class _HomePageState extends State<HomePage> {
   Future<void> _deleteForever(ArvinTask t) async { setState(() => tasks.removeWhere((x) => x.id == t.id)); await _save(); }
   void _toggle(ArvinTask t) { setState(() => t.completed = !t.completed); _save(); }
 
+  String _backupJson() => const JsonEncoder.withIndent('  ').convert({'format': 'arvin-backup-v1', 'createdAt': DateTime.now().toIso8601String(), 'tasks': tasks.map((e) => e.toJson()).toList()});
+  Future<void> _backup() async {
+    final data = _backupJson();
+    await Clipboard.setData(ClipboardData(text: data));
+    if (!mounted) return;
+    await showDialog<void>(context: context, builder: (_) => AlertDialog(title: const Text('پشتیبان‌گیری'), content: const Text('نسخه پشتیبان به صورت JSON ساخته و در کلیپ‌بورد کپی شد. آن را در یک فایل متنی امن ذخیره کنید.'), actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('متوجه شدم'))]));
+  }
+  Future<void> _restoreBackup() async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(context: context, builder: (_) => AlertDialog(title: const Text('بازیابی پشتیبان'), content: TextField(controller: controller, minLines: 8, maxLines: 14, decoration: const InputDecoration(hintText: 'JSON پشتیبان را اینجا وارد کنید')), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('لغو')), FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('بازیابی'))]));
+    controller.dispose();
+    if (value == null || value.trim().isEmpty) return;
+    try {
+      final decoded = jsonDecode(value) as Map<String, dynamic>;
+      if (decoded['format'] != 'arvin-backup-v1' || decoded['tasks'] is! List) throw const FormatException();
+      final restored = (decoded['tasks'] as List<dynamic>).map((e) => ArvinTask.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      setState(() { tasks = restored; selected.clear(); selectionMode = false; filter = 'فعال'; query = ''; });
+      await _save();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${restored.length} کار بازیابی شد')));
+    } catch (_) {
+      if (!mounted) return;
+      await showDialog<void>(context: context, builder: (_) => AlertDialog(title: const Text('پشتیبان نامعتبر'), content: const Text('ساختار JSON پشتیبان آروین معتبر نیست.'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('باشه'))]));
+    }
+  }
+  Future<void> _backupMenu() async {
+    await showModalBottomSheet<void>(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.backup_outlined), title: const Text('ایجاد پشتیبان'), subtitle: const Text('ساخت JSON و کپی در کلیپ‌بورد'), onTap: () { Navigator.pop(context); _backup(); }), ListTile(leading: const Icon(Icons.restore_outlined), title: const Text('بازیابی پشتیبان'), subtitle: const Text('وارد کردن JSON ذخیره‌شده'), onTap: () { Navigator.pop(context); _restoreBackup(); })])));
+  }
+
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(centerTitle: true, title: const Column(mainAxisSize: MainAxisSize.min, children: [Text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ', style: TextStyle(fontSize: 13)), SizedBox(height: 3), Text('مدیریت کارها وپیگیری آروین', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700))]), actions: [IconButton(onPressed: () => setState(() { selectionMode = !selectionMode; if (!selectionMode) selected.clear(); }), icon: Icon(selectionMode ? Icons.close : Icons.checklist))]),
+    appBar: AppBar(centerTitle: true, title: const Column(mainAxisSize: MainAxisSize.min, children: [Text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ', style: TextStyle(fontSize: 13)), SizedBox(height: 3), Text('مدیریت کارها وپیگیری آروین', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700))]), actions: [IconButton(onPressed: _backupMenu, tooltip: 'پشتیبان', icon: const Icon(Icons.backup_outlined)), IconButton(onPressed: () => setState(() { selectionMode = !selectionMode; if (!selectionMode) selected.clear(); }), icon: Icon(selectionMode ? Icons.close : Icons.checklist))]),
     body: loading ? const Center(child: CircularProgressIndicator()) : Column(children: [
       Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 4), child: TextField(onChanged: (v) => setState(() => query = v), decoration: const InputDecoration(prefixIcon: Icon(Icons.search), labelText: 'جست‌وجو'))),
       SizedBox(height: 52, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), children: ['فعال', 'بایگانی', 'سطل زباله'].map<Widget>((f) => Padding(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8), child: ChoiceChip(label: Text(f), selected: filter == f, onSelected: (_) => setState(() => filter = f))).toList())),
