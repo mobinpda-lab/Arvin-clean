@@ -31,22 +31,22 @@ jobs:
               raise SystemExit('Android app Gradle file not found')
 
           text = path.read_text()
-          if path.suffix == '.kts':
+          if 'compileOptions {' not in text:
+              raise SystemExit(f'compileOptions block not found in {path}')
+          if 'dependencies {' not in text:
+              raise SystemExit(f'dependencies block not found in {path}')
+
+          if path.name.endswith('.kts'):
               if 'isCoreLibraryDesugaringEnabled = true' not in text:
-                  start = text.index('compileOptions {')
-                  end = text.index('}', start)
-                  text = text[:end] + '\n        isCoreLibraryDesugaringEnabled = true' + text[end:]
-              if 'desugar_jdk_libs:2.1.5' not in text:
-                  pos = text.index('dependencies {') + len('dependencies {')
-                  text = text[:pos] + '\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' + text[pos:]
+                  text = text.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
+              dependency = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")'
           else:
               if 'coreLibraryDesugaringEnabled true' not in text:
-                  start = text.index('compileOptions {')
-                  end = text.index('}', start)
-                  text = text[:end] + '\n        coreLibraryDesugaringEnabled true' + text[end:]
-              if 'desugar_jdk_libs:2.1.5' not in text:
-                  pos = text.index('dependencies {') + len('dependencies {')
-                  text = text[:pos] + "\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'" + text[pos:]
+                  text = text.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
+              dependency = "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
+
+          if 'desugar_jdk_libs:2.1.5' not in text:
+              text = text.replace('dependencies {', f'dependencies {{\n    {dependency}', 1)
 
           path.write_text(text)
           print(f'Configured {path}')
