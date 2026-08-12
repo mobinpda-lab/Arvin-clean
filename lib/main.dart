@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'backup_manager.dart';
+
 void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatelessWidget {
@@ -102,6 +104,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskRepository repo = TaskRepository();
+  final ArvinBackupManager backupManager = ArvinBackupManager();
   List<ArvinTask> tasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
@@ -221,45 +224,76 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _backup() async {
-    final text = jsonEncode(tasks.map((task) => task.toJson()).toList());
-    await Clipboard.setData(ClipboardData(text: text));
+    final fileName = await backupManager.backupTasks(
+      tasks.map((task) => task.toJson()).toList(),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('نسخه پشتیبان در کلیپ‌بورد کپی شد')),
+      SnackBar(
+        content: Text(
+          fileName == null
+              ? 'ابتدا پوشه پشتیبان را انتخاب کنید'
+              : 'پشتیبان ذخیره شد: $fileName',
+        ),
+      ),
     );
   }
 
-  Future<void> _restoreFromClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text;
-    if (text == null || text.trim().isEmpty) {
+  Future<void> _chooseBackupDirectory() async {
+    final uri = await backupManager.chooseAndRememberDirectory();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          uri == null ? 'انتخاب پوشه لغو شد' : 'پوشه پشتیبان انتخاب و ذخیره شد',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _restoreFromFile() async {
+    final currentDirectory = await backupManager.getDirectory();
+    if (currentDirectory != null && currentDirectory.isNotEmpty && tasks.isNotEmpty) {
+      await backupManager.backupTasks(
+        tasks.map((task) => task.toJson()).toList(),
+      );
+    }
+
+    final document = await backupManager.restoreBackup();
+    if (document == null) return;
+
+    final rawTasks = document['tasks'];
+    if (rawTasks is! List) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('اطلاعات پشتیبان در کلیپ‌بورد وجود ندارد')),
+          const SnackBar(content: Text('فایل پشتیبان فاقد اطلاعات معتبر است')),
         );
       }
       return;
     }
 
+    final restored = <ArvinTask>[];
     try {
-      final list = (jsonDecode(text) as List<dynamic>)
-          .map((item) => ArvinTask.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ))
-          .toList();
-      setState(() => tasks = list);
-      await _save();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('اطلاعات با موفقیت بازیابی شد')),
+      for (final item in rawTasks) {
+        restored.add(
+          ArvinTask.fromJson(Map<String, dynamic>.from(item as Map)),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فرمت پشتیبان نامعتبر است')),
+          const SnackBar(content: Text('اطلاعات داخل فایل پشتیبان نامعتبر است')),
         );
       }
+      return;
+    }
+
+    setState(() => tasks = restored);
+    await _save();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${restored.length} کار بازیابی شد')),
+      );
     }
   }
 
@@ -272,7 +306,15 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.copy),
+                leading: const Icon(Icons.folder_outlined),
+                title: const Text('انتخاب پوشه پشتیبان'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _chooseBackupDirectory();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.backup_outlined),
                 title: const Text('ایجاد Backup'),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -281,16 +323,33 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 leading: const Icon(Icons.restore),
-                title: const Text('Restore از کلیپ‌بورد'),
+                title: const Text('Restore از فایل'),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  _restoreFromClipboard();
+                  _restoreFromFile();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.content_copy),
+                title: const Text('کپی Backup قدیمی به کلیپ‌بورد'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _copyLegacyBackup();
                 },
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Future<void> _copyLegacyBackup() async {
+    final text = jsonEncode(tasks.map((task) => task.toJson()).toList());
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('نسخه پشتیبان در کلیپ‌بورد کپی شد')),
     );
   }
 
