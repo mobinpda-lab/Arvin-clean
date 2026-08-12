@@ -18,6 +18,25 @@ jobs:
           cache: true
       - name: Generate Android platform
         run: flutter create --platforms=android --project-name arvin .
+      - name: Configure Android desugaring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('android/app/build.gradle')
+          text = path.read_text()
+          start = text.index('compileOptions {')
+          end = text.index('}', start)
+          block = text[start:end]
+          if 'coreLibraryDesugaringEnabled true' not in block:
+              block = block.rstrip() + '\n        coreLibraryDesugaringEnabled true\n'
+              text = text[:start] + block + text[end:]
+          if 'com.android.tools:desugar_jdk_libs' not in text:
+              marker = 'dependencies {'
+              pos = text.index(marker) + len(marker)
+              text = text[:pos] + "\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'" + text[pos:]
+          path.write_text(text)
+          PY
       - name: Ensure notification dependency
         run: flutter pub add flutter_local_notifications:^22.3.0
       - name: Get dependencies
@@ -36,4 +55,4 @@ jobs:
           name: arvin-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-# Ensure generated Android projects retain the notification dependency.
+# Ensure generated Android projects retain the notification dependency and desugaring configuration.
