@@ -36,8 +36,8 @@ class AndroidBackupScheduler implements BackupSchedulerAdapter {
     if (!schedule.enabled) return;
 
     await AndroidAlarmManager.oneShotAt(
-      backupAlarmId,
       schedule.nextRun(),
+      backupAlarmId,
       arvinBackupAlarmCallback,
       exact: true,
       wakeup: true,
