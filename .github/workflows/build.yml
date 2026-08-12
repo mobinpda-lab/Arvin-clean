@@ -28,8 +28,6 @@ jobs:
           candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
           path = next((p for p in candidates if p.exists()), None)
           if path is None:
-              found = sorted(Path('android').glob('**/build.gradle*'))
-              print('Gradle files found:', [str(p) for p in found])
               raise SystemExit('Android app Gradle file not found')
 
           text = path.read_text()
@@ -56,8 +54,6 @@ jobs:
           path.write_text(text)
           print(f'Configured {path}')
           PY
-      - name: Ensure notification dependency
-        run: flutter pub add flutter_local_notifications:^22.3.0
       - name: Get dependencies
         run: flutter pub get
       - name: Analyze
