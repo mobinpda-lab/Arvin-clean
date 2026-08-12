@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/backup_schedule.dart';
-import '../lib/backup_scheduler_adapter.dart';
+import 'package:arvin/backup_schedule.dart';
+import 'package:arvin/backup_scheduler_adapter.dart';
 
 void main() {
   test('noop scheduler accepts a schedule without changing backup data', () async {
