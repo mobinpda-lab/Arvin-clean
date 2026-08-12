@@ -1,6 +1,7 @@
 import 'package:arvin/backup_background_runner.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_notification_service.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,9 +23,7 @@ class _FakeBackupService extends ArvinBackupService {
     required Map<String, dynamic> payload,
     required String fileName,
   }) async {
-    if (shouldFail) {
-      throw StateError('backup failed');
-    }
+    if (shouldFail) throw StateError('backup failed');
     wroteBackup = true;
     writtenFileName = fileName;
     writtenPayload = payload;
@@ -36,47 +35,30 @@ class _FakeNotificationSink implements BackupNotificationSink {
   final List<String> failures = <String>[];
 
   @override
-  Future<void> showSuccess(String fileName) async {
-    successes.add(fileName);
-  }
+  Future<void> showSuccess(String fileName) async => successes.add(fileName);
 
   @override
-  Future<void> showFailure(String message) async {
-    failures.add(message);
-  }
+  Future<void> showFailure(String message) async => failures.add(message);
 }
 
 class _ThrowingTaskStore extends TaskStore {
   @override
-  Future<List<dynamic>> load() async {
+  Future<List<Task>> load() async {
     throw const FormatException('invalid stored tasks');
   }
 }
 
 void main() {
-  setUp(() {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-  });
+  setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
 
   test('persists background backup configuration', () async {
     await BackupBackgroundRunner.saveConfiguration(
       directoryUri: 'content://arvin/backups',
-      payload: <String, dynamic>{
-        'tasks': <Map<String, dynamic>>[
-          {'title': 'Task 1'},
-        ],
-      },
+      payload: <String, dynamic>{'tasks': <Map<String, dynamic>>[{'title': 'Task 1'}]},
     );
-
     final prefs = await SharedPreferences.getInstance();
-    expect(
-      prefs.getString(BackupBackgroundRunner.directoryUriKey),
-      'content://arvin/backups',
-    );
-    expect(
-      prefs.getString(BackupBackgroundRunner.payloadKey),
-      contains('Task 1'),
-    );
+    expect(prefs.getString(BackupBackgroundRunner.directoryUriKey), 'content://arvin/backups');
+    expect(prefs.getString(BackupBackgroundRunner.payloadKey), contains('Task 1'));
   });
 
   test('returns false when background configuration is missing', () async {
@@ -89,7 +71,6 @@ void main() {
       payload: <String, dynamic>{'tasks': <dynamic>[]},
     );
     await BackupBackgroundRunner.clearConfiguration();
-
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.containsKey(BackupBackgroundRunner.directoryUriKey), isFalse);
     expect(prefs.containsKey(BackupBackgroundRunner.payloadKey), isFalse);
@@ -98,49 +79,24 @@ void main() {
   test('uses the latest tasks from TaskStore instead of the scheduled snapshot', () async {
     await BackupBackgroundRunner.saveConfiguration(
       directoryUri: 'content://arvin/backups',
-      payload: <String, dynamic>{
-        'tasks': <Map<String, dynamic>>[
-          {'id': 'old', 'title': 'Old snapshot'},
-        ],
-      },
+      payload: <String, dynamic>{'tasks': <Map<String, dynamic>>[{'id': 'old', 'title': 'Old snapshot'}]},
     );
-
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'arvin.tasks',
-      '[{"id":"latest","title":"Latest task","description":"Updated","followUpDate":null,"tags":["کار"],"archived":false,"trashed":false}]',
-    );
-
+    await prefs.setString('arvin.tasks', '[{"id":"latest","title":"Latest task","description":"Updated","followUpDate":null,"tags":["کار"],"archived":false,"trashed":false}]');
     final service = _FakeBackupService();
     final notifications = _FakeNotificationSink();
-
-    final result = await BackupBackgroundRunner(
-      backupService: service,
-      notificationSink: notifications,
-    ).run();
-
+    final result = await BackupBackgroundRunner(backupService: service, notificationSink: notifications).run();
     expect(result, isTrue);
     expect(service.writtenPayload?['tasks'], hasLength(1));
-    expect(
-      (service.writtenPayload?['tasks'] as List).single['title'],
-      'Latest task',
-    );
+    expect((service.writtenPayload?['tasks'] as List).single['title'], 'Latest task');
     expect(notifications.successes, ['test-backup.json']);
   });
 
   test('shows success notification after a background backup', () async {
-    await BackupBackgroundRunner.saveConfiguration(
-      directoryUri: 'content://arvin/backups',
-      payload: <String, dynamic>{'tasks': <dynamic>[]},
-    );
+    await BackupBackgroundRunner.saveConfiguration(directoryUri: 'content://arvin/backups', payload: <String, dynamic>{'tasks': <dynamic>[]});
     final service = _FakeBackupService();
     final notifications = _FakeNotificationSink();
-
-    final result = await BackupBackgroundRunner(
-      backupService: service,
-      notificationSink: notifications,
-    ).run();
-
+    final result = await BackupBackgroundRunner(backupService: service, notificationSink: notifications).run();
     expect(result, isTrue);
     expect(service.wroteBackup, isTrue);
     expect(service.writtenFileName, 'test-backup.json');
@@ -149,35 +105,18 @@ void main() {
   });
 
   test('shows failure notification when background backup fails', () async {
-    await BackupBackgroundRunner.saveConfiguration(
-      directoryUri: 'content://arvin/backups',
-      payload: <String, dynamic>{'tasks': <dynamic>[]},
-    );
+    await BackupBackgroundRunner.saveConfiguration(directoryUri: 'content://arvin/backups', payload: <String, dynamic>{'tasks': <dynamic>[]});
     final notifications = _FakeNotificationSink();
-
-    final result = await BackupBackgroundRunner(
-      backupService: _FakeBackupService(shouldFail: true),
-      notificationSink: notifications,
-    ).run();
-
+    final result = await BackupBackgroundRunner(backupService: _FakeBackupService(shouldFail: true), notificationSink: notifications).run();
     expect(result, isFalse);
     expect(notifications.successes, isEmpty);
     expect(notifications.failures.single, contains('backup failed'));
   });
 
   test('shows failure notification when stored tasks are invalid', () async {
-    await BackupBackgroundRunner.saveConfiguration(
-      directoryUri: 'content://arvin/backups',
-      payload: <String, dynamic>{'tasks': <dynamic>[]},
-    );
-
+    await BackupBackgroundRunner.saveConfiguration(directoryUri: 'content://arvin/backups', payload: <String, dynamic>{'tasks': <dynamic>[]});
     final notifications = _FakeNotificationSink();
-    final result = await BackupBackgroundRunner(
-      backupService: _FakeBackupService(),
-      notificationSink: notifications,
-      taskStore: _ThrowingTaskStore(),
-    ).run();
-
+    final result = await BackupBackgroundRunner(backupService: _FakeBackupService(), notificationSink: notifications, taskStore: _ThrowingTaskStore()).run();
     expect(result, isFalse);
     expect(notifications.failures, hasLength(1));
     expect(notifications.failures.single, contains('invalid stored tasks'));
