@@ -1,6 +1,47 @@
 import 'package:arvin/backup_background_runner.dart';
+import 'package:arvin/backup_service.dart';
+import 'package:arvin/backup_notification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeBackupService extends ArvinBackupService {
+  _FakeBackupService({this.shouldFail = false});
+
+  final bool shouldFail;
+  bool wroteBackup = false;
+  String? writtenFileName;
+
+  @override
+  String createBackupFileName(DateTime dateTime) => 'test-backup.json';
+
+  @override
+  Future<void> writeBackup({
+    required String directoryUri,
+    required Map<String, dynamic> payload,
+    required String fileName,
+  }) async {
+    if (shouldFail) {
+      throw StateError('backup failed');
+    }
+    wroteBackup = true;
+    writtenFileName = fileName;
+  }
+}
+
+class _FakeNotificationSink implements BackupNotificationSink {
+  final List<String> successes = <String>[];
+  final List<String> failures = <String>[];
+
+  @override
+  Future<void> showSuccess(String fileName) async {
+    successes.add(fileName);
+  }
+
+  @override
+  Future<void> showFailure(String message) async {
+    failures.add(message);
+  }
+}
 
 void main() {
   setUp(() {
@@ -42,5 +83,61 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.containsKey(BackupBackgroundRunner.directoryUriKey), isFalse);
     expect(prefs.containsKey(BackupBackgroundRunner.payloadKey), isFalse);
+  });
+
+  test('shows success notification after a background backup', () async {
+    await BackupBackgroundRunner.saveConfiguration(
+      directoryUri: 'content://arvin/backups',
+      payload: <String, dynamic>{'tasks': <dynamic>[]},
+    );
+    final service = _FakeBackupService();
+    final notifications = _FakeNotificationSink();
+
+    final result = await BackupBackgroundRunner(
+      backupService: service,
+      notificationSink: notifications,
+    ).run();
+
+    expect(result, isTrue);
+    expect(service.wroteBackup, isTrue);
+    expect(service.writtenFileName, 'test-backup.json');
+    expect(notifications.successes, ['test-backup.json']);
+    expect(notifications.failures, isEmpty);
+  });
+
+  test('shows failure notification when background backup fails', () async {
+    await BackupBackgroundRunner.saveConfiguration(
+      directoryUri: 'content://arvin/backups',
+      payload: <String, dynamic>{'tasks': <dynamic>[]},
+    );
+    final notifications = _FakeNotificationSink();
+
+    final result = await BackupBackgroundRunner(
+      backupService: _FakeBackupService(shouldFail: true),
+      notificationSink: notifications,
+    ).run();
+
+    expect(result, isFalse);
+    expect(notifications.successes, isEmpty);
+    expect(notifications.failures.single, contains('backup failed'));
+  });
+
+  test('shows failure notification for invalid background payload', () async {
+    await BackupBackgroundRunner.saveConfiguration(
+      directoryUri: 'content://arvin/backups',
+      payload: <String, dynamic>{'invalid': true},
+    );
+    final notifications = _FakeNotificationSink();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(BackupBackgroundRunner.payloadKey, '[]');
+
+    final result = await BackupBackgroundRunner(
+      backupService: _FakeBackupService(),
+      notificationSink: notifications,
+    ).run();
+
+    expect(result, isFalse);
+    expect(notifications.failures.single, contains('نامعتبر'));
   });
 }
