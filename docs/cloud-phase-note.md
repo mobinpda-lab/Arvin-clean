@@ -1,0 +1,1 @@
+Cloud phase: Dropbox transport is implemented behind an injectable HTTP request boundary. Next: wire secure settings and provider into the application manager, then run full CI.
