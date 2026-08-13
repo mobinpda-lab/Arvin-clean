@@ -5,7 +5,8 @@ import '../lib/calendar_page.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
-    final day = DateTime(2026, 8, 13);
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -20,7 +21,7 @@ void main() {
               CalendarReminder(
                 id: '2',
                 title: 'جلسه تیم',
-                date: DateTime(2026, 8, 14),
+                date: day.add(const Duration(days: 1)),
               ),
             ],
           ),
