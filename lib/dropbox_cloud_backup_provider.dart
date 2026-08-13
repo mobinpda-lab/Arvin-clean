@@ -4,9 +4,6 @@ import 'dart:typed_data';
 import 'cloud_backup_provider.dart';
 
 /// Minimal Dropbox implementation for Arvin cloud backups.
-///
-/// Authentication is intentionally injected as an OAuth access token so this
-/// provider stays independent from the UI/authentication flow.
 class DropboxCloudBackupProvider implements CloudBackupProvider {
   DropboxCloudBackupProvider({
     required this.accessToken,
@@ -58,7 +55,6 @@ class DropboxCloudBackupProvider implements CloudBackupProvider {
   }
 }
 
-/// Small injectable transport used by [DropboxCloudBackupProvider].
 class DropboxHttpClient {
   static const _apiBase = 'https://api.dropboxapi.com/2';
   static const _contentBase = 'https://content.dropboxapi.com/2';
@@ -125,10 +121,7 @@ class DropboxHttpClient {
     required String token,
     Map<String, String> headers = const {},
     Uint8List? body,
-  }) async {
-    // Uses dart:io through a tiny platform-independent adapter below.
-    return _defaultRequest(method, url, token, headers, body);
-  }
+  }) => _defaultRequest(method, url, token, headers, body);
 
   Future<DropboxHttpResponse> _defaultRequest(
     String method,
@@ -137,8 +130,6 @@ class DropboxHttpClient {
     Map<String, String> headers,
     Uint8List? body,
   ) async {
-    // Kept behind a method boundary so the API transport can be replaced by
-    // an injected client when unit-testing or integrating a custom HTTP stack.
     throw UnsupportedError(
       'DropboxHttpClient requires a platform HTTP adapter',
     );
@@ -154,7 +145,7 @@ class DropboxHttpClient {
 class DropboxHttpResponse {
   const DropboxHttpResponse({
     required this.statusCode,
-    this.bodyBytes = const <int>[],
+    required this.bodyBytes,
   });
 
   final int statusCode;
