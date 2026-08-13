@@ -3,18 +3,27 @@ import 'dart:typed_data';
 
 import 'package:saf/saf.dart';
 
+import 'cloud_backup_provider.dart';
+
 /// Portable Android backup service based on the Storage Access Framework.
 ///
 /// Backup documents are ordinary JSON files and can be copied to another
 /// phone. The filename uses the Persian (Jalali) calendar for easy sorting
 /// and identification by the user.
+///
+/// A cloud provider is optional. Local Android backup remains available when
+/// no provider is configured, while configured providers receive the exact
+/// same validated backup bytes.
 class ArvinBackupService {
-  ArvinBackupService({Saf? safClient}) : saf = safClient ?? Saf();
+  ArvinBackupService({Saf? safClient, CloudBackupProvider? cloudProvider})
+      : saf = safClient ?? Saf(),
+        cloudProvider = cloudProvider;
 
   static const int backupFormatVersion = 1;
   static const String backupType = 'arvin_backup';
 
   final Saf saf;
+  final CloudBackupProvider? cloudProvider;
 
   Future<String?> chooseDirectory() async {
     final directory = await saf.pickDirectory();
@@ -25,18 +34,35 @@ class ArvinBackupService {
     required String directoryUri,
     required Map<String, dynamic> payload,
     required String fileName,
+    bool uploadToCloud = true,
   }) async {
-    final document = <String, dynamic>{
-      'type': backupType,
-      'formatVersion': backupFormatVersion,
-      'createdAt': DateTime.now().toIso8601String(),
-      'tasks': payload['tasks'] ?? const <dynamic>[],
-    };
-
-    final bytes = Uint8List.fromList(
-      utf8.encode(const JsonEncoder.withIndent('  ').convert(document)),
-    );
+    final bytes = encodeBackupDocument(payload);
     await saf.writeFileBytes(directoryUri, fileName, 'application/json', bytes);
+
+    if (uploadToCloud && cloudProvider != null) {
+      await cloudProvider!.uploadBackup(fileName: fileName, bytes: bytes);
+    }
+  }
+
+  /// Downloads a cloud backup and validates it using the same format contract
+  /// as local backups. Returns null when the provider has no such file.
+  Future<Map<String, dynamic>?> readCloudBackup(String fileName) async {
+    final provider = cloudProvider;
+    if (provider == null) {
+      throw StateError('No cloud backup provider configured');
+    }
+
+    final bytes = await provider.downloadBackup(fileName);
+    if (bytes == null) return null;
+    return validateBackupDocument(jsonDecode(utf8.decode(bytes)));
+  }
+
+  Future<void> deleteCloudBackup(String fileName) async {
+    final provider = cloudProvider;
+    if (provider == null) {
+      throw StateError('No cloud backup provider configured');
+    }
+    await provider.deleteBackup(fileName);
   }
 
   Future<Map<String, dynamic>?> readBackup() async {
@@ -46,6 +72,20 @@ class ArvinBackupService {
     final bytes = await saf.readFileBytes(file.uri);
     final decoded = jsonDecode(utf8.decode(bytes));
     return validateBackupDocument(decoded);
+  }
+
+  /// Serializes the canonical Arvin backup document.
+  static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
+    final document = <String, dynamic>{
+      'type': backupType,
+      'formatVersion': backupFormatVersion,
+      'createdAt': DateTime.now().toIso8601String(),
+      'tasks': payload['tasks'] ?? const <dynamic>[],
+    };
+
+    return Uint8List.fromList(
+      utf8.encode(const JsonEncoder.withIndent('  ').convert(document)),
+    );
   }
 
   /// Validates and normalizes a decoded backup document.
