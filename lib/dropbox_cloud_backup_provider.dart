@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'cloud_backup_provider.dart';
@@ -90,7 +91,7 @@ class DropboxHttpClient {
       },
     );
     _check(response);
-    return Uint8List.fromList(response.bodyBytes);
+    return response.bodyBytes;
   }
 
   Future<void> delete(String token, String path) async {
@@ -121,18 +122,25 @@ class DropboxHttpClient {
     required String token,
     Map<String, String> headers = const {},
     Uint8List? body,
-  }) => _defaultRequest(method, url, token, headers, body);
-
-  Future<DropboxHttpResponse> _defaultRequest(
-    String method,
-    String url,
-    String token,
-    Map<String, String> headers,
-    Uint8List? body,
-  ) async {
-    throw UnsupportedError(
-      'DropboxHttpClient requires a platform HTTP adapter',
-    );
+  }) async {
+    final client = HttpClient();
+    try {
+      final request = await client.openUrl(method, Uri.parse(url));
+      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
+      headers.forEach(request.headers.set);
+      if (body != null) request.add(body);
+      final response = await request.close();
+      final bytes = await response.fold<List<int>>(<int>[], (buffer, chunk) {
+        buffer.addAll(chunk);
+        return buffer;
+      });
+      return DropboxHttpResponse(
+        statusCode: response.statusCode,
+        bodyBytes: Uint8List.fromList(bytes),
+      );
+    } finally {
+      client.close(force: true);
+    }
   }
 
   void _check(DropboxHttpResponse response) {
