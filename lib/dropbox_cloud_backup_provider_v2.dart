@@ -94,7 +94,7 @@ class DropboxHttpClient {
       },
     );
     _check(r);
-    return r.bodyBytes;
+    return Uint8List.fromList(r.bodyBytes);
   }
 
   Future<void> delete(String token, String path) async => _check(await _request(
@@ -102,9 +102,7 @@ class DropboxHttpClient {
         url: '$_api/files/delete_v2',
         token: token,
         headers: {'Content-Type': 'application/json'},
-        body: Uint8List.fromList(
-          utf8.encode(jsonEncode({'path': path})),
-        ),
+        body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
       ));
 
   Future<void> metadata(String token, String path) async => _check(await _request(
@@ -112,9 +110,7 @@ class DropboxHttpClient {
         url: '$_api/files/get_metadata',
         token: token,
         headers: {'Content-Type': 'application/json'},
-        body: Uint8List.fromList(
-          utf8.encode(jsonEncode({'path': path})),
-        ),
+        body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
       ));
 
   static Future<DropboxHttpResponse> _defaultRequest({
@@ -131,9 +127,9 @@ class DropboxHttpClient {
       headers.forEach(request.headers.set);
       if (body != null) request.add(body);
       final response = await request.close();
-      final bytes = await response.fold<List<int>>(
+      final List<int> bytes = await response.fold<List<int>>(
         <int>[],
-        (a, b) => a..addAll(b),
+        (List<int> a, List<int> b) => a..addAll(b),
       );
       return DropboxHttpResponse(
         statusCode: response.statusCode,
