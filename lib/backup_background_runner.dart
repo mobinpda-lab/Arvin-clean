@@ -74,6 +74,7 @@ class BackupBackgroundRunner {
                 'tags': task.tags,
                 'archived': task.archived,
                 'trashed': task.trashed,
+                'completed': task.completed,
               },
             )
             .toList(),
