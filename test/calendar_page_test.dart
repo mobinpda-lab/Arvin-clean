@@ -31,6 +31,7 @@ void main() {
 
     expect(find.text('تماس با مشتری'), findsOneWidget);
     expect(find.text('جلسه تیم'), findsNothing);
+    expect(find.textContaining('۱۴۰۵/۰۵'), findsOneWidget);
     expect(find.textContaining('ساعت ۱۰:۳۰'), findsOneWidget);
     expect(find.textContaining('۱۴۰۵/۰۵/۲۲'), findsOneWidget);
   });
