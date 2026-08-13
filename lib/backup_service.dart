@@ -15,6 +15,10 @@ import 'cloud_backup_provider.dart';
 /// no provider is configured, while configured providers receive the exact
 /// same validated backup bytes.
 class ArvinBackupService {
+  // The fallback Saf instance must be created when no client is injected, so
+  // this assignment cannot use an initializing formal without changing the
+  // constructor's dependency-injection behavior.
+  // ignore: prefer_initializing_formals
   ArvinBackupService({Saf? safClient, this.cloudProvider}) : saf = safClient ?? Saf();
 
   static const int backupFormatVersion = 1;
