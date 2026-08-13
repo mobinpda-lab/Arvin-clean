@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A reminder projected onto Arvin's calendar.
-///
-/// The DateTime remains the single source of truth, including its time. The
-/// calendar only converts it for Persian/Jalali presentation.
 class CalendarReminder {
   const CalendarReminder({
     required this.id,
@@ -20,16 +16,11 @@ class CalendarReminder {
 
 class _JalaliDate {
   const _JalaliDate(this.year, this.month, this.day);
-
   final int year;
   final int month;
   final int day;
 }
 
-/// Internal calendar view for Arvin reminders.
-///
-/// Gregorian DateTime values are kept internally so existing storage and
-/// reminder logic do not change. The visible calendar is Jalali (Persian).
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
@@ -46,28 +37,27 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
-  DateTime? _selectedDay;
+  late DateTime _selectedDay;
 
   @override
   void initState() {
     super.initState();
     final selected = widget.initialSelectedDay ?? DateTime.now();
-    final day = DateTime(selected.year, selected.month, selected.day);
-    _selectedDay = day;
-    _month = DateTime(day.year, day.month, 1);
+    _selectedDay = DateTime(selected.year, selected.month, selected.day);
+    _month = DateTime(_selectedDay.year, _selectedDay.month, 1);
   }
 
   _JalaliDate _toJalali(DateTime date) {
     var gy = date.year - 1600;
     final gm = date.month - 1;
     final gd = date.day - 1;
-    const gMonthDays = <int>[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const gDays = <int>[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
     var gDayNo = 365 * gy + (gy + 3) ~/ 4 - (gy + 99) ~/ 100 + (gy + 399) ~/ 400;
     for (var i = 0; i < gm; i++) {
-      gDayNo += gMonthDays[i];
+      gDayNo += gDays[i];
     }
-    if (gm > 1 && ((date.year % 4 == 0 && date.year % 100 != 0) || date.year % 400 == 0)) {
+    if (gm > 1 && _isGregorianLeap(date.year)) {
       gDayNo++;
     }
     gDayNo += gd;
@@ -98,13 +88,18 @@ class _CalendarPageState extends State<CalendarPage> {
     var gy = 1600 + 400 * (gDayNo ~/ 146097);
     gDayNo %= 146097;
     var leap = true;
+
     if (gDayNo >= 36525) {
       gDayNo--;
       gy += 100 * (gDayNo ~/ 36524);
       gDayNo %= 36524;
-      if (gDayNo >= 365) gDayNo++;
-      else leap = false;
+      if (gDayNo >= 365) {
+        gDayNo++;
+      } else {
+        leap = false;
+      }
     }
+
     gy += 4 * (gDayNo ~/ 1461);
     gDayNo %= 1461;
     if (gDayNo >= 366) {
@@ -114,16 +109,21 @@ class _CalendarPageState extends State<CalendarPage> {
       gDayNo %= 365;
     }
 
-    const gMonthDays = <int>[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const gDays = <int>[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     var gm = 0;
     while (gm < 12) {
-      final days = gMonthDays[gm] + (gm == 1 && leap ? 1 : 0);
-      if (gDayNo < days) break;
+      final days = gDays[gm] + (gm == 1 && leap ? 1 : 0);
+      if (gDayNo < days) {
+        break;
+      }
       gDayNo -= days;
       gm++;
     }
     return DateTime(gy, gm + 1, gDayNo + 1);
   }
+
+  bool _isGregorianLeap(int year) =>
+      year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
 
   String _digits(String value) {
     const western = '0123456789';
@@ -135,13 +135,42 @@ class _CalendarPageState extends State<CalendarPage> {
     return result;
   }
 
-  String _jalaliDate(DateTime date) {
+  String _date(DateTime date) {
     final j = _toJalali(date);
-    return _digits('${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}');
+    return _digits(
+      '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}',
+    );
   }
 
   String _time(DateTime date) =>
       _digits('${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}');
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  List<CalendarReminder> _forDay(DateTime day) => widget.reminders
+      .where((item) => _sameDay(item.date, day))
+      .toList(growable: false);
+
+  Map<int, int> _countsForMonth() {
+    final counts = <int, int>{};
+    for (final item in widget.reminders) {
+      final j = _toJalali(item.date);
+      final current = _toJalali(_month);
+      if (j.year == current.year && j.month == current.month) {
+        counts[j.day] = (counts[j.day] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
+
+  int _daysInJalaliMonth(int year, int month) {
+    if (month <= 6) return 31;
+    if (month <= 11) return 30;
+    final first = _toGregorian(year, 12, 1);
+    final next = _toGregorian(year + 1, 1, 1);
+    return next.difference(first).inDays;
+  }
 
   void _moveMonth(int delta) {
     final current = _toJalali(_month);
@@ -171,40 +200,13 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  List<CalendarReminder> _forDay(DateTime day) => widget.reminders
-      .where((item) => _sameDay(item.date, day))
-      .toList(growable: false);
-
-  Map<int, int> _countsForMonth() {
-    final counts = <int, int>{};
-    for (final reminder in widget.reminders) {
-      if (reminder.date.year == _month.year && reminder.date.month == _month.month) {
-        counts[reminder.date.day] = (counts[reminder.date.day] ?? 0) + 1;
-      }
-    }
-    return counts;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final jalaliMonth = _toJalali(_month);
-    final daysInMonth = _toGregorian(
-      jalaliMonth.year,
-      jalaliMonth.month == 12 ? 1 : jalaliMonth.month + 1,
-      1,
-    );
-    final actualDays = jalaliMonth.month == 12
-        ? _toGregorian(jalaliMonth.year + 1, 1, 1).difference(_month).inDays
-        : daysInMonth.difference(_month).inDays;
-    final first = _month;
-    // Saturday = 0 ... Friday = 6.
-    final leading = (first.weekday + 1) % 7;
+    final current = _toJalali(_month);
+    final days = _daysInJalaliMonth(current.year, current.month);
+    final leading = (_month.weekday + 1) % 7;
     final counts = _countsForMonth();
-    final selected = _selectedDay ?? first;
-    final selectedReminders = _forDay(selected);
+    final selectedReminders = _forDay(_selectedDay);
 
     return Scaffold(
       appBar: AppBar(
@@ -230,7 +232,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 Expanded(
                   child: Center(
                     child: Text(
-                      _digits('${jalaliMonth.year}/${jalaliMonth.month.toString().padLeft(2, '0')}'),
+                      _digits('${current.year}/${current.month.toString().padLeft(2, '0')}'),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -242,10 +244,10 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: Row(
-              children: const [
+              children: [
                 _Weekday('ش'),
                 _Weekday('ی'),
                 _Weekday('د'),
@@ -261,17 +263,19 @@ class _CalendarPageState extends State<CalendarPage> {
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: leading + actualDays,
+              itemCount: leading + days,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
                 mainAxisExtent: 48,
               ),
               itemBuilder: (_, index) {
-                if (index < leading) return const SizedBox.shrink();
+                if (index < leading) {
+                  return const SizedBox.shrink();
+                }
                 final day = index - leading + 1;
-                final date = _toGregorian(jalaliMonth.year, jalaliMonth.month, day);
-                final count = counts[date.day] ?? 0;
-                final isSelected = _sameDay(date, selected);
+                final date = _toGregorian(current.year, current.month, day);
+                final count = counts[day] ?? 0;
+                final isSelected = _sameDay(date, _selectedDay);
                 return Padding(
                   padding: const EdgeInsets.all(2),
                   child: InkWell(
@@ -323,10 +327,14 @@ class _CalendarPageState extends State<CalendarPage> {
                       final item = selectedReminders[index];
                       return Card(
                         child: ListTile(
-                          leading: Icon(item.completed ? Icons.check_circle : Icons.notifications_active_outlined),
+                          leading: Icon(
+                            item.completed
+                                ? Icons.check_circle
+                                : Icons.notifications_active_outlined,
+                          ),
                           title: Text(item.title),
                           subtitle: Text(
-                            '${_jalaliDate(item.date)}  •  ساعت ${_time(item.date)}\n'
+                            '${_date(item.date)}  •  ساعت ${_time(item.date)}\n'
                             '${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}',
                           ),
                         ),
@@ -345,11 +353,9 @@ class _Weekday extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Expanded(
+        child: Center(
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      );
 }
