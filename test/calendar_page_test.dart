@@ -5,7 +5,7 @@ import 'package:arvin/calendar_page.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
-    final selectedDay = DateTime(2026, 8, 13);
+    final selectedDay = DateTime(2026, 8, 13, 10, 30);
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -31,6 +31,8 @@ void main() {
 
     expect(find.text('تماس با مشتری'), findsOneWidget);
     expect(find.text('جلسه تیم'), findsNothing);
+    expect(find.textContaining('ساعت ۱۰:۳۰'), findsOneWidget);
+    expect(find.textContaining('۱۴۰۵/۰۵/۲۲'), findsOneWidget);
   });
 
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
