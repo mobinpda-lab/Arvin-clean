@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/calendar_page.dart';
+import 'package:arvin/calendar_page.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
