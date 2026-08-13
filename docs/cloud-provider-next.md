@@ -1,0 +1,1 @@
+Next: implement the concrete DropboxTransport using Dropbox /2/files/upload, /2/files/download, /2/files/delete_v2 and /2/files/get_metadata endpoints. Keep the access token memory-only and inject the transport for tests.
