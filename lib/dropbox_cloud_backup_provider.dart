@@ -90,7 +90,7 @@ class DropboxHttpClient {
       },
     );
     _check(response);
-    return response.bodyBytes;
+    return Uint8List.fromList(response.bodyBytes);
   }
 
   Future<void> delete(String token, String path) async {
