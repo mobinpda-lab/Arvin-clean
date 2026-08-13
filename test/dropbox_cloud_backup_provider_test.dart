@@ -1,14 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin/dropbox_cloud_backup_provider.dart';
+import 'package:arvin/dropbox_cloud_backup_provider_v2.dart';
 
 void main() {
   DropboxHttpResponse responseFor({int statusCode = 200, String body = ''}) =>
-      DropboxHttpResponse(
-        statusCode: statusCode,
-        bodyBytes: Uint8List.fromList(body.codeUnits),
-      );
+      DropboxHttpResponse(statusCode: statusCode, bodyBytes: Uint8List.fromList(body.codeUnits));
 
   test('Dropbox provider builds the expected upload request', () async {
     String? method;
@@ -34,7 +31,7 @@ void main() {
       },
     );
 
-    await DropboxCloudBackupProvider(accessToken: 'token', client: client)
+    await DropboxCloudBackupProviderV2(accessToken: 'token', client: client)
         .uploadBackup(fileName: 'backup.json', bytes: Uint8List.fromList([1, 2, 3]));
 
     expect(method, 'POST');
@@ -53,14 +50,10 @@ void main() {
         required String token,
         required Map<String, String> headers,
         Uint8List? body,
-      }) async => responseFor(
-        statusCode: 409,
-        body: 'error_summary: path/not_found/',
-      ),
+      }) async => responseFor(statusCode: 409, body: 'error_summary: path/not_found/'),
     );
 
-    final provider = DropboxCloudBackupProvider(accessToken: 'token', client: client);
-
+    final provider = DropboxCloudBackupProviderV2(accessToken: 'token', client: client);
     expect(await provider.downloadBackup('missing.json'), isNull);
     expect(await provider.exists('missing.json'), isFalse);
   });
@@ -83,9 +76,7 @@ void main() {
       },
     );
 
-    await DropboxCloudBackupProvider(accessToken: 'token', client: client)
-        .deleteBackup('backup.json');
-
+    await DropboxCloudBackupProviderV2(accessToken: 'token', client: client).deleteBackup('backup.json');
     expect(url, 'https://api.dropboxapi.com/2/files/delete_v2');
     expect(body, contains('/Apps/Arvin/backup.json'));
   });
