@@ -22,7 +22,7 @@ class _FakeBackupService extends ArvinBackupService {
     required String directoryUri,
     required Map<String, dynamic> payload,
     required String fileName,
-    required bool uploadToCloud,
+    bool uploadToCloud = false,
   }) async {
     if (shouldFail) throw StateError('backup failed');
     wroteBackup = true;
