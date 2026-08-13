@@ -4,6 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/dropbox_cloud_backup_provider.dart';
 
 void main() {
+  DropboxHttpResponse responseFor({int statusCode = 200, String body = ''}) =>
+      DropboxHttpResponse(
+        statusCode: statusCode,
+        bodyBytes: Uint8List.fromList(body.codeUnits),
+      );
+
   test('Dropbox provider builds the expected upload request', () async {
     String? method;
     String? url;
@@ -12,23 +18,24 @@ void main() {
     Uint8List? body;
 
     final client = DropboxHttpClient(
-      request: ({required m, required u, required t, required h, b}) async {
-        method = m;
-        url = u;
-        token = t;
-        headers = h;
-        body = b;
-        return const DropboxHttpResponse(statusCode: 200);
+      request: ({
+        required String method: requestMethod,
+        required String url: requestUrl,
+        required String token: requestToken,
+        required Map<String, String> headers: requestHeaders,
+        Uint8List? body: requestBody,
+      }) async {
+        method = requestMethod;
+        url = requestUrl;
+        token = requestToken;
+        headers = requestHeaders;
+        body = requestBody;
+        return responseFor();
       },
     );
 
-    await DropboxCloudBackupProvider(
-      accessToken: 'token',
-      client: client,
-    ).uploadBackup(
-      fileName: 'backup.json',
-      bytes: Uint8List.fromList([1, 2, 3]),
-    );
+    await DropboxCloudBackupProvider(accessToken: 'token', client: client)
+        .uploadBackup(fileName: 'backup.json', bytes: Uint8List.fromList([1, 2, 3]));
 
     expect(method, 'POST');
     expect(url, 'https://content.dropboxapi.com/2/files/upload');
@@ -40,20 +47,19 @@ void main() {
 
   test('Dropbox provider treats not-found download as null', () async {
     final client = DropboxHttpClient(
-      request: ({required m, required u, required t, required h, b}) async {
-        return DropboxHttpResponse(
-          statusCode: 409,
-          bodyBytes: Uint8List.fromList(
-            'error_summary: path/not_found/'.codeUnits,
-          ),
-        );
-      },
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async => responseFor(
+        statusCode: 409,
+        body: 'error_summary: path/not_found/',
+      ),
     );
 
-    final provider = DropboxCloudBackupProvider(
-      accessToken: 'token',
-      client: client,
-    );
+    final provider = DropboxCloudBackupProvider(accessToken: 'token', client: client);
 
     expect(await provider.downloadBackup('missing.json'), isNull);
     expect(await provider.exists('missing.json'), isFalse);
@@ -64,17 +70,21 @@ void main() {
     String? body;
 
     final client = DropboxHttpClient(
-      request: ({required m, required u, required t, required h, b}) async {
-        url = u;
-        body = b == null ? null : String.fromCharCodes(b);
-        return const DropboxHttpResponse(statusCode: 200);
+      request: ({
+        required String method,
+        required String url: requestUrl,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body: requestBody,
+      }) async {
+        url = requestUrl;
+        body = requestBody == null ? null : String.fromCharCodes(requestBody);
+        return responseFor();
       },
     );
 
-    await DropboxCloudBackupProvider(
-      accessToken: 'token',
-      client: client,
-    ).deleteBackup('backup.json');
+    await DropboxCloudBackupProvider(accessToken: 'token', client: client)
+        .deleteBackup('backup.json');
 
     expect(url, 'https://api.dropboxapi.com/2/files/delete_v2');
     expect(body, contains('/Apps/Arvin/backup.json'));
