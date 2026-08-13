@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
+import 'cloud_backup_provider.dart';
 
 /// Coordinates the portable backup format with Arvin's local task storage.
 ///
@@ -8,8 +9,10 @@ import 'backup_service.dart';
 /// so the same format can later be used by scheduled backups and restore on a
 /// different device.
 class ArvinBackupManager {
-  ArvinBackupManager({ArvinBackupService? service})
-      : service = service ?? ArvinBackupService();
+  ArvinBackupManager({
+    ArvinBackupService? service,
+    CloudBackupProvider? cloudProvider,
+  }) : service = service ?? ArvinBackupService(cloudProvider: cloudProvider);
 
   static const String directoryKey = 'arvin.backup.directory';
   final ArvinBackupService service;
