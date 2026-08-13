@@ -15,9 +15,7 @@ import 'cloud_backup_provider.dart';
 /// no provider is configured, while configured providers receive the exact
 /// same validated backup bytes.
 class ArvinBackupService {
-  ArvinBackupService({Saf? safClient, CloudBackupProvider? cloudProvider})
-      : saf = safClient ?? Saf(),
-        cloudProvider = cloudProvider;
+  ArvinBackupService({Saf? safClient, this.cloudProvider}) : saf = safClient ?? Saf();
 
   static const int backupFormatVersion = 1;
   static const String backupType = 'arvin_backup';
