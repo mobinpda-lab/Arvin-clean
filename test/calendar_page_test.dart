@@ -5,23 +5,23 @@ import 'package:arvin/calendar_page.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
-    final now = DateTime.now();
-    final day = DateTime(now.year, now.month, now.day);
+    final selectedDay = DateTime(2026, 8, 13);
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: CalendarPage(
+            initialSelectedDay: selectedDay,
             reminders: [
               CalendarReminder(
                 id: '1',
                 title: 'تماس با مشتری',
-                date: day,
+                date: selectedDay,
               ),
               CalendarReminder(
                 id: '2',
                 title: 'جلسه تیم',
-                date: day.add(const Duration(days: 1)),
+                date: selectedDay.add(const Duration(days: 1)),
               ),
             ],
           ),
@@ -35,10 +35,13 @@ void main() {
 
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: CalendarPage(reminders: <CalendarReminder>[]),
+          child: CalendarPage(
+            initialSelectedDay: DateTime(2026, 8, 13),
+            reminders: const <CalendarReminder>[],
+          ),
         ),
       ),
     );
