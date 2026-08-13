@@ -44,8 +44,6 @@ class ArvinBackupService {
     }
   }
 
-  /// Downloads a cloud backup and validates it using the same format contract
-  /// as local backups. Returns null when the provider has no such file.
   Future<Map<String, dynamic>?> readCloudBackup(String fileName) async {
     final provider = cloudProvider;
     if (provider == null) {
@@ -74,7 +72,6 @@ class ArvinBackupService {
     return validateBackupDocument(decoded);
   }
 
-  /// Serializes the canonical Arvin backup document.
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
     final document = <String, dynamic>{
       'type': backupType,
@@ -88,10 +85,6 @@ class ArvinBackupService {
     );
   }
 
-  /// Validates and normalizes a decoded backup document.
-  ///
-  /// Kept separate from Storage Access Framework I/O so the format contract
-  /// can be tested without requiring Android file-picker behavior.
   static Map<String, dynamic> validateBackupDocument(Object? decoded) {
     if (decoded is! Map) {
       throw const FormatException('Invalid Arvin backup format');
@@ -121,7 +114,6 @@ class ArvinBackupService {
     return 'Arvin_Backup_$year-$month-${day}_$hour-$minute.json';
   }
 
-  /// Converts a Gregorian date to the Jalali/Persian calendar.
   (int, int, int) _toJalali(int gy, int gm, int gd) {
     const gregorianMonthDays = <int>[0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 
