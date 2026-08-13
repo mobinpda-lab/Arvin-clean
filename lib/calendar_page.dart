@@ -25,9 +25,18 @@ class CalendarReminder {
 /// caller remains the single source of truth for reminders, which prevents
 /// the calendar from maintaining a second copy of task data.
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key, required this.reminders});
+  const CalendarPage({
+    super.key,
+    required this.reminders,
+    this.initialSelectedDay,
+  });
 
   final List<CalendarReminder> reminders;
+
+  /// Optional deterministic starting day for callers and widget tests.
+  ///
+  /// When omitted, the calendar starts on today.
+  final DateTime? initialSelectedDay;
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -40,9 +49,10 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _month = DateTime(now.year, now.month);
-    _selectedDay = DateTime(now.year, now.month, now.day);
+    final selected = widget.initialSelectedDay ?? DateTime.now();
+    final day = DateTime(selected.year, selected.month, selected.day);
+    _month = DateTime(day.year, day.month);
+    _selectedDay = day;
   }
 
   void _moveMonth(int delta) {
@@ -151,7 +161,7 @@ class _CalendarPageState extends State<CalendarPage> {
               itemCount: leading + daysInMonth,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 1.05,
+                mainAxisExtent: 48,
               ),
               itemBuilder: (_, index) {
                 if (index < leading) return const SizedBox.shrink();
