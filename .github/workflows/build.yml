@@ -62,10 +62,17 @@ jobs:
         run: flutter test
       - name: Build release APK
         run: flutter build apk --release
+      - name: Prepare versioned APK
+        shell: bash
+        run: |
+          VERSION="$(sed -n 's/^version: *//p' pubspec.yaml | cut -d+ -f1)"
+          test -n "$VERSION"
+          cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/Arvin-v${VERSION}.apk"
+          echo "APK_NAME=Arvin-v${VERSION}.apk" >> "$GITHUB_ENV"
       - name: Verify APK
-        run: test -s build/app/outputs/flutter-apk/app-release.apk
+        run: test -s "build/app/outputs/flutter-apk/${APK_NAME}"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Arvin-${{ env.APK_NAME }}
+          path: build/app/outputs/flutter-apk/${{ env.APK_NAME }}
