@@ -119,8 +119,10 @@ jobs:
       - run: flutter pub get
       - name: Validate ${{ matrix.area }} surface independently
         shell: bash
+        env:
+          ARVIN_SURFACE: ${{ matrix.area }}
         run: |
-          case "${{ matrix.area }}" in
+          case "$ARVIN_SURFACE" in
             calendar)
               tests=$(find test -type f -name '*calendar*test.dart' -print)
               ;;
@@ -133,6 +135,10 @@ jobs:
             typography)
               tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print)
               ;;
+            *)
+              echo "Unknown surface: $ARVIN_SURFACE"
+              exit 1
+              ;;
           esac
           if [ -n "$tests" ]; then
             echo "$tests"
@@ -140,6 +146,6 @@ jobs:
               flutter test "$test_file"
             done
           else
-            echo "No dedicated ${matrix.area} tests found; running core smoke test only."
+            echo "No dedicated ${ARVIN_SURFACE} tests found; running core smoke test only."
             flutter test test/task_store_test.dart
           fi
