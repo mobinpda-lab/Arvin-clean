@@ -4,7 +4,7 @@
 - Branch توسعه/مرجع: `main`
 - Wave جاری: **Unified Item / Note / FollowUp foundation — Category compatibility**
 - برنامه اجرایی به‌روز: `docs/PROJECT_ROADMAP_2026-08-14.md`
-- آخرین تغییر برنامه‌ریزی: commit `bd641279e72c8cf8a1f0fbe3419e09d7675cc978`
+- مستند نیاز جدید تقویم: `docs/CALENDAR_OFFICIAL_REMINDERS_2026-08-14.md`
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## قانون audit قبل از تغییر
@@ -14,10 +14,11 @@
 حوزه‌های مستقل می‌توانند موازی پیش بروند، اما هیچ Wave موازی نباید foundation مشترک را بدون audit و هماهنگی تغییر دهد. هر تغییر باید یک Gap مشخص را ببندد و بلافاصله با تست، Commit و Workflowهای مربوط validation شود. نتیجه CI قبل از ادامه Wave وابسته بررسی می‌شود. تمام تصمیم‌ها، تغییرات و نتایج مهم باید در مستندات ثبت شوند.
 
 ### Audit اخیر
-- مستندات پروژه و `PROJECT_STATUS.md` دوباره بررسی شدند.
+- مستندات پروژه، roadmap و Calendar foundation دوباره بررسی شدند.
 - Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده است.
-- CI مربوط به commit `979abd75d1517968bc8292f2367b708821fc6106` در زمان آخرین بررسی در حال اجرا بود.
-- برای افزایش سرعت بدون ایجاد دوباره‌کاری، roadmap مستقل و به‌روز در `docs/PROJECT_ROADMAP_2026-08-14.md` ثبت شد.
+- `CalendarPage` فعلی یک مدل خواندنی `CalendarReminder` دارد و Calendar نباید بدون Gap واقعی بازنویسی شود.
+- نیاز جدید محصول: اوقات شرعی شیعه بر مبنای روش/اطلاعات مرکز تقویم مؤسسه ژئوفیزیک دانشگاه تهران و تعطیلات رسمی ایران باید به‌صورت reminderهای تقویمی نمایش داده شوند.
+- جزئیات منبع، مکان، cache، مرزبندی داده و تست در `docs/CALENDAR_OFFICIAL_REMINDERS_2026-08-14.md` ثبت شده است.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -68,6 +69,11 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 - Calendar rewrite ممنوع مگر نیاز جدید یا شکست واقعی.
 - Reminder از timestamp ساده Note جداست.
 - Google Calendar فقط برای eventهای مجاز محصول استفاده می‌شود.
+- **اوقات شرعی شیعه** باید به‌عنوان reminder تقویمی و بر مبنای روش/اطلاعات مرکز تقویم مؤسسه ژئوفیزیک دانشگاه تهران ارائه شود؛ زمان‌ها باید برای مکان انتخابی کاربر معتبر باشند و در صورت نیاز مکان فعلی یا شهر انتخابی پشتیبانی شود.
+- **تعطیلات رسمی ایران** باید به‌عنوان reminder تقویمی از تقویم رسمی کشور و مناسبت‌های مصوب نمایش داده شوند؛ داده باید سال‌به‌سال و در صورت اصلاحیه قابل به‌روزرسانی باشد.
+- این دو منبع باید خواندنی و قابل تشخیص از Reminderهای کاربر باشند و نباید Storage مستقل برای Itemها ایجاد کنند.
+- نمایش در تقویم آروین به‌تنهایی به معنی ارسال به Google/system Calendar نیست.
+- جزئیات اجرایی و منبع در `docs/CALENDAR_OFFICIAL_REMINDERS_2026-08-14.md` ثبت شده است.
 
 ### Backup / Dropbox
 - Backup/Restore foundation موجود است.
@@ -101,16 +107,17 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - اعمال نهایی در UI، Settings، Widget، PDF و Print باید End-to-End اعتبارسنجی شود.
 
 ## فازهای عملیاتی به‌روز
-1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گام بعدی فعال**
+1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گام فعال فعلی**
 2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings.
 3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
 5. **Widget:** تکمیل Widget روی همان source of truth، شامل بررسی پشتیبانی Lock Screen.
-6. **PDF + Print:** خروجی برای Note، Item و فهرست.
-7. **IranSans:** اعمال کامل در UI و خروجی‌ها.
-8. **Reminder + Google Calendar:** integration با isolation برای Note.
-9. **Backup + Restore + Dropbox:** End-to-End.
-10. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
+6. **Calendar official sources:** اتصال اوقات شرعی شیعه و تعطیلات رسمی ایران به `CalendarReminder` با منبع معتبر، مکان صحیح و داده سالانه قابل به‌روزرسانی.
+7. **PDF + Print:** خروجی برای Note، Item و فهرست.
+8. **IranSans:** اعمال کامل در UI و خروجی‌ها.
+9. **Reminder + Google Calendar:** integration با isolation برای Note و مرزبندی روشن با منابع رسمی Calendar.
+10. **Backup + Restore + Dropbox:** End-to-End.
+11. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
 
 برای جزئیات Gateها، وابستگی‌ها و اجرای موازی، `docs/PROJECT_ROADMAP_2026-08-14.md` مرجع اجرایی این برنامه است.
 
