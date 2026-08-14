@@ -1,11 +1,13 @@
 # Arvin — Project Status
 
 ## مرجع فعلی
-- Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
-- آخرین Commit کد تثبیت FollowUp: `858a1e0f7616795dddde914e89c14b65d6fbfc84`
-- آخرین Commit CI: `25e9f21fd0cebfbd1de5097eddbc0649dc00ca06`
-- Flutter CI target: `3.47.0` stable
+- Branch توسعه/مرجع: `main`
+- آخرین Commit کد تثبیت‌شده در main: `38377f6ac167be7f8642f18c06f29b05793975c8`
+- Wave جاری: **Unified Item / Note / FollowUp foundation**
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
+
+## قانون audit قبل از تغییر
+قبل از هر تغییر محصولی باید main، کد واقعی، PRهای باز، CI اخیر، مستندات و پروژه‌های مرجع بررسی شوند. اگر قابلیت قبلاً حل شده باشد، دوباره‌سازی ممنوع است.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -16,53 +18,87 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 4. `Arvin Backup Validation` — تست Backup/Restore.
 5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
 
-### تغییر اخیر CI
-- مسیر `MainActivity` به‌صورت پویا از `android/app/src/main` کشف می‌شود و دیگر package path حدس زده نمی‌شود.
-- Android V2 با `FlutterActivity` بررسی می‌شود.
-- Core Library Desugaring و `desugar_jdk_libs:2.1.5` audit می‌شوند.
-- Release Analyze اکنون با `flutter analyze --no-fatal-infos` اجرا می‌شود؛ info/warningهای غیرfatal نباید Release را متوقف کنند و خطاهای واقعی همچنان fatal هستند.
-- آخرین اصلاح Workflow در Commit `25e9f21fd0cebfbd1de5097eddbc0649dc00ca06` ثبت شد.
-
 ## Android / Release
 - Android V2 با `FlutterActivity` استفاده می‌شود.
-- Core Library Desugaring در `android/app/build.gradle.kts` فعال است.
-- `desugar_jdk_libs:2.1.5` تعریف شده است.
+- Core Library Desugaring فعال است.
 - Release فقط وقتی موفق اعلام می‌شود که `flutter build apk --release` واقعاً سبز شود و APK به Artifact آپلود شده باشد.
-- خطای قبلی Android V1 نباید دوباره به‌عنوان هدف اصلاح تکرار شود؛ audit اکنون آن را صریحاً بررسی می‌کند.
 
-## قابلیت‌های فعلی
-### Task Management
-- ایجاد/ویرایش Task
-- توضیحات و Tag
-- تاریخ پیگیری
-- تکمیل، بایگانی و Trash
-- Restore و حذف دائمی
-- جست‌وجو و فیلتر
-- آمار Taskها
+## مدل محصول در حال تثبیت
+### Unified Item
+موجودیت پایه باید یک Item مشترک باشد:
+- عنوان/موضوع
+- توضیحات
+- تاریخ/ساعت ایجاد و ویرایش‌پذیر
+- Checklist
+- Category / Tags
+- Reminder اختیاری
+- FollowUps[] اختیاری
+
+در حالت بدون FollowUp، Item می‌تواند یک **یادداشت ساده** باشد. با فعال شدن FollowUp، همان Item به مورد پیگیری‌دار تبدیل می‌شود؛ نباید Note و Task به دو مسیر داده موازی تبدیل شوند.
+
+Wave جاری در `lib/models/task.dart` فقط به‌صورت additive این Contract را آماده می‌کند و مسیر Legacy UI را هنوز تغییر نمی‌دهد تا regression ایجاد نشود.
 
 ### FollowUp
 - مدل مستقل `FollowUp`
-- نگهداری تاریخچه در `TaskStore`
+- نگهداری تاریخچه در Task
 - migration از `followUpDate` قدیمی
-- تست‌های مدل و Store
-- UI تاریخچه در حال تکمیل است.
+- تاریخ/ساعت خودکار با امکان ویرایش
+- UI تاریخچه در فاز تکمیل است.
 
-### Calendar
-- صفحه Calendar و تست‌های deterministic موجود است.
-- اتصال کامل Calendar به FollowUp/Reminder هنوز در فاز تثبیت است.
+### Simple Notebook
+- foundation، storage، application service و read-only session policy موجود است.
+- UI نهایی، Checklist و Settings integration هنوز باقی است.
+- timestamp یادداشت فقط داخل آروین است و نباید به Google/system Calendar منتقل شود.
 
-### Backup
-- انتخاب پوشه Backup
-- ایجاد Backup
-- Restore
-- Backup اضطراری قبل از Restore
+### Calendar / Reminder
+- Calendar foundation و regression fixes قبلی حفظ می‌شوند.
+- Calendar rewrite ممنوع مگر نیاز جدید یا شکست واقعی.
+- Reminder از timestamp ساده Note جداست.
+- Google Calendar فقط برای eventهای مجاز محصول استفاده می‌شود.
+
+### Backup / Dropbox
+- Backup/Restore foundation موجود است.
+- Dropbox providerها موجودند.
+- تکمیل End-to-End و UI هنوز باقی است.
+
+### Search
+- SearchService روی Task/FollowUp موجود است.
+- Search UI نباید قبل از تعیین مسیر نهایی Item/Home به‌صورت موازی به Legacy repository وصل شود.
+
+### Widget
+Widget باید از همان منبع اصلی Item/Reminder/FollowUp استفاده کند و Storage جدا نداشته باشد.
+- نمایش Today / Overdue / Future در صورت وجود این مفاهیم در مدل نهایی
+- Category/Tag filter فقط در صورت وجود واقعی آن قابلیت
+- دکمه `+` برای افزودن سریع
+- لمس برای بازکردن Item
+- سبک و کم‌مصرف با background محدود
+- RTL و IranSans
+
+### PDF / Print
+- PDF برای Item و تاریخچه FollowUp و فهرست
+- Share برای PDF
+- **Print برای یادداشت ساده نیز الزامی است.**
+- Print برای Item پیگیری‌دار با همه سوابق FollowUp
+- Print و PDF دو مسیر مجزا هستند.
+
+### Font
+- فونت اصلی توافق‌شده: **IranSans / IranSansX(Eco)**
+- اعمال نهایی در UI، Settings، Widget، PDF و Print باید End-to-End اعتبارسنجی شود.
 
 ## فازهای عملیاتی بعدی
-1. **Release/CI:** عبور از audit و رسیدن به APK واقعی + Artifact.
-2. **FollowUp UI:** آخرین پیگیری، ساعت، نتیجه، پیگیری بعدی و تاریخچه کامل.
-3. **Calendar + Reminder:** اتصال کامل به FollowUp و اعلان‌ها.
-4. **Font System:** IranSansX پیش‌فرض + امکان تغییر فونت در Settings + persistence.
-5. **Release Candidate:** تست کامل، APK نسخه‌دار، checksum، Artifact و مستند Release.
+1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy.
+2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings.
+3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select.
+4. **Search UI:** اتصال SearchService موجود به Home جدید.
+5. **Widget:** تکمیل Widget روی همان source of truth.
+6. **PDF + Print:** خروجی برای Note، Item و فهرست.
+7. **IranSans:** اعمال کامل در UI و خروجی‌ها.
+8. **Reminder + Google Calendar:** integration با isolation برای Note.
+9. **Backup + Restore + Dropbox:** End-to-End.
+10. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
 
-## قانون توسعه موازی
-توسعه حوزه‌ها می‌تواند موازی باشد، اما APK Release فقط از Branch مرجع ساخته می‌شود. هر تغییر مهم باید با **کد + تست + CI + مستندات + Commit SHA قابل مشاهده** ثبت شود.
+## Definition of Done
+هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز شده باشد.
+
+## توسعه سریع اما کنترل‌شده
+حوزه‌های مستقل به‌صورت موازی پیش می‌روند، اما هر Wave باید مستقل و کم‌خطر باشد. Commit، تست و Workflowهای مربوط به همان Wave باید بلافاصله پس از تغییر اجرا شوند؛ تغییرات قبلاً حل‌شده نباید تکرار شوند.

@@ -34,13 +34,21 @@ class FollowUp {
   }
 }
 
+/// Unified product model foundation:
+/// an Item can behave as a simple note until follow-up is enabled.
+/// These fields are additive and remain backward-compatible with legacy data.
 class Task {
   Task({
     required this.id,
     required this.title,
     this.description = '',
+    this.createdAt,
+    this.updatedAt,
+    this.followUpEnabled = false,
     this.followUpDate,
     this.tags = const [],
+    this.checklist = const [],
+    this.reminderDate,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -50,19 +58,32 @@ class Task {
   final String id;
   String title;
   String description;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
+  List<String> checklist;
+  DateTime? reminderDate;
   bool archived;
   bool trashed;
   bool completed;
   List<FollowUp> followUps;
 
+  /// True while the Item is being used as a simple note.
+  bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
         'description': description,
+        'createdAt': createdAt?.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String(),
+        'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
+        'checklist': checklist,
+        'reminderDate': reminderDate?.toIso8601String(),
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -94,12 +115,25 @@ class Task {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.tryParse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.tryParse(json['updatedAt'] as String),
+      followUpEnabled: json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
       followUpDate: json['followUpDate'] == null
           ? null
           : DateTime.tryParse(json['followUpDate'] as String),
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      checklist: (json['checklist'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
+      reminderDate: json['reminderDate'] == null
+          ? null
+          : DateTime.tryParse(json['reminderDate'] as String),
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
