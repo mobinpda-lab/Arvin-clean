@@ -5,13 +5,13 @@ import 'package:arvin/calendar_page.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
-    final now = DateTime.now();
-    final day = DateTime(now.year, now.month, now.day);
+    final day = DateTime(2026, 8, 14);
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: CalendarPage(
+            initialSelectedDay: day,
             reminders: [
               CalendarReminder(
                 id: '1',
@@ -28,6 +28,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('تماس با مشتری'), findsOneWidget);
     expect(find.text('جلسه تیم'), findsNothing);
@@ -35,13 +36,17 @@ void main() {
 
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: CalendarPage(reminders: <CalendarReminder>[]),
+          child: CalendarPage(
+            initialSelectedDay: DateTime(2026, 8, 14),
+            reminders: const <CalendarReminder>[],
+          ),
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(
       find.text('برای این روز یادآوری ثبت نشده است'),
