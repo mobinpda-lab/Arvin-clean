@@ -1,0 +1,64 @@
+name: Arvin Parallel Wave
+
+on:
+  push:
+    branches: ['wave/**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
+  android-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Android V2 audit
+        shell: bash
+        run: |
+          activity=$(find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print -quit)
+          test -n "$activity"
+          grep -q 'FlutterActivity' "$activity"
+          ! grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar' android/app/src/main
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arvin-${{ github.run_id }}-${{ github.ref_name }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  surface:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        area: [followup, calendar, backup, typography]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Validate ${{ matrix.area }} surface
+        run: flutter test
