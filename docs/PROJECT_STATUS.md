@@ -1,68 +1,62 @@
 # Arvin — Project Status
 
 ## مرجع فعلی
-- Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
-- آخرین Commit کد تثبیت FollowUp: `858a1e0f7616795dddde914e89c14b65d6fbfc84`
-- آخرین Commit CI: `25e9f21fd0cebfbd1de5097eddbc0649dc00ca06`
+- Branch مرجع: `main`
+- آخرین Commit مرجع قبل از Wave مدل: `38377f6ac167be7f8642f18c06f29b05793975c8`
 - Flutter CI target: `3.47.0` stable
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
-## وضعیت CI
-CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
+## تصمیم مهم جدید — مدل محصول
+مدل قبلی که Note و Task را به‌عنوان دو مسیر مستقل برای یک مورد در نظر می‌گرفت **superseded** شد.
 
-1. `Arvin Feature Validation` — analyze و مجموعه تست‌ها.
-2. `Arvin FollowUp Validation` — مدل، TaskStore و UI تاریخچه FollowUp.
-3. `Arvin Calendar Validation` — تست‌های Calendar.
-4. `Arvin Backup Validation` — تست Backup/Restore.
-5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
+مدل هدف:
+`Item → Note state → optional FollowUps[] → optional Reminder`
 
-### تغییر اخیر CI
-- مسیر `MainActivity` به‌صورت پویا از `android/app/src/main` کشف می‌شود و دیگر package path حدس زده نمی‌شود.
-- Android V2 با `FlutterActivity` بررسی می‌شود.
-- Core Library Desugaring و `desugar_jdk_libs:2.1.5` audit می‌شوند.
-- Release Analyze اکنون با `flutter analyze --no-fatal-infos` اجرا می‌شود؛ info/warningهای غیرfatal نباید Release را متوقف کنند و خطاهای واقعی همچنان fatal هستند.
-- آخرین اصلاح Workflow در Commit `25e9f21fd0cebfbd1de5097eddbc0649dc00ca06` ثبت شد.
+مورد جدید ابتدا مثل یادداشت ساده است. با فعال‌کردن پیگیری، همان Item به مورد پیگیری‌دار تبدیل می‌شود؛ داده‌ها و شناسه پایه کپی نمی‌شوند.
 
-## Android / Release
-- Android V2 با `FlutterActivity` استفاده می‌شود.
-- Core Library Desugaring در `android/app/build.gradle.kts` فعال است.
-- `desugar_jdk_libs:2.1.5` تعریف شده است.
-- Release فقط وقتی موفق اعلام می‌شود که `flutter build apk --release` واقعاً سبز شود و APK به Artifact آپلود شده باشد.
-- خطای قبلی Android V1 نباید دوباره به‌عنوان هدف اصلاح تکرار شود؛ audit اکنون آن را صریحاً بررسی می‌کند.
+این تصمیم باید قبل از هر تغییر در Home، Search، FollowUp، Notebook و Storage بررسی شود.
 
-## قابلیت‌های فعلی
-### Task Management
-- ایجاد/ویرایش Task
-- توضیحات و Tag
-- تاریخ پیگیری
-- تکمیل، بایگانی و Trash
-- Restore و حذف دائمی
-- جست‌وجو و فیلتر
-- آمار Taskها
+## وضعیت قابلیت‌ها
+### Item / Task / FollowUp
+- مدل فعلی و مسیر Legacy هنوز باید audit و سپس به Contract جدید نزدیک شوند.
+- FollowUp history، تاریخ/ساعت خودکار و قابل ویرایش، نتیجه و next follow-up باید حفظ شوند.
+- Search Service موجود است؛ اتصال UI به Home تا بعد از حل model contract نباید باعث ایجاد مسیر داده موازی شود.
 
-### FollowUp
-- مدل مستقل `FollowUp`
-- نگهداری تاریخچه در `TaskStore`
-- migration از `followUpDate` قدیمی
-- تست‌های مدل و Store
-- UI تاریخچه در حال تکمیل است.
+### Simple Notebook
+- Foundation و session policy قبلی وجود دارند.
+- مدل محصول اکنون با Item مشترک هم‌راستا می‌شود.
+- Note timestamp فقط metadata داخلی است و Calendar Event نیست.
+- Auto-save و read-only-after-exit و explicit edit حفظ می‌شوند.
+- Checklist و Settings باید در UI نهایی تکمیل شوند.
 
-### Calendar
-- صفحه Calendar و تست‌های deterministic موجود است.
-- اتصال کامل Calendar به FollowUp/Reminder هنوز در فاز تثبیت است.
+### Calendar / Reminder
+- Jalali/Persian RTL Calendar و regression fixes قبلی حفظ می‌شوند.
+- Calendar دوباره‌سازی نمی‌شود مگر regression یا نیاز صریح.
+- Reminder از timestamp Note جداست.
+- Google Calendar فقط برای scheduled items واجد شرایط است؛ Note نباید event بسازد.
+- UX تقویم/ساعت می‌تواند از `arvin-task-tracker` الگوبرداری شود، بدون کپی معماری.
 
-### Backup
-- انتخاب پوشه Backup
-- ایجاد Backup
-- Restore
-- Backup اضطراری قبل از Restore
+### Typography
+- تصمیم نهایی: IRANSans / IranSansX(Eco) به‌عنوان فونت اصلی.
+- اعمال End-to-End در UI/Settings/PDF هنوز باید اعتبارسنجی شود.
 
-## فازهای عملیاتی بعدی
-1. **Release/CI:** عبور از audit و رسیدن به APK واقعی + Artifact.
-2. **FollowUp UI:** آخرین پیگیری، ساعت، نتیجه، پیگیری بعدی و تاریخچه کامل.
-3. **Calendar + Reminder:** اتصال کامل به FollowUp و اعلان‌ها.
-4. **Font System:** IranSansX پیش‌فرض + امکان تغییر فونت در Settings + persistence.
-5. **Release Candidate:** تست کامل، APK نسخه‌دار، checksum، Artifact و مستند Release.
+### Backup / Dropbox
+- Backup/Restore foundation موجود است.
+- Note و FollowUp باید در Backup/Restore مدل مشترک جدید را حفظ کنند.
+- Dropbox از زیرساخت موجود استفاده می‌کند و سیستم موازی ساخته نمی‌شود.
 
-## قانون توسعه موازی
-توسعه حوزه‌ها می‌تواند موازی باشد، اما APK Release فقط از Branch مرجع ساخته می‌شود. هر تغییر مهم باید با **کد + تست + CI + مستندات + Commit SHA قابل مشاهده** ثبت شود.
+### PDF / Share
+- هنوز Gap اصلی است: PDF مورد + تاریخچه FollowUp و PDF فهرست + Share + RTL/شمسی.
+
+## برنامه بعدی
+1. Model Contract audit: `Item / ArvinTask / models.Task / Note storage / FollowUp storage`.
+2. Migration بدون از دست رفتن داده.
+3. Home و Search UI روی یک مسیر داده.
+4. Notebook UI + Checklist + Settings.
+5. Reminder/Calendar با isolation برای Note.
+6. PDF/Share و IRANSans End-to-End.
+7. Backup/Restore + Dropbox End-to-End.
+8. E2E و APK Release.
+
+## قانون توسعه دائمی
+قبل از هر تغییر: `main`، کد واقعی، PRهای باز، CI اخیر، مستندات و پروژه‌های مرجع بررسی شوند. اگر مشکل قبلاً رفع شده، هیچ اصلاح تکراری انجام نشود. تغییر حداقلی، تست focused، مستندات، Commit SHA و Workflowهای مستقل/موازی باید ثبت شوند.
