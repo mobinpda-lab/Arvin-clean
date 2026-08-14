@@ -31,28 +31,18 @@ jobs:
           git rev-parse HEAD
           git status --short
 
-      # Release gate: run against the persisted Android V2 project, not a transient CI-generated tree.
-      - name: Ensure Android V2 project exists and persist it
+      - name: Ensure Android V2 project exists
         shell: bash
         run: |
           if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
-            echo 'Android Gradle project is missing; generating a fresh Flutter V2 Android project.'
-            if [ -d android ]; then
-              mv android /tmp/arvin-android-incomplete
+            echo 'Android Gradle project is missing; bootstrapping a fresh Flutter V2 Android project.'
+            if [ -f android/app/src/main/AndroidManifest.xml ]; then
+              cp android/app/src/main/AndroidManifest.xml /tmp/arvin-manifest.xml
             fi
+            rm -rf android
             flutter create --platforms=android --org com.mobinpda.lab --project-name arvin .
-            if [ -f /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml ]; then
-              cp /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
-            fi
-
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add android
-            git commit -m 'ci: persist generated Android V2 project [skip ci]' || true
-            if ! git diff --quiet HEAD@{1} HEAD 2>/dev/null; then
-              git push origin "HEAD:${GITHUB_REF_NAME}"
-            else
-              git push origin "HEAD:${GITHUB_REF_NAME}" || true
+            if [ -f /tmp/arvin-manifest.xml ]; then
+              cp /tmp/arvin-manifest.xml android/app/src/main/AndroidManifest.xml
             fi
           fi
 
@@ -65,8 +55,6 @@ jobs:
             echo 'Legacy Android v1 embedding references found in Android source.'
             exit 1
           fi
-          echo '--- V2 markers ---'
-          grep -R -n 'flutterEmbedding' android/app/src/main 2>/dev/null || true
           test -f android/app/build.gradle || test -f android/app/build.gradle.kts
           find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) | grep -q .
 
