@@ -7,6 +7,9 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,11 +25,17 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Ensure clean Android V2 project
+      - name: Show source revision
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          git rev-parse HEAD
+          git status --short
+
+      - name: Ensure Android V2 project exists and persist it
         shell: bash
         run: |
           if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
-            echo 'Android Gradle project is missing; replacing incomplete Android directory with a fresh Flutter V2 project.'
+            echo 'Android Gradle project is missing; generating a fresh Flutter V2 Android project.'
             if [ -d android ]; then
               mv android /tmp/arvin-android-incomplete
             fi
@@ -34,7 +43,18 @@ jobs:
             if [ -f /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml ]; then
               cp /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
             fi
+
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add android
+            git commit -m 'ci: persist generated Android V2 project [skip ci]' || true
+            if ! git diff --quiet HEAD@{1} HEAD 2>/dev/null; then
+              git push origin "HEAD:${GITHUB_REF_NAME}"
+            else
+              git push origin "HEAD:${GITHUB_REF_NAME}" || true
+            fi
           fi
+
           echo '--- Android project files ---'
           find android -maxdepth 6 -type f | sort
           echo '--- MainActivity files ---'
