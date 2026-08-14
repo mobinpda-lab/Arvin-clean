@@ -41,9 +41,12 @@ class FollowUpRepository {
     String taskId,
   ) async {
     final tasks = await _loadRawTasks(prefs);
-    final raw = tasks.where((task) => task['id'] == taskId).firstOrNull;
-    if (raw == null) return const [];
-    return _decodeFollowUps(raw);
+    for (final task in tasks) {
+      if (task['id'] == taskId) {
+        return _decodeFollowUps(task);
+      }
+    }
+    return const [];
   }
 
   List<FollowUp> _decodeFollowUps(Map<String, dynamic> raw) {
