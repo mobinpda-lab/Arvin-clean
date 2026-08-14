@@ -23,4 +23,24 @@ class TaskStore {
       jsonEncode(tasks.map((task) => task.toJson()).toList()),
     );
   }
+
+  Future<void> addFollowUp(String taskId, FollowUp followUp) async {
+    final tasks = await load();
+    final index = tasks.indexWhere((task) => task.id == taskId);
+    if (index < 0) {
+      throw StateError('Task not found: $taskId');
+    }
+
+    final task = tasks[index];
+    task.followUps = [...task.followUps, followUp];
+    await save(tasks);
+  }
+
+  Future<List<FollowUp>> loadFollowUps(String taskId) async {
+    final tasks = await load();
+    for (final task in tasks) {
+      if (task.id == taskId) return List<FollowUp>.of(task.followUps);
+    }
+    return const [];
+  }
 }
