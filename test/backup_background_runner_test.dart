@@ -44,7 +44,7 @@ class _FakeNotificationSink implements BackupNotificationSink {
 
 class _ThrowingTaskStore extends TaskStore {
   @override
-  Future<List<Task>> load() async {
+  Future<List<ArvinTask>> load() async {
     throw const FormatException('invalid stored tasks');
   }
 }
@@ -79,13 +79,13 @@ void main() {
 
   test('backs up the current TaskStore data end to end', () async {
     final taskStore = TaskStore();
-    final task = Task(
+    final task = ArvinTask(
       id: 'e2e-1',
       title: 'پشتیبان‌گیری واقعی',
       description: 'آخرین اطلاعات کاربر',
       tags: <String>['کار'],
     );
-    await taskStore.save(<Task>[task]);
+    await taskStore.save(<ArvinTask>[task]);
     await BackupBackgroundRunner.saveConfiguration(
       directoryUri: 'content://arvin/backups',
       payload: <String, dynamic>{
