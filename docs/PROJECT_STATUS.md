@@ -2,23 +2,26 @@
 
 ## مرجع فعلی
 - Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
-- آخرین CI release fix: `d4776ac7c70380ee65f60893d41e5a7cb3d20b62`
+- آخرین CI release candidate: `50f629200a5395e239443d3104d27f5b0f29d419`
 - Flutter CI target: `3.47.0` stable
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## وضعیت CI
-CI اکنون به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
+CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
 
 1. `Arvin Feature Validation` — analyze و مجموعه تست‌ها.
 2. `Arvin FollowUp Validation` — مدل، TaskStore و UI تاریخچه FollowUp.
 3. `Arvin Calendar Validation` — تست‌های Calendar.
 4. `Arvin Backup Validation` — تست Backup/Restore.
 5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
+6. `Arvin Release Candidate` — مسیر مستقل و مقاوم‌تر برای تأیید نهایی APK.
 
 ### تغییر اخیر CI
-- Run `94710722878` روی commit `80e699db` نشان داد `flutter pub get` کاملاً موفق است و `saf 2.1.0` نیز resolve می‌شود؛ شکست فقط به‌خاطر hard-code اشتباه مسیر `MainActivity` بود.
+- Run `94713811147` دیگر به مشکل hard-code مسیر `MainActivity` برنمی‌خورد؛ مسیر Android V2 اکنون به‌صورت پویا کشف می‌شود.
 - مسیر واقعی `MainActivity.kt` در پروژه: `android/app/src/main/kotlin/com/mobinpda/lab/arvin/MainActivity.kt`.
-- Commit `d4776ac7c70380ee65f60893d41e5a7cb3d20b62` audit را به کشف پویا و مستقل از package path تغییر داد.
+- `android/app/build.gradle.kts` شامل Core Library Desugaring و `desugar_jdk_libs:2.1.5` است.
+- Release Candidate جدید، Analyze را با `--no-fatal-infos` اجرا می‌کند تا warning/infoهای lint مانع بی‌دلیل Release نشوند؛ خطاهای واقعی همچنان fatal هستند.
+- Commit `50f629200a5395e239443d3104d27f5b0f29d419` این مسیر مستقل را ثبت کرده است.
 
 ## Android / Release
 - Android V2 با `FlutterActivity` استفاده می‌شود.
