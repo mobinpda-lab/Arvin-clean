@@ -1,4 +1,4 @@
-import 'follow_up_history.dart';
+import '../models/task.dart';
 
 class FollowUpPresentation {
   const FollowUpPresentation({
