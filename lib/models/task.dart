@@ -1,9 +1,12 @@
+import 'follow_up.dart';
+
 class Task {
   Task({
     required this.id,
     required this.title,
     this.description = '',
     this.followUpDate,
+    this.followUps = const <FollowUp>[],
     this.tags = const [],
     this.archived = false,
     this.trashed = false,
@@ -14,10 +17,19 @@ class Task {
   String title;
   String description;
   DateTime? followUpDate;
+  List<FollowUp> followUps;
   List<String> tags;
   bool archived;
   bool trashed;
   bool completed;
+
+  /// Returns the most recent follow-up, if any.
+  FollowUp? get latestFollowUp {
+    if (followUps.isEmpty) return null;
+    return followUps.reduce(
+      (a, b) => a.dateTime.isAfter(b.dateTime) ? a : b,
+    );
+  }
 
   factory Task.fromDescription({
     required String id,
