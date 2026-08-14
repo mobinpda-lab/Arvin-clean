@@ -42,6 +42,9 @@ void main() {
       Task(id: '2', title: 'دوم'),
     ];
 
-    expect(service.search(tasks, ' '), same(tasks));
+    expect(
+      service.search(tasks, ' ').map((task) => task.id).toList(),
+      ['1', '2'],
+    );
   });
 }
