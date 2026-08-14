@@ -2,9 +2,9 @@
 
 ## مرجع فعلی
 - Branch توسعه/مرجع: `main`
-- Wave جاری: **Unified Item / Note / FollowUp foundation — Category compatibility**
+- Wave جاری: **Calendar رسمی ایران — Source Contract و اتصال به CalendarReminder**
 - برنامه اجرایی به‌روز: `docs/PROJECT_ROADMAP_2026-08-14.md`
-- آخرین roadmap commit: `d337b4f8fa6ed05b5a00a2ffcb3e4872897e72ba`
+- آخرین Calendar implementation merge: PR #80 → commit `1f9c14386c50611d08254c4b70caa73c9108df16`
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## قانون audit قبل از تغییر
@@ -16,19 +16,20 @@
 ## برنامه اجرای سریع به‌روز
 برای افزایش سرعت، کار به Laneهای مستقل تقسیم شده است: Architecture/Unified Item، Notebook UI، Home/Search، Calendar رسمی ایران، Widget/Lock Screen، Output/Font، Integrations/Data portability و E2E/Release. Laneهای مستقل می‌توانند همزمان آماده‌سازی و تست شوند؛ اما هیچ Lane اجازه ندارد برای سرعت foundation مشترک را موازی و ناسازگار تغییر دهد.
 
-### گلوگاه فعلی
-**Gate A — Unified Item adapter/migration** همچنان گلوگاه معماری است و باید بدون شکستن Legacy تکمیل شود.
+### گلوگاه‌های فعلی
+- **Gate A — Unified Item adapter/migration:** گلوگاه معماری همچنان باید بدون شکستن Legacy تکمیل شود.
+- **Gate D — Calendar رسمی ایران:** PR #80 با موفقیت merge شد و Source Contract/Mapping روی `CalendarReminder` تثبیت شده است؛ گام بعدی اتصال Providerهای واقعی و رسمی است.
 
-### کارهای موازی مجاز در کنار Gate A
-- PR #79 و Lane Calendar رسمی: اوقات شرعی شیعه بر اساس منبع/روش مرکز تقویم مؤسسه ژئوفیزیک دانشگاه تهران و تعطیلات رسمی ایران.
+### کارهای موازی مجاز در کنار Gate A و Calendar
 - آماده‌سازی Notebook UI و تست‌های آن روی foundation موجود.
 - آماده‌سازی Home/Search tests بدون اتصال موازی به Legacy repository.
 - آماده‌سازی Widget/Lock Screen compatibility tests بدون Storage جدید.
 - آماده‌سازی PDF/Print fixtures و تست‌های خروجی.
 
 ## Audit اخیر
-- تمام فایل‌های اصلی `docs/` شامل roadmap، status، changelog و Notebook contract بررسی شدند.
-- PR باز #79 بررسی شد؛ این PR در حال حاضر Contract و منبع داده Calendar رسمی را ثبت کرده و implementation واقعی را به بعد از validation موکول کرده است.
+- `main`، commitهای اخیر، مستندات roadmap/status، PRهای باز و CI مرتبط بررسی شدند.
+- PR #80 بررسی شد و پس از سبز شدن هر دو Workflow اصلی آن merge شد: **Arvin Parallel Wave #185** و **Arvin Build #308** هر دو `success` هستند.
+- PR #80 فقط Source Contract و mapping را تثبیت کرد؛ Provider واقعی هنوز Gap بعدی است و نباید با داده حدسی یا منبع غیررسمی پر شود.
 - Calendar foundation موجود حفظ می‌شود و بازنویسی آن ممنوع است مگر Gap یا regression واقعی.
 - Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده و باید با همان source of truth ویجت اصلی اجرا شود.
 
@@ -82,6 +83,7 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 - Reminder از timestamp ساده Note جداست.
 - Google Calendar فقط برای eventهای مجاز محصول استفاده می‌شود.
 - **اوقات شرعی شیعه و تعطیلات رسمی ایران باید به‌عنوان یادآورهای Calendar در همین مسیر قرار گیرند؛ منبع و روش محاسبه/داده باید مطابق قرارداد ثبت‌شده در PR #79 باشد و بدون حدس یا منبع غیررسمی جایگزین نشود.**
+- PR #80 لایه source-neutral و mapping به `CalendarReminder` را اضافه و merge کرده است؛ Provider واقعی، اعتبارسنجی منبع و داده سال/مکان/Timezone هنوز باقی است.
 
 ### Backup / Dropbox
 - Backup/Restore foundation موجود است.
@@ -115,11 +117,11 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - اعمال نهایی در UI، Settings، Widget، PDF و Print باید End-to-End اعتبارسنجی شود.
 
 ## فازهای عملیاتی به‌روز
-1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گلوگاه فعال**
+1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گلوگاه فعال معماری**
 2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings؛ تست‌ها می‌توانند موازی آماده شوند.
 3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select؛ بدون repository موازی.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
-5. **Calendar رسمی ایران:** اوقات شرعی شیعه + تعطیلات رسمی ایران روی CalendarReminder؛ validation منبع، مکان، timezone، سال و تاریخ شمسی.
+5. **Calendar رسمی ایران:** Source Contract و mapping انجام شد؛ **Provider واقعی اوقات شرعی شیعه + تعطیلات رسمی ایران** و validation منبع، مکان، timezone، سال و تاریخ شمسی گام بعدی است.
 6. **Widget:** تکمیل Widget روی همان source of truth، شامل بررسی پشتیبانی Lock Screen.
 7. **PDF + Print:** خروجی برای Note، Item و فهرست.
 8. **IranSans:** اعمال کامل در UI و خروجی‌ها.
