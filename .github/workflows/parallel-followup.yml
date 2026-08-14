@@ -1,0 +1,27 @@
+name: Arvin Parallel FollowUp
+
+on:
+  push:
+    branches: ['feat/**', 'fix/**', main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Analyze FollowUp surface
+        run: flutter analyze lib/models/follow_up.dart lib/services/follow_up_presentation.dart lib/services/task_store.dart
+      - name: Test FollowUp surface
+        run: flutter test test/follow_up_model_test.dart test/follow_up_history_card_test.dart test/task_store_test.dart

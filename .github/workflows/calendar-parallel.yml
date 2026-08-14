@@ -1,0 +1,23 @@
+name: Calendar Parallel Validation
+
+on:
+  push:
+    branches: [feat/follow-up-history-v1.3]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - name: Calendar focused tests
+        run: flutter test test/calendar_page_test.dart

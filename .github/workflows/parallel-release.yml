@@ -1,0 +1,34 @@
+name: Arvin Parallel Release
+on:
+  push:
+    branches: ['feat/**','fix/**',main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Android V2 audit
+        shell: bash
+        run: |
+          MAIN_ACTIVITY=$(find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print -quit)
+          test -n "$MAIN_ACTIVITY"
+          grep -q 'FlutterActivity' "$MAIN_ACTIVITY"
+          if grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|GeneratedPluginRegistrant\.registerWith' android/app/src/main 2>/dev/null; then exit 1; fi
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build apk --release
+      - run: test -s build/app/outputs/flutter-apk/app-release.apk
+      - run: sha256sum build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arvin-release-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk

@@ -2,39 +2,68 @@ name: Arvin Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'feat/**', 'fix/**']
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.0'
           channel: stable
           cache: true
-      - name: Generate Android platform
-        run: flutter create --platforms=android --project-name arvin .
+
+      - name: Show source revision
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "HEAD=$(git rev-parse HEAD)"
+          git status --short
+
+      - name: Ensure Android V2 project exists
+        shell: bash
+        run: |
+          if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
+            echo 'Android Gradle project is missing; bootstrapping a fresh Flutter V2 Android project.'
+            if [ -f android/app/src/main/AndroidManifest.xml ]; then
+              cp android/app/src/main/AndroidManifest.xml /tmp/arvin-manifest.xml
+            fi
+            rm -rf android
+            flutter create --platforms=android --org com.mobinpda.lab --project-name arvin .
+            if [ -f /tmp/arvin-manifest.xml ]; then
+              cp /tmp/arvin-manifest.xml android/app/src/main/AndroidManifest.xml
+            fi
+          fi
+          find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) | grep -q .
+          test -f android/app/build.gradle || test -f android/app/build.gradle.kts
+          if grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|GeneratedPluginRegistrant\.registerWith' android/app/src/main 2>/dev/null; then exit 1; fi
+
       - name: Configure Android desugaring
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-
           candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
           path = next((p for p in candidates if p.exists()), None)
           if path is None:
-              raise SystemExit('Android app Gradle file not found')
-
+              raise SystemExit('Android app Gradle file not found after bootstrap')
           text = path.read_text()
           is_kts = path.suffix == '.kts'
           flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
           dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
-
           if flag not in text:
               match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
               if match:
@@ -43,29 +72,51 @@ jobs:
                   block = '\n\ncompileOptions {\n        ' + flag + '\n}\n'
                   dep_pos = text.find('dependencies {')
                   text = text[:dep_pos] + block + text[dep_pos:] if dep_pos >= 0 else text + block
-
           if 'desugar_jdk_libs:2.1.5' not in text:
               match = re.search(r'(?m)^\s*dependencies\s*\{', text)
               if match:
                   text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
               else:
                   text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
-
           path.write_text(text)
-          print(f'Configured {path}')
+          print(path.read_text())
           PY
-      - name: Get dependencies
-        run: flutter pub get
+
+      - name: Get dependencies with retry
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            echo "flutter pub get attempt $attempt/3"
+            if flutter pub get; then exit 0; fi
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
+          exit 1
+
+      - name: Audit Android embedding and desugaring
+        shell: bash
+        run: |
+          grep -R -n 'isCoreLibraryDesugaringEnabled = true\|coreLibraryDesugaringEnabled true' android/app
+          grep -R -n 'desugar_jdk_libs:2.1.5' android/app
+          CACHE="${PUB_CACHE:-$HOME/.pub-cache}/hosted/pub.dev"
+          if grep -R -n -E 'PluginRegistry\.Registrar|io\.flutter\.app\.|GeneratedPluginRegistrant\.registerWith' "$CACHE" --include='*.java' --include='*.kt' 2>/dev/null | head -100; then exit 1; fi
+
       - name: Analyze
         run: flutter analyze
+
       - name: Test
         run: flutter test
+
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release -v
+
       - name: Verify APK
         run: test -s build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/Arvin-v1.2.0-build${{ github.run_number }}.apk"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: arvin-v1.2.0-build${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/Arvin-v1.2.0-build${{ github.run_number }}.apk

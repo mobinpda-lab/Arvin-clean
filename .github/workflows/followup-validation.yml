@@ -1,0 +1,36 @@
+name: Arvin FollowUp Validation
+
+on:
+  push:
+    branches: ['feat/**', 'fix/**']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - name: Pub get with retry
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            flutter pub get && exit 0
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
+          exit 1
+      - name: Analyze
+        run: flutter analyze
+      - name: FollowUp model/store tests
+        run: flutter test test/follow_up_model_test.dart test/task_store_test.dart
+      - name: FollowUp presentation tests
+        run: flutter test test/follow_up_presentation_test.dart test/follow_up_history_card_test.dart
