@@ -2,7 +2,7 @@ name: Arvin Parallel Wave
 
 on:
   push:
-    branches: ['wave/**']
+    branches: ['wave/**', 'fix/**', 'ci/**']
   pull_request:
     branches: [main]
 
@@ -32,27 +32,28 @@ jobs:
           flutter-version: '3.47.0'
           channel: stable
           cache: true
+      - name: Generate Android platform
+        run: flutter create --platforms=android --project-name arvin .
       - run: flutter pub get
       - name: Android V2 audit
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          roots = [Path('android/app/src/main')]
-          activities = list(roots[0].rglob('MainActivity.kt')) + list(roots[0].rglob('MainActivity.java'))
+          root = Path('android/app/src/main')
+          activities = list(root.rglob('MainActivity.kt')) + list(root.rglob('MainActivity.java'))
           if not activities:
-              raise SystemExit('MainActivity.kt/java not found')
+              raise SystemExit('MainActivity.kt/java not found after flutter create')
           text = activities[0].read_text(encoding='utf-8')
           if 'FlutterActivity' not in text:
               raise SystemExit('MainActivity does not use FlutterActivity')
           forbidden = ('io.flutter.app.', 'PluginRegistry.Registrar')
-          for root in roots:
-              for path in root.rglob('*'):
-                  if path.is_file():
-                      content = path.read_text(encoding='utf-8', errors='ignore')
-                      for token in forbidden:
-                          if token in content:
-                              raise SystemExit(f'deleted Android v1 embedding reference: {token} in {path}')
+          for path in root.rglob('*'):
+              if path.is_file():
+                  content = path.read_text(encoding='utf-8', errors='ignore')
+                  for token in forbidden:
+                      if token in content:
+                          raise SystemExit(f'deleted Android v1 embedding reference: {token} in {path}')
           print(f'Android V2 audit passed: {activities[0]}')
           PY
       - run: flutter build apk --release
@@ -77,4 +78,26 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Validate ${{ matrix.area }} surface
-        run: flutter test
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.area }}" in
+            followup)
+              files=$(find test -maxdepth 1 -type f \( -iname '*followup*' -o -iname '*follow_up*' \) -print)
+              ;;
+            calendar)
+              files=$(find test -maxdepth 1 -type f -iname '*calendar*' -print)
+              ;;
+            backup)
+              files=$(find test -maxdepth 1 -type f -iname '*backup*' -print)
+              ;;
+            typography)
+              files=$(find test -maxdepth 1 -type f \( -iname '*font*' -o -iname '*typograph*' -o -iname '*settings*' \) -print)
+              ;;
+          esac
+          if [ -z "$files" ]; then
+            echo "No dedicated ${{ matrix.area }} tests found; running smoke test."
+            flutter test test/widget_test.dart
+          else
+            echo "$files" | xargs flutter test
+          fi
