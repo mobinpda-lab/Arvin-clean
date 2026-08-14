@@ -1,68 +1,72 @@
-# Arvin — Project Status
+# Arvin — وضعیت به‌روزشده پروژه
 
-## مرجع فعلی
-- Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
-- آخرین CI release candidate: `50f629200a5395e239443d3104d27f5b0f29d419`
-- Flutter CI target: `3.47.0` stable
-- این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
+آخرین بازبینی کامل: 2026-08-14
 
-## وضعیت CI
-CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
+## وضعیت مرجع
+- مخزن: `mobinpda-lab/Arvin-clean`
+- Branch توسعه: `feat/follow-up-history-v1.3`
+- Flutter CI: `3.47.0` stable
+- Android: Flutter V2 embedding
+- نسخه ثبت‌شده محصول در مستند فعلی: `1.0.0+1`
 
-1. `Arvin Feature Validation` — analyze و مجموعه تست‌ها.
-2. `Arvin FollowUp Validation` — مدل، TaskStore و UI تاریخچه FollowUp.
-3. `Arvin Calendar Validation` — تست‌های Calendar.
-4. `Arvin Backup Validation` — تست Backup/Restore.
-5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
-6. `Arvin Release Candidate` — مسیر مستقل و مقاوم‌تر برای تأیید نهایی APK.
-
-### تغییر اخیر CI
-- Run `94713811147` دیگر به مشکل hard-code مسیر `MainActivity` برنمی‌خورد؛ مسیر Android V2 اکنون به‌صورت پویا کشف می‌شود.
-- مسیر واقعی `MainActivity.kt` در پروژه: `android/app/src/main/kotlin/com/mobinpda/lab/arvin/MainActivity.kt`.
-- `android/app/build.gradle.kts` شامل Core Library Desugaring و `desugar_jdk_libs:2.1.5` است.
-- Release Candidate جدید، Analyze را با `--no-fatal-infos` اجرا می‌کند تا warning/infoهای lint مانع بی‌دلیل Release نشوند؛ خطاهای واقعی همچنان fatal هستند.
-- Commit `50f629200a5395e239443d3104d27f5b0f29d419` این مسیر مستقل را ثبت کرده است.
-
-## Android / Release
-- Android V2 با `FlutterActivity` استفاده می‌شود.
-- Core Library Desugaring در `android/app/build.gradle.kts` فعال است.
-- `desugar_jdk_libs:2.1.5` تعریف شده است.
-- Release فقط وقتی موفق اعلام می‌شود که `flutter build apk --release` واقعاً سبز شود و APK به Artifact آپلود شده باشد.
-- خطای قبلی Android V1 نباید دوباره به‌عنوان هدف اصلاح تکرار شود؛ audit اکنون آن را صریحاً بررسی می‌کند.
-
-## قابلیت‌های فعلی
+## قابلیت‌های موجود
 ### Task Management
-- ایجاد/ویرایش Task
+- ایجاد و ویرایش Task
 - توضیحات و Tag
 - تاریخ پیگیری
-- تکمیل، بایگانی و Trash
-- Restore و حذف دائمی
+- تکمیل
+- بایگانی
+- Trash / Restore / حذف دائمی
 - جست‌وجو و فیلتر
 - آمار Taskها
 
 ### FollowUp
 - مدل مستقل `FollowUp`
-- نگهداری تاریخچه در `TaskStore`
 - migration از `followUpDate` قدیمی
-- تست‌های مدل و Store
-- UI تاریخچه در حال تکمیل است.
+- persistence در `TaskStore`
+- تست مدل و Store
+- UI تاریخچه FollowUp در حال تکمیل و تثبیت
 
-### Calendar
-- صفحه Calendar و تست‌های deterministic موجود است.
-- اتصال کامل Calendar به FollowUp/Reminder هنوز در فاز تثبیت است.
+### Calendar / Reminder
+- Calendar page foundation
+- نمایش Reminder برای روز انتخاب‌شده
+- empty state
+- تست deterministic
+- مرحله بعد: اتصال کامل Calendar ↔ FollowUp ↔ Reminder و تثبیت responsive layout
 
-### Backup
-- انتخاب پوشه Backup
-- ایجاد Backup
-- Restore
-- Backup اضطراری قبل از Restore
+### Backup / Restore
+- SAF برای انتخاب پوشه
+- Backup نسخه‌دار JSON
+- نام فایل با تاریخ شمسی
+- Restore با validation
+- emergency backup قبل از Restore
+- تست‌های سرویس، schedule، notification، background، Android scheduler و cloud provider
+- مرحله بعد: تکمیل UX و lifecycle واقعی Backup دوره‌ای
 
-## فازهای عملیاتی بعدی
-1. **Release/CI:** سبز کردن APK واقعی و Artifact.
-2. **FollowUp UI:** آخرین پیگیری، ساعت، نتیجه، پیگیری بعدی و تاریخچه کامل.
-3. **Calendar + Reminder:** اتصال کامل به FollowUp و اعلان‌ها.
-4. **Font System:** IranSansX پیش‌فرض + امکان تغییر فونت در Settings + persistence.
-5. **Release Candidate:** تست کامل، APK نسخه‌دار، checksum، Artifact و مستند Release.
+### UI / Typography
+- Material 3 و RTL
+- **IranSansX باید فونت پیش‌فرض محصول باشد.**
+- امکان تغییر فونت در Settings باید اضافه شود.
+- انتخاب فونت و اندازه باید persistence داشته باشد.
 
-## قانون توسعه موازی
-توسعه حوزه‌ها می‌تواند موازی باشد، اما APK Release فقط از Branch مرجع ساخته می‌شود. هر تغییر مهم باید با **کد + تست + CI + مستندات + Commit SHA قابل مشاهده** ثبت شود.
+## CI موازی
+چهار مسیر جدید مستقل به این branch اضافه شده‌اند:
+1. `Arvin Parallel FollowUp`
+2. `Arvin Parallel Calendar`
+3. `Arvin Parallel Backup`
+4. `Arvin Parallel Release`
+
+این چهار مسیر با یک push به‌صورت مستقل و موازی اجرا می‌شوند. شکست یک حوزه نباید جلوی تشخیص حوزه‌های دیگر را بگیرد.
+
+Release معیار سخت‌گیرانه دارد: `flutter build apk --release` باید سبز شود و APK به Artifact آپلود شود.
+
+## فازهای باقی‌مانده
+1. **Release / APK:** تأیید Build واقعی و Artifact نسخه‌دار.
+2. **FollowUp UI:** تکمیل افزودن/نمایش/ویرایش تاریخچه، نتیجه و پیگیری بعدی.
+3. **Calendar + Reminder:** اتصال کامل به FollowUp، اعلان و responsive layout.
+4. **Typography:** افزودن IranSansX به assets و FontManager/Settings برای تغییر فونت و persistence.
+5. **Product Settings:** یکپارچه‌سازی تنظیمات فونت، Backup و Reminder در Settings.
+6. **Release Candidate:** smoke test، versioning، checksum، artifact و مستند Release.
+
+## قانون ثبت تغییرات
+هر قابلیت مهم باید با چهار خروجی ثبت شود: **کد + تست + CI + مستندات**. SHA هر Commit مهم باید قابل مشاهده باشد.
