@@ -20,7 +20,7 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('۱۴۰۵/۰۵'), findsOneWidget);
+    expect(find.text('۱۴۰۵/۰۵'), findsOneWidget);
     expect(find.textContaining('۰۹:۳۰'), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsOneWidget);
     expect(find.text('تقویم پیگیری'), findsOneWidget);
