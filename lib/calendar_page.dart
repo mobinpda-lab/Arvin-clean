@@ -169,6 +169,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             : null,
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text('$day'),
