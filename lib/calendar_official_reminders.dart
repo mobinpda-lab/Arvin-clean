@@ -51,7 +51,19 @@ class OfficialCalendarReminderService {
     final groups = await Future.wait(
       sources.map((source) => source.load(year: year)),
     );
-    final reminders = groups.expand((group) => group).toList(growable: false);
-    return reminders.map((item) => item.toCalendarReminder()).toList(growable: false);
+
+    final byId = <String, OfficialCalendarReminder>{};
+    for (final item in groups.expand((group) => group)) {
+      if (item.date.year == year) {
+        byId.putIfAbsent(item.id, () => item);
+      }
+    }
+
+    final reminders = byId.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    return reminders
+        .map((item) => item.toCalendarReminder())
+        .toList(growable: false);
   }
 }
