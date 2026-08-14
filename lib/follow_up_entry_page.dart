@@ -41,10 +41,58 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     return result;
   }
 
-  String _format(DateTime value) {
-    final date = '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return '${_digits(date)} • ساعت ${_digits(time)}';
+  String _formatDate(DateTime value) {
+    final date =
+        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
+    return _digits(date);
+  }
+
+  String _formatTime(DateTime value) {
+    final time =
+        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    return _digits(time);
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateTime,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ پیگیری',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _dateTime = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _dateTime.hour,
+        _dateTime.minute,
+      );
+    });
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_dateTime),
+      helpText: 'انتخاب ساعت پیگیری',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _dateTime = DateTime(
+        _dateTime.year,
+        _dateTime.month,
+        _dateTime.day,
+        picked.hour,
+        picked.minute,
+      );
+    });
   }
 
   Future<void> _pickNext() async {
@@ -92,12 +140,30 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            ListTile(
-              leading: const Icon(Icons.schedule),
-              title: const Text('تاریخ و ساعت پیگیری'),
-              subtitle: Text(_format(_dateTime)),
+            const Text(
+              'تاریخ و ساعت به‌صورت خودکار از سیستم وارد شده‌اند و قابل ویرایش هستند.',
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    label: Text(_formatDate(_dateTime)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickTime,
+                    icon: const Icon(Icons.schedule_outlined),
+                    label: Text(_formatTime(_dateTime)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _noteController,
               maxLines: 4,
@@ -122,7 +188,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               label: Text(
                 _nextFollowUp == null
                     ? 'انتخاب پیگیری بعدی'
-                    : 'پیگیری بعدی: ${_format(_nextFollowUp!)}',
+                    : 'پیگیری بعدی: ${_formatDate(_nextFollowUp!)} • ساعت ${_formatTime(_nextFollowUp!)}',
               ),
             ),
             const SizedBox(height: 20),
