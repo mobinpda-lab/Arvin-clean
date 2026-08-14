@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'models/task.dart';
+
 class FollowUpEntryPage extends StatefulWidget {
-  const FollowUpEntryPage({super.key, this.initialDateTime});
+  const FollowUpEntryPage({super.key, this.initialDateTime, this.onSaved});
 
   final DateTime? initialDateTime;
+  final ValueChanged<FollowUp>? onSaved;
 
   @override
   State<FollowUpEntryPage> createState() => _FollowUpEntryPageState();
@@ -55,7 +58,29 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       confirmText: 'تأیید',
     );
     if (picked == null || !mounted) return;
-    setState(() => _nextFollowUp = DateTime(picked.year, picked.month, picked.day, _dateTime.hour, _dateTime.minute));
+    setState(() {
+      _nextFollowUp = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _dateTime.hour,
+        _dateTime.minute,
+      );
+    });
+  }
+
+  void _save() {
+    final followUp = FollowUp(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      dateTime: _dateTime,
+      note: _noteController.text.trim(),
+      result: _resultController.text.trim().isEmpty
+          ? null
+          : _resultController.text.trim(),
+      nextFollowUp: _nextFollowUp,
+    );
+    widget.onSaved?.call(followUp);
+    Navigator.of(context).pop(followUp);
   }
 
   @override
@@ -94,11 +119,15 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             OutlinedButton.icon(
               onPressed: _pickNext,
               icon: const Icon(Icons.event_repeat),
-              label: Text(_nextFollowUp == null ? 'انتخاب پیگیری بعدی' : 'پیگیری بعدی: ${_format(_nextFollowUp!)}'),
+              label: Text(
+                _nextFollowUp == null
+                    ? 'انتخاب پیگیری بعدی'
+                    : 'پیگیری بعدی: ${_format(_nextFollowUp!)}',
+              ),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: _save,
               icon: const Icon(Icons.save_outlined),
               label: const Text('ذخیره پیگیری'),
             ),
