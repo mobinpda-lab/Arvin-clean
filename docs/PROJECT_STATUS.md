@@ -11,7 +11,9 @@
 ## Parallel CI policy
 Feature validation is intentionally split into independent workflows for FollowUp, Calendar, Backup, and Release. A failure in one domain must not block diagnosis or progress in another domain.
 
-After a full green validation wave, the next validation wave is launched on the next meaningful commit with all independent workflows running concurrently. Manual dispatch is also enabled for the domain workflows so an individual green/failed area can be revalidated without coupling it to another area.
+**Operational rule:** Wave A, Wave B, and Release validation may run concurrently when their inputs are available. We do not wait for one product domain to finish before validating independent domains. A new green validation wave triggers the next available workflows in parallel on the next meaningful commit.
+
+Manual dispatch is enabled for the domain workflows so an individual area can be revalidated without coupling it to another area.
 
 ## Product roadmap / remaining work
 ### Wave A — product completion (parallel)
@@ -20,12 +22,12 @@ After a full green validation wave, the next validation wave is launched on the 
 3. Typography: add IranSansX as the default font asset and implement a persisted font selector in Settings once the real font asset is supplied.
 4. Settings: centralize font, reminder, backup, and general preferences.
 
-### Wave B — hardening (parallel)
+### Wave B — hardening (parallel with Wave A where independent)
 5. Backup UX: finish periodic-backup lifecycle and user-facing management.
 6. Integration tests: cover Task → FollowUp → Calendar/Reminder flows and persistence boundaries.
 7. Accessibility/RTL/responsive polish across the new surfaces.
 
-### Wave C — Release Candidate
+### Wave C — Release Candidate (parallel validation)
 8. Verify release APK artifact, checksum, versioning, smoke test, and release notes.
 9. Final documentation audit: ensure every significant feature has code + tests + CI + documentation + verifiable commit SHA.
 
