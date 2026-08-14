@@ -143,6 +143,8 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
+          // Keep the calendar compact enough for the reminder area to remain
+          // visible on the small test viewport and on compact Android screens.
           Padding(
             padding: const EdgeInsets.all(12),
             child: GridView.builder(
@@ -151,7 +153,7 @@ class _CalendarPageState extends State<CalendarPage> {
               itemCount: leading + daysInMonth,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 1.05,
+                mainAxisExtent: 38,
               ),
               itemBuilder: (_, index) {
                 if (index < leading) return const SizedBox.shrink();
