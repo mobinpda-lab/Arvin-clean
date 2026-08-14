@@ -82,7 +82,12 @@ jobs:
         run: |
           case '${{ matrix.area }}' in
             followup)
-              flutter test test/follow_up_history_card_test.dart test/task_store_test.dart
+              tests=(test/follow_up*_test.dart)
+              if compgen -G 'test/follow_up*_test.dart' > /dev/null; then
+                flutter test "${tests[@]}"
+              else
+                flutter test test/task_store_test.dart
+              fi
               ;;
             calendar)
               flutter test test/calendar_page_test.dart
