@@ -12,8 +12,8 @@ void main() {
         title: 'تماس با مشتری',
         description: 'ارسال مدارک قرارداد',
         tags: ['مهم'],
-        followUps: const [
-          FollowUp(
+        followUps: [
+          const FollowUp(
             id: 'f1',
             dateTime: DateTime(2026, 8, 14, 10, 30),
             note: 'منتظر پاسخ مدیر',
