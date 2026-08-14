@@ -43,8 +43,10 @@ jobs:
         shell: bash
         run: |
           test -f android/app/build.gradle.kts
-          test -f android/app/src/main/kotlin/com/mobinpda/lab/arvin/MainActivity.kt
-          grep -q 'FlutterActivity' android/app/src/main/kotlin/com/mobinpda/lab/arvin/MainActivity.kt
+          MAIN_ACTIVITY="$(find android/app/src/main/kotlin android/app/src/main/java -type f -name 'MainActivity.kt' -o -name 'MainActivity.java' 2>/dev/null | head -n 1)"
+          test -n "$MAIN_ACTIVITY"
+          echo "MainActivity=$MAIN_ACTIVITY"
+          grep -q 'FlutterActivity' "$MAIN_ACTIVITY"
           grep -q 'isCoreLibraryDesugaringEnabled = true' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
           if grep -RniE 'io\.flutter\.app\.(FlutterActivity|FlutterApplication)|FlutterActivityDelegate' android/app/src/main 2>/dev/null; then
