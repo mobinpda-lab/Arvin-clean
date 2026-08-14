@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// A reminder projected onto Arvin's calendar.
-///
-/// This model intentionally stays independent from ArvinTask so the calendar
-/// can later become a reusable presentation layer without coupling it to the
-/// storage implementation.
 class CalendarReminder {
   const CalendarReminder({
     required this.id,
@@ -20,10 +16,6 @@ class CalendarReminder {
 }
 
 /// Internal calendar view for Arvin follow-up reminders.
-///
-/// The page is deliberately driven by a list supplied by the caller. The
-/// caller remains the single source of truth for reminders, which prevents
-/// the calendar from maintaining a second copy of task data.
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key, required this.reminders});
 
@@ -84,7 +76,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final first = DateTime(_month.year, _month.month, 1);
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
-    // Monday = 0 ... Sunday = 6, which is convenient for the RTL layout.
     final leading = first.weekday - 1;
     final counts = _countsForMonth();
     final selected = _selectedDay ?? first;
@@ -143,61 +134,76 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: leading + daysInMonth,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                childAspectRatio: 1.05,
-              ),
-              itemBuilder: (_, index) {
-                if (index < leading) return const SizedBox.shrink();
-                final day = index - leading + 1;
-                final date = DateTime(_month.year, _month.month, day);
-                final count = counts[day] ?? 0;
-                final isSelected = _sameDay(date, selected);
-                return Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => setState(() => _selectedDay = date),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : null,
-                        borderRadius: BorderRadius.circular(12),
-                        border: count > 0
-                            ? Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outlineVariant,
-                              )
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('$day'),
-                          if (count > 0)
-                            Text(
-                              '$count',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                        ],
-                      ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final rows = ((leading + daysInMonth) / 7).ceil();
+              final availableWidth = constraints.maxWidth - 24;
+              final desiredHeight =
+                  (availableWidth / 7 / 1.05) * rows + 24;
+              return SizedBox(
+                height: desiredHeight.clamp(0.0, 300.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: leading + daysInMonth,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      childAspectRatio: 1.05,
                     ),
+                    itemBuilder: (_, index) {
+                      if (index < leading) return const SizedBox.shrink();
+                      final day = index - leading + 1;
+                      final date = DateTime(_month.year, _month.month, day);
+                      final count = counts[day] ?? 0;
+                      final isSelected = _sameDay(date, selected);
+                      return Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => setState(() => _selectedDay = date),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                  : null,
+                              borderRadius: BorderRadius.circular(12),
+                              border: count > 0
+                                  ? Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant,
+                                    )
+                                  : null,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('$day'),
+                                if (count > 0)
+                                  Text(
+                                    '$count',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
           const Divider(height: 1),
           Expanded(
