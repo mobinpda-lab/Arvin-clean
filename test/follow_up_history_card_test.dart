@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/models/follow_up.dart';
-import '../lib/models/task.dart';
-import '../lib/widgets/follow_up_history_card.dart';
+import 'package:arvin/models/follow_up.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/widgets/follow_up_history_card.dart';
 
 void main() {
   testWidgets('shows latest follow-up date and time', (tester) async {
