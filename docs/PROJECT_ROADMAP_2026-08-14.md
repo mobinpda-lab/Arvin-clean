@@ -53,14 +53,26 @@ Waveها فقط وقتی موازی اجرا می‌شوند که وابستگی
 - بررسی واقعی پشتیبانی Lock Screen و graceful fallback برای دستگاه‌های فاقد پشتیبانی.
 - بدون Storage جدا.
 
-### Lane E — Output
+### Lane E — Calendar Official Sources
+**به‌صورت کنترل‌شده موازی با UI، پس از تثبیت Calendar contract**
+- اوقات شرعی شیعه بر مبنای روش/اطلاعات مرکز تقویم مؤسسه ژئوفیزیک دانشگاه تهران.
+- تعطیلات رسمی ایران بر مبنای تقویم رسمی کشور و مناسبت‌های مصوب شورای فرهنگ عمومی.
+- نمایش هر دو به‌صورت `CalendarReminder` خواندنی و قابل تشخیص از Reminderهای کاربر.
+- پشتیبانی از مکان فعلی با اجازه کاربر یا شهر/مکان انتخابی.
+- داده تعطیلات به‌صورت سالانه و در صورت اصلاحیه قابل به‌روزرسانی.
+- عدم ایجاد Storage موازی برای Itemها.
+- cache محدود و قابل انقضا در صورت نیاز، بدون تبدیل cache به source of truth.
+- عدم ارسال خودکار این موارد به Google/system Calendar مگر در integration صریح محصول.
+- تست تطبیقی زمان‌های شرعی، timezone، مکان، تبدیل تاریخ و تعطیلات رسمی.
+
+### Lane F — Output
 - PDF Item + FollowUps.
 - PDF list.
 - Share.
 - Print برای Note ساده و Item پیگیری‌دار.
 - حفظ RTL، شمسی و فونت مورد توافق.
 
-### Lane F — Integrations
+### Lane G — Integrations
 پس از تثبیت مدل و UI:
 - Reminder / Google Calendar فقط برای eventهای مجاز.
 - Note timestamp هرگز به Calendar منتقل نشود.
@@ -72,9 +84,10 @@ Waveها فقط وقتی موازی اجرا می‌شوند که وابستگی
 2. **Gate B:** Notebook UI قابل استفاده و persistence واقعی.
 3. **Gate C:** Home + Search روی مسیر نهایی Item.
 4. **Gate D:** Widget + Lock Screen validation.
-5. **Gate E:** PDF + Print + IranSans.
-6. **Gate F:** Reminder/Calendar + Backup/Dropbox.
-7. **Gate G:** E2E، APK release، artifact و تست واقعی دستگاه.
+5. **Gate E:** Calendar official sources — اوقات شرعی شیعه + تعطیلات رسمی ایران.
+6. **Gate F:** PDF + Print + IranSans.
+7. **Gate G:** Reminder/Google Calendar + Backup/Dropbox.
+8. **Gate H:** E2E، APK release، artifact و تست واقعی دستگاه.
 
 ## معیار سرعت
 سرعت به معنی تغییرات بیشتر نیست؛ معیار سرعت این است که هر commit یک Gap مشخص را ببندد، CI آن سریعاً اجرا شود و Wave بعدی بدون انتظار غیرضروری برای حوزه‌های مستقل آغاز شود.
@@ -85,5 +98,6 @@ Waveها فقط وقتی موازی اجرا می‌شوند که وابستگی
 ## وضعیت فعلی
 - Unified Item foundation و Category compatibility در main تثبیت شده‌اند.
 - Lock Screen Widget به‌عنوان الزام محصولی مستند شده است.
-- CI فعلی برای commit مستندسازی Lock Screen در حال اجراست.
-- قدم بعدی: **Audit و اجرای Gate A برای adapter/migration بین Task و Legacy**؛ سپس Notebook UI.
+- نیاز رسمی Calendar برای اوقات شرعی شیعه و تعطیلات رسمی ایران به‌عنوان Lane/Gate مستقل ثبت شده است.
+- مستند اجرایی این نیاز در `docs/CALENDAR_OFFICIAL_REMINDERS_2026-08-14.md` قرار دارد.
+- قدم بعدی: **Audit و اجرای Gate A برای adapter/migration بین Task و Legacy**؛ Lane Calendar می‌تواند در سطح قرارداد/منبع به‌صورت موازی آماده شود، اما اتصال نهایی پس از تثبیت Calendar contract و بدون بازنویسی foundation انجام می‌شود.
