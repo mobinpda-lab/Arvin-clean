@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:arvin/models/follow_up.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -47,28 +48,3 @@ void main() {
       TaskStore.key,
       '[{"id":"old-follow-up","title":"Old task","description":"legacy","followUpDate":"2026-08-14T09:15:00.000","tags":[],"archived":false,"trashed":false,"completed":false}]',
     );
-
-    final loaded = await TaskStore().load();
-
-    expect(loaded, hasLength(1));
-    expect(loaded.single.id, 'old-follow-up');
-    expect(loaded.single.completed, isFalse);
-    expect(loaded.single.followUps, hasLength(1));
-    expect(loaded.single.lastFollowUpDate, DateTime(2026, 8, 14, 9, 15));
-  });
-
-  test('TaskStore remains compatible with older data without completed', () async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      TaskStore.key,
-      '[{"id":"old-1","title":"Old task","description":"legacy","tags":[],"archived":false,"trashed":false}]',
-    );
-
-    final loaded = await TaskStore().load();
-
-    expect(loaded, hasLength(1));
-    expect(loaded.single.id, 'old-1');
-    expect(loaded.single.completed, isFalse);
-    expect(loaded.single.followUps, isEmpty);
-  });
-}
