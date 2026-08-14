@@ -37,7 +37,9 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             for (final entry in history) {
               final followUp = Map<String, dynamic>.from(entry as Map);
               final date = DateTime.tryParse(followUp['dateTime'] as String? ?? '');
-              if (date == null) continue;
+              if (date == null) {
+                continue;
+              }
               rows.add(_FollowUpRow(
                 taskTitle: title,
                 dateTime: date,
@@ -61,14 +63,19 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     }
     rows.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     if (!mounted) return;
-    setState(() { _rows = rows; _loading = false; });
+    setState(() {
+      _rows = rows;
+      _loading = false;
+    });
   }
 
   String _digits(String value) {
     const western = '0123456789';
     const persian = '۰۱۲۳۴۵۶۷۸۹';
     var result = value;
-    for (var i = 0; i < western.length; i++) result = result.replaceAll(western[i], persian[i]);
+    for (var i = 0; i < western.length; i++) {
+      result = result.replaceAll(western[i], persian[i]);
+    }
     return result;
   }
 
