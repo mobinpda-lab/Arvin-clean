@@ -36,15 +36,30 @@ jobs:
       - name: Android V2 audit
         shell: bash
         run: |
-          activity=$(find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print -quit)
-          test -n "$activity"
-          grep -q 'FlutterActivity' "$activity"
-          ! grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar' android/app/src/main
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('android/app/src/main')
+          activities = list(root.rglob('MainActivity.kt')) + list(root.rglob('MainActivity.java'))
+          if not activities:
+              raise SystemExit('MainActivity.kt/java not found')
+          text = activities[0].read_text(encoding='utf-8')
+          if 'FlutterActivity' not in text:
+              raise SystemExit('MainActivity does not use FlutterActivity')
+          forbidden = ('io.flutter.app.', 'PluginRegistry.Registrar')
+          for path in root.rglob('*'):
+              if path.is_file():
+                  content = path.read_text(encoding='utf-8', errors='ignore')
+                  for token in forbidden:
+                      if token in content:
+                          raise SystemExit(f'deleted Android v1 embedding reference: {token} in {path}')
+          print(f'Android V2 audit passed: {activities[0]}')
+          PY
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
-          name: arvin-${{ github.run_id }}-${{ github.ref_name }}
+          name: arvin-${{ github.run_id }}-android-release
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
   surface:
     runs-on: ubuntu-latest
