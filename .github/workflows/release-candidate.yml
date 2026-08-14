@@ -1,0 +1,89 @@
+name: Arvin Release Candidate
+
+on:
+  push:
+    branches: ['feat/follow-up-history-v1.3']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Print revision and toolchain
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "HEAD=$(git rev-parse HEAD)"
+          flutter --version
+          java -version
+
+      - name: Pub get with retry
+        shell: bash
+        run: |
+          set -e
+          for attempt in 1 2 3; do
+            if flutter pub get; then exit 0; fi
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
+          exit 1
+
+      - name: Android V2 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          GRADLE_FILE="android/app/build.gradle.kts"
+          test -f "$GRADLE_FILE"
+          MAIN_ACTIVITY="$(find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print -quit)"
+          test -n "$MAIN_ACTIVITY"
+          echo "MainActivity=$MAIN_ACTIVITY"
+          grep -q 'FlutterActivity' "$MAIN_ACTIVITY"
+          grep -q 'isCoreLibraryDesugaringEnabled = true' "$GRADLE_FILE"
+          grep -q 'desugar_jdk_libs:2.1.5' "$GRADLE_FILE"
+          if grep -RniE 'io\.flutter\.app\.(FlutterActivity|FlutterApplication)|FlutterActivityDelegate' android/app/src/main 2>/dev/null; then
+            echo 'Android V1 embedding marker detected'
+            exit 1
+          fi
+
+      - name: Analyze (fatal errors only)
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test -r compact
+
+      - name: Build APK release
+        run: flutter build apk --release
+
+      - name: Verify APK
+        run: |
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+          sha256sum "$APK"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-release-candidate-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
