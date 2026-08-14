@@ -1,0 +1,62 @@
+name: Arvin Feature Validation
+
+on:
+  push:
+    branches: ['feat/**', 'fix/**']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Print source revision
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "HEAD=$(git rev-parse HEAD)"
+
+      - name: Get dependencies with retry
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            echo "flutter pub get attempt $attempt/3"
+            if flutter pub get; then exit 0; fi
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
+          exit 1
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run all tests
+        run: flutter test
+
+      - name: Verify FollowUp model and presentation tests
+        run: |
+          flutter test test/follow_up_model_test.dart test/follow_up_presentation_test.dart test/follow_up_history_card_test.dart
+
+      - name: Verify Calendar tests
+        run: flutter test test/calendar_page_test.dart
+
+      - name: Verify TaskStore tests
+        run: flutter test test/task_store_test.dart
+
+      - name: Verify Backup tests
+        run: flutter test test/backup_service_test.dart
