@@ -47,6 +47,7 @@ class Task {
     this.followUpEnabled = false,
     this.followUpDate,
     this.tags = const [],
+    this.category,
     this.checklist = const [],
     this.reminderDate,
     this.archived = false,
@@ -63,6 +64,7 @@ class Task {
   bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
+  String? category;
   List<String> checklist;
   DateTime? reminderDate;
   bool archived;
@@ -82,6 +84,7 @@ class Task {
         'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
+        'category': category,
         'checklist': checklist,
         'reminderDate': reminderDate?.toIso8601String(),
         'archived': archived,
@@ -128,6 +131,7 @@ class Task {
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      category: json['category'] as String?,
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),

@@ -2,12 +2,20 @@
 
 ## مرجع فعلی
 - Branch توسعه/مرجع: `main`
-- آخرین Commit کد تثبیت‌شده در main: `38377f6ac167be7f8642f18c06f29b05793975c8`
-- Wave جاری: **Unified Item / Note / FollowUp foundation**
+- آخرین Commit تثبیت‌شده در main قبل از Wave جاری: `2a8940a9646f549e5a1c317d9d894e59378ea3fa`
+- Wave جاری: **Unified Item / Note / FollowUp foundation — Category compatibility**
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## قانون audit قبل از تغییر
 قبل از هر تغییر محصولی باید main، کد واقعی، PRهای باز، CI اخیر، مستندات و پروژه‌های مرجع بررسی شوند. اگر قابلیت قبلاً حل شده باشد، دوباره‌سازی ممنوع است.
+
+### Audit این Wave
+- `main` و commitهای اخیر بررسی شدند.
+- PRهای باز بررسی شدند؛ PR #77 مربوط به همین Unified Item foundation بود و پس از سبز بودن `Arvin Parallel Wave` و `Arvin Build` ادغام شد.
+- `lib/models/task.dart` و `lib/services/task_store.dart` بررسی شدند.
+- `lib/main.dart` بررسی شد و مرز Legacy `ArvinTask / TaskRepository` هنوز دست‌نخورده باقی مانده است.
+- SearchService، Calendar، Notebook foundation و Backup/Dropbox به‌عنوان foundationهای موجود دوباره ساخته نشدند.
+- Gap واقعی این Wave: Contract نهایی Category در مدل `Task` وجود نداشت.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -17,6 +25,8 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 3. `Arvin Calendar Validation` — تست‌های Calendar.
 4. `Arvin Backup Validation` — تست Backup/Restore.
 5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
+
+آخرین PR #77 پیش از merge با موفقیت `Arvin Parallel Wave` و `Arvin Build` را پشت سر گذاشت.
 
 ## Android / Release
 - Android V2 با `FlutterActivity` استفاده می‌شود.
@@ -37,6 +47,11 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 در حالت بدون FollowUp، Item می‌تواند یک **یادداشت ساده** باشد. با فعال شدن FollowUp، همان Item به مورد پیگیری‌دار تبدیل می‌شود؛ نباید Note و Task به دو مسیر داده موازی تبدیل شوند.
 
 Wave جاری در `lib/models/task.dart` فقط به‌صورت additive این Contract را آماده می‌کند و مسیر Legacy UI را هنوز تغییر نمی‌دهد تا regression ایجاد نشود.
+
+### Category
+- `Task.category` به‌صورت `String?` و backward-compatible اضافه شده است.
+- داده‌های قدیمی که Category ندارند همچنان معتبر هستند و مقدار `null` می‌گیرند.
+- Category هنوز UI یا persistence جداگانه ندارد؛ در Waveهای بعدی فقط در صورت نیاز واقعی محصول فعال می‌شود.
 
 ### FollowUp
 - مدل مستقل `FollowUp`
