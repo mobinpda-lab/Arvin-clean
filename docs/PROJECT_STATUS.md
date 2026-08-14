@@ -2,6 +2,7 @@
 
 ## مرجع فعلی
 - Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
+- آخرین CI release fix: `d4776ac7c70380ee65f60893d41e5a7cb3d20b62`
 - Flutter CI target: `3.47.0` stable
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
@@ -14,11 +15,10 @@ CI اکنون به چند مسیر موازی تقسیم شده است تا شک
 4. `Arvin Backup Validation` — تست Backup/Restore.
 5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
 
-### تغییرات اخیر CI
-- `65fdcf6` — workflow مستقل FollowUp Validation.
-- `9828a0f` — workflow مستقل Calendar Validation.
-- `aaec6ba` — تثبیت Release Validation و اصلاح مسیر واقعی MainActivity/Android V2 audit.
-- `95b7a25` — workflow مستقل Backup Validation.
+### تغییر اخیر CI
+- Run `94710722878` روی commit `80e699db` نشان داد `flutter pub get` کاملاً موفق است و `saf 2.1.0` نیز resolve می‌شود؛ شکست فقط به‌خاطر hard-code اشتباه مسیر `MainActivity` بود.
+- مسیر واقعی `MainActivity.kt` در پروژه: `android/app/src/main/kotlin/com/mobinpda/lab/arvin/MainActivity.kt`.
+- Commit `d4776ac7c70380ee65f60893d41e5a7cb3d20b62` audit را به کشف پویا و مستقل از package path تغییر داد.
 
 ## Android / Release
 - Android V2 با `FlutterActivity` استفاده می‌شود.
