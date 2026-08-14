@@ -22,26 +22,30 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Ensure Android V2 project exists
+      - name: Ensure clean Android V2 project
         shell: bash
         run: |
           if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
-            echo 'Generating missing Android project from current Flutter V2 template.'
-            mkdir -p /tmp/arvin-android-backup
-            if [ -f android/app/src/main/AndroidManifest.xml ]; then
-              cp android/app/src/main/AndroidManifest.xml /tmp/arvin-android-backup/AndroidManifest.xml
+            echo 'Android Gradle project is missing; replacing incomplete Android directory with a fresh Flutter V2 project.'
+            if [ -d android ]; then
+              mv android /tmp/arvin-android-incomplete
             fi
             flutter create --platforms=android --org com.mobinpda.lab --project-name arvin .
-            if [ -f /tmp/arvin-android-backup/AndroidManifest.xml ]; then
-              cp /tmp/arvin-android-backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+            if [ -f /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml ]; then
+              cp /tmp/arvin-android-incomplete/app/src/main/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
             fi
           fi
           echo '--- Android project files ---'
-          find android -maxdepth 5 -type f | sort
+          find android -maxdepth 6 -type f | sort
           echo '--- MainActivity files ---'
           find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print
-          echo '--- Embedding markers ---'
-          grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|flutterEmbedding' android/app/src/main 2>/dev/null || true
+          echo '--- V1 markers in Android source ---'
+          if grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|GeneratedPluginRegistrant\.registerWith' android/app/src/main 2>/dev/null; then
+            echo 'Legacy Android v1 embedding references found in Android source.'
+            exit 1
+          fi
+          echo '--- V2 markers ---'
+          grep -R -n 'flutterEmbedding' android/app/src/main 2>/dev/null || true
           test -f android/app/build.gradle || test -f android/app/build.gradle.kts
           find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) | grep -q .
 
@@ -84,8 +88,8 @@ jobs:
         shell: bash
         run: |
           CACHE="${PUB_CACHE:-$HOME/.pub-cache}/hosted/pub.dev"
-          if grep -R -n -E 'PluginRegistry\.Registrar|io\.flutter\.app\.|registerWith\(' "$CACHE" --include='*.java' --include='*.kt' 2>/dev/null | head -100; then
-            echo 'Legacy Android v1 embedding references found.'
+          if grep -R -n -E 'PluginRegistry\.Registrar|io\.flutter\.app\.|GeneratedPluginRegistrant\.registerWith' "$CACHE" --include='*.java' --include='*.kt' 2>/dev/null | head -100; then
+            echo 'Legacy Android v1 embedding references found in plugin cache.'
             exit 1
           else
             echo 'No Android v1 embedding references found in plugin cache.'
