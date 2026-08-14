@@ -85,9 +85,11 @@ Widget باید:
 - در صورت پشتیبانی معماری روی Lock Screen نیز ارائه شود.
 - آخرین FollowUp را نشان دهد، نه Reminder بعدی.
 
-### آخرین audit Widget
+### Audit فعلی Widget — 2026-08-15
 
-در audit اخیر implementation قطعی `AppWidgetProvider/RemoteViews` در مخزن پیدا نشد و `android/app/src/main` ساختار native بسیار محدودی داشت. بنابراین قبل از Quick FollowUp Widget باید Widget Foundation مشترک به‌صورت کنترل‌شده ایجاد/تأیید شود؛ ساخت دو Widget مستقل و موازی ممنوع است.
+Audit مستقیم در `main` نشان داد مسیر native فعلی Android در `android/app/src/main` فقط `AndroidManifest.xml` دارد و implementation قطعی `AppWidgetProvider/RemoteViews` در آن وجود ندارد. بنابراین Quick FollowUp Widget نباید با یک implementation موازی و مستقل ساخته شود. گام فنی درست، ایجاد یک Widget Foundation مشترک و کنترل‌شده است؛ سپس Widget اصلی و Quick FollowUp Widget هر دو باید روی همان foundation قرار بگیرند.
+
+همچنین `pubspec.yaml` فعلی Flutter است و dependencyهای اعلان/زمان‌بندی دارد، اما dependency یا plugin مشخصی برای Android App Widget در آن ثبت نشده است. این موضوع باید در طراحی foundation بررسی شود و نباید بدون audit یک dependency جدید اضافه شود.
 
 ## 7. Widget اصلی
 
@@ -150,6 +152,7 @@ Workflowهای اصلی:
 - `docs/CALENDAR_OFFICIAL_SOURCE_RESEARCH_2026-08-15.md` برای منابع رسمی Calendar ثبت شده است.
 - `docs/QUICK_FOLLOWUP_WIDGET_AUDIT_2026-08-15.md` مشخصات و audit اولیه Quick FollowUp Widget را ثبت کرده است.
 - Use Case «پیگیری زنجیره‌ای یک کار» سناریوی رسمی محصول است.
+- Audit مستقیم native Android در 2026-08-15 نبودن AppWidgetProvider/RemoteViews را تأیید کرد؛ بنابراین Widget Foundation باید قبل از هر Widget محصولی به‌صورت مشترک و کنترل‌شده ایجاد شود.
 
 ## 16. دستور ادامه برای هوش مصنوعی بعدی
 
