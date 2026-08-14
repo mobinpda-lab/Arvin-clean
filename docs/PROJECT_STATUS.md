@@ -28,11 +28,17 @@
 - **تیتر/متن کوتاه آخرین پیگیری**.
 - **تاریخ آخرین پیگیری**.
 - **ساعت آخرین پیگیری**.
+- تاریخ و ساعت باید در **یک خط** نمایش داده شوند.
 - لمس Widget باید همان Item را باز کند.
 - Widget باید از همان source of truth `Item/FollowUp` استفاده کند و Storage یا Database جدا نداشته باشد.
 - RTL، فونت اصلی پروژه، سبک و کم‌مصرف بودن و refresh محدود مانند قرارداد Widget اصلی الزامی است.
 - این Widget نیز در صورت پشتیبانی Android/Launcher باید روی Lock Screen قابل نمایش باشد و در دستگاه‌های فاقد پشتیبانی graceful fallback داشته باشد.
+- لیست چندموردی باید **قابل اسکرول عمودی** باشد.
+- Category و امکانات/فیلترهای سازگار Widget اصلی باید برای این Widget نیز قابل استفاده باشند.
 - آخرین FollowUp نمایش داده می‌شود، نه Reminder بعدی؛ Reminder قابلیت جداگانه است.
+
+## Audit فنی Widget — 2026-08-15
+در بررسی مستقیم `main`، مسیر `android/app/src/main` فعلاً فقط `AndroidManifest.xml` دارد و implementation قطعی `AppWidgetProvider/RemoteViews` در مخزن پیدا نشد. همچنین `pubspec.yaml` فعلی dependency مشخصی برای Android App Widget ندارد. نتیجه: ساخت Quick FollowUp Widget به‌صورت مستقل و موازی در این نقطه ممنوع است؛ ابتدا باید یک **Widget Foundation مشترک و کنترل‌شده** ایجاد/تأیید شود، سپس Widget اصلی و Quick FollowUp Widget روی همان foundation پیاده شوند.
 
 ## برنامه اجرای سریع به‌روز
 برای افزایش سرعت، کار به Laneهای مستقل تقسیم شده است: Architecture/Unified Item، Notebook UI، Home/Search، Calendar رسمی ایران، Widget/Lock Screen، Output/Font، Integrations/Data portability و E2E/Release. Laneهای مستقل می‌توانند همزمان آماده‌سازی و تست شوند؛ اما هیچ Lane اجازه ندارد برای سرعت foundation مشترک را موازی و ناسازگار تغییر دهد.
@@ -40,6 +46,7 @@
 ### گلوگاه‌های فعلی
 - **Gate A — Unified Item adapter/migration:** گلوگاه معماری همچنان باید بدون شکستن Legacy تکمیل شود.
 - **Gate D — Calendar رسمی ایران:** PR #80 با موفقیت merge شد و Source Contract/Mapping روی `CalendarReminder` تثبیت شده است؛ گام بعدی اتصال Providerهای واقعی و رسمی است.
+- **Gate E — Widget Foundation:** implementation native AppWidget هنوز در `main` تثبیت نشده؛ قبل از Widget اصلی و Quick FollowUp Widget باید foundation مشترک ایجاد و با CI/Android audit تأیید شود.
 - **FollowUp UX / Quick Widget:** Use Case جدید باید روی مدل موجود پیاده شود و نباید مدل یا Storage جدید ایجاد کند.
 
 ## Audit اخیر
@@ -47,6 +54,7 @@
 - مدل محصول همچنان Unified Item با `FollowUps[]` است؛ مسیر جداگانه Note/Task ایجاد نمی‌شود.
 - Widget فعلی باید همان source of truth را مصرف کند؛ Widget پیگیری سریع نیز همین قرارداد را دارد.
 - Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده و باید با همان source of truth ویجت اصلی اجرا شود.
+- Android native tree بررسی شد؛ فعلاً `android/app/src/main/AndroidManifest.xml` تنها فایل native application source در این مسیر است و AppWidgetProvider/RemoteViews وجود ندارد.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -94,7 +102,8 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - لمس برای بازکردن Item
 - RTL و IranSans
 - Lock Screen در صورت پشتیبانی
-- **Quick FollowUp Widget:** عنوان کار + آخرین پیگیری + تاریخ + ساعت؛ بدون Reminder بعدی و بدون Storage جدا.
+- **Quick FollowUp Widget:** عنوان کار + آخرین پیگیری + تاریخ و ساعت در یک خط؛ لیست اسکرول‌شونده، Category/امکانات سازگار Widget اصلی، بدون Reminder بعدی و بدون Storage جدا.
+- **Foundation Gate:** ابتدا AppWidgetProvider/RemoteViews یا راهکار native معادل باید به‌صورت مشترک و قابل تست ایجاد شود؛ سپس Widgetهای محصولی ساخته شوند.
 
 ## فازهای عملیاتی به‌روز
 1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گلوگاه فعال معماری**
@@ -102,7 +111,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select؛ شامل UX ثبت سریع پیگیری زنجیره‌ای.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
 5. **Calendar رسمی ایران:** Provider واقعی اوقات شرعی شیعه + تعطیلات رسمی ایران.
-6. **Widget:** تکمیل Widget اصلی و **Quick FollowUp Widget** روی همان source of truth، شامل بررسی Lock Screen.
+6. **Widget:** **Widget Foundation مشترک** → تکمیل Widget اصلی و **Quick FollowUp Widget** روی همان source of truth، شامل بررسی Lock Screen.
 7. **PDF + Print**
 8. **IranSans**
 9. **Reminder + Google Calendar**
@@ -111,3 +120,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 
 ## Definition of Done
 هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
+
+## آخرین تغییر مستنداتی
+- `docs/AI_HANDOFF_CURRENT_FA.md` با audit مستقیم Android Widget و وضعیت dependencyها به‌روزرسانی شد.
+- commit این به‌روزرسانی: `a6b788de00cf8b2cd59d619eaf54bacad28ef196`
