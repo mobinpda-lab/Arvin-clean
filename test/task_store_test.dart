@@ -54,6 +54,6 @@ void main() {
     expect(loaded, hasLength(1));
     expect(loaded.single.followUps, hasLength(1));
     expect(loaded.single.lastFollowUpDate, DateTime(2026, 8, 14, 9, 15));
-    expect(loaded.single.lastFollowUp?.note, isEmpty);
+    expect(loaded.single.lastFollowUp?.note, 'مهاجرت خودکار از تاریخ پیگیری قبلی');
   });
 }
