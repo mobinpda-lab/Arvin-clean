@@ -2,20 +2,22 @@
 
 ## مرجع فعلی
 - Branch توسعه/مرجع: `main`
-- آخرین Commit تثبیت‌شده در main قبل از Wave جاری: `2a8940a9646f549e5a1c317d9d894e59378ea3fa`
 - Wave جاری: **Unified Item / Note / FollowUp foundation — Category compatibility**
+- برنامه اجرایی به‌روز: `docs/PROJECT_ROADMAP_2026-08-14.md`
+- آخرین تغییر برنامه‌ریزی: commit `bd641279e72c8cf8a1f0fbe3419e09d7675cc978`
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## قانون audit قبل از تغییر
 قبل از هر تغییر محصولی باید main، کد واقعی، PRهای باز، CI اخیر، مستندات و پروژه‌های مرجع بررسی شوند. اگر قابلیت قبلاً حل شده باشد، دوباره‌سازی ممنوع است.
 
-### Audit این Wave
-- `main` و commitهای اخیر بررسی شدند.
-- PRهای باز بررسی شدند؛ PR #77 مربوط به همین Unified Item foundation بود و پس از سبز بودن `Arvin Parallel Wave` و `Arvin Build` ادغام شد.
-- `lib/models/task.dart` و `lib/services/task_store.dart` بررسی شدند.
-- `lib/main.dart` بررسی شد و مرز Legacy `ArvinTask / TaskRepository` هنوز دست‌نخورده باقی مانده است.
-- SearchService، Calendar، Notebook foundation و Backup/Dropbox به‌عنوان foundationهای موجود دوباره ساخته نشدند.
-- Gap واقعی این Wave: Contract نهایی Category در مدل `Task` وجود نداشت.
+## قانون توسعه سریع و موازی
+حوزه‌های مستقل می‌توانند موازی پیش بروند، اما هیچ Wave موازی نباید foundation مشترک را بدون audit و هماهنگی تغییر دهد. هر تغییر باید یک Gap مشخص را ببندد و بلافاصله با تست، Commit و Workflowهای مربوط validation شود. نتیجه CI قبل از ادامه Wave وابسته بررسی می‌شود. تمام تصمیم‌ها، تغییرات و نتایج مهم باید در مستندات ثبت شوند.
+
+### Audit اخیر
+- مستندات پروژه و `PROJECT_STATUS.md` دوباره بررسی شدند.
+- Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده است.
+- CI مربوط به commit `979abd75d1517968bc8292f2367b708821fc6106` در زمان آخرین بررسی در حال اجرا بود.
+- برای افزایش سرعت بدون ایجاد دوباره‌کاری، roadmap مستقل و به‌روز در `docs/PROJECT_ROADMAP_2026-08-14.md` ثبت شد.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -25,8 +27,6 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 3. `Arvin Calendar Validation` — تست‌های Calendar.
 4. `Arvin Backup Validation` — تست Backup/Restore.
 5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
-
-آخرین PR #77 پیش از merge با موفقیت `Arvin Parallel Wave` و `Arvin Build` را پشت سر گذاشت.
 
 ## Android / Release
 - Android V2 با `FlutterActivity` استفاده می‌شود.
@@ -45,8 +45,6 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 - FollowUps[] اختیاری
 
 در حالت بدون FollowUp، Item می‌تواند یک **یادداشت ساده** باشد. با فعال شدن FollowUp، همان Item به مورد پیگیری‌دار تبدیل می‌شود؛ نباید Note و Task به دو مسیر داده موازی تبدیل شوند.
-
-Wave جاری در `lib/models/task.dart` فقط به‌صورت additive این Contract را آماده می‌کند و مسیر Legacy UI را هنوز تغییر نمی‌دهد تا regression ایجاد نشود.
 
 ### Category
 - `Task.category` به‌صورت `String?` و backward-compatible اضافه شده است.
@@ -94,7 +92,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 ### PDF / Print
 - PDF برای Item و تاریخچه FollowUp و فهرست
 - Share برای PDF
-- **Print برای یادداشت ساده نیز الزامی است.**
+- Print برای یادداشت ساده نیز الزامی است.
 - Print برای Item پیگیری‌دار با همه سوابق FollowUp
 - Print و PDF دو مسیر مجزا هستند.
 
@@ -102,8 +100,8 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - فونت اصلی توافق‌شده: **IranSans / IranSansX(Eco)**
 - اعمال نهایی در UI، Settings، Widget، PDF و Print باید End-to-End اعتبارسنجی شود.
 
-## فازهای عملیاتی بعدی
-1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy.
+## فازهای عملیاتی به‌روز
+1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گام بعدی فعال**
 2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings.
 3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
@@ -114,8 +112,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 9. **Backup + Restore + Dropbox:** End-to-End.
 10. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
 
+برای جزئیات Gateها، وابستگی‌ها و اجرای موازی، `docs/PROJECT_ROADMAP_2026-08-14.md` مرجع اجرایی این برنامه است.
+
 ## Definition of Done
 هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
-
-## توسعه سریع اما کنترل‌شده
-حوزه‌های مستقل به‌صورت موازی پیش می‌روند، اما هر Wave باید مستقل و کم‌خطر باشد. Commit، تست و Workflowهای مربوط به همان Wave باید بلافاصله پس از تغییر اجرا شوند؛ تغییرات قبلاً حل‌شده نباید تکرار شوند.
