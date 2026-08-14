@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin_clean/calendar_official_reminders.dart';
+import 'package:arvin/calendar_official_reminders.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
