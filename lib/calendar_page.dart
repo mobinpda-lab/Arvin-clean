@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// A reminder projected onto Arvin's calendar.
-///
-/// This model intentionally stays independent from ArvinTask so the calendar
-/// can later become a reusable presentation layer without coupling it to the
-/// storage implementation.
 class CalendarReminder {
   const CalendarReminder({
     required this.id,
@@ -20,10 +16,6 @@ class CalendarReminder {
 }
 
 /// Internal calendar view for Arvin follow-up reminders.
-///
-/// The page is deliberately driven by a list supplied by the caller. The
-/// caller remains the single source of truth for reminders, which prevents
-/// the calendar from maintaining a second copy of task data.
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key, required this.reminders});
 
@@ -84,7 +76,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final first = DateTime(_month.year, _month.month, 1);
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
-    // Monday = 0 ... Sunday = 6, which is convenient for the RTL layout.
     final leading = first.weekday - 1;
     final counts = _countsForMonth();
     final selected = _selectedDay ?? first;
@@ -143,6 +134,9 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
+          // Keep the calendar grid compact and deterministic. A fixed row
+          // height prevents the six-week grid from consuming the whole test
+          // viewport and pushing the reminder section out of view.
           Padding(
             padding: const EdgeInsets.all(12),
             child: GridView.builder(
@@ -151,7 +145,7 @@ class _CalendarPageState extends State<CalendarPage> {
               itemCount: leading + daysInMonth,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 1.05,
+                mainAxisExtent: 44,
               ),
               itemBuilder: (_, index) {
                 if (index < leading) return const SizedBox.shrink();
