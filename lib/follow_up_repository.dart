@@ -6,23 +6,47 @@ import 'models/task.dart';
 
 /// Persistence boundary for FollowUp data.
 ///
-/// It deliberately preserves the existing `arvin.tasks` JSON envelope so the
-/// current application data remains backward compatible while the UI is
-/// migrated from the legacy `followUpDate` field to `followUps`.
+/// It preserves the existing `arvin.tasks` JSON envelope so current data
+/// remains backward compatible while the UI migrates from `followUpDate` to
+/// `followUps`.
 class FollowUpRepository {
   const FollowUpRepository({this.key = 'arvin.tasks'});
 
   final String key;
 
   Future<List<FollowUp>> loadForTask(String taskId) async {
-    final tasks = await _loadRawTasks();
-    final raw = tasks.cast<Map<String, dynamic>>().firstWhere(
-          (task) => task['id'] == taskId,
-          orElse: () => <String, dynamic>{},
-        );
+    final prefs = await SharedPreferences.getInstance();
+    return _loadForTask(prefs, taskId);
+  }
 
-    if (raw.isEmpty) return const [];
+  Future<void> add(String taskId, FollowUp followUp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final tasks = await _loadRawTasks(prefs);
+    final index = tasks.indexWhere((task) => task['id'] == taskId);
+    if (index < 0) {
+      throw StateError('Task not found: $taskId');
+    }
 
+    final existing = _decodeFollowUps(tasks[index]);
+    final task = tasks[index];
+    task['followUps'] = [...existing, followUp]
+        .map((item) => item.toJson())
+        .toList();
+
+    await prefs.setString(key, jsonEncode(tasks));
+  }
+
+  Future<List<FollowUp>> _loadForTask(
+    SharedPreferences prefs,
+    String taskId,
+  ) async {
+    final tasks = await _loadRawTasks(prefs);
+    final raw = tasks.where((task) => task['id'] == taskId).firstOrNull;
+    if (raw == null) return const [];
+    return _decodeFollowUps(raw);
+  }
+
+  List<FollowUp> _decodeFollowUps(Map<String, dynamic> raw) {
     final followUps = raw['followUps'];
     if (followUps is List) {
       return followUps
@@ -48,27 +72,10 @@ class FollowUpRepository {
     return const [];
   }
 
-  Future<void> add(String taskId, FollowUp followUp) async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = await _loadRawTasks(prefs: prefs);
-    final index = tasks.indexWhere((task) => task['id'] == taskId);
-    if (index < 0) {
-      throw StateError('Task not found: $taskId');
-    }
-
-    final task = tasks[index];
-    final existing = await loadForTask(taskId);
-    final merged = [...existing, followUp];
-    task['followUps'] = merged.map((item) => item.toJson()).toList();
-
-    await prefs.setString(key, jsonEncode(tasks));
-  }
-
-  Future<List<Map<String, dynamic>>> _loadRawTasks({
-    SharedPreferences? prefs,
-  }) async {
-    final store = prefs ?? await SharedPreferences.getInstance();
-    final raw = store.getString(key);
+  Future<List<Map<String, dynamic>>> _loadRawTasks(
+    SharedPreferences prefs,
+  ) async {
+    final raw = prefs.getString(key);
     if (raw == null || raw.isEmpty) return [];
 
     final decoded = jsonDecode(raw);
