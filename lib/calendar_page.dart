@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CalendarReminder {
-  const CalendarReminder({
-    required this.id,
-    required this.title,
-    required this.date,
-    this.completed = false,
-  });
-
+  const CalendarReminder({required this.id, required this.title, required this.date, this.completed = false});
   final String id;
   final String title;
   final DateTime date;
@@ -23,10 +17,8 @@ class _JalaliDate {
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key, required this.reminders, this.initialSelectedDay});
-
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
-
   @override
   State<CalendarPage> createState() => _CalendarPageState();
 }
@@ -52,7 +44,9 @@ class _CalendarPageState extends State<CalendarPage> {
     for (var i = 0; i < gm; i++) {
       gDayNo += gDays[i];
     }
-    if (gm > 1 && _isGregorianLeap(date.year)) gDayNo++;
+    if (gm > 1 && _isGregorianLeap(date.year)) {
+      gDayNo++;
+    }
     gDayNo += gd;
     var jDayNo = gDayNo - 79;
     final jNp = jDayNo ~/ 12053;
@@ -101,7 +95,9 @@ class _CalendarPageState extends State<CalendarPage> {
     var gm = 0;
     while (gm < 12) {
       final days = gDays[gm] + (gm == 1 && leap ? 1 : 0);
-      if (gDayNo < days) break;
+      if (gDayNo < days) {
+        break;
+      }
       gDayNo -= days;
       gm++;
     }
@@ -114,7 +110,9 @@ class _CalendarPageState extends State<CalendarPage> {
     const western = '0123456789';
     const persian = '۰۱۲۳۴۵۶۷۸۹';
     var result = value;
-    for (var i = 0; i < western.length; i++) result = result.replaceAll(western[i], persian[i]);
+    for (var i = 0; i < western.length; i++) {
+      result = result.replaceAll(western[i], persian[i]);
+    }
     return result;
   }
 
@@ -124,9 +122,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   String _time(DateTime date) => _digits('${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}');
-
   bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
-
   List<CalendarReminder> _forDay(DateTime day) => widget.reminders.where((item) => _sameDay(item.date, day)).toList(growable: false);
 
   Map<int, int> _countsForMonth() {
@@ -134,7 +130,9 @@ class _CalendarPageState extends State<CalendarPage> {
     final current = _toJalali(_month);
     for (final item in widget.reminders) {
       final j = _toJalali(item.date);
-      if (j.year == current.year && j.month == current.month) counts[j.day] = (counts[j.day] ?? 0) + 1;
+      if (j.year == current.year && j.month == current.month) {
+        counts[j.day] = (counts[j.day] ?? 0) + 1;
+      }
     }
     return counts;
   }
@@ -151,16 +149,28 @@ class _CalendarPageState extends State<CalendarPage> {
     final current = _toJalali(_month);
     var month = current.month + delta;
     var year = current.year;
-    while (month < 1) { month += 12; year--; }
-    while (month > 12) { month -= 12; year++; }
+    while (month < 1) {
+      month += 12;
+      year--;
+    }
+    while (month > 12) {
+      month -= 12;
+      year++;
+    }
     final first = _toGregorian(year, month, 1);
-    setState(() { _month = first; _selectedDay = first; });
+    setState(() {
+      _month = first;
+      _selectedDay = first;
+    });
   }
 
   void _today() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    setState(() { _month = DateTime(now.year, now.month, 1); _selectedDay = today; });
+    setState(() {
+      _month = DateTime(now.year, now.month, 1);
+      _selectedDay = today;
+    });
   }
 
   @override
