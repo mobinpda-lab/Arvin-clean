@@ -23,9 +23,9 @@ class FollowUp {
 
   factory FollowUp.fromJson(Map<String, dynamic> json) {
     return FollowUp(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
-      note: (json['note'] as String?) ?? '',
+      note: json['note'] as String? ?? '',
       result: json['result'] as String?,
       nextFollowUp: json['nextFollowUp'] == null
           ? null
@@ -34,29 +34,32 @@ class FollowUp {
   }
 }
 
-// مدل اصلی Task با پشتیبانی از تاریخچه پیگیری
+/// Primary Arvin task model with backward-compatible follow-up history.
 class ArvinTask {
   ArvinTask({
     required this.id,
     required this.title,
     this.description = '',
-    this.followUpDate, // هنوز نگهش داریم برای backward compatibility
+    this.followUpDate,
     this.tags = const [],
     this.archived = false,
     this.trashed = false,
     this.completed = false,
-    this.followUps = const [], // فیلد جدید
+    this.followUps = const [],
   });
 
   final String id;
   String title;
   String description;
-  DateTime? followUpDate; // ← فعلاً نگه می‌داریم
+
+  /// Legacy field kept so existing backups/data remain readable.
+  DateTime? followUpDate;
+
   List<String> tags;
   bool archived;
   bool trashed;
   bool completed;
-  List<FollowUp> followUps; // ← تاریخچه پیگیری‌ها
+  List<FollowUp> followUps;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -71,26 +74,30 @@ class ArvinTask {
       };
 
   factory ArvinTask.fromJson(Map<String, dynamic> json) {
-    // ابتدا followUps را از JSON می‌خوانیم (اگر وجود داشته باشد)
-    List<FollowUp> loadedFollowUps = [];
-    if (json['followUps'] is List) {
-      loadedFollowUps = (json['followUps'] as List)
-          .map((item) => FollowUp.fromJson(Map<String, dynamic>.from(item)))
-          .toList();
+    final loadedFollowUps = <FollowUp>[];
+    final rawFollowUps = json['followUps'];
+
+    if (rawFollowUps is List) {
+      for (final item in rawFollowUps) {
+        if (item is Map) {
+          loadedFollowUps.add(
+            FollowUp.fromJson(Map<String, dynamic>.from(item)),
+          );
+        }
+      }
     }
 
-    // اگر followUps خالی بود ولی followUpDate قدیمی وجود داشت،
-    // یک FollowUp اولیه از آن می‌سازیم (Migration خودکار)
-    if (loadedFollowUps.isEmpty && json['followUpDate'] != null) {
+    // Migrate the legacy single follow-up date exactly once on load.
+    if (loadedFollowUps.isEmpty && json['followUpDate'] is String) {
       final oldDate = DateTime.tryParse(json['followUpDate'] as String);
       if (oldDate != null) {
-        loadedFollowUps = [
+        loadedFollowUps.add(
           FollowUp(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            id: 'legacy-${oldDate.microsecondsSinceEpoch}',
             dateTime: oldDate,
             note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
           ),
-        ];
+        );
       }
     }
 
@@ -109,10 +116,22 @@ class ArvinTask {
     );
   }
 
-  // متد کمکی برای گرفتن آخرین پیگیری
-  FollowUp? get lastFollowUp =>
-      followUps.isNotEmpty ? followUps.last : null;
+  /// Returns the most recent follow-up by timestamp, regardless of list order.
+  FollowUp? get lastFollowUp {
+    if (followUps.isEmpty) return null;
+    return followUps.reduce(
+      (current, candidate) =>
+          candidate.dateTime.isAfter(current.dateTime) ? candidate : current,
+    );
+  }
 
-  // متد کمکی برای گرفتن آخرین تاریخ پیگیری
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
+
+  /// Adds a follow-up and keeps the legacy date field synchronized.
+  void addFollowUp(FollowUp followUp) {
+    followUps = List<FollowUp>.from(followUps)..add(followUp);
+    if (followUpDate == null || followUp.dateTime.isAfter(followUpDate!)) {
+      followUpDate = followUp.dateTime;
+    }
+  }
 }
