@@ -61,7 +61,8 @@
 - تست تاریخ شمسی، مرز روز، تغییر مکان و سال.
 - Note timestamp هرگز وارد این مسیر نشود.
 - Google/system Calendar فقط برای eventهای مجاز محصول باقی بماند.
-- این Lane بعد از validation قرارداد PR #79 به implementation واقعی می‌رسد.
+- **PR #80 قرارداد source-neutral و mapping به `CalendarReminder` را merge کرده است؛ implementation واقعی Providerها گام فعال بعدی است.**
+- Providerها باید بدون داده حدسی، با fixture قابل اعتبارسنجی، سال/مکان/timezone مشخص و regression test اضافه شوند.
 
 ### Lane E — Widget
 - استفاده از همان source of truth Item/Reminder/FollowUp.
@@ -106,7 +107,7 @@
 
 ## کارهای قابل اجرای موازی فعلی
 تا وقتی Gate A در حال تثبیت است، این کارها می‌توانند بدون تغییر foundation مشترک جلو بروند:
-- Contract و implementation Calendar رسمی (PR #79) پس از CI.
+- **Calendar Providerها:** source research و contract انجام شده و PR #80 merge شده؛ اکنون implementation واقعی Providerهای تعطیلات رسمی و اوقات شرعی با validation منبع در اولویت است.
 - طراحی/تست‌های Notebook UI روی foundation موجود.
 - آماده‌سازی تست‌های Home/Search با mock/in-memory بدون تغییر repository اصلی.
 - آماده‌سازی Widget/Lock Screen compatibility tests بدون ایجاد storage جدید.
@@ -121,6 +122,11 @@
 ## وضعیت فعلی
 - Unified Item foundation و Category compatibility در main تثبیت شده‌اند.
 - Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده است.
-- PR #79 قرارداد اوقات شرعی و تعطیلات رسمی ایران را ثبت کرده و در انتظار validation/ادامه implementation است.
-- **تمرکز اجرایی فعلی:** Gate A به‌عنوان گلوگاه معماری + پیشبرد مستقل Calendar رسمی و آماده‌سازی همزمان Notebook/Home/Search/Widget tests بدون تغییر foundation مشترک.
+- PR #80 با موفقیت merge شده و source-neutral Calendar reminder mapping در main است.
+- **Gap فعال Calendar:** Provider واقعی اوقات شرعی شیعه و تعطیلات رسمی ایران، با منبع قابل اعتبارسنجی، داده versioned، مکان/timezone و تست سال/تاریخ.
+- **گلوگاه فعال معماری:** Gate A همچنان باید بدون شکستن Legacy تکمیل شود.
+- **تمرکز اجرایی:** Gate A + implementation مستقل Calendar رسمی، همراه با آماده‌سازی همزمان Notebook/Home/Search/Widget tests بدون تغییر foundation مشترک.
 - پس از سبز شدن validation هر Lane، همان Lane بدون انتظار غیرضروری وارد commit/implementation بعدی می‌شود.
+
+## Definition of Done
+هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
