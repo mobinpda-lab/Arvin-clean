@@ -28,6 +28,7 @@ void main() {
       title: 'کار',
       description: 'توضیح',
       createdAt: created,
+      category: 'پیگیری مشتری',
       followUpEnabled: true,
       checklist: const ['تماس', 'ثبت نتیجه'],
       reminderDate: reminder,
@@ -40,6 +41,7 @@ void main() {
 
     expect(restored.id, '1');
     expect(restored.createdAt, created);
+    expect(restored.category, 'پیگیری مشتری');
     expect(restored.followUpEnabled, isTrue);
     expect(restored.checklist, ['تماس', 'ثبت نتیجه']);
     expect(restored.reminderDate, reminder);
@@ -57,5 +59,15 @@ void main() {
     expect(task.followUpEnabled, isTrue);
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.dateTime, legacyDate);
+  });
+
+  test('missing category remains backward-compatible with legacy data', () {
+    final task = Task.fromJson({
+      'id': 'legacy',
+      'title': 'قدیمی',
+    });
+
+    expect(task.category, isNull);
+    expect(task.toJson()['category'], isNull);
   });
 }
