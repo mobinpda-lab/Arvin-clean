@@ -22,11 +22,11 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Bootstrap Android project when missing
+      - name: Ensure Android V2 project exists
         shell: bash
         run: |
           if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
-            echo 'Android Gradle project is missing; generating a fresh Flutter V2 Android project.'
+            echo 'Generating missing Android project from current Flutter V2 template.'
             mkdir -p /tmp/arvin-android-backup
             if [ -f android/app/src/main/AndroidManifest.xml ]; then
               cp android/app/src/main/AndroidManifest.xml /tmp/arvin-android-backup/AndroidManifest.xml
@@ -35,10 +35,15 @@ jobs:
             if [ -f /tmp/arvin-android-backup/AndroidManifest.xml ]; then
               cp /tmp/arvin-android-backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
             fi
-          else
-            echo 'Existing Android Gradle project found; using it unchanged.'
           fi
+          echo '--- Android project files ---'
+          find android -maxdepth 5 -type f | sort
+          echo '--- MainActivity files ---'
+          find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print
+          echo '--- Embedding markers ---'
+          grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|flutterEmbedding' android/app/src/main 2>/dev/null || true
           test -f android/app/build.gradle || test -f android/app/build.gradle.kts
+          find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) | grep -q .
 
       - name: Configure Android desugaring
         shell: bash
@@ -93,7 +98,7 @@ jobs:
         run: flutter test
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release -v
 
       - name: Verify APK
         run: test -s build/app/outputs/flutter-apk/app-release.apk
