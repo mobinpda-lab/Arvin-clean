@@ -6,14 +6,14 @@
 - این سند باید با هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## وضعیت واقعی CI — 2026-08-14
-آخرین Release Job: `94698620530` / Run `31778393323`.
-- Checkout: 🟢 روی Commit `6d8be750`
-- Flutter 3.47.0: 🟢
-- `flutter pub get`: 🟢
-- Gradle `assembleRelease`: شروع شد 🟢
-- خطای قبلی Android V1: دیگر رخ نداد 🟢
-- خطای فعلی: `:app:checkReleaseAarMetadata` به‌دلیل نیاز `flutter_local_notifications` به Core Library Desugaring 🔴
-- اصلاح ثبت‌شده: Commit `3e9ddd4` با فعال‌کردن `isCoreLibraryDesugaringEnabled` و افزودن `desugar_jdk_libs:2.1.5`.
+آخرین Release Job بررسی‌شده: `94698620530` / Run `31778393323`.
+- Checkout: 🟢 روی Commit `6d8be750`.
+- Flutter 3.47.0: 🟢.
+- `flutter pub get`: 🟢؛ 58 dependency resolve شد.
+- Gradle `assembleRelease`: شروع شد 🟢 و حدود 211 ثانیه اجرا شد.
+- خطای قبلی Android V1: دیگر رخ نداد 🟢.
+- خطای فعلی: `:app:checkReleaseAarMetadata` به‌دلیل نیاز `flutter_local_notifications 22.3.0` به Core Library Desugaring 🔴.
+- نکته مهم: فایل فعلی `android/app/build.gradle.kts` در Branch مرجع همین حالا `isCoreLibraryDesugaringEnabled = true` و `desugar_jdk_libs:2.1.5` را دارد؛ اما Run فوق روی Commit قدیمی `6d8be750` اجرا شده و بنابراین این اصلاح را در build ندیده است.
 - APK هنوز تولید نشده است.
 
 ## معماری فعلی
@@ -27,12 +27,13 @@
 
 ## Calendar
 - تست‌های Calendar به‌صورت deterministic شده‌اند.
-- آخرین گزارش‌های CI دو تست Calendar را با مشکل layout/overflow نشان داده‌اند؛ قبل از Release باید دوباره تأیید شوند.
+- گزارش‌های قبلی CI دو تست Calendar را با مشکل layout/overflow نشان داده‌اند؛ قبل از Release باید دوباره تأیید شوند.
 
 ## Android / Release
 - خطای Android V1 از مسیر Release فعلی عبور کرده است.
 - Android V2 اکنون به مرحله واقعی Gradle رسیده است.
-- Release pipeline باید با Android V2 واقعی و قابل build تثبیت شود و سپس APK تولید شود.
+- Core Library Desugaring در فایل فعلی Android فعال شده و آماده Run جدید است.
+- Release pipeline باید روی آخرین Commit Branch اجرا شود تا اصلاح Desugaring واقعاً validate شود.
 - تا سبز شدن Release Build، نباید موفقیت APK اعلام شود.
 
 ## CI معیار پذیرش
@@ -57,5 +58,6 @@
 ## گزارش تغییرات اخیر
 - `3e9ddd4` — فعال‌سازی Core Library Desugaring برای Release APK.
 - `6d8be750` — مستندسازی وضعیت پروژه و معیارهای Release.
+- `94698620530` — تأیید شد که Release روی `6d8be750` اجرا شده و هنوز اصلاح `3e9ddd4` را مصرف نکرده است.
 
 هر تغییر مهم باید با Commit SHA و نتیجه CI در همین سند ثبت شود؛ ادعای «انجام شد» فقط زمانی مجاز است که تغییر در GitHub قابل مشاهده باشد.
