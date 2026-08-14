@@ -48,3 +48,12 @@ void main() {
       TaskStore.key,
       '[{"id":"old-follow-up","title":"Old task","description":"legacy","followUpDate":"2026-08-14T09:15:00.000","tags":[],"archived":false,"trashed":false,"completed":false}]',
     );
+
+    final loaded = await TaskStore().load();
+
+    expect(loaded, hasLength(1));
+    expect(loaded.single.followUps, hasLength(1));
+    expect(loaded.single.lastFollowUpDate, DateTime(2026, 8, 14, 9, 15));
+    expect(loaded.single.lastFollowUp?.note, isEmpty);
+  });
+}
