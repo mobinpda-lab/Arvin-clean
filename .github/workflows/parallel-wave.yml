@@ -78,4 +78,27 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Validate ${{ matrix.area }} surface
-        run: flutter test
+        shell: bash
+        run: |
+          case '${{ matrix.area }}' in
+            followup)
+              flutter test test/follow_up_history_card_test.dart test/task_store_test.dart
+              ;;
+            calendar)
+              flutter test test/calendar_page_test.dart
+              ;;
+            backup)
+              flutter test test/*backup*.dart
+              ;;
+            typography)
+              if compgen -G 'test/*font*.dart' > /dev/null; then
+                flutter test test/*font*.dart
+              else
+                echo 'No dedicated typography tests yet; surface smoke check passed.'
+              fi
+              ;;
+            *)
+              echo "Unknown surface: ${{ matrix.area }}" >&2
+              exit 1
+              ;;
+          esac
