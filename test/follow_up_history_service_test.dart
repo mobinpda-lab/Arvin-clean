@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin_clean/services/follow_up_history.dart';
+import 'package:arvin/services/follow_up_history.dart';
 
 void main() {
   test('latest follow-up is selected by date, not insertion order', () {
