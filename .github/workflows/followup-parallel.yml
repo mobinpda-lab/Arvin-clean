@@ -1,0 +1,23 @@
+name: FollowUp Parallel Validation
+
+on:
+  push:
+    branches: [feat/follow-up-history-v1.3]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - name: FollowUp focused tests
+        run: flutter test test/follow_up_model_test.dart test/follow_up_presentation_test.dart test/follow_up_history_card_test.dart test/task_store_test.dart
