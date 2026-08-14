@@ -16,10 +16,30 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
+      - name: Bootstrap Android project when missing
+        shell: bash
+        run: |
+          if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
+            echo 'Android Gradle project is missing; generating a fresh Flutter V2 Android project.'
+            mkdir -p /tmp/arvin-android-backup
+            if [ -f android/app/src/main/AndroidManifest.xml ]; then
+              cp android/app/src/main/AndroidManifest.xml /tmp/arvin-android-backup/AndroidManifest.xml
+            fi
+            flutter create --platforms=android --org com.mobinpda.lab --project-name arvin .
+            if [ -f /tmp/arvin-android-backup/AndroidManifest.xml ]; then
+              cp /tmp/arvin-android-backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+            fi
+          else
+            echo 'Existing Android Gradle project found; using it unchanged.'
+          fi
+          test -f android/app/build.gradle || test -f android/app/build.gradle.kts
+
       - name: Configure Android desugaring
         shell: bash
         run: |
@@ -29,7 +49,7 @@ jobs:
           candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
           path = next((p for p in candidates if p.exists()), None)
           if path is None:
-              raise SystemExit('Android app Gradle file not found')
+              raise SystemExit('Android app Gradle file not found after bootstrap')
           text = path.read_text()
           is_kts = path.suffix == '.kts'
           flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
@@ -51,27 +71,36 @@ jobs:
           path.write_text(text)
           print(f'Configured {path}')
           PY
+
       - name: Get dependencies
         run: flutter pub get
+
       - name: Audit Android embedding
         shell: bash
         run: |
           CACHE="${PUB_CACHE:-$HOME/.pub-cache}/hosted/pub.dev"
           if grep -R -n -E 'PluginRegistry\.Registrar|io\.flutter\.app\.|registerWith\(' "$CACHE" --include='*.java' --include='*.kt' 2>/dev/null | head -100; then
             echo 'Legacy Android v1 embedding references found.'
+            exit 1
           else
             echo 'No Android v1 embedding references found in plugin cache.'
           fi
+
       - name: Analyze
         run: flutter analyze
+
       - name: Test
         run: flutter test
+
       - name: Build release APK
         run: flutter build apk --release
+
       - name: Verify APK
         run: test -s build/app/outputs/flutter-apk/app-release.apk
+
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/Arvin-v1.2.0-build${{ github.run_number }}.apk"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
