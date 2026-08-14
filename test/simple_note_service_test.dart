@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/models/simple_note.dart';
 import 'package:arvin/simple_note_repository.dart';
 import 'package:arvin/simple_note_service.dart';
 
-class _MemoryPrefs {
-  final Map<String, String> values = <String, String>{};
-}
-
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   test('create uses the system time when no timestamp is supplied', () async {
-    final repository = SimpleNoteRepository();
-    final service = SimpleNoteService(repository);
+    final service = SimpleNoteService(SimpleNoteRepository());
     final before = DateTime.now();
     final note = await service.create(title: 'موضوع', body: 'متن');
     final after = DateTime.now();
