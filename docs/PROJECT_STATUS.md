@@ -2,8 +2,19 @@
 
 ## وضعیت مرجع
 - Branch: `feat/follow-up-history-v1.3`
-- آخرین Commit قابل مشاهده در GitHub: `858a1e0` (`fix: persist FollowUp history in TaskStore`)
+- آخرین Commit ثبت‌شده در این Branch: `3e9ddd4` (`fix: enable core library desugaring for release APK`)
 - این سند باید با هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
+
+## وضعیت واقعی CI — 2026-08-14
+آخرین Release Job: `94698620530` / Run `31778393323`.
+- Checkout: 🟢 روی Commit `6d8be750`
+- Flutter 3.47.0: 🟢
+- `flutter pub get`: 🟢
+- Gradle `assembleRelease`: شروع شد 🟢
+- خطای قبلی Android V1: دیگر رخ نداد 🟢
+- خطای فعلی: `:app:checkReleaseAarMetadata` به‌دلیل نیاز `flutter_local_notifications` به Core Library Desugaring 🔴
+- اصلاح ثبت‌شده: Commit `3e9ddd4` با فعال‌کردن `isCoreLibraryDesugaringEnabled` و افزودن `desugar_jdk_libs:2.1.5`.
+- APK هنوز تولید نشده است.
 
 ## معماری فعلی
 - Flutter Android application.
@@ -16,11 +27,11 @@
 
 ## Calendar
 - تست‌های Calendar به‌صورت deterministic شده‌اند.
-- آخرین گزارش CI نشان داده بود دو تست Calendar هنوز می‌توانند به layout/overflow حساس باشند؛ قبل از Release باید دوباره تأیید شوند.
+- آخرین گزارش‌های CI دو تست Calendar را با مشکل layout/overflow نشان داده‌اند؛ قبل از Release باید دوباره تأیید شوند.
 
 ## Android / Release
-- در CI قبلاً خطای `Build failed due to use of deleted Android v1 embedding` مشاهده شده است.
-- Repository در برخی Commitهای قبلی Android skeleton ناقص داشته است.
+- خطای Android V1 از مسیر Release فعلی عبور کرده است.
+- Android V2 اکنون به مرحله واقعی Gradle رسیده است.
 - Release pipeline باید با Android V2 واقعی و قابل build تثبیت شود و سپس APK تولید شود.
 - تا سبز شدن Release Build، نباید موفقیت APK اعلام شود.
 
@@ -43,5 +54,8 @@
 ## قانون توسعه
 توسعه می‌تواند موازی باشد، اما فقط یک Branch/Commit مرجع برای Release باید مبنای ساخت APK باشد تا Workflowها روی نسخه‌های متفاوت اجرا نشوند.
 
-## گزارش‌گیری
+## گزارش تغییرات اخیر
+- `3e9ddd4` — فعال‌سازی Core Library Desugaring برای Release APK.
+- `6d8be750` — مستندسازی وضعیت پروژه و معیارهای Release.
+
 هر تغییر مهم باید با Commit SHA و نتیجه CI در همین سند ثبت شود؛ ادعای «انجام شد» فقط زمانی مجاز است که تغییر در GitHub قابل مشاهده باشد.
