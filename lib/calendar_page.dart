@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A reminder projected onto Arvin's calendar.
-///
-/// This model intentionally stays independent from ArvinTask so the calendar
-/// can later become a reusable presentation layer without coupling it to the
-/// storage implementation.
 class CalendarReminder {
   const CalendarReminder({
     required this.id,
@@ -19,11 +14,6 @@ class CalendarReminder {
   final bool completed;
 }
 
-/// Internal calendar view for Arvin follow-up reminders.
-///
-/// The page is deliberately driven by a list supplied by the caller. The
-/// caller remains the single source of truth for reminders, which prevents
-/// the calendar from maintaining a second copy of task data.
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key, required this.reminders});
 
@@ -63,11 +53,9 @@ class _CalendarPageState extends State<CalendarPage> {
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  List<CalendarReminder> _forDay(DateTime day) {
-    return widget.reminders
-        .where((item) => _sameDay(item.date, day))
-        .toList(growable: false);
-  }
+  List<CalendarReminder> _forDay(DateTime day) => widget.reminders
+      .where((item) => _sameDay(item.date, day))
+      .toList(growable: false);
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
@@ -84,7 +72,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final first = DateTime(_month.year, _month.month, 1);
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
-    // Monday = 0 ... Sunday = 6, which is convenient for the RTL layout.
     final leading = first.weekday - 1;
     final counts = _countsForMonth();
     final selected = _selectedDay ?? first;
@@ -143,6 +130,9 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
+          // Keep the calendar grid bounded. The previous shrink-wrapped grid
+          // could consume its natural height and overflow the test/device
+          // viewport, hiding the reminder section below it.
           Padding(
             padding: const EdgeInsets.all(12),
             child: GridView.builder(
@@ -151,7 +141,7 @@ class _CalendarPageState extends State<CalendarPage> {
               itemCount: leading + daysInMonth,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 1.05,
+                mainAxisExtent: 38,
               ),
               itemBuilder: (_, index) {
                 if (index < leading) return const SizedBox.shrink();
@@ -179,6 +169,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             : null,
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text('$day'),
