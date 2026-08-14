@@ -1,14 +1,11 @@
 name: Arvin Parallel Calendar
-
 on:
   push:
-    branches: ['feat/**', 'fix/**', main]
+    branches: ['feat/**','fix/**',main]
   pull_request:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   calendar:
     runs-on: ubuntu-latest
@@ -20,7 +17,5 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Analyze Calendar surface
-        run: flutter analyze lib/calendar_page.dart
-      - name: Test Calendar surface
-        run: flutter test test/calendar_page_test.dart
+      - run: flutter analyze lib/calendar_page.dart
+      - run: flutter test test/calendar_page_test.dart

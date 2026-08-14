@@ -1,14 +1,11 @@
 name: Arvin Parallel Backup
-
 on:
   push:
-    branches: ['feat/**', 'fix/**', main]
+    branches: ['feat/**','fix/**',main]
   pull_request:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   backup:
     runs-on: ubuntu-latest
@@ -20,7 +17,5 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Analyze Backup surface
-        run: flutter analyze lib/backup_service.dart lib/backup_manager.dart lib/backup_background_runner.dart lib/backup_schedule_page.dart
-      - name: Test Backup surface
-        run: flutter test test/backup_service_test.dart test/backup_schedule_test.dart test/backup_schedule_page_test.dart test/backup_notification_test.dart test/backup_background_runner_test.dart test/android_backup_scheduler_test.dart test/backup_scheduler_adapter_test.dart test/cloud_backup_provider_test.dart test/dropbox_cloud_backup_provider_test.dart
+      - run: flutter analyze lib/backup_service.dart lib/backup_manager.dart lib/backup_background_runner.dart lib/backup_schedule_page.dart
+      - run: flutter test test/backup_service_test.dart test/backup_schedule_test.dart test/backup_schedule_page_test.dart test/backup_notification_test.dart test/backup_background_runner_test.dart test/android_backup_scheduler_test.dart test/backup_scheduler_adapter_test.dart test/cloud_backup_provider_test.dart test/dropbox_cloud_backup_provider_test.dart

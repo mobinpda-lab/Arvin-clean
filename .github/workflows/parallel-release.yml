@@ -1,13 +1,10 @@
 name: Arvin Parallel Release
-
 on:
   push:
-    branches: ['feat/**', 'fix/**', main]
+    branches: ['feat/**','fix/**',main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -26,17 +23,12 @@ jobs:
           test -n "$MAIN_ACTIVITY"
           grep -q 'FlutterActivity' "$MAIN_ACTIVITY"
           if grep -R -n -E 'io\.flutter\.app\.|PluginRegistry\.Registrar|GeneratedPluginRegistrant\.registerWith' android/app/src/main 2>/dev/null; then exit 1; fi
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos
-      - name: Test
-        run: flutter test
-      - name: Build APK
-        run: flutter build apk --release
-      - name: Verify APK
-        run: test -s build/app/outputs/flutter-apk/app-release.apk
-      - name: APK checksum
-        run: sha256sum build/app/outputs/flutter-apk/app-release.apk
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build apk --release
+      - run: test -s build/app/outputs/flutter-apk/app-release.apk
+      - run: sha256sum build/app/outputs/flutter-apk/app-release.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: arvin-release-parallel-${{ github.run_number }}
+          name: arvin-release-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/app-release.apk
