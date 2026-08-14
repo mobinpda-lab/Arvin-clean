@@ -1,63 +1,65 @@
 # Arvin — Project Status
 
-## وضعیت مرجع
-- Branch: `feat/follow-up-history-v1.3`
-- آخرین Commit ثبت‌شده در این Branch: `3e9ddd4` (`fix: enable core library desugaring for release APK`)
-- این سند باید با هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
+## مرجع فعلی
+- Branch توسعه/مرجع: `feat/follow-up-history-v1.3`
+- Flutter CI target: `3.47.0` stable
+- این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
-## وضعیت واقعی CI — 2026-08-14
-آخرین Release Job بررسی‌شده: `94698620530` / Run `31778393323`.
-- Checkout: 🟢 روی Commit `6d8be750`.
-- Flutter 3.47.0: 🟢.
-- `flutter pub get`: 🟢؛ 58 dependency resolve شد.
-- Gradle `assembleRelease`: شروع شد 🟢 و حدود 211 ثانیه اجرا شد.
-- خطای قبلی Android V1: دیگر رخ نداد 🟢.
-- خطای فعلی: `:app:checkReleaseAarMetadata` به‌دلیل نیاز `flutter_local_notifications 22.3.0` به Core Library Desugaring 🔴.
-- نکته مهم: فایل فعلی `android/app/build.gradle.kts` در Branch مرجع همین حالا `isCoreLibraryDesugaringEnabled = true` و `desugar_jdk_libs:2.1.5` را دارد؛ اما Run فوق روی Commit قدیمی `6d8be750` اجرا شده و بنابراین این اصلاح را در build ندیده است.
-- APK هنوز تولید نشده است.
+## وضعیت CI
+CI اکنون به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
 
-## معماری فعلی
-- Flutter Android application.
-- مدل اصلی `Task` حفظ شده و تاریخچه پیگیری با `FollowUp` در کنار آن توسعه داده شده است.
-- `TaskStore` برای ذخیره/بازیابی `followUps` اصلاح شده است.
-- Calendar و تست‌های مرتبط در حال پایدارسازی هستند.
+1. `Arvin Feature Validation` — analyze و مجموعه تست‌ها.
+2. `Arvin FollowUp Validation` — مدل، TaskStore و UI تاریخچه FollowUp.
+3. `Arvin Calendar Validation` — تست‌های Calendar.
+4. `Arvin Backup Validation` — تست Backup/Restore.
+5. `Arvin Release Validation` — Android audit، analyze، test، ساخت APK و upload artifact.
 
-## Follow-up History
-هدف این قابلیت، نمایش آخرین پیگیری و ساعت آن و نگهداری تاریخچه پیگیری‌هاست؛ این بخش باید بدون از بین بردن داده‌های قبلی `followUpDate` توسعه یابد.
-
-## Calendar
-- تست‌های Calendar به‌صورت deterministic شده‌اند.
-- گزارش‌های قبلی CI دو تست Calendar را با مشکل layout/overflow نشان داده‌اند؛ قبل از Release باید دوباره تأیید شوند.
+### تغییرات اخیر CI
+- `65fdcf6` — workflow مستقل FollowUp Validation.
+- `9828a0f` — workflow مستقل Calendar Validation.
+- `aaec6ba` — تثبیت Release Validation و اصلاح مسیر واقعی MainActivity/Android V2 audit.
+- `95b7a25` — workflow مستقل Backup Validation.
 
 ## Android / Release
-- خطای Android V1 از مسیر Release فعلی عبور کرده است.
-- Android V2 اکنون به مرحله واقعی Gradle رسیده است.
-- Core Library Desugaring در فایل فعلی Android فعال شده و آماده Run جدید است.
-- Release pipeline باید روی آخرین Commit Branch اجرا شود تا اصلاح Desugaring واقعاً validate شود.
-- تا سبز شدن Release Build، نباید موفقیت APK اعلام شود.
+- Android V2 با `FlutterActivity` استفاده می‌شود.
+- Core Library Desugaring در `android/app/build.gradle.kts` فعال است.
+- `desugar_jdk_libs:2.1.5` تعریف شده است.
+- Release فقط وقتی موفق اعلام می‌شود که `flutter build apk --release` واقعاً سبز شود و APK به Artifact آپلود شده باشد.
+- خطای قبلی Android V1 نباید دوباره به‌عنوان هدف اصلاح تکرار شود؛ audit اکنون آن را صریحاً بررسی می‌کند.
 
-## CI معیار پذیرش
-1. `flutter analyze` سبز
-2. تمام `flutter test` سبز
-3. Android dependency/audit سبز
-4. `flutter build apk --release` سبز
-5. APK در Artifact موجود باشد
-6. نام APK شامل نسخه باشد
+## قابلیت‌های فعلی
+### Task Management
+- ایجاد/ویرایش Task
+- توضیحات و Tag
+- تاریخ پیگیری
+- تکمیل، بایگانی و Trash
+- Restore و حذف دائمی
+- جست‌وجو و فیلتر
+- آمار Taskها
 
-## Font System — برنامه بعدی
-- فونت اصلی پیش‌فرض: **IranSans**.
-- امکان تغییر فونت از Settings.
-- انتخاب فونت باید persistent باشد.
-- امکان بازگشت به IranSans وجود داشته باشد.
-- اعمال فونت روی کل UI، RTL، فارسی و اعداد باید تست شود.
-- فایل فونت کاربر باید قبل از ثبت asset نهایی در Repository بررسی شود.
+### FollowUp
+- مدل مستقل `FollowUp`
+- نگهداری تاریخچه در `TaskStore`
+- migration از `followUpDate` قدیمی
+- تست‌های مدل و Store
+- UI تاریخچه در حال تکمیل است.
 
-## قانون توسعه
-توسعه می‌تواند موازی باشد، اما فقط یک Branch/Commit مرجع برای Release باید مبنای ساخت APK باشد تا Workflowها روی نسخه‌های متفاوت اجرا نشوند.
+### Calendar
+- صفحه Calendar و تست‌های deterministic موجود است.
+- اتصال کامل Calendar به FollowUp/Reminder هنوز در فاز تثبیت است.
 
-## گزارش تغییرات اخیر
-- `3e9ddd4` — فعال‌سازی Core Library Desugaring برای Release APK.
-- `6d8be750` — مستندسازی وضعیت پروژه و معیارهای Release.
-- `94698620530` — تأیید شد که Release روی `6d8be750` اجرا شده و هنوز اصلاح `3e9ddd4` را مصرف نکرده است.
+### Backup
+- انتخاب پوشه Backup
+- ایجاد Backup
+- Restore
+- Backup اضطراری قبل از Restore
 
-هر تغییر مهم باید با Commit SHA و نتیجه CI در همین سند ثبت شود؛ ادعای «انجام شد» فقط زمانی مجاز است که تغییر در GitHub قابل مشاهده باشد.
+## فازهای عملیاتی بعدی
+1. **Release/CI:** سبز کردن APK واقعی و Artifact.
+2. **FollowUp UI:** آخرین پیگیری، ساعت، نتیجه، پیگیری بعدی و تاریخچه کامل.
+3. **Calendar + Reminder:** اتصال کامل به FollowUp و اعلان‌ها.
+4. **Font System:** IranSansX پیش‌فرض + امکان تغییر فونت در Settings + persistence.
+5. **Release Candidate:** تست کامل، APK نسخه‌دار، checksum، Artifact و مستند Release.
+
+## قانون توسعه موازی
+توسعه حوزه‌ها می‌تواند موازی باشد، اما APK Release فقط از Branch مرجع ساخته می‌شود. هر تغییر مهم باید با **کد + تست + CI + مستندات + Commit SHA قابل مشاهده** ثبت شود.
