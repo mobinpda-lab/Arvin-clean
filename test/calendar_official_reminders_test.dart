@@ -8,7 +8,7 @@ class _FakeOfficialSource implements OfficialCalendarReminderSource {
 
   @override
   Future<List<OfficialCalendarReminder>> load({required int year}) async {
-    return items.where((item) => item.date.year == year).toList(growable: false);
+    return items;
   }
 }
 
@@ -53,6 +53,48 @@ void main() {
     final reminders = await service.load(year: 2026);
 
     expect(reminders, hasLength(2));
-    expect(reminders.map((item) => item.id), containsAll(<String>['holiday-1', 'prayer-1']));
+    expect(
+      reminders.map((item) => item.id),
+      containsAll(<String>['holiday-1', 'prayer-1']),
+    );
+  });
+
+  test('filters to the requested year, removes duplicate ids, and sorts by time', () async {
+    final service = OfficialCalendarReminderService([
+      _FakeOfficialSource([
+        OfficialCalendarReminder(
+          id: 'late',
+          title: 'دیرتر',
+          date: DateTime(2026, 3, 21, 8),
+          kind: OfficialReminderKind.prayerTime,
+        ),
+        OfficialCalendarReminder(
+          id: 'duplicate',
+          title: 'نسخه اول',
+          date: DateTime(2026, 3, 21, 6),
+          kind: OfficialReminderKind.prayerTime,
+        ),
+      ]),
+      _FakeOfficialSource([
+        OfficialCalendarReminder(
+          id: 'outside-year',
+          title: 'سال دیگر',
+          date: DateTime(2027, 3, 21, 5),
+          kind: OfficialReminderKind.iranianHoliday,
+        ),
+        OfficialCalendarReminder(
+          id: 'duplicate',
+          title: 'نسخه دوم',
+          date: DateTime(2026, 3, 21, 7),
+          kind: OfficialReminderKind.prayerTime,
+        ),
+      ]),
+    ]);
+
+    final reminders = await service.load(year: 2026);
+
+    expect(reminders.map((item) => item.id), <String>['duplicate', 'late']);
+    expect(reminders.first.title, 'نسخه اول');
+    expect(reminders.last.date, DateTime(2026, 3, 21, 8));
   });
 }
