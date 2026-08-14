@@ -88,6 +88,8 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - لمس برای بازکردن Item
 - سبک و کم‌مصرف با background محدود
 - RTL و IranSans
+- **همین Widget باید در صورت پشتیبانی سیستم‌عامل/لانچر، روی صفحه قفل (Lock Screen) نیز قابل نمایش و استفاده باشد؛ صفحه قفل نباید منبع داده یا Storage جداگانه داشته باشد و باید از همان source of truth ویجت اصلی استفاده کند.**
+- رفتار و محدودیت‌های Lock Screen باید در فاز Widget به‌صورت واقعی روی Android هدف پروژه اعتبارسنجی شود و در صورت محدودیت نسخه/لانچر، graceful fallback داشته باشد؛ قابلیت مصنوعی یا مسیر داده موازی ایجاد نشود.
 
 ### PDF / Print
 - PDF برای Item و تاریخچه FollowUp و فهرست
@@ -105,7 +107,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings.
 3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
-5. **Widget:** تکمیل Widget روی همان source of truth.
+5. **Widget:** تکمیل Widget روی همان source of truth، شامل بررسی پشتیبانی Lock Screen.
 6. **PDF + Print:** خروجی برای Note، Item و فهرست.
 7. **IranSans:** اعمال کامل در UI و خروجی‌ها.
 8. **Reminder + Google Calendar:** integration با isolation برای Note.
@@ -113,7 +115,7 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 10. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
 
 ## Definition of Done
-هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز شده باشد.
+هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
 
 ## توسعه سریع اما کنترل‌شده
 حوزه‌های مستقل به‌صورت موازی پیش می‌روند، اما هر Wave باید مستقل و کم‌خطر باشد. Commit، تست و Workflowهای مربوط به همان Wave باید بلافاصله پس از تغییر اجرا شوند؛ تغییرات قبلاً حل‌شده نباید تکرار شوند.
