@@ -24,7 +24,7 @@ void main() {
     });
 
     const repository = FollowUpRepository();
-    const followUp = FollowUp(
+    final followUp = FollowUp(
       id: 'f2',
       dateTime: DateTime(2026, 8, 15, 10, 15),
       note: 'تماس مجدد',
