@@ -4,7 +4,7 @@
 - Branch توسعه/مرجع: `main`
 - Wave جاری: **Unified Item / Note / FollowUp foundation — Category compatibility**
 - برنامه اجرایی به‌روز: `docs/PROJECT_ROADMAP_2026-08-14.md`
-- آخرین تغییر برنامه‌ریزی: commit `bd641279e72c8cf8a1f0fbe3419e09d7675cc978`
+- آخرین roadmap commit: `d337b4f8fa6ed05b5a00a2ffcb3e4872897e72ba`
 - این سند باید همراه هر تغییر مهم کد، تست، CI و نسخه به‌روزرسانی شود.
 
 ## قانون audit قبل از تغییر
@@ -13,11 +13,24 @@
 ## قانون توسعه سریع و موازی
 حوزه‌های مستقل می‌توانند موازی پیش بروند، اما هیچ Wave موازی نباید foundation مشترک را بدون audit و هماهنگی تغییر دهد. هر تغییر باید یک Gap مشخص را ببندد و بلافاصله با تست، Commit و Workflowهای مربوط validation شود. نتیجه CI قبل از ادامه Wave وابسته بررسی می‌شود. تمام تصمیم‌ها، تغییرات و نتایج مهم باید در مستندات ثبت شوند.
 
-### Audit اخیر
-- مستندات پروژه و `PROJECT_STATUS.md` دوباره بررسی شدند.
-- Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده است.
-- CI مربوط به commit `979abd75d1517968bc8292f2367b708821fc6106` در زمان آخرین بررسی در حال اجرا بود.
-- برای افزایش سرعت بدون ایجاد دوباره‌کاری، roadmap مستقل و به‌روز در `docs/PROJECT_ROADMAP_2026-08-14.md` ثبت شد.
+## برنامه اجرای سریع به‌روز
+برای افزایش سرعت، کار به Laneهای مستقل تقسیم شده است: Architecture/Unified Item، Notebook UI، Home/Search، Calendar رسمی ایران، Widget/Lock Screen، Output/Font، Integrations/Data portability و E2E/Release. Laneهای مستقل می‌توانند همزمان آماده‌سازی و تست شوند؛ اما هیچ Lane اجازه ندارد برای سرعت foundation مشترک را موازی و ناسازگار تغییر دهد.
+
+### گلوگاه فعلی
+**Gate A — Unified Item adapter/migration** همچنان گلوگاه معماری است و باید بدون شکستن Legacy تکمیل شود.
+
+### کارهای موازی مجاز در کنار Gate A
+- PR #79 و Lane Calendar رسمی: اوقات شرعی شیعه بر اساس منبع/روش مرکز تقویم مؤسسه ژئوفیزیک دانشگاه تهران و تعطیلات رسمی ایران.
+- آماده‌سازی Notebook UI و تست‌های آن روی foundation موجود.
+- آماده‌سازی Home/Search tests بدون اتصال موازی به Legacy repository.
+- آماده‌سازی Widget/Lock Screen compatibility tests بدون Storage جدید.
+- آماده‌سازی PDF/Print fixtures و تست‌های خروجی.
+
+## Audit اخیر
+- تمام فایل‌های اصلی `docs/` شامل roadmap، status، changelog و Notebook contract بررسی شدند.
+- PR باز #79 بررسی شد؛ این PR در حال حاضر Contract و منبع داده Calendar رسمی را ثبت کرده و implementation واقعی را به بعد از validation موکول کرده است.
+- Calendar foundation موجود حفظ می‌شود و بازنویسی آن ممنوع است مگر Gap یا regression واقعی.
+- Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده و باید با همان source of truth ویجت اصلی اجرا شود.
 
 ## وضعیت CI
 CI به چند مسیر موازی تقسیم شده است تا شکست یک حوزه، وضعیت حوزه‌های دیگر را مبهم نکند:
@@ -68,6 +81,7 @@ CI به چند مسیر موازی تقسیم شده است تا شکست یک �
 - Calendar rewrite ممنوع مگر نیاز جدید یا شکست واقعی.
 - Reminder از timestamp ساده Note جداست.
 - Google Calendar فقط برای eventهای مجاز محصول استفاده می‌شود.
+- **اوقات شرعی شیعه و تعطیلات رسمی ایران باید به‌عنوان یادآورهای Calendar در همین مسیر قرار گیرند؛ منبع و روش محاسبه/داده باید مطابق قرارداد ثبت‌شده در PR #79 باشد و بدون حدس یا منبع غیررسمی جایگزین نشود.**
 
 ### Backup / Dropbox
 - Backup/Restore foundation موجود است.
@@ -101,16 +115,17 @@ Widget باید از همان منبع اصلی Item/Reminder/FollowUp استف�
 - اعمال نهایی در UI، Settings، Widget، PDF و Print باید End-to-End اعتبارسنجی شود.
 
 ## فازهای عملیاتی به‌روز
-1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گام بعدی فعال**
-2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings.
-3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select.
+1. **Unified Item:** تکمیل migration/adapter بدون شکستن Legacy. ← **گلوگاه فعال**
+2. **Notebook UI:** Editor، auto-save، read-only/edit، Checklist و Settings؛ تست‌ها می‌توانند موازی آماده شوند.
+3. **Home UX:** اتصال Item، FollowUp، Note، Sort، Swipe و Multi-select؛ بدون repository موازی.
 4. **Search UI:** اتصال SearchService موجود به Home جدید.
-5. **Widget:** تکمیل Widget روی همان source of truth، شامل بررسی پشتیبانی Lock Screen.
-6. **PDF + Print:** خروجی برای Note، Item و فهرست.
-7. **IranSans:** اعمال کامل در UI و خروجی‌ها.
-8. **Reminder + Google Calendar:** integration با isolation برای Note.
-9. **Backup + Restore + Dropbox:** End-to-End.
-10. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
+5. **Calendar رسمی ایران:** اوقات شرعی شیعه + تعطیلات رسمی ایران روی CalendarReminder؛ validation منبع، مکان، timezone، سال و تاریخ شمسی.
+6. **Widget:** تکمیل Widget روی همان source of truth، شامل بررسی پشتیبانی Lock Screen.
+7. **PDF + Print:** خروجی برای Note، Item و فهرست.
+8. **IranSans:** اعمال کامل در UI و خروجی‌ها.
+9. **Reminder + Google Calendar:** integration با isolation برای Note.
+10. **Backup + Restore + Dropbox:** End-to-End.
+11. **E2E + Release:** APK نسخه‌دار، Artifact، checksum و Release documentation.
 
 برای جزئیات Gateها، وابستگی‌ها و اجرای موازی، `docs/PROJECT_ROADMAP_2026-08-14.md` مرجع اجرایی این برنامه است.
 
