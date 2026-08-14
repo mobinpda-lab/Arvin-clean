@@ -6,7 +6,7 @@ import 'task_store.dart';
 /// Keeps UI code independent from persistence details while preserving the
 /// existing TaskStore and `arvin.tasks` storage contract.
 class FollowUpService {
-  const FollowUpService({TaskStore? store}) : _store = store ?? const TaskStore();
+  FollowUpService({TaskStore? store}) : _store = store ?? TaskStore();
 
   final TaskStore _store;
 
