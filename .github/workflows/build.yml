@@ -31,6 +31,7 @@ jobs:
           git rev-parse HEAD
           git status --short
 
+      # Release gate: run against the persisted Android V2 project, not a transient CI-generated tree.
       - name: Ensure Android V2 project exists and persist it
         shell: bash
         run: |
