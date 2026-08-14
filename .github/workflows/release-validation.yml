@@ -19,17 +19,20 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
       - name: Print source revision
         run: |
           echo "GITHUB_SHA=$GITHUB_SHA"
           echo "HEAD=$(git rev-parse HEAD)"
           flutter --version
+
       - name: Get dependencies with retry
         shell: bash
         run: |
@@ -39,31 +42,41 @@ jobs:
             [ "$attempt" -lt 3 ] && sleep 10
           done
           exit 1
+
       - name: Android V2 and release configuration audit
         shell: bash
         run: |
-          test -f android/app/build.gradle.kts
-          MAIN_ACTIVITY="$(find android/app/src/main/kotlin android/app/src/main/java -type f -name 'MainActivity.kt' -o -name 'MainActivity.java' 2>/dev/null | head -n 1)"
-          test -n "$MAIN_ACTIVITY"
+          set -euo pipefail
+          test -f android/app/build.gradle.kts || { echo 'Android app Gradle file missing'; exit 1; }
+
+          MAIN_ACTIVITY="$(find android/app/src/main -type f \( -name 'MainActivity.kt' -o -name 'MainActivity.java' \) -print -quit)"
+          test -n "$MAIN_ACTIVITY" || { echo 'MainActivity.kt/java not found'; find android/app/src/main -maxdepth 8 -type f | sort; exit 1; }
           echo "MainActivity=$MAIN_ACTIVITY"
-          grep -q 'FlutterActivity' "$MAIN_ACTIVITY"
-          grep -q 'isCoreLibraryDesugaringEnabled = true' android/app/build.gradle.kts
-          grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
+
+          grep -q 'FlutterActivity' "$MAIN_ACTIVITY" || { echo 'MainActivity is not FlutterActivity'; cat "$MAIN_ACTIVITY"; exit 1; }
+          grep -q 'isCoreLibraryDesugaringEnabled = true' android/app/build.gradle.kts || { echo 'Core library desugaring is not enabled'; exit 1; }
+          grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts || { echo 'desugar_jdk_libs:2.1.5 missing'; exit 1; }
+
           if grep -RniE 'io\.flutter\.app\.(FlutterActivity|FlutterApplication)|FlutterActivityDelegate' android/app/src/main 2>/dev/null; then
             echo 'Deleted Android V1 embedding marker detected'
             exit 1
           fi
+
       - name: Analyze
         run: flutter analyze
+
       - name: Run all tests
         run: flutter test
+
       - name: Build release APK
         run: flutter build apk --release
+
       - name: Verify APK exists
         run: |
           test -s build/app/outputs/flutter-apk/app-release.apk
           ls -lh build/app/outputs/flutter-apk/app-release.apk
           sha256sum build/app/outputs/flutter-apk/app-release.apk
+
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
