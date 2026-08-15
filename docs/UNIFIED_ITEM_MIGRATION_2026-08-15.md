@@ -21,3 +21,6 @@
 - Do not delete or rewrite existing user data.
 - Do not add a second persistence path.
 - Do not proceed to Reminder/Recurring UI integration until this migration is green.
+
+## Current implementation note
+Migration implementation is isolated from the stable `main` baseline and will be promoted only after full CI validation.
