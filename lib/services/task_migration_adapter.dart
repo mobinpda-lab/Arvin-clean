@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../models/task.dart';
+import 'package:arvin/models/task.dart';
 
 /// Boundary for migrating Home's legacy `arvin.tasks` JSON into the
 /// canonical Unified Item model without coupling the UI to legacy JSON.
