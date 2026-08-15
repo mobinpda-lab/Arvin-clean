@@ -33,6 +33,11 @@ class TaskStore {
 
     final task = tasks[index];
     task.followUps = [...task.followUps, followUp];
+    // Register the Item as follow-up enabled as soon as the first history
+    // entry is added. This keeps the unified Item contract explicit while
+    // preserving all existing FollowUp history and storage format.
+    task.followUpEnabled = true;
+    task.updatedAt = DateTime.now();
     await save(tasks);
   }
 
