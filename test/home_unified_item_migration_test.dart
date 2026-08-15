@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/models/task.dart';
+import 'package:arvin/models/task.dart';
 
 void main() {
   // Regression guard for the legacy Home -> Unified Item migration boundary.
