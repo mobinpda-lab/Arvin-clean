@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../lib/models/task.dart';
 
 void main() {
+  // Regression guard for the legacy Home -> Unified Item migration boundary.
   test('legacy Home task envelope loads as Unified Item without data loss', () {
     final legacy = <String, dynamic>{
       'id': 'legacy-1',
