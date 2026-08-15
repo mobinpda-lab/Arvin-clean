@@ -41,20 +41,20 @@ Tests in `test/services/task_migration_adapter_test.dart` cover:
 No `lib/main.dart` production behavior has been changed yet. This slice intentionally strengthens and proves the migration boundary before rewiring Home.
 
 ## Completed slice — HomePage characterization boundary
-Added regression/widget characterization coverage in `test/widget_test.dart` for the current production HomePage before any migration rewiring.
+Added regression/widget characterization coverage in `test/widgets/home_page_test.dart` for the current production HomePage before any migration rewiring.
 
 The characterization tests currently prove:
 - the existing Persian application title remains present
 - search and filter controls remain present
-- backup control remains present
 - the new-task action remains present
-- the loaded empty-state and summary labels remain present
+- an existing legacy `arvin.tasks` item is loaded and rendered
+- search filters the currently loaded legacy tasks
 
 This is intentionally a behavior baseline, not a Unified `Task` test. It protects the current UI contract before the next load-only migration slice.
 
 ## Current gate
 - Adapter boundary: PASS for the currently implemented contract.
-- HomePage characterization boundary: added; CI verification pending on the new commit.
+- HomePage characterization boundary: added; CI verification pending on the new commits.
 - Production migration: BLOCKED intentionally until the baseline and storage semantics are verified.
 - PR #96: keep open until CI and independent review confirm this slice and the next Home migration boundary.
 
