@@ -14,10 +14,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
-    expect(find.text('جست‌وجو'), findsOneWidget);
-    expect(find.text('فعال'), findsOneWidget);
-    expect(find.text('بایگانی'), findsOneWidget);
-    expect(find.text('سطل زباله'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'فعال'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'سطل زباله'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
   });
 
