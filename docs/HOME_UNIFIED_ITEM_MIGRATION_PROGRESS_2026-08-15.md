@@ -53,21 +53,23 @@ The characterization tests currently prove:
 
 This is intentionally a behavior baseline, not a Unified `Task` test. It protects the current UI contract before the next load-only migration slice.
 
-## Current validation
-- Adapter boundary: hardened with edge-case and stability tests.
-- HomePage characterization boundary: present.
-- Latest Parallel Wave quality job: Analyze and Test PASS on the current branch head before the latest hardening commits.
-- A previous historical workflow failure was a test-stage failure; it must not be confused with the current branch validation.
-- A new CI run is expected for the latest hardening commits before PR merge.
+## Current validation — verified 2026-08-16
+- Adapter boundary: PASS.
+- HomePage characterization boundary: PASS.
+- `Arvin Parallel Wave` run #235 on commit `788490507af068523bb18d3f983926ee1e2fbe0e`: PASS.
+- `Arvin Build` run #398 on the same commit: PASS.
+- PR #96 remains open and draft; no merge has been performed.
+- Production migration remains intentionally blocked until storage semantics and rollback/idempotency strategy are independently reviewed.
 
 ## Current gate
-- Adapter boundary: PASS for the implemented conversion contract, pending latest CI confirmation.
-- HomePage characterization boundary: PASS as a baseline test slice, pending latest CI confirmation.
-- Production migration: BLOCKED intentionally until the baseline, storage semantics, and rollback/idempotency strategy are verified.
-- PR #96: keep open until current CI and independent review confirm this slice and the next Home migration boundary.
+- Adapter boundary: PASS.
+- HomePage characterization boundary: PASS.
+- CI gate for current branch head: PASS.
+- Production migration: BLOCKED intentionally until the next load-only boundary is reviewed.
+- PR #96: keep open until the next migration boundary is independently reviewed.
 
 ## Next implementation slice
-After current CI passes, take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
+Take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
