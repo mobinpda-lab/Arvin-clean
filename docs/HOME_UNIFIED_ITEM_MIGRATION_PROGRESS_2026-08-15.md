@@ -25,20 +25,21 @@ The adapter now:
 - rejects duplicate task ids during decode
 - rejects duplicate/empty ids during unified encode
 - preserves the existing `followUpDate` → `FollowUp` behavior supplied by `Task.fromJson`
+- uses package imports so CI analysis does not depend on relative `lib` imports
 
 Tests in `test/services/task_migration_adapter_test.dart` cover:
 - legacy `arvin.tasks` JSON → Unified `Task`
 - preservation of legacy fields, category and follow-up date
 - empty storage
 - multiple tasks
-- malformed task entries
+- malformed JSON and malformed task entries
 - missing ids
+- invalid title types
 - duplicate ids
 - Unified serialization round-trip
+- repeated conversion stability (idempotency contract at the conversion boundary)
 - duplicate ids during Unified encoding
 - rejection of a non-list storage payload
-
-No `lib/main.dart` production behavior has been changed yet. This slice intentionally strengthens and proves the migration boundary before rewiring Home.
 
 ## Completed slice — HomePage characterization boundary
 Added regression/widget characterization coverage in `test/widgets/home_page_test.dart` for the current production HomePage before any migration rewiring.
@@ -52,14 +53,21 @@ The characterization tests currently prove:
 
 This is intentionally a behavior baseline, not a Unified `Task` test. It protects the current UI contract before the next load-only migration slice.
 
+## Current validation
+- Adapter boundary: hardened with edge-case and stability tests.
+- HomePage characterization boundary: present.
+- Latest Parallel Wave quality job: Analyze and Test PASS on the current branch head before the latest hardening commits.
+- A previous historical workflow failure was a test-stage failure; it must not be confused with the current branch validation.
+- A new CI run is expected for the latest hardening commits before PR merge.
+
 ## Current gate
-- Adapter boundary: PASS for the currently implemented contract.
-- HomePage characterization boundary: added; CI verification pending on the new commits.
-- Production migration: BLOCKED intentionally until the baseline and storage semantics are verified.
-- PR #96: keep open until CI and independent review confirm this slice and the next Home migration boundary.
+- Adapter boundary: PASS for the implemented conversion contract, pending latest CI confirmation.
+- HomePage characterization boundary: PASS as a baseline test slice, pending latest CI confirmation.
+- Production migration: BLOCKED intentionally until the baseline, storage semantics, and rollback/idempotency strategy are verified.
+- PR #96: keep open until current CI and independent review confirm this slice and the next Home migration boundary.
 
 ## Next implementation slice
-After CI passes, take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
+After current CI passes, take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
