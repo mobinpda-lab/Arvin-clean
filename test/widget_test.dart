@@ -1,7 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:arvin/main.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('Arvin starts with the final Persian title', (tester) async {
     await tester.pumpWidget(const ArvinApp());
 
@@ -12,12 +18,12 @@ void main() {
   testWidgets('HomePage exposes the current legacy workflow controls',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.text('جست‌وجو'), findsOneWidget);
-    expect(find.text('فعال'), findsOneWidget);
-    expect(find.text('بایگانی'), findsOneWidget);
-    expect(find.text('سطل زباله'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'فعال'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'سطل زباله'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
     expect(find.byTooltip('پشتیبان'), findsOneWidget);
   });
