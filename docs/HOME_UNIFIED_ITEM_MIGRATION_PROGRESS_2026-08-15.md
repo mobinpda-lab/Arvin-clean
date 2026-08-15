@@ -7,7 +7,6 @@ The current `lib/main.dart` still defines legacy `ArvinTask` and `TaskRepository
 Do not add Reminder/Recurring UI to the legacy `ArvinTask` path. Migration must preserve legacy `arvin.tasks` data and avoid introducing a second persistence path before the storage strategy is explicitly proven.
 
 ## Current Wave
-- Main remains untouched for the migration itself.
 - Migration work stays isolated in `wave2/home-unified-migration-boundary`.
 - CI is the merge gate: Analyze → Test → Build APK → Verify APK.
 - Documentation is updated alongside migration slices.
@@ -72,25 +71,41 @@ Tests in `test/services/task_migration_reader_test.dart` prove:
 - read-only/no-write behavior
 - malformed storage propagation
 
+## Completed slice — HomePage load-only wiring
+HomePage now reads `arvin.tasks` through `TaskMigrationReader` and maps the canonical `Task` objects back into the existing `ArvinTask` UI view model.
+
+This slice intentionally:
+- changes only the Home load path
+- keeps the existing `TaskRepository` save path unchanged
+- keeps backup, restore, filter, search and multi-select behavior unchanged
+- performs no write through the migration reader
+- preserves `followUpDate` display using the migrated `FollowUp` date
+- keeps the legacy UI model in place so this is reversible
+- preserves the existing empty-state behavior if malformed storage is encountered
+
+Regression coverage in `test/widget_test.dart` now proves a legacy `arvin.tasks` payload is loaded through the unified reader and rendered with its title, description, tag and follow-up date.
+
 ## Current validation — 2026-08-16
-- Adapter boundary: PASS on the previously validated slice.
-- HomePage characterization boundary: PASS on the previously validated slice.
-- New read-only migration boundary: committed and awaiting current-head CI completion.
-- `Arvin Build` run #399: IN PROGRESS (Analyze and Test already PASS; APK build running).
-- `Arvin Parallel Wave` run #236: IN PROGRESS (quality and independent surface checks PASS; APK build running).
+- Adapter boundary: PASS.
+- HomePage characterization boundary: PASS.
+- Read-only migration boundary: PASS on commit `5f15318094dc266dc334f5749f8ff52b823b9842`.
+- HomePage load-only wiring: committed on the current branch; awaiting current-head CI.
+- `Arvin Build` run #402 on the previous reader commit: PASS.
+- `Arvin Parallel Wave` run #239 on the previous reader commit: PASS.
 - PR #96 remains open and draft; no merge has been performed.
-- Main remains on the legacy Home production path.
-- Production migration remains intentionally blocked until storage semantics and rollback/idempotency strategy are independently reviewed.
+- Main remains on the legacy save path and no storage write semantics have changed.
+- Production migration remains intentionally blocked until the load-only wiring is independently reviewed and current-head CI is green.
 
 ## Current gate
 - Adapter boundary: PASS.
 - HomePage characterization boundary: PASS.
-- Read-only load boundary: awaiting CI confirmation.
-- Production migration: BLOCKED intentionally until the next storage/load boundary is reviewed.
+- Read-only load boundary: PASS.
+- HomePage load-only wiring: awaiting current-head CI.
+- Production migration: BLOCKED intentionally until storage semantics and rollback/idempotency strategy are independently reviewed.
 - PR #96: keep open until the next migration boundary is independently reviewed.
 
 ## Next implementation slice
-After the read-only boundary is green, wire only the HomePage `load` path through `TaskMigrationReader` behind the existing UI behavior. Preserve existing save, backup, restore, filter and multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until concrete data-preservation and rollback strategy is tested and reviewed.
+After current-head CI is green, perform an independent review of the load-only Home wiring. If storage semantics and UI preservation remain clear, proceed to the next smallest reversible boundary. Do not introduce dual-write, a new storage key, save-path migration, or legacy removal until concrete data-preservation and rollback strategy is tested and reviewed.
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
