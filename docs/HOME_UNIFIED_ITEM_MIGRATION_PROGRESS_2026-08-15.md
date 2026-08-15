@@ -26,7 +26,7 @@ The adapter now:
 - rejects duplicate/empty ids during unified encode
 - preserves the existing `followUpDate` → `FollowUp` behavior supplied by `Task.fromJson`
 
-Tests in `test/services/task_migration_adapter_test.dart` now cover:
+Tests in `test/services/task_migration_adapter_test.dart` cover:
 - legacy `arvin.tasks` JSON → Unified `Task`
 - preservation of legacy fields, category and follow-up date
 - empty storage
@@ -40,13 +40,26 @@ Tests in `test/services/task_migration_adapter_test.dart` now cover:
 
 No `lib/main.dart` production behavior has been changed yet. This slice intentionally strengthens and proves the migration boundary before rewiring Home.
 
+## Completed slice — HomePage characterization boundary
+Added regression/widget characterization coverage in `test/widget_test.dart` for the current production HomePage before any migration rewiring.
+
+The characterization tests currently prove:
+- the existing Persian application title remains present
+- search and filter controls remain present
+- backup control remains present
+- the new-task action remains present
+- the loaded empty-state and summary labels remain present
+
+This is intentionally a behavior baseline, not a Unified `Task` test. It protects the current UI contract before the next load-only migration slice.
+
 ## Current gate
 - Adapter boundary: PASS for the currently implemented contract.
-- Production migration: BLOCKED intentionally.
-- PR #96: keep open until CI and independent review confirm this slice and the next Home test boundary.
+- HomePage characterization boundary: added; CI verification pending on the new commit.
+- Production migration: BLOCKED intentionally until the baseline and storage semantics are verified.
+- PR #96: keep open until CI and independent review confirm this slice and the next Home migration boundary.
 
 ## Next implementation slice
-Add a minimal HomePage characterization/widget-test boundary around the existing legacy behavior before changing Home's load/save path. Then take a small, reversible load-only migration slice. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
+After CI passes, take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
