@@ -60,9 +60,23 @@ void main() {
     );
   });
 
+  test('rejects malformed JSON before migration', () {
+    expect(
+      () => adapter.decodeLegacyList('not-json'),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
   test('rejects a legacy task without an id', () {
     expect(
       () => adapter.decodeLegacyList('[{"title":"missing id"}]'),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('rejects a legacy task with an invalid title type', () {
+    expect(
+      () => adapter.decodeLegacyList('[{"id":"bad-title","title":42}]'),
       throwsA(isA<FormatException>()),
     );
   });
@@ -101,6 +115,27 @@ void main() {
     expect(roundTrip.single.description, 'متن');
     expect(roundTrip.single.archived, isTrue);
     expect(roundTrip.single.completed, isTrue);
+  });
+
+  test('repeated conversion of the same payload is stable', () {
+    const raw = '''[
+      {
+        "id": "stable-1",
+        "title": "ثبات مهاجرت",
+        "description": "نباید در اجرای مجدد تغییر کند",
+        "followUpDate": "2026-08-22T09:00:00.000Z",
+        "tags": ["migration"],
+        "category": "test",
+        "archived": false,
+        "trashed": false,
+        "completed": false
+      }
+    ]''';
+
+    final first = adapter.encodeUnifiedList(adapter.decodeLegacyList(raw));
+    final second = adapter.encodeUnifiedList(adapter.decodeLegacyList(raw));
+
+    expect(second, first);
   });
 
   test('rejects duplicate ids when encoding Unified tasks', () {
