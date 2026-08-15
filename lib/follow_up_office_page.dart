@@ -43,6 +43,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
               rows.add(_FollowUpRow(
                 taskTitle: title,
                 dateTime: date,
+                allDay: followUp['allDay'] as bool? ?? false,
                 note: followUp['note'] as String? ?? '',
                 result: followUp['result'] as String?,
                 nextFollowUp: DateTime.tryParse(followUp['nextFollowUp'] as String? ?? ''),
@@ -79,16 +80,21 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     return result;
   }
 
-  String _dateTime(DateTime value) {
-    final date = '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  String _dateTime(_FollowUpRow row) {
+    final date = '${row.dateTime.year}/${row.dateTime.month.toString().padLeft(2, '0')}/${row.dateTime.day.toString().padLeft(2, '0')}';
+    if (row.allDay) {
+      return '${_digits(date)} • تمام‌روز';
+    }
+    final time = '${row.dateTime.hour.toString().padLeft(2, '0')}:${row.dateTime.minute.toString().padLeft(2, '0')}';
     return '${_digits(date)} • ساعت ${_digits(time)}';
   }
 
   List<_FollowUpRow> get _visibleRows {
     if (!_showFutureOnly) return _rows;
     final now = DateTime.now();
-    return _rows.where((row) => row.dateTime.isAfter(now)).toList(growable: false);
+    return _rows.where((row) => row.allDay
+        ? DateTime(row.dateTime.year, row.dateTime.month, row.dateTime.day + 1).isAfter(now)
+        : row.dateTime.isAfter(now)).toList(growable: false);
   }
 
   @override
@@ -131,7 +137,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                               Expanded(child: Text(row.taskTitle, style: const TextStyle(fontWeight: FontWeight.w700))),
                             ]),
                             const SizedBox(height: 8),
-                            Text(_dateTime(row.dateTime)),
+                            Text(_dateTime(row)),
                             if (row.note.trim().isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(row.note),
@@ -142,7 +148,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                             ],
                             if (row.nextFollowUp != null) ...[
                               const SizedBox(height: 8),
-                              Text('پیگیری بعدی: ${_dateTime(row.nextFollowUp!)}'),
+                              Text('پیگیری بعدی: ${_dateTime(_FollowUpRow(taskTitle: row.taskTitle, dateTime: row.nextFollowUp!))}'),
                             ],
                           ],
                         ),
@@ -155,9 +161,17 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
 }
 
 class _FollowUpRow {
-  const _FollowUpRow({required this.taskTitle, required this.dateTime, this.note = '', this.result, this.nextFollowUp});
+  const _FollowUpRow({
+    required this.taskTitle,
+    required this.dateTime,
+    this.allDay = false,
+    this.note = '',
+    this.result,
+    this.nextFollowUp,
+  });
   final String taskTitle;
   final DateTime dateTime;
+  final bool allDay;
   final String note;
   final String? result;
   final DateTime? nextFollowUp;
