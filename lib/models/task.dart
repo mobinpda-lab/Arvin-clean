@@ -1,6 +1,10 @@
 class FollowUp {
   final String id;
   final DateTime dateTime;
+  /// True when the FollowUp is attached to a calendar day without a user-specified time.
+  /// The persisted DateTime remains backward-compatible; presentation layers must not
+  /// display its time when this flag is true.
+  final bool allDay;
   final String note;
   final String? result;
   final DateTime? nextFollowUp;
@@ -8,6 +12,7 @@ class FollowUp {
   const FollowUp({
     required this.id,
     required this.dateTime,
+    this.allDay = false,
     this.note = '',
     this.result,
     this.nextFollowUp,
@@ -16,6 +21,7 @@ class FollowUp {
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.toIso8601String(),
+        'allDay': allDay,
         'note': note,
         'result': result,
         'nextFollowUp': nextFollowUp?.toIso8601String(),
@@ -25,6 +31,7 @@ class FollowUp {
     return FollowUp(
       id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
+      allDay: json['allDay'] as bool? ?? false,
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
       nextFollowUp: json['nextFollowUp'] == null
