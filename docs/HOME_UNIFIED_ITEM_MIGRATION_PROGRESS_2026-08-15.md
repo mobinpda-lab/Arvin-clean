@@ -37,7 +37,7 @@ Tests in `test/services/task_migration_adapter_test.dart` cover:
 - invalid title types
 - duplicate ids
 - Unified serialization round-trip
-- repeated conversion stability (idempotency contract at the conversion boundary)
+- repeated conversion stability (conversion-boundary idempotency)
 - duplicate ids during Unified encoding
 - rejection of a non-list storage payload
 
@@ -53,23 +53,44 @@ The characterization tests currently prove:
 
 This is intentionally a behavior baseline, not a Unified `Task` test. It protects the current UI contract before the next load-only migration slice.
 
-## Current validation — verified 2026-08-16
-- Adapter boundary: PASS.
-- HomePage characterization boundary: PASS.
-- `Arvin Parallel Wave` run #235 on commit `788490507af068523bb18d3f983926ee1e2fbe0e`: PASS.
-- `Arvin Build` run #398 on the same commit: PASS.
+## Completed slice — read-only load boundary
+Added `lib/services/task_migration_reader.dart` as a reversible, write-free boundary over the existing `arvin.tasks` key.
+
+The reader now:
+- reads the existing storage key without changing it
+- delegates conversion and validation to `TaskMigrationAdapter`
+- returns canonical `Task` objects
+- preserves the legacy `followUpDate` → `FollowUp` conversion
+- returns an empty list when storage is absent/empty
+- surfaces malformed storage instead of silently discarding it
+- is directly testable with injected `SharedPreferences`
+
+Tests in `test/services/task_migration_reader_test.dart` prove:
+- empty/missing storage
+- legacy task loading into Unified `Task`
+- follow-up preservation
+- read-only/no-write behavior
+- malformed storage propagation
+
+## Current validation — 2026-08-16
+- Adapter boundary: PASS on the previously validated slice.
+- HomePage characterization boundary: PASS on the previously validated slice.
+- New read-only migration boundary: committed and awaiting current-head CI completion.
+- `Arvin Build` run #399: IN PROGRESS (Analyze and Test already PASS; APK build running).
+- `Arvin Parallel Wave` run #236: IN PROGRESS (quality and independent surface checks PASS; APK build running).
 - PR #96 remains open and draft; no merge has been performed.
+- Main remains on the legacy Home production path.
 - Production migration remains intentionally blocked until storage semantics and rollback/idempotency strategy are independently reviewed.
 
 ## Current gate
 - Adapter boundary: PASS.
 - HomePage characterization boundary: PASS.
-- CI gate for current branch head: PASS.
-- Production migration: BLOCKED intentionally until the next load-only boundary is reviewed.
+- Read-only load boundary: awaiting CI confirmation.
+- Production migration: BLOCKED intentionally until the next storage/load boundary is reviewed.
 - PR #96: keep open until the next migration boundary is independently reviewed.
 
 ## Next implementation slice
-Take a small, reversible load-only migration slice through the adapter. Preserve existing backup/filter/multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until the concrete data-preservation and rollback strategy is tested and reviewed.
+After the read-only boundary is green, wire only the HomePage `load` path through `TaskMigrationReader` behind the existing UI behavior. Preserve existing save, backup, restore, filter and multi-select behavior. Do not introduce dual-write, a new storage key, or legacy removal until concrete data-preservation and rollback strategy is tested and reviewed.
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
