@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -94,6 +96,12 @@ class TaskRepository {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, jsonEncode(tasks.map((e) => e.toJson()).toList()));
   }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+  @override
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
