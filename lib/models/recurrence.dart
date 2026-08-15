@@ -47,4 +47,16 @@ class RecurrenceRule {
             from.hour, from.minute, from.second, from.millisecond, from.microsecond);
     }
   }
+
+  /// Returns the first future occurrence on or after [target].
+  /// The original scheduled date is never mutated.
+  DateTime resumeFromToday({required DateTime scheduledFrom, required DateTime target}) {
+    var occurrence = scheduledFrom;
+    if (!occurrence.isBefore(target)) return occurrence;
+
+    while (occurrence.isBefore(target)) {
+      occurrence = nextOccurrence(occurrence);
+    }
+    return occurrence;
+  }
 }
