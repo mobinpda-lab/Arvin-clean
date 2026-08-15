@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +29,31 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, 'سطل زباله'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
     expect(find.byTooltip('پشتیبان'), findsOneWidget);
+  });
+
+  testWidgets('HomePage loads legacy storage through the unified reader',
+      (tester) async {
+    final legacyTask = {
+      'id': 'legacy-1',
+      'title': 'کار مهاجرتی',
+      'description': 'داده قدیمی باید در Home دیده شود',
+      'followUpDate': '2026-08-20T10:30:00.000',
+      'tags': ['مهاجرت'],
+      'archived': false,
+      'trashed': false,
+      'completed': false,
+    };
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([legacyTask]),
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار مهاجرتی'), findsOneWidget);
+    expect(find.text('داده قدیمی باید در Home دیده شود'), findsOneWidget);
+    expect(find.text('مهاجرت'), findsOneWidget);
+    expect(find.text('پیگیری: 2026/08/20'), findsOneWidget);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
