@@ -17,7 +17,7 @@ jobs:
           channel: stable
           cache: true
       - name: Generate Android platform
-        run: flutter create --platforms=android --project-name arvin .
+        run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Configure Android desugaring
         shell: bash
         run: |
