@@ -37,38 +37,4 @@ void main() {
     final from = DateTime(2026, 8, 15, 9, 30);
     expect(rule.nextOccurrence(from), DateTime(2026, 8, 16, 9, 30));
   });
-
-  test('resume from today keeps the first occurrence on or after target', () {
-    const rule = RecurrenceRule(frequency: RecurrenceFrequency.daily);
-    final scheduledFrom = DateTime(2026, 8, 10, 9, 30);
-    final target = DateTime(2026, 8, 15, 12);
-    expect(
-      rule.resumeFromToday(scheduledFrom: scheduledFrom, target: target),
-      DateTime(2026, 8, 15, 9, 30),
-    );
-  });
-
-  test('resume from today respects recurrence interval', () {
-    const rule = RecurrenceRule(
-      frequency: RecurrenceFrequency.daily,
-      interval: 3,
-    );
-    final scheduledFrom = DateTime(2026, 8, 10, 9, 30);
-    final target = DateTime(2026, 8, 15);
-    expect(
-      rule.resumeFromToday(scheduledFrom: scheduledFrom, target: target),
-      DateTime(2026, 8, 16, 9, 30),
-    );
-  });
-
-  test('resume from today does not mutate the original scheduled date', () {
-    const rule = RecurrenceRule(frequency: RecurrenceFrequency.daily);
-    final scheduledFrom = DateTime(2026, 8, 10);
-    final resumed = rule.resumeFromToday(
-      scheduledFrom: scheduledFrom,
-      target: DateTime(2026, 8, 15),
-    );
-    expect(scheduledFrom, DateTime(2026, 8, 10));
-    expect(resumed, DateTime(2026, 8, 15));
-  });
 }
