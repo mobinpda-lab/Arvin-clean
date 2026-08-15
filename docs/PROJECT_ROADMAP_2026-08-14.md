@@ -36,6 +36,7 @@
 - حفظ migration داده‌های قدیمی.
 - حذف تدریجی وابستگی‌های Legacy فقط پس از تست و بدون شکستن UI موجود.
 - خروجی Gate A: یک مسیر داده مشخص برای Item/Note/FollowUp.
+- **Wave 1 جاری:** اثبات Task/Migration/Recurrence contract قبل از Refactor.
 
 ### Lane B — Simple Notebook UI
 **قابل آماده‌سازی موازی، اجرای UI نهایی پس از Contract مدل**
@@ -95,6 +96,17 @@
 - Backup/Restore و Dropbox.
 - ساخت APK release، artifact، checksum و release documentation.
 
+## Recurrence contract
+`Task` از `RecurrenceRule` اختیاری استفاده می‌کند و مدل یا repository موازی برای recurring task ایجاد نمی‌شود.
+
+`RecurrenceFrequency` فعلاً شامل `daily`, `weekly`, `monthly`, `yearly`, `oncePerDay` است.
+
+- `interval` باید مثبت باشد.
+- weekly با فاصله `7 * interval` روز محاسبه می‌شود.
+- مقدار recurrence وقتی unset است در JSON ذخیره نمی‌شود.
+- رفتار موجود daily/monthly/yearly/oncePerDay باید حفظ شود.
+- مرزهای تقویمی monthly/yearly قبل از توسعه بیشتر باید با تست‌های focused پوشش داده شوند.
+
 ## ترتیب Gateهای اصلی
 1. **Gate A:** Unified Item + adapter/migration + regression.
 2. **Gate B:** Notebook UI قابل استفاده و persistence واقعی.
@@ -112,6 +124,7 @@
 - آماده‌سازی تست‌های Home/Search با mock/in-memory بدون تغییر repository اصلی.
 - آماده‌سازی Widget/Lock Screen compatibility tests بدون ایجاد storage جدید.
 - آماده‌سازی PDF/Print tests با fixtureهای Item/FollowUp.
+- تکمیل focused tests برای recurrence contract بدون اتصال UI تا زمان سبز شدن validation.
 
 ## معیار سرعت
 هر commit باید یک Gap مشخص را ببندد، کوچک و قابل بازبینی باشد و بلافاصله validation شود. کار مستقل بعدی نباید فقط به‌خاطر انتظار برای یک Lane نامرتبط متوقف شود.
@@ -123,8 +136,9 @@
 - Unified Item foundation و Category compatibility در main تثبیت شده‌اند.
 - Lock Screen برای Widget به‌عنوان الزام محصولی ثبت شده است.
 - PR #80 با موفقیت merge شده و source-neutral Calendar reminder mapping در main است.
+- **Gate A:** Wave 1 تست/اثبات Migration و Task Contract در حال اجراست؛ Refactor Legacy تا سبز شدن validation ممنوع است.
+- **Recurrence:** weekly contract به‌صورت focused در branch Wave 1 اضافه و تست شده است؛ CI نهایی هنوز در حال اجراست.
 - **Gap فعال Calendar:** Provider واقعی اوقات شرعی شیعه و تعطیلات رسمی ایران، با منبع قابل اعتبارسنجی، داده versioned، مکان/timezone و تست سال/تاریخ.
-- **گلوگاه فعال معماری:** Gate A همچنان باید بدون شکستن Legacy تکمیل شود.
 - **تمرکز اجرایی:** Gate A + implementation مستقل Calendar رسمی، همراه با آماده‌سازی همزمان Notebook/Home/Search/Widget tests بدون تغییر foundation مشترک.
 - پس از سبز شدن validation هر Lane، همان Lane بدون انتظار غیرضروری وارد commit/implementation بعدی می‌شود.
 

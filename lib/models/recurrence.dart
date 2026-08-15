@@ -1,4 +1,4 @@
-enum RecurrenceFrequency { daily, monthly, yearly, oncePerDay }
+enum RecurrenceFrequency { daily, weekly, monthly, yearly, oncePerDay }
 
 class RecurrenceRule {
   const RecurrenceRule({
@@ -32,6 +32,8 @@ class RecurrenceRule {
       case RecurrenceFrequency.daily:
       case RecurrenceFrequency.oncePerDay:
         return from.add(Duration(days: interval));
+      case RecurrenceFrequency.weekly:
+        return from.add(Duration(days: 7 * interval));
       case RecurrenceFrequency.monthly:
         final targetMonth = from.month - 1 + interval;
         final year = from.year + targetMonth ~/ 12;
