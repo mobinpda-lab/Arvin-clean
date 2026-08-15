@@ -1,3 +1,5 @@
+import 'recurrence.dart';
+
 class FollowUp {
   final String id;
   final DateTime dateTime;
@@ -33,8 +35,6 @@ class FollowUp {
     );
   }
 }
-
-import 'recurrence.dart';
 
 /// Unified product model foundation:
 /// an Item can behave as a simple note until follow-up is enabled.
