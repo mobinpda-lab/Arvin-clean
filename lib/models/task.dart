@@ -34,6 +34,8 @@ class FollowUp {
   }
 }
 
+import 'recurrence.dart';
+
 /// Unified product model foundation:
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.
@@ -54,6 +56,7 @@ class Task {
     this.trashed = false,
     this.completed = false,
     this.followUps = const [],
+    this.recurrence,
   });
 
   final String id;
@@ -71,8 +74,8 @@ class Task {
   bool trashed;
   bool completed;
   List<FollowUp> followUps;
+  RecurrenceRule? recurrence;
 
-  /// True while the Item is being used as a simple note.
   bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
 
   Map<String, dynamic> toJson() => {
@@ -91,6 +94,7 @@ class Task {
         'trashed': trashed,
         'completed': completed,
         'followUps': followUps.map((e) => e.toJson()).toList(),
+        if (recurrence != null) 'recurrence': recurrence!.toJson(),
       };
 
   factory Task.fromJson(Map<String, dynamic> json) {
@@ -118,35 +122,25 @@ class Task {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.tryParse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? null
-          : DateTime.tryParse(json['updatedAt'] as String),
+      createdAt: json['createdAt'] == null ? null : DateTime.tryParse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null ? null : DateTime.tryParse(json['updatedAt'] as String),
       followUpEnabled: json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
-      followUpDate: json['followUpDate'] == null
-          ? null
-          : DateTime.tryParse(json['followUpDate'] as String),
-      tags: (json['tags'] as List<dynamic>? ?? const [])
-          .whereType<String>()
-          .toList(),
+      followUpDate: json['followUpDate'] == null ? null : DateTime.tryParse(json['followUpDate'] as String),
+      tags: (json['tags'] as List<dynamic>? ?? const []).whereType<String>().toList(),
       category: json['category'] as String?,
-      checklist: (json['checklist'] as List<dynamic>? ?? const [])
-          .whereType<String>()
-          .toList(),
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
+      checklist: (json['checklist'] as List<dynamic>? ?? const []).whereType<String>().toList(),
+      reminderDate: json['reminderDate'] == null ? null : DateTime.tryParse(json['reminderDate'] as String),
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
       followUps: loadedFollowUps,
+      recurrence: json['recurrence'] is Map
+          ? RecurrenceRule.fromJson(Map<String, dynamic>.from(json['recurrence'] as Map))
+          : null,
     );
   }
 
-  FollowUp? get lastFollowUp =>
-      followUps.isNotEmpty ? followUps.last : null;
+  FollowUp? get lastFollowUp => followUps.isNotEmpty ? followUps.last : null;
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 }
