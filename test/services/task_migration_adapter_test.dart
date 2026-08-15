@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/services/task_migration_adapter.dart';
+import 'package:arvin/services/task_migration_adapter.dart';
 
 void main() {
   const adapter = TaskMigrationAdapter();
