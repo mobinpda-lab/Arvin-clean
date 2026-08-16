@@ -1,6 +1,6 @@
 # Arvin — Canonical Project State
 
-**Updated:** 2026-08-15
+**Updated:** 2026-08-16
 **Repository:** https://github.com/mobinpda-lab/Arvin-clean
 **Default branch:** `main`
 
@@ -19,6 +19,18 @@ The primary product/data flow is:
 
 Do not create parallel repositories, storage layers, or competing models for Task, Note, CRM, Voice, Memory, or FollowUp without an explicit architecture decision.
 
+## UI/UX governance
+Visual quality is a first-class product requirement and must be protected from accidental drift.
+- Approved direction is defined in `docs/contracts/UI_VISUAL_ACCEPTANCE.md`.
+- Governance rules are defined in `docs/UI_UX_GOVERNANCE.md`.
+- Persian RTL-first, clean, fast, modern and task-focused UI is mandatory.
+- Right-side navigation/drawer is the approved navigation direction.
+- ChatGPT-like simplicity and clarity is a UX reference.
+- Future AI agents/developers must review these documents before material UI changes.
+- Material UI changes require small isolated changes, relevant CI validation, and real-device visual acceptance when appropriate.
+- No UI change may introduce a parallel data/storage/model architecture or be made merely to make CI green.
+- Significant design decisions should receive independent DeepSeek cross-review.
+
 ## Current development state
 - Overall project progress: approximately **62%** (management estimate, not a CI metric).
 - Core architecture: approximately **80%**.
@@ -32,18 +44,15 @@ Do not create parallel repositories, storage layers, or competing models for Tas
 - Documentation: active and required for significant changes.
 
 ## Latest verified development history
-Recent commits on `main`:
-1. `37d9f059` — `docs: refine unified item migration record`
-2. `57b937720` — `test: guard unified task legacy migration`
-3. `fcb7cd756` — `docs: record unified item migration decision`
-4. `b64f406c` — `docs: record CI trigger audit findings`
-5. `5a38050d` — `ci: make Actions permissions explicit`
+Recent commits on `main` include the temporary debug APK artifact build, followed by the UI/UX governance documentation commit.
+- `e77093f6` — `ci: add temporary debug apk artifact build`
+- `6237f6b1` — `docs: establish UI/UX governance to prevent visual drift`
 
 ## Current gates / bottlenecks
-1. Unified Item migration / Gate A.
+1. Unified Item migration / Save Migration.
 2. Real Iran calendar providers.
 3. Native Widget foundation.
-4. UI Visual Acceptance.
+4. UI Visual Acceptance and visual-direction protection.
 5. E2E validation on a real APK.
 6. Confirm GitHub Actions trigger/permission behavior with actual workflow runs.
 
@@ -96,16 +105,17 @@ Before every meaningful change:
 1. Inspect the whole relevant architecture and recent commits.
 2. Check whether the capability already exists.
 3. Identify dependencies and regression risks.
-4. Avoid parallel architecture and duplicate storage/models.
-5. Make the smallest coherent change.
-6. Update relevant documentation/history.
-7. Run tests.
-8. Verify the actual GitHub Actions workflow result; never assume green.
-9. Commit with a clear message.
-10. Re-audit the resulting state.
+4. Check UI/UX governance when the change can affect appearance or interaction.
+5. Avoid parallel architecture and duplicate storage/models.
+6. Make the smallest coherent change.
+7. Update relevant documentation/history.
+8. Run tests.
+9. Verify the actual GitHub Actions workflow result; never assume green.
+10. Commit with a clear message.
+11. Re-audit the resulting state.
 
 ## Immediate next-action rule
-Before starting new feature work, re-audit `main`, recent commits, open gates, and CI status. Prioritize stabilization of Unified Item migration, Calendar, Widget foundation, UI acceptance, and APK/E2E before broad feature expansion.
+Before starting new feature work, re-audit `main`, recent commits, open gates, and CI status. Prioritize stabilization of Unified Item Save Migration, Calendar, Widget foundation, UI acceptance, and APK/E2E before broad feature expansion.
 
 ## Handoff instruction
-For a new chat or AI reviewer: treat this file as the compact project-state handoff, then verify it against the current GitHub repository before making any change. Do not rely on an old chat transcript when the repository can answer the question.
+For a new chat or AI reviewer: treat this file and `docs/UI_UX_GOVERNANCE.md` as project constraints, then verify them against the current GitHub repository before making any change. Do not rely on an old chat transcript when the repository can answer the question.
