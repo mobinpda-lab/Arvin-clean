@@ -65,3 +65,19 @@ Do not block independent documentation, CI inspection or test preparation on tha
 
 ## 8. Immediate next step
 Do not introduce `BaseEntity` or Riverpod in this documentation commit. First complete the repository/call-site map and identify the smallest safe seam for the first code migration.
+
+## 9. CI verification — 2026-08-16
+PR #98 commit `6c69829b5b26db09d011ee9ba50bd7bbf24ba863` was validated by the `Arvin Parallel Wave` workflow (run #248). The run completed successfully with:
+- quality: PASS — `flutter analyze --no-fatal-infos` and `flutter test`
+- followup surface: PASS
+- typography surface: PASS
+- backup surface: PASS
+- calendar surface: PASS
+- android-release: PASS — release APK built and verified
+
+No production code or UI was changed by this architecture-foundation change.
+
+## 10. Canonical-state reconciliation gate
+The existing `docs/ARVIN_PROJECT_STATE.md` still describes `Unified Item` as the primary architecture invariant. This foundation document records the newer v1 target in which `UnifiedItem` is not the long-term domain abstraction.
+
+This is an architecture-governance conflict, not a reason to perform a code rewrite. Before updating the canonical project-state invariant or starting the first persistence/domain migration, obtain independent DeepSeek cross-review and make an explicit Architecture Decision Record. Until then, preserve the existing runtime/storage contract and do not introduce a competing model or repository.
