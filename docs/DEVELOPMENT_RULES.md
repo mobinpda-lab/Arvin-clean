@@ -13,6 +13,12 @@
 10. After every response in the project conversation, report compact progress: overall %, UI/UX %, CI state, blocker/current lane, and next action.
 11. Parallel work is encouraged, but shared foundations must be audited first to avoid conflicting implementations.
 12. Speed up independent validation and documentation where safe, but correctness and architectural consistency always outrank speed.
+13. **UI visual fidelity is a protected product requirement.** No AI, developer, refactor, migration, dependency change, or automated tool may intentionally or incidentally change the approved Arvin visual language, layout hierarchy, RTL behavior, typography, spacing, colors, component shapes, navigation pattern, Reminder presentation, or other accepted UI details unless the change is explicitly approved as a UI redesign/change and documented before implementation.
+14. **Before any non-UI change, perform a UI regression check.** If a change can affect rendering, theme, fonts, assets, navigation, screen dimensions, localization/RTL, Android behavior, notifications, widgets, or persisted UI state, the approved UI contract must be re-checked before and after the change.
+15. **The agreed Reminder/Lock-Screen concept is a canonical UI reference.** The Reminder presentation previously agreed with the product owner must be preserved: `یادآور` with a smaller time beside it, the reminder title below, expandable details/actions, no fabricated time for all-day reminders, and Lock Screen/widget behavior consistent with the approved concept. This reference is a guardrail, not a license to redesign the UI.
+16. **«بسم الله الرحمن الرحیم» is an inseparable project principle.** It is part of the project's identity and must remain present in the project documentation/context and must not be removed or treated as disposable metadata during future development or AI handoffs.
+17. Never replace an approved visual contract merely because another UI looks newer, simpler, or more fashionable. Improvements must be additive, evidence-based, and explicitly reconciled with the canonical Arvin UI before coding.
+18. Every AI handoff or new development session must treat this document and the current UI/visual audit as mandatory context and must check them before making changes.
 
 ## Current UI gate
 - Reminder label with a smaller time beside it.
@@ -20,3 +26,4 @@
 - Reminder quick actions: complete, snooze, edit, convert to Task.
 - Recurring quick actions include Resume From Today.
 - Top-right two-line menu opens by tap.
+- RTL-first Persian presentation and the approved Arvin visual hierarchy must remain stable.
