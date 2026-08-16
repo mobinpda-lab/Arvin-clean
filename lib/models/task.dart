@@ -36,6 +36,12 @@ class FollowUp {
   }
 }
 
+/// Temporary compatibility alias for the legacy Home load-only boundary.
+/// Remove when HomePage stops using the legacy view model.
+extension FollowUpLegacyDate on FollowUp {
+  DateTime get date => dateTime;
+}
+
 /// Unified product model foundation:
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.

@@ -1,8 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_manager.dart';
+import 'models/task.dart';
+import 'services/task_migration_reader.dart';
 
 void main() => runApp(const ArvinApp());
 
@@ -103,6 +106,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskRepository repo = TaskRepository();
+  final TaskMigrationReader migrationReader = TaskMigrationReader();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   List<ArvinTask> tasks = [];
   final Set<String> selected = <String>{};
@@ -118,12 +122,40 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _load() async {
-    final value = await repo.load();
-    if (!mounted) return;
-    setState(() {
-      tasks = value;
-      loading = false;
-    });
+    try {
+      final unifiedTasks = await migrationReader.load();
+      final value = unifiedTasks.map(_legacyViewOf).toList();
+      if (!mounted) return;
+      setState(() {
+        tasks = value;
+        loading = false;
+      });
+    } catch (_) {
+      // Preserve the existing UI behavior for malformed storage: show the
+      // empty state rather than allowing a read-only migration boundary to
+      // break Home. No storage is written by this slice.
+      if (!mounted) return;
+      setState(() {
+        tasks = [];
+        loading = false;
+      });
+    }
+  }
+
+  ArvinTask _legacyViewOf(Task task) {
+    final followUpDate = task.followUps.isEmpty
+        ? task.followUpDate
+        : task.followUps.first.date;
+    return ArvinTask(
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      followUpDate: followUpDate,
+      tags: List<String>.of(task.tags),
+      archived: task.archived,
+      trashed: task.trashed,
+      completed: task.completed,
+    );
   }
 
   Future<void> _save() => repo.save(tasks);
@@ -704,43 +736,15 @@ class _TaskDialogState extends State<TaskDialog> {
 
   void _addTag() {
     final value = tag.text.trim();
-    if (value.isEmpty) return;
+    if (value.isEmpty || tags.contains(value)) return;
     setState(() {
       tags.add(value);
       tag.clear();
     });
   }
 
-  void _submit() {
-    final value = title.text.trim();
-    if (value.isEmpty) return;
-    Navigator.pop(
-      context,
-      ArvinTask(
-        id: widget.task?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        title: value,
-        description: desc.text.trim(),
-        followUpDate: followUpDate,
-        tags: List<String>.of(tags),
-        archived: widget.task?.archived ?? false,
-        trashed: widget.task?.trashed ?? false,
-        completed: widget.task?.completed ?? false,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final tagWidgets = <Widget>[];
-    for (final value in tags) {
-      tagWidgets.add(
-        InputChip(
-          label: Text(value),
-          onDeleted: () => setState(() => tags.remove(value)),
-        ),
-      );
-    }
-
     return AlertDialog(
       title: Text(widget.task == null ? 'کار جدید' : 'ویرایش کار'),
       content: SingleChildScrollView(
@@ -749,42 +753,44 @@ class _TaskDialogState extends State<TaskDialog> {
           children: [
             TextField(
               controller: title,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'عنوان کار'),
+              decoration: const InputDecoration(labelText: 'عنوان'),
             ),
-            const SizedBox(height: 12),
             TextField(
               controller: desc,
-              minLines: 3,
-              maxLines: 5,
+              maxLines: 4,
               decoration: const InputDecoration(labelText: 'توضیحات'),
             ),
-            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: tag,
-                    onSubmitted: (_) => _addTag(),
                     decoration: const InputDecoration(labelText: 'تگ'),
+                    onSubmitted: (_) => _addTag(),
                   ),
                 ),
                 IconButton(onPressed: _addTag, icon: const Icon(Icons.add)),
               ],
             ),
-            Wrap(spacing: 4, children: tagWidgets),
+            if (tags.isNotEmpty)
+              Wrap(
+                spacing: 4,
+                children: tags
+                    .map((item) => InputChip(
+                          label: Text(item),
+                          onDeleted: () => setState(() => tags.remove(item)),
+                        ))
+                    .toList(),
+              ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event_outlined),
+              leading: const Icon(Icons.event),
               title: Text(
                 followUpDate == null
-                    ? 'تاریخ پیگیری انتخاب نشده'
-                    : 'تاریخ: ${followUpDate!.year}/${followUpDate!.month}/${followUpDate!.day}',
+                    ? 'بدون تاریخ پیگیری'
+                    : 'پیگیری: ${_dateText(followUpDate!)}',
               ),
-              trailing: TextButton(
-                onPressed: _pickDate,
-                child: const Text('انتخاب'),
-              ),
+              onTap: _pickDate,
             ),
           ],
         ),
@@ -794,8 +800,26 @@ class _TaskDialogState extends State<TaskDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('لغو'),
         ),
-        FilledButton(onPressed: _submit, child: const Text('ذخیره')),
+        FilledButton(
+          onPressed: () {
+            final id = widget.task?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+            Navigator.pop(
+              context,
+              ArvinTask(
+                id: id,
+                title: title.text.trim().isEmpty ? 'بدون عنوان' : title.text.trim(),
+                description: desc.text.trim(),
+                followUpDate: followUpDate,
+                tags: List<String>.of(tags),
+              ),
+            );
+          },
+          child: const Text('ذخیره'),
+        ),
       ],
     );
   }
 }
+
+String _dateText(DateTime date) =>
+    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
