@@ -10,6 +10,7 @@ Status: Accepted
 
 ## Component Architecture
 
+```text
 AppShell
  ├── DashboardTimeline
  ├── ReminderCard
@@ -17,6 +18,7 @@ AppShell
  ├── JalaliCalendar
  ├── ReportWidget
  └── NotificationWidget
+```
 
 ## UI Governance Rules
 
@@ -27,6 +29,19 @@ No UI change without:
 3. RTL verification
 4. UX impact review
 5. Documentation update
+
+## Migration Plan
+
+The migration from current APK UI to Canonical UI follows these stages:
+
+1. UI Documentation and Design Tokens
+2. AppShell foundation
+3. DashboardTimeline migration
+4. ReminderCard and FollowUpCard implementation
+5. Create Reminder redesign
+6. JalaliCalendar migration
+7. ReportWidget implementation
+8. NotificationWidget and Widget integration
 
 ## Migration Principle
 
