@@ -17,16 +17,22 @@
 5. Run analyze, tests, APK build and verification.
 
 ## Current verified progress — 2026-08-21
-- The focused legacy FollowUp migration regression coverage from historical PR #102 has been reintroduced on top of the current `main` in PR #111.
-- PR #111 is **OPEN / DRAFT / MERGEABLE** and changes only `test/task_legacy_follow_up_migration_test.dart`; no production behavior is changed.
-- The tests cover both legacy `followUpDate` → `followUps` migration and the rule that an existing non-empty `followUps` list remains authoritative.
-- The exact PR #111 commit currently has no combined status checks recorded. Therefore the tests are **not yet validated by CI** and PR #111 must not be merged until the exact commit passes the required validation.
+- Focused legacy FollowUp migration regression coverage from historical PR #102 was reintroduced in PR #111 on top of the then-current `main`.
+- PR #111 is now **MERGED** into `main` as `0bcf80d305fa5aedcc1bdd4678496fbeda3372aa`.
+- The merged test file is `test/task_legacy_follow_up_migration_test.dart`; no production behavior was changed by PR #111.
+- The tests cover both legacy `followUpDate` -> `followUps` migration and the rule that an existing non-empty `followUps` list remains authoritative.
+- Historical CI results for older refs must not be attributed to the Merge Commit unless GitHub shows that exact ref was tested.
+
+## Migration gate result
+- Regression coverage: **MERGED**.
+- Migration compatibility gate: **advanced past the focused regression-test gate**.
+- The next executable slice must still respect the incremental migration guardrails and must be validated against its exact resulting commit/ref.
 
 ## Guardrails
 - Do not change the `arvin.tasks` key during migration.
 - Do not delete or rewrite existing user data.
 - Do not add a second persistence path.
-- Do not proceed to Reminder/Recurring UI integration until this migration is green.
+- Do not proceed to Reminder/Recurring UI integration until the migration gate is green for the applicable implementation slice.
 - Do not infer a green result from historical CI or from the logic of the test alone.
 
 ## Current implementation note
