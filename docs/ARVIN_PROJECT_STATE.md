@@ -1,121 +1,63 @@
 # Arvin — Canonical Project State
 
-**Updated:** 2026-08-16
-**Repository:** https://github.com/mobinpda-lab/Arvin-clean
+**Updated:** 2026-08-20
+**Repository:** mobinpda-lab/Arvin-clean
 **Default branch:** `main`
-
-## Purpose
-Arvin is a Flutter/Dart Persian, RTL-first Personal Assistant / Life & Work Organizer.
+**Current development branch:** `wave-a/core-storage-boundary-v1`
 
 ## Source of truth
-- GitHub `main` is the source of truth for code.
-- This file is the canonical compact project-state handoff for future chats and AI reviewers.
-- When this file conflicts with current repository code or CI, verify the repository and update this document.
+- GitHub repository state is the source of truth for executable status: code, branches, commits, PRs, workflows, tests, builds and merges.
+- Project documentation defines architecture, governance, roadmap and decisions.
+- Conversation/memory is continuity context, not a substitute for current GitHub evidence.
+- If these sources disagree, identify the gap, verify the repository/code, then update the relevant documentation.
 
-## Architecture invariant
-The primary product/data flow is:
-
-`Unified Item → Reminder → FollowUps[] → History`
-
-Do not create parallel repositories, storage layers, or competing models for Task, Note, CRM, Voice, Memory, or FollowUp without an explicit architecture decision.
-
-## UI/UX governance
-Visual quality is a first-class product requirement and must be protected from accidental drift.
-- Approved direction is defined in `docs/contracts/UI_VISUAL_ACCEPTANCE.md`.
-- Governance rules are defined in `docs/UI_UX_GOVERNANCE.md`.
-- Persian RTL-first, clean, fast, modern and task-focused UI is mandatory.
-- Right-side navigation/drawer is the approved navigation direction.
-- ChatGPT-like simplicity and clarity is a UX reference.
-- Future AI agents/developers must review these documents before material UI changes.
-- Material UI changes require small isolated changes, relevant CI validation, and real-device visual acceptance when appropriate.
-- No UI change may introduce a parallel data/storage/model architecture or be made merely to make CI green.
-- Significant design decisions should receive independent DeepSeek cross-review.
-
-## Current development state
-- Overall project progress: approximately **62%** (management estimate, not a CI metric).
-- Core architecture: approximately **80%**.
-- Unified Item migration: **active / progressing**.
-- FollowUp: approximately **70%**.
-- Calendar foundation: approximately **70%**.
-- UI: approximately **60%**; final visual acceptance is not complete.
-- Real Iran calendar providers: approximately **35%**.
-- Native Widget foundation: approximately **40%**.
-- E2E / real APK release readiness: approximately **45%**.
-- Documentation: active and required for significant changes.
-
-## Latest verified development history
-Recent commits on `main` include the temporary debug APK artifact build, followed by the UI/UX governance documentation commit.
-- `e77093f6` — `ci: add temporary debug apk artifact build`
-- `6237f6b1` — `docs: establish UI/UX governance to prevent visual drift`
-
-## Current gates / bottlenecks
-1. Unified Item migration / Save Migration.
-2. Real Iran calendar providers.
-3. Native Widget foundation.
-4. UI Visual Acceptance and visual-direction protection.
-5. E2E validation on a real APK.
-6. Confirm GitHub Actions trigger/permission behavior with actual workflow runs.
-
-## Product extension roadmap
-The following capabilities are approved as a product-development roadmap, not as permission to implement them all immediately:
-
-1. Next Action intelligence
-2. Automatic FollowUp
-3. Full topic Timeline
-4. Persian Voice Capture
-5. Arvin intelligent assistant
-6. People / Contacts
-7. Semantic Search
-8. Smart Weekly Review
-9. Arvin Memory
-10. Waiting-for-response state
-11. Quick Capture
-12. Smart Calendar Assistant
-13. Conflict detection / smart scheduling
-14. Smart Rescheduling
-15. Goal → Project → Item
-16. Location Reminder
-17. Privacy / Encryption
-18. Multi-device Sync / Backup
-19. Iran-focused Personal Assistant capabilities
-
-All extensions should reuse the existing Unified Item architecture wherever possible.
-
-## Product differentiation target
-Arvin should not become a feature-count clone of Todoist/TickTick/Any.do.
-Target identity: **"Arvin — don't lose any topic."**
-
-Core differentiation:
-- Topic state and history
-- FollowUp engine
-- Next Action
-- Waiting-for-response tracking
-- People/context
-- Persian/RTL and Iran-focused experience
-- Future Memory / semantic intelligence
-
-## GPT + DeepSeek collaboration protocol
-- GPT: architecture, product strategy, prioritization, final audit and change coordination.
-- DeepSeek: independent code review, bug/regression finding, Flutter/Dart review, test/CI/performance review and alternative implementation suggestions.
-- DeepSeek must not independently modify the main branch without review/coordination.
-- Preferred flow: Audit → independent review → decision → small change → tests → workflow/CI → commit → audit.
-
-## Mandatory change protocol
+## Documentation governance
 Before every meaningful change:
-1. Inspect the whole relevant architecture and recent commits.
-2. Check whether the capability already exists.
-3. Identify dependencies and regression risks.
-4. Check UI/UX governance when the change can affect appearance or interaction.
-5. Avoid parallel architecture and duplicate storage/models.
-6. Make the smallest coherent change.
-7. Update relevant documentation/history.
-8. Run tests.
-9. Verify the actual GitHub Actions workflow result; never assume green.
-10. Commit with a clear message.
-11. Re-audit the resulting state.
+1. Review current `main`, relevant branch and recent commits.
+2. Review open PRs and recent workflow results.
+3. Review relevant project documentation and previous decisions.
+4. Inspect the real code when the question is implementation-sensitive.
+5. Confirm the capability is not already implemented.
+6. Identify the smallest real gap.
+7. Make a small reversible change.
+8. Run focused tests and the required validation pipeline.
+9. Verify actual GitHub Actions results; never infer green from an unrun workflow.
+10. Record important decisions and resulting state in the relevant documentation.
 
-## Immediate next-action rule
-Before starting new feature work, re-audit `main`, recent commits, open gates, and CI status. Prioritize stabilization of Unified Item Save Migration, Calendar, Widget foundation, UI acceptance, and APK/E2E before broad feature expansion.
+Historical documents are not to be silently rewritten merely to make history look current. Current state belongs in the canonical state/handoff documents and dated audit/changelog documents.
 
-## Handoff instruction
-For a new chat or AI reviewer: treat this file and `docs/UI_UX_GOVERNANCE.md` as project constraints, then verify them against the current GitHub repository before making any change. Do not rely on an old chat transcript when the repository can answer the question.
+## Current verified development state
+- PR #107: **MERGED**. Merge commit: `771f1e1776742bbca3e0d1c1110bec9b4adefa54`.
+- Wave A / Core + Architecture: **active**.
+- PR #108: **OPEN** — `refactor(core): introduce task storage boundary`.
+- PR #108 branch: `wave-a/core-storage-boundary-v1`.
+- Latest documented corrective test commit: `1a83de14b222abcaf4bf53aa50ccd5fd56a51331`.
+- The latest reported `flutter test` result is **94 passed / 1 failed** in `test/widget_test.dart`, test `HomePage loads legacy storage through the unified reader`.
+- That failing assertion concerns the legacy/Home date display expectation and must be validated against the current code/test contract before further edits.
+- `flutter analyze` was previously observed passing on the earlier validation run; the latest commit must still receive its own real CI validation.
+- A workflow result must never be attributed to a newer commit unless GitHub shows that exact commit/ref was tested.
+
+## Current bottleneck
+The immediate bottleneck is PR #108 validation. Do not merge until the current commit has a real successful validation covering the required test/analyze/build path.
+
+## Parallel development rule
+Arvin is intentionally optimized for **parallel + simultaneous + fast** development, with the goal of producing software in hours rather than days.
+
+Independent lanes should proceed concurrently whenever they do not conflict with shared foundation, files or architecture. Parallel work must be controlled to avoid duplicate implementations, conflicting changes and merge conflicts. A blocked lane must not unnecessarily block independent lanes.
+
+## Product and architecture invariants
+- Clean Architecture / feature-oriented separation remains the target.
+- Domain logic must remain independent of external infrastructure.
+- Unified Item remains the architectural source of truth; do not introduce competing storage/model systems.
+- Migration must be incremental and reversible.
+- Existing capabilities must be reused rather than rebuilt.
+- No direct changes to `main` for ordinary development; use branch → commit → PR → workflow → validation → review → merge.
+
+## Product roadmap
+Target capabilities include Task, Reminder, FollowUp, Jalali Calendar, Notification, Backup/Restore, Cloud/Dropbox, Google Calendar, PDF/Print, Security, Widget and Lock Screen, subject to the current architecture and roadmap documents.
+
+## Collaboration
+ChatGPT coordinates architecture, prioritization, audits and development flow. DeepSeek may be used as an independent second reviewer for sensitive architecture, migration, storage, CI or other high-risk decisions. DeepSeek does not replace GitHub evidence or validation.
+
+## Handoff rule
+When a new conversation starts with `ادامه آروین`, first verify the live GitHub repository, read/write access, current branch/commit, open PRs, workflows and relevant documentation. Then select the nearest real unfinished task, avoid duplicate work, act where possible, and report the verified result.
