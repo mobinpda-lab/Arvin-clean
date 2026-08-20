@@ -3,8 +3,8 @@
 **Updated:** 2026-08-21
 **Repository:** mobinpda-lab/Arvin-clean
 **Default branch:** `main`
-**Current verified main head:** `105210c0f509831f3bdf8d493b758de9b500dc9d`
-**Current active documentation/test branch:** `test/migration-legacy-compatibility-current`
+**Current verified main head:** `0bcf80d305fa5aedcc1bdd4678496fbeda3372aa`
+**Current active documentation branch:** `docs/documentation-principles-v2`
 
 ## Source of truth
 - GitHub repository state is the source of truth for executable status: code, branches, commits, PRs, workflows, tests, builds and merges.
@@ -33,19 +33,17 @@ Historical documents are not to be silently rewritten merely to make history loo
 - PR #107: **MERGED** — `771f1e1776742bbca3e0d1c1110bec9b4adefa54`.
 - PR #108: **MERGED** — `1d92d03df9b491a10f6b9dd6305ac3045ef0de65`.
 - PR #109: **MERGED** — `fe658307465fc446c917d5d0c7d5a303bfabf059`.
-- PR #110: **MERGED**; the resulting documentation state commit is `105210c0f509831f3bdf8d493b758de9b500dc9d`.
-- PR #111: **OPEN / DRAFT / MERGEABLE** — `test(migration): restore legacy follow-up compatibility coverage`.
-- PR #111 base is `main` at `105210c0f509831f3bdf8d493b758de9b500dc9d`.
-- PR #111 head is `29edac0047ab116511a7388f69a5369a3ce792f4` and changes one test file only; it makes no production-code changes.
-- PR #111 was created to restore the focused legacy FollowUp migration regression coverage from PR #102 on top of the current `main`, rather than merging the old branch.
-- The exact PR #111 commit currently has **no combined status checks recorded**, so its CI/test result is **not yet validated** and must not be reported as green.
-- The code in `lib/models/task.dart` currently migrates legacy `followUpDate` into a `FollowUp` when `followUps` is absent/empty, and preserves current `followUps` when present.
-- The migration documentation explicitly requires regression tests for legacy JSON → `Task` migration before advancing the Unified Item migration.
+- PR #110: **MERGED** — documentation state commit `105210c0f509831f3bdf8d493b758de9b500dc9d`.
+- PR #111: **MERGED** — migration regression coverage; merge commit `0bcf80d305fa5aedcc1bdd4678496fbeda3372aa`.
+- PR #112: **OPEN / READY FOR REVIEW / MERGEABLE** — `docs: align documentation with verified project state`.
+- PR #112 base is `main`; its documented branch must remain aligned with the current verified main state before merge.
+- PR #111 adds only focused regression coverage in `test/task_legacy_follow_up_migration_test.dart`; no production behavior was changed.
+- The migration tests cover legacy `followUpDate` -> `followUps` migration and preservation of an existing non-empty `followUps` list.
 
 ## Current bottleneck / next gate
-The immediate gate is **PR #111 validation**. Run and verify the required focused test and the applicable CI/build path against the exact PR #111 commit before any merge decision.
+The migration regression gate is merged into `main`. The immediate gate is now **documentation alignment and validation of PR #112** against the current `main` state.
 
-Do not attribute historical `94 passed / 1 failed` results from an older development slice to the current `main` or PR #111. Historical results remain historical until the exact current ref is tested.
+Historical CI results must never be attributed to a newer commit unless GitHub shows that exact commit/ref was tested.
 
 ## Migration guardrails
 - `Task` in `lib/models/task.dart` remains the single shared Unified Item source of truth.
@@ -65,12 +63,12 @@ Independent lanes should proceed concurrently whenever they do not conflict with
 - Unified Item remains the architectural source of truth; do not introduce competing storage/model systems.
 - Migration must be incremental and reversible.
 - Existing capabilities must be reused rather than rebuilt.
-- No direct changes to `main` for ordinary development; use branch → commit → PR → workflow → validation → review → merge.
+- No direct changes to `main` for ordinary development; use branch -> commit -> PR -> workflow -> validation -> review -> merge.
 
 ## Product roadmap
 Target capabilities include Task, Reminder, FollowUp, Jalali Calendar, Notification, Backup/Restore, Cloud/Dropbox, Google Calendar, PDF/Print, Security, Widget and Lock Screen, subject to the current architecture and roadmap documents.
 
-The next executable slice must be selected from the nearest verified gap after PR #111 validation; do not skip the migration gate or start a duplicate implementation.
+The next executable slice must be selected from the nearest verified gap after PR #112 validation; do not skip the documentation gate or start a duplicate implementation.
 
 ## Collaboration
 ChatGPT coordinates architecture, prioritization, audits and development flow. DeepSeek may be used as an independent second reviewer for sensitive architecture, migration, storage, CI or other high-risk decisions. DeepSeek does not replace GitHub evidence or validation.
