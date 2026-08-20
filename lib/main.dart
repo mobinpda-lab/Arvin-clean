@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_manager.dart';
+import 'core/storage/task_store.dart';
 import 'models/task.dart';
 import 'services/task_migration_reader.dart';
 
@@ -73,9 +74,10 @@ class ArvinTask {
   }
 }
 
-class TaskRepository {
+class TaskRepository implements TaskStore<ArvinTask> {
   static const String key = 'arvin.tasks';
 
+  @override
   Future<List<ArvinTask>> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(key);
@@ -92,6 +94,7 @@ class TaskRepository {
     }
   }
 
+  @override
   Future<void> save(List<ArvinTask> tasks) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, jsonEncode(tasks.map((e) => e.toJson()).toList()));
@@ -236,321 +239,50 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
-  Future<void> _restore(ArvinTask task) async {
+  Future<void> _restoreSelected() async {
     setState(() {
-      task.trashed = false;
-      task.archived = false;
+      for (final task in tasks) {
+        if (selected.contains(task.id)) {
+          task.archived = false;
+          task.trashed = false;
+        }
+      }
+      selected.clear();
+      selectionMode = false;
     });
     await _save();
   }
 
-  Future<void> _deleteForever(ArvinTask task) async {
-    setState(() => tasks.removeWhere((item) => item.id == task.id));
+  Future<void> _deleteSelectedPermanently() async {
+    setState(() {
+      tasks.removeWhere((task) => selected.contains(task.id));
+      selected.clear();
+      selectionMode = false;
+    });
     await _save();
   }
 
-  Future<void> _toggle(ArvinTask task) async {
+  Future<void> _toggleComplete(ArvinTask task) async {
     setState(() => task.completed = !task.completed);
     await _save();
   }
 
-  Future<void> _chooseBackupDirectory() async {
-    try {
-      final uri = await backupManager.chooseAndRememberDirectory();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            uri == null
-                ? 'انتخاب پوشه لغو شد'
-                : 'پوشه پشتیبان با موفقیت انتخاب شد',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('انتخاب پوشه ناموفق بود: $error')),
-        );
-      }
-    }
-  }
-
-  Future<void> _backupToFolder() async {
-    try {
-      var directory = await backupManager.getDirectory();
-      if (directory == null || directory.isEmpty) {
-        directory = await backupManager.chooseAndRememberDirectory();
-      }
-      if (directory == null || directory.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ابتدا یک پوشه برای پشتیبان انتخاب کنید')),
-          );
-        }
-        return;
-      }
-
-      final fileName = await backupManager.backupTasks(
-        tasks.map((task) => task.toJson()).toList(),
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            fileName == null
-                ? 'پشتیبان‌گیری انجام نشد'
-                : 'پشتیبان ذخیره شد: $fileName',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('پشتیبان‌گیری ناموفق بود: $error')),
-        );
-      }
-    }
-  }
-
-  Future<void> _restoreFromFile() async {
-    try {
-      final backup = await backupManager.restoreBackup();
-      if (backup == null) return;
-
-      final rawTasks = backup['tasks'];
-      if (rawTasks is! List) {
-        throw const FormatException('فهرست کارهای پشتیبان نامعتبر است');
-      }
-
-      final list = rawTasks
-          .map((item) => ArvinTask.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ))
-          .toList();
-
-      final emergencyBackup = await backupManager.backupTasks(
-        tasks.map((task) => task.toJson()).toList(),
-      );
-
-      if (!mounted) return;
-      final approved = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('بازیابی اطلاعات'),
-          content: Text(
-            'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n\n'
-            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری نیز ساخته شد.'}',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('لغو'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('بازیابی'),
-            ),
-          ],
-        ),
-      );
-      if (approved != true) return;
-
-      setState(() => tasks = list);
-      await _save();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${list.length} کار با موفقیت بازیابی شد')),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('بازیابی ناموفق بود: $error')),
-        );
-      }
-    }
-  }
-
-  Future<void> _backupMenu() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.folder_outlined),
-                title: const Text('انتخاب پوشه پشتیبان'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _chooseBackupDirectory();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.backup_outlined),
-                title: const Text('ایجاد Backup'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _backupToFolder();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.restore),
-                title: const Text('Restore از فایل'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _restoreFromFile();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _taskCard(ArvinTask task) {
-    final late = _overdue(task);
-    return Dismissible(
-      key: ValueKey(task.id),
-      direction: selectionMode
-          ? DismissDirection.none
-          : DismissDirection.endToStart,
-      confirmDismiss: (_) async {
-        if (task.trashed) {
-          await _deleteForever(task);
-        } else {
-          setState(() => task.trashed = true);
-          await _save();
-        }
-        return true;
-      },
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: const Icon(Icons.delete_outline),
-      ),
-      child: Card(
-        child: ListTile(
-          onLongPress: () => setState(() {
-            selectionMode = true;
-            selected.add(task.id);
-          }),
-          onTap: selectionMode
-              ? () => setState(() {
-                    if (selected.contains(task.id)) {
-                      selected.remove(task.id);
-                    } else {
-                      selected.add(task.id);
-                    }
-                  })
-              : () => _edit(task),
-          leading: selectionMode
-              ? Checkbox(
-                  value: selected.contains(task.id),
-                  onChanged: (_) => setState(() {
-                    if (selected.contains(task.id)) {
-                      selected.remove(task.id);
-                    } else {
-                      selected.add(task.id);
-                    }
-                  }),
-                )
-              : IconButton(
-                  onPressed: () => _toggle(task),
-                  icon: Icon(
-                    task.completed
-                        ? Icons.check_circle
-                        : late
-                            ? Icons.warning_amber
-                            : Icons.radio_button_unchecked,
-                  ),
-                ),
-          title: Text(
-            task.title,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              decoration: task.completed ? TextDecoration.lineThrough : null,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (task.description.isNotEmpty) Text(task.description),
-              if (task.tags.isNotEmpty)
-                Wrap(
-                  spacing: 4,
-                  children: task.tags.map<Widget>((tag) {
-                    return Chip(
-                      label: Text(tag),
-                      visualDensity: VisualDensity.compact,
-                    );
-                  }).toList(),
-                ),
-              if (task.followUpDate != null)
-                Text(
-                  'پیگیری: ${_date(task.followUpDate!)}${late ? '  •  عقب‌افتاده' : ''}',
-                ),
-              if (task.trashed)
-                TextButton(
-                  onPressed: () => _restore(task),
-                  child: const Text('بازگردانی'),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final chips = <Widget>[];
-    for (final item in ['فعال', 'بایگانی', 'سطل زباله']) {
-      chips.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: ChoiceChip(
-            label: Text(item),
-            selected: filter == item,
-            onSelected: (_) => setState(() => filter = item),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
-              style: TextStyle(fontSize: 13),
-            ),
-            SizedBox(height: 3),
-            Text(
-              'مدیریت کارها وپیگیری آروین',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
+        title: const Text('آروین'),
         actions: [
           IconButton(
-            onPressed: _backupMenu,
-            tooltip: 'پشتیبان',
-            icon: const Icon(Icons.backup_outlined),
-          ),
-          IconButton(
-            onPressed: () => setState(() {
-              selectionMode = !selectionMode;
-              if (!selectionMode) selected.clear();
-            }),
-            icon: Icon(selectionMode ? Icons.close : Icons.checklist),
+            tooltip: 'پشتیبان‌گیری',
+            onPressed: () async {
+              await backupManager.createBackup(tasks);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('پشتیبان تهیه شد.')),
+              );
+            },
+            icon: const Icon(Icons.backup),
           ),
         ],
       ),
@@ -559,130 +291,149 @@ class _HomePageState extends State<HomePage> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  padding: const EdgeInsets.all(12),
                   child: TextField(
-                    onChanged: (value) => setState(() => query = value),
                     decoration: const InputDecoration(
+                      hintText: 'جستجو در کارها...',
                       prefixIcon: Icon(Icons.search),
-                      labelText: 'جست‌وجو',
+                      border: OutlineInputBorder(),
                     ),
+                    onChanged: (value) => setState(() => query = value),
                   ),
                 ),
                 SizedBox(
-                  height: 52,
+                  height: 50,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    children: chips,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _Stat(
-                          'کل',
-                          tasks.where((t) => !t.trashed).length,
-                          Icons.list_alt,
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'فعال',
-                          tasks
-                              .where((t) =>
-                                  !t.archived && !t.trashed && !t.completed)
-                              .length,
-                          Icons.pending_actions,
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'انجام‌شده',
-                          tasks.where((t) => t.completed && !t.trashed).length,
-                          Icons.check_circle,
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'عقب‌افتاده',
-                          tasks.where(_overdue).length,
-                          Icons.warning_amber,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: visible.isEmpty
-                      ? Center(
-                          child: Text(
-                            filter == 'سطل زباله'
-                                ? 'سطل زباله خالی است'
-                                : 'کاری برای نمایش وجود ندارد',
+                    children: ['فعال', 'بایگانی', 'سطل زباله']
+                        .map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: ChoiceChip(
+                              label: Text(item),
+                              selected: filter == item,
+                              onSelected: (_) => setState(() => filter = item),
+                            ),
                           ),
                         )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                        .toList(),
+                  ),
+                ),
+                if (selectionMode)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Text('${selected.length} مورد انتخاب شده'),
+                        const Spacer(),
+                        if (filter == 'سطل زباله')
+                          IconButton(
+                            tooltip: 'بازگردانی',
+                            onPressed: selected.isEmpty ? null : _restoreSelected,
+                            icon: const Icon(Icons.restore),
+                          ),
+                        if (filter == 'سطل زباله')
+                          IconButton(
+                            tooltip: 'حذف دائمی',
+                            onPressed: selected.isEmpty
+                                ? null
+                                : _deleteSelectedPermanently,
+                            icon: const Icon(Icons.delete_forever),
+                          )
+                        else
+                          IconButton(
+                            tooltip: 'بایگانی',
+                            onPressed: selected.isEmpty ? null : _archiveSelected,
+                            icon: const Icon(Icons.archive),
+                          ),
+                        if (filter != 'سطل زباله')
+                          IconButton(
+                            tooltip: 'سطل زباله',
+                            onPressed: selected.isEmpty ? null : _trashSelected,
+                            icon: const Icon(Icons.delete),
+                          ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: visible.isEmpty
+                      ? const Center(child: Text('موردی برای نمایش وجود ندارد.'))
+                      : ListView.builder(
                           itemCount: visible.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
-                          itemBuilder: (_, index) => _taskCard(visible[index]),
+                          itemBuilder: (context, index) {
+                            final task = visible[index];
+                            final overdue = _overdue(task);
+                            final checked = selected.contains(task.id);
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 5,
+                              ),
+                              child: ListTile(
+                                leading: selectionMode
+                                    ? Checkbox(
+                                        value: checked,
+                                        onChanged: (_) => setState(() {
+                                          if (checked) {
+                                            selected.remove(task.id);
+                                          } else {
+                                            selected.add(task.id);
+                                          }
+                                        }),
+                                      )
+                                    : IconButton(
+                                        tooltip: task.completed ? 'بازگردانی' : 'انجام شد',
+                                        onPressed: () => _toggleComplete(task),
+                                        icon: Icon(
+                                          task.completed
+                                              ? Icons.check_circle
+                                              : Icons.radio_button_unchecked,
+                                        ),
+                                      ),
+                                title: Text(
+                                  task.title,
+                                  style: TextStyle(
+                                    decoration: task.completed
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (task.description.isNotEmpty)
+                                      Text(task.description),
+                                    if (task.followUpDate != null)
+                                      Text(
+                                        'پیگیری: ${_date(task.followUpDate!)}',
+                                        style: TextStyle(
+                                          color: overdue ? Colors.red : null,
+                                        ),
+                                      ),
+                                    if (task.tags.isNotEmpty)
+                                      Text('برچسب‌ها: ${task.tags.join(', ')}'),
+                                  ],
+                                ),
+                                onLongPress: () => setState(() {
+                                  selectionMode = true;
+                                  selected.add(task.id);
+                                }),
+                                trailing: IconButton(
+                                  tooltip: 'ویرایش',
+                                  onPressed: () => _edit(task),
+                                  icon: const Icon(Icons.edit),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                 ),
               ],
             ),
-      floatingActionButton: selected.isEmpty
-          ? FloatingActionButton.extended(
-              onPressed: _add,
-              icon: const Icon(Icons.add),
-              label: const Text('کار جدید'),
-            )
-          : null,
-      bottomNavigationBar: selected.isEmpty
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    FilledButton.icon(
-                      onPressed: _archiveSelected,
-                      icon: const Icon(Icons.archive_outlined),
-                      label: const Text('بایگانی'),
-                    ),
-                    FilledButton.tonalIcon(
-                      onPressed: _trashSelected,
-                      icon: const Icon(Icons.delete_outline),
-                      label: const Text('حذف'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value, this.icon);
-  final String label;
-  final int value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          children: [
-            Icon(icon, size: 20),
-            Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(fontSize: 10)),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _add,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -690,136 +441,131 @@ class _Stat extends StatelessWidget {
 
 class TaskDialog extends StatefulWidget {
   const TaskDialog({super.key, this.task});
+
   final ArvinTask? task;
+
   @override
   State<TaskDialog> createState() => _TaskDialogState();
 }
 
 class _TaskDialogState extends State<TaskDialog> {
-  late final TextEditingController title;
-  late final TextEditingController desc;
-  late final TextEditingController tag;
+  late final TextEditingController titleController;
+  late final TextEditingController descriptionController;
+  late final TextEditingController tagsController;
   DateTime? followUpDate;
-  late List<String> tags;
 
   @override
   void initState() {
     super.initState();
-    final task = widget.task;
-    title = TextEditingController(text: task?.title ?? '');
-    desc = TextEditingController(text: task?.description ?? '');
-    tag = TextEditingController();
-    followUpDate = task?.followUpDate;
-    tags = List<String>.of(task?.tags ?? const []);
+    titleController = TextEditingController(text: widget.task?.title ?? '');
+    descriptionController =
+        TextEditingController(text: widget.task?.description ?? '');
+    tagsController = TextEditingController(
+      text: widget.task?.tags.join(', ') ?? '',
+    );
+    followUpDate = widget.task?.followUpDate;
   }
 
   @override
   void dispose() {
-    title.dispose();
-    desc.dispose();
-    tag.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
+    tagsController.dispose();
     super.dispose();
   }
 
   Future<void> _pickDate() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: followUpDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime(2020),
       lastDate: DateTime(2100),
-      helpText: 'انتخاب تاریخ پیگیری',
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
+      initialDate: followUpDate ?? DateTime.now(),
     );
     if (date != null) setState(() => followUpDate = date);
   }
 
-  void _addTag() {
-    final value = tag.text.trim();
-    if (value.isEmpty || tags.contains(value)) return;
-    setState(() {
-      tags.add(value);
-      tag.clear();
-    });
+  void _save() {
+    final title = titleController.text.trim();
+    if (title.isEmpty) return;
+    final task = widget.task;
+    Navigator.of(context).pop(
+      ArvinTask(
+        id: task?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        title: title,
+        description: descriptionController.text.trim(),
+        followUpDate: followUpDate,
+        tags: tagsController.text
+            .split(',')
+            .map((tag) => tag.trim())
+            .where((tag) => tag.isNotEmpty)
+            .toList(),
+        archived: task?.archived ?? false,
+        trashed: task?.trashed ?? false,
+        completed: task?.completed ?? false,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.task == null ? 'کار جدید' : 'ویرایش کار'),
+      title: Text(widget.task == null ? 'افزودن کار' : 'ویرایش کار'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: title,
+              controller: titleController,
               decoration: const InputDecoration(labelText: 'عنوان'),
+              autofocus: true,
             ),
             TextField(
-              controller: desc,
-              maxLines: 4,
+              controller: descriptionController,
               decoration: const InputDecoration(labelText: 'توضیحات'),
+              maxLines: 3,
             ),
+            TextField(
+              controller: tagsController,
+              decoration: const InputDecoration(
+                labelText: 'برچسب‌ها',
+                hintText: 'مثال: مهم، کاری',
+              ),
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: tag,
-                    decoration: const InputDecoration(labelText: 'تگ'),
-                    onSubmitted: (_) => _addTag(),
+                  child: Text(
+                    followUpDate == null
+                        ? 'تاریخ پیگیری انتخاب نشده'
+                        : 'پیگیری: ${followUpDate!.year}/${followUpDate!.month}/${followUpDate!.day}',
                   ),
                 ),
-                IconButton(onPressed: _addTag, icon: const Icon(Icons.add)),
+                TextButton(
+                  onPressed: _pickDate,
+                  child: const Text('انتخاب تاریخ'),
+                ),
+                if (followUpDate != null)
+                  IconButton(
+                    tooltip: 'حذف تاریخ',
+                    onPressed: () => setState(() => followUpDate = null),
+                    icon: const Icon(Icons.clear),
+                  ),
               ],
-            ),
-            if (tags.isNotEmpty)
-              Wrap(
-                spacing: 4,
-                children: tags
-                    .map((item) => InputChip(
-                          label: Text(item),
-                          onDeleted: () => setState(() => tags.remove(item)),
-                        ))
-                    .toList(),
-              ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event),
-              title: Text(
-                followUpDate == null
-                    ? 'بدون تاریخ پیگیری'
-                    : 'پیگیری: ${_dateText(followUpDate!)}',
-              ),
-              onTap: _pickDate,
             ),
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('لغو'),
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('انصراف'),
         ),
         FilledButton(
-          onPressed: () {
-            final id = widget.task?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
-            Navigator.pop(
-              context,
-              ArvinTask(
-                id: id,
-                title: title.text.trim().isEmpty ? 'بدون عنوان' : title.text.trim(),
-                description: desc.text.trim(),
-                followUpDate: followUpDate,
-                tags: List<String>.of(tags),
-              ),
-            );
-          },
+          onPressed: _save,
           child: const Text('ذخیره'),
         ),
       ],
     );
   }
 }
-
-String _dateText(DateTime date) =>
-    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
