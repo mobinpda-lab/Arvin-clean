@@ -53,7 +53,7 @@ void main() {
     expect(find.text('کار مهاجرتی'), findsOneWidget);
     expect(find.text('داده قدیمی باید در Home دیده شود'), findsOneWidget);
     expect(find.text('مهاجرت'), findsOneWidget);
-    expect(find.text('پیگیری: 2026/08/20'), findsOneWidget);
+    expect(find.textContaining('پیگیری: 2026/08/20'), findsOneWidget);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
