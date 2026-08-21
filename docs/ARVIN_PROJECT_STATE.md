@@ -1,15 +1,17 @@
 # Arvin — Canonical Project State
 
-**Updated:** 2026-08-20
+**Updated:** 2026-08-21
 **Repository:** mobinpda-lab/Arvin-clean
 **Default branch:** `main`
-**Current development branch:** `wave-a/core-storage-boundary-v1`
+**Current verified main head:** `0bcf80d305fa5aedcc1bdd4678496fbeda3372aa`
+**Current active documentation branch:** `docs/documentation-principles-v2`
 
 ## Source of truth
 - GitHub repository state is the source of truth for executable status: code, branches, commits, PRs, workflows, tests, builds and merges.
 - Project documentation defines architecture, governance, roadmap and decisions.
 - Conversation/memory is continuity context, not a substitute for current GitHub evidence.
-- If these sources disagree, identify the gap, verify the repository/code, then update the relevant documentation.
+- Real code is inspected whenever implementation behavior or architecture is in question.
+- If these sources disagree, identify the gap, verify the repository/code, then update the relevant current-state documentation while preserving historical records.
 
 ## Documentation governance
 Before every meaningful change:
@@ -24,21 +26,31 @@ Before every meaningful change:
 9. Verify actual GitHub Actions results; never infer green from an unrun workflow.
 10. Record important decisions and resulting state in the relevant documentation.
 
-Historical documents are not to be silently rewritten merely to make history look current. Current state belongs in the canonical state/handoff documents and dated audit/changelog documents.
+Historical documents are not to be silently rewritten merely to make history look current. Current state belongs in this canonical document and dated audit/update documents.
 
 ## Current verified development state
-- PR #107: **MERGED**. Merge commit: `771f1e1776742bbca3e0d1c1110bec9b4adefa54`.
-- Wave A / Core + Architecture: **active**.
-- PR #108: **OPEN** — `refactor(core): introduce task storage boundary`.
-- PR #108 branch: `wave-a/core-storage-boundary-v1`.
-- Latest documented corrective test commit: `1a83de14b222abcaf4bf53aa50ccd5fd56a51331`.
-- The latest reported `flutter test` result is **94 passed / 1 failed** in `test/widget_test.dart`, test `HomePage loads legacy storage through the unified reader`.
-- That failing assertion concerns the legacy/Home date display expectation and must be validated against the current code/test contract before further edits.
-- `flutter analyze` was previously observed passing on the earlier validation run; the latest commit must still receive its own real CI validation.
-- A workflow result must never be attributed to a newer commit unless GitHub shows that exact commit/ref was tested.
+- Issue #106: **CLOSED / COMPLETED**.
+- PR #107: **MERGED** — `771f1e1776742bbca3e0d1c1110bec9b4adefa54`.
+- PR #108: **MERGED** — `1d92d03df9b491a10f6b9dd6305ac3045ef0de65`.
+- PR #109: **MERGED** — `fe658307465fc446c917d5d0c7d5a303bfabf059`.
+- PR #110: **MERGED** — documentation state commit `105210c0f509831f3bdf8d493b758de9b500dc9d`.
+- PR #111: **MERGED** — migration regression coverage; merge commit `0bcf80d305fa5aedcc1bdd4678496fbeda3372aa`.
+- PR #112: **OPEN / READY FOR REVIEW / MERGEABLE** — `docs: align documentation with verified project state`.
+- PR #112 base is `main`; its documented branch must remain aligned with the current verified main state before merge.
+- PR #111 adds only focused regression coverage in `test/task_legacy_follow_up_migration_test.dart`; no production behavior was changed.
+- The migration tests cover legacy `followUpDate` -> `followUps` migration and preservation of an existing non-empty `followUps` list.
 
-## Current bottleneck
-The immediate bottleneck is PR #108 validation. Do not merge until the current commit has a real successful validation covering the required test/analyze/build path.
+## Current bottleneck / next gate
+The migration regression gate is merged into `main`. The immediate gate is now **documentation alignment and validation of PR #112** against the current `main` state.
+
+Historical CI results must never be attributed to a newer commit unless GitHub shows that exact commit/ref was tested.
+
+## Migration guardrails
+- `Task` in `lib/models/task.dart` remains the single shared Unified Item source of truth.
+- Do not introduce a competing model/repository or second persistence path.
+- Preserve the `arvin.tasks` storage key.
+- Do not delete or rewrite existing user data during migration.
+- Do not proceed to Reminder/Recurring UI integration until the migration gate is green.
 
 ## Parallel development rule
 Arvin is intentionally optimized for **parallel + simultaneous + fast** development, with the goal of producing software in hours rather than days.
@@ -51,13 +63,15 @@ Independent lanes should proceed concurrently whenever they do not conflict with
 - Unified Item remains the architectural source of truth; do not introduce competing storage/model systems.
 - Migration must be incremental and reversible.
 - Existing capabilities must be reused rather than rebuilt.
-- No direct changes to `main` for ordinary development; use branch → commit → PR → workflow → validation → review → merge.
+- No direct changes to `main` for ordinary development; use branch -> commit -> PR -> workflow -> validation -> review -> merge.
 
 ## Product roadmap
 Target capabilities include Task, Reminder, FollowUp, Jalali Calendar, Notification, Backup/Restore, Cloud/Dropbox, Google Calendar, PDF/Print, Security, Widget and Lock Screen, subject to the current architecture and roadmap documents.
+
+The next executable slice must be selected from the nearest verified gap after PR #112 validation; do not skip the documentation gate or start a duplicate implementation.
 
 ## Collaboration
 ChatGPT coordinates architecture, prioritization, audits and development flow. DeepSeek may be used as an independent second reviewer for sensitive architecture, migration, storage, CI or other high-risk decisions. DeepSeek does not replace GitHub evidence or validation.
 
 ## Handoff rule
-When a new conversation starts with `ادامه آروین`, first verify the live GitHub repository, read/write access, current branch/commit, open PRs, workflows and relevant documentation. Then select the nearest real unfinished task, avoid duplicate work, act where possible, and report the verified result.
+When a new conversation starts with `ادامه آروین`, first verify the live GitHub repository, read/write access, current branch/commit, open PRs, workflows and relevant documentation. Then compare those facts with established memory/decisions and inspect real code when needed. Select the nearest real unfinished task, avoid duplicate work, act where possible, validate the exact resulting ref, update relevant documentation, and report the verified result in simple management language.
