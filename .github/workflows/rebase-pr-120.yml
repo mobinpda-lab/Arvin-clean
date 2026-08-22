@@ -1,0 +1,34 @@
+name: Guarded Rebase PR 120
+on:
+  workflow_dispatch:
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase Execution
+        run: |
+          echo "Targeting PR #120 Branch: feature/wave1-taskstore-reminder-persistence"
+          git checkout feature/wave1-taskstore-reminder-persistence
+          git fetch origin main
+          
+          echo "Attempting rebase on top of main (c73cb22)..."
+          if git rebase origin/main; then
+            echo "Rebase successful. Pushing changes..."
+            git push origin feature/wave1-taskstore-reminder-persistence --force-with-lease
+          else
+            echo "Rebase failed due to conflicts. Aborting..."
+            git rebase --abort
+            exit 1
+          fi
