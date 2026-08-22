@@ -126,4 +126,40 @@ void main() {
     expect(task.followUps.map((item) => item.id), ['f1', 'f2']);
     expect(task.followUps.map((item) => item.note), ['اول', 'دوم']);
   });
+
+  test('null reminderDate remains absent from scheduling state', () {
+    final task = Task(id: 'reminder-null', title: 'بدون یادآور');
+
+    expect(task.reminderDate, isNull);
+    expect(task.toJson()['reminderDate'], isNull);
+  });
+
+  test('reminderDate can be added, changed and removed without affecting Task identity', () {
+    final first = DateTime.parse('2026-08-10T09:00:00.000');
+    final second = DateTime.parse('2026-08-11T14:30:00.000');
+    final task = Task(id: 'reminder-lifecycle', title: 'یادآوری');
+
+    task.reminderDate = first;
+    expect(Task.fromJson(task.toJson()).reminderDate, first);
+
+    task.reminderDate = second;
+    final changed = Task.fromJson(task.toJson());
+    expect(changed.id, 'reminder-lifecycle');
+    expect(changed.reminderDate, second);
+
+    task.reminderDate = null;
+    expect(Task.fromJson(task.toJson()).reminderDate, isNull);
+  });
+
+  test('legacy Task JSON without reminderDate remains readable', () {
+    final task = Task.fromJson({
+      'id': 'legacy-reminder',
+      'title': 'داده قدیمی',
+      'completed': false,
+    });
+
+    expect(task.id, 'legacy-reminder');
+    expect(task.title, 'داده قدیمی');
+    expect(task.reminderDate, isNull);
+  });
 }
