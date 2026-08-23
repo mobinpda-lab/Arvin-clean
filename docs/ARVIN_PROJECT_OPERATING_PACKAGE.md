@@ -5,45 +5,24 @@
 **Status:** Current Operational Reference  
 **Project:** Arvin-clean  
 **Repository:** mobinpda-lab/Arvin-clean  
-**Technology:** Flutter / Dart  
-**Architecture:** Clean Architecture + Feature-Based Architecture  
 **Primary Reality Authority:** GitHub Repository State  
-**Development Model:** Parallel AI-Assisted Software Engineering Model  
-**Operational Reference:** v48.0 + v48.1 Operational Execution Enhancement Patch  
-**Document Path:** `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
+**Operational Reference:** v48.0 + v48.1 Operational Execution Enhancement Patch
+
+**Core Objective:** Produce real, validated, documented Working Software in **hours instead of days** through **Parallel Execution + Concurrent Workstreams + Automation + Fast Feedback + Controlled Integration**.
 
 ---
 
-# 1. Authority Model
+# Canonical Operating Rules
 
-## Project Reality Authority
-GitHub Repository State is the final authority for Source Code, Branches, Commits, Issues, Pull Requests, Workflows, CI Results, Build Artifacts and Repository Documentation.
+## 1. Authority
+GitHub Repository State is the final authority for source code, branches, commits, issues, pull requests, workflows, CI results, build artifacts and repository documentation.
 
-## Documentation Authority
-Versioned Repository Documentation in `docs/` preserves project knowledge, decisions, history and continuity.
-
-## Architecture Authority
-Approved ADR Records are the authority for major architectural decisions.
-
-## Validation Authority
-GitHub CI/CD Evidence is the validation authority. A claim without evidence is unverified.
-
-## Conversation History
-Conversation history is context only and never replaces Repository Reality, Documentation or Evidence.
-
-**Conflict rule:** GitHub Reality prevails over conversation, memory, reports or stale documents.
-
-# 2. Project Reality Model
+Documentation preserves project knowledge. ADRs govern approved architecture decisions. CI/CD evidence governs validation. Conversation history is context only.
 
 **Document defines Governance. Repository defines Reality. Implementation defines Current Capability. CI defines Validation Status. Evidence defines Verifiable Result.**
 
-No document may declare an unimplemented capability as implemented, invent a branch/commit/CI state, or replace repository evidence.
-
-# 3. Enterprise Operating Philosophy
-
+## 2. Speed Model
 Arvin is an engineered Software Factory, not a sequential task list.
-
-The operating objective is:
 
 **FAST + PARALLEL + CONCURRENT + AUTOMATED + CONTROLLED + VALIDATED + DOCUMENTED + SECURE + OBSERVABLE**
 
@@ -51,87 +30,30 @@ The target is **Software Delivery in Hours, not Days**.
 
 **Parallel Execution + Concurrent Workstreams + Automation + Fast Feedback + Controlled Integration = Production Speed**
 
-Speed is achieved by removing idle time and unnecessary serialization — **not by removing quality gates, architecture controls or evidence requirements.**
+Speed is achieved by removing idle time and unnecessary serialization — **never by removing quality gates or architectural controls**.
 
-# 4. Parallel Execution Governance
+## 3. Parallel Execution
+Independent work is the default candidate for concurrent execution. Dependent work uses explicit dependency gates. Shared/Foundation work requires explicit ownership and coordination.
 
-Parallel execution is the default for genuinely independent work.
+Every workstream defines Objective, Scope, Owner/Agent, Input, Output, Dependencies, Boundary, Target Branch, Validation, Evidence, Integration Point and Status.
 
-Work is classified as:
-
-- **Independent:** execute concurrently.
-- **Dependent:** execute with explicit dependency gates.
-- **Shared/Foundation:** coordinate ownership before execution.
-
-Parallel conflict is forbidden.
-
-Every workstream must define:
-
-- Workstream ID
-- Objective
-- Scope
-- Owner / Agent
-- Input
-- Output
-- Dependencies
-- File / Architecture Boundary
-- Target Branch
-- Validation Method
-- Evidence Required
-- Integration Point
-- Status
-
-Standard lifecycle:
-
+Lifecycle:
 `Definition → Dependency Check → Assignment → Concurrent Execution → Fast Feedback → Validation → Evidence → Controlled Integration → Documentation → Completion`
 
-# 5. Automation Governance
+**Parallel Conflict is forbidden.**
 
-Automation should be used wherever work is repetitive, predictable, scriptable and safely verifiable, including:
+## 4. Automation
+Automate repetitive, predictable, scriptable and safely verifiable work such as repository audit, traceability, dependency checks, analyze, tests, builds, artifact generation, evidence collection and documentation validation.
 
-- Repository Audit
-- Branch / PR / Issue Traceability
-- Dependency Checks
-- Analyze
-- Unit / Widget / Integration Tests
-- Build
-- Artifact Generation
-- Evidence Collection
-- Documentation Validation
-- Quality Gates
-- Status Reporting
+Automation must never fabricate repository reality or evidence.
 
-Automation must never fabricate Reality or Evidence.
-
-# 6. Fast Feedback Governance
-
-Feedback must occur as early as technically useful.
-
+## 5. Fast Feedback
 Preferred loop:
-
 `Small Change → Immediate Validation → Commit → CI → Evidence → Continue`
 
-Independent workstreams may run independent feedback loops concurrently.
+Independent workstreams may execute independent feedback loops concurrently.
 
-The purpose is early fault isolation, reduced waiting time and prevention of large late-stage integration failures.
-
-# 7. Controlled Integration Governance
-
-Parallel development ends at a controlled integration boundary.
-
-Integration requires:
-
-- Correct Target Branch
-- Scope Verification
-- Conflict Check
-- Test / Validation Evidence
-- CI Evidence where applicable
-- Documentation Alignment
-- PR / Review Traceability
-
-**Done = Working Software + Validation + Evidence + Documentation + Integration Safety**
-
-# 8. Execution Decision Matrix
+## 6. Execution Decision Matrix
 
 | Change Class | Execution Path | Required Control |
 |---|---|---|
@@ -140,332 +62,124 @@ Integration requires:
 | FOUNDATION CHANGE | Controlled Path | Impact Analysis + Review + Migration/Rollback + CI |
 | CRITICAL CHANGE | Architecture-Controlled Path | Architecture Review + Migration/Rollback + Full Validation |
 
-**Rule: Always select the fastest safe path.** Governance prevents risk; it must not create unnecessary serialization.
+**Always select the fastest safe path.** Governance must prevent risk, not create unnecessary serialization.
 
-# 9. AI Execution Control Loop
-
+## 7. AI Execution Control Loop
 `Observe → Audit → Understand → Decompose → Parallelize → Execute → Fast Feedback → Evidence → Integrate → Document`
 
-Before acting, AI must establish:
+Before action, AI establishes Repository Reality, Existing Capability, Branch/PR/Issue State, Dependencies, Risks, Change Boundary, Validation Method and Evidence Requirements.
 
-1. Repository Reality
-2. Existing Capability
-3. Current Branch / PR / Issue State
-4. Dependencies
-5. Risks
-6. Change Boundary
-7. Validation Method
-8. Evidence Requirements
+AI must not guess repository state, claim unverified success, duplicate existing capability without justification, alter Foundation without control, hide conflicts, fabricate evidence or bypass required validation/review.
 
-AI must not:
+## 8. Risk-Proportional Audit
+Significant changes are audited for Repository, Branch, Commit, Issue/PR, Workflows, Implementation, Documentation, Architecture Boundary, Dependencies, Duplicate Work, Validation and Rollback implications.
 
-- Guess repository state
-- Claim unverified success
-- Reimplement existing capability without justification
-- Change Foundation without appropriate control
-- Hide conflicts
-- Fabricate CI/test evidence
-- Bypass required review or validation
+Audit depth is proportional to risk. Low-risk documentation or isolated fixes must not inherit multi-day Foundation-level overhead.
 
-# 10. Initial Audit Protocol
-
-Before significant changes, inspect:
-
-1. Repository
-2. Branch
-3. Working Tree / Current Commit where available
-4. Issues
-5. Pull Requests
-6. Workflows
-7. CI Status
-8. Documentation
-9. ADRs
-10. Current Implementation
-11. Existing Capability
-12. Active Workstreams
-13. Conflicts
-14. Risks
-15. Dependencies
-16. Validation Requirements
-
-Audit depth must be proportional to risk. Low-risk documentation or isolated fixes must not be forced through the same overhead as Sync, Database, Security or Foundation changes.
-
-# 11. Conflict Prevention Protocol
-
-Before concurrent execution check:
-
-- File ownership
-- Branch ownership
-- Architecture boundary ownership
-- Shared components
-- Database / schema / migration impact
-- Sync contract impact
-- Shared interfaces
-- Active PRs
-- Existing implementation
-- Duplicate-work risk
-- Dependency ordering
-
-Conflict protocol:
+## 9. Conflict Prevention
+Before concurrent execution check File Ownership, Branch Ownership, Architecture Boundaries, Shared Components, Database/Migration Impact, Sync Contracts, Shared Interfaces, Active PRs, Existing Implementation, Duplicate Work and Dependency Ordering.
 
 `Detect → Classify → Assign Owner → Resolve → Validate → Document`
 
-If two workstreams require the same critical resource, coordinate rather than duplicate.
+## 10. Controlled Integration
+Parallel development ends at a controlled integration boundary.
 
-# 12. Foundation Governance
+Integration requires correct target branch, scope verification, conflict check, validation/test evidence, CI evidence where applicable, documentation alignment and PR/review traceability.
 
-Foundation includes:
+**Done = Working Software + Validation + Evidence + Documentation + Integration Safety**
 
-- Architecture
-- Core / Shared Infrastructure
-- Database and Migrations
-- Sync Engine and Sync Contracts
-- Security-sensitive Infrastructure
-- Cross-feature Contracts
+## 11. Foundation Protection
+Foundation includes Architecture, Core/Shared Infrastructure, Database/Migrations, Sync Engine/Contracts, Security-sensitive Infrastructure and Cross-feature Contracts.
 
-Foundation changes require the Controlled Path, including appropriate Impact Analysis, Migration Strategy, Rollback Strategy, Validation Plan, CI Evidence, Documentation and Architecture Review.
+Foundation changes require the Controlled Path with appropriate Impact Analysis, Migration Strategy, Rollback Strategy, Validation Plan, CI Evidence, Documentation and Architecture Review.
 
 The speed objective never authorizes bypassing Foundation protection.
 
-# 13. Sync Engine Governance
+## 12. Architecture and Sync
+Architecture direction: **Clean Architecture + Feature-Based Architecture** with Domain Independence, Controlled Dependency, Repository Boundaries and Stable Foundation.
 
-Sync Engine is Foundation Core, not an independent feature.
+Sync Engine is Foundation Core, not an independent feature. Features must not create independent Sync Sources of Truth.
 
-Responsibilities include Device Synchronization, Conflict Resolution, Version Management, Offline Queue, Data Consistency and Recovery.
+Sync Contract changes require Schema Version, Migration Path, Backward Compatibility, Conflict Strategy, Validation Evidence and Rollback Strategy as applicable.
 
-Features must not create independent Sync Sources of Truth.
-
-Every Sync Contract change requires Schema Version, Migration Path, Backward Compatibility, Conflict Strategy, Validation Evidence and Rollback Strategy as applicable.
-
-Reference: `docs/ARCHITECTURE/SYNC_ARCHITECTURE_REFERENCE.md` when present and verified in Repository Reality.
-
-# 14. Unified Data Governance
-
-GitHub remains Repository Reality Authority. Approved Domain Model remains Domain Data Authority.
-
-Independent Source-of-Truth storage is prohibited. Projection, Cache and Read Model storage may exist only with architecture approval and without becoming an independent source of truth.
-
-# 15. Architecture Governance
-
-Architecture direction is **Clean Architecture + Feature-Based Architecture**.
-
-Principles:
-
-- Domain Independence
-- Controlled Dependency
-- Repository Boundaries
-- Stable Foundation
-- Explicit Feature Boundaries
-
-Feature areas include task, reminder, followup, calendar, backup, report and widget as applicable to actual Repository implementation.
-
-# 16. Issue / Branch / PR Governance
-
-For significant work:
-
-`Issue → Branch → Implementation → PR → CI → Review → Merge`
-
-No direct uncontrolled changes to `main`.
-
-Issue should define Problem, Objective, Scope, Acceptance Criteria, Validation Method and Risk.
-
-Branch should define Purpose, Owner, Scope, Merge Target and Status.
-
-PR should provide Summary, Impact, Risk, Validation, Documentation and Evidence.
-
-# 17. Fast Path
-
-For low-risk isolated work:
-
+## 13. Change Paths
+### Fast Path
 `Change → Validate → CI as applicable → Evidence → Merge`
 
-# 18. Parallel Feature Path
-
-For independent feature, UI, quality and documentation work:
-
+### Parallel Feature Path
 `Decompose → Assign Workstreams → Execute Concurrently → Validate Independently → Integrate`
 
-Independent work must not wait unnecessarily for unrelated work.
-
-# 19. Controlled Foundation Path
-
-For Architecture, Database, Sync, Security and Core changes:
-
+### Controlled Foundation Path
 `Audit → Design Review → Implementation → Migration/Test → Validation → CI → Review → Merge → Documentation`
 
-# 20. Definition of Ready
+## 14. Definition of Ready
+Objective, Scope, Owner/Agent, Dependencies, Target Branch, Validation Method, Evidence Requirement and Integration Point must be defined.
 
-A workstream is Ready when Objective, Scope, Owner/Agent, Dependencies, Target Branch, Validation Method, Evidence Requirement and Integration Point are defined.
+Missing information should be established quickly and must not become an unnecessary multi-day waiting gate.
 
-Missing information should be established quickly; it must not become an unnecessary multi-day waiting gate.
+## 15. Definition of Done
+Requirement, Scope, Implementation, Repository Registration, Review, Tests, required CI/Build validation, Documentation, Evidence, PROJECT_STATE alignment where required and Integration Safety must be satisfied.
 
-# 21. Definition of Done
+## 16. Quality and CI
+Applicable Quality Gate includes Requirement, Acceptance Criteria, Implementation, Code Review, `flutter analyze`, Unit Tests, Widget Tests, Integration Tests, Golden Tests, RTL Validation, Security Validation, CI, Build Verification, Documentation and Evidence.
 
-A workstream or feature is Done only when applicable requirements are satisfied, implementation is registered in the Repository, review and tests are complete, required CI/build validation is successful, documentation and evidence are captured, PROJECT_STATE is aligned where required, and integration safety is verified.
-
-# 22. Quality Gate
-
-No feature is complete without the applicable Quality Gate:
-
-- Requirement
-- Scope
-- Acceptance Criteria
-- Implementation
-- Code Review
-- `flutter analyze`
-- Unit Tests
-- Widget Tests
-- Integration Tests where required
-- Golden Tests where required
-- RTL Validation where required
-- Security Validation where required
-- CI Passed
-- Build Verified where required
-- Documentation Updated
-- Evidence Recorded
-
-# 23. CI/CD Governance
-
-Standard Flutter validation flow:
-
+Standard Flutter pipeline:
 `flutter pub get → flutter analyze → flutter test → Integration Validation → flutter build apk → Artifact Generation → Release Validation`
 
-GitHub Actions is the official validation authority. Local validation is Fast Feedback and is not a substitute for official evidence.
+GitHub Actions is the official validation authority. Local validation is Fast Feedback, not official evidence.
 
-Workflow names and statuses are factual only when verified from GitHub.
+## 17. Security, Performance and Release
+Dependencies require Purpose, Maintenance, Security, License, Compatibility and Architecture review.
 
-# 24. Security and Dependency Governance
-
-Every new dependency must be reviewed for Purpose, Maintenance Status, Security Risk, License, Compatibility and Architecture Impact.
-
-Security-sensitive changes use the Controlled Path.
-
-Secrets and credentials must never be committed to source code or documentation.
-
-# 25. Performance Governance
-
-Optimization requires measurement.
-
-Before and after optimization, record applicable Startup Time, Build Time, Memory Usage, Database Performance and UI Response Time with evidence.
-
-# 26. Delivery Over Activity
-
-Activity is not progress.
-
-The real progress metric is:
-
-**Validated Working Software + Evidence + Documentation + Knowledge Continuity**
-
-# 27. Evidence-Based Reporting
-
-Every operational report should distinguish:
-
-- **FACT:** directly verified from authoritative evidence
-- **INFERRED:** reasoned but not directly verified
-- **PLANNED:** intended next action
-- **BLOCKED:** prevented by a real dependency or control
-
-Unverified statements must never be presented as completed work.
-
-# 28. Knowledge Continuity
-
-Important decisions must be preserved in ADRs, Commit Messages, PR Descriptions, Documentation and/or AI Session Logs as appropriate.
-
-`PROJECT_STATE.md` should be kept aligned when it exists and is part of the active documentation set.
-
-# 29. Risk and Technical Debt
-
-Known risks and technical debt must remain visible, with ID, Description, Impact, Probability/Priority, Mitigation/Action, Owner and Status where applicable.
-
-# 30. Release and Rollback Governance
+Performance optimization requires before/after measurement evidence.
 
 Release flow:
-
 `Development → Validation → Release Candidate → Approval → Production Release → Monitoring`
 
-Each release requires Version Tag, Commit Reference, Release Notes, Validation Evidence, Previous Stable Version and Rollback/Recovery Plan.
+Release requires Version Tag, Commit Reference, Release Notes, Validation Evidence and Rollback/Recovery Plan.
 
-Incident flow:
+## 18. Evidence-Based Reporting
+Reports distinguish:
+- **FACT:** directly verified
+- **INFERRED:** reasoned but not directly verified
+- **PLANNED:** intended action
+- **BLOCKED:** prevented by a real dependency/control
 
-`Detection → Impact Assessment → Rollback Decision → Restore Stable Version → Validation → Post Mortem → Documentation`
+Unverified work must never be reported as completed.
 
-# 31. Operational Anti-Patterns
+## 19. Knowledge Continuity
+Important decisions are preserved in ADRs, commits, PRs, documentation and AI Session Logs as appropriate. PROJECT_STATE is aligned when it exists and is part of the active documentation set.
 
+## 20. Anti-Patterns
 Prohibited:
-
-- Sequentializing independent work without a technical reason
+- Sequentializing independent work without technical reason
 - Duplicate implementations
-- Multiple agents modifying the same critical boundary without coordination
+- Uncoordinated changes to shared critical boundaries
 - Uncontrolled protected-branch changes
-- Claims of CI/test success without evidence
-- Skipping architecture review for Foundation changes
-- Creating unnecessary workflows or documentation layers
-- Treating conversation text as repository reality
-- Using governance as an unnecessary multi-day bottleneck
+- Claims without evidence
+- Skipping Foundation architecture review
+- Unnecessary workflows/documentation layers
+- Treating conversation as repository reality
+- Turning governance into an unnecessary multi-day bottleneck
 
-# 32. Documentation Lifecycle
-
-`Draft → Review → Approval → Commit → Version Update → Maintenance`
-
-Every governance revision records:
-
-`Version → Change Summary → Changed Sections → Validation Result → Commit → Review Evidence`
-
-# 33. Project Transfer / New AI Protocol
-
-A new AI or team must:
-
-`Study Governance → Study Documentation → GitHub Audit → Review ADRs → Review State → Identify Gap → Pre-Change Report → Minimal Change → Validation → Evidence → Documentation → Handoff`
-
-No new AI should redesign the project from zero.
-
-# 34. Final Operational Loop
-
+## 21. Final Operational Loop
 **Understand First → Audit Reality → Select Execution Path → Decompose → Create Concurrent Workstreams → Parallel Execute → Fast Feedback → Capture Evidence → Controlled Integration → Documentation Update → Working Software Delivery**
 
 ### Final Enterprise Principle
-
 **Governance protects speed. Automation creates speed. Parallel and concurrent execution multiply speed. Fast feedback accelerates speed. Controlled integration preserves speed. Evidence proves success.**
 
 ### Final Objective
-
 **Produce real, working, validated, documented software in hours instead of days — by parallelizing independent work aggressively, automating reasonable work, minimizing unnecessary waiting, and integrating changes safely.**
 
-# 35. Version History
+---
 
-## v48.1 — Operational Execution Enhancement
+# Version Record
 
-Purpose: make the existing v48.0 speed model explicitly executable without weakening governance.
+**Version:** v48.1  
+**Role:** Operational Execution Enhancement  
+**Parent Governance:** v48.0  
+**Purpose:** Make the existing Parallel + Automation + Fast Feedback + Controlled Integration model explicitly executable for Hours-not-Days delivery without weakening governance.
 
-Added / clarified:
+**Preserved:** GitHub Source of Truth, Architecture Governance, Foundation Protection, Quality Gates, Evidence Requirement, Security, Documentation, Knowledge Continuity, Rollback, Parallel Execution and Automation.
 
-- Explicit concurrent workstream model
-- Execution Decision Matrix
-- Risk-proportional audit
-- Parallel conflict prevention
-- AI Execution Control Loop
-- Fast Feedback operating loop
-- Controlled Integration boundary
-- Fast / Parallel Feature / Controlled Foundation paths
-- Definition of Ready
-- Evidence-based reporting terminology
-- Operational anti-patterns preventing unnecessary serialization and uncontrolled concurrency
-
-Preserved:
-
-- GitHub Source of Truth
-- v48.0 governance hierarchy
-- Architecture Governance
-- Foundation Protection
-- Quality Gates
-- Evidence Requirement
-- Security
-- Documentation
-- Knowledge Continuity
-- Rollback
-- Parallel Execution
-- Automation
-
-**Current Operational Reference: v48.0 + v48.1 Patch**
-
-**Canonical operational entry point: `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`**
+**Canonical Rule:** `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` is the canonical operational entry point. `docs/ARVIN_PROJECT_OPERATING_PACKAGE_v48.1_PATCH.md` remains the detailed v48.1 execution record. v48.0 remains the governing foundation.
