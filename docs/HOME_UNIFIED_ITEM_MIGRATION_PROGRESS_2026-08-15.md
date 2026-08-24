@@ -109,3 +109,19 @@ After current-head CI is green, perform an independent review of the load-only H
 
 ## Review rule
 If storage semantics, migration idempotency, or Home behavior becomes ambiguous, stop the change and request a DeepSeek cross-review before continuing.
+
+
+## Completed slice — canonical Home follow-up projection
+
+The legacy Home projection no longer selects a follow-up date directly from
+`Task.followUps`. The compatibility rule now lives on the canonical `Task`
+model as `legacyHomeFollowUpDate`:
+
+- without follow-up history, it preserves `followUpDate`
+- with history, it preserves the current Home behavior of rendering the first
+  recorded follow-up
+- it does not change persistence, the save path, or any visible workflow
+
+Tests isolate both branches of this compatibility rule, including the
+intentional distinction from `lastFollowUpDate`. This is a reversible
+preparation step; Home remains on the legacy view model and save path.

@@ -143,9 +143,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   ArvinTask _legacyViewOf(Task task) {
-    final followUpDate = task.followUps.isEmpty
-        ? task.followUpDate
-        : task.followUps.first.date;
+    final followUpDate = task.legacyHomeFollowUpDate;
     return ArvinTask(
       id: task.id,
       title: task.title,
