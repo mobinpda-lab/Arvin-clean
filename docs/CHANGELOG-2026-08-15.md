@@ -1,5 +1,15 @@
 # Arvin — Change Log 2026-08-15
 
+## FollowUp date-only UI
+
+Commit: `2b04471e1f104739372d383f8017812638ff4f70`
+
+- Extended the existing FollowUp Office UI to consume the additive `allDay` contract from the FollowUp model.
+- Date-only FollowUps now display `تمام‌روز` instead of exposing the persisted time or a fake `00:00` value.
+- Future filtering treats an all-day FollowUp as active through the end of its calendar day.
+- Existing time-aware FollowUps keep their date/time presentation.
+- No new storage, database, Reminder model, or Calendar foundation was introduced.
+
 ## Calendar official-reminder service hardening
 
 Commit: `4dc35af634e4ce162fa38adeaa2befd7aa0f2a6c`
@@ -23,8 +33,8 @@ Commits: `c6b5f97adc4a60fbb86bbdb3c0207559f0817198` + `552e793b0a4bf5595bfe2ae46
 
 ## Verification state
 
-- The changes were written directly to `main` through the GitHub connector.
-- GitHub Actions are expected to trigger from the commits; CI is only reported green after a concrete run/check is observed.
+- The date-only UI change is isolated on `feat/followup-all-day-ui`, based directly on the reviewed FollowUp contract commit.
+- GitHub Actions must be checked on the resulting PR before the change is considered validated or merged.
 
 ## Continuity rule
 
