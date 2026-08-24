@@ -3,7 +3,7 @@
 - Canonical source filename: `ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_FINAL_OPERATIONAL_feshordeh.md`
 - Source line count: 16719
 - Source size: 446195 bytes
-- SHA-256: `5e8e76381be6fdd2332e13e71a795e4f1a5deda467849d39dd6ee56f344a9241`
+- SHA-256: `5e8e76381be6fdd2332e13e71a795e4f5a1deda467849d39dd6ee56f344a9241`
 - Target branch: `docs/arvin-operating-package-v48-2-final-operational`
 
 ## Controlled transfer segments
