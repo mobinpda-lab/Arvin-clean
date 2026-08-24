@@ -149,4 +149,5 @@ class Task {
   FollowUp? get lastFollowUp => followUps.isNotEmpty ? followUps.last : null;
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
-}
+
+  /// The follow-up date rendered by the legacy Home view during migration.\n  ///\n  /// The existing Home UI has always displayed the first recorded follow-up\n  /// when history is present; retain that behavior until Home consumes the\n  /// canonical follow-up timeline directly.\n  DateTime? get legacyHomeFollowUpDate =>\n      followUps.isEmpty ? followUpDate : followUps.first.dateTime;\n}
