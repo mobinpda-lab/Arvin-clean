@@ -1,25 +1,28 @@
 # ARVIN v48.2 Canonical Source Transfer Manifest
 
 - Canonical source filename: `ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_FINAL_OPERATIONAL_feshordeh.md`
-- Source line count: 16719
-- Source size: 446195 bytes
-- SHA-256: `5e8e76381be6fdd2332e13e71a795e4f5a1deda467849d39dd6ee56f344a9241`
+- Approved revision: Integrated Canonical Operational Reference — Editorial Revision
+- GitHub UI line count: 16,720
+- GitHub UI displayed size: 436 KB
 - Target branch: `docs/arvin-operating-package-v48-2-final-operational`
+- Canonical transfer state: COMPLETE for the approved consolidated revision
 
-## Controlled transfer segments
+## Controlled transfer artifacts
 
-| Segment | Source lines | Status |
+The earlier segmented transfer artifacts are retained for provenance only. They are superseded by the approved consolidated canonical file and are not independent pending sources.
+
+| Artifact | Source coverage | Status |
 |---|---:|---|
-| PART01 | 1-2800 | Existing GitHub segment; must be reconciled against canonical source |
-| PART02 | 2801-5600 | Pending transfer |
-| PART03 | 5601-8400 | Pending transfer |
-| PART04 | 8401-11200 | Pending transfer |
-| PART05 | 11201-14000 | Pending transfer |
-| PART06 | 14001-16719 | Pending transfer |
+| PART01 | Historical transfer segment | Superseded by consolidated canonical file |
+| PART02 | Historical transfer segment | Superseded by consolidated canonical file |
+| PART03 | Historical transfer segment | Not required after consolidation |
+| PART04 | Historical transfer segment | Not required after consolidation |
+| PART05 | Historical transfer segment | Not required after consolidation |
+| PART06 | Historical transfer segment | Not required after consolidation |
 
 ## Integrity rule
 
-The canonical source must be transferred without reconstruction or semantic invention. Segment content must be byte-for-byte derived from the verified source. The full canonical file must not be declared present until all segments are verified on GitHub.
+The approved consolidated v48.2 file is the canonical operational reference for this revision. No segmented artifact is to be treated as the canonical source. The approved revision was manually transferred to GitHub and verified in the GitHub UI at 16,720 lines and 436 KB.
 
 ## Operational priority
 
