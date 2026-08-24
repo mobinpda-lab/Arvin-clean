@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_schedule_page.dart';
 import 'package:arvin/backup_scheduler_adapter.dart';
 import 'package:arvin/backup_schedule.dart';
@@ -28,6 +29,10 @@ Future<void> _pumpPage(
 }) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(BackupSchedule.enabledKey, enabled);
+  await prefs.setString(
+    ArvinBackupManager.directoryKey,
+    'content://arvin-test-backups',
+  );
 
   await tester.pumpWidget(
     MaterialApp(
