@@ -65,21 +65,41 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
 
     setState(() => _saving = true);
     try {
-      await schedule.save();
-
       if (!schedule.enabled) {
+        await schedule.save();
         await BackupBackgroundRunner.clearConfiguration();
         await _scheduler.cancel();
       } else {
         final directory = await _backupManager.getDirectory();
-        final loadTasks = widget.loadTasks;
-        if (directory != null && directory.isNotEmpty && loadTasks != null) {
-          final tasks = await loadTasks();
-          await BackupBackgroundRunner.saveConfiguration(
-            directoryUri: directory,
-            payload: <String, dynamic>{'tasks': tasks},
-          );
+        if (directory == null || directory.isEmpty) {
+          if (mounted) {
+            setState(() => _saving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('برای پشتیبان‌گیری خودکار ابتدا پوشه پشتیبان را انتخاب کنید'),
+              ),
+            );
+          }
+          return;
         }
+
+        final loadTasks = widget.loadTasks;
+        if (loadTasks == null) {
+          if (mounted) {
+            setState(() => _saving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('داده پشتیبان‌گیری در دسترس نیست')),
+            );
+          }
+          return;
+        }
+
+        final tasks = await loadTasks();
+        await schedule.save();
+        await BackupBackgroundRunner.saveConfiguration(
+          directoryUri: directory,
+          payload: <String, dynamic>{'tasks': tasks},
+        );
         await _scheduler.schedule(schedule);
       }
 
