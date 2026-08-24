@@ -28,13 +28,10 @@ class OfficialCalendarPage extends StatefulWidget {
 /// years 2026 and 2027, so both service partitions are loaded.
 class IranianOfficialCalendarPage extends OfficialCalendarPage {
   const IranianOfficialCalendarPage({
-    Key? key,
-    List<CalendarReminder> reminders = const <CalendarReminder>[],
-    DateTime? initialSelectedDay,
+    super.key,
+    super.reminders,
+    super.initialSelectedDay,
   }) : super(
-          key: key,
-          reminders: reminders,
-          initialSelectedDay: initialSelectedDay,
           service: const OfficialCalendarReminderService(
             <OfficialCalendarReminderSource>[
               IranianOfficialHolidaySource(),
