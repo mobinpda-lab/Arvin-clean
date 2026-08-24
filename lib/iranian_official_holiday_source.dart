@@ -21,7 +21,7 @@ class IranianOfficialHolidaySource implements OfficialCalendarReminderSource {
     );
   }
 
-  static const _holidays = <OfficialCalendarReminder>[
+  static final _holidays = <OfficialCalendarReminder>[
     OfficialCalendarReminder(
       id: 'ir-holiday-1405-01-01',
       title: 'نوروز و عید فطر',
