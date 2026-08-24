@@ -1,48 +1,26 @@
-# Arvin Canonical UI Reference v1
-
-Status: Accepted
-
-## Design Direction
-
-- This image represents target UI direction.
-- Current APK screenshots are runtime evidence only.
-- Future UI changes must follow this reference.
-
-## Component Architecture
-
-```text
+# Arvin Canonical UI Reference
+## Status
+Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
+## Core UI
 AppShell
- ├── DashboardTimeline
- ├── ReminderCard
- ├── FollowUpCard
- ├── JalaliCalendar
- ├── ReportWidget
- └── NotificationWidget
-```
-
-## UI Governance Rules
-
-No UI change without:
-
-1. Canonical UI alignment
-2. Component Design review
-3. RTL verification
-4. UX impact review
-5. Documentation update
-
-## Migration Plan
-
-The migration from current APK UI to Canonical UI follows these stages:
-
-1. UI Documentation and Design Tokens
-2. AppShell foundation
-3. DashboardTimeline migration
-4. ReminderCard and FollowUpCard implementation
-5. Create Reminder redesign
-6. JalaliCalendar migration
-7. ReportWidget implementation
-8. NotificationWidget and Widget integration
-
-## Migration Principle
-
-Current APK UI is preserved as runtime evidence. UI migration must move incrementally toward the Canonical UI design system without breaking existing functionality.
+- DashboardTimeline
+- ReminderCard
+- FollowUpCard
+- JalaliCalendar
+- ReportWidget
+- NotificationWidget
+## Protected Rules
+- Persian RTL-first presentation.
+- Calm hierarchy and low visual noise.
+- Approved navigation, typography, spacing and component behavior remain stable.
+- No UI redesign without explicit owner approval, design review, RTL verification, UX impact review and documentation.
+- Current APK screenshots are runtime evidence; they do not automatically replace the accepted canonical design.
+## Reminder Contract
+- `یادآور` label with smaller time beside it when a time exists.
+- All-day reminders must not display a fabricated time.
+- Reminder title is shown below.
+- Expandable details/actions are supported where approved.
+- Quick actions: complete, snooze, edit, convert to Task.
+- Lock Screen/widget behavior must remain consistent with the approved concept.
+## Migration Direction
+UI migration is incremental and must preserve existing working behavior while moving toward the accepted canonical design. Meaningful UI changes require appropriate visual/Golden and RTL validation.
