@@ -36,6 +36,18 @@ void main() {
     expect(service.search(tasks, '  IMPORTANT '), hasLength(1));
   });
 
+  test('matches Persian and Arabic letter variants', () {
+    final tasks = [Task(id: '1', title: 'پیگیری یک کار')];
+
+    expect(service.search(tasks, 'پيگيري يك كار').map((e) => e.id), ['1']);
+  });
+
+  test('ignores Persian separators and diacritics', () {
+    final tasks = [Task(id: '1', title: 'پی‌گیریِ مشتری')];
+
+    expect(service.search(tasks, 'پیگیری مشتری').map((e) => e.id), ['1']);
+  });
+
   test('empty query preserves task order without mutating the input list', () {
     final tasks = [
       Task(id: '1', title: 'اول'),
