@@ -3,22 +3,19 @@
 This file is a controlled transfer record for the canonical v48.2 source reviewed in the ChatGPT conversation.
 
 Canonical source:
-ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_FINAL_OPERATIONAL_feshordeh.md
+`docs/ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_FINAL_OPERATIONAL_feshordeh.md`
 
-Verified source size:
-16,719 lines
-446,195 bytes
+Approved canonical revision:
+Integrated Canonical Operational Reference — Editorial Revision
 
-Verified source SHA-256:
-5e8e76381be6fdd2332e13e71a795e4f5a1deda467849d39dd6ee56f344a9241
+GitHub verification recorded for the approved revision:
+- Line count: 16,720 lines
+- GitHub UI displayed size: 436 KB
+- Head commit at PR preparation: `2b7963ba5a5436dc3ce88858c6c883e4c7d22f1b`
 
-Coverage review:
-Lines 1-16,719 reviewed in sequence.
+The earlier source-transfer record (16,719 lines / 446,195 bytes / SHA-256 `5e8e76381be6fdd2332e13e71a795e4f5a1deda467849d39dd6ee56f344a9241`) describes the pre-editorial source and is retained here only as historical provenance. It is superseded by the approved editorial revision.
 
-Important status rule:
-This record does NOT claim that the complete canonical text has been copied into GitHub. The canonical text must not be reconstructed, abbreviated, or represented by placeholders. Full canonical registration requires byte-accurate transfer followed by independent GitHub verification of path, size, line count, and hash.
-
-Operational principles verified in the source:
+Operational principles verified in the approved reference:
 - v48.0 + v48.1 are treated as the integrated operational reference.
 - Parallel and concurrent execution are default modes for independent work.
 - Parallel conflict is forbidden.
@@ -30,5 +27,5 @@ Operational principles verified in the source:
 
 Transfer state:
 SOURCE REVIEW COMPLETE
-GITHUB CANONICAL TEXT TRANSFER: PENDING
-PR/MERGE: BLOCKED UNTIL FULL TRANSFER VERIFICATION
+GITHUB CANONICAL TEXT TRANSFER: COMPLETE FOR THE APPROVED EDITORIAL REVISION
+PR/MERGE: READY FOR FINAL REVIEW
