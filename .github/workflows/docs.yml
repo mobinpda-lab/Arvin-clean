@@ -1,0 +1,21 @@
+name: Arvin Documentation Check
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docs:
+    name: Check project documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required documentation
+        shell: bash
+        run: |
+          set -e
+          test -f README.md
+          test -f docs/PROJECT_DOCUMENTATION_FA.md
+          echo 'Required Arvin documentation files are present.'
