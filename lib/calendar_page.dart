@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
 class CalendarReminder {
-  const CalendarReminder({required this.id, required this.title, required this.date, this.completed = false});
+  const CalendarReminder({
+    required this.id,
+    required this.title,
+    required this.date,
+    this.completed = false,
+    this.isAllDay = false,
+  });
   final String id;
   final String title;
   final DateTime date;
   final bool completed;
+  final bool isAllDay;
 }
 
 class _JalaliDate {
@@ -251,11 +258,21 @@ class _CalendarPageState extends State<CalendarPage> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, index) {
                       final item = selectedReminders[index];
+                      final subtitle = item.isAllDay
+                          ? '${_date(item.date)}\nرویداد تمام‌روز'
+                          : '${_date(item.date)}  •  ساعت ${_time(item.date)}\n'
+                              '${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
                       return Card(
                         child: ListTile(
-                          leading: Icon(item.completed ? Icons.check_circle : Icons.notifications_active_outlined),
+                          leading: Icon(
+                            item.isAllDay
+                                ? Icons.event_outlined
+                                : item.completed
+                                    ? Icons.check_circle
+                                    : Icons.notifications_active_outlined,
+                          ),
                           title: Text(item.title),
-                          subtitle: Text('${_date(item.date)}  •  ساعت ${_time(item.date)}\n${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}'),
+                          subtitle: Text(subtitle),
                         ),
                       );
                     },

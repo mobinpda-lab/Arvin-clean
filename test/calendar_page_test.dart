@@ -48,4 +48,31 @@ void main() {
       findsOneWidget,
     );
   });
+  testWidgets('does not show a synthetic midnight for all-day reminders',
+      (tester) async {
+    final holiday = DateTime(2026, 3, 21);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: holiday,
+            reminders: [
+              CalendarReminder(
+                id: 'holiday',
+                title: 'نوروز',
+                date: holiday,
+                isAllDay: true,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('نوروز'), findsOneWidget);
+    expect(find.textContaining('رویداد تمام‌روز'), findsOneWidget);
+    expect(find.textContaining('ساعت ۰۰:۰۰'), findsNothing);
+    expect(find.textContaining('در انتظار پیگیری'), findsNothing);
+  });
 }
