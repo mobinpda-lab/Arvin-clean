@@ -28,6 +28,7 @@ void main() {
     expect(reminder.id, 'prayer-fajr-1405-01-01');
     expect(reminder.title, 'اذان صبح');
     expect(reminder.date, DateTime(2026, 3, 21, 4, 35));
+    expect(reminder.isAllDay, isFalse);
   });
 
   test('combines sources without creating a separate storage model', () async {
@@ -96,5 +97,17 @@ void main() {
     expect(reminders.map((item) => item.id), <String>['duplicate', 'late']);
     expect(reminders.first.title, 'نسخه اول');
     expect(reminders.last.date, DateTime(2026, 3, 21, 8));
+  });
+  test('maps official holidays to the existing all-day UI contract', () {
+    final source = OfficialCalendarReminder(
+      id: 'ir-holiday-1405-01-01',
+      title: 'نوروز',
+      date: DateTime(2026, 3, 21),
+      kind: OfficialReminderKind.iranianHoliday,
+    );
+
+    final reminder = source.toCalendarReminder();
+
+    expect(reminder.isAllDay, isTrue);
   });
 }
