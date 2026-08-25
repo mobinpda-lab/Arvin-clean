@@ -52,4 +52,26 @@ void main() {
     expect(find.text('تماس فروش'), findsOneWidget);
     expect(find.text('جلسه فنی'), findsNothing);
   });
+
+  testWidgets('Home search uses canonical Persian and FollowUp text',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"persian","title":"يادداشت كاری"},{"id":"followup","title":"کار دوم","followUps":[{"id":"f1","dateTime":"2026-08-25T10:00:00.000","note":"تماس با مشتری","result":"موفق"}]},{"id":"other","title":"خرید"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'یادداشت کاری');
+    await tester.pump();
+    expect(find.text('يادداشت كاری'), findsOneWidget);
+    expect(find.text('کار دوم'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'مشتری');
+    await tester.pump();
+    expect(find.text('کار دوم'), findsOneWidget);
+    expect(find.text('يادداشت كاری'), findsNothing);
+    expect(find.text('خرید'), findsNothing);
+  });
 }
