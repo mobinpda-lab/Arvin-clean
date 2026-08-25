@@ -133,7 +133,9 @@ Home no longer writes its limited legacy projection directly through the
 in-file `TaskRepository`. The new `TaskMigrationWriter` performs a
 single-key read–merge–write against the existing `arvin.tasks` envelope:
 
-- Home-editable fields are updated from a canonical `Task` snapshot
+- Home-editable fields, including the atomic
+  `followUpEnabled`/`followUpDate` pair, are updated from a canonical
+  `Task` snapshot
 - reminder, recurrence, checklist, category, follow-up history and timestamps
   are preserved for existing items
 - unrecognized future JSON fields are preserved

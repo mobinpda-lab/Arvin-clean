@@ -56,6 +56,7 @@ void main() {
           id: 'canonical-1',
           title: 'عنوان ویرایش‌شده',
           description: 'شرح ویرایش‌شده',
+          followUpEnabled: true,
           followUpDate: DateTime.parse('2026-08-27T11:00:00.000Z'),
           tags: const <String>['جدید'],
           archived: true,
@@ -120,6 +121,60 @@ void main() {
     expect(saved.first['completed'], isTrue);
     expect(saved.last['followUpEnabled'], isTrue);
     expect(saved.last['followUps'], isEmpty);
+  });
+
+  test('Home can disable an existing canonical follow-up atomically',
+      () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      key:
+          '[{"id":"disable","title":"پیگیری","followUpEnabled":true,"followUpDate":"2026-08-27T11:00:00.000Z"}]',
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    await TaskMigrationWriter().saveTo(
+      prefs,
+      <Task>[
+        Task(
+          id: 'disable',
+          title: 'پیگیری',
+          followUpEnabled: false,
+          followUpDate: null,
+        ),
+      ],
+    );
+
+    final saved = Map<String, dynamic>.from(
+      (jsonDecode(prefs.getString(key)!) as List<dynamic>).single as Map,
+    );
+    expect(saved['followUpEnabled'], isFalse);
+    expect(saved['followUpDate'], isNull);
+  });
+
+  test('Home can enable a canonical follow-up atomically', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      key:
+          '[{"id":"enable","title":"پیگیری","followUpEnabled":false,"followUpDate":null}]',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final followUpDate = DateTime.parse('2026-08-28T12:00:00.000Z');
+
+    await TaskMigrationWriter().saveTo(
+      prefs,
+      <Task>[
+        Task(
+          id: 'enable',
+          title: 'پیگیری',
+          followUpEnabled: true,
+          followUpDate: followUpDate,
+        ),
+      ],
+    );
+
+    final saved = Map<String, dynamic>.from(
+      (jsonDecode(prefs.getString(key)!) as List<dynamic>).single as Map,
+    );
+    expect(saved['followUpEnabled'], isTrue);
+    expect(saved['followUpDate'], followUpDate.toIso8601String());
   });
 
   test('malformed existing storage is rejected without overwriting it',

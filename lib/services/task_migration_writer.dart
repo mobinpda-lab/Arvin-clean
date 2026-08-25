@@ -75,6 +75,7 @@ class TaskMigrationWriter {
         'id': task.id,
         'title': task.title,
         'description': task.description,
+        'followUpEnabled': task.followUpEnabled,
         'followUpDate': task.followUpDate?.toIso8601String(),
         'tags': List<String>.of(task.tags),
         'archived': task.archived,
