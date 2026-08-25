@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'official_calendar_page.dart';
+import 'services/home_search_projection.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
 
@@ -81,7 +82,9 @@ class _HomePageState extends State<HomePage> {
   final TaskMigrationReader migrationReader = TaskMigrationReader();
   final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
   final ArvinBackupManager backupManager = ArvinBackupManager();
+  final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
   List<ArvinTask> tasks = [];
+  List<Task> canonicalTasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
   bool selectionMode = false;
@@ -100,6 +103,7 @@ class _HomePageState extends State<HomePage> {
       final value = unifiedTasks.map(_legacyViewOf).toList();
       if (!mounted) return;
       setState(() {
+        canonicalTasks = unifiedTasks;
         tasks = value;
         loading = false;
       });
@@ -109,6 +113,7 @@ class _HomePageState extends State<HomePage> {
       // break Home. No storage is written by this slice.
       if (!mounted) return;
       setState(() {
+        canonicalTasks = [];
         tasks = [];
         loading = false;
       });
@@ -143,6 +148,37 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  List<Task> get _searchSource {
+    final canonicalById = <String, Task>{
+      for (final task in canonicalTasks) task.id: task,
+    };
+
+    return tasks.map((view) {
+      final canonical = canonicalById[view.id];
+      final snapshot = _canonicalSnapshotOf(view);
+      if (canonical == null) return snapshot;
+
+      return Task(
+        id: snapshot.id,
+        title: snapshot.title,
+        description: snapshot.description,
+        followUpEnabled: snapshot.followUpEnabled,
+        followUpDate: snapshot.followUpDate,
+        tags: List<String>.of(snapshot.tags),
+        category: canonical.category,
+        checklist: List<String>.of(canonical.checklist),
+        reminderDate: canonical.reminderDate,
+        archived: snapshot.archived,
+        trashed: snapshot.trashed,
+        completed: snapshot.completed,
+        followUps: List<FollowUp>.of(canonical.followUps),
+        recurrence: canonical.recurrence,
+        createdAt: canonical.createdAt,
+        updatedAt: canonical.updatedAt,
+      );
+    }).toList();
+  }
+
   Future<void> _save() => migrationWriter.save(
         tasks.map(_canonicalSnapshotOf).toList(),
       );
@@ -154,15 +190,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<ArvinTask> get visible {
+    final matchingIds = query.trim().isEmpty
+        ? null
+        : homeSearchProjection.matchingIds(_searchSource, query);
     final result = tasks.where((task) {
       if (filter == 'فعال' && (task.archived || task.trashed)) return false;
       if (filter == 'بایگانی' && (!task.archived || task.trashed)) return false;
       if (filter == 'سطل زباله' && !task.trashed) return false;
-      if (query.trim().isNotEmpty) {
-        final haystack =
-            '${task.title} ${task.description} ${task.tags.join(' ')}'.toLowerCase();
-        if (!haystack.contains(query.trim().toLowerCase())) return false;
-      }
+      if (matchingIds != null && !matchingIds.contains(task.id)) return false;
       return true;
     }).toList();
 
