@@ -1,11 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'services/task_migration_reader.dart';
+import 'services/task_migration_writer.dart';
 
 void main() => runApp(const ArvinApp());
 
@@ -73,31 +70,6 @@ class ArvinTask {
   }
 }
 
-class TaskRepository {
-  static const String key = 'arvin.tasks';
-
-  Future<List<ArvinTask>> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw == null || raw.isEmpty) return [];
-    try {
-      final data = jsonDecode(raw) as List<dynamic>;
-      return data
-          .map((item) => ArvinTask.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<void> save(List<ArvinTask> tasks) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, jsonEncode(tasks.map((e) => e.toJson()).toList()));
-  }
-}
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
@@ -105,8 +77,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TaskRepository repo = TaskRepository();
   final TaskMigrationReader migrationReader = TaskMigrationReader();
+  final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   List<ArvinTask> tasks = [];
   final Set<String> selected = <String>{};
@@ -156,7 +128,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _save() => repo.save(tasks);
+  Task _canonicalSnapshotOf(ArvinTask task) {
+    return Task(
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      followUpEnabled: task.followUpDate != null,
+      followUpDate: task.followUpDate,
+      tags: List<String>.of(task.tags),
+      archived: task.archived,
+      trashed: task.trashed,
+      completed: task.completed,
+    );
+  }
+
+  Future<void> _save() => migrationWriter.save(
+        tasks.map(_canonicalSnapshotOf).toList(),
+      );
 
   bool _overdue(ArvinTask task) {
     return task.followUpDate != null &&
