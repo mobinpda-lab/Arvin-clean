@@ -125,3 +125,36 @@ model as `legacyHomeFollowUpDate`:
 Tests isolate both branches of this compatibility rule, including the
 intentional distinction from `lastFollowUpDate`. This is a reversible
 preparation step; Home remains on the legacy view model and save path.
+
+
+## Implemented slice — lossless single-key Home writes
+
+Home no longer writes its limited legacy projection directly through the
+in-file `TaskRepository`. The new `TaskMigrationWriter` performs a
+single-key read–merge–write against the existing `arvin.tasks` envelope:
+
+- Home-editable fields, including the atomic
+  `followUpEnabled`/`followUpDate` pair, are updated from a canonical
+  `Task` snapshot
+- reminder, recurrence, checklist, category, follow-up history and timestamps
+  are preserved for existing items
+- unrecognized future JSON fields are preserved
+- omitted items are still deleted and new items are serialized canonically
+- malformed or duplicate-id input is rejected before storage is overwritten
+- no second key, dual-write path or Calendar coupling is introduced
+
+`lib/main.dart` now delegates every Home save to this boundary and no longer
+contains the direct legacy `TaskRepository` implementation. The visible
+`ArvinTask` view model remains temporarily in place, keeping the UI slice
+small and reversible.
+
+Regression coverage in
+`test/services/task_migration_writer_test.dart` proves preservation,
+same-key semantics, deletion/new-item behavior and failure atomicity.
+
+### Residual gate
+
+Home still projects canonical tasks into `ArvinTask` for rendering. Backup
+and restore semantics must be audited separately before that final view-model
+conversion can be removed. Current-head Analyze → Test → APK validation is the
+merge gate for this slice.
