@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin_clean/models/task.dart';
-import 'package:arvin_clean/services/follow_up_calendar_projection.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
 
 void main() {
   const projection = FollowUpCalendarProjection();
