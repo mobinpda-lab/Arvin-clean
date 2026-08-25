@@ -28,6 +28,7 @@ class OfficialCalendarReminder {
         id: id,
         title: title,
         date: date,
+        isAllDay: kind == OfficialReminderKind.iranianHoliday,
       );
 }
 
