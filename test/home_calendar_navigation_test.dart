@@ -21,20 +21,26 @@ void main() {
     expect(scaffold.widget.drawer, isNotNull);
     expect(Directionality.of(scaffold.context), TextDirection.rtl);
 
-    await tester.tap(find.byTooltip('باز کردن منوی پیمایش'));
+    await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
 
     expect(find.text('تقویم'), findsOneWidget);
     expect(scaffold.isDrawerOpen, isTrue);
 
     final drawerRect = tester.getRect(find.byType(Drawer));
-    expect(drawerRect.center.dx, greaterThan(tester.getSize(find.byType(Scaffold).first).width / 2));
+    expect(
+      drawerRect.center.dx,
+      greaterThan(tester.getSize(find.byType(Scaffold).first).width / 2),
+    );
 
     await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
     expect(find.byType(IranianOfficialCalendarPage), findsOneWidget);
-    expect(Directionality.of(tester.element(find.byType(IranianOfficialCalendarPage))), TextDirection.rtl);
+    expect(
+      Directionality.of(tester.element(find.byType(IranianOfficialCalendarPage))),
+      TextDirection.rtl,
+    );
 
     await tester.pageBack();
     await tester.pumpAndSettle();
