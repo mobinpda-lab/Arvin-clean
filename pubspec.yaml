@@ -10,7 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.5.3
-  saf: ^2.1.0
+  # Flutter 3.47 generates AGP 9 with built-in Kotlin disabled. saf 2.1.1
+  # skips the Kotlin plugin solely by AGP major, then calls its missing DSL.
+  saf: 2.1.0
   android_alarm_manager_plus: ^5.1.1
   flutter_local_notifications: ^22.3.0
 
