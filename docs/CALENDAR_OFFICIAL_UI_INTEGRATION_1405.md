@@ -20,12 +20,20 @@
 
 ## محدوده
 
-این برش فقط مسیر Provider → Service → CalendarPage را تثبیت می‌کند. اتصال ورودی
-صفحه به ناوبری Home پس از تثبیت شاخهٔ مهاجرت Home انجام می‌شود تا دو مسیر موازی
-روی یک فایل مشترک تداخل نداشته باشند.
+مسیر Provider → Service → CalendarPage تثبیت شده است. پس از تثبیت مهاجرت Home،
+ورودی واقعی تقویم نیز روی همان Home موجود و بدون Router/AppShell جدید اضافه شد:
+
+- `Scaffold.drawer` موجود در Home به‌عنوان ورودی ناوبری استفاده می‌شود.
+- به‌علت `Directionality.rtl` منو از سمت راست باز می‌شود.
+- گزینه «تقویم» ابتدا Drawer را می‌بندد و سپس `IranianOfficialCalendarPage` را باز می‌کند.
+- بازگشت از تقویم به همان Home انجام می‌شود.
+- این برش هیچ تغییری در `ArvinTask`، `TaskMigrationReader`، `TaskMigrationWriter`، `_load`، `_save` یا کلید `arvin.tasks` ندارد.
+- یادآورهای legacy در این برش به Calendar نگاشت نمی‌شوند.
 
 ## اعتبارسنجی
 
 - تست service برای نگاشت تعطیلی به قرارداد تمام‌روز.
 - تست widget برای ادغام خروجی رسمی و یادآوری فعلی در CalendarPage.
 - تست regression برای حذف ساعت و وضعیت ساختگی از تعطیلی تمام‌روز.
+- `test/home_calendar_navigation_test.dart` بازشدن Drawer راست، ورود به تقویم، RTL، بازگشت به Home و ثابت‌ماندن مقدار `arvin.tasks` را پوشش می‌دهد.
+- گیت ادغام این برش: Analyze → Test → release/debug APK → CI دقیق Head → Review → Merge.

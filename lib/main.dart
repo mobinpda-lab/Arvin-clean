@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
+import 'official_calendar_page.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
 
@@ -397,6 +398,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openCalendar(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const Directionality(
+          textDirection: TextDirection.rtl,
+          child: IranianOfficialCalendarPage(),
+        ),
+      ),
+    );
+  }
+
   Widget _taskCard(ArvinTask task) {
     final late = _overdue(task);
     return Dismissible(
@@ -509,6 +524,31 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
+      drawer: Drawer(
+        child: SafeArea(
+          child: Builder(
+            builder: (drawerContext) => ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                const ListTile(
+                  leading: Icon(Icons.dashboard_outlined),
+                  title: Text(
+                    'آروین',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text('مدیریت کارها و پیگیری‌ها'),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.calendar_month_outlined),
+                  title: const Text('تقویم'),
+                  onTap: () => _openCalendar(drawerContext),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       appBar: AppBar(
         centerTitle: true,
         title: const Column(
