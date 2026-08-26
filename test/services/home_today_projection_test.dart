@@ -69,4 +69,12 @@ void main() {
     expect(result.map((item) => item.id), ['second', 'first']);
     expect(source.map((item) => item.id), ['second', 'first']);
   });
+
+  test('compares UTC timestamps by their local calendar day', () {
+    final utcInstant = DateTime.utc(2026, 8, 27, 23, 30);
+    final localReference = utcInstant.toLocal();
+    final item = task('utc-boundary', utcInstant);
+
+    expect(projection.select([item], now: localReference), [item]);
+  });
 }

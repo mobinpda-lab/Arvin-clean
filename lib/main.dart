@@ -4,6 +4,7 @@ import 'models/task.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
+import 'services/home_today_projection.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
@@ -103,6 +104,7 @@ class _HomePageState extends State<HomePage> {
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
+  final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
   final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
@@ -189,10 +191,17 @@ class _HomePageState extends State<HomePage> {
     final matchingIds = query.trim().isEmpty
         ? null
         : homeSearchProjection.matchingIds(_searchSource, query);
+    final todayIds = filter == 'امروز'
+        ? homeTodayProjection
+            .select(_searchSource)
+            .map((task) => task.id)
+            .toSet()
+        : null;
     final result = tasks.where((task) {
       if (filter == 'فعال' && (task.archived || task.trashed)) return false;
       if (filter == 'بایگانی' && (!task.archived || task.trashed)) return false;
       if (filter == 'سطل زباله' && !task.trashed) return false;
+      if (todayIds != null && !todayIds.contains(task.id)) return false;
       if (matchingIds != null && !matchingIds.contains(task.id)) return false;
       return true;
     }).toList();
@@ -533,6 +542,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+
+  Future<void> _openAbout(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    showAboutDialog(
+      context: context,
+      applicationName: 'آروین',
+      applicationLegalese: 'مدیریت کارها و پیگیری‌ها',
+    );
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -664,6 +685,11 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Divider(),
                 ListTile(
+                  leading: const Icon(Icons.today_outlined),
+                  title: const Text('امروز'),
+                  onTap: () => _openFilter(drawerContext, 'امروز'),
+                ),
+                ListTile(
                   leading: const Icon(Icons.calendar_month_outlined),
                   title: const Text('تقویم'),
                   onTap: () => _openCalendar(drawerContext),
@@ -683,6 +709,11 @@ class _HomePageState extends State<HomePage> {
                   leading: const Icon(Icons.settings_outlined),
                   title: const Text('تنظیمات'),
                   onTap: () => _openSettings(drawerContext),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('درباره آروین'),
+                  onTap: () => _openAbout(drawerContext),
                 ),
               ],
             ),
@@ -793,7 +824,9 @@ class _HomePageState extends State<HomePage> {
                                 ? 'سطل زباله خالی است'
                                 : filter == 'بایگانی'
                                     ? 'بایگانی خالی است'
-                                    : 'کاری برای نمایش وجود ندارد',
+                                    : filter == 'امروز'
+                                        ? 'کاری برای امروز وجود ندارد'
+                                        : 'کاری برای نمایش وجود ندارد',
                           ),
                         )
                       : ListView.separated(
