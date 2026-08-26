@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'services/waiting_for_response_service.dart';
 
 class FollowUpEntryPage extends StatefulWidget {
   const FollowUpEntryPage({
@@ -19,10 +20,13 @@ class FollowUpEntryPage extends StatefulWidget {
 }
 
 class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
+  static const _waitingService = WaitingForResponseService();
+
   late DateTime _dateTime;
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
   DateTime? _nextFollowUp;
+  bool _waitingForResponse = false;
 
   bool get _editing => widget.initialFollowUp != null;
 
@@ -32,7 +36,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _noteController.text = initial?.note ?? '';
-    _resultController.text = initial?.result ?? '';
+    _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
+    _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _nextFollowUp = initial?.nextFollowUp;
   }
 
@@ -130,14 +135,16 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   void _save() {
+    final rawResult = _resultController.text.trim();
+    final result = _waitingForResponse
+        ? WaitingForResponseService.canonicalResult
+        : _waitingService.canonicalizeResult(rawResult);
     final followUp = FollowUp(
       id: widget.initialFollowUp?.id ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       dateTime: _dateTime,
       note: _noteController.text.trim(),
-      result: _resultController.text.trim().isEmpty
-          ? null
-          : _resultController.text.trim(),
+      result: result,
       nextFollowUp: _nextFollowUp,
     );
     widget.onSaved?.call(followUp);
@@ -188,12 +195,27 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               ),
             ),
             const SizedBox(height: 12),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('منتظر پاسخ دیگران'),
+              subtitle: const Text(
+                'این پیگیری در فهرست موارد منتظر پاسخ نمایش داده می‌شود.',
+              ),
+              value: _waitingForResponse,
+              onChanged: (value) =>
+                  setState(() => _waitingForResponse = value),
+            ),
+            const SizedBox(height: 4),
             TextField(
               controller: _resultController,
+              enabled: !_waitingForResponse,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'نتیجه پیگیری',
-                border: OutlineInputBorder(),
+                hintText: _waitingForResponse
+                    ? 'وضعیت: منتظر پاسخ'
+                    : null,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
