@@ -29,54 +29,6 @@ class ArvinApp extends StatelessWidget {
   }
 }
 
-class ArvinTask {
-  ArvinTask({
-    required this.id,
-    required this.title,
-    this.description = '',
-    this.followUpDate,
-    this.tags = const [],
-    this.archived = false,
-    this.trashed = false,
-    this.completed = false,
-  });
-
-  final String id;
-  String title;
-  String description;
-  DateTime? followUpDate;
-  List<String> tags;
-  bool archived;
-  bool trashed;
-  bool completed;
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'followUpDate': followUpDate?.toIso8601String(),
-        'tags': tags,
-        'archived': archived,
-        'trashed': trashed,
-        'completed': completed,
-      };
-
-  factory ArvinTask.fromJson(Map<String, dynamic> json) {
-    return ArvinTask(
-      id: json['id'] as String? ?? '',
-      title: json['title'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      followUpDate: json['followUpDate'] == null
-          ? null
-          : DateTime.tryParse(json['followUpDate'] as String),
-      tags: (json['tags'] as List<dynamic>? ?? []).whereType<String>().toList(),
-      archived: json['archived'] as bool? ?? false,
-      trashed: json['trashed'] as bool? ?? false,
-      completed: json['completed'] as bool? ?? false,
-    );
-  }
-}
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
@@ -92,8 +44,7 @@ class _HomePageState extends State<HomePage> {
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
-  List<ArvinTask> tasks = [];
-  List<Task> canonicalTasks = [];
+  List<Task> tasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
   bool selectionMode = false;
@@ -143,94 +94,35 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _load() async {
     try {
-      final unifiedTasks = await migrationReader.load();
-      final value = unifiedTasks.map(_legacyViewOf).toList();
+      final value = await migrationReader.load();
       if (!mounted) return;
       setState(() {
-        canonicalTasks = unifiedTasks;
         tasks = value;
         loading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        canonicalTasks = [];
         tasks = [];
         loading = false;
       });
     }
   }
 
-  ArvinTask _legacyViewOf(Task task) {
-    final followUpDate = task.legacyHomeFollowUpDate;
-    return ArvinTask(
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      followUpDate: followUpDate,
-      tags: List<String>.of(task.tags),
-      archived: task.archived,
-      trashed: task.trashed,
-      completed: task.completed,
-    );
-  }
+  List<Task> get _searchSource => List<Task>.of(tasks);
 
-  Task _canonicalSnapshotOf(ArvinTask task) {
-    return Task(
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      followUpEnabled: task.followUpDate != null,
-      followUpDate: task.followUpDate,
-      tags: List<String>.of(task.tags),
-      archived: task.archived,
-      trashed: task.trashed,
-      completed: task.completed,
-    );
-  }
+  Future<void> _save() => migrationWriter.save(List<Task>.of(tasks));
 
-  List<Task> get _searchSource {
-    final canonicalById = <String, Task>{
-      for (final task in canonicalTasks) task.id: task,
-    };
+  DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
 
-    return tasks.map((view) {
-      final canonical = canonicalById[view.id];
-      final snapshot = _canonicalSnapshotOf(view);
-      if (canonical == null) return snapshot;
-
-      return Task(
-        id: snapshot.id,
-        title: snapshot.title,
-        description: snapshot.description,
-        followUpEnabled: snapshot.followUpEnabled,
-        followUpDate: snapshot.followUpDate,
-        tags: List<String>.of(snapshot.tags),
-        category: canonical.category,
-        checklist: List<String>.of(canonical.checklist),
-        reminderDate: canonical.reminderDate,
-        archived: snapshot.archived,
-        trashed: snapshot.trashed,
-        completed: snapshot.completed,
-        followUps: List<FollowUp>.of(canonical.followUps),
-        recurrence: canonical.recurrence,
-        createdAt: canonical.createdAt,
-        updatedAt: canonical.updatedAt,
-      );
-    }).toList();
-  }
-
-  Future<void> _save() => migrationWriter.save(
-        tasks.map(_canonicalSnapshotOf).toList(),
-      );
-
-  bool _overdue(ArvinTask task) {
-    return task.followUpDate != null &&
+  bool _overdue(Task task) {
+    final followUpDate = _homeFollowUpDate(task);
+    return followUpDate != null &&
         !task.completed &&
-        task.followUpDate!.isBefore(DateTime.now());
+        followUpDate.isBefore(DateTime.now());
   }
 
-  List<ArvinTask> get visible {
+  List<Task> get visible {
     final matchingIds = query.trim().isEmpty
         ? null
         : homeSearchProjection.matchingIds(_searchSource, query);
@@ -243,8 +135,8 @@ class _HomePageState extends State<HomePage> {
     }).toList();
 
     result.sort(
-      (a, b) => (a.followUpDate ?? DateTime(9999))
-          .compareTo(b.followUpDate ?? DateTime(9999)),
+      (a, b) => (_homeFollowUpDate(a) ?? DateTime(9999))
+          .compareTo(_homeFollowUpDate(b) ?? DateTime(9999)),
     );
     return result;
   }
@@ -253,7 +145,7 @@ class _HomePageState extends State<HomePage> {
       '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
 
   Future<void> _add() async {
-    final task = await showDialog<ArvinTask>(
+    final task = await showDialog<Task>(
       context: context,
       builder: (_) => const TaskDialog(),
     );
@@ -288,17 +180,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _edit(ArvinTask old) async {
-    final task = await showDialog<ArvinTask>(
+  Future<void> _edit(Task old) async {
+    final edited = await showDialog<Task>(
       context: context,
       builder: (_) => TaskDialog(task: old),
     );
-    if (task == null) return;
+    if (edited == null) return;
     setState(() {
-      old.title = task.title;
-      old.description = task.description;
-      old.followUpDate = task.followUpDate;
-      old.tags = task.tags;
+      old.title = edited.title;
+      old.description = edited.description;
+      old.followUpEnabled = edited.followUpEnabled;
+      old.followUpDate = edited.followUpDate;
+      old.tags = List<String>.of(edited.tags);
+      old.updatedAt = DateTime.now();
     });
     await _save();
   }
@@ -325,7 +219,7 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
-  Future<void> _restore(ArvinTask task) async {
+  Future<void> _restore(Task task) async {
     setState(() {
       task.trashed = false;
       task.archived = false;
@@ -342,7 +236,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<bool> _confirmDeleteForever(ArvinTask task) async {
+  Future<bool> _confirmDeleteForever(Task task) async {
     final approved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -365,12 +259,12 @@ class _HomePageState extends State<HomePage> {
     return approved == true;
   }
 
-  Future<void> _deleteForever(ArvinTask task) async {
+  Future<void> _deleteForever(Task task) async {
     setState(() => tasks.removeWhere((item) => item.id == task.id));
     await _save();
   }
 
-  Future<void> _toggle(ArvinTask task) async {
+  Future<void> _toggle(Task task) async {
     setState(() => task.completed = !task.completed);
     await _save();
   }
@@ -532,7 +426,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _taskCard(ArvinTask task) {
+  Widget _taskCard(Task task) {
+    final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
     return Dismissible(
       key: ValueKey(task.id),
@@ -613,9 +508,9 @@ class _HomePageState extends State<HomePage> {
                     );
                   }).toList(),
                 ),
-              if (task.followUpDate != null)
+              if (followUpDate != null)
                 Text(
-                  'پیگیری: ${_date(task.followUpDate!)}${late ? '  •  عقب‌افتاده' : ''}',
+                  'پیگیری: ${_date(followUpDate)}${late ? '  •  عقب‌افتاده' : ''}',
                 ),
               if (task.trashed || task.archived)
                 TextButton(
@@ -855,7 +750,7 @@ class _Stat extends StatelessWidget {
 
 class TaskDialog extends StatefulWidget {
   const TaskDialog({super.key, this.task});
-  final ArvinTask? task;
+  final Task? task;
   @override
   State<TaskDialog> createState() => _TaskDialogState();
 }
@@ -874,7 +769,7 @@ class _TaskDialogState extends State<TaskDialog> {
     title = TextEditingController(text: task?.title ?? '');
     desc = TextEditingController(text: task?.description ?? '');
     tag = TextEditingController();
-    followUpDate = task?.followUpDate;
+    followUpDate = task?.legacyHomeFollowUpDate;
     tags = List<String>.of(task?.tags ?? const []);
   }
 
@@ -967,15 +862,22 @@ class _TaskDialogState extends State<TaskDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final id = widget.task?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+            final now = DateTime.now();
+            final id =
+                widget.task?.id ?? now.microsecondsSinceEpoch.toString();
             Navigator.pop(
               context,
-              ArvinTask(
+              Task(
                 id: id,
-                title: title.text.trim().isEmpty ? 'بدون عنوان' : title.text.trim(),
+                title: title.text.trim().isEmpty
+                    ? 'بدون عنوان'
+                    : title.text.trim(),
                 description: desc.text.trim(),
+                followUpEnabled: followUpDate != null,
                 followUpDate: followUpDate,
                 tags: List<String>.of(tags),
+                createdAt: widget.task?.createdAt ?? now,
+                updatedAt: now,
               ),
             );
           },
