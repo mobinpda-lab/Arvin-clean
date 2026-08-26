@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,32 @@ void main() {
     );
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsOneWidget);
     expect(find.text('خط زمانی'), findsOneWidget);
+  });
+
+  testWidgets('next action opens canonical ranked suggestion page',
+      (tester) async {
+    final tasks = [
+      Task(
+        id: 'next-1',
+        title: 'تماس فوری',
+        reminderDate: DateTime(2020, 1, 1, 9),
+      ),
+      Task(id: 'next-2', title: 'کار آزاد'),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('اقدام بعدی'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TaskNextActionPage), findsOneWidget);
+    expect(find.text('تماس فوری'), findsOneWidget);
+    expect(find.text('کار آزاد'), findsOneWidget);
   });
 
   testWidgets('single task opens its canonical timeline directly',
