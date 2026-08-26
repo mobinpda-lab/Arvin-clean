@@ -1,0 +1,36 @@
+name: Arvin Progress Score
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/progress_scorecard.json'
+      - 'docs/PROJECT_PROGRESS_METRIC.md'
+      - 'tool/progress_score.py'
+      - '.github/workflows/progress-score.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/progress_scorecard.json'
+      - 'docs/PROJECT_PROGRESS_METRIC.md'
+      - 'tool/progress_score.py'
+      - '.github/workflows/progress-score.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-progress-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-scorecard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate official project percentage
+        run: python3 tool/progress_score.py --check
