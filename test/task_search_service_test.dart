@@ -30,6 +30,51 @@ void main() {
     expect(service.search(tasks, 'ارسال شد').map((e) => e.id), ['1']);
   });
 
+  test('matches multi-term queries across different canonical fields', () {
+    final tasks = [
+      Task(
+        id: '1',
+        title: 'تماس مشتری',
+        tags: ['فوری'],
+        followUps: [
+          FollowUp(
+            id: 'f1',
+            dateTime: DateTime(2026, 8, 26, 9),
+            result: 'پاسخ مثبت',
+          ),
+        ],
+      ),
+      Task(id: '2', title: 'تماس مشتری', tags: ['عادی']),
+    ];
+
+    expect(service.search(tasks, 'مشتری فوری').map((e) => e.id), ['1']);
+    expect(service.search(tasks, 'فوری مثبت').map((e) => e.id), ['1']);
+  });
+
+  test('searches category and checklist text', () {
+    final tasks = [
+      Task(
+        id: '1',
+        title: 'پرونده امروز',
+        category: 'فروش',
+        checklist: ['ارسال پیش‌فاکتور', 'تماس نهایی'],
+      ),
+      Task(id: '2', title: 'پرونده داخلی', category: 'اداری'),
+    ];
+
+    expect(service.search(tasks, 'فروش پیش فاکتور').map((e) => e.id), ['1']);
+  });
+
+  test('requires every query term to match somewhere in the same task', () {
+    final tasks = [
+      Task(id: '1', title: 'مشتری', tags: ['فوری']),
+      Task(id: '2', title: 'مشتری', tags: ['عادی']),
+    ];
+
+    expect(service.search(tasks, 'مشتری فوری').map((e) => e.id), ['1']);
+    expect(service.search(tasks, 'مشتری ناموجود'), isEmpty);
+  });
+
   test('is case-insensitive and trims the query', () {
     final tasks = [Task(id: '1', title: 'Important Meeting')];
 
