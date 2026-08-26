@@ -25,7 +25,8 @@ The low-level backup service validates that `settings`, when present, is an obje
 ## Compatibility contract
 
 - Old v1 Task-only backups remain valid and restore with `settings == null`.
-- Missing individual Settings keys use safe current defaults.
+- A Task-only legacy restore leaves the device's current Settings unchanged.
+- Missing individual Settings keys use safe current defaults when a Settings object is present.
 - Invalid value types or unsupported theme values fail validation before local settings are changed.
 - Tasks continue to use the full canonical `Task.toJson()` / `Task.fromJson()` shape.
 - The same SAF / Dropbox byte path is reused.
@@ -39,6 +40,12 @@ Joplin is used as an architecture/testing reference, not as copied source. This 
 ### TimeJot
 
 TimeJot's public product/help documentation reinforces a local-first device-transfer experience where backup remains understandable and user-controlled. Its application source is not treated as available; only public behavior/documentation is used as a product reference.
+
+## Home integration
+
+The real Home backup path now loads the current `AppSettings`, serializes them through `AppSettingsService.toPortableJson`, and writes them beside the canonical Tasks in the same backup file.
+
+Restore reads Tasks and optional Settings from one file selection. Settings are decoded and validated before the confirmation dialog. The pre-restore emergency backup also includes the current Settings. After user confirmation, Tasks are written through the existing `TaskStore`; when imported Settings exist, they are saved through `AppSettingsService` and the app shell is notified immediately so theme/date/font changes take effect. Legacy Task-only backups continue restoring Tasks without overwriting current Settings.
 
 ## Guardrails
 
@@ -58,6 +65,7 @@ Focused tests cover:
 - malformed Settings rejection;
 - canonical Task + Settings candidate restore without storage mutation;
 - typed `AppSettings` portable encode/decode/persistence;
-- duplicate Task ID rejection remains active.
+- duplicate Task ID rejection remains active;
+- Home contract guards the canonical Settings backup/restore wiring.
 
-Final Home wiring must back up the current Settings together with Tasks, validate imported Settings before confirmation, restore through the existing `TaskStore` + `AppSettingsService`, and notify the app shell so Theme/date/font changes apply immediately.
+Merge requires exact-head Parallel Wave, Full Build with release/debug APK, Android Device Smoke, then post-merge validation on the resulting `main` SHA.
