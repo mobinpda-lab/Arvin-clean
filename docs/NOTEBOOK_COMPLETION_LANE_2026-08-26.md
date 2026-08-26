@@ -22,4 +22,10 @@ Parallel completion lane for Gate B.
 
 This slice intentionally supersedes any historical proposal for `arvin.simple_notes` storage. Notebook data remains Unified Item data.
 
-Refs #195 #153 #92.
+## Current integration baseline
+
+- Rebased/reconstructed on `main` `93e56d3cc6cd124f0aa6e7023091b63048ab08ea` after Gate H / PR #199 merged.
+- Release regression evidence is now part of the branch baseline.
+- Previous green runs on the pre-#199 base are historical only; current-head Analyze/Test/Release/APK evidence is required before merge.
+
+Refs #195 #153 #92 #199.
