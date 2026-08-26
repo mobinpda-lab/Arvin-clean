@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   wire-home:
-    if: ${{ !contains(github.event.head_commit.message, '[backup-home-wired]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +39,7 @@ jobs:
               text = text.replace(field_anchor, field_anchor + task_store_field, 1)
 
           legacy_backup = """      final fileName = await backupManager.backupTasks(\n        tasks.map((task) => task.toJson()).toList(),\n      );"""
-          canonical_backup = """      final fileName = await backupManager.backupCanonicalTasks(_searchSource);"""
+          canonical_backup = "      final fileName = await backupManager.backupCanonicalTasks(_searchSource);"
           if legacy_backup in text:
               text = text.replace(legacy_backup, canonical_backup, 1)
           elif canonical_backup not in text:
