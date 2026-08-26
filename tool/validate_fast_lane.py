@@ -24,6 +24,7 @@ require(build, '- name: Android V2 audit', str(build_path))
 require(build, '- name: Build release APK', str(build_path))
 require(build, '- name: Build debug APK', str(build_path))
 
+# Automation branches keep push validation; normal product branches must use one PR path.
 require(parallel, "'wave/**'", str(parallel_path))
 require(parallel, "'ci/**'", str(parallel_path))
 for forbidden_push_branch in ("'feat/**'", "'fix/**'", "'test/**'"):
