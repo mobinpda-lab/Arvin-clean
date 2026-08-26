@@ -74,4 +74,62 @@ void main() {
     expect(find.text('يادداشت كاری'), findsNothing);
     expect(find.text('خرید'), findsNothing);
   });
+
+  testWidgets('first delete still moves an active task to trash', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    final result = await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    await tester.pumpAndSettle();
+
+    expect(result, isTrue);
+    expect(find.text('حذف دائمی'), findsNothing);
+    expect(find.text('کار فعال'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'سطل زباله'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار فعال'), findsOneWidget);
+  });
+
+  testWidgets('permanent delete from trash requires explicit confirmation',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"trashed","title":"حذف آزمایشی","trashed":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'سطل زباله'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('حذف آزمایشی'), findsOneWidget);
+
+    var dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    final cancelled = dismissible.confirmDismiss!(DismissDirection.endToStart);
+    await tester.pumpAndSettle();
+
+    expect(find.text('حذف دائمی'), findsOneWidget);
+    expect(find.textContaining('قابل بازگشت نیست'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'لغو'));
+    await tester.pumpAndSettle();
+
+    expect(await cancelled, isFalse);
+    expect(find.text('حذف آزمایشی'), findsOneWidget);
+
+    dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    final confirmed = dismissible.confirmDismiss!(DismissDirection.endToStart);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'حذف برای همیشه'));
+    await tester.pumpAndSettle();
+
+    expect(await confirmed, isTrue);
+    expect(find.text('حذف آزمایشی'), findsNothing);
+    expect(find.text('سطل زباله خالی است'), findsOneWidget);
+  });
 }
