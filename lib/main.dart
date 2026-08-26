@@ -108,9 +108,6 @@ class _HomePageState extends State<HomePage> {
         loading = false;
       });
     } catch (_) {
-      // Preserve the existing UI behavior for malformed storage: show the
-      // empty state rather than allowing a read-only migration boundary to
-      // break Home. No storage is written by this slice.
       if (!mounted) return;
       setState(() {
         canonicalTasks = [];
@@ -264,6 +261,15 @@ class _HomePageState extends State<HomePage> {
       task.archived = false;
     });
     await _save();
+  }
+
+  void _openFilter(BuildContext drawerContext, String nextFilter) {
+    Navigator.pop(drawerContext);
+    setState(() {
+      filter = nextFilter;
+      selected.clear();
+      selectionMode = false;
+    });
   }
 
   Future<bool> _confirmDeleteForever(ArvinTask task) async {
@@ -555,10 +561,10 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'پیگیری: ${_date(task.followUpDate!)}${late ? '  •  عقب‌افتاده' : ''}',
                 ),
-              if (task.trashed)
+              if (task.trashed || task.archived)
                 TextButton(
                   onPressed: () => _restore(task),
-                  child: const Text('بازگردانی'),
+                  child: const Text('بازگردانی به فعال'),
                 ),
             ],
           ),
@@ -603,6 +609,16 @@ class _HomePageState extends State<HomePage> {
                   leading: const Icon(Icons.calendar_month_outlined),
                   title: const Text('تقویم'),
                   onTap: () => _openCalendar(drawerContext),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.archive_outlined),
+                  title: const Text('بایگانی'),
+                  onTap: () => _openFilter(drawerContext, 'بایگانی'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: const Text('سطل زباله'),
+                  onTap: () => _openFilter(drawerContext, 'سطل زباله'),
                 ),
               ],
             ),
@@ -706,7 +722,9 @@ class _HomePageState extends State<HomePage> {
                           child: Text(
                             filter == 'سطل زباله'
                                 ? 'سطل زباله خالی است'
-                                : 'کاری برای نمایش وجود ندارد',
+                                : filter == 'بایگانی'
+                                    ? 'بایگانی خالی است'
+                                    : 'کاری برای نمایش وجود ندارد',
                           ),
                         )
                       : ListView.separated(

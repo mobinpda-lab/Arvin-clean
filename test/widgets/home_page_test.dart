@@ -132,4 +132,72 @@ void main() {
     expect(find.text('حذف آزمایشی'), findsNothing);
     expect(find.text('سطل زباله خالی است'), findsOneWidget);
   });
+
+  testWidgets('drawer opens archive and restores archived task to active',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"archived","title":"کار بایگانی","archived":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بایگانی'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بایگانی'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextButton, 'بازگردانی به فعال'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بایگانی'), findsNothing);
+    expect(find.text('بایگانی خالی است'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'فعال'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی'), findsOneWidget);
+  });
+
+  testWidgets('drawer opens trash and restores trashed task to active',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"trashed-restore","title":"کار سطل","trashed":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار سطل'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار سطل'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextButton, 'بازگردانی به فعال'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار سطل'), findsNothing);
+    expect(find.text('سطل زباله خالی است'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'فعال'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار سطل'), findsOneWidget);
+  });
 }
