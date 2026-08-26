@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# Push + PR events for the same working branch share one concurrency group, so
+# only the newest validation survives after a force-update or rebuild.
+concurrency:
+  group: arvin-parallel-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
