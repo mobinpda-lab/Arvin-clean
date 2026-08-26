@@ -17,8 +17,11 @@ class HomeTodayProjection {
     }).toList(growable: false);
   }
 
-  bool _sameLocalDay(DateTime left, DateTime right) =>
-      left.year == right.year &&
-      left.month == right.month &&
-      left.day == right.day;
+  bool _sameLocalDay(DateTime left, DateTime right) {
+    final localLeft = left.toLocal();
+    final localRight = right.toLocal();
+    return localLeft.year == localRight.year &&
+        localLeft.month == localRight.month &&
+        localLeft.day == localRight.day;
+  }
 }
