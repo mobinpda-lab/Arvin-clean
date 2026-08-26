@@ -5,19 +5,23 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# A newer run for the same PR supersedes the old PR validation. Main pushes use
-# the unique run id so every merged main commit keeps its own post-merge build.
+# Fast Lane: Draft PRs receive fast validation from Arvin Parallel Wave.
+# The full APK gate runs only for ready/non-draft PR heads, main pushes, or
+# manual dispatch. Main pushes use a unique run id so every merge keeps its own
+# post-merge build evidence.
 concurrency:
   group: arvin-build-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +58,27 @@ jobs:
               else:
                   text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
           path.write_text(text)
+          PY
+      - name: Android V2 audit
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('android/app/src/main')
+          activities = list(root.rglob('MainActivity.kt')) + list(root.rglob('MainActivity.java'))
+          if not activities:
+              raise SystemExit('MainActivity.kt/java not found after Android generation')
+          text = activities[0].read_text(encoding='utf-8')
+          if 'FlutterActivity' not in text:
+              raise SystemExit('MainActivity does not use FlutterActivity')
+          forbidden = ('io.flutter.app.', 'PluginRegistry.Registrar')
+          for candidate in root.rglob('*'):
+              if candidate.is_file():
+                  content = candidate.read_text(encoding='utf-8', errors='ignore')
+                  for token in forbidden:
+                      if token in content:
+                          raise SystemExit(f'deleted Android v1 embedding reference: {token} in {candidate}')
+          print(f'Android V2 audit passed: {activities[0]}')
           PY
       - name: Get dependencies
         run: flutter pub get
