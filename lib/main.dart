@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
-import 'official_calendar_page.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
+import 'widgets/canonical_calendar_launcher.dart';
 
 void main() => runApp(const ArvinApp());
 
@@ -439,9 +439,9 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => const Directionality(
+        builder: (_) => Directionality(
           textDirection: TextDirection.rtl,
-          child: IranianOfficialCalendarPage(),
+          child: CanonicalCalendarLauncher(tasks: _searchSource),
         ),
       ),
     );
