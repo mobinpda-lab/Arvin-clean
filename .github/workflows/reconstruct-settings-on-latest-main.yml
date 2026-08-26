@@ -16,26 +16,33 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Restore tested Settings vertical slice
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          SOURCE_SHA=9bfc90a58aed66318cef4e26cd8c32342e14a6ca
-          files=(
-            docs/CANONICAL_APP_SETTINGS_2026-08-26.md
-            lib/services/app_settings_service.dart
-            lib/services/persian_date_formatter.dart
-            lib/settings_page.dart
-            test/home_settings_integration_test.dart
-            test/services/app_settings_service_test.dart
-            test/services/persian_date_formatter_test.dart
-            test/settings_page_test.dart
-          )
-          for file in "${files[@]}"; do
-            mkdir -p "$(dirname "$file")"
-            git show "$SOURCE_SHA:$file" > "$file"
-          done
-          git show "$SOURCE_SHA:lib/main.dart" > lib/main.dart
+
+          restore_blob() {
+            local sha="$1"
+            local path="$2"
+            mkdir -p "$(dirname "$path")"
+            gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${sha}" --jq '.content' \
+              | tr -d '\n' \
+              | base64 --decode > "$path"
+          }
+
+          restore_blob d82075c0732817ef135477498c4d722603b229af docs/CANONICAL_APP_SETTINGS_2026-08-26.md
+          restore_blob 16b3da9c9de74e7aa7d222ed71ec76f4cc69cdd3 lib/services/app_settings_service.dart
+          restore_blob 017993a9987721f4a431e9438a460d80480a2b4d lib/services/persian_date_formatter.dart
+          restore_blob 2986414cc42831cdc613d6d2cf25deb06d5b3e68 lib/settings_page.dart
+          restore_blob eefa9b58a775a3755eb62c8a6a1090edf3a760c0 test/home_settings_integration_test.dart
+          restore_blob e408786a8eef2d4df81956e6fd871b5b9cc05b6e test/services/app_settings_service_test.dart
+          restore_blob 8d24ca813801935021b496fb2c02c63525549698 test/services/persian_date_formatter_test.dart
+          restore_blob eab2ed50940f0992d5c278e0720f487188b3af32 test/settings_page_test.dart
+          restore_blob b9c8feb94641dff4dea6ebca9d0c38cce16cb095 lib/main.dart
+
           python3 - <<'PY'
           from pathlib import Path
           p = Path('lib/main.dart')
@@ -46,14 +53,24 @@ jobs:
               raise SystemExit('expected mutable-list reconstruction anchor missing')
           p.write_text(s.replace(old, new, 1))
           PY
+
           git rm .github/workflows/reconstruct-settings-on-latest-main.yml
+
       - name: Commit reconstructed feature
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/CANONICAL_APP_SETTINGS_2026-08-26.md lib/main.dart lib/services/app_settings_service.dart lib/services/persian_date_formatter.dart lib/settings_page.dart test/home_settings_integration_test.dart test/services/app_settings_service_test.dart test/services/persian_date_formatter_test.dart test/settings_page_test.dart
+          git add docs/CANONICAL_APP_SETTINGS_2026-08-26.md \
+            lib/main.dart \
+            lib/services/app_settings_service.dart \
+            lib/services/persian_date_formatter.dart \
+            lib/settings_page.dart \
+            test/home_settings_integration_test.dart \
+            test/services/app_settings_service_test.dart \
+            test/services/persian_date_formatter_test.dart \
+            test/settings_page_test.dart
           git diff --cached --check
           git commit -m 'feat(settings): reconstruct canonical settings on latest main'
           git push origin HEAD:feat/issue-231-settings
