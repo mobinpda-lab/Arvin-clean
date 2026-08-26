@@ -54,22 +54,18 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
           final history = task['followUps'];
           if (history is List && history.isNotEmpty) {
             for (final entry in history) {
-              final followUp = Map<String, dynamic>.from(entry as Map);
-              final date = DateTime.tryParse(
-                followUp['dateTime'] as String? ?? '',
-              );
-              if (date == null) {
+              try {
+                final followUp = FollowUp.fromJson(
+                  Map<String, dynamic>.from(entry as Map),
+                );
+                rows.add(_FollowUpRow(
+                  taskId: id,
+                  taskTitle: title,
+                  followUp: followUp,
+                ));
+              } catch (_) {
                 continue;
               }
-              rows.add(_FollowUpRow(
-                taskTitle: title,
-                dateTime: date,
-                note: followUp['note'] as String? ?? '',
-                result: followUp['result'] as String?,
-                nextFollowUp: DateTime.tryParse(
-                  followUp['nextFollowUp'] as String? ?? '',
-                ),
-              ));
             }
           } else {
             final legacy = DateTime.tryParse(
@@ -77,9 +73,13 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             );
             if (legacy != null) {
               rows.add(_FollowUpRow(
+                taskId: id,
                 taskTitle: title,
-                dateTime: legacy,
-                note: 'پیگیری قدیمی مهاجرت‌شده',
+                followUp: FollowUp(
+                  id: legacy.microsecondsSinceEpoch.toString(),
+                  dateTime: legacy,
+                  note: 'پیگیری قدیمی مهاجرت‌شده',
+                ),
               ));
             }
           }
@@ -142,6 +142,34 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     } catch (_) {
       if (mounted) {
         _showMessage('ثبت پیگیری انجام نشد؛ دوباره تلاش کنید');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  Future<void> _editFollowUp(_FollowUpRow row) async {
+    if (row.taskId.isEmpty || !mounted) return;
+
+    final updated = await Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute(
+        builder: (_) => FollowUpEntryPage(initialFollowUp: row.followUp),
+      ),
+    );
+    if (updated == null || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.repository.update(row.taskId, updated);
+      await _load();
+      if (mounted) {
+        _showMessage('پیگیری «${row.taskTitle}» ویرایش شد');
+      }
+    } catch (_) {
+      if (mounted) {
+        _showMessage('ویرایش پیگیری انجام نشد؛ دوباره تلاش کنید');
       }
     } finally {
       if (mounted) {
@@ -239,6 +267,13 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                     ),
                                   ),
                                 ),
+                                IconButton(
+                                  tooltip: 'ویرایش پیگیری',
+                                  onPressed: _saving || row.taskId.isEmpty
+                                      ? null
+                                      : () => _editFollowUp(row),
+                                  icon: const Icon(Icons.edit_outlined),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -286,16 +321,17 @@ class _TaskOption {
 
 class _FollowUpRow {
   const _FollowUpRow({
+    required this.taskId,
     required this.taskTitle,
-    required this.dateTime,
-    this.note = '',
-    this.result,
-    this.nextFollowUp,
+    required this.followUp,
   });
 
+  final String taskId;
   final String taskTitle;
-  final DateTime dateTime;
-  final String note;
-  final String? result;
-  final DateTime? nextFollowUp;
+  final FollowUp followUp;
+
+  DateTime get dateTime => followUp.dateTime;
+  String get note => followUp.note;
+  String? get result => followUp.result;
+  DateTime? get nextFollowUp => followUp.nextFollowUp;
 }
