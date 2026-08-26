@@ -1,8 +1,9 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'automatic_follow_up_background_runner.dart';
+import 'automatic_follow_up_platform_stub.dart'
+    if (dart.library.io) 'automatic_follow_up_platform_io.dart';
 import 'automatic_follow_up_scheduler_adapter.dart';
 import 'services/automatic_follow_up_alarm_planner.dart';
 import 'services/task_store.dart';
@@ -18,8 +19,9 @@ Future<void> arvinAutomaticFollowUpAlarmCallback() async {
 /// Reuses Arvin's existing Android AlarmManager foundation and keeps exactly
 /// one alarm: the nearest not-yet-delivered canonical FollowUp schedule.
 ///
-/// Calls are intentionally no-op off Android. This keeps the shared widget/test
-/// composition platform-safe while production Android still uses AlarmManager.
+/// Calls are intentionally no-op outside a real Android runtime. Conditional
+/// platform detection keeps Linux/widget tests and web compilation from
+/// invoking the Android plugin while production Android keeps the real alarm.
 class AndroidAutomaticFollowUpScheduler
     implements AutomaticFollowUpSchedulerAdapter {
   AndroidAutomaticFollowUpScheduler({
@@ -35,8 +37,6 @@ class AndroidAutomaticFollowUpScheduler
   final DateTime Function()? _now;
   bool _initialized = false;
 
-  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
-
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
     final initialized = await AndroidAlarmManager.initialize();
@@ -48,7 +48,7 @@ class AndroidAutomaticFollowUpScheduler
 
   @override
   Future<void> reschedule() async {
-    if (!_isAndroid) return;
+    if (!supportsAutomaticFollowUpScheduling) return;
 
     await _ensureInitialized();
     await AndroidAlarmManager.cancel(automaticFollowUpAlarmId);
@@ -77,7 +77,7 @@ class AndroidAutomaticFollowUpScheduler
 
   @override
   Future<void> cancel() async {
-    if (!_isAndroid) return;
+    if (!supportsAutomaticFollowUpScheduling) return;
 
     await _ensureInitialized();
     await AndroidAlarmManager.cancel(automaticFollowUpAlarmId);
