@@ -23,7 +23,7 @@ class TaskMigrationReader {
 
   List<Task> loadFrom(SharedPreferences prefs) {
     final raw = prefs.getString(legacyKey);
-    if (raw == null || raw.trim().isEmpty) return const [];
-    return adapter.decodeLegacyList(raw);
+    if (raw == null || raw.trim().isEmpty) return <Task>[];
+    return List<Task>.of(adapter.decodeLegacyList(raw));
   }
 }
