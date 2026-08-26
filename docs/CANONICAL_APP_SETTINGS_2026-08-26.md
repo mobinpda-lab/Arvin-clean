@@ -20,7 +20,7 @@ Task, FollowUp, Reminder, Calendar, Notebook and Backup domain data are not stor
 
 ## Font guard
 
-The current repository contains no custom font asset registered in `pubspec.yaml`. The Settings UI therefore reports the app/system default and does not invent a selectable font or download a new asset. A custom family may only become selectable after the corresponding asset is deliberately added and validated.
+Vazirmatn is bundled and registered on current `main` and is the canonical public/default Arvin font. `fontFamily == null` therefore means “use the Arvin default (Vazirmatn)”, not “create another font/settings controller”. Licensed/private fonts such as IRANSansX may be used only when their assets are legitimately available; additional public fonts must extend this same `AppSettingsService` contract rather than create a parallel settings system.
 
 ## Backup guard
 
@@ -30,11 +30,16 @@ Settings does not implement a second backup flow. Its Backup/Restore entry deleg
 
 Home keeps its existing Gregorian display by default for migration safety. When the preference is enabled, `PersianDateFormatter` renders the Home follow-up date as Jalali with Persian digits. Calendar's existing Persian behavior remains untouched by this preference.
 
-## Parallel delivery
+## Reconstruction evidence
 
-The settings service, formatter, page and focused tests are prepared independently while Android Device Smoke #230 is validated. The final Home/MaterialApp wiring must be reconstructed on the latest `main` after #230 before merge.
+The Settings vertical slice was reconstructed on `main` `c93cd03ea48a91b792fb995537cac3c847920a89`, preserving the merged Android runtime fix, mutable canonical Task list, device-smoke workflow, and bundled Vazirmatn assets. Temporary reconstruction/convergence workflows self-remove; they are not part of the product diff.
+
+## Joplin reference guard
+
+Joplin is useful as an architecture reference for future offline-first sync, revision history, conflict handling and storage evolution. Its main code is AGPL-3.0-or-later and uses a different TypeScript/React Native stack, so this completion lane copies no Joplin source code and introduces no second SQLite/database/storage foundation. Any future storage evolution must migrate the existing canonical `Task` / `arvin.tasks` path deliberately rather than run a parallel database.
 
 ## Typography convergence
+
 - Vazirmatn bundled on `main` is the canonical public/default font.
 - `fontFamily == null` means use the Arvin default, not a second settings system.
 - Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
