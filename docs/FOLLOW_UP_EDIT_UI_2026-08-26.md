@@ -1,7 +1,7 @@
 # Follow-up Office edit flow — 2026-08-26
 
 ## Scope
-This stacked slice advances Issue #13 by wiring the existing Follow-up Office UI to the repository edit contract prepared in PR #161.
+This slice advances Issue #13 by wiring the existing Follow-up Office UI to the repository edit contract merged through PR #161.
 
 ## What changed
 - `FollowUpEntryPage` can open with an existing `FollowUp`.
@@ -13,8 +13,8 @@ This stacked slice advances Issue #13 by wiring the existing Follow-up Office UI
 ## Validation
 A widget regression test verifies that editing an existing follow-up keeps exactly one history entry, preserves its id, and persists the changed note/result.
 
-## Dependency
-This branch is stacked on the repository update contract from PR #161. After #161 merges, this PR can be retargeted to `main` and validated on its exact head before merge.
+## Dependency status
+PR #161 is merged into `main`. PR #162 is now based on `main` and must pass `Arvin Build` and `Arvin Parallel Wave` on its exact head before merge.
 
 ## Scope guard
 - No new storage key.
