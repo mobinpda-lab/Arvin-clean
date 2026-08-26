@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "roadmap": "docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md",
+  "baseline_date": "2026-08-26",
+  "baseline_main_sha": "4ae59dc4814f74654b5f37bc87692193102f1fde",
+  "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
+  "stage_meaning": {
+    "0": "not started with dedicated evidence",
+    "10": "dedicated audit / acceptance scope exists",
+    "25": "architecture or domain contract is accepted",
+    "40": "core implementation and focused tests exist",
+    "55": "canonical persistence/data path is integrated end-to-end or explicitly verified as unnecessary",
+    "70": "real user-facing UI/UX is wired to the canonical path",
+    "85": "regression/E2E, exact-head CI, APK and post-merge validation are complete",
+    "100": "roadmap Definition of Done is complete, handoff/status docs updated, and feature issue is closed"
+  },
+  "wave_x1_feature_ids": [1, 2, 3, 6, 7, 10, 11, 17],
+  "features": [
+    {"id": 1, "name": "Next Action هوشمند", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_NEXT_ACTION_2026-08-26.md", "PR #166"], "note": "Core ranking service is merged and tested; no user-facing UI yet."},
+    {"id": 2, "name": "FollowUp خودکار", "wave": "X1", "stage": 0, "evidence": [], "note": "Existing FollowUp foundation is not the automatic-follow-up feature itself."},
+    {"id": 3, "name": "Timeline کامل هر موضوع", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_TASK_TIMELINE_2026-08-26.md", "PR #164"], "note": "Canonical projection and tests are merged; full Timeline UI/history coverage is not complete."},
+    {"id": 4, "name": "Voice Capture فارسی", "wave": "X2", "stage": 0, "evidence": [], "note": "Roadmap item only; no dedicated feature delivery credited."},
+    {"id": 5, "name": "دستیار هوشمند آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 6, "name": "People / Contacts", "wave": "X1", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 7, "name": "جستجوی معنایی", "wave": "X1", "stage": 25, "evidence": ["docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md", "PR #163"], "note": "Existing SearchService path is strengthened, but semantic-search behavior is not implemented; credit is limited to architecture/foundation stage."},
+    {"id": 8, "name": "Weekly Review هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 9, "name": "Memory آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 10, "name": "وضعیت منتظر پاسخ دیگران", "wave": "X1", "stage": 40, "evidence": ["docs/WAITING_FOR_RESPONSE_CONTRACT_2026-08-26.md", "PR #170"], "note": "Canonical contract/core service is merged and tested; Home filter/UI is not wired yet."},
+    {"id": 11, "name": "Quick Capture", "wave": "X1", "stage": 40, "evidence": ["docs/QUICK_CAPTURE_CANONICAL_PARSER_2026-08-26.md", "PR #168"], "note": "Parser/core is merged and tested; no real quick-capture UI entry point yet."},
+    {"id": 12, "name": "Smart Calendar Assistant", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 13, "name": "تشخیص تداخل و زمان‌بندی هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 14, "name": "Rescheduling هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 15, "name": "Goal → Project → Item", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 16, "name": "Reminder مکانی", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
+    {"id": 17, "name": "Privacy / Encryption", "wave": "X1", "stage": 0, "evidence": [], "note": "No dedicated extension audit/delivery is credited yet."},
+    {"id": 18, "name": "Sync و Backup چنددستگاهی", "wave": "X2", "stage": 0, "evidence": [], "note": "Existing local backup foundation is not credited as multi-device sync completion."},
+    {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
+  ],
+  "reported_metrics": {
+    "overall_percent": 9.7,
+    "wave_x1_percent": 23.1,
+    "features_at_core_or_better": 4,
+    "features_started": 5,
+    "features_done": 0
+  }
+}
