@@ -14,26 +14,54 @@ The single active operating authority is `docs/ARVIN_PROJECT_OPERATING_PACKAGE.m
 6. Continue the nearest real unfinished task; do not restart completed work.
 
 ## Current verified main
-- `main`: `ae3a34257fdee45623f2094aca6a1432a58a2d0b`
-- Latest merged product PR: #178 Quick Capture UI + canonical persistence.
-- PR #178 exact head `816434cd8d767c35d931397f333de74759a0ddeb` passed Build #608 + Parallel Wave #428.
-- Post-merge Build #610 on exact main completed successfully, including Analyze/Test/release APK/debug APK verification.
-- Issue #174 is closed as completed.
+- `main`: `1f9585dbf8be3b269ee201337c0b011673e5c88b`
+- Latest merged product PR: #183 — Automatic FollowUp due items in Follow-up Office.
+- PR #183 exact head `689eccf0eb01aaf9c9bd4334f3c34958f568e0dd` passed Build #619 + Parallel Wave #437.
+- Post-merge Build #621 completed successfully on exact main, including Analyze/Test/release APK/debug APK verification and uploads.
+- PR #181 previously delivered the AutomaticFollowUpService core; post-merge Build #614 succeeded.
+- Quick Capture real Home UI + canonical persistence from PR #178 remains validated by post-merge Build #610; Issue #174 is closed.
 
-## Current active product lane
-PR #181 — Automatic FollowUp core
-- Issue #180
-- Branch: `feat/issue-180-automatic-followup-core`
-- Exact head: `ed764fed8430ef4cb5a8bfd80ed452fbaccebb92`
-- Fresh Build #611 + Parallel Wave #430 run against that exact head.
-- Scope is pure due-candidate derivation from canonical `Task.followUps`; no new model/repository/storage/scheduler/UI.
-- Keep Draft until both exact-head gates are fully green; after merge require post-merge main Build before score promotion.
+## Current active product lane — Timeline UI
+PR #184 — `feat(timeline): add canonical task timeline page`
+- Branch: `feat/issue-92-task-timeline-ui`
+- Exact head: `8e925016635fe92c190ee6caeb13421b284a7121`
+- Base: current main `1f9585dbf8be3b269ee201337c0b011673e5c88b`
+- Reuses canonical `TaskTimelineService` + `Task + FollowUps[]`.
+- Adds a Persian RTL user-facing Timeline page, chronological history rendering, FollowUp note/result display, empty state, widget tests and documentation.
+- `Arvin Parallel Wave #439` is green; `Arvin Build #622` has Analyze/Test/Release APK green and is completing Debug APK validation.
+- No new model/repository/storage/history source.
+- The page is not yet wired into Home/task-detail navigation; do not claim Timeline Stage 70 from this slice alone.
+
+## Automatic FollowUp remaining gap
+Issue #180 remains open.
+- Canonical core + due-list UI are merged and post-merge validated.
+- Conservative Scorecard target is stage 70, not 85/100.
+- Missing product behavior: actual background scheduling/notification trigger, reschedule/cancel behavior and reboot/restart validation.
+- Existing foundations must be reused: `android_alarm_manager_plus`, `flutter_local_notifications`, `AndroidBackupScheduler`, `BackupNotificationService`.
+- Do not introduce duplicate scheduler/notification packages, storage or models.
 
 ## Current documentation/experience lane
 PR #182 — `docs(operations): persist live Arvin execution experience loop`
 - Branch: `docs/arvin-live-experience-loop`
 - Documentation-only; must not block product work.
-- Records real execution lessons, updates hourly/continuation behavior, refreshes current state/status, records conservative official progress and removes stale progress claims.
+- Adds `ARVIN_EXECUTION_EXPERIENCE_LOG.md`, strengthens continuation/hourly behavior, refreshes current state/status/handoff and updates the official Scorecard candidate.
+- A previous docs head was green but became factually stale as product `main` moved; the refreshed head must pass fresh exact-head Build/Parallel/Progress Score before merge.
+
+## Official Progress
+Use only `docs/progress_scorecard.json` + `Arvin Progress Score`.
+- Official score currently committed on `main`: **12.1% overall Roadmap / 28.7% Wave X1**.
+- Refreshed PR #182 candidate after verified Quick Capture and Automatic FollowUp evidence: **18.2% overall / 43.1% Wave X1**.
+- Candidate values are not official until `Arvin Progress Score` accepts the exact refreshed docs head and PR #182 merges.
+
+Feature stages in the refreshed candidate:
+- Waiting for Response: 85
+- Quick Capture: 85
+- Automatic FollowUp: 70 (capped because background Reminder/scheduler/notification trigger is still missing)
+- Next Action: 40
+- Timeline: 40 until real navigation integration is delivered
+- Semantic Search: 25
+
+Historical estimates in older documents are not current truth.
 
 ## Product/Foundation Invariants
 - Arvin is Persian RTL Flutter.
@@ -41,7 +69,7 @@ PR #182 — `docs(operations): persist live Arvin execution experience loop`
 - FollowUp history stays on canonical `Task.followUps`.
 - Home persistence continues through the existing canonical/migration path; do not create another Task storage.
 - Reminder, Calendar, Notification, Search, Backup/Restore and other existing foundations must be audited/reused before extension.
-- No parallel Model/Repository/Storage/Parser/Sync/Router/AppShell/Foundation without explicit verified need.
+- No parallel Model/Repository/Storage/Parser/Sync/Router/AppShell/Scheduler/Notification foundation without explicit verified need.
 
 ## Parallel Delivery
 Independent lanes run concurrently. A lane waiting for CI must not stop unrelated work. Shared foundation/file ownership must be checked before concurrent edits. Do not restart healthy APK validation with cosmetic commits.
@@ -50,13 +78,8 @@ Independent lanes run concurrently. A lane waiting for CI must not stop unrelate
 `Implementation → Focused Test → Documentation → exact-head CI/Build/APK → Ready/Merge → post-merge main Build → Score/Handoff Update`.
 A workflow result is valid only for the exact ref it tested.
 
-## Official Progress
-Use only `docs/progress_scorecard.json` + `Arvin Progress Score`. Historical estimates in older docs are not current truth. Feature stages are 0/10/25/40/55/70/85/100; do not invent per-feature percentages outside the Scorecard model.
-
-Quick Capture has earned stage 85: core/parser, canonical persistence, real Persian RTL UI, regression coverage, exact-head CI/APK and post-merge validation are complete. It is intentionally not promoted to stage 100 yet because the Roadmap final DoD includes the project font/typography requirement; current `MaterialApp` has no custom project font in `ThemeData` and `pubspec.yaml` declares no custom font. Closing Issue #174 does not override this remaining global DoD requirement.
-
 ## Experience Continuity
-Useful evidence-based lessons that prevent rework live in `docs/ARVIN_EXECUTION_EXPERIENCE_LOG.md`. It is subordinate to the canonical operating package and must help production rather than become a documentation gate.
+Useful evidence-based lessons that prevent rework live in `docs/ARVIN_EXECUTION_EXPERIENCE_LOG.md`. It is subordinate to the canonical operating package and must help production rather than become a documentation gate. A documentation PR also requires a final live-GitHub freshness check before merge; green CI alone does not make stale status facts correct.
 
 ## Communication
 Reports stay short and non-technical:
