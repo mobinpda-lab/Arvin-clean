@@ -24,4 +24,10 @@ Gate F Vertical Slice.
 
 This repository supports Dart >=3.3. `printing 5.14.3` supports Dart 3.3; the newer 5.15.0 requires Dart 3.12, so this slice intentionally pins the compatible release line. `pdf 3.12.0` remains compatible with the project SDK range.
 
-Refs #195 #5 #153.
+## Current integration baseline
+
+- Rebased/reconstructed on `main` `93e56d3cc6cd124f0aa6e7023091b63048ab08ea` after Gate H / PR #199 merged.
+- The branch now includes the dedicated Release regression surface from Gate H.
+- Previous exact-head CI on the pre-#199 base is historical only; a fresh synchronize/full Build on the new head is required before merge.
+
+Refs #195 #5 #153 #199.
