@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
+import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../task_next_action_page.dart';
@@ -63,6 +64,17 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     );
   }
 
+  Future<void> _openNotebook(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: NotebookPage(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final reminders = projection.project(tasks);
@@ -80,6 +92,14 @@ class CanonicalCalendarLauncher extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                FloatingActionButton.extended(
+                  heroTag: 'arvin-canonical-notebook',
+                  tooltip: 'دفترچه آروین',
+                  onPressed: () => _openNotebook(context),
+                  icon: const Icon(Icons.note_alt_outlined),
+                  label: const Text('دفترچه'),
+                ),
+                const SizedBox(height: 12),
                 FloatingActionButton.extended(
                   heroTag: 'arvin-canonical-next-action',
                   tooltip: 'اقدام بعدی هوشمند',
