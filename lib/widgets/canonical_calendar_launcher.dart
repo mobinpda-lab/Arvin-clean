@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../calendar_page.dart';
 import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/follow_up_calendar_projection.dart';
+import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
 import '../task_timeline_page.dart';
 
@@ -75,6 +77,66 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     );
   }
 
+  Future<void> _exportToSystemCalendar(BuildContext context) async {
+    final eligible = projection
+        .project(tasks)
+        .where(SystemCalendarBridge.isEligible)
+        .toList(growable: false);
+
+    if (eligible.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست')),
+        );
+      return;
+    }
+
+    CalendarReminder? selected;
+    if (eligible.length == 1) {
+      selected = eligible.single;
+    } else {
+      selected = await showDialog<CalendarReminder>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const Text('انتخاب پیگیری برای تقویم دستگاه'),
+          children: [
+            for (final reminder in eligible)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(dialogContext).pop(reminder),
+                child: Text(reminder.title),
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (selected == null || !context.mounted) return;
+
+    try {
+      final opened = await SystemCalendarBridge().insert(selected);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              opened
+                  ? 'فرم افزودن رویداد در تقویم دستگاه باز شد'
+                  : 'برنامه تقویم سازگار روی دستگاه پیدا نشد',
+            ),
+          ),
+        );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('باز کردن تقویم دستگاه ناموفق بود: $error')),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final reminders = projection.project(tasks);
@@ -92,6 +154,14 @@ class CanonicalCalendarLauncher extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                FloatingActionButton.extended(
+                  heroTag: 'arvin-system-calendar-export',
+                  tooltip: 'افزودن پیگیری به تقویم دستگاه',
+                  onPressed: () => _exportToSystemCalendar(context),
+                  icon: const Icon(Icons.event_available_outlined),
+                  label: const Text('تقویم دستگاه'),
+                ),
+                const SizedBox(height: 12),
                 FloatingActionButton.extended(
                   heroTag: 'arvin-canonical-notebook',
                   tooltip: 'دفترچه آروین',
