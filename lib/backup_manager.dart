@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
+import 'models/task.dart';
 
 /// Coordinates the portable backup format with Arvin's local task storage.
 ///
@@ -48,5 +49,45 @@ class ArvinBackupManager {
     return fileName;
   }
 
+  /// Serializes the complete canonical Task shape into the existing Arvin
+  /// backup document. This intentionally reuses the current SAF/Dropbox bytes
+  /// and format rather than creating a second backup representation.
+  Future<String?> backupCanonicalTasks(Iterable<Task> tasks) {
+    return backupTasks(
+      tasks.map((task) => task.toJson()).toList(growable: false),
+    );
+  }
+
   Future<Map<String, dynamic>?> restoreBackup() => service.readBackup();
+
+  /// Decodes an existing Arvin backup into the canonical Task model without
+  /// mutating local storage. The caller can show a confirmation UI before the
+  /// returned candidate list is written through the canonical TaskStore.
+  Future<List<Task>?> restoreCanonicalTasks() async {
+    final document = await restoreBackup();
+    if (document == null) return null;
+
+    final rawTasks = document['tasks'];
+    if (rawTasks is! List) {
+      throw const FormatException('Arvin backup tasks are invalid');
+    }
+
+    final ids = <String>{};
+    final tasks = <Task>[];
+    for (final raw in rawTasks) {
+      if (raw is! Map) {
+        throw const FormatException('Arvin backup task entry is invalid');
+      }
+      final task = Task.fromJson(Map<String, dynamic>.from(raw));
+      if (task.id.trim().isEmpty) {
+        throw const FormatException('Arvin backup contains an empty task id');
+      }
+      if (!ids.add(task.id)) {
+        throw FormatException('Arvin backup contains duplicate task id: ${task.id}');
+      }
+      tasks.add(task);
+    }
+
+    return List<Task>.unmodifiable(tasks);
+  }
 }
