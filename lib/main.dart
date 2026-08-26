@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
       final value = await migrationReader.load();
       if (!mounted) return;
       setState(() {
-        tasks = value;
+        tasks = List<Task>.of(value);
         loading = false;
       });
     } catch (_) {
