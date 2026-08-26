@@ -2,31 +2,39 @@
 
 Issue: #221. Refs #195.
 
-## Live gap
+## Live gap closed
 
-The portable SAF/Dropbox backup foundation already exists, but Home currently passes the legacy `ArvinTask` projection to it. That projection does not contain the complete canonical `Task` state and can omit fields introduced after the legacy Home boundary.
+The existing SAF/Dropbox backup foundation was already portable, but Home used the legacy `ArvinTask` projection as its backup/restore boundary. That projection omits canonical fields added after the legacy Home model and could lose category, checklist, reminder, FollowUp history, recurrence and timestamps across devices.
 
 ## Canonical rule
 
-Backup/restore must preserve the existing source of truth rather than invent a second representation:
+Backup/restore preserves the existing source of truth rather than inventing a second representation:
 
 `TaskStore / arvin.tasks -> Task.toJson() -> existing Arvin backup document -> Task.fromJson() -> confirmed TaskStore write`
 
 The backup format, SAF flow and optional Dropbox bytes remain unchanged.
 
-## Implemented foundation
+## Implemented Vertical Slice
 
-`ArvinBackupManager` now exposes additive canonical methods:
+`ArvinBackupManager` exposes additive canonical methods:
 
 - `backupCanonicalTasks(...)` serializes the complete `Task.toJson()` shape.
 - `restoreCanonicalTasks()` decodes a validated backup into canonical `Task` objects without mutating storage before user confirmation.
 - Restore rejects empty or duplicate Task ids before a destructive replace can occur.
 
-Focused tests prove preservation of category, checklist, reminder, FollowUp history/result/nextFollowUp, recurrence, timestamps and normal Task state.
+Home now:
 
-## Remaining Vertical Slice work
+- backs up `_searchSource`, the lossless canonical Task view rather than `ArvinTask.toJson()`;
+- creates the emergency pre-restore backup from that same canonical source;
+- parses restore candidates with `Task.fromJson()` through `restoreCanonicalTasks()`;
+- writes only after explicit confirmation through the existing `TaskStore/arvin.tasks` path;
+- reloads Home after the confirmed canonical write.
 
-Home wiring deliberately waits until Widget #204 leaves `main.dart`, avoiding concurrent edits to the shared Home foundation. On latest main the Home backup action must pass the canonical Task list and confirmed restore must save the decoded canonical list through `TaskStore/arvin.tasks`, followed by exact-head CI/APK validation.
+Focused tests cover complete Task round-trip preservation and lock the Home wiring to the canonical methods. No temporary automation file or alternate storage path remains in the feature tree.
+
+## Merge evidence still required
+
+The feature remains incomplete until its final exact head passes Arvin Parallel Wave and full Arvin Build/APKs, followed by the post-merge main Build.
 
 ## Guardrails
 
