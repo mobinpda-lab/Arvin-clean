@@ -25,7 +25,7 @@
     {"id": 7, "name": "جستجوی معنایی", "wave": "X1", "stage": 25, "evidence": ["docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md", "PR #163"], "note": "Existing SearchService path is strengthened, but semantic-search behavior is not implemented; credit is limited to architecture/foundation stage."},
     {"id": 8, "name": "Weekly Review هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 9, "name": "Memory آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
-    {"id": 10, "name": "وضعیت منتظر پاسخ دیگران", "wave": "X1", "stage": 40, "evidence": ["docs/WAITING_FOR_RESPONSE_CONTRACT_2026-08-26.md", "PR #170"], "note": "Canonical contract/core service is merged and tested; Home filter/UI is not wired yet."},
+    {"id": 10, "name": "وضعیت منتظر پاسخ دیگران", "wave": "X1", "stage": 85, "evidence": ["docs/WAITING_FOR_RESPONSE_CONTRACT_2026-08-26.md", "docs/WAITING_FOR_RESPONSE_UI_2026-08-26.md", "PR #170", "PR #172", "Arvin Build #595", "Arvin Parallel Wave #418", "Arvin Build #596"], "note": "Canonical contract, persistence path, real Follow-up Office UI/filter, regression tests, exact-head CI/APK and post-merge main validation are complete. Stage 100 remains reserved for full roadmap Definition of Done / dedicated completion closure."},
     {"id": 11, "name": "Quick Capture", "wave": "X1", "stage": 40, "evidence": ["docs/QUICK_CAPTURE_CANONICAL_PARSER_2026-08-26.md", "PR #168"], "note": "Parser/core is merged and tested; no real quick-capture UI entry point yet."},
     {"id": 12, "name": "Smart Calendar Assistant", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 13, "name": "تشخیص تداخل و زمان‌بندی هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
@@ -37,8 +37,8 @@
     {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
   ],
   "reported_metrics": {
-    "overall_percent": 9.7,
-    "wave_x1_percent": 23.1,
+    "overall_percent": 12.1,
+    "wave_x1_percent": 28.8,
     "features_at_core_or_better": 4,
     "features_started": 5,
     "features_done": 0
