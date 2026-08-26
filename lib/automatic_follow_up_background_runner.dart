@@ -30,8 +30,7 @@ class AutomaticFollowUpBackgroundRunner {
   static const String notificationStateKey =
       'arvin.followup.notificationState';
 
-  Future<Map<String, String>> _loadState(SharedPreferences prefs) async {
-    final raw = prefs.getString(notificationStateKey);
+  static Map<String, String> decodeDeliveryState(String? raw) {
     if (raw == null || raw.isEmpty) return <String, String>{};
 
     try {
@@ -45,9 +44,6 @@ class AutomaticFollowUpBackgroundRunner {
     }
   }
 
-  String _identity(AutomaticFollowUpCandidate candidate) =>
-      '${candidate.followUpId}@${candidate.dueAt.toIso8601String()}';
-
   Future<int> run() async {
     final store = _taskStore ?? TaskStore();
     final tasks = await store.load();
@@ -58,7 +54,7 @@ class AutomaticFollowUpBackgroundRunner {
     );
 
     final prefs = await SharedPreferences.getInstance();
-    final state = await _loadState(prefs);
+    final state = decodeDeliveryState(prefs.getString(notificationStateKey));
     final liveTaskIds = tasks.map((task) => task.id).toSet();
     state.removeWhere((taskId, _) => !liveTaskIds.contains(taskId));
 
@@ -67,12 +63,11 @@ class AutomaticFollowUpBackgroundRunner {
     var delivered = 0;
 
     for (final candidate in candidates) {
-      final identity = _identity(candidate);
-      if (state[candidate.taskId] == identity) continue;
+      if (state[candidate.taskId] == candidate.deliveryIdentity) continue;
 
       try {
         await notifications.showDue(candidate);
-        state[candidate.taskId] = identity;
+        state[candidate.taskId] = candidate.deliveryIdentity;
         delivered += 1;
       } catch (_) {
         // Delivery is retryable. Do not mark the candidate as notified when

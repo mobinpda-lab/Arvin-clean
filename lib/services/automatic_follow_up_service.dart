@@ -1,6 +1,6 @@
 import '../models/task.dart';
 
-/// Read-only projection of a due automatic follow-up.
+/// Read-only projection of an automatic follow-up schedule.
 ///
 /// This deliberately carries identifiers/value data rather than mutating the
 /// source [Task] or creating a second persistence model.
@@ -16,6 +16,8 @@ class AutomaticFollowUpCandidate {
   final String taskTitle;
   final String followUpId;
   final DateTime dueAt;
+
+  String get deliveryIdentity => '$followUpId@${dueAt.toIso8601String()}';
 }
 
 /// Derives automatic follow-up work from the canonical `Task.followUps` chain.
@@ -25,10 +27,9 @@ class AutomaticFollowUpCandidate {
 class AutomaticFollowUpService {
   const AutomaticFollowUpService();
 
-  List<AutomaticFollowUpCandidate> dueCandidates(
-    Iterable<Task> tasks, {
-    required DateTime now,
-  }) {
+  List<AutomaticFollowUpCandidate> scheduledCandidates(
+    Iterable<Task> tasks,
+  ) {
     final result = <AutomaticFollowUpCandidate>[];
 
     for (final task in tasks) {
@@ -38,7 +39,7 @@ class AutomaticFollowUpService {
       if (latest == null) continue;
 
       final dueAt = latest.nextFollowUp;
-      if (dueAt == null || dueAt.isAfter(now)) continue;
+      if (dueAt == null) continue;
 
       result.add(
         AutomaticFollowUpCandidate(
@@ -56,6 +57,16 @@ class AutomaticFollowUpService {
       return a.taskId.compareTo(b.taskId);
     });
 
+    return List<AutomaticFollowUpCandidate>.unmodifiable(result);
+  }
+
+  List<AutomaticFollowUpCandidate> dueCandidates(
+    Iterable<Task> tasks, {
+    required DateTime now,
+  }) {
+    final result = scheduledCandidates(tasks)
+        .where((candidate) => !candidate.dueAt.isAfter(now))
+        .toList();
     return List<AutomaticFollowUpCandidate>.unmodifiable(result);
   }
 }
