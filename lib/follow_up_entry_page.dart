@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 import 'models/task.dart';
 
 class FollowUpEntryPage extends StatefulWidget {
-  const FollowUpEntryPage({super.key, this.initialDateTime, this.onSaved});
+  const FollowUpEntryPage({
+    super.key,
+    this.initialFollowUp,
+    this.initialDateTime,
+    this.onSaved,
+  });
 
+  final FollowUp? initialFollowUp;
   final DateTime? initialDateTime;
   final ValueChanged<FollowUp>? onSaved;
 
@@ -18,10 +24,16 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _resultController = TextEditingController();
   DateTime? _nextFollowUp;
 
+  bool get _editing => widget.initialFollowUp != null;
+
   @override
   void initState() {
     super.initState();
-    _dateTime = widget.initialDateTime ?? DateTime.now();
+    final initial = widget.initialFollowUp;
+    _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
+    _noteController.text = initial?.note ?? '';
+    _resultController.text = initial?.result ?? '';
+    _nextFollowUp = initial?.nextFollowUp;
   }
 
   @override
@@ -119,7 +131,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   void _save() {
     final followUp = FollowUp(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      id: widget.initialFollowUp?.id ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
       dateTime: _dateTime,
       note: _noteController.text.trim(),
       result: _resultController.text.trim().isEmpty
@@ -136,7 +149,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('ثبت پیگیری')),
+        appBar: AppBar(
+          title: Text(_editing ? 'ویرایش پیگیری' : 'ثبت پیگیری'),
+        ),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -195,7 +210,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.save_outlined),
-              label: const Text('ذخیره پیگیری'),
+              label: Text(_editing ? 'ذخیره تغییرات' : 'ذخیره پیگیری'),
             ),
           ],
         ),
