@@ -1,4 +1,4 @@
-# Home Today + About Completion Lane — 2026-08-27
+# Home Today + About Completion Lane — 2026-08-26
 
 Issue #237. Refs #8 #231 #195.
 
@@ -28,7 +28,8 @@ Joplin's general separation-of-concerns/testing discipline is also retained: the
 
 - projection selects only active Tasks due on the local current day;
 - latest canonical FollowUp history wins over a stale legacy date;
-- UTC/offset timestamps are normalized before local-day comparison;\n- source Tasks are not reordered/mutated;
+- UTC/offset timestamps are normalized before local-day comparison;
+- source Tasks are not reordered/mutated;
 - real Drawer Today flow shows today Tasks and hides tomorrow/completed Tasks;
 - Today empty state is covered;
 - real Drawer About flow opens Flutter `AboutDialog`.
@@ -41,4 +42,4 @@ Joplin's general separation-of-concerns/testing discipline is also retained: the
 - About uses the existing Flutter about surface
 - no Joplin/TimeJot application source is copied
 
-Rebuilt on main `05a6b8d69f97440b9a098af7e736fb601fc6ed69`. Require exact-head Parallel Wave, Full Build with release/debug APK, Android Device Smoke, and post-merge validation.
+Rebuilt on main `11bff1081311eadff4b0d9333c3aae45245026b0`. Require exact-head Parallel Wave, Full Build with release/debug APK, Android Device Smoke, and post-merge validation.
