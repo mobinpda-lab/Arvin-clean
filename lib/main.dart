@@ -5,6 +5,9 @@ import 'quick_capture_dialog.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
+import 'services/widget_task_bridge.dart';
+import 'services/widget_task_selection_service.dart';
+import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 
 void main() => runApp(const ArvinApp());
@@ -84,6 +87,9 @@ class _HomePageState extends State<HomePage> {
   final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
+  final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
+  final WidgetTaskSelectionService widgetTaskSelectionService =
+      WidgetTaskSelectionService();
   List<ArvinTask> tasks = [];
   List<Task> canonicalTasks = [];
   final Set<String> selected = <String>{};
@@ -95,7 +101,42 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    widgetTaskBridge.listen(_openWidgetTask);
     _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _consumeInitialWidgetTask();
+    });
+  }
+
+  @override
+  void dispose() {
+    widgetTaskBridge.dispose();
+    super.dispose();
+  }
+
+  Future<void> _consumeInitialWidgetTask() async {
+    final taskId = await widgetTaskBridge.consumeInitialTaskId();
+    if (taskId != null) await _openWidgetTask(taskId);
+  }
+
+  Future<void> _openWidgetTask(String taskId) async {
+    final task = await widgetTaskSelectionService.loadTask(taskId);
+    if (!mounted) return;
+    if (task == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('کار انتخاب‌شده از ویجت پیدا نشد')),
+        );
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskTimelinePage(task: task),
+      ),
+    );
+    if (mounted) await _load();
   }
 
   Future<void> _load() async {
