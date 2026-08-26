@@ -19,6 +19,18 @@ void main() {
       source,
       isNot(contains('tasks.map((task) => task.toJson()).toList()')),
     );
-    expect(source, isNot(contains('ArvinTask.fromJson(')));
+
+    final restoreStart =
+        source.indexOf('Future<void> _restoreFromFile() async');
+    final restoreEnd = source.indexOf(
+      'Future<void> _backupMenu() async',
+      restoreStart,
+    );
+    expect(restoreStart, greaterThanOrEqualTo(0));
+    expect(restoreEnd, greaterThan(restoreStart));
+
+    final restoreSource = source.substring(restoreStart, restoreEnd);
+    expect(restoreSource, isNot(contains('ArvinTask.fromJson(')));
+    expect(restoreSource, isNot(contains('migrationWriter.save(')));
   });
 }
