@@ -128,20 +128,35 @@ class Task {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      createdAt: json['createdAt'] == null ? null : DateTime.tryParse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null ? null : DateTime.tryParse(json['updatedAt'] as String),
-      followUpEnabled: json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
-      followUpDate: json['followUpDate'] == null ? null : DateTime.tryParse(json['followUpDate'] as String),
-      tags: (json['tags'] as List<dynamic>? ?? const []).whereType<String>().toList(),
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.tryParse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.tryParse(json['updatedAt'] as String),
+      followUpEnabled:
+          json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
+      followUpDate: json['followUpDate'] == null
+          ? null
+          : DateTime.tryParse(json['followUpDate'] as String),
+      tags: (json['tags'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
       category: json['category'] as String?,
-      checklist: (json['checklist'] as List<dynamic>? ?? const []).whereType<String>().toList(),
-      reminderDate: json['reminderDate'] == null ? null : DateTime.tryParse(json['reminderDate'] as String),
+      checklist: (json['checklist'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
+      reminderDate: json['reminderDate'] == null
+          ? null
+          : DateTime.tryParse(json['reminderDate'] as String),
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
       followUps: loadedFollowUps,
       recurrence: json['recurrence'] is Map
-          ? RecurrenceRule.fromJson(Map<String, dynamic>.from(json['recurrence'] as Map))
+          ? RecurrenceRule.fromJson(
+              Map<String, dynamic>.from(json['recurrence'] as Map),
+            )
           : null,
     );
   }
@@ -152,9 +167,8 @@ class Task {
 
   /// The follow-up date rendered by the legacy Home view during migration.
   ///
-  /// The existing Home UI has always displayed the first recorded follow-up
-  /// when history is present; retain that behavior until Home consumes the
-  /// canonical follow-up timeline directly.
+  /// Prefer the latest canonical history entry when one exists while still
+  /// preserving the legacy single followUpDate fallback for older data.
   DateTime? get legacyHomeFollowUpDate =>
-      followUps.isEmpty ? followUpDate : followUps.first.dateTime;
+      followUps.isEmpty ? followUpDate : lastFollowUpDate;
 }

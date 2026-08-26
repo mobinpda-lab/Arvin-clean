@@ -9,7 +9,7 @@ void main() {
     expect(task.legacyHomeFollowUpDate, date);
   });
 
-  test('uses the first follow-up to preserve the current Home view behavior', () {
+  test('uses the latest follow-up for the Home view when history exists', () {
     final first = DateTime(2026, 8, 25, 9);
     final later = DateTime(2026, 8, 27, 9);
     final task = Task(
@@ -22,7 +22,7 @@ void main() {
       ],
     );
 
-    expect(task.legacyHomeFollowUpDate, first);
+    expect(task.legacyHomeFollowUpDate, later);
     expect(task.lastFollowUpDate, later);
   });
 }
