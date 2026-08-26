@@ -60,6 +60,65 @@ class AppSettingsService {
     await preferences.setString(_fontFamilyKey, normalized);
   }
 
+  Map<String, dynamic> toPortableJson(AppSettings settings) {
+    final family = _normalizeFontFamily(settings.fontFamily);
+    return <String, dynamic>{
+      'themeMode': settings.themeMode.name,
+      'usePersianDate': settings.usePersianDate,
+      if (family != null) 'fontFamily': family,
+    };
+  }
+
+  AppSettings decodePortableJson(Map<String, dynamic> json) {
+    final rawThemeMode = json['themeMode'];
+    final rawPersianDate = json['usePersianDate'];
+    final rawFontFamily = json['fontFamily'];
+
+    if (rawThemeMode != null && rawThemeMode is! String) {
+      throw const FormatException('Arvin backup theme setting is invalid');
+    }
+    if (rawPersianDate != null && rawPersianDate is! bool) {
+      throw const FormatException('Arvin backup Persian-date setting is invalid');
+    }
+    if (rawFontFamily != null && rawFontFamily is! String) {
+      throw const FormatException('Arvin backup font setting is invalid');
+    }
+
+    ThemeMode themeMode = ThemeMode.system;
+    if (rawThemeMode is String) {
+      final matching = ThemeMode.values.where((mode) => mode.name == rawThemeMode);
+      if (matching.isEmpty) {
+        throw const FormatException('Arvin backup theme setting is unsupported');
+      }
+      themeMode = matching.first;
+    }
+
+    return AppSettings(
+      themeMode: themeMode,
+      usePersianDate: rawPersianDate is bool ? rawPersianDate : false,
+      fontFamily: _normalizeFontFamily(rawFontFamily as String?),
+    );
+  }
+
+  Future<void> saveSettings(AppSettings settings) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_themeModeKey, settings.themeMode.name);
+    await preferences.setBool(_persianDateKey, settings.usePersianDate);
+
+    final family = _normalizeFontFamily(settings.fontFamily);
+    if (family == null) {
+      await preferences.remove(_fontFamilyKey);
+    } else {
+      await preferences.setString(_fontFamilyKey, family);
+    }
+  }
+
+  Future<AppSettings> restorePortableJson(Map<String, dynamic> json) async {
+    final settings = decodePortableJson(json);
+    await saveSettings(settings);
+    return settings;
+  }
+
   ThemeMode _decodeThemeMode(String? raw) {
     return ThemeMode.values.where((mode) => mode.name == raw).firstOrNull ??
         ThemeMode.system;

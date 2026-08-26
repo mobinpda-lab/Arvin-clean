@@ -3,6 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backup_service.dart';
 import 'models/task.dart';
 
+typedef CanonicalBackupCandidate = ({
+  List<Task> tasks,
+  Map<String, dynamic>? settings,
+});
+
 /// Coordinates the portable backup format with Arvin's local task storage.
 ///
 /// This class deliberately keeps the backup document independent from the UI,
@@ -36,37 +41,68 @@ class ArvinBackupManager {
     return uri;
   }
 
-  Future<String?> backupTasks(List<Map<String, dynamic>> tasks) async {
+  Future<String?> backupTasks(
+    List<Map<String, dynamic>> tasks, {
+    Map<String, dynamic>? settings,
+  }) async {
     final directory = await getDirectory();
     if (directory == null || directory.isEmpty) return null;
 
     final fileName = service.createBackupFileName(DateTime.now());
     await service.writeBackup(
       directoryUri: directory,
-      payload: <String, dynamic>{'tasks': tasks},
+      payload: <String, dynamic>{
+        'tasks': tasks,
+        if (settings != null) 'settings': Map<String, dynamic>.from(settings),
+      },
       fileName: fileName,
     );
     return fileName;
   }
 
   /// Serializes the complete canonical Task shape into the existing Arvin
-  /// backup document. This intentionally reuses the current SAF/Dropbox bytes
-  /// and format rather than creating a second backup representation.
-  Future<String?> backupCanonicalTasks(Iterable<Task> tasks) {
+  /// backup document. Optional settings ride in the same backward-compatible
+  /// document; no second backup representation is created.
+  Future<String?> backupCanonicalTasks(
+    Iterable<Task> tasks, {
+    Map<String, dynamic>? settings,
+  }) {
     return backupTasks(
       tasks.map((task) => task.toJson()).toList(growable: false),
+      settings: settings,
     );
   }
 
   Future<Map<String, dynamic>?> restoreBackup() => service.readBackup();
 
-  /// Decodes an existing Arvin backup into the canonical Task model without
-  /// mutating local storage. The caller can show a confirmation UI before the
-  /// returned candidate list is written through the canonical TaskStore.
-  Future<List<Task>?> restoreCanonicalTasks() async {
+  /// Decodes one portable backup selection into a candidate without mutating
+  /// local storage. The same read yields both canonical tasks and optional
+  /// settings so the UI can validate and confirm the complete restore once.
+  Future<CanonicalBackupCandidate?> restoreCanonicalBackup() async {
     final document = await restoreBackup();
     if (document == null) return null;
 
+    final tasks = _decodeCanonicalTasks(document);
+    final rawSettings = document['settings'];
+    if (rawSettings != null && rawSettings is! Map) {
+      throw const FormatException('Arvin backup settings are invalid');
+    }
+
+    return (
+      tasks: tasks,
+      settings: rawSettings is Map
+          ? Map<String, dynamic>.from(rawSettings)
+          : null,
+    );
+  }
+
+  /// Compatibility helper for callers that only need tasks.
+  Future<List<Task>?> restoreCanonicalTasks() async {
+    final candidate = await restoreCanonicalBackup();
+    return candidate?.tasks;
+  }
+
+  List<Task> _decodeCanonicalTasks(Map<String, dynamic> document) {
     final rawTasks = document['tasks'];
     if (rawTasks is! List) {
       throw const FormatException('Arvin backup tasks are invalid');
@@ -83,7 +119,9 @@ class ArvinBackupManager {
         throw const FormatException('Arvin backup contains an empty task id');
       }
       if (!ids.add(task.id)) {
-        throw FormatException('Arvin backup contains duplicate task id: ${task.id}');
+        throw FormatException(
+          'Arvin backup contains duplicate task id: ${task.id}',
+        );
       }
       tasks.add(task);
     }

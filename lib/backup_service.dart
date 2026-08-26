@@ -75,11 +75,18 @@ class ArvinBackupService {
   }
 
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
+    final rawSettings = payload['settings'];
+    if (rawSettings != null && rawSettings is! Map) {
+      throw const FormatException('Arvin backup settings are invalid');
+    }
+
     final document = <String, dynamic>{
       'type': backupType,
       'formatVersion': backupFormatVersion,
       'createdAt': DateTime.now().toIso8601String(),
       'tasks': payload['tasks'] ?? const <dynamic>[],
+      if (rawSettings is Map)
+        'settings': Map<String, dynamic>.from(rawSettings),
     };
 
     return Uint8List.fromList(
@@ -101,6 +108,14 @@ class ArvinBackupService {
     }
     if (document['tasks'] is! List) {
       throw const FormatException('Arvin backup tasks are invalid');
+    }
+
+    final rawSettings = document['settings'];
+    if (rawSettings != null && rawSettings is! Map) {
+      throw const FormatException('Arvin backup settings are invalid');
+    }
+    if (rawSettings is Map) {
+      document['settings'] = Map<String, dynamic>.from(rawSettings);
     }
 
     return document;
