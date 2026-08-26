@@ -1,6 +1,7 @@
-# Licensed local font assets (proprietary; keep out of the public repository)
-/assets/fonts/*.ttf
-/assets/fonts/*.otf
-/assets/fonts/*.woff
-/assets/fonts/*.woff2
+# Proprietary licensed IRANSansX build assets only.
+# Open-source Vazirmatn assets under assets/fonts/vazirmatn/ are tracked.
+/assets/fonts/IRANSansX*.ttf
+/assets/fonts/IRANSansX*.otf
+/assets/fonts/IRANSansX*.woff
+/assets/fonts/IRANSansX*.woff2
 /assets/fonts/FontLicense.txt
