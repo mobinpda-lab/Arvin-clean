@@ -5,12 +5,17 @@ import 'theme/app_fonts.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AppFonts.loadLicensedIranSansX();
-  runApp(const ArvinIranSansApp());
+  final hasLicensedIranSansX = await AppFonts.loadLicensedIranSansX();
+  runApp(ArvinTypographyApp(hasLicensedIranSansX: hasLicensedIranSansX));
 }
 
-class ArvinIranSansApp extends StatelessWidget {
-  const ArvinIranSansApp({super.key});
+class ArvinTypographyApp extends StatelessWidget {
+  const ArvinTypographyApp({
+    required this.hasLicensedIranSansX,
+    super.key,
+  });
+
+  final bool hasLicensedIranSansX;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,9 @@ class ArvinIranSansApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
-        fontFamily: AppFonts.family,
+        fontFamily: hasLicensedIranSansX
+            ? AppFonts.iranSansXFamily
+            : AppFonts.vazirmatnFamily,
       ),
       home: const Directionality(
         textDirection: TextDirection.rtl,
