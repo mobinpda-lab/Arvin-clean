@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "metric_id": "arvin_total_completion",
+  "source_roadmap": "docs/PROJECT_ROADMAP_2026-08-14.md",
+  "baseline_date": "2026-08-26",
+  "baseline_main_sha": "af817256e5b019f3b096199c29db88e5b87044e5",
+  "denominator": "8 canonical delivery gates A-H",
+  "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
+  "stage_meaning": {
+    "0": "no dedicated implementation evidence",
+    "10": "dedicated audit and acceptance scope exist",
+    "25": "architecture or delivery contract is accepted",
+    "40": "core implementation exists with focused automated evidence",
+    "55": "the gate's canonical internal path is integrated end-to-end",
+    "70": "the gate's real user-facing or operational path is wired",
+    "85": "regression/E2E, exact-head CI, APK/device evidence applicable to the gate are complete",
+    "100": "the gate Definition of Done is complete, status/handoff is current, and no gate acceptance gap remains"
+  },
+  "gates": [
+    {
+      "id": "A",
+      "name": "Unified Item + adapter/migration + regression",
+      "stage": 55,
+      "evidence": [
+        "docs/UNIFIED_ITEM_MIGRATION_2026-08-15.md",
+        "docs/HOME_UNIFIED_ITEM_MIGRATION_PROGRESS_2026-08-15.md",
+        "lib/services/task_migration_reader.dart",
+        "lib/services/task_migration_writer.dart",
+        "test/services/task_migration_writer_test.dart"
+      ],
+      "note": "Canonical read/write migration path is integrated and regression-tested, but Home still retains a legacy view boundary, so Gate A is not yet at user-facing completion."
+    },
+    {
+      "id": "B",
+      "name": "Notebook UI + persistence",
+      "stage": 25,
+      "evidence": [
+        "docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md"
+      ],
+      "note": "The product contract exists, but the complete Notebook editor/auto-save/read-only/edit/checklist user flow is not yet delivered."
+    },
+    {
+      "id": "C",
+      "name": "Home + Search on canonical Item path",
+      "stage": 70,
+      "evidence": [
+        "lib/main.dart",
+        "lib/services/home_search_projection.dart",
+        "lib/services/task_search_service.dart",
+        "docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md",
+        "test/widgets/home_page_test.dart",
+        "test/home_search_service_contract_test.dart",
+        "PR #163",
+        "PR #167"
+      ],
+      "note": "Real Home/Search, archive/trash and user-facing task flows are wired, but full gate-level E2E/device evidence and final migration cleanup remain incomplete."
+    },
+    {
+      "id": "D",
+      "name": "Calendar + Prayer Times + Iranian Holidays",
+      "stage": 40,
+      "evidence": [
+        "docs/CALENDAR_OFFICIAL_IMPLEMENTATION_2026-08-14.md",
+        "lib/official_calendar_page.dart",
+        "lib/iranian_official_holiday_source.dart",
+        "test/iranian_official_holiday_source_test.dart",
+        "test/official_calendar_page_test.dart"
+      ],
+      "note": "Calendar and official-holiday implementation evidence exists, while the verified prayer-times provider remains an active gap."
+    },
+    {
+      "id": "E",
+      "name": "Widget + Lock Screen validation",
+      "stage": 10,
+      "evidence": [
+        "docs/QUICK_FOLLOWUP_WIDGET_AUDIT_2026-08-15.md"
+      ],
+      "note": "A dedicated audit and product scope exist, but the shared native Widget foundation is not implemented on main."
+    },
+    {
+      "id": "F",
+      "name": "PDF + Print + IranSans",
+      "stage": 0,
+      "evidence": [],
+      "note": "No dedicated gate delivery evidence is credited yet."
+    },
+    {
+      "id": "G",
+      "name": "Reminder/Google Calendar + Backup/Dropbox",
+      "stage": 40,
+      "evidence": [
+        "lib/backup_service.dart",
+        "lib/dropbox_cloud_backup_provider.dart",
+        "lib/backup_page.dart",
+        "test/backup_service_test.dart",
+        "test/dropbox_cloud_backup_provider_test.dart"
+      ],
+      "note": "Backup/Dropbox foundations and tests exist, but the whole Gate G contract including Reminder/Google Calendar and full portability validation is incomplete."
+    },
+    {
+      "id": "H",
+      "name": "E2E + device release + APK evidence",
+      "stage": 40,
+      "evidence": [
+        ".github/workflows/build.yml",
+        ".github/workflows/parallel-wave.yml"
+      ],
+      "note": "Automated analyze/test/APK production exists, but complete real-device E2E coverage for all required product paths is not yet demonstrated."
+    }
+  ],
+  "reported_metrics": {
+    "total_percent": 35.0,
+    "gates_started": 7,
+    "gates_core_or_better": 5,
+    "gates_integrated_or_better": 2,
+    "gates_done": 0
+  }
+}

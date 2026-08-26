@@ -1,70 +1,134 @@
-# Arvin official progress metric
+# Arvin official progress metrics
 
 ## Purpose
-This document is the official denominator and scoring rule for percentage reports about the 19-feature Product Extension Roadmap.
+Arvin has one automated percentage system in GitHub with two deliberately separate numbers:
 
-A percentage is never derived from commit count, PR count, lines of code, number of branches, or elapsed time. It is derived only from the stage recorded for each of the 19 roadmap capabilities in `docs/progress_scorecard.json`.
+1. **Arvin TOTAL project completion** — the official percentage for the whole current Arvin delivery plan.
+2. **19-feature Product Extension progress** — the existing percentage for the extension roadmap only.
 
-## Stage ladder
-Each roadmap capability has exactly one stage score. A feature may advance only when the evidence for that stage exists in GitHub.
+These values must never be mixed. The whole-project number answers «کل آروین چند درصد پیش رفته؟». The extension number answers «از ۱۹ قابلیت Extension چند درصد جلو رفته‌ایم؟».
+
+No percentage is derived from commit count, PR count, lines of code, elapsed time, intuition, or chat estimates.
+
+---
+
+## 1. Official TOTAL Arvin percentage
+
+### Fixed denominator
+The whole-project denominator is the eight canonical delivery gates defined in `docs/PROJECT_ROADMAP_2026-08-14.md`:
+
+- Gate A — Unified Item + adapter/migration + regression
+- Gate B — Notebook UI + persistence
+- Gate C — Home + Search on canonical Item path
+- Gate D — Calendar + Prayer Times + Iranian Holidays
+- Gate E — Widget + Lock Screen validation
+- Gate F — PDF + Print + IranSans
+- Gate G — Reminder/Google Calendar + Backup/Dropbox
+- Gate H — E2E + device release + APK evidence
+
+The denominator is therefore **8 gates × 100 points = 800 points**.
+
+Each gate has equal fixed weight. There are no hidden effort weights and no manual weighting adjustments. Changing the denominator or gate list requires an explicit governance PR; it may not happen silently as part of ordinary feature work.
+
+### Stage ladder for every gate
+Each gate has exactly one cumulative stage:
 
 | Score | Required state |
 |---:|---|
-| 0 | No dedicated implementation evidence. Being named in the roadmap alone is not progress credit. |
-| 10 | Dedicated audit, issue, or acceptance scope exists beyond the omnibus roadmap. |
-| 25 | Architecture/domain contract for the target capability is accepted and documented. |
-| 40 | Core implementation exists with focused automated tests. A parser/service/projection with no real UI stops here. |
-| 55 | The canonical persistence/data path is wired end-to-end, or the feature explicitly requires no persistence and that boundary is verified. |
-| 70 | A real user-facing UI/UX is wired to the canonical implementation path. |
-| 85 | Regression/E2E coverage, exact-head CI, APK validation, and post-merge `main` validation are complete. |
-| 100 | The roadmap Definition of Done is complete, including status/handoff documentation, and the feature's delivery issue is closed as complete. |
+| 0 | No dedicated implementation evidence. |
+| 10 | Dedicated audit and acceptance scope exist. |
+| 25 | Architecture or delivery contract is accepted. |
+| 40 | Core implementation exists with focused automated evidence. |
+| 55 | The gate's canonical internal path is integrated end-to-end. |
+| 70 | The gate's real user-facing or operational path is wired. |
+| 85 | Regression/E2E, exact-head CI and applicable APK/device evidence are complete. |
+| 100 | The gate Definition of Done is complete, status/handoff is current, and no acceptance gap remains. |
 
-Stages are cumulative: a feature cannot claim 70 while missing a prerequisite stage. `N/A` does not create free points; it must be explicitly justified by the feature contract and verified by tests/CI where relevant.
+Stages are cumulative. A gate cannot claim a higher stage while a prerequisite stage is missing.
 
-## Official formulas
+### Formula
+`sum(gate.stage) / (8 × 100) × 100`
 
-### Overall extension progress
+The committed source of truth is `docs/project_completion_scorecard.json`.
+
+### Baseline — 2026-08-26
+Evidence-backed conservative baseline on main SHA `af817256e5b019f3b096199c29db88e5b87044e5`:
+
+- Gate A: 55
+- Gate B: 25
+- Gate C: 70
+- Gate D: 40
+- Gate E: 10
+- Gate F: 0
+- Gate G: 40
+- Gate H: 40
+
+Total: `280 / 800 = 35.0%`.
+
+This is a completion index against the committed eight-gate delivery plan. It is **not** a prediction of remaining calendar time or engineering effort.
+
+---
+
+## 2. Official 19-feature extension percentage
+
+The existing extension metric remains unchanged in meaning and is intentionally separate from the total project metric.
+
+Its denominator is the 19 capabilities in `docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md`. Each capability uses the same allowed stage values `{0,10,25,40,55,70,85,100}` with feature-specific delivery evidence.
+
+### Extension formula
 `sum(feature.stage) / (19 × 100) × 100`
 
-All 19 roadmap capabilities have equal denominator weight. Priority changes execution order, not percentage weight.
-
-### Wave X1 progress
-Wave X1 uses feature IDs `1, 2, 3, 6, 7, 10, 11, 17`.
+Wave X1 uses feature IDs `1, 2, 3, 6, 7, 10, 11, 17`:
 
 `sum(X1 feature stages) / (8 × 100) × 100`
 
-## Baseline on 2026-08-26
-The scorecard baseline is intentionally conservative:
+The committed source of truth is `docs/progress_scorecard.json`.
 
-- Next Action: 40 — core ranking + tests, no real UI.
-- Timeline: 40 — projection + tests, no full Timeline UI/history coverage.
-- Semantic Search: 25 — canonical SearchService path improved, but semantic behavior is not implemented.
-- Waiting for Response: 40 — canonical contract/core + tests, no Home filter/UI.
-- Quick Capture: 40 — parser/core + tests, no real capture UI entry point.
-- All remaining target capabilities: 0 unless dedicated evidence exists for that specific target capability.
+The extension metric must not be added to or averaged with the eight-gate total metric because many extension features reuse or sit inside the core gates; combining them would double-count the same engineering delivery.
 
-This yields:
-- overall roadmap progress: **9.7%**
-- Wave X1 progress: **23.1%**
-- fully Done roadmap capabilities: **0 / 19**
+---
 
-## Anti-inflation rules
-1. A foundation used by a future capability is not automatically credited as that capability.
-2. A core service or parser is not a completed product feature without user-facing wiring when the roadmap calls for a user-facing capability.
-3. CI success proves the submitted slice works; it does not by itself promote a feature to 100.
-4. Existing Backup, Calendar, FollowUp, Search, or Task foundations are credited only when the target roadmap capability has dedicated evidence.
-5. A score increase requires evidence references in `docs/progress_scorecard.json`.
-6. A score decrease is allowed if later audit shows a claimed stage was premature.
+## Evidence rules
+A score increase requires committed GitHub evidence appropriate to the stage. Evidence may include code paths, tests, feature/architecture documents, PRs, exact-head CI, APK artifacts, post-merge main validation, device/E2E evidence, or closed delivery issues.
+
+Rules:
+1. Progress credit requires evidence listed in the relevant scorecard entry.
+2. GitHub reality outranks narrative status documents if they disagree.
+3. CI evidence is valid only for the exact SHA/ref it tested.
+4. A service/parser/core implementation does not receive user-facing credit without real UI/operational wiring when the gate or feature requires it.
+5. Existing foundations are not automatically credited to a new feature merely because that feature may reuse them.
+6. A score may decrease if a later audit proves an earlier claim premature.
+7. A scorecard change must go through normal PR review and automation; do not edit a displayed percentage independently of its stage evidence.
+
+## Anti-dispute rule
+There is no separate conversational percentage. When asked for «درصد کل آروین», report `reported_metrics.total_percent` from `docs/project_completion_scorecard.json` on current `main` after validating it. When asked for the 19-feature roadmap, report `reported_metrics.overall_percent` from `docs/progress_scorecard.json`.
+
+If the scorecards and current repository evidence disagree, the scorecard is corrected through an evidence-backed PR before a new official percentage is claimed.
 
 ## Automation
-`tool/progress_score.py --check` validates:
+`tool/progress_score.py --check` validates both official scorecards:
+
+### Whole-project checks
+- exactly eight unique gate IDs A..H;
+- only allowed stage values;
+- progress credit must include evidence;
+- every gate must explain its current stage;
+- baseline SHA format;
+- fixed canonical roadmap path;
+- recomputed total percentage and gate counts must exactly match committed reported metrics.
+
+### Extension checks
 - exactly 19 unique roadmap IDs;
 - only allowed stage values;
-- the official formulas;
-- reported overall/Wave X1 percentages;
-- count metrics.
+- progress credit must include evidence;
+- Wave X1 membership is fixed;
+- recomputed overall/Wave X1 percentages and count metrics must exactly match committed reported metrics.
 
-`.github/workflows/progress-score.yml` runs this validator whenever the metric, scorecard, validator, or workflow changes.
+`.github/workflows/progress-score.yml` (`Arvin Progress Score`) runs the validator automatically whenever either scorecard, this metric contract, the validator, or its workflow changes.
 
-## Reporting rule
-When a user asks for a project percentage, report the score from the current `main` scorecard and state that it refers to the **19-feature Product Extension Roadmap**. Do not present it as a percentage of unknowable future work outside that denominator.
+## Reporting format
+For normal management reporting, use:
+
+`کل آروین: X% | Extension 19-feature: Y% | مدرک: scorecards + Arvin Progress Score`
+
+Do not present an unvalidated branch value as the official main percentage.
