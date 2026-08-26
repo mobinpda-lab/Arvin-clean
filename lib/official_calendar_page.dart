@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'calendar_official_reminders.dart';
 import 'calendar_page.dart';
 import 'iranian_official_holiday_source.dart';
+import 'iranian_prayer_time_source.dart';
 
 /// Loads official providers through [OfficialCalendarReminderService] and
 /// hands their existing [CalendarReminder] output to [CalendarPage].
@@ -25,7 +26,9 @@ class OfficialCalendarPage extends StatefulWidget {
 }
 
 /// Ready-to-use 1405 composition. The official document spans Gregorian
-/// years 2026 and 2027, so both service partitions are loaded.
+/// years 2026 and 2027, so both service partitions are loaded. Prayer Times
+/// use the existing official calendar provider boundary and do not create a
+/// second calendar source of truth.
 class IranianOfficialCalendarPage extends OfficialCalendarPage {
   const IranianOfficialCalendarPage({
     super.key,
@@ -35,6 +38,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
           service: const OfficialCalendarReminderService(
             <OfficialCalendarReminderSource>[
               IranianOfficialHolidaySource(),
+              IranianPrayerTimeSource(),
             ],
           ),
           years: const <int>[2026, 2027],
