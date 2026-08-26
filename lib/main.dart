@@ -5,6 +5,7 @@ import 'quick_capture_dialog.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
+import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'task_timeline_page.dart';
@@ -85,6 +86,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TaskMigrationReader migrationReader = TaskMigrationReader();
   final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
+  final TaskStore taskStore = TaskStore();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
@@ -410,9 +412,7 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      final fileName = await backupManager.backupTasks(
-        tasks.map((task) => task.toJson()).toList(),
-      );
+      final fileName = await backupManager.backupCanonicalTasks(_searchSource);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -434,23 +434,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _restoreFromFile() async {
     try {
-      final backup = await backupManager.restoreBackup();
-      if (backup == null) return;
+      final list = await backupManager.restoreCanonicalTasks();
+      if (list == null) return;
 
-      final rawTasks = backup['tasks'];
-      if (rawTasks is! List) {
-        throw const FormatException('فهرست کارهای پشتیبان نامعتبر است');
-      }
-
-      final list = rawTasks
-          .map((item) => ArvinTask.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ))
-          .toList();
-
-      final emergencyBackup = await backupManager.backupTasks(
-        tasks.map((task) => task.toJson()).toList(),
-      );
+      final emergencyBackup =
+          await backupManager.backupCanonicalTasks(_searchSource);
 
       if (!mounted) return;
       final approved = await showDialog<bool>(
@@ -459,7 +447,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text('بازیابی اطلاعات'),
           content: Text(
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n\n'
-            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری نیز ساخته شد.'}',
+            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
           ),
           actions: [
             TextButton(
@@ -475,11 +463,11 @@ class _HomePageState extends State<HomePage> {
       );
       if (approved != true) return;
 
-      setState(() => tasks = list);
-      await _save();
+      await taskStore.save(List<Task>.of(list));
+      await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${list.length} کار با موفقیت بازیابی شد')),
+          SnackBar(content: Text('${list.length} کار با همه جزئیات بازیابی شد')),
         );
       }
     } catch (error) {

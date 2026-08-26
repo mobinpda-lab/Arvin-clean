@@ -8,36 +8,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
-# Temporary branch-only concurrency split lets the self-cleaning push job run
-# alongside normal PR feedback. The job restores this workflow from main before
-# pushing the actual product commit, so this change never reaches main.
+# Fast Lane: Push + PR events for the same working branch share one concurrency
+# group, so stale validation is cancelled. This workflow provides fast PR
+# feedback; the canonical APK gate lives in Arvin Build when a PR is ready or
+# when an exact-SHA gate/** validation ref is moved to the PR head.
 concurrency:
-  group: arvin-parallel-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  one_off_wire_backup:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Wire Home to canonical backup and restore
-        run: python3 tool/one_off_wire_canonical_backup.py
-      - name: Commit wiring and restore canonical workflow
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm tool/one_off_wire_canonical_backup.py
-          git show origin/main:.github/workflows/parallel-wave.yml > .github/workflows/parallel-wave.yml
-          git add lib/main.dart .github/workflows/parallel-wave.yml
-          git commit -m "fix(backup): wire Home to canonical portability"
-          git push origin HEAD:${GITHUB_REF_NAME}
-
   quality:
     runs-on: ubuntu-latest
     steps:
