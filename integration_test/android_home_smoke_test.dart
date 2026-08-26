@@ -17,12 +17,30 @@ void main() {
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
 
-    expect(find.text('عنوان'), findsOneWidget);
-    final fields = find.byType(TextField);
-    expect(fields, findsNWidgets(3));
+    final titleField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == 'عنوان',
+      description: 'Task dialog title field',
+    );
+    final descriptionField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == 'توضیحات',
+      description: 'Task dialog description field',
+    );
+    final tagField = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.decoration?.labelText == 'تگ',
+      description: 'Task dialog tag field',
+    );
 
-    await tester.enterText(fields.at(0), 'تست واقعی اندروید');
-    await tester.enterText(fields.at(1), 'ثبت از مسیر Home روی Emulator');
+    expect(titleField, findsOneWidget);
+    expect(descriptionField, findsOneWidget);
+    expect(tagField, findsOneWidget);
+
+    await tester.enterText(titleField, 'تست واقعی اندروید');
+    await tester.enterText(
+      descriptionField,
+      'ثبت از مسیر Home روی Emulator',
+    );
     await tester.tap(find.text('ذخیره'));
     await tester.pumpAndSettle();
 
