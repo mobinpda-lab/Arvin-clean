@@ -21,6 +21,8 @@ If a lane is waiting for CI, an independent low-conflict lane should progress in
 6. **Score only earned evidence.** Progress percentages come only from `docs/progress_scorecard.json` and its validator. Core, persistence, UI, CI/APK, and final DoD are distinct stages.
 7. **Post-merge validation matters.** A product slice is not promoted in the scorecard until the merged `main` build validates the integrated result.
 8. **Documentation must reflect live reality.** Stale continuation/status documents must be updated when their old SHA, PR, or progress number would mislead the next session.
+9. **A green documentation PR can still be stale.** PR #182 had green Build/Parallel/Progress Score, but product `main` advanced while it was validating. Current-state/handoff documents therefore require a final live-GitHub freshness check before merge just like code requires exact-head validation. Green CI does not authorize merging stale operational facts.
+10. **Prefer one deliberate product restart over two half-deliveries.** If a missing integration is discovered before expensive CI has progressed, complete the same low-conflict slice once; if APK validation is already healthy and the missing integration can safely follow, preserve the head and deliver the next slice separately rather than repeatedly resetting CI.
 
 ## Production loop
 `Audit live GitHub → choose nearest real gap → separate independent lanes → implement → focused tests → documentation → exact-head CI/APK → Ready/Merge → post-merge Build → score/handoff update → next gap`
@@ -34,6 +36,8 @@ Documentation is updated in parallel when it records one of these useful facts:
 - progress evidence accepted by the official scorecard.
 
 Do not create a new document when an existing current document is the correct owner. Historical documents stay historical; current references must not carry stale claims.
+
+Before merging a documentation/current-state PR, re-read live `main`, open product PRs, post-merge Builds, and the official Scorecard. If product reality moved during CI, refresh the current-state/handoff content and rerun the documentation lane rather than merging stale facts.
 
 ## Reporting contract
 Hourly/user reports remain short and non-technical:
