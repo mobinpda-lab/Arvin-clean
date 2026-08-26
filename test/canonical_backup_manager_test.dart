@@ -91,6 +91,26 @@ void main() {
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
   });
 
+  test('canonical backup carries settings in the same document', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+
+    await manager.backupCanonicalTasks(
+      [_completeTask()],
+      settings: const <String, dynamic>{
+        'themeMode': 'dark',
+        'usePersianDate': true,
+        'fontFamily': 'Vazirmatn',
+      },
+    );
+
+    expect(service.writtenPayload?['settings'], {
+      'themeMode': 'dark',
+      'usePersianDate': true,
+      'fontFamily': 'Vazirmatn',
+    });
+  });
+
   test('canonical restore decodes the complete Task without mutating storage', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
@@ -112,6 +132,45 @@ void main() {
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('arvin.tasks'), isNull);
+  });
+
+  test('canonical restore candidate returns tasks and optional settings together', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'settings': <String, dynamic>{
+          'themeMode': 'light',
+          'usePersianDate': true,
+        },
+      };
+    final manager = ArvinBackupManager(service: service);
+
+    final candidate = await manager.restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.tasks.single.id, 'task-full');
+    expect(candidate.settings, {
+      'themeMode': 'light',
+      'usePersianDate': true,
+    });
+  });
+
+  test('legacy task-only restore candidate remains valid', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+      };
+    final manager = ArvinBackupManager(service: service);
+
+    final candidate = await manager.restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.tasks, hasLength(1));
+    expect(candidate.settings, isNull);
   });
 
   test('canonical restore rejects duplicate Task ids', () async {

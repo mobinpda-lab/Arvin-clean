@@ -371,14 +371,18 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      final fileName = await backupManager.backupCanonicalTasks(_searchSource);
+      final settings = await appSettingsService.load();
+      final fileName = await backupManager.backupCanonicalTasks(
+        _searchSource,
+        settings: appSettingsService.toPortableJson(settings),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             fileName == null
                 ? 'پشتیبان‌گیری انجام نشد'
-                : 'پشتیبان ذخیره شد: $fileName',
+                : 'پشتیبان کامل ذخیره شد: $fileName',
           ),
         ),
       );
@@ -393,11 +397,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _restoreFromFile() async {
     try {
-      final list = await backupManager.restoreCanonicalTasks();
-      if (list == null) return;
+      final candidate = await backupManager.restoreCanonicalBackup();
+      if (candidate == null) return;
 
-      final emergencyBackup =
-          await backupManager.backupCanonicalTasks(_searchSource);
+      final list = candidate.tasks;
+      final restoredSettings = candidate.settings == null
+          ? null
+          : appSettingsService.decodePortableJson(candidate.settings!);
+      final currentSettings = await appSettingsService.load();
+      final emergencyBackup = await backupManager.backupCanonicalTasks(
+        _searchSource,
+        settings: appSettingsService.toPortableJson(currentSettings),
+      );
 
       if (!mounted) return;
       final approved = await showDialog<bool>(
@@ -405,7 +416,8 @@ class _HomePageState extends State<HomePage> {
         builder: (dialogContext) => AlertDialog(
           title: const Text('بازیابی اطلاعات'),
           content: Text(
-            'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n\n'
+            'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
+            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n\n'
             '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
           ),
           actions: [
@@ -423,10 +435,20 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       await taskStore.save(List<Task>.of(list));
+      if (restoredSettings != null) {
+        await appSettingsService.saveSettings(restoredSettings);
+        if (mounted) {
+          widget.onSettingsChanged?.call(restoredSettings);
+        }
+      }
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${list.length} کار با همه جزئیات بازیابی شد')),
+          SnackBar(
+            content: Text(
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد',
+            ),
+          ),
         );
       }
     } catch (error) {
