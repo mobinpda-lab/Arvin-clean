@@ -110,6 +110,58 @@ void main() {
     expect(find.text('پیگیری برای «کار دوم» ثبت شد'), findsOneWidget);
   });
 
+  testWidgets('edits an existing follow-up without creating a duplicate',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't1',
+          'title': 'قرارداد مشتری',
+          'followUps': [
+            {
+              'id': 'f1',
+              'dateTime': '2026-08-25T10:00:00.000',
+              'note': 'تماس اولیه',
+              'result': 'منتظر پاسخ',
+              'nextFollowUp': null,
+            },
+          ],
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(home: FollowUpOfficePage()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('تماس اولیه'), findsOneWidget);
+    await tester.tap(find.byTooltip('ویرایش پیگیری'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FollowUpEntryPage), findsOneWidget);
+    expect(find.text('ویرایش پیگیری'), findsOneWidget);
+    expect(find.text('ذخیره تغییرات'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'تماس ویرایش‌شده');
+    await tester.enterText(find.byType(TextField).last, 'پاسخ نهایی');
+    await tester.tap(find.text('ذخیره تغییرات'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final task = Map<String, dynamic>.from(tasks.single as Map);
+    final followUps = task['followUps'] as List<dynamic>;
+    final saved = Map<String, dynamic>.from(followUps.single as Map);
+
+    expect(followUps, hasLength(1));
+    expect(saved['id'], 'f1');
+    expect(saved['note'], 'تماس ویرایش‌شده');
+    expect(saved['result'], 'پاسخ نهایی');
+    expect(find.text('تماس ویرایش‌شده'), findsOneWidget);
+    expect(find.text('پیگیری «قرارداد مشتری» ویرایش شد'), findsOneWidget);
+  });
+
   testWidgets('shows a retry message and keeps data unchanged on write error',
       (tester) async {
     SharedPreferences.setMockInitialValues({
