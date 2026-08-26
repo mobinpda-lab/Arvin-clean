@@ -25,4 +25,23 @@ void main() {
     expect(task.legacyHomeFollowUpDate, later);
     expect(task.lastFollowUpDate, later);
   });
+
+  test('latest follow-up is based on date rather than list order', () {
+    final earlier = DateTime(2026, 8, 25, 9);
+    final latest = DateTime(2026, 8, 29, 14, 30);
+    final middle = DateTime(2026, 8, 27, 11);
+    final task = Task(
+      id: 'unordered-history',
+      title: 'پیگیری نامرتب',
+      followUps: [
+        FollowUp(id: 'latest', dateTime: latest),
+        FollowUp(id: 'earlier', dateTime: earlier),
+        FollowUp(id: 'middle', dateTime: middle),
+      ],
+    );
+
+    expect(task.lastFollowUp?.id, 'latest');
+    expect(task.lastFollowUpDate, latest);
+    expect(task.legacyHomeFollowUpDate, latest);
+  });
 }

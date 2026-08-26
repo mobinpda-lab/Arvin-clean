@@ -161,7 +161,14 @@ class Task {
     );
   }
 
-  FollowUp? get lastFollowUp => followUps.isNotEmpty ? followUps.last : null;
+  FollowUp? get lastFollowUp {
+    if (followUps.isEmpty) return null;
+    return followUps.reduce(
+      (latest, candidate) => candidate.dateTime.isAfter(latest.dateTime)
+          ? candidate
+          : latest,
+    );
+  }
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 
