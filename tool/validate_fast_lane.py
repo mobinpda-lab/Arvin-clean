@@ -24,8 +24,14 @@ require(build, '- name: Android V2 audit', str(build_path))
 require(build, '- name: Build release APK', str(build_path))
 require(build, '- name: Build debug APK', str(build_path))
 
-require(parallel, "'feat/**'", str(parallel_path))
-require(parallel, "'test/**'", str(parallel_path))
+require(parallel, "'wave/**'", str(parallel_path))
+require(parallel, "'ci/**'", str(parallel_path))
+for forbidden_push_branch in ("'feat/**'", "'fix/**'", "'test/**'"):
+    if forbidden_push_branch in parallel:
+        raise SystemExit(
+            f'{parallel_path} must not validate normal PR branches twice: '
+            f'{forbidden_push_branch}'
+        )
 require(parallel, 'quality:', str(parallel_path))
 require(parallel, 'surface:', str(parallel_path))
 require(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
