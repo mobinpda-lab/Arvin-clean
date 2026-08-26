@@ -11,6 +11,7 @@ import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
+import 'theme/app_fonts.dart';
 import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 
@@ -57,13 +58,13 @@ class _ArvinAppState extends State<ArvinApp> {
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.light,
-        fontFamily: settings.fontFamily,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
-        fontFamily: settings.fontFamily,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
       ),
       themeMode: settings.themeMode,
       home: Directionality(

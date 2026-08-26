@@ -33,3 +33,8 @@ Home keeps its existing Gregorian display by default for migration safety. When 
 ## Parallel delivery
 
 The settings service, formatter, page and focused tests are prepared independently while Android Device Smoke #230 is validated. The final Home/MaterialApp wiring must be reconstructed on the latest `main` after #230 before merge.
+
+## Typography convergence
+- Vazirmatn bundled on `main` is the canonical public/default font.
+- `fontFamily == null` means use the Arvin default, not a second settings system.
+- Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.

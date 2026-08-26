@@ -108,7 +108,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     leading: const Icon(Icons.text_fields),
                     title: const Text('فونت'),
                     subtitle: const Text(
-                      'فعلاً از فونت پیش‌فرض برنامه استفاده می‌شود؛ فونت جدید بدون دارایی موجود اضافه نمی‌شود.',
+                      'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
                     ),
                   ),
                   ListTile(
