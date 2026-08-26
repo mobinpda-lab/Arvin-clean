@@ -1,10 +1,11 @@
 import 'package:arvin/main.dart';
+import 'package:arvin/models/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('creates a task with trimmed text and a unique tag', (tester) async {
-    ArvinTask? result;
+    Task? result;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -12,7 +13,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
-                result = await showDialog<ArvinTask>(
+                result = await showDialog<Task>(
                   context: context,
                   builder: (_) => const TaskDialog(),
                 );
@@ -44,13 +45,13 @@ void main() {
   });
 
   testWidgets('editing keeps the existing id and prefilled values', (tester) async {
-    final existing = ArvinTask(
+    final existing = Task(
       id: 'existing-id',
       title: 'کار موجود',
       description: 'توضیح موجود',
       tags: ['پیگیری'],
     );
-    ArvinTask? result;
+    Task? result;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -58,7 +59,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
-                result = await showDialog<ArvinTask>(
+                result = await showDialog<Task>(
                   context: context,
                   builder: (_) => TaskDialog(task: existing),
                 );
@@ -88,7 +89,7 @@ void main() {
   });
 
   testWidgets('cancel closes the dialog without returning a task', (tester) async {
-    ArvinTask? result;
+    Task? result;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -96,7 +97,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
-                result = await showDialog<ArvinTask>(
+                result = await showDialog<Task>(
                   context: context,
                   builder: (_) => const TaskDialog(),
                 );
