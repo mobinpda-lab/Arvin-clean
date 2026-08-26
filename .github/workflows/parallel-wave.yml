@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        area: [followup, calendar, backup, typography]
+        area: [followup, calendar, backup, typography, release]
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -64,6 +64,9 @@ jobs:
               ;;
             typography)
               tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print)
+              ;;
+            release)
+              tests=$(find test -type f \( -iname '*release*test.dart' -o -iname '*critical_path*test.dart' \) -print)
               ;;
             *)
               echo "Unknown surface: $ARVIN_SURFACE"
