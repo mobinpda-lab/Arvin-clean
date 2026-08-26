@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/task.dart';
 import 'services/task_next_action_service.dart';
+import 'task_report_page.dart';
 
 class TaskNextActionPage extends StatelessWidget {
   const TaskNextActionPage({
@@ -29,6 +30,14 @@ class TaskNextActionPage extends StatelessWidget {
     return '$date • $time';
   }
 
+  Future<void> _openReports(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskReportPage(tasks: tasks),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final suggestions = service.rank(
@@ -39,7 +48,17 @@ class TaskNextActionPage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('اقدام بعدی')),
+        appBar: AppBar(
+          title: const Text('اقدام بعدی'),
+          actions: [
+            IconButton(
+              key: const ValueKey('next-action-report'),
+              tooltip: 'PDF و چاپ',
+              onPressed: () => _openReports(context),
+              icon: const Icon(Icons.print_outlined),
+            ),
+          ],
+        ),
         body: suggestions.isEmpty
             ? const Center(child: Text('اقدام بازی برای پیشنهاد وجود ندارد'))
             : ListView.separated(
