@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
+import 'quick_capture_dialog.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
@@ -216,6 +217,32 @@ class _HomePageState extends State<HomePage> {
     if (task == null) return;
     setState(() => tasks.add(task));
     await _save();
+  }
+
+  Future<void> _quickCapture() async {
+    final captured = await showDialog<Task>(
+      context: context,
+      builder: (_) => const QuickCaptureDialog(),
+    );
+    if (captured == null) return;
+
+    try {
+      await migrationWriter.save([..._searchSource, captured]);
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
   }
 
   Future<void> _edit(ArvinTask old) async {
@@ -642,6 +669,11 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: loading || selectionMode ? null : _quickCapture,
+            tooltip: 'ثبت سریع',
+            icon: const Icon(Icons.bolt_outlined),
+          ),
           IconButton(
             onPressed: _backupMenu,
             tooltip: 'پشتیبان',
