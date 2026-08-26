@@ -266,6 +266,29 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
+  Future<bool> _confirmDeleteForever(ArvinTask task) async {
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حذف دائمی'),
+        content: Text(
+          '«${task.title}» برای همیشه حذف شود؟ این کار قابل بازگشت نیست.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('حذف برای همیشه'),
+          ),
+        ],
+      ),
+    );
+    return approved == true;
+  }
+
   Future<void> _deleteForever(ArvinTask task) async {
     setState(() => tasks.removeWhere((item) => item.id == task.id));
     await _save();
@@ -456,6 +479,8 @@ class _HomePageState extends State<HomePage> {
           : DismissDirection.endToStart,
       confirmDismiss: (_) async {
         if (task.trashed) {
+          final approved = await _confirmDeleteForever(task);
+          if (!approved) return false;
           await _deleteForever(task);
         } else {
           setState(() => task.trashed = true);
