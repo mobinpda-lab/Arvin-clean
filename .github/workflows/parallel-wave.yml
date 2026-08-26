@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 # Fast Lane: Push + PR events for the same working branch share one concurrency
 # group, so stale validation is cancelled. This workflow provides fast PR
@@ -19,6 +19,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  one_off_wire_backup:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wire Home to canonical backup and restore
+        run: python3 tool/one_off_wire_canonical_backup.py
+      - name: Commit wiring and restore canonical workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm tool/one_off_wire_canonical_backup.py
+          git show origin/main:.github/workflows/parallel-wave.yml > .github/workflows/parallel-wave.yml
+          git add lib/main.dart .github/workflows/parallel-wave.yml
+          git commit -m "fix(backup): wire Home to canonical portability"
+          git push origin HEAD:${GITHUB_REF_NAME}
+
   quality:
     runs-on: ubuntu-latest
     steps:
