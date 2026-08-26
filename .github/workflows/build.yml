@@ -2,7 +2,7 @@ name: Arvin Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'gate/**']
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -12,9 +12,10 @@ permissions:
   contents: read
 
 # Fast Lane: Draft PRs receive fast validation from Arvin Parallel Wave.
-# The full APK gate runs only for ready/non-draft PR heads, main pushes, or
-# manual dispatch. Main pushes use a unique run id so every merge keeps its own
-# post-merge build evidence.
+# The full APK gate runs only for ready/non-draft PR heads, main pushes,
+# explicit gate/** exact-SHA validation refs, or manual dispatch.
+# Main pushes use a unique run id so every merge keeps its own post-merge
+# build evidence.
 concurrency:
   group: arvin-build-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true

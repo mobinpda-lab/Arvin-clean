@@ -2,7 +2,7 @@ name: Arvin Parallel Wave
 
 on:
   push:
-    branches: ['wave/**', 'ci/**', 'fix/**']
+    branches: ['wave/**', 'ci/**', 'fix/**', 'feat/**', 'test/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -12,7 +12,8 @@ permissions:
 
 # Fast Lane: Push + PR events for the same working branch share one concurrency
 # group, so stale validation is cancelled. This workflow provides fast PR
-# feedback; the canonical APK gate lives in Arvin Build when a PR is ready.
+# feedback; the canonical APK gate lives in Arvin Build when a PR is ready or
+# when an exact-SHA gate/** validation ref is moved to the PR head.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
