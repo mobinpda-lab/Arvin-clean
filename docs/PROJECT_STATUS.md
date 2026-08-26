@@ -14,10 +14,11 @@ Last verified: 2026-08-26
 - PR #178 `feat(quick-capture): wire real Home capture and canonical persistence` is merged.
 - Exact PR head `816434cd8d767c35d931397f333de74759a0ddeb` passed `Arvin Build #608` and `Arvin Parallel Wave #428`.
 - Post-merge `Arvin Build #610` on exact main `ae3a34257fdee45623f2094aca6a1432a58a2d0b` completed successfully, including Analyze, Test, release APK, debug APK and verification/upload steps.
+- Issue #174 is closed as completed.
 
 ## قابلیت‌های Extension با شواهد رسمی
-- **Waiting for Response (#10): stage 85** — canonical contract + real FollowUp UI/filter + regression + exact-head CI/APK + post-merge validation are complete; final roadmap handoff/closure remains for 100.
-- **Quick Capture (#11): delivery complete** — canonical parser, Persian RTL Home entry, canonical persistence, focused/widget integration tests, exact-head CI/APK, post-merge main validation and delivery documentation are complete. Current-state/handoff documentation is being refreshed in the documentation lane so the official Scorecard may close it at stage 100.
+- **Waiting for Response (#10): stage 85** — canonical contract + real FollowUp UI/filter + regression + exact-head CI/APK + post-merge validation are complete; final roadmap DoD remains for 100.
+- **Quick Capture (#11): stage 85 earned** — canonical parser, Persian RTL Home entry, canonical persistence, focused/widget integration tests, exact-head CI/APK, post-merge main validation, delivery docs and Issue closure are complete. It is intentionally not credited as 100 because the Roadmap also requires the final global UI/typography DoD; current `MaterialApp` has RTL direction but no project font configured in `ThemeData`, and `pubspec.yaml` declares no custom font. The official Scorecard therefore stops at the evidence-backed stage 85.
 - **Next Action (#1): stage 40** — core service/tests; no final real UI yet.
 - **Timeline (#3): stage 40** — canonical projection/tests; full Timeline UI/history coverage remains.
 - **Semantic Search (#7): stage 25** — SearchService foundation strengthened; semantic behavior itself remains incomplete.
@@ -36,7 +37,7 @@ Last verified: 2026-08-26
 - PR #182 (Draft)
 - Branch: `docs/arvin-live-experience-loop`
 - Documentation-only and independent from product code.
-- Adds live execution experience lessons, strengthens continuation/hourly rules, refreshes current state/handoff and removes stale progress claims.
+- Adds live execution experience lessons, strengthens continuation/hourly rules, refreshes current state/handoff, records conservative Scorecard evidence and removes stale progress claims.
 - This lane must not block Product lanes.
 
 ## معماری و ضد دوباره‌کاری
@@ -53,13 +54,13 @@ Last verified: 2026-08-26
 When a lane waits for CI, unrelated low-conflict product/documentation work proceeds in parallel. Healthy APK validation must not be restarted by cosmetic or low-value commits.
 
 ## Definition of Done برای Extensionها
-A roadmap extension is Done only when applicable requirements, shared architecture compatibility, domain/application, persistence, real UI, RTL/Jalali/font requirements, regression/E2E tests, exact-head CI, APK validation, post-merge validation, `PROJECT_STATUS.md`, `AI_HANDOFF_CURRENT_FA.md` and feature Issue closure are complete.
+A roadmap extension is Done only when applicable requirements, shared architecture compatibility, domain/application, persistence, real UI, RTL/Jalali/font requirements, regression/E2E tests, exact-head CI, APK validation, post-merge validation, `PROJECT_STATUS.md`, `AI_HANDOFF_CURRENT_FA.md` and feature closure are complete.
 
 ## درصد رسمی
 Do not use historical estimated percentages from older status documents. The only current extension percentage is the value committed in `docs/progress_scorecard.json` and accepted by `Arvin Progress Score`. Any new percentage is reported only after the corresponding Scorecard change is validated and merged.
 
 ## قدم بعد اجرایی
-1. Close Quick Capture delivery/handoff and validate its Scorecard promotion.
+1. Validate the conservative Quick Capture Scorecard promotion to stage 85.
 2. Finish fresh exact-head CI for PR #181; if both gates are green, Ready + Merge + post-merge main Build.
 3. Continue FollowUp automatic integration only by reusing existing Reminder/Calendar/notification foundations after a live audit; no parallel storage/model is allowed.
 4. Keep experience/current-state documentation synchronized in a separate low-conflict lane.
