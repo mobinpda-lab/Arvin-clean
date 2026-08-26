@@ -2,35 +2,96 @@ import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'quick_capture_dialog.dart';
+import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
 import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
+import 'settings_page.dart';
+import 'theme/app_fonts.dart';
 import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 
 void main() => runApp(const ArvinApp());
 
-class ArvinApp extends StatelessWidget {
+class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
+
+  @override
+  State<ArvinApp> createState() => _ArvinAppState();
+}
+
+class _ArvinAppState extends State<ArvinApp> {
+  final AppSettingsService settingsService = AppSettingsService();
+  AppSettings settings = const AppSettings(
+    themeMode: ThemeMode.system,
+    usePersianDate: false,
+    fontFamily: null,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final value = await settingsService.load();
+    if (!mounted) return;
+    setState(() => settings = value);
+  }
+
+  void _updateSettings(AppSettings value) {
+    if (!mounted) return;
+    setState(() => settings = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'مدیریت کارها وپیگیری آروین',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
-      home: const Directionality(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
+      ),
+      themeMode: settings.themeMode,
+      home: Directionality(
         textDirection: TextDirection.rtl,
-        child: HomePage(),
+        child: HomePage(
+          settings: settings,
+          onSettingsChanged: _updateSettings,
+        ),
       ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({
+    super.key,
+    this.settings = const AppSettings(
+      themeMode: ThemeMode.system,
+      usePersianDate: false,
+      fontFamily: null,
+    ),
+    this.onSettingsChanged,
+  });
+
+  final AppSettings settings;
+  final ValueChanged<AppSettings>? onSettingsChanged;
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -40,7 +101,9 @@ class _HomePageState extends State<HomePage> {
   final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
   final TaskStore taskStore = TaskStore();
   final ArvinBackupManager backupManager = ArvinBackupManager();
+  final AppSettingsService appSettingsService = AppSettingsService();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
+  final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
@@ -141,8 +204,10 @@ class _HomePageState extends State<HomePage> {
     return result;
   }
 
-  String _date(DateTime date) =>
-      '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  String _date(DateTime date) => persianDateFormatter.format(
+        date,
+        usePersianDate: widget.settings.usePersianDate,
+      );
 
   Future<void> _add() async {
     final task = await showDialog<Task>(
@@ -426,6 +491,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openSettings(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsPage(
+          service: appSettingsService,
+          onSettingsChanged: (value) {
+            widget.onSettingsChanged?.call(value);
+          },
+          onOpenBackup: () {
+            Navigator.of(context).pop();
+            Future<void>.delayed(Duration.zero, _backupMenu);
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -570,6 +655,12 @@ class _HomePageState extends State<HomePage> {
                   leading: const Icon(Icons.delete_outline),
                   title: const Text('سطل زباله'),
                   onTap: () => _openFilter(drawerContext, 'سطل زباله'),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.settings_outlined),
+                  title: const Text('تنظیمات'),
+                  onTap: () => _openSettings(drawerContext),
                 ),
               ],
             ),
