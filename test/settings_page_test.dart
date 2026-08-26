@@ -29,7 +29,7 @@ void main() {
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
-    expect(find.textContaining('فونت پیش‌فرض'), findsOneWidget);
+    expect(find.textContaining('وزیرمتن فونت عمومی و پیش‌فرض آروین است'), findsOneWidget);
 
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
