@@ -2,7 +2,7 @@
   "schema_version": 1,
   "roadmap": "docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md",
   "baseline_date": "2026-08-26",
-  "baseline_main_sha": "4be29495711dbd6d5efa015eb8069231cdedd179",
+  "baseline_main_sha": "1f9585dbf8be3b269ee201337c0b011673e5c88b",
   "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
   "stage_meaning": {
     "0": "not started with dedicated evidence",
@@ -17,7 +17,7 @@
   "wave_x1_feature_ids": [1, 2, 3, 6, 7, 10, 11, 17],
   "features": [
     {"id": 1, "name": "Next Action هوشمند", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_NEXT_ACTION_2026-08-26.md", "PR #166"], "note": "Core ranking service is merged and tested; no user-facing UI yet."},
-    {"id": 2, "name": "FollowUp خودکار", "wave": "X1", "stage": 0, "evidence": [], "note": "Existing FollowUp foundation is not the automatic-follow-up feature itself."},
+    {"id": 2, "name": "FollowUp خودکار", "wave": "X1", "stage": 70, "evidence": ["docs/AUTOMATIC_FOLLOW_UP_CORE_2026-08-26.md", "docs/AUTOMATIC_FOLLOW_UP_DUE_OFFICE_2026-08-26.md", "Issue #180", "PR #181", "PR #183", "Arvin Build #614", "Arvin Build #619", "Arvin Parallel Wave #437", "Arvin Build #621"], "note": "Canonical latest-history due logic and focused tests are merged; real Follow-up Office due filter is wired to the existing FollowUp persistence path and exact-head/post-merge CI/APK are green. Credit is intentionally capped at stage 70 because the roadmap integration path requires Reminder/automatic triggering and no background scheduler/local-notification delivery is implemented yet."},
     {"id": 3, "name": "Timeline کامل هر موضوع", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_TASK_TIMELINE_2026-08-26.md", "PR #164"], "note": "Canonical projection and tests are merged; full Timeline UI/history coverage is not complete."},
     {"id": 4, "name": "Voice Capture فارسی", "wave": "X2", "stage": 0, "evidence": [], "note": "Roadmap item only; no dedicated feature delivery credited."},
     {"id": 5, "name": "دستیار هوشمند آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
@@ -37,10 +37,10 @@
     {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
   ],
   "reported_metrics": {
-    "overall_percent": 14.5,
-    "wave_x1_percent": 34.4,
-    "features_at_core_or_better": 4,
-    "features_started": 5,
+    "overall_percent": 18.2,
+    "wave_x1_percent": 43.1,
+    "features_at_core_or_better": 5,
+    "features_started": 6,
     "features_done": 0
   }
 }
