@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
 import 'models/follow_up.dart';
+import 'services/waiting_for_response_service.dart';
 
 class FollowUpOfficePage extends StatefulWidget {
   const FollowUpOfficePage({
@@ -21,9 +22,12 @@ class FollowUpOfficePage extends StatefulWidget {
 
 class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   static const _storeKey = 'arvin.tasks';
+  static const _waitingService = WaitingForResponseService();
+
   bool _loading = true;
   bool _saving = false;
   bool _showFutureOnly = false;
+  bool _showWaitingOnly = false;
   List<_TaskOption> _tasks = const [];
   List<_FollowUpRow> _rows = const [];
 
@@ -202,12 +206,35 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     return '${_digits(date)} • ساعت ${_digits(time)}';
   }
 
+  String _resultLabel(String? result) {
+    if (_waitingService.isWaitingResult(result)) return 'منتظر پاسخ';
+    return result?.trim() ?? '';
+  }
+
+  List<_FollowUpRow> get _waitingRows {
+    final latestByTask = <String, _FollowUpRow>{};
+    for (final row in _rows) {
+      if (row.taskId.isEmpty) continue;
+      final current = latestByTask[row.taskId];
+      if (current == null || row.dateTime.isAfter(current.dateTime)) {
+        latestByTask[row.taskId] = row;
+      }
+    }
+
+    final waiting = latestByTask.values
+        .where((row) => _waitingService.isWaitingResult(row.result))
+        .toList();
+    waiting.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    return waiting;
+  }
+
   List<_FollowUpRow> get _visibleRows {
-    if (!_showFutureOnly) return _rows;
-    final now = DateTime.now();
-    return _rows
-        .where((row) => row.dateTime.isAfter(now))
-        .toList(growable: false);
+    var rows = _showWaitingOnly ? _waitingRows : List<_FollowUpRow>.of(_rows);
+    if (_showFutureOnly) {
+      final now = DateTime.now();
+      rows = rows.where((row) => row.dateTime.isAfter(now)).toList();
+    }
+    return rows;
   }
 
   @override
@@ -217,6 +244,14 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
       appBar: AppBar(
         title: const Text('دفتر پیگیری'),
         actions: [
+          IconButton(
+            tooltip: _showWaitingOnly ? 'نمایش همه پیگیری‌ها' : 'فقط منتظر پاسخ',
+            onPressed: () =>
+                setState(() => _showWaitingOnly = !_showWaitingOnly),
+            icon: Icon(
+              _showWaitingOnly ? Icons.hourglass_top : Icons.hourglass_top_outlined,
+            ),
+          ),
           IconButton(
             tooltip: _showFutureOnly ? 'نمایش همه' : 'فقط پیگیری‌های آینده',
             onPressed: () =>
@@ -237,9 +272,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
           : rows.isEmpty
               ? Center(
                   child: Text(
-                    _showFutureOnly
-                        ? 'پیگیری آینده‌ای ثبت نشده است'
-                        : 'هنوز پیگیری‌ای ثبت نشده است',
+                    _showWaitingOnly
+                        ? 'موردی در انتظار پاسخ نیست'
+                        : _showFutureOnly
+                            ? 'پیگیری آینده‌ای ثبت نشده است'
+                            : 'هنوز پیگیری‌ای ثبت نشده است',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 )
@@ -249,6 +286,8 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (_, index) {
                     final row = rows[index];
+                    final resultLabel = _resultLabel(row.result);
+                    final waiting = _waitingService.isWaitingResult(row.result);
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(14),
@@ -267,6 +306,12 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                     ),
                                   ),
                                 ),
+                                if (waiting)
+                                  const Chip(
+                                    avatar: Icon(Icons.hourglass_top, size: 16),
+                                    label: Text('منتظر پاسخ'),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
                                 IconButton(
                                   tooltip: 'ویرایش پیگیری',
                                   onPressed: _saving || row.taskId.isEmpty
@@ -282,9 +327,9 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                               const SizedBox(height: 6),
                               Text(row.note),
                             ],
-                            if (row.result?.trim().isNotEmpty == true) ...[
+                            if (resultLabel.isNotEmpty && !waiting) ...[
                               const SizedBox(height: 6),
-                              Text('نتیجه: ${row.result}'),
+                              Text('نتیجه: $resultLabel'),
                             ],
                             if (row.nextFollowUp != null) ...[
                               const SizedBox(height: 8),

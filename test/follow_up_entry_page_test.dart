@@ -34,7 +34,10 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'تماس مجدد');
     await tester.enterText(find.byType(TextField).last, 'پاسخ دریافت شد');
-    await tester.tap(find.text('ذخیره پیگیری'));
+    final save = find.text('ذخیره پیگیری');
+    await tester.ensureVisible(save);
+    await tester.pump();
+    await tester.tap(save);
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
