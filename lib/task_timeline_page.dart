@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+
+import 'models/task.dart';
+import 'services/task_timeline_service.dart';
+
+class TaskTimelinePage extends StatelessWidget {
+  const TaskTimelinePage({
+    super.key,
+    required this.task,
+    this.service = const TaskTimelineService(),
+  });
+
+  final Task task;
+  final TaskTimelineService service;
+
+  String _digits(String value) {
+    const western = '0123456789';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    var result = value;
+    for (var i = 0; i < western.length; i++) {
+      result = result.replaceAll(western[i], persian[i]);
+    }
+    return result;
+  }
+
+  String _formatDateTime(DateTime value) {
+    final date =
+        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
+    final time =
+        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    return '${_digits(date)} • ${_digits(time)}';
+  }
+
+  String _label(TaskTimelineEntryKind kind) => switch (kind) {
+        TaskTimelineEntryKind.created => 'ایجاد کار',
+        TaskTimelineEntryKind.reminder => 'یادآور',
+        TaskTimelineEntryKind.followUp => 'پیگیری',
+        TaskTimelineEntryKind.updated => 'آخرین ویرایش',
+      };
+
+  IconData _icon(TaskTimelineEntryKind kind) => switch (kind) {
+        TaskTimelineEntryKind.created => Icons.add_task_outlined,
+        TaskTimelineEntryKind.reminder => Icons.notifications_none,
+        TaskTimelineEntryKind.followUp => Icons.history,
+        TaskTimelineEntryKind.updated => Icons.edit_outlined,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = service.build(task);
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('خط زمانی'),
+        ),
+        body: entries.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'هنوز رویدادی برای «${task.title}» ثبت نشده است',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: entries.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return Card(
+                    child: ListTile(
+                      leading: Icon(_icon(entry.kind)),
+                      title: Text(_label(entry.kind)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_formatDateTime(entry.dateTime)),
+                          if (entry.note.trim().isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(entry.note),
+                          ],
+                          if (entry.result?.trim().isNotEmpty == true) ...[
+                            const SizedBox(height: 4),
+                            Text('نتیجه: ${entry.result}'),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
