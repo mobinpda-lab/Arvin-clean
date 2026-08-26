@@ -2,6 +2,8 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'automatic_follow_up_background_runner.dart';
+import 'automatic_follow_up_platform_stub.dart'
+    if (dart.library.io) 'automatic_follow_up_platform_io.dart';
 import 'automatic_follow_up_scheduler_adapter.dart';
 import 'services/automatic_follow_up_alarm_planner.dart';
 import 'services/task_store.dart';
@@ -16,6 +18,10 @@ Future<void> arvinAutomaticFollowUpAlarmCallback() async {
 
 /// Reuses Arvin's existing Android AlarmManager foundation and keeps exactly
 /// one alarm: the nearest not-yet-delivered canonical FollowUp schedule.
+///
+/// Calls are intentionally no-op outside a real Android runtime. Conditional
+/// platform detection keeps Linux/widget tests and web compilation from
+/// invoking the Android plugin while production Android keeps the real alarm.
 class AndroidAutomaticFollowUpScheduler
     implements AutomaticFollowUpSchedulerAdapter {
   AndroidAutomaticFollowUpScheduler({
@@ -42,6 +48,8 @@ class AndroidAutomaticFollowUpScheduler
 
   @override
   Future<void> reschedule() async {
+    if (!supportsAutomaticFollowUpScheduling) return;
+
     await _ensureInitialized();
     await AndroidAlarmManager.cancel(automaticFollowUpAlarmId);
 
@@ -69,6 +77,8 @@ class AndroidAutomaticFollowUpScheduler
 
   @override
   Future<void> cancel() async {
+    if (!supportsAutomaticFollowUpScheduling) return;
+
     await _ensureInitialized();
     await AndroidAlarmManager.cancel(automaticFollowUpAlarmId);
   }

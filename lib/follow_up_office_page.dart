@@ -3,19 +3,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'android_automatic_follow_up_scheduler.dart';
 import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/automatic_follow_up_service.dart';
+import 'services/follow_up_write_coordinator.dart';
 import 'services/waiting_for_response_service.dart';
 
 class FollowUpOfficePage extends StatefulWidget {
   const FollowUpOfficePage({
     super.key,
     this.repository = const FollowUpRepository(),
+    this.writeCoordinator,
   });
 
   final FollowUpRepository repository;
+  final FollowUpWriteCoordinator? writeCoordinator;
 
   @override
   State<FollowUpOfficePage> createState() => _FollowUpOfficePageState();
@@ -26,6 +30,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   static const _waitingService = WaitingForResponseService();
   static const _automaticService = AutomaticFollowUpService();
 
+  late final FollowUpWriteCoordinator _writer;
   bool _loading = true;
   bool _saving = false;
   bool _showFutureOnly = false;
@@ -38,6 +43,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   @override
   void initState() {
     super.initState();
+    _writer = widget.writeCoordinator ??
+        FollowUpWriteCoordinator(
+          repository: widget.repository,
+          scheduler: AndroidAutomaticFollowUpScheduler(),
+        );
     _load();
   }
 
@@ -150,7 +160,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
 
     setState(() => _saving = true);
     try {
-      await widget.repository.add(task.id, followUp);
+      await _writer.add(task.id, followUp);
       await _load();
       if (mounted) {
         _showMessage('پیگیری برای «${task.title}» ثبت شد');
@@ -178,7 +188,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
 
     setState(() => _saving = true);
     try {
-      await widget.repository.update(row.taskId, updated);
+      await _writer.update(row.taskId, updated);
       await _load();
       if (mounted) {
         _showMessage('پیگیری «${row.taskTitle}» ویرایش شد');
