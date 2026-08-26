@@ -1,0 +1,65 @@
+name: Vendor Vazirmatn Once
+
+on:
+  push:
+    branches:
+      - chore/iransansx-font-integration
+    paths:
+      - '.github/workflows/vendor-vazirmatn-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/iransansx-font-integration
+          fetch-depth: 0
+
+      - name: Download and verify Vazirmatn UI Farsi Digits
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream_commit='6e553e33489a8f9dfaccc76860a2e3f3c1e66de7'
+          base="https://raw.githubusercontent.com/rastikerdar/vazirmatn/${upstream_commit}/misc/UI-Farsi-Digits/fonts/ttf"
+          dest='assets/fonts/vazirmatn'
+          mkdir -p "$dest"
+
+          curl --fail --location --silent --show-error "$base/Vazirmatn-UI-FD-Regular.ttf" -o "$dest/Vazirmatn-UI-FD-Regular.ttf"
+          curl --fail --location --silent --show-error "$base/Vazirmatn-UI-FD-Medium.ttf" -o "$dest/Vazirmatn-UI-FD-Medium.ttf"
+          curl --fail --location --silent --show-error "$base/Vazirmatn-UI-FD-SemiBold.ttf" -o "$dest/Vazirmatn-UI-FD-SemiBold.ttf"
+          curl --fail --location --silent --show-error "$base/Vazirmatn-UI-FD-Bold.ttf" -o "$dest/Vazirmatn-UI-FD-Bold.ttf"
+          curl --fail --location --silent --show-error "https://raw.githubusercontent.com/rastikerdar/vazirmatn/${upstream_commit}/OFL.txt" -o "$dest/OFL.txt"
+
+          verify_blob() {
+            local path="$1"
+            local expected="$2"
+            local actual
+            actual="$(git hash-object "$path")"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Blob verification failed for $path: expected $expected, got $actual" >&2
+              exit 1
+            fi
+          }
+
+          verify_blob "$dest/Vazirmatn-UI-FD-Regular.ttf" 'ecbd2d7d04480c758101a1b390904cfe20b39402'
+          verify_blob "$dest/Vazirmatn-UI-FD-Medium.ttf" '86baad59d7f9a5a103564a15f274654d88f97587'
+          verify_blob "$dest/Vazirmatn-UI-FD-SemiBold.ttf" '30b4f0387a0829a51a609b65b7d90a56472bc39e'
+          verify_blob "$dest/Vazirmatn-UI-FD-Bold.ttf" '0354ca3ef64080f1085608875ef2eccb7b6a8d89'
+          verify_blob "$dest/OFL.txt" 'be66b3824e9772e75141e631695c5256f105fb57'
+
+      - name: Commit verified font assets and remove bootstrap workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f assets/fonts/vazirmatn
+          git rm .github/workflows/vendor-vazirmatn-once.yml
+          git commit -m 'feat(ui): vendor verified Vazirmatn UI Farsi digits'
+          git push origin HEAD:chore/iransansx-font-integration
