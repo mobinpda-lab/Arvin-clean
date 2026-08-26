@@ -18,6 +18,7 @@ The single active operating authority is `docs/ARVIN_PROJECT_OPERATING_PACKAGE.m
 - Latest merged product PR: #178 Quick Capture UI + canonical persistence.
 - PR #178 exact head `816434cd8d767c35d931397f333de74759a0ddeb` passed Build #608 + Parallel Wave #428.
 - Post-merge Build #610 on exact main completed successfully, including Analyze/Test/release APK/debug APK verification.
+- Issue #174 is closed as completed.
 
 ## Current active product lane
 PR #181 — Automatic FollowUp core
@@ -32,7 +33,7 @@ PR #181 — Automatic FollowUp core
 PR #182 — `docs(operations): persist live Arvin execution experience loop`
 - Branch: `docs/arvin-live-experience-loop`
 - Documentation-only; must not block product work.
-- Records real execution lessons, updates hourly/continuation behavior, refreshes current state/status and removes stale progress claims.
+- Records real execution lessons, updates hourly/continuation behavior, refreshes current state/status, records conservative official progress and removes stale progress claims.
 
 ## Product/Foundation Invariants
 - Arvin is Persian RTL Flutter.
@@ -52,7 +53,7 @@ A workflow result is valid only for the exact ref it tested.
 ## Official Progress
 Use only `docs/progress_scorecard.json` + `Arvin Progress Score`. Historical estimates in older docs are not current truth. Feature stages are 0/10/25/40/55/70/85/100; do not invent per-feature percentages outside the Scorecard model.
 
-Quick Capture has now earned the technical/post-merge evidence required for final roadmap closure; the current documentation lane updates the required `PROJECT_STATUS.md` and this handoff so the Scorecard can promote it to stage 100 after Issue closure and validator approval.
+Quick Capture has earned stage 85: core/parser, canonical persistence, real Persian RTL UI, regression coverage, exact-head CI/APK and post-merge validation are complete. It is intentionally not promoted to stage 100 yet because the Roadmap final DoD includes the project font/typography requirement; current `MaterialApp` has no custom project font in `ThemeData` and `pubspec.yaml` declares no custom font. Closing Issue #174 does not override this remaining global DoD requirement.
 
 ## Experience Continuity
 Useful evidence-based lessons that prevent rework live in `docs/ARVIN_EXECUTION_EXPERIENCE_LOG.md`. It is subordinate to the canonical operating package and must help production rather than become a documentation gate.
