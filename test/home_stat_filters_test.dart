@@ -54,9 +54,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-stat-done')));
     await tester.pumpAndSettle();
 
-    final semantics = tester.getSemantics(
+    final semanticsWidget = tester.widget<Semantics>(
       find.byKey(const ValueKey('home-stat-done')),
     );
-    expect(semantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(semanticsWidget.properties.selected, isTrue);
+    expect(semanticsWidget.properties.button, isTrue);
   });
 }
