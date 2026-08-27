@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
   bool _firstRunGuideChecked = false;
   bool _interactiveGuideRunning = false;
   String query = '';
-  String filter = 'فعال';
+  String filter = 'کل';
 
   @override
   void initState() {
@@ -281,9 +281,22 @@ class _HomePageState extends State<HomePage> {
             .toSet()
         : null;
     final result = tasks.where((task) {
-      if (filter == 'فعال' && (task.archived || task.trashed)) return false;
+      if (filter == 'کل' && (task.archived || task.trashed)) return false;
+      if (filter == 'فعال' &&
+          (task.archived || task.trashed || task.completed)) {
+        return false;
+      }
+      if (filter == 'انجام‌شده' &&
+          (task.archived || task.trashed || !task.completed)) {
+        return false;
+      }
+      if (filter == 'عقب‌افتاده' &&
+          (task.archived || task.trashed || !_overdue(task))) {
+        return false;
+      }
       if (filter == 'بایگانی' && (!task.archived || task.trashed)) return false;
       if (filter == 'سطل زباله' && !task.trashed) return false;
+      if (filter == 'امروز' && (task.archived || task.trashed)) return false;
       if (todayIds != null && !todayIds.contains(task.id)) return false;
       if (matchingIds != null && !matchingIds.contains(task.id)) return false;
       return true;
@@ -386,6 +399,14 @@ class _HomePageState extends State<HomePage> {
 
   void _openFilter(BuildContext drawerContext, String nextFilter) {
     Navigator.pop(drawerContext);
+    setState(() {
+      filter = nextFilter;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  void _selectHomeStat(String nextFilter) {
     setState(() {
       filter = nextFilter;
       selected.clear();
@@ -816,11 +837,22 @@ class _HomePageState extends State<HomePage> {
           child: ChoiceChip(
             label: Text(item),
             selected: filter == item,
-            onSelected: (_) => setState(() => filter = item),
+            onSelected: (_) => _selectHomeStat(item),
           ),
         ),
       );
     }
+
+    final activeTasks = tasks
+        .where((task) => !task.archived && !task.trashed && !task.completed)
+        .length;
+    final allTasks = tasks.where((task) => !task.archived && !task.trashed).length;
+    final doneTasks = tasks
+        .where((task) => !task.archived && !task.trashed && task.completed)
+        .length;
+    final overdueTasks = tasks
+        .where((task) => !task.archived && !task.trashed && _overdue(task))
+        .length;
 
     return Scaffold(
       drawer: Drawer(
@@ -949,32 +981,41 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: _Stat(
                           'کل',
-                          tasks.where((t) => !t.trashed).length,
+                          allTasks,
                           Icons.list_alt,
+                          semanticKey: const ValueKey('home-stat-all'),
+                          selected: filter == 'کل',
+                          onTap: () => _selectHomeStat('کل'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'فعال',
-                          tasks
-                              .where((t) =>
-                                  !t.archived && !t.trashed && !t.completed)
-                              .length,
+                          activeTasks,
                           Icons.pending_actions,
+                          semanticKey: const ValueKey('home-stat-active'),
+                          selected: filter == 'فعال',
+                          onTap: () => _selectHomeStat('فعال'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'انجام‌شده',
-                          tasks.where((t) => t.completed && !t.trashed).length,
+                          doneTasks,
                           Icons.check_circle,
+                          semanticKey: const ValueKey('home-stat-done'),
+                          selected: filter == 'انجام‌شده',
+                          onTap: () => _selectHomeStat('انجام‌شده'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'عقب‌افتاده',
-                          tasks.where(_overdue).length,
+                          overdueTasks,
                           Icons.warning_amber,
+                          semanticKey: const ValueKey('home-stat-overdue'),
+                          selected: filter == 'عقب‌افتاده',
+                          onTap: () => _selectHomeStat('عقب‌افتاده'),
                         ),
                       ),
                     ],
@@ -990,7 +1031,11 @@ class _HomePageState extends State<HomePage> {
                                     ? 'بایگانی خالی است'
                                     : filter == 'امروز'
                                         ? 'کاری برای امروز وجود ندارد'
-                                        : 'کاری برای نمایش وجود ندارد',
+                                        : filter == 'انجام‌شده'
+                                            ? 'کار انجام‌شده‌ای وجود ندارد'
+                                            : filter == 'عقب‌افتاده'
+                                                ? 'کار عقب‌افتاده‌ای وجود ندارد'
+                                                : 'کاری برای نمایش وجود ندارد',
                           ),
                         )
                       : ListView.separated(
@@ -1037,22 +1082,60 @@ class _HomePageState extends State<HomePage> {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value, this.icon);
+  const _Stat(
+    this.label,
+    this.value,
+    this.icon, {
+    required this.semanticKey,
+    required this.selected,
+    required this.onTap,
+  });
+
   final String label;
   final int value;
   final IconData icon;
+  final Key semanticKey;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          children: [
-            Icon(icon, size: 20),
-            Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(fontSize: 10)),
-          ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Semantics(
+      key: semanticKey,
+      button: true,
+      selected: selected,
+      label: 'فیلتر $label، $value مورد',
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        color: selected ? colorScheme.secondaryContainer : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: selected
+              ? BorderSide(color: colorScheme.primary, width: 1.4)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: selected ? colorScheme.primary : null,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$value',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(label, style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          ),
         ),
       ),
     );
