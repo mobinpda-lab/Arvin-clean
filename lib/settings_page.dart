@@ -9,11 +9,13 @@ class SettingsPage extends StatefulWidget {
     required this.service,
     required this.onSettingsChanged,
     required this.onOpenBackup,
+    this.onStartInteractiveGuide,
   });
 
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
+  final VoidCallback? onStartInteractiveGuide;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -129,6 +131,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     trailing: const Icon(Icons.chevron_left),
                     onTap: _openUserGuide,
                   ),
+                  if (widget.onStartInteractiveGuide != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.slideshow_outlined),
+                      title: const Text('راهنمای تعاملی صفحه اصلی'),
+                      subtitle: const Text(
+                        'دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند',
+                      ),
+                      trailing: const Icon(Icons.play_arrow_rounded),
+                      onTap: widget.onStartInteractiveGuide,
+                    ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.backup_outlined),
