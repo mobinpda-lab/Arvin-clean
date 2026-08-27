@@ -11,11 +11,24 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Arvin starts with the final Persian title', (tester) async {
+  testWidgets('Arvin starts with the approved Bismillah above the Persian title',
+      (tester) async {
     await tester.pumpWidget(const ArvinApp());
 
-    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsOneWidget);
+    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
     expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
+
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    expect(appBar.centerTitle, isTrue);
+    final title = appBar.title! as Column;
+    expect(title.children, hasLength(3));
+    expect((title.children.first as Text).data, 'بسم الله الرحمن الرحیم');
+    expect(title.children[1], isA<SizedBox>());
+    expect(
+      (title.children[2] as Text).data,
+      'مدیریت کارها وپیگیری آروین',
+    );
   });
 
   testWidgets('HomePage exposes the current legacy workflow controls',
