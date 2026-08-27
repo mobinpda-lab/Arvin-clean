@@ -11,13 +11,14 @@ Close the People / Contacts stage-85 regression/E2E gap by exercising the existi
 
 1. Launch the real Arvin app.
 2. Create a canonical Task from Home.
-3. Open Calendar from the Home drawer.
+3. Open Calendar from the primary bottom navigation.
 4. Use More → Timeline for the created Task.
 5. Open the existing Task-facing People editor.
-6. Add one local Arvin-owned Person display name.
-7. Verify persistence through the existing TaskStore / `arvin.tasks` path.
-8. Cancel removal and verify zero mutation.
-9. Confirm removal and verify persistence while unrelated Task fields remain unchanged.
+6. Start an add, cancel it, and verify zero persisted mutation.
+7. Add one local Arvin-owned Person display name.
+8. Verify persistence through the existing TaskStore / `arvin.tasks` path.
+9. Start removal, cancel it, and verify zero persisted mutation.
+10. Confirm removal and verify persistence while unrelated Task fields remain unchanged.
 
 ## Guardrails
 
