@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'notebook_page.dart';
@@ -14,9 +15,10 @@ import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
-import 'theme/app_fonts.dart';
+import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_timeline_page.dart';
+import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
@@ -39,7 +41,7 @@ class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
-    usePersianDate: false,
+    usePersianDate: true,
     fontFamily: null,
   );
 
@@ -95,7 +97,7 @@ class HomePage extends StatefulWidget {
     super.key,
     this.settings = const AppSettings(
       themeMode: ThemeMode.system,
-      usePersianDate: false,
+      usePersianDate: true,
       fontFamily: null,
     ),
     this.onSettingsChanged,
@@ -124,16 +126,16 @@ class _HomePageState extends State<HomePage> {
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
+
   final GlobalKey _quickCaptureGuideKey =
       GlobalKey(debugLabel: 'home-guide-quick-capture');
-  final GlobalKey _backupGuideKey =
-      GlobalKey(debugLabel: 'home-guide-backup');
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
   final GlobalKey _filtersGuideKey =
       GlobalKey(debugLabel: 'home-guide-filters');
   final GlobalKey _newTaskGuideKey =
       GlobalKey(debugLabel: 'home-guide-new-task');
+
   List<Task> tasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
@@ -141,7 +143,7 @@ class _HomePageState extends State<HomePage> {
   bool _firstRunGuideChecked = false;
   bool _interactiveGuideRunning = false;
   String query = '';
-  String filter = 'فعال';
+  String filter = 'کل';
 
   @override
   void initState() {
@@ -177,9 +179,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => TaskTimelinePage(task: task),
-      ),
+      MaterialPageRoute<void>(builder: (_) => TaskTimelinePage(task: task)),
     );
     if (mounted) await _load();
   }
@@ -232,13 +232,6 @@ class _HomePageState extends State<HomePage> {
           icon: Icons.bolt_outlined,
         ),
         HomeGuideTarget(
-          key: _backupGuideKey,
-          title: 'پشتیبان‌گیری',
-          description:
-              'از اینجا پوشه پشتیبان را انتخاب می‌کنید، Backup می‌سازید یا اطلاعات قبلی را بازیابی می‌کنید.',
-          icon: Icons.backup_outlined,
-        ),
-        HomeGuideTarget(
           key: _searchGuideKey,
           title: 'جست‌وجو',
           description:
@@ -256,15 +249,13 @@ class _HomePageState extends State<HomePage> {
           key: _newTaskGuideKey,
           title: 'ساخت کار جدید',
           description:
-              'برای ثبت یک کار کامل با عنوان، توضیحات، برچسب و تاریخ پیگیری از این دکمه استفاده کنید.',
+              'برای ثبت یک کار کامل با عنوان، توضیحات، برچسب، تاریخ و ساعت پیگیری از این دکمه استفاده کنید.',
           icon: Icons.add_circle_outline,
         ),
       ],
     );
 
-    if (finished) {
-      await interactiveGuideService.markSeen();
-    }
+    if (finished) await interactiveGuideService.markSeen();
     _interactiveGuideRunning = false;
   }
 
@@ -275,10 +266,8 @@ class _HomePageState extends State<HomePage> {
   DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
 
   bool _overdue(Task task) {
-    final followUpDate = _homeFollowUpDate(task);
-    return followUpDate != null &&
-        !task.completed &&
-        followUpDate.isBefore(DateTime.now());
+    final date = _homeFollowUpDate(task);
+    return date != null && !task.completed && date.isBefore(DateTime.now());
   }
 
   List<Task> get visible {
@@ -286,15 +275,26 @@ class _HomePageState extends State<HomePage> {
         ? null
         : homeSearchProjection.matchingIds(_searchSource, query);
     final todayIds = filter == 'امروز'
-        ? homeTodayProjection
-            .select(_searchSource)
-            .map((task) => task.id)
-            .toSet()
+        ? homeTodayProjection.select(_searchSource).map((task) => task.id).toSet()
         : null;
+
     final result = tasks.where((task) {
-      if (filter == 'فعال' && (task.archived || task.trashed)) return false;
+      if (filter == 'کل' && (task.archived || task.trashed)) return false;
+      if (filter == 'فعال' &&
+          (task.archived || task.trashed || task.completed)) {
+        return false;
+      }
+      if (filter == 'انجام‌شده' &&
+          (task.archived || task.trashed || !task.completed)) {
+        return false;
+      }
+      if (filter == 'عقب‌افتاده' &&
+          (task.archived || task.trashed || !_overdue(task))) {
+        return false;
+      }
       if (filter == 'بایگانی' && (!task.archived || task.trashed)) return false;
       if (filter == 'سطل زباله' && !task.trashed) return false;
+      if (filter == 'امروز' && (task.archived || task.trashed)) return false;
       if (todayIds != null && !todayIds.contains(task.id)) return false;
       if (matchingIds != null && !matchingIds.contains(task.id)) return false;
       return true;
@@ -312,10 +312,14 @@ class _HomePageState extends State<HomePage> {
         usePersianDate: widget.settings.usePersianDate,
       );
 
+  String _time(DateTime date) => persianDateFormatter.toPersianDigits(
+        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
+      );
+
   Future<void> _add() async {
     final task = await showDialog<Task>(
       context: context,
-      builder: (_) => const TaskDialog(),
+      builder: (_) => const ArvinTaskEditorDialog(),
     );
     if (task == null) return;
     setState(() => tasks.add(task));
@@ -351,7 +355,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _edit(Task old) async {
     final edited = await showDialog<Task>(
       context: context,
-      builder: (_) => TaskDialog(task: old),
+      builder: (_) => ArvinTaskEditorDialog(task: old),
     );
     if (edited == null) return;
     setState(() {
@@ -397,6 +401,10 @@ class _HomePageState extends State<HomePage> {
 
   void _openFilter(BuildContext drawerContext, String nextFilter) {
     Navigator.pop(drawerContext);
+    _selectHomeStat(nextFilter);
+  }
+
+  void _selectHomeStat(String nextFilter) {
     setState(() {
       filter = nextFilter;
       selected.clear();
@@ -444,9 +452,7 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            uri == null
-                ? 'انتخاب پوشه لغو شد'
-                : 'پوشه پشتیبان با موفقیت انتخاب شد',
+            uri == null ? 'انتخاب پوشه لغو شد' : 'پوشه پشتیبان با موفقیت انتخاب شد',
           ),
         ),
       );
@@ -540,9 +546,7 @@ class _HomePageState extends State<HomePage> {
       await taskStore.save(List<Task>.of(list));
       if (restoredSettings != null) {
         await appSettingsService.saveSettings(restoredSettings);
-        if (mounted) {
-          widget.onSettingsChanged?.call(restoredSettings);
-        }
+        if (mounted) widget.onSettingsChanged?.call(restoredSettings);
       }
       await _load();
       if (mounted) {
@@ -566,40 +570,46 @@ class _HomePageState extends State<HomePage> {
   Future<void> _backupMenu() async {
     await showModalBottomSheet<void>(
       context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.folder_outlined),
-                title: const Text('انتخاب پوشه پشتیبان'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _chooseBackupDirectory();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.backup_outlined),
-                title: const Text('ایجاد Backup'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _backupToFolder();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.restore),
-                title: const Text('Restore از فایل'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _restoreFromFile();
-                },
-              ),
-            ],
-          ),
-        );
-      },
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('انتخاب پوشه پشتیبان'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _chooseBackupDirectory();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.backup_outlined),
+              title: const Text('ایجاد Backup'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _backupToFolder();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: const Text('Restore از فایل'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _restoreFromFile();
+              },
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _openBackup(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    await _backupMenu();
   }
 
   Future<void> _openPrimaryCalendar() async {
@@ -686,9 +696,7 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => SettingsPage(
           service: appSettingsService,
-          onSettingsChanged: (value) {
-            widget.onSettingsChanged?.call(value);
-          },
+          onSettingsChanged: (value) => widget.onSettingsChanged?.call(value),
           onOpenBackup: () {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
@@ -714,11 +722,15 @@ class _HomePageState extends State<HomePage> {
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.82,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
             children: [
               ListTile(
                 leading: const Icon(Icons.today_outlined),
@@ -761,27 +773,15 @@ class _HomePageState extends State<HomePage> {
     switch (action) {
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
-        setState(() {
-          filter = 'امروز';
-          selected.clear();
-          selectionMode = false;
-        });
+        _selectHomeStat('امروز');
         return;
       case _HomeMoreAction.archive:
         Navigator.of(context).popUntil((route) => route.isFirst);
-        setState(() {
-          filter = 'بایگانی';
-          selected.clear();
-          selectionMode = false;
-        });
+        _selectHomeStat('بایگانی');
         return;
       case _HomeMoreAction.trash:
         Navigator.of(context).popUntil((route) => route.isFirst);
-        setState(() {
-          filter = 'سطل زباله';
-          selected.clear();
-          selectionMode = false;
-        });
+        _selectHomeStat('سطل زباله');
         return;
       case _HomeMoreAction.backup:
         await _backupMenu();
@@ -833,31 +833,87 @@ class _HomePageState extends State<HomePage> {
     _showAbout();
   }
 
+  TaskSwipeAction _actionForSwipe(DismissDirection direction) {
+    return switch (direction) {
+      DismissDirection.endToStart => widget.settings.swipeRightAction,
+      DismissDirection.startToEnd => widget.settings.swipeLeftAction,
+      _ => TaskSwipeAction.none,
+    };
+  }
+
+  Future<bool> _applySwipe(Task task, DismissDirection direction) async {
+    if (task.trashed) {
+      if (direction != DismissDirection.endToStart) return false;
+      final approved = await _confirmDeleteForever(task);
+      if (!approved) return false;
+      await _deleteForever(task);
+      return true;
+    }
+
+    final action = _actionForSwipe(direction);
+    switch (action) {
+      case TaskSwipeAction.archive:
+        if (task.archived) return false;
+        setState(() {
+          task.archived = true;
+          task.trashed = false;
+        });
+        await _save();
+        return true;
+      case TaskSwipeAction.trash:
+        setState(() {
+          task.trashed = true;
+          task.archived = false;
+        });
+        await _save();
+        return true;
+      case TaskSwipeAction.none:
+        return false;
+    }
+  }
+
+  Widget _swipeBackground(TaskSwipeAction action) {
+    final colors = Theme.of(context).colorScheme;
+    final icon = switch (action) {
+      TaskSwipeAction.archive => Icons.archive_outlined,
+      TaskSwipeAction.trash => Icons.delete_outline,
+      TaskSwipeAction.none => Icons.block,
+    };
+    final label = switch (action) {
+      TaskSwipeAction.archive => 'بایگانی',
+      TaskSwipeAction.trash => 'سطل زباله',
+      TaskSwipeAction.none => 'بدون عمل',
+    };
+    return Container(
+      color: action == TaskSwipeAction.trash
+          ? colors.errorContainer
+          : colors.secondaryContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
+
     return Dismissible(
       key: ValueKey(task.id),
-      direction: selectionMode
-          ? DismissDirection.none
-          : DismissDirection.endToStart,
-      confirmDismiss: (_) async {
-        if (task.trashed) {
-          final approved = await _confirmDeleteForever(task);
-          if (!approved) return false;
-          await _deleteForever(task);
-        } else {
-          setState(() => task.trashed = true);
-          await _save();
-        }
-        return true;
-      },
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: const Icon(Icons.delete_outline),
-      ),
+      direction: selectionMode ? DismissDirection.none : DismissDirection.horizontal,
+      confirmDismiss: (direction) => _applySwipe(task, direction),
+      background: task.trashed
+          ? _swipeBackground(TaskSwipeAction.none)
+          : _swipeBackground(widget.settings.swipeLeftAction),
+      secondaryBackground: task.trashed
+          ? _swipeBackground(TaskSwipeAction.trash)
+          : _swipeBackground(widget.settings.swipeRightAction),
       child: Card(
         child: ListTile(
           onLongPress: () => setState(() {
@@ -908,16 +964,18 @@ class _HomePageState extends State<HomePage> {
               if (task.tags.isNotEmpty)
                 Wrap(
                   spacing: 4,
-                  children: task.tags.map<Widget>((tag) {
-                    return Chip(
-                      label: Text(tag),
-                      visualDensity: VisualDensity.compact,
-                    );
-                  }).toList(),
+                  children: task.tags
+                      .map(
+                        (tag) => Chip(
+                          label: Text(tag),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      )
+                      .toList(),
                 ),
               if (followUpDate != null)
                 Text(
-                  'پیگیری: ${_date(followUpDate)}${late ? '  •  عقب‌افتاده' : ''}',
+                  'پیگیری: ${_date(followUpDate)} • ساعت ${_time(followUpDate)}${late ? '  •  عقب‌افتاده' : ''}',
                 ),
               if (task.trashed || task.archived)
                 TextButton(
@@ -941,11 +999,22 @@ class _HomePageState extends State<HomePage> {
           child: ChoiceChip(
             label: Text(item),
             selected: filter == item,
-            onSelected: (_) => setState(() => filter = item),
+            onSelected: (_) => _selectHomeStat(item),
           ),
         ),
       );
     }
+
+    final activeTasks = tasks
+        .where((task) => !task.archived && !task.trashed && !task.completed)
+        .length;
+    final allTasks = tasks.where((task) => !task.archived && !task.trashed).length;
+    final doneTasks = tasks
+        .where((task) => !task.archived && !task.trashed && task.completed)
+        .length;
+    final overdueTasks = tasks
+        .where((task) => !task.archived && !task.trashed && _overdue(task))
+        .length;
 
     return Scaffold(
       drawer: Drawer(
@@ -985,6 +1054,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Divider(),
                 ListTile(
+                  key: const ValueKey('drawer-backup'),
+                  leading: const Icon(Icons.backup_outlined),
+                  title: const Text('پشتیبان‌گیری و بازیابی'),
+                  onTap: () => _openBackup(drawerContext),
+                ),
+                ListTile(
                   leading: const Icon(Icons.settings_outlined),
                   title: const Text('تنظیمات'),
                   onTap: () => _openSettings(drawerContext),
@@ -1001,19 +1076,25 @@ class _HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        title: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'بسم الله الرحمن الرحیم',
-              style: TextStyle(fontSize: 13),
-            ),
-            SizedBox(height: 3),
-            Text(
-              'مدیریت کارها وپیگیری آروین',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-          ],
+        toolbarHeight: 78,
+        title: const Padding(
+          key: ValueKey('home-title-block'),
+          padding: EdgeInsets.only(top: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'بسم الله الرحمن الرحیم',
+                key: ValueKey('home-bismillah'),
+                style: TextStyle(fontSize: 13),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'مدیریت کارها و پیگیری آروین',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -1021,12 +1102,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: loading || selectionMode ? null : _quickCapture,
             tooltip: 'ثبت سریع',
             icon: const Icon(Icons.bolt_outlined),
-          ),
-          IconButton(
-            key: _backupGuideKey,
-            onPressed: _backupMenu,
-            tooltip: 'پشتیبان',
-            icon: const Icon(Icons.backup_outlined),
           ),
           IconButton(
             onPressed: () => setState(() {
@@ -1068,32 +1143,41 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: _Stat(
                           'کل',
-                          tasks.where((t) => !t.trashed).length,
+                          allTasks,
                           Icons.list_alt,
+                          semanticKey: const ValueKey('home-stat-all'),
+                          selected: filter == 'کل',
+                          onTap: () => _selectHomeStat('کل'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'فعال',
-                          tasks
-                              .where((t) =>
-                                  !t.archived && !t.trashed && !t.completed)
-                              .length,
+                          activeTasks,
                           Icons.pending_actions,
+                          semanticKey: const ValueKey('home-stat-active'),
+                          selected: filter == 'فعال',
+                          onTap: () => _selectHomeStat('فعال'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'انجام‌شده',
-                          tasks.where((t) => t.completed && !t.trashed).length,
+                          doneTasks,
                           Icons.check_circle,
+                          semanticKey: const ValueKey('home-stat-done'),
+                          selected: filter == 'انجام‌شده',
+                          onTap: () => _selectHomeStat('انجام‌شده'),
                         ),
                       ),
                       Expanded(
                         child: _Stat(
                           'عقب‌افتاده',
-                          tasks.where(_overdue).length,
+                          overdueTasks,
                           Icons.warning_amber,
+                          semanticKey: const ValueKey('home-stat-overdue'),
+                          selected: filter == 'عقب‌افتاده',
+                          onTap: () => _selectHomeStat('عقب‌افتاده'),
                         ),
                       ),
                     ],
@@ -1109,7 +1193,11 @@ class _HomePageState extends State<HomePage> {
                                     ? 'بایگانی خالی است'
                                     : filter == 'امروز'
                                         ? 'کاری برای امروز وجود ندارد'
-                                        : 'کاری برای نمایش وجود ندارد',
+                                        : filter == 'انجام‌شده'
+                                            ? 'کار انجام‌شده‌ای وجود ندارد'
+                                            : filter == 'عقب‌افتاده'
+                                                ? 'کار عقب‌افتاده‌ای وجود ندارد'
+                                                : 'کاری برای نمایش وجود ندارد',
                           ),
                         )
                       : ListView.separated(
@@ -1168,167 +1256,70 @@ enum _HomeMoreAction {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value, this.icon);
+  const _Stat(
+    this.label,
+    this.value,
+    this.icon, {
+    required this.semanticKey,
+    required this.selected,
+    required this.onTap,
+  });
+
   final String label;
   final int value;
   final IconData icon;
+  final Key semanticKey;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          children: [
-            Icon(icon, size: 20),
-            Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(fontSize: 10)),
-          ],
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      key: semanticKey,
+      button: true,
+      selected: selected,
+      label: 'فیلتر $label، $value مورد',
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        color: selected ? colors.secondaryContainer : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: selected
+              ? BorderSide(color: colors.primary, width: 1.4)
+              : BorderSide.none,
         ),
-      ),
-    );
-  }
-}
-
-class TaskDialog extends StatefulWidget {
-  const TaskDialog({super.key, this.task});
-  final Task? task;
-  @override
-  State<TaskDialog> createState() => _TaskDialogState();
-}
-
-class _TaskDialogState extends State<TaskDialog> {
-  late final TextEditingController title;
-  late final TextEditingController desc;
-  late final TextEditingController tag;
-  DateTime? followUpDate;
-  late List<String> tags;
-
-  @override
-  void initState() {
-    super.initState();
-    final task = widget.task;
-    title = TextEditingController(text: task?.title ?? '');
-    desc = TextEditingController(text: task?.description ?? '');
-    tag = TextEditingController();
-    followUpDate = task?.legacyHomeFollowUpDate;
-    tags = List<String>.of(task?.tags ?? const []);
-  }
-
-  @override
-  void dispose() {
-    title.dispose();
-    desc.dispose();
-    tag.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: followUpDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: 'انتخاب تاریخ پیگیری',
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-    );
-    if (date != null) setState(() => followUpDate = date);
-  }
-
-  void _addTag() {
-    final value = tag.text.trim();
-    if (value.isEmpty || tags.contains(value)) return;
-    setState(() {
-      tags.add(value);
-      tag.clear();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.task == null ? 'کار جدید' : 'ویرایش کار'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: title,
-              decoration: const InputDecoration(labelText: 'عنوان'),
-            ),
-            TextField(
-              controller: desc,
-              maxLines: 4,
-              decoration: const InputDecoration(labelText: 'توضیحات'),
-            ),
-            Row(
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: tag,
-                    decoration: const InputDecoration(labelText: 'تگ'),
-                    onSubmitted: (_) => _addTag(),
-                  ),
+                Icon(
+                  icon,
+                  size: 20,
+                  color: selected ? colors.primary : null,
                 ),
-                IconButton(onPressed: _addTag, icon: const Icon(Icons.add)),
+                const SizedBox(height: 2),
+                Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(label, style: const TextStyle(fontSize: 10)),
               ],
             ),
-            if (tags.isNotEmpty)
-              Wrap(
-                spacing: 4,
-                children: tags
-                    .map((item) => InputChip(
-                          label: Text(item),
-                          onDeleted: () => setState(() => tags.remove(item)),
-                        ))
-                    .toList(),
-              ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event),
-              title: Text(
-                followUpDate == null
-                    ? 'بدون تاریخ پیگیری'
-                    : 'پیگیری: ${_dateText(followUpDate!)}',
-              ),
-              onTap: _pickDate,
-            ),
-          ],
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('لغو'),
-        ),
-        FilledButton(
-          onPressed: () {
-            final now = DateTime.now();
-            final id =
-                widget.task?.id ?? now.microsecondsSinceEpoch.toString();
-            Navigator.pop(
-              context,
-              Task(
-                id: id,
-                title: title.text.trim().isEmpty
-                    ? 'بدون عنوان'
-                    : title.text.trim(),
-                description: desc.text.trim(),
-                followUpEnabled: followUpDate != null,
-                followUpDate: followUpDate,
-                tags: List<String>.of(tags),
-                createdAt: widget.task?.createdAt ?? now,
-                updatedAt: now,
-              ),
-            );
-          },
-          child: const Text('ذخیره'),
-        ),
-      ],
     );
   }
 }
 
-String _dateText(DateTime date) =>
-    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+/// Backward-compatible public entry retained for existing callers/tests.
+/// The live implementation is the Home-aligned Arvin task editor.
+class TaskDialog extends StatelessWidget {
+  const TaskDialog({super.key, this.task});
+
+  final Task? task;
+
+  @override
+  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
+}

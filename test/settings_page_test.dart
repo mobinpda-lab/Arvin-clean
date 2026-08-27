@@ -11,7 +11,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('settings persists theme/date and reuses backup entry', (tester) async {
+  testWidgets('settings exposes date, swipe and canonical backup controls',
+      (tester) async {
     final service = AppSettingsService();
     AppSettings? changed;
     var backupOpened = false;
@@ -29,7 +30,10 @@ void main() {
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
-    expect(find.textContaining('وزیرمتن فونت عمومی و پیش‌فرض آروین است'), findsOneWidget);
+    expect((await service.load()).usePersianDate, isTrue);
+    expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
+    expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
 
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
@@ -38,9 +42,18 @@ void main() {
 
     await tester.tap(find.text('نمایش تاریخ فارسی'));
     await tester.pumpAndSettle();
-    expect((await service.load()).usePersianDate, isTrue);
-    expect(changed?.usePersianDate, isTrue);
+    expect((await service.load()).usePersianDate, isFalse);
+    expect(changed?.usePersianDate, isFalse);
 
+    await tester.scrollUntilVisible(
+      find.text('پشتیبان‌گیری و بازیابی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('وزیرمتن فونت عمومی و پیش‌فرض آروین است'),
+        findsOneWidget);
     await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
     expect(backupOpened, isTrue);
