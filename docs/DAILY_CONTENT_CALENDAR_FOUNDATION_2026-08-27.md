@@ -70,3 +70,8 @@ Daily Content نباید به `CalendarReminder` معمولی تبدیل شود�
 - repository Build/Parallel green روی exact head
 - بدون regression در Calendar foundation
 - بدون merge مستقیم به main؛ فقط PR reviewable
+
+## CI Ready Checkpoint
+- PR #261 ابتدا Draft باز شد و Parallel Wave روی head اولیه سبز شد.
+- PR سپس فقط برای اجرای gate کامل به Ready منتقل شد؛ merge خودکار یا مستقیم فعال نشده است.
+- این commit مستندی عمداً رفتار production را تغییر نمی‌دهد و رویداد synchronize ایجاد می‌کند تا Build/Parallel روی exact head جدید قابل ارزیابی باشد.
