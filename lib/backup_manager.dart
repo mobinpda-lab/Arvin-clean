@@ -44,6 +44,7 @@ class ArvinBackupManager {
   Future<String?> backupTasks(
     List<Map<String, dynamic>> tasks, {
     Map<String, dynamic>? settings,
+    String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
     if (directory == null || directory.isEmpty) return null;
@@ -56,6 +57,7 @@ class ArvinBackupManager {
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
       },
       fileName: fileName,
+      encryptionPassphrase: encryptionPassphrase,
     );
     return fileName;
   }
@@ -66,20 +68,25 @@ class ArvinBackupManager {
   Future<String?> backupCanonicalTasks(
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
+    String? encryptionPassphrase,
   }) {
     return backupTasks(
       tasks.map((task) => task.toJson()).toList(growable: false),
       settings: settings,
+      encryptionPassphrase: encryptionPassphrase,
     );
   }
 
-  Future<Map<String, dynamic>?> restoreBackup() => service.readBackup();
+  Future<Map<String, dynamic>?> restoreBackup({String? passphrase}) =>
+      service.readBackup(passphrase: passphrase);
 
   /// Decodes one portable backup selection into a candidate without mutating
   /// local storage. The same read yields both canonical tasks and optional
   /// settings so the UI can validate and confirm the complete restore once.
-  Future<CanonicalBackupCandidate?> restoreCanonicalBackup() async {
-    final document = await restoreBackup();
+  Future<CanonicalBackupCandidate?> restoreCanonicalBackup({
+    String? passphrase,
+  }) async {
+    final document = await restoreBackup(passphrase: passphrase);
     if (document == null) return null;
 
     final tasks = _decodeCanonicalTasks(document);
@@ -97,8 +104,8 @@ class ArvinBackupManager {
   }
 
   /// Compatibility helper for callers that only need tasks.
-  Future<List<Task>?> restoreCanonicalTasks() async {
-    final candidate = await restoreCanonicalBackup();
+  Future<List<Task>?> restoreCanonicalTasks({String? passphrase}) async {
+    final candidate = await restoreCanonicalBackup(passphrase: passphrase);
     return candidate?.tasks;
   }
 
