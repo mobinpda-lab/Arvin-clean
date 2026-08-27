@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../android_automatic_follow_up_scheduler.dart';
 import '../calendar_page.dart';
+import '../follow_up_repository.dart';
 import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
+import '../services/calendar_reschedule_apply_service.dart';
 import '../services/calendar_rescheduling_advisor.dart';
 import '../services/follow_up_calendar_projection.dart';
+import '../services/follow_up_write_coordinator.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
 import '../task_timeline_page.dart';
@@ -13,17 +17,36 @@ import 'contextual_help.dart';
 
 /// Small UI boundary that keeps Home unaware of calendar/timeline/next-action
 /// projection details while reusing canonical Tasks supplied by Home.
-class CanonicalCalendarLauncher extends StatelessWidget {
+class CanonicalCalendarLauncher extends StatefulWidget {
   const CanonicalCalendarLauncher({
     super.key,
     required this.tasks,
     this.projection = const FollowUpCalendarProjection(),
     this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
+    this.rescheduleApplyService,
   });
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
   final CalendarReschedulingAdvisor reschedulingAdvisor;
+  final CalendarRescheduleApplyService? rescheduleApplyService;
+
+  @override
+  State<CanonicalCalendarLauncher> createState() =>
+      _CanonicalCalendarLauncherState();
+}
+
+class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
+  late final List<Task> _tasks;
+
+  CalendarRescheduleApplyService get _applyService =>
+      widget.rescheduleApplyService ??
+      CalendarRescheduleApplyService(
+        writer: FollowUpWriteCoordinator(
+          repository: const FollowUpRepository(),
+          scheduler: AndroidAutomaticFollowUpScheduler(),
+        ),
+      );
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -49,7 +72,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     ContextualHelpStep(
       icon: Icons.warning_amber_outlined,
       title: 'بررسی تداخل‌ها',
-      body: 'دکمه «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی می‌کند و فقط پیشنهاد زمان جایگزین نشان می‌دهد؛ هیچ تغییری خودکار اعمال نمی‌شود.',
+      body: 'دکمه «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی می‌کند و زمان جایگزین پیشنهاد می‌دهد؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
     ),
     ContextualHelpStep(
       icon: Icons.event_available_outlined,
@@ -81,8 +104,14 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _tasks = List<Task>.of(widget.tasks);
+  }
+
   Future<void> _openTimeline(BuildContext context) async {
-    if (tasks.isEmpty) {
+    if (_tasks.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -92,15 +121,15 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     }
 
     Task? selected;
-    if (tasks.length == 1) {
-      selected = tasks.single;
+    if (_tasks.length == 1) {
+      selected = _tasks.single;
     } else {
       selected = await showDialog<Task>(
         context: context,
         builder: (dialogContext) => SimpleDialog(
           title: const Text('انتخاب کار برای خط زمانی'),
           children: [
-            for (final task in tasks)
+            for (final task in _tasks)
               SimpleDialogOption(
                 onPressed: () => Navigator.of(dialogContext).pop(task),
                 child: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
@@ -121,7 +150,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
   Future<void> _openNextAction(BuildContext context) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => TaskNextActionPage(tasks: tasks),
+        builder: (_) => TaskNextActionPage(tasks: _tasks),
       ),
     );
   }
@@ -142,6 +171,85 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     );
   }
 
+  Future<bool> _confirmAndApplyReschedule(
+    BuildContext context,
+    _CalendarConflictAdviceEntry entry,
+    DateTime proposed,
+  ) async {
+    final target = widget.projection.resolveTarget(_tasks, entry.reminder.id);
+    if (target == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('پیگیری اصلی برای تغییر پیدا نشد')),
+        );
+      return false;
+    }
+
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تأیید تغییر زمان'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(entry.reminder.title),
+            const SizedBox(height: 12),
+            Text('زمان فعلی: ${_time(target.followUp.dateTime)}'),
+            Text('زمان پیشنهادی: ${_time(proposed)}'),
+            const SizedBox(height: 12),
+            const Text('این تغییر فقط با تأیید شما ثبت می‌شود.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('اعمال زمان پیشنهادی'),
+          ),
+        ],
+      ),
+    );
+
+    if (approved != true || !context.mounted) return false;
+
+    try {
+      final updated = await _applyService.applyConfirmed(
+        target: target,
+        dateTime: proposed,
+      );
+      if (!mounted) return false;
+
+      final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
+      if (taskIndex >= 0) {
+        final task = _tasks[taskIndex];
+        final followUpIndex =
+            task.followUps.indexWhere((item) => item.id == updated.id);
+        if (followUpIndex >= 0) {
+          setState(() {
+            final next = List<FollowUp>.of(task.followUps);
+            next[followUpIndex] = updated;
+            task.followUps = next;
+          });
+        }
+      }
+      return true;
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('تغییر زمان انجام نشد؛ دوباره تلاش کنید')),
+          );
+      }
+      return false;
+    }
+  }
+
   Future<void> _openConflictAdvice(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -155,7 +263,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
         reminder.date.month,
         reminder.date.day,
       ).add(const Duration(days: 1));
-      final advice = reschedulingAdvisor.advise(
+      final advice = widget.reschedulingAdvisor.advise(
         reminders: reminders,
         reminderId: reminder.id,
         windowStart: reminder.date,
@@ -172,7 +280,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     }
 
     if (!context.mounted) return;
-    await showModalBottomSheet<void>(
+    final applied = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -230,10 +338,21 @@ class CanonicalCalendarLauncher extends StatelessWidget {
                                 children: [
                                   for (final suggestion
                                       in entry.advice.suggestions)
-                                    Chip(
+                                    ActionChip(
                                       label: Text(
-                                        'پیشنهاد ${_time(suggestion.start)}',
+                                        'اعمال ${_time(suggestion.start)}',
                                       ),
+                                      onPressed: () async {
+                                        final changed =
+                                            await _confirmAndApplyReschedule(
+                                          sheetContext,
+                                          entry,
+                                          suggestion.start,
+                                        );
+                                        if (changed && sheetContext.mounted) {
+                                          Navigator.of(sheetContext).pop(true);
+                                        }
+                                      },
                                     ),
                                 ],
                               ),
@@ -246,7 +365,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
                   ],
                 const SizedBox(height: 8),
                 const Text(
-                  'این بخش فقط پیشنهاد می‌دهد و هیچ زمانی را خودکار تغییر نمی‌دهد.',
+                  'هیچ زمانی بدون تأیید شما تغییر نمی‌کند.',
                 ),
               ],
             ),
@@ -254,11 +373,19 @@ class CanonicalCalendarLauncher extends StatelessWidget {
         );
       },
     );
+
+    if (applied == true && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('زمان پیگیری با موفقیت تغییر کرد')),
+        );
+    }
   }
 
   Future<void> _exportToSystemCalendar(BuildContext context) async {
-    final eligible = projection
-        .project(tasks)
+    final eligible = widget.projection
+        .project(_tasks)
         .where(SystemCalendarBridge.isEligible)
         .toList(growable: false);
 
@@ -318,7 +445,7 @@ class CanonicalCalendarLauncher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reminders = projection.project(tasks);
+    final reminders = widget.projection.project(_tasks);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Stack(
