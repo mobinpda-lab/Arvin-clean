@@ -16,7 +16,7 @@ void main() {
     expect(source, isNot(contains('SharedPreferences.Editor')));
   });
 
-  test('manifest and provider info register one canonical widget', () {
+  test('manifest and provider info register one canonical reminder widget', () {
     final manifest = File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
     final info = File('android/app/src/main/res/xml/arvin_widget_info.xml').readAsStringSync();
     final layout = File('android/app/src/main/res/layout/arvin_widget.xml').readAsStringSync();
@@ -27,7 +27,8 @@ void main() {
     expect(info, contains('home_screen|keyguard'));
     expect(info, contains('@layout/arvin_widget'));
     expect(layout, contains('android:layoutDirection="rtl"'));
-    expect(layout, contains('پیگیری‌های آروین'));
+    expect(layout, contains('یادآورهای آروین'));
+    expect(layout, contains('android:text="یادآور"'));
   });
 
   test('widget rows carry canonical task id to app intent', () {
