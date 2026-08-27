@@ -47,8 +47,8 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
   }
 
   Future<String?> _askForName() async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
+    var draft = '';
+    return showDialog<String>(
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
@@ -56,13 +56,13 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
           title: const Text('افزودن شخص'),
           content: TextField(
             key: const ValueKey('people-name-input'),
-            controller: controller,
             autofocus: true,
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(
               labelText: 'نام نمایشی',
               hintText: 'مثلاً علی رضایی',
             ),
+            onChanged: (value) => draft = value,
             onSubmitted: (value) => Navigator.pop(dialogContext, value),
           ),
           actions: [
@@ -73,15 +73,13 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
             ),
             FilledButton(
               key: const ValueKey('people-add-save'),
-              onPressed: () => Navigator.pop(dialogContext, controller.text),
+              onPressed: () => Navigator.pop(dialogContext, draft),
               child: const Text('افزودن'),
             ),
           ],
         ),
       ),
     );
-    controller.dispose();
-    return result;
   }
 
   Future<void> _addPerson() async {
