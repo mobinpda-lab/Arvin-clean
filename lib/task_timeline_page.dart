@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/task.dart';
 import 'services/task_timeline_service.dart';
+import 'task_people_page.dart';
 import 'task_recurrence_page.dart';
 
 class TaskTimelinePage extends StatelessWidget {
@@ -46,6 +47,14 @@ class TaskTimelinePage extends StatelessWidget {
         TaskTimelineEntryKind.updated => Icons.edit_outlined,
       };
 
+  Future<void> _openPeople(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskPeoplePage(taskId: task.id),
+      ),
+    );
+  }
+
   Future<void> _openRecurrence(BuildContext context) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -64,6 +73,12 @@ class TaskTimelinePage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('خط زمانی'),
           actions: [
+            IconButton(
+              key: const ValueKey('timeline-open-people'),
+              tooltip: 'افراد مرتبط',
+              onPressed: () => _openPeople(context),
+              icon: const Icon(Icons.people_outline),
+            ),
             IconButton(
               key: const ValueKey('timeline-open-recurrence'),
               tooltip: 'تکرار',
