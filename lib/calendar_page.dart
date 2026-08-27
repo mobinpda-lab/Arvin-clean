@@ -24,6 +24,8 @@ class _JalaliDate {
   final int day;
 }
 
+enum _CalendarViewMode { day, week, month }
+
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
@@ -48,13 +50,15 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
   late DateTime _selectedDay;
+  _CalendarViewMode _viewMode = _CalendarViewMode.week;
 
   @override
   void initState() {
     super.initState();
     final selected = widget.initialSelectedDay ?? DateTime.now();
     _selectedDay = DateTime(selected.year, selected.month, selected.day);
-    _month = DateTime(_selectedDay.year, _selectedDay.month, 1);
+    final jalali = _toJalali(_selectedDay);
+    _month = _toGregorian(jalali.year, jalali.month, 1);
   }
 
   _JalaliDate _toJalali(DateTime date) {
@@ -62,7 +66,8 @@ class _CalendarPageState extends State<CalendarPage> {
     final gm = date.month - 1;
     final gd = date.day - 1;
     const gDays = <int>[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    var gDayNo = 365 * gy + (gy + 3) ~/ 4 - (gy + 99) ~/ 100 + (gy + 399) ~/ 400;
+    var gDayNo =
+        365 * gy + (gy + 3) ~/ 4 - (gy + 99) ~/ 100 + (gy + 399) ~/ 400;
     for (var i = 0; i < gm; i++) {
       gDayNo += gDays[i];
     }
@@ -80,13 +85,15 @@ class _CalendarPageState extends State<CalendarPage> {
       jDayNo = (jDayNo - 1) % 365;
     }
     final jm = jDayNo < 186 ? 1 + jDayNo ~/ 31 : 7 + (jDayNo - 186) ~/ 30;
-    final jd = 1 + (jDayNo < 186 ? jDayNo % 31 : (jDayNo - 186) % 30);
+    final jd =
+        1 + (jDayNo < 186 ? jDayNo % 31 : (jDayNo - 186) % 30);
     return _JalaliDate(jy, jm, jd);
   }
 
   DateTime _toGregorian(int jy, int jm, int jd) {
     var jy0 = jy - 979;
-    var jDayNo = 365 * jy0 + (jy0 ~/ 33) * 8 + ((jy0 % 33) + 3) ~/ 4;
+    var jDayNo =
+        365 * jy0 + (jy0 ~/ 33) * 8 + ((jy0 % 33) + 3) ~/ 4;
     for (var i = 1; i < jm; i++) {
       jDayNo += i <= 6 ? 31 : 30;
     }
@@ -126,7 +133,8 @@ class _CalendarPageState extends State<CalendarPage> {
     return DateTime(gy, gm + 1, gDayNo + 1);
   }
 
-  bool _isGregorianLeap(int year) => year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+  bool _isGregorianLeap(int year) =>
+      year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
 
   String _digits(String value) {
     const western = '0123456789';
@@ -140,12 +148,21 @@ class _CalendarPageState extends State<CalendarPage> {
 
   String _date(DateTime date) {
     final j = _toJalali(date);
-    return _digits('${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}');
+    return _digits(
+      '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}',
+    );
   }
 
-  String _time(DateTime date) => _digits('${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}');
-  bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
-  List<CalendarReminder> _forDay(DateTime day) => widget.reminders.where((item) => _sameDay(item.date, day)).toList(growable: false);
+  String _time(DateTime date) => _digits(
+        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
+      );
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  List<CalendarReminder> _forDay(DateTime day) => widget.reminders
+      .where((item) => _sameDay(item.date, day))
+      .toList(growable: false);
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
@@ -167,6 +184,47 @@ class _CalendarPageState extends State<CalendarPage> {
     return next.difference(first).inDays;
   }
 
+  DateTime _startOfWeek(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final daysSinceSaturday = (normalized.weekday + 1) % 7;
+    return normalized.subtract(Duration(days: daysSinceSaturday));
+  }
+
+  String _weekdayShort(DateTime date) {
+    return switch (date.weekday) {
+      DateTime.saturday => 'ش',
+      DateTime.sunday => 'ی',
+      DateTime.monday => 'د',
+      DateTime.tuesday => 'س',
+      DateTime.wednesday => 'چ',
+      DateTime.thursday => 'پ',
+      DateTime.friday => 'ج',
+      _ => '',
+    };
+  }
+
+  String _weekdayFull(DateTime date) {
+    return switch (date.weekday) {
+      DateTime.saturday => 'شنبه',
+      DateTime.sunday => 'یکشنبه',
+      DateTime.monday => 'دوشنبه',
+      DateTime.tuesday => 'سه‌شنبه',
+      DateTime.wednesday => 'چهارشنبه',
+      DateTime.thursday => 'پنجشنبه',
+      DateTime.friday => 'جمعه',
+      _ => '',
+    };
+  }
+
+  void _selectDay(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final jalali = _toJalali(normalized);
+    setState(() {
+      _selectedDay = normalized;
+      _month = _toGregorian(jalali.year, jalali.month, 1);
+    });
+  }
+
   void _moveMonth(int delta) {
     final current = _toJalali(_month);
     var month = current.month + delta;
@@ -186,11 +244,26 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+  void _movePeriod(int delta) {
+    switch (_viewMode) {
+      case _CalendarViewMode.day:
+        _selectDay(_selectedDay.add(Duration(days: delta)));
+        return;
+      case _CalendarViewMode.week:
+        _selectDay(_selectedDay.add(Duration(days: delta * 7)));
+        return;
+      case _CalendarViewMode.month:
+        _moveMonth(delta);
+        return;
+    }
+  }
+
   void _today() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final jalali = _toJalali(today);
     setState(() {
-      _month = DateTime(now.year, now.month, 1);
+      _month = _toGregorian(jalali.year, jalali.month, 1);
       _selectedDay = today;
     });
   }
@@ -209,7 +282,10 @@ class _CalendarPageState extends State<CalendarPage> {
               children: [
                 Text(
                   'پیام روز • ${_dailyContentKindLabel(item.kind)}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
                 Text(item.text, style: Theme.of(context).textTheme.bodyLarge),
@@ -218,11 +294,17 @@ class _CalendarPageState extends State<CalendarPage> {
                   Text(item.originalText!, textDirection: TextDirection.rtl),
                 ],
                 const SizedBox(height: 20),
-                Text('${item.author} — ${item.source}', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  '${item.author} — ${item.source}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 const SizedBox(height: 6),
                 Text(item.reference),
                 const SizedBox(height: 6),
-                Text('تطبیق/تأیید: ${item.verifiedBy}', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  'تطبیق/تأیید: ${item.verifiedBy}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -231,92 +313,348 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildViewModeSelector() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: Center(
+        child: SegmentedButton<_CalendarViewMode>(
+          key: const ValueKey('calendar-view-mode-control'),
+          showSelectedIcon: false,
+          style: const ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          segments: const [
+            ButtonSegment<_CalendarViewMode>(
+              value: _CalendarViewMode.day,
+              icon: Icon(Icons.view_day_outlined, size: 18),
+              label: Text('روزانه'),
+            ),
+            ButtonSegment<_CalendarViewMode>(
+              value: _CalendarViewMode.week,
+              icon: Icon(Icons.view_week_outlined, size: 18),
+              label: Text('هفتگی'),
+            ),
+            ButtonSegment<_CalendarViewMode>(
+              value: _CalendarViewMode.month,
+              icon: Icon(Icons.calendar_view_month_outlined, size: 18),
+              label: Text('ماهانه'),
+            ),
+          ],
+          selected: <_CalendarViewMode>{_viewMode},
+          onSelectionChanged: (selection) {
+            if (selection.isEmpty) return;
+            setState(() => _viewMode = selection.first);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDayView() {
+    final jalali = _toJalali(_selectedDay);
+    final count = _forDay(_selectedDay).length;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      key: const ValueKey('calendar-day-view'),
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.today_outlined, color: scheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _weekdayFull(_selectedDay),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _digits(
+                    '${jalali.year}/${jalali.month.toString().padLeft(2, '0')}/${jalali.day.toString().padLeft(2, '0')}',
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          if (count > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '${_digits('$count')} مورد',
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeekView() {
+    final weekStart = _startOfWeek(_selectedDay);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      key: const ValueKey('calendar-week-view'),
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+      child: Row(
+        children: [
+          for (var offset = 0; offset < 7; offset++)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Builder(
+                  builder: (context) {
+                    final date = weekStart.add(Duration(days: offset));
+                    final jalali = _toJalali(date);
+                    final count = _forDay(date).length;
+                    final selected = _sameDay(date, _selectedDay);
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => _selectDay(date),
+                      child: Container(
+                        height: 66,
+                        decoration: BoxDecoration(
+                          color: selected ? scheme.primaryContainer : null,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: count > 0
+                                ? scheme.outlineVariant
+                                : Colors.transparent,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _weekdayShort(date),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _digits('${jalali.day}'),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            if (count > 0)
+                              Text(
+                                _digits('$count'),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: scheme.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthView() {
     final current = _toJalali(_month);
     final days = _daysInJalaliMonth(current.year, current.month);
     final leading = (_month.weekday + 1) % 7;
     final counts = _countsForMonth();
+
+    return Column(
+      key: const ValueKey('calendar-month-view'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              _Weekday('ش'),
+              _Weekday('ی'),
+              _Weekday('د'),
+              _Weekday('س'),
+              _Weekday('چ'),
+              _Weekday('پ'),
+              _Weekday('ج'),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: leading + days,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisExtent: 42,
+            ),
+            itemBuilder: (_, index) {
+              if (index < leading) {
+                return const SizedBox.shrink();
+              }
+              final day = index - leading + 1;
+              final date = _toGregorian(current.year, current.month, day);
+              final count = counts[day] ?? 0;
+              final isSelected = _sameDay(date, _selectedDay);
+              return Padding(
+                padding: const EdgeInsets.all(2),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _selectDay(date),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : null,
+                      borderRadius: BorderRadius.circular(12),
+                      border: count > 0
+                          ? Border.all(
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            )
+                          : null,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(_digits('$day')),
+                        if (count > 0)
+                          Text(
+                            _digits('$count'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarSurface() {
+    return switch (_viewMode) {
+      _CalendarViewMode.day => _buildDayView(),
+      _CalendarViewMode.week => _buildWeekView(),
+      _CalendarViewMode.month => _buildMonthView(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedJalali = _toJalali(_selectedDay);
     final selectedReminders = _forDay(_selectedDay);
-    final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
-    final hasSelectedItems = selectedDailyContent != null || selectedReminders.isNotEmpty;
+    final selectedDailyContent =
+        widget.dailyContentForDate?.call(_selectedDay);
+    final hasSelectedItems =
+        selectedDailyContent != null || selectedReminders.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('تقویم پیگیری'),
-        actions: [IconButton(onPressed: _today, tooltip: 'امروز', icon: const Icon(Icons.today_outlined))],
+        actions: [
+          IconButton(
+            onPressed: _today,
+            tooltip: 'امروز',
+            icon: const Icon(Icons.today_outlined),
+          ),
+        ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
             child: Row(
               children: [
-                IconButton(onPressed: () => _moveMonth(-1), icon: const Icon(Icons.chevron_right)),
-                Expanded(child: Center(child: Text(_digits('${current.year}/${current.month.toString().padLeft(2, '0')}'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)))),
-                IconButton(onPressed: () => _moveMonth(1), icon: const Icon(Icons.chevron_left)),
-              ],
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Row(children: [_Weekday('ش'), _Weekday('ی'), _Weekday('د'), _Weekday('س'), _Weekday('چ'), _Weekday('پ'), _Weekday('ج')]),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: leading + days,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisExtent: 42),
-              itemBuilder: (_, index) {
-                if (index < leading) {
-                  return const SizedBox.shrink();
-                }
-                final day = index - leading + 1;
-                final date = _toGregorian(current.year, current.month, day);
-                final count = counts[day] ?? 0;
-                final isSelected = _sameDay(date, _selectedDay);
-                return Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => setState(() => _selectedDay = date),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
-                        borderRadius: BorderRadius.circular(12),
-                        border: count > 0 ? Border.all(color: Theme.of(context).colorScheme.outlineVariant) : null,
+                IconButton(
+                  onPressed: () => _movePeriod(-1),
+                  tooltip: 'بازه قبل',
+                  icon: const Icon(Icons.chevron_right),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _digits(
+                        '${selectedJalali.year}/${selectedJalali.month.toString().padLeft(2, '0')}',
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(_digits('$day')),
-                          if (count > 0) Text(_digits('$count'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                        ],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                );
-              },
+                ),
+                IconButton(
+                  onPressed: () => _movePeriod(1),
+                  tooltip: 'بازه بعد',
+                  icon: const Icon(Icons.chevron_left),
+                ),
+              ],
             ),
+          ),
+          _buildViewModeSelector(),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: _buildCalendarSurface(),
           ),
           const Divider(height: 1),
           Expanded(
             child: !hasSelectedItems
-                ? Center(child: Text('برای این روز یادآوری ثبت نشده است', style: Theme.of(context).textTheme.bodyLarge))
+                ? Center(
+                    child: Text(
+                      'برای این روز یادآوری ثبت نشده است',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  )
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
                       if (selectedDailyContent != null) ...[
                         _DailyContentCard(
                           item: selectedDailyContent,
-                          onTap: () => _showDailyContent(selectedDailyContent),
+                          onTap: () =>
+                              _showDailyContent(selectedDailyContent),
                         ),
-                        if (selectedReminders.isNotEmpty) const SizedBox(height: 12),
+                        if (selectedReminders.isNotEmpty)
+                          const SizedBox(height: 12),
                       ],
-                      for (var index = 0; index < selectedReminders.length; index++) ...[
+                      for (var index = 0;
+                          index < selectedReminders.length;
+                          index++) ...[
                         if (index > 0) const SizedBox(height: 8),
                         _ReminderCard(
                           item: selectedReminders[index],
@@ -346,7 +684,11 @@ class _DailyContentCard extends StatelessWidget {
         onTap: onTap,
         leading: const Icon(Icons.auto_awesome_outlined),
         title: Text('پیام روز • ${_dailyContentKindLabel(item.kind)}'),
-        subtitle: Text('${item.text}\n${item.source} — ${item.reference}', maxLines: 4, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          '${item.text}\n${item.source} — ${item.reference}',
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+        ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_left),
       ),
@@ -400,6 +742,14 @@ String _dailyContentKindLabel(DailyContentKind kind) {
 class _Weekday extends StatelessWidget {
   const _Weekday(this.label);
   final String label;
+
   @override
-  Widget build(BuildContext context) => Expanded(child: Center(child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold))));
+  Widget build(BuildContext context) => Expanded(
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
 }
