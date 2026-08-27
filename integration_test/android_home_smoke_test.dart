@@ -11,6 +11,7 @@ void main() {
     app.main();
     await tester.pumpAndSettle();
 
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
 
@@ -46,5 +47,8 @@ void main() {
 
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
     expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
+
+    debugPrint('ARVIN_SCREENSHOT_READY');
+    await Future<void>.delayed(const Duration(seconds: 20));
   });
 }
