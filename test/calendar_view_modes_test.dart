@@ -60,7 +60,7 @@ void main() {
       (tester) async {
     final selected = DateTime(2026, 8, 12, 9, 30);
     final nextDay = selected.add(const Duration(days: 1));
-    final nextWeek = nextDay.add(const Duration(days: 7));
+    final nextWeek = selected.add(const Duration(days: 7));
 
     await tester.pumpWidget(
       MaterialApp(
@@ -95,13 +95,7 @@ void main() {
     expect(find.text('روز بعد'), findsOneWidget);
     expect(find.text('روز مبنا'), findsNothing);
 
-    // Weekly arrows move exactly seven days.
-    await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
-    await tester.pumpAndSettle();
-    expect(find.text('هفته بعد'), findsOneWidget);
-    expect(find.text('روز بعد'), findsNothing);
-
-    // Daily arrows move exactly one day.
+    // Daily arrows move exactly one day from the currently selected day.
     await tester.tap(find.text('روزانه'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-day-view')), findsOneWidget);
@@ -109,11 +103,20 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('calendar-day-view'))).height,
       lessThan(70),
     );
-    await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
-    await tester.pumpAndSettle();
-    expect(find.text('روز بعد'), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-day-count')), findsOneWidget);
     expect(find.text('۱ مورد'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
+    await tester.pumpAndSettle();
+    expect(find.text('روز مبنا'), findsOneWidget);
+    expect(find.text('روز بعد'), findsNothing);
+
+    // Weekly arrows move exactly seven days.
+    await tester.tap(find.text('هفتگی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('هفته بعد'), findsOneWidget);
+    expect(find.text('روز مبنا'), findsNothing);
 
     // Monthly is opt-in only; its arrow moves one Jalali month.
     await tester.tap(find.text('ماهانه'));
