@@ -53,6 +53,7 @@ class Task {
     this.description = '',
     this.createdAt,
     this.updatedAt,
+    this.dueDate,
     this.followUpEnabled = false,
     this.followUpDate,
     this.tags = const [],
@@ -72,6 +73,13 @@ class Task {
   String description;
   DateTime? createdAt;
   DateTime? updatedAt;
+
+  /// Optional date/time when the Task itself is intended or due.
+  ///
+  /// This is deliberately independent from [reminderDate] and FollowUp
+  /// timestamps. Undated Tasks/Notes remain valid with a null value.
+  DateTime? dueDate;
+
   bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
@@ -143,6 +151,7 @@ class Task {
         'description': description,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'dueDate': dueDate?.toIso8601String(),
         'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
@@ -191,6 +200,9 @@ class Task {
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.tryParse(json['updatedAt'] as String),
+      dueDate: json['dueDate'] == null
+          ? null
+          : DateTime.tryParse(json['dueDate'] as String),
       followUpEnabled:
           json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
       followUpDate: json['followUpDate'] == null
