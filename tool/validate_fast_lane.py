@@ -13,9 +13,11 @@ def forbid(text: str, token: str, source: str) -> None:
 
 build_path = Path('.github/workflows/build.yml')
 parallel_path = Path('.github/workflows/parallel-wave.yml')
+device_path = Path('.github/workflows/device-smoke.yml')
 
 build = build_path.read_text(encoding='utf-8')
 parallel = parallel_path.read_text(encoding='utf-8')
+device = device_path.read_text(encoding='utf-8')
 
 require(build, "branches: [main, master, 'gate/**']", str(build_path))
 require(build, 'types: [opened, synchronize, reopened, ready_for_review]', str(build_path))
@@ -39,5 +41,12 @@ require(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
 require(parallel, 'flutter test', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
+
+# Device Smoke has a deterministic exact-ref lane for automation/API-driven delivery.
+require(device, "branches: [main, master, 'device/**']", str(device_path))
+require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
+require(device, 'workflow_dispatch:', str(device_path))
+require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
+require(device, 'integration_test/android_home_smoke_test.dart', str(device_path))
 
 print('Arvin Fast Lane workflow contract: OK')
