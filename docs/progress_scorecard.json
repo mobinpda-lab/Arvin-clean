@@ -21,7 +21,7 @@
     {"id": 3, "name": "Timeline کامل هر موضوع", "wave": "X1", "stage": 70, "evidence": ["docs/CANONICAL_TASK_TIMELINE_2026-08-26.md", "PR #164", "PR #186", "lib/task_timeline_page.dart"], "note": "Canonical Timeline has a real Home-accessible user entry and explicit Task selection. Final roadmap DoD/device closure remains."},
     {"id": 4, "name": "Voice Capture فارسی", "wave": "X2", "stage": 0, "evidence": [], "note": "Roadmap item only; no dedicated feature delivery credited."},
     {"id": 5, "name": "دستیار هوشمند آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
-    {"id": 6, "name": "People / Contacts", "wave": "X1", "stage": 25, "evidence": ["Issue #320", "PR #322", "Issue #324", "PR #325", "docs/PEOPLE_CONTACTS_BOUNDARY_AUDIT_2026-08-27.md", "docs/PEOPLE_REFERENCE_DOMAIN_CONTRACT_2026-08-27.md", "lib/models/person_reference.dart", "test/people_contacts_boundary_contract_test.dart", "test/person_reference_contract_test.dart", "Arvin Parallel Wave #893", "Arvin Build #1022", "Arvin Device Smoke #268"], "note": "The optional Task ↔ Person boundary now has an accepted persistence-neutral domain contract: stable Arvin-owned Person identity, offline display label, immutable zero-or-more Task relation and deterministic validation are merged with exact-head CI/APK/device evidence. No CRM, persistence field, repository/database, contacts permission/provider import, sync or People UI exists yet, so credit is limited to architecture/domain stage 25."},
+    {"id": 6, "name": "People / Contacts", "wave": "X1", "stage": 55, "evidence": ["Issue #320", "PR #322", "Issue #324", "PR #325", "Issue #327", "PR #329", "docs/PEOPLE_CONTACTS_BOUNDARY_AUDIT_2026-08-27.md", "docs/PEOPLE_REFERENCE_DOMAIN_CONTRACT_2026-08-27.md", "docs/PEOPLE_TASK_PERSISTENCE_2026-08-27.md", "lib/models/person_reference.dart", "lib/models/task.dart", "test/people_contacts_boundary_contract_test.dart", "test/person_reference_contract_test.dart", "test/people_task_persistence_test.dart", "Arvin Parallel Wave #907", "Arvin Build #1041", "Arvin Device Smoke #287", "Arvin Build #1045", "Arvin Device Smoke #291"], "note": "Canonical zero-or-more Person references now persist end-to-end inside the existing Task JSON and arvin.tasks boundary, survive ordinary Home edits and canonical Backup/Restore, preserve legacy payload compatibility, and reject malformed or duplicate identities deterministically. Exact-head CI/APK/device and post-merge main Build/Device evidence are green. No standalone CRM/store/database, device Contacts permission/import, provider sync, phone/email enrichment or People UI exists yet, so credit is limited to persistence stage 55."},
     {"id": 7, "name": "جستجوی معنایی", "wave": "X1", "stage": 85, "evidence": ["docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md", "docs/SEMANTIC_QUERY_EXPANSION_2026-08-27.md", "PR #163", "Issue #241", "PR #242", "Arvin Parallel Wave #751", "Arvin Build #826", "Arvin Device Smoke #66", "Arvin Build #829", "Arvin Device Smoke #69"], "note": "Deterministic Persian semantic alias expansion is merged into the existing TaskSearchService and real Home search path without embeddings, network, index, database or parallel search UI. Exact-head Parallel/Build/APKs/Device and post-merge main Build/Device are complete; final roadmap handoff/DoD closure remains before 100."},
     {"id": 8, "name": "Weekly Review هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 9, "name": "Memory آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
@@ -37,9 +37,9 @@
     {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
   ],
   "reported_metrics": {
-    "overall_percent": 42.6,
-    "wave_x1_percent": 71.9,
-    "features_at_core_or_better": 11,
+    "overall_percent": 44.2,
+    "wave_x1_percent": 75.6,
+    "features_at_core_or_better": 12,
     "features_started": 12,
     "features_done": 0
   }
