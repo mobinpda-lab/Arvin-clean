@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'daily_content.dart';
+
 class CalendarReminder {
   const CalendarReminder({
     required this.id,
@@ -23,9 +25,22 @@ class _JalaliDate {
 }
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key, required this.reminders, this.initialSelectedDay});
+  const CalendarPage({
+    super.key,
+    required this.reminders,
+    this.initialSelectedDay,
+    this.dailyContentForDate,
+  });
+
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
+
+  /// Optional Daily Content projection for the selected calendar date.
+  ///
+  /// This is deliberately separate from [reminders], so «پیام روز» never
+  /// changes the task/follow-up/reminder count rendered on calendar cells.
+  final DailyContentItem? Function(DateTime date)? dailyContentForDate;
+
   @override
   State<CalendarPage> createState() => _CalendarPageState();
 }
@@ -180,6 +195,42 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+  void _showDailyContent(DailyContentItem item) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'پیام روز • ${_dailyContentKindLabel(item.kind)}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 16),
+                Text(item.text, style: Theme.of(context).textTheme.bodyLarge),
+                if (item.originalText?.trim().isNotEmpty ?? false) ...[
+                  const SizedBox(height: 16),
+                  Text(item.originalText!, textDirection: TextDirection.rtl),
+                ],
+                const SizedBox(height: 20),
+                Text('${item.author} — ${item.source}', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 6),
+                Text(item.reference),
+                const SizedBox(height: 6),
+                Text('تطبیق/تأیید: ${item.verifiedBy}', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final current = _toJalali(_month);
@@ -187,6 +238,9 @@ class _CalendarPageState extends State<CalendarPage> {
     final leading = (_month.weekday + 1) % 7;
     final counts = _countsForMonth();
     final selectedReminders = _forDay(_selectedDay);
+    final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
+    final hasSelectedItems = selectedDailyContent != null || selectedReminders.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('تقویم پیگیری'),
@@ -250,38 +304,97 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: selectedReminders.isEmpty
+            child: !hasSelectedItems
                 ? Center(child: Text('برای این روز یادآوری ثبت نشده است', style: Theme.of(context).textTheme.bodyLarge))
-                : ListView.separated(
+                : ListView(
                     padding: const EdgeInsets.all(16),
-                    itemCount: selectedReminders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, index) {
-                      final item = selectedReminders[index];
-                      final subtitle = item.isAllDay
-                          ? '${_date(item.date)}\nرویداد تمام‌روز'
-                          : '${_date(item.date)}  •  ساعت ${_time(item.date)}\n'
-                              '${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
-                      return Card(
-                        child: ListTile(
-                          leading: Icon(
-                            item.isAllDay
-                                ? Icons.event_outlined
-                                : item.completed
-                                    ? Icons.check_circle
-                                    : Icons.notifications_active_outlined,
-                          ),
-                          title: Text(item.title),
-                          subtitle: Text(subtitle),
+                    children: [
+                      if (selectedDailyContent != null) ...[
+                        _DailyContentCard(
+                          item: selectedDailyContent,
+                          onTap: () => _showDailyContent(selectedDailyContent),
                         ),
-                      );
-                    },
+                        if (selectedReminders.isNotEmpty) const SizedBox(height: 12),
+                      ],
+                      for (var index = 0; index < selectedReminders.length; index++) ...[
+                        if (index > 0) const SizedBox(height: 8),
+                        _ReminderCard(
+                          item: selectedReminders[index],
+                          dateLabel: _date(selectedReminders[index].date),
+                          timeLabel: _time(selectedReminders[index].date),
+                        ),
+                      ],
+                    ],
                   ),
           ),
         ],
       ),
     );
   }
+}
+
+class _DailyContentCard extends StatelessWidget {
+  const _DailyContentCard({required this.item, required this.onTap});
+
+  final DailyContentItem item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: const Icon(Icons.auto_awesome_outlined),
+        title: Text('پیام روز • ${_dailyContentKindLabel(item.kind)}'),
+        subtitle: Text('${item.text}\n${item.source} — ${item.reference}', maxLines: 4, overflow: TextOverflow.ellipsis),
+        isThreeLine: true,
+        trailing: const Icon(Icons.chevron_left),
+      ),
+    );
+  }
+}
+
+class _ReminderCard extends StatelessWidget {
+  const _ReminderCard({
+    required this.item,
+    required this.dateLabel,
+    required this.timeLabel,
+  });
+
+  final CalendarReminder item;
+  final String dateLabel;
+  final String timeLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = item.isAllDay
+        ? '$dateLabel\nرویداد تمام‌روز'
+        : '$dateLabel  •  ساعت $timeLabel\n${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          item.isAllDay
+              ? Icons.event_outlined
+              : item.completed
+                  ? Icons.check_circle
+                  : Icons.notifications_active_outlined,
+        ),
+        title: Text(item.title),
+        subtitle: Text(subtitle),
+      ),
+    );
+  }
+}
+
+String _dailyContentKindLabel(DailyContentKind kind) {
+  return switch (kind) {
+    DailyContentKind.quran => 'قرآن کریم',
+    DailyContentKind.nahjAlBalagha => 'نهج‌البلاغه',
+    DailyContentKind.shiaHadith => 'حدیث شیعه',
+    DailyContentKind.sahifaSajjadiya => 'صحیفه سجادیه',
+    DailyContentKind.iranianQuote => 'سخن بزرگان ایران',
+    DailyContentKind.worldQuote => 'سخن بزرگان جهان',
+  };
 }
 
 class _Weekday extends StatelessWidget {
