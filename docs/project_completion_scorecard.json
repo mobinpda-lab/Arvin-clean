@@ -2,8 +2,8 @@
   "schema_version": 1,
   "metric_id": "arvin_total_completion",
   "source_roadmap": "docs/PROJECT_ROADMAP_2026-08-14.md",
-  "baseline_date": "2026-08-26",
-  "baseline_main_sha": "af817256e5b019f3b096199c29db88e5b87044e5",
+  "baseline_date": "2026-08-27",
+  "baseline_main_sha": "bec99214534a8c9972f9e3145dde792cecf2f9e3",
   "denominator": "8 canonical delivery gates A-H",
   "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
   "stage_meaning": {
@@ -17,102 +17,20 @@
     "100": "the gate Definition of Done is complete, status/handoff is current, and no gate acceptance gap remains"
   },
   "gates": [
-    {
-      "id": "A",
-      "name": "Unified Item + adapter/migration + regression",
-      "stage": 55,
-      "evidence": [
-        "docs/UNIFIED_ITEM_MIGRATION_2026-08-15.md",
-        "docs/HOME_UNIFIED_ITEM_MIGRATION_PROGRESS_2026-08-15.md",
-        "lib/services/task_migration_reader.dart",
-        "lib/services/task_migration_writer.dart",
-        "test/services/task_migration_writer_test.dart"
-      ],
-      "note": "Canonical read/write migration path is integrated and regression-tested, but Home still retains a legacy view boundary, so Gate A is not yet at user-facing completion."
-    },
-    {
-      "id": "B",
-      "name": "Notebook UI + persistence",
-      "stage": 25,
-      "evidence": [
-        "docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md"
-      ],
-      "note": "The product contract exists, but the complete Notebook editor/auto-save/read-only/edit/checklist user flow is not yet delivered."
-    },
-    {
-      "id": "C",
-      "name": "Home + Search on canonical Item path",
-      "stage": 70,
-      "evidence": [
-        "lib/main.dart",
-        "lib/services/home_search_projection.dart",
-        "lib/services/task_search_service.dart",
-        "docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md",
-        "test/widgets/home_page_test.dart",
-        "test/home_search_service_contract_test.dart",
-        "PR #163",
-        "PR #167"
-      ],
-      "note": "Real Home/Search, archive/trash and user-facing task flows are wired, but full gate-level E2E/device evidence and final migration cleanup remain incomplete."
-    },
-    {
-      "id": "D",
-      "name": "Calendar + Prayer Times + Iranian Holidays",
-      "stage": 40,
-      "evidence": [
-        "docs/CALENDAR_OFFICIAL_IMPLEMENTATION_2026-08-14.md",
-        "lib/official_calendar_page.dart",
-        "lib/iranian_official_holiday_source.dart",
-        "test/iranian_official_holiday_source_test.dart",
-        "test/official_calendar_page_test.dart"
-      ],
-      "note": "Calendar and official-holiday implementation evidence exists, while the verified prayer-times provider remains an active gap."
-    },
-    {
-      "id": "E",
-      "name": "Widget + Lock Screen validation",
-      "stage": 10,
-      "evidence": [
-        "docs/QUICK_FOLLOWUP_WIDGET_AUDIT_2026-08-15.md"
-      ],
-      "note": "A dedicated audit and product scope exist, but the shared native Widget foundation is not implemented on main."
-    },
-    {
-      "id": "F",
-      "name": "PDF + Print + IranSans",
-      "stage": 0,
-      "evidence": [],
-      "note": "No dedicated gate delivery evidence is credited yet."
-    },
-    {
-      "id": "G",
-      "name": "Reminder/Google Calendar + Backup/Dropbox",
-      "stage": 40,
-      "evidence": [
-        "lib/backup_service.dart",
-        "lib/dropbox_cloud_backup_provider.dart",
-        "lib/backup_page.dart",
-        "test/backup_service_test.dart",
-        "test/dropbox_cloud_backup_provider_test.dart"
-      ],
-      "note": "Backup/Dropbox foundations and tests exist, but the whole Gate G contract including Reminder/Google Calendar and full portability validation is incomplete."
-    },
-    {
-      "id": "H",
-      "name": "E2E + device release + APK evidence",
-      "stage": 40,
-      "evidence": [
-        ".github/workflows/build.yml",
-        ".github/workflows/parallel-wave.yml"
-      ],
-      "note": "Automated analyze/test/APK production exists, but complete real-device E2E coverage for all required product paths is not yet demonstrated."
-    }
+    {"id":"A","name":"Unified Item + adapter/migration + regression","stage":70,"evidence":["PR #228","docs/UNIFIED_ITEM_MIGRATION_2026-08-15.md","docs/HOME_UNIFIED_ITEM_MIGRATION_PROGRESS_2026-08-15.md","docs/CANONICAL_HOME_BOUNDARY_2026-08-26.md","lib/main.dart","lib/services/task_migration_reader.dart","lib/services/task_migration_writer.dart","test/services/task_migration_writer_test.dart","test/canonical_home_boundary_test.dart","Arvin Build #747","Arvin Parallel Wave #598"],"note":"Home renders, edits, searches and saves canonical Task objects directly while preserving additive fields. Final gate-level physical-device/E2E and handoff closure remain before 85/100."},
+    {"id":"B","name":"Notebook UI + persistence","stage":70,"evidence":["PR #198","docs/NOTEBOOK_COMPLETION_LANE_2026-08-26.md","lib/notebook_page.dart","lib/services/canonical_notebook_repository.dart","test/canonical_notebook_repository_test.dart","test/notebook_page_test.dart"],"note":"Notebook editor/read-only/edit/autosave/checklist flow is user-facing and persists through canonical TaskStore only. Final physical-device/E2E and handoff closure remain."},
+    {"id":"C","name":"Home + Search on canonical Item path","stage":70,"evidence":["PR #228","PR #238","PR #239","PR #242","lib/main.dart","lib/services/home_search_projection.dart","lib/services/home_today_projection.dart","lib/services/task_search_service.dart","docs/SEMANTIC_QUERY_EXPANSION_2026-08-27.md","test/home_search_service_contract_test.dart","test/task_search_service_test.dart","Arvin Parallel Wave #751","Arvin Build #826","Arvin Device Smoke #66","Arvin Build #829","Arvin Device Smoke #69"],"note":"Real Home/Search/Today/About are wired directly to canonical Task. Persian semantic expansion is merged on the same SearchService path with exact-head and post-merge emulator/APK evidence; physical-device/E2E gate closure remains."},
+    {"id":"D","name":"Calendar + Prayer Times + Iranian Holidays","stage":70,"evidence":["PR #197","docs/CALENDAR_OFFICIAL_IMPLEMENTATION_2026-08-14.md","docs/PRAYER_TIMES_COMPLETION_LANE_2026-08-26.md","lib/official_calendar_page.dart","lib/iranian_official_holiday_source.dart","lib/iranian_prayer_time_source.dart","test/iranian_official_holiday_source_test.dart","test/iranian_prayer_time_source_test.dart","test/official_calendar_page_test.dart"],"note":"Official calendar, Iranian holidays and calculated prayer times are merged on the existing user-facing calendar path. Final physical-device/E2E and handoff closure remain."},
+    {"id":"E","name":"Widget + Lock Screen validation","stage":70,"evidence":["PR #204","docs/CANONICAL_ANDROID_WIDGET_2026-08-26.md","android/app/src/main/kotlin/com/example/arvin/ArvinWidgetProvider.kt","android/app/src/main/kotlin/com/example/arvin/MainActivity.kt","lib/services/widget_task_bridge.dart","test/android_widget_contract_test.dart","test/widget_task_bridge_test.dart","Arvin Build #722"],"note":"Canonical Android home/keyguard widget and Task-id bridge are wired. Physical launcher/keyguard/resize/row-tap acceptance remains before 85/100."},
+    {"id":"F","name":"PDF + Print + IranSans","stage":70,"evidence":["PR #196","PR #233","docs/PDF_PRINT_IMPLEMENTATION_NOTES_2026-08-26.md","lib/services/task_report_pdf_renderer.dart","lib/services/task_report_projection.dart","lib/task_report_page.dart","test/task_report_page_test.dart","test/task_report_pdf_renderer_test.dart","test/task_report_projection_test.dart"],"note":"Canonical A4 RTL PDF/Print flow with bundled Persian typography and optional licensed IRANSansX is user-facing and merged. Physical print/share/device acceptance remains."},
+    {"id":"G","name":"Reminder/Google Calendar + Backup/Dropbox","stage":70,"evidence":["PR #189","PR #222","PR #224","PR #236","PR #245","docs/CANONICAL_BACKUP_PORTABILITY_2026-08-26.md","docs/SYSTEM_CALENDAR_EXPORT_2026-08-26.md","docs/PRIVACY_ENCRYPTION_BOUNDARY_AUDIT_2026-08-27.md","lib/backup_manager.dart","lib/backup_service.dart","lib/dropbox_cloud_backup_provider.dart","lib/services/system_calendar_bridge.dart","test/canonical_backup_manager_test.dart","test/dropbox_cloud_backup_provider_test.dart","test/privacy_backup_boundary_contract_test.dart"],"note":"Reminder, portable backup/restore with Settings, Dropbox foundations and system-calendar export are merged. Privacy audit now defines the safe future encryption boundary without changing current storage semantics. Physical-device integration and final handoff closure remain."},
+    {"id":"H","name":"E2E + device release + APK evidence","stage":70,"evidence":["PR #199","PR #230","PR #240","PR #243","PR #247",".github/workflows/build.yml",".github/workflows/parallel-wave.yml",".github/workflows/device-smoke.yml","tool/validate_fast_lane.py","test/release_critical_path_test.dart","Arvin Parallel Wave #753","Arvin Build #831","Arvin Device Smoke #71","Arvin Build #832","Arvin Device Smoke #72","Arvin Parallel Wave #754","Arvin Build #834","Arvin Device Smoke #74"],"note":"Exact-head Parallel/Build/Device validation, deterministic device fallback and parallel release/debug APK production are merged and proven on PR heads and main. Physical-device end-to-end acceptance remains the blocker before stage 85/100."}
   ],
   "reported_metrics": {
-    "total_percent": 35.0,
-    "gates_started": 7,
-    "gates_core_or_better": 5,
-    "gates_integrated_or_better": 2,
+    "total_percent": 70.0,
+    "gates_started": 8,
+    "gates_core_or_better": 8,
+    "gates_integrated_or_better": 8,
     "gates_done": 0
   }
 }
