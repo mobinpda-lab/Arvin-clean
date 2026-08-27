@@ -70,12 +70,32 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
-            sleep 2
-            adb shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp' || true
+            rm -f /tmp/arvin-home-test.log
+            flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT} > /tmp/arvin-home-test.log 2>&1 &
+            TEST_PID=$!
+            FOUND=0
+            I=0
+            while [ "$I" -lt 240 ]; do
+              if grep -q 'ARVIN_SCREENSHOT_READY' /tmp/arvin-home-test.log 2>/dev/null; then
+                FOUND=1
+                break
+              fi
+              if ! kill -0 "$TEST_PID" 2>/dev/null; then
+                break
+              fi
+              I=$((I + 1))
+              sleep 2
+            done
+            cat /tmp/arvin-home-test.log
+            if [ "$FOUND" -ne 1 ]; then
+              wait "$TEST_PID" || true
+              echo 'Home screenshot marker was not reached'
+              exit 1
+            fi
             mkdir -p artifacts
             adb exec-out screencap -p > artifacts/arvin-home-real.png
             test -s artifacts/arvin-home-real.png
+            wait "$TEST_PID"
       - name: Upload real Home screenshot
         uses: actions/upload-artifact@v4
         with:
