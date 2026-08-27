@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'persian_date_formatter.dart';
 import 'task_report_projection.dart';
 
 class TaskReportFonts {
@@ -19,6 +20,7 @@ class TaskReportPdfRenderer {
   TaskReportPdfRenderer({TaskReportFontLoader? fontLoader})
       : _fontLoader = fontLoader ?? _loadPersianFonts;
 
+  static const _dateFormatter = PersianDateFormatter();
   final TaskReportFontLoader _fontLoader;
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
@@ -27,6 +29,18 @@ class TaskReportPdfRenderer {
       PdfGoogleFonts.notoNaskhArabicBold(),
     ]);
     return TaskReportFonts(base: results[0], bold: results[1]);
+  }
+
+  /// Canonical user-visible date/time format for PDF/Print/Share reports.
+  ///
+  /// All report dates are Jalali and all digits are Persian so export output
+  /// follows the same calendar contract as the rest of Arvin.
+  static String formatDateTime(DateTime value) {
+    final date = _dateFormatter.format(value, usePersianDate: true);
+    final time = _dateFormatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
+    return '$date $time';
   }
 
   Future<Uint8List> build(
@@ -56,7 +70,7 @@ class TaskReportPdfRenderer {
         ),
         build: (_) => [
           pw.Text(
-            'تاریخ تولید: ${_dateTime(report.generatedAt)}',
+            'تاریخ تولید: ${formatDateTime(report.generatedAt)}',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.SizedBox(height: 12),
@@ -84,7 +98,7 @@ class TaskReportPdfRenderer {
       pw.SizedBox(height: 6),
       pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
       if (entry.reminderDate != null)
-        pw.Text('یادآوری: ${_dateTime(entry.reminderDate!)}'),
+        pw.Text('یادآوری: ${formatDateTime(entry.reminderDate!)}'),
       if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}'),
       if (entry.checklist.isNotEmpty) ...[
         pw.SizedBox(height: 4),
@@ -96,7 +110,7 @@ class TaskReportPdfRenderer {
         pw.Text('پیگیری‌ها:', style: pw.TextStyle(font: fonts.bold)),
         ...entry.followUps.map(
           (followUp) => pw.Text(
-            '• ${_dateTime(followUp.dateTime)} — ${followUp.note}${followUp.result == null ? '' : ' — ${followUp.result}'}',
+            '• ${formatDateTime(followUp.dateTime)} — ${followUp.note}${followUp.result == null ? '' : ' — ${followUp.result}'}',
           ),
         ),
       ],
@@ -116,8 +130,4 @@ class TaskReportPdfRenderer {
       ),
     );
   }
-
-  static String _dateTime(DateTime value) =>
-      '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')} '
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 }
