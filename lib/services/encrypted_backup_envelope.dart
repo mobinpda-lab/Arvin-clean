@@ -3,13 +3,11 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-import '../backup_service.dart';
-
 /// Versioned, authenticated encryption envelope for canonical Arvin backup bytes.
 ///
 /// This prototype intentionally does not own Task persistence, SAF, cloud upload,
-/// or restore mutation. It wraps/unwraps the single canonical backup byte path so
-/// those existing foundations can remain unchanged when encryption is wired in.
+/// backup-format validation, or restore mutation. It wraps/unwraps bytes only so
+/// the existing backup service can remain the sole plaintext format authority.
 class ArvinEncryptedBackupEnvelope {
   ArvinEncryptedBackupEnvelope({
     this.memoryKiB = defaultMemoryKiB,
@@ -103,25 +101,20 @@ class ArvinEncryptedBackupEnvelope {
     }
   }
 
-  /// Returns canonical plaintext backup bytes for the existing validation path.
+  /// Returns plaintext bytes for the existing backup validation path.
   ///
-  /// Legacy plaintext v1 backups pass through unchanged. Encrypted envelopes
-  /// require a passphrase and authenticate before any bytes are returned.
+  /// Non-encrypted JSON documents pass through unchanged. The existing backup
+  /// validator remains responsible for accepting legacy v1 and rejecting any
+  /// unsupported plaintext type/version. Encrypted envelopes authenticate before
+  /// any plaintext bytes are returned.
   Future<Uint8List> decodeForRestore(
     Uint8List bytes, {
     String? passphrase,
   }) async {
     final decoded = _decodeJsonObject(bytes);
 
-    if (decoded['type'] == ArvinBackupService.backupType) {
-      if (decoded['formatVersion'] != ArvinBackupService.backupFormatVersion) {
-        throw const FormatException('Unsupported legacy Arvin backup version');
-      }
-      return Uint8List.fromList(bytes);
-    }
-
     if (decoded['type'] != envelopeType) {
-      throw const FormatException('Unsupported Arvin backup envelope');
+      return Uint8List.fromList(bytes);
     }
     if (decoded['formatVersion'] != envelopeFormatVersion) {
       throw const FormatException('Unsupported encrypted Arvin backup version');
