@@ -86,6 +86,27 @@ void main() {
     expect(result.projects.every((project) => !project.isValid), isTrue);
   });
 
+  test('duplicate canonical Task ids fail closed instead of last-write-wins', () {
+    final result = service.project(
+      GoalPlan(
+        id: 'goal',
+        title: 'هدف',
+        projects: [
+          ProjectPlan(id: 'p1', title: 'پروژه', itemIds: const ['same']),
+        ],
+      ),
+      canonicalTasks: [
+        Task(id: 'same', title: 'نسخه اول', completed: false),
+        Task(id: 'same', title: 'نسخه دوم', completed: true),
+      ],
+    );
+
+    expect(result.validation.isValid, isTrue);
+    expect(result.projects.single.isValid, isFalse);
+    expect(result.projects.single.completionRatio, isNull);
+    expect(result.completionRatio, isNull);
+  });
+
   test('empty valid goal has deterministic zero progress', () {
     final result = service.project(
       GoalPlan(id: 'goal', title: 'خالی'),
