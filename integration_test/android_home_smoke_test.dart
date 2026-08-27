@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android launches Persian Home and creates a canonical Task',
       (tester) async {
@@ -13,6 +13,10 @@ void main() {
 
     expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('arvin-home');
 
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
