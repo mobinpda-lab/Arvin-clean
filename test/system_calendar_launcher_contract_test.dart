@@ -11,7 +11,10 @@ void main() {
     expect(source, contains("import '../services/system_calendar_bridge.dart';"));
     expect(source, contains('.where(SystemCalendarBridge.isEligible)'));
     expect(source, contains('SystemCalendarBridge().insert(selected)'));
-    expect(source, contains("heroTag: 'arvin-system-calendar-export'"));
-    expect(source, contains("label: const Text('تقویم دستگاه')"));
+    expect(source, contains("title: const Text('تقویم دستگاه')"));
+    expect(source, contains('.pop(_CalendarMoreAction.systemCalendar)'));
+    expect(source, contains('await _exportToSystemCalendar(context);'));
+    expect(source, contains("label: 'بیشتر'"));
+    expect(source, isNot(contains("heroTag: 'arvin-system-calendar-export'")));
   });
 }
