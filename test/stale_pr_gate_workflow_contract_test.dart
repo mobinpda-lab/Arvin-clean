@@ -29,4 +29,14 @@ void main() {
     expect(script, isNot(contains('merge_pull_request')));
     expect(script, isNot(contains('update_ref')));
   });
+
+  test('stale gate guard Python classifier self-test passes on Linux CI', () {
+    if (!Platform.isLinux) return;
+    final result = Process.runSync(
+      'python3',
+      const ['tool/cancel_stale_pr_gates.py', '--self-test'],
+    );
+    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+    expect(result.stdout, contains('self-test: OK'));
+  });
 }
