@@ -1,90 +1,131 @@
 # Arvin Maximum Parallel — operational plan 2026-08-28
 
-Status: active execution plan.
-Baseline at creation: `main` `e31beddb5305f00b4c89f7881c5a47abbeab1365`.
+Status: **active permanent execution plan**.
+
+Live baseline after the latest verified integration:
+- `main`: `16323a754ba6fd7a2cdedf25cec7a9f003a95c4d`
+- PR #374 Jalali PDF: merged; post-merge Build/APKs/Home+People Device all green
+- PR #376 independent `Task.dueDate` foundation: merged after Fast + Quality + debug/release APK + Home/People Device success
 
 ## Permanent no-stop rule
 Arvin production must never become globally idle because one lane is waiting, failing, validating, documenting, reviewing or depending on another lane.
 
-- A real blocker pauses only the affected lane.
+- A blocker pauses **only** the affected lane.
 - Every non-conflicting ready lane continues automatically.
-- Documentation, audit and reporting never block independent product production.
-- CI waiting time is used to audit/start/advance independent work.
-- Stale/conflicted work is never merged merely to keep motion; it is reconciled while other lanes continue.
-- Main is advanced only by exact-head verified, mergeable changes and receives post-merge validation.
-- User data safety, canonical Task/FollowUp storage, architecture and evidence rules are never weakened for speed.
+- CI waiting time is reused for audit, branch preparation, focused tests, documentation and independent product work.
+- Documentation never blocks independent product implementation.
+- Stale/conflicted PRs are reconciled or rebuilt while other lanes continue; they are never force-merged merely to create motion.
+- Main advances only through exact-head verified, mergeable changes followed by post-merge validation.
+- Speed never weakens canonical storage, migration safety, user-data preservation or acceptance evidence.
 
-## Current execution lanes
+## Immediate P0 dependency map
 
-### Lane A — export/PDF
-- PR #374 merged to current main.
-- Post-merge Build/APK/Device validation owns final closure for Issue #373.
+### P0-A — canonical due date / list semantics
+Owner requirement is now restored at the domain boundary through merged #376.
 
-### Lane B — Follow-up Task UX
-- Issue #357 / PR #363.
-- Explicit follow-up Task state is implemented.
-- Android Home smoke was corrected to the new explicit-toggle contract after a real-device test exposed the stale expectation.
-- Fast gate reruns first; then full exact-head Build/APK/Device.
-- Stacked PR #366 owns blank FollowUp title -> `پیگیری` after parent reconciliation.
+Next work under #375/#369:
+1. preserve `dueDate` in every Task copy/rebuild/update path;
+2. expose Jalali due date/time in Task create/edit/detail;
+3. implement Today / Future / Overdue from `Task.dueDate` only;
+4. implement Move-to-Today by changing the same Task's `dueDate`, never reminder/follow-up timestamps;
+5. verify Backup/Sync/Report projections preserve the field.
 
-### Lane C — Notebook / category UX
-- Issue #362 / PR #365.
-- Simple Note and Checklist UI separation, visible edit and immediate same-Task category move are implemented.
-- Fresh ready-state Build/Device validation is active; reconcile against latest main before merge when needed.
+### P0-B — FollowUp Task UX (#357 / PR #363)
+PR #363 already has green Fast, Quality and Device evidence, but it predates canonical `Task.dueDate`.
 
-### Lane D — Reminder widget visual
-- Issue #361 / PR #364.
-- Approved reminder visual hierarchy is implemented without a second widget data store.
-- Fresh ready-state Build/Device validation is active; final launcher/keyguard screenshot acceptance remains a later closure item.
+**Data-safety gate before merge:**
+- reconcile the editor against current main;
+- explicitly preserve `existing.dueDate` when editing/rebuilding a Task;
+- rerun exact-head Fast + Build/APKs + Device on the patched head.
 
-### Lane E — independent Task due date foundation
-- Issue #375 / PR #376.
-- Additive canonical `Task.dueDate` is independent from Reminder and FollowUp timestamps.
-- Draft Fast validation first.
-- Follow-on slices own Jalali editor/detail UI and Today/Future/Overdue semantics.
+Then continue #357 with:
+- Home card -> read-only Task detail;
+- round bottom `+` for follow-up-enabled Tasks;
+- stacked blank FollowUp title -> `پیگیری` slice (#366);
+- final latest-follow-up Home acceptance.
 
-### Lane F — list/bulk operations
-- Issue #369.
-- After due-date foundation is accepted, Today/Future/Overdue and Move-to-Today use `Task.dueDate`, not reminder/follow-up timestamps.
-- Also owns current-list search/sort/filter integration and owner-required list behavior without a second Task store.
+### P0-C — Follow-up Calendar UX (#350 / PR #352)
+The owner-approved compact calendar contract is still missing on live main. The old #352 branch is stale/conflicted and must not be merged as-is.
 
-### Lane G — calendar UX
-- Issue #350 / PR #352.
-- Owner-approved compact Persian RTL Jalali day/week/month contract exists.
-- Reconcile against latest main and close exact-head Build/APK/Device before merge.
+Rebuild from current main and preserve:
+- self-contained RTL;
+- Jalali day/week/month;
+- weekly compact default;
+- visible text `امروز`;
+- compact day/week/month heights;
+- exact one-day / one-week / one-month navigation;
+- selected-day vertical list.
 
-### Lane H — remembered owner requirements
-Independent issues remain active and must not disappear:
-- #370 Auto Save / safe Back
-- #371 Category + Tag management
-- #372 independent FollowUp Reminder
-- #367 long-press selection / bulk archive / filtered-list PDF-share-print
-- #341 Quick Capture Android E2E
-- #339 People final roadmap DoD/handoff closure
+**Shared-file rule:** #352 and #363 both modify `integration_test/android_home_smoke_test.dart`. The final Calendar branch must be reconstructed on the latest accepted Home/FollowUp smoke rather than restoring an old smoke file.
 
-## Integration order
-There is no global serial queue. Merge any lane as soon as its own requirements are satisfied.
+### P0-D — Notebook / Category (#362 / PR #365)
+Low-overlap lane. Existing implementation has green Fast/Build/Device evidence:
+- simple Note stays text-focused;
+- Checklist remains separate UX mode;
+- visible Edit;
+- immediate same-ID category reassignment;
+- canonical `TaskStore/arvin.tasks` only.
 
-Preferred near-term integration order when several become ready simultaneously:
-1. smallest already-validated low-overlap fixes;
-2. canonical domain/persistence foundations;
-3. user-facing surfaces depending on those foundations;
-4. E2E/scorecard/handoff closure.
+Its repository mutates the loaded canonical Task rather than rebuilding it, so additive fields such as `dueDate` are naturally preserved. Recheck latest-main overlap/mergeability immediately before merge.
 
-A newer main commit does not invalidate unrelated work automatically. Before merge, verify current main, exact PR head, mergeability, overlap and required CI evidence. Re-run only evidence that became materially stale.
+### P0-E — Reminder Widget (#361 / PR #364)
+Low-overlap Android resource lane with prior green Fast/Build/Device evidence.
 
-## Documentation and score rule
+Recheck real mergeability on current main; if conflict is real, rebuild fresh rather than forcing. Final launcher/keyguard/timed/all-day visual acceptance remains separate closure work.
+
+## Independent remembered owner lanes — must always retain an owner
+- #369 — All/Notes/FollowUp-enabled + Today/Future/Overdue + sorting + Move-to-Today + list search integration
+- #370 — safe Back / autosave or explicit save-discard across editable flows
+- #371 — complete Category + Tag lifecycle
+- #372 — independent Reminder per FollowUp
+- #367 — long-press one/many/all selection, bulk archive/delete/category/tags, Notes Copy/PDF/Share/Print, filtered-list Task PDF/Share/Print
+- #341 — Quick Capture Android E2E
+- #339 — People final roadmap DoD/status/handoff closure
+- #345/#351 — multi-device apply/CAS stack
+- #346 — provider-neutral external-calendar idempotency follow-on
+
+## Integration order without global serialization
+There is **no single project queue**. Independent work continues in parallel. When multiple PRs are merge-ready at the same time, prefer:
+
+1. canonical domain/persistence foundations;
+2. small low-overlap validated surfaces;
+3. user-facing surfaces that depend on those foundations;
+4. E2E / scorecard / handoff closure.
+
+Current practical order around shared files:
+1. #376 merged — due-date foundation complete;
+2. patch/revalidate #363 so Task edits cannot drop `dueDate`;
+3. reconstruct #352 Calendar on the newest Home smoke baseline;
+4. #365 and #364 may integrate whenever their latest-main overlap check is clean and doing so does not invalidate an almost-finished heavier gate;
+5. start #369 due-date projection/service slices as soon as current-main domain is stable;
+6. start #372 model/scheduler slice after current Task-model churn is settled;
+7. #370/#371/#367 integrate after their shared editor/list surfaces stabilize, while service/domain prep proceeds earlier.
+
+## CI throughput rule
+Do not move `main` needlessly while another near-merge PR is in the final minutes of heavy APK/Device CI if that move would make its evidence materially stale. This is **not a pause**: use that time for independent Draft/Fast lanes, audits, tests, docs, stale-PR cleanup and next-branch preparation.
+
+A newer `main` does not automatically invalidate unrelated CI. Before merge always verify:
+- current main SHA;
+- exact PR head SHA;
+- mergeability;
+- changed-file overlap / canonical data dependency;
+- whether existing CI actually covers the current combination.
+
+Rerun only evidence made materially stale.
+
+## Documentation / score / stale-work rules
 - GitHub reality is the source of truth.
-- Product Contract Matrix must retain Missing/Partial ownership until acceptance is genuinely complete.
-- Project completion and Product Extension scorecards remain separate.
-- No percentage is increased from plans, code-only work or Draft CI.
-- Historical documents remain preserved; stale active snapshots are reconciled or marked superseded, not deleted.
+- `docs/PRODUCT_CONTRACT_MATRIX.md` must keep every accepted Missing/Partial behavior attached to an owning Issue.
+- Whole-project score and Product Extension score remain separate.
+- No percentage rises from plans, Draft code or optimistic estimates.
+- Historical docs stay traceable but cannot override current contracts.
+- Old open PRs are classified as Active / Stacked / Needs migration / Superseded-history / Close-not-planned; never mass-close before unique requirements are migrated.
 
 ## Reporting rule
-Owner reports stay short and non-technical:
+Owner-facing reports remain short and nontechnical:
 - what merged;
-- what is moving in parallel;
-- blocker only if real;
+- what is moving now;
+- blocker only when real;
 - immediate next integration.
 
-The phrase `ادامه با حالت Maximum Parallel` means: audit live GitHub, resume nearest unfinished work, keep every independent lane moving, validate, document and integrate without waiting for the owner to repeat technical instructions.
+The phrase **`ادامه با حالت Maximum Parallel`** means: read live GitHub, resume the nearest unfinished accepted work, keep every independent lane moving, validate, document and integrate without waiting for the owner to repeat technical instructions.
