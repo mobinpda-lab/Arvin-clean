@@ -58,6 +58,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('افراد مرتبط'), findsOneWidget);
+
+    final store = TaskStore();
+
+    await tester.tap(find.byKey(const ValueKey('people-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'نام لغوشده اندروید',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-add-cancel')));
+    await tester.pumpAndSettle();
+
+    var persisted = (await store.load())
+        .singleWhere((task) => task.title == 'تست افراد اندروید');
+    expect(persisted.people, isEmpty);
+    expect(persisted.description, 'توضیح باید محفوظ بماند');
+
     await tester.tap(find.byKey(const ValueKey('people-add')));
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -69,8 +86,7 @@ void main() {
 
     expect(find.text('علی رضایی اندروید'), findsOneWidget);
 
-    final store = TaskStore();
-    var persisted = (await store.load())
+    persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
     expect(persisted.description, 'توضیح باید محفوظ بماند');
