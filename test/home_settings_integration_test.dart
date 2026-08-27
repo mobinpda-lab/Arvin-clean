@@ -33,6 +33,14 @@ void main() {
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
+    expect(find.text('حرکت کارت‌ها'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('پشتیبان‌گیری و بازیابی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
   });
 

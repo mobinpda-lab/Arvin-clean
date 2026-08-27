@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
+import 'widgets/persian_date_picker.dart';
 
 class FollowUpEntryPage extends StatefulWidget {
   const FollowUpEntryPage({
@@ -21,6 +23,7 @@ class FollowUpEntryPage extends StatefulWidget {
 
 class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   static const _waitingService = WaitingForResponseService();
+  static const _dateFormatter = PersianDateFormatter();
 
   late DateTime _dateTime;
   final _noteController = TextEditingController();
@@ -48,21 +51,10 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.dispose();
   }
 
-  String _digits(String value) {
-    const western = '0123456789';
-    const persian = '۰۱۲۳۴۵۶۷۸۹';
-    var result = value;
-    for (var i = 0; i < western.length; i++) {
-      result = result.replaceAll(western[i], persian[i]);
-    }
-    return result;
-  }
+  String _digits(String value) => _dateFormatter.toPersianDigits(value);
 
-  String _formatDate(DateTime value) {
-    final date =
-        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    return _digits(date);
-  }
+  String _formatDate(DateTime value) =>
+      _dateFormatter.format(value, usePersianDate: true);
 
   String _formatTime(DateTime value) {
     final time =
@@ -71,7 +63,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showPersianDatePicker(
       context: context,
       initialDate: _dateTime,
       firstDate: DateTime(2020),
@@ -113,7 +105,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   Future<void> _pickNext() async {
-    final picked = await showDatePicker(
+    final picked = await showPersianDatePicker(
       context: context,
       initialDate: _nextFollowUp ?? _dateTime,
       firstDate: _dateTime,

@@ -1,5 +1,4 @@
 import 'package:arvin/main.dart' as app;
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -23,31 +22,30 @@ void main() {
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
 
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'عنوان',
-      description: 'Task dialog title field',
-    );
-    final descriptionField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'توضیحات',
-      description: 'Task dialog description field',
-    );
-    final tagField = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.decoration?.labelText == 'تگ',
-      description: 'Task dialog tag field',
-    );
+    final titleField = find.byKey(const ValueKey('task-editor-title'));
+    final descriptionField =
+        find.byKey(const ValueKey('task-editor-description'));
+    final tagField = find.byKey(const ValueKey('task-editor-tag'));
 
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(titleField, findsOneWidget);
     expect(descriptionField, findsOneWidget);
     expect(tagField, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
 
     await tester.enterText(titleField, 'تست واقعی اندروید');
     await tester.enterText(
       descriptionField,
       'ثبت از مسیر Home روی Emulator',
     );
-    await tester.tap(find.text('ذخیره'));
+    await tester.enterText(tagField, 'آزمایش');
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
+    await tester.pumpAndSettle();
+    expect(find.text('آزمایش'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
     expect(find.text('تست واقعی اندروید'), findsOneWidget);

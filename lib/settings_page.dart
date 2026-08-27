@@ -80,6 +80,58 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.onSettingsChanged(next);
   }
 
+  Future<void> _setSwipeAction({
+    required bool rightSide,
+    required TaskSwipeAction action,
+  }) async {
+    final current = settings;
+    if (current == null) return;
+    final next = rightSide
+        ? current.copyWith(swipeRightAction: action)
+        : current.copyWith(swipeLeftAction: action);
+    await widget.service.saveSwipeActions(
+      right: next.swipeRightAction,
+      left: next.swipeLeftAction,
+    );
+    if (!mounted) return;
+    setState(() => settings = next);
+    widget.onSettingsChanged(next);
+  }
+
+  String _swipeActionLabel(TaskSwipeAction action) {
+    return switch (action) {
+      TaskSwipeAction.archive => 'بایگانی',
+      TaskSwipeAction.trash => 'سطل زباله',
+      TaskSwipeAction.none => 'بدون عمل',
+    };
+  }
+
+  IconData _swipeActionIcon(TaskSwipeAction action) {
+    return switch (action) {
+      TaskSwipeAction.archive => Icons.archive_outlined,
+      TaskSwipeAction.trash => Icons.delete_outline,
+      TaskSwipeAction.none => Icons.block,
+    };
+  }
+
+  List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() {
+    return TaskSwipeAction.values
+        .map(
+          (action) => DropdownMenuItem<TaskSwipeAction>(
+            value: action,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_swipeActionIcon(action), size: 20),
+                const SizedBox(width: 8),
+                Text(_swipeActionLabel(action)),
+              ],
+            ),
+          ),
+        )
+        .toList();
+  }
+
   Future<void> _openUserGuide() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -140,10 +192,52 @@ class _SettingsPageState extends State<SettingsPage> {
                     contentPadding: EdgeInsets.zero,
                     title: const Text('نمایش تاریخ فارسی'),
                     subtitle: const Text(
-                      'ترجیح نمایش تاریخ را برای مسیرهای پشتیبانی‌شده نگه می‌دارد.',
+                      'تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.',
                     ),
                     value: current.usePersianDate,
                     onChanged: _setPersianDate,
+                  ),
+                  const Divider(height: 32),
+                  const Text(
+                    'حرکت کارت‌ها',
+                    key: ValueKey('swipe-settings-title'),
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.',
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<TaskSwipeAction>(
+                    key: const ValueKey('swipe-right-action'),
+                    initialValue: current.swipeRightAction,
+                    decoration: const InputDecoration(
+                      labelText: 'کشیدن به راست',
+                      prefixIcon: Icon(Icons.swipe_right_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _swipeItems(),
+                    onChanged: (action) {
+                      if (action != null) {
+                        _setSwipeAction(rightSide: true, action: action);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<TaskSwipeAction>(
+                    key: const ValueKey('swipe-left-action'),
+                    initialValue: current.swipeLeftAction,
+                    decoration: const InputDecoration(
+                      labelText: 'کشیدن به چپ',
+                      prefixIcon: Icon(Icons.swipe_left_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _swipeItems(),
+                    onChanged: (action) {
+                      if (action != null) {
+                        _setSwipeAction(rightSide: false, action: action);
+                      }
+                    },
                   ),
                   const Divider(height: 32),
                   ListTile(
