@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'services/app_settings_service.dart';
+import 'user_guide_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -51,6 +52,14 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) return;
     setState(() => settings = next);
     widget.onSettingsChanged(next);
+  }
+
+  Future<void> _openUserGuide() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const UserGuidePage(),
+      ),
+    );
   }
 
   @override
@@ -110,6 +119,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: const Text(
                       'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
                     ),
+                  ),
+                  const Divider(height: 24),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.menu_book_outlined),
+                    title: const Text('راهنمای استفاده'),
+                    subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: _openUserGuide,
                   ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
