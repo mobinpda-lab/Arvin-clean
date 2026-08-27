@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/home_search_projection.dart';
 import 'package:arvin/services/task_search_service.dart';
 
 void main() {
@@ -27,5 +28,15 @@ void main() {
 
     expect(service.search(tasks, 'یادداشت کاری').map((e) => e.id), ['1']);
     expect(service.search(tasks, 'مشتری').map((e) => e.id), ['2']);
+  });
+
+  test('Home projection exposes semantic aliases on the canonical search path', () {
+    const projection = HomeSearchProjection();
+    final tasks = <Task>[
+      Task(id: '1', title: 'زنگ به مشتری', tags: ['ضروری']),
+      Task(id: '2', title: 'کار اداری'),
+    ];
+
+    expect(projection.matchingIds(tasks, 'تماس فوری'), {'1'});
   });
 }

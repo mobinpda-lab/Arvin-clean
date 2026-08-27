@@ -93,6 +93,34 @@ void main() {
     expect(service.search(tasks, 'پیگیری مشتری').map((e) => e.id), ['1']);
   });
 
+  test('matches high-confidence semantic aliases in either direction', () {
+    final tasks = [
+      Task(id: '1', title: 'زنگ به مشتری'),
+      Task(id: '2', title: 'جلسه با حسابدار'),
+    ];
+
+    expect(service.search(tasks, 'تماس').map((e) => e.id), ['1']);
+    expect(service.search(tasks, 'ملاقات').map((e) => e.id), ['2']);
+  });
+
+  test('keeps AND semantics across semantic groups and canonical fields', () {
+    final tasks = [
+      Task(id: '1', title: 'زنگ مشتری', tags: ['ضروری']),
+      Task(id: '2', title: 'زنگ مشتری', tags: ['عادی']),
+    ];
+
+    expect(service.search(tasks, 'تماس فوری').map((e) => e.id), ['1']);
+  });
+
+  test('unknown semantic terms fall back to exact normalized matching', () {
+    final tasks = [
+      Task(id: '1', title: 'پرونده مالیاتی شرکت'),
+      Task(id: '2', title: 'پرونده قرارداد شرکت'),
+    ];
+
+    expect(service.search(tasks, 'مالیاتی').map((e) => e.id), ['1']);
+  });
+
   test('empty query preserves task order without mutating the input list', () {
     final tasks = [
       Task(id: '1', title: 'اول'),
