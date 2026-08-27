@@ -51,119 +51,117 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
-  Future<String?> _requestNewPassphrase() async {
-    final passphraseController = TextEditingController();
-    final confirmationController = TextEditingController();
-    try {
-      return await showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) {
-          String? errorText;
-          return StatefulBuilder(
-            builder: (context, setDialogState) => AlertDialog(
-              title: const Text('رمز پشتیبان'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'اگر این رمز را فراموش کنید، فایل رمزگذاری‌شده قابل بازیابی نخواهد بود. آروین رمز را ذخیره نمی‌کند.',
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      key: const Key('backup_passphrase_field'),
-                      controller: passphraseController,
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      decoration: const InputDecoration(
-                        labelText: 'رمز',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      key: const Key('backup_passphrase_confirm_field'),
-                      controller: confirmationController,
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      decoration: const InputDecoration(
-                        labelText: 'تکرار رمز',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    if (errorText != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        errorText!,
-                        key: const Key('backup_passphrase_error'),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  key: const Key('backup_passphrase_cancel'),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('انصراف'),
-                ),
-                FilledButton(
-                  key: const Key('backup_passphrase_confirm'),
-                  onPressed: () {
-                    final passphrase = passphraseController.text;
-                    if (passphrase.trim().isEmpty) {
-                      setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
-                      return;
-                    }
-                    if (passphrase != confirmationController.text) {
-                      setDialogState(() => errorText = 'دو رمز یکسان نیستند');
-                      return;
-                    }
-                    Navigator.of(dialogContext).pop(passphrase);
-                  },
-                  child: const Text('ادامه'),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    } finally {
-      passphraseController.dispose();
-      confirmationController.dispose();
-    }
-  }
+  Future<String?> _requestNewPassphrase() {
+    var passphrase = '';
+    var confirmation = '';
 
-  Future<String?> _requestRestorePassphrase() async {
-    final controller = TextEditingController();
-    try {
-      return await showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) {
-          String? errorText;
-          return StatefulBuilder(
-            builder: (context, setDialogState) => AlertDialog(
-              title: const Text('رمز فایل پشتیبان'),
-              content: Column(
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز پشتیبان'),
+            content: SingleChildScrollView(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('رمزی را وارد کنید که هنگام ساخت این فایل استفاده شده است.'),
+                  const Text(
+                    'اگر این رمز را فراموش کنید، فایل رمزگذاری‌شده قابل بازیابی نخواهد بود. آروین رمز را ذخیره نمی‌کند.',
+                  ),
                   const SizedBox(height: 16),
                   TextField(
-                    key: const Key('restore_passphrase_field'),
-                    controller: controller,
+                    key: const Key('backup_passphrase_field'),
                     obscureText: true,
                     autocorrect: false,
                     enableSuggestions: false,
+                    onChanged: (value) => passphrase = value,
+                    decoration: const InputDecoration(
+                      labelText: 'رمز',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    key: const Key('backup_passphrase_confirm_field'),
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => confirmation = value,
+                    decoration: const InputDecoration(
+                      labelText: 'تکرار رمز',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  if (errorText != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      errorText!,
+                      key: const Key('backup_passphrase_error'),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                key: const Key('backup_passphrase_cancel'),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                key: const Key('backup_passphrase_confirm'),
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                    return;
+                  }
+                  if (passphrase != confirmation) {
+                    setDialogState(() => errorText = 'دو رمز یکسان نیستند');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('ادامه'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> _requestRestorePassphrase() {
+    var passphrase = '';
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز فایل پشتیبان'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'رمزی را وارد کنید که هنگام ساخت این فایل استفاده شده است.',
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    key: const Key('restore_passphrase_field'),
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => passphrase = value,
                     decoration: const InputDecoration(
                       labelText: 'رمز',
                       border: OutlineInputBorder(),
@@ -181,32 +179,29 @@ class _BackupPageState extends State<BackupPage> {
                   ],
                 ],
               ),
-              actions: [
-                TextButton(
-                  key: const Key('restore_passphrase_cancel'),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('انصراف'),
-                ),
-                FilledButton(
-                  key: const Key('restore_passphrase_confirm'),
-                  onPressed: () {
-                    final passphrase = controller.text;
-                    if (passphrase.trim().isEmpty) {
-                      setDialogState(() => errorText = 'رمز را وارد کنید');
-                      return;
-                    }
-                    Navigator.of(dialogContext).pop(passphrase);
-                  },
-                  child: const Text('انتخاب فایل'),
-                ),
-              ],
             ),
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
-    }
+            actions: [
+              TextButton(
+                key: const Key('restore_passphrase_cancel'),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                key: const Key('restore_passphrase_confirm'),
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز را وارد کنید');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('انتخاب فایل'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _backup() async {
