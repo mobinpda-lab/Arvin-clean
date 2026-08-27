@@ -5,38 +5,6 @@ import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  Future<FollowUp?> openEntry(
-    WidgetTester tester, {
-    required DateTime initialDateTime,
-  }) async {
-    FollowUp? result;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(
-                      initialDateTime: initialDateTime,
-                    ),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-    return result;
-  }
-
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
