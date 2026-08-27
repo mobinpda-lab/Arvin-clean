@@ -34,6 +34,25 @@ class PersonReference {
 
   /// Offline-safe label for rendering the relation without provider access.
   final String displayName;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'displayName': displayName,
+      };
+
+  factory PersonReference.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
+    final rawDisplayName = json['displayName'];
+    if (rawId is! String || rawDisplayName is! String) {
+      throw const FormatException('Invalid Person reference');
+    }
+
+    try {
+      return PersonReference(id: rawId, displayName: rawDisplayName);
+    } on ArgumentError {
+      throw const FormatException('Invalid Person reference');
+    }
+  }
 }
 
 /// Pure relation between one existing canonical Task id and zero or more
