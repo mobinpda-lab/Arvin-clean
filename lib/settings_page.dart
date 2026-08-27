@@ -8,11 +8,13 @@ class SettingsPage extends StatefulWidget {
     required this.service,
     required this.onSettingsChanged,
     required this.onOpenBackup,
+    this.onOpenDailyContent,
   });
 
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
+  final VoidCallback? onOpenDailyContent;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -103,6 +105,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     onChanged: _setPersianDate,
                   ),
                   const Divider(height: 32),
+                  if (widget.onOpenDailyContent != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.auto_awesome_outlined),
+                      title: const Text('پیام روز'),
+                      subtitle: const Text(
+                        'قرآن، نهج‌البلاغه، حدیث شیعه، صحیفه و سخنان مستند',
+                      ),
+                      trailing: const Icon(Icons.chevron_left),
+                      onTap: widget.onOpenDailyContent,
+                    ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.text_fields),
