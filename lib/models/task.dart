@@ -1,3 +1,4 @@
+import 'person_reference.dart';
 import 'recurrence.dart';
 
 class FollowUp {
@@ -63,7 +64,8 @@ class Task {
     this.completed = false,
     this.followUps = const [],
     this.recurrence,
-  });
+    Iterable<PersonReference> people = const [],
+  }) : people = _normalizePeople(people);
 
   final String id;
   String title;
@@ -82,7 +84,58 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
 
+  /// Optional canonical Person references attached to this Task.
+  /// The list is immutable so provider/UI code cannot mutate persistence state
+  /// behind the Task boundary.
+  final List<PersonReference> people;
+
   bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
+
+  static List<PersonReference> _normalizePeople(
+    Iterable<PersonReference> values,
+  ) {
+    final next = List<PersonReference>.of(values);
+    final seen = <String>{};
+    for (final person in next) {
+      if (!seen.add(person.id)) {
+        throw ArgumentError.value(
+          person.id,
+          'people',
+          'Duplicate Person id on Task',
+        );
+      }
+    }
+    return List<PersonReference>.unmodifiable(next);
+  }
+
+  static List<PersonReference> _decodePeople(Object? raw) {
+    if (raw == null) return const <PersonReference>[];
+    if (raw is! List) {
+      throw const FormatException('Task people must be a list');
+    }
+
+    final people = <PersonReference>[];
+    final seen = <String>{};
+    for (final rawPerson in raw) {
+      if (rawPerson is! Map) {
+        throw const FormatException('Invalid Task Person reference');
+      }
+
+      late final Map<String, dynamic> personJson;
+      try {
+        personJson = Map<String, dynamic>.from(rawPerson);
+      } catch (_) {
+        throw const FormatException('Invalid Task Person reference');
+      }
+
+      final person = PersonReference.fromJson(personJson);
+      if (!seen.add(person.id)) {
+        throw const FormatException('Duplicate Person id on Task');
+      }
+      people.add(person);
+    }
+    return people;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -101,6 +154,8 @@ class Task {
         'completed': completed,
         'followUps': followUps.map((e) => e.toJson()).toList(),
         if (recurrence != null) 'recurrence': recurrence!.toJson(),
+        if (people.isNotEmpty)
+          'people': people.map((person) => person.toJson()).toList(),
       };
 
   factory Task.fromJson(Map<String, dynamic> json) {
@@ -123,6 +178,8 @@ class Task {
         ];
       }
     }
+
+    final loadedPeople = _decodePeople(json['people']);
 
     return Task(
       id: json['id'] as String? ?? '',
@@ -158,6 +215,7 @@ class Task {
               Map<String, dynamic>.from(json['recurrence'] as Map),
             )
           : null,
+      people: loadedPeople,
     );
   }
 
