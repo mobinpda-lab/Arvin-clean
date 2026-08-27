@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 
+enum _NotebookCreateMode { note, checklist }
+
 class NotebookPage extends StatefulWidget {
   NotebookPage({
     super.key,
@@ -36,7 +38,11 @@ class _NotebookPageState extends State<NotebookPage> {
     });
   }
 
-  Future<void> _open(Task note, {bool startEditing = false}) async {
+  Future<void> _open(
+    Task note, {
+    bool startEditing = false,
+    bool focusChecklistOnOpen = false,
+  }) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => Directionality(
@@ -45,6 +51,7 @@ class _NotebookPageState extends State<NotebookPage> {
             noteId: note.id,
             repository: widget.repository,
             startEditing: startEditing,
+            focusChecklistOnOpen: focusChecklistOnOpen,
           ),
         ),
       ),
@@ -52,10 +59,62 @@ class _NotebookPageState extends State<NotebookPage> {
     await _reload();
   }
 
+  Future<_NotebookCreateMode?> _chooseCreateMode() {
+    return showModalBottomSheet<_NotebookCreateMode>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'چه چیزی می‌خواهید بسازید؟',
+                style: Theme.of(sheetContext).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                key: const ValueKey('notebook-create-note'),
+                leading: const Icon(Icons.note_alt_outlined),
+                title: const Text('یادداشت ساده'),
+                subtitle: const Text('برای متن، توضیح و یادداشت‌های آزاد'),
+                onTap: () => Navigator.of(sheetContext).pop(_NotebookCreateMode.note),
+              ),
+              ListTile(
+                key: const ValueKey('notebook-create-checklist'),
+                leading: const Icon(Icons.checklist_outlined),
+                title: const Text('چک‌لیست'),
+                subtitle: const Text('برای لیست خرید، سفر و کارهای مرحله‌ای'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_NotebookCreateMode.checklist),
+              ),
+              TextButton(
+                key: const ValueKey('notebook-create-cancel'),
+                onPressed: () => Navigator.of(sheetContext).pop(),
+                child: const Text('انصراف'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _create() async {
-    final note = await widget.repository.createNote();
+    final mode = await _chooseCreateMode();
+    if (!mounted || mode == null) return;
+
+    final isChecklist = mode == _NotebookCreateMode.checklist;
+    final note = await widget.repository.createNote(
+      title: isChecklist ? 'چک‌لیست جدید' : 'یادداشت جدید',
+    );
     if (!mounted) return;
-    await _open(note, startEditing: true);
+    await _open(
+      note,
+      startEditing: true,
+      focusChecklistOnOpen: isChecklist,
+    );
   }
 
   @override
@@ -105,12 +164,14 @@ class NotebookEditorPage extends StatefulWidget {
     required this.noteId,
     required this.repository,
     this.startEditing = false,
+    this.focusChecklistOnOpen = false,
     this.autosaveDelay = const Duration(milliseconds: 350),
   });
 
   final String noteId;
   final CanonicalNotebookRepository repository;
   final bool startEditing;
+  final bool focusChecklistOnOpen;
   final Duration autosaveDelay;
 
   @override
@@ -121,6 +182,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _checklistInput = TextEditingController();
+  final _checklistFocus = FocusNode();
   Timer? _autosaveTimer;
   Task? _note;
   bool _loading = true;
@@ -149,6 +211,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);
+    if (widget.focusChecklistOnOpen && _editing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _checklistFocus.requestFocus();
+      });
+    }
   }
 
   void _scheduleAutosave() {
@@ -209,6 +276,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _title.dispose();
     _description.dispose();
     _checklistInput.dispose();
+    _checklistFocus.dispose();
     super.dispose();
   }
 
@@ -277,6 +345,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   child: TextField(
                     key: const ValueKey('notebook-checklist-input'),
                     controller: _checklistInput,
+                    focusNode: _checklistFocus,
                     onSubmitted: (_) => _addChecklistItem(),
                     decoration:
                         const InputDecoration(labelText: 'مورد جدید چک‌لیست'),
