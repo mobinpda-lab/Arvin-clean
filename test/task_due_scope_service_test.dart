@@ -87,7 +87,9 @@ void main() {
       scope: TaskDueScope.future,
     );
 
-    expect(result, [same(first), same(second)]);
+    expect(result, hasLength(2));
+    expect(result[0], same(first));
+    expect(result[1], same(second));
     expect(first.dueDate, DateTime(2026, 8, 29));
     expect(second.dueDate, DateTime(2026, 8, 30));
   });
