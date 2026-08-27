@@ -18,12 +18,14 @@ class _FakeBackupService extends ArvinBackupService {
     required Map<String, dynamic> payload,
     required String fileName,
     bool uploadToCloud = true,
+    String? encryptionPassphrase,
   }) async {
     writtenPayload = payload;
   }
 
   @override
-  Future<Map<String, dynamic>?> readBackup() async => restoreDocument;
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async =>
+      restoreDocument;
 }
 
 Task _completeTask() {
@@ -84,7 +86,10 @@ void main() {
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');
-    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 8, 28, 10, 30));
+    expect(
+      restored.followUps.single.nextFollowUp,
+      DateTime(2026, 8, 28, 10, 30),
+    );
     expect(restored.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(restored.recurrence?.interval, 2);
     expect(restored.createdAt, DateTime(2026, 8, 20, 8));
