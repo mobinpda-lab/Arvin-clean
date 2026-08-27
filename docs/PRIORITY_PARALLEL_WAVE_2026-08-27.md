@@ -1,86 +1,102 @@
 # Priority Parallel Delivery Wave — 2026-08-27
 
-Refs #92 #195 #278 #284 #285 #286 #287 #293.
+Refs #92 #195 #278 #284 #285 #286 #287 #293 #296 #298.
 
 ## Goal
-Deliver the user's priority capabilities with maximum safe parallelism while preserving production stability and GitHub as the source of truth.
+Deliver the priority Arvin capabilities in hours rather than days by maximizing safe parallel work while keeping GitHub, CI evidence and documentation synchronized.
 
 ## Permanent execution rules
-- Independent work stays on separate branches/PRs.
+- Independent product, automation and documentation work stays on separate branches/PRs.
 - `main` is never edited directly.
-- Draft PRs use Parallel Fast CI first; heavy Build/Device gates are promoted only after Fast CI is green.
-- Development and validation are parallel, but Merge is serialized: one verified PR at a time.
-- After every Merge, remaining lanes are reconciled onto the new `main` without force-push and receive fresh exact-head validation.
-- Dependent work consumes merged foundations instead of duplicating logic.
-- No second Task/FollowUp/Calendar storage path is allowed.
-- Documentation and automation run in independent lanes so they do not invalidate product heads under test.
-- Progress/scorecards change only from merged evidence.
+- Draft product PRs use Parallel Fast CI first; heavy Build/APK/Device gates start only after the fast lane is green.
+- Development, CI, automation and documentation run in parallel; product Merge remains serialized one verified PR at a time.
+- After each Merge, remaining lanes are reconciled onto the new `main` without force-push and old-base CI evidence is treated as historical.
+- Dependent capabilities consume merged foundations instead of copying domain logic or storage.
+- No duplicate Task/FollowUp/Calendar/Sync storage path is allowed.
+- Automation may remove proven-stale runner work but must never auto-merge, force-push, rewrite product branches or cancel main validation.
+- Scorecards change only from merged, validator-backed evidence.
 
-## Merged in this wave
+## Current verified main
+Current `main`: `4b8b9a1f139303e112b53a61e4fee4ef237df065`.
 
-### #288 — Schedule conflict core ✅
-- Squash-merged to `main` as `d3671b608928821f926ea216b346d7fe386afeed`.
-- Exact-head Parallel Wave #818 ✅
-- Exact-head Build #924 ✅
-- Exact-head Device Smoke #170 ✅
-- Post-merge main quality + Debug APK + Release APK + Android smoke all verified successful.
-- Pure deterministic overlap engine; no Task/schema/storage/UI side effect.
+Latest merged product step in this wave:
+- #294 — CalendarReminder -> ScheduleInterval conflict projection ✅
 
-### #290 — Multi-device sync merge foundation ✅
-- Squash-merged to `main` as `265dc84c4f081f37a59abd71d72ea3a04f9a9388`.
-- Exact-head Parallel Wave #823 ✅
-- Exact-head Build #930 ✅
-- Exact-head Device Smoke #176 ✅
-- Divergent edits become explicit conflicts; timestamps never silently overwrite data.
-- No provider/network/background write or new Task store.
+Previously merged foundations in the same priority wave:
+- #288 — canonical pure schedule conflict core ✅
+- #289 — Goal -> Project -> Item domain foundation ✅
+- #290 — deterministic safe multi-device sync merge foundation ✅
+- #291 — suggestion-only safe rescheduling planner ✅
 
-Current main at this checkpoint: `265dc84c4f081f37a59abd71d72ea3a04f9a9388`.
+These merged foundations remain additive: no second Task store, no silent timestamp winner, no automatic calendar mutation and no duplicate conflict algorithm.
 
-## Active product lanes
+## Active product lane A — capability #15 Goal -> Project -> Item progress
+PR #297 — `feat(planning): project Goal/Project progress from canonical Tasks`
 
-### #289 — Goal → Project → Item foundation
-- Reconciled without force-push onto current main.
-- Current head: `c29589abbbdda1cfdc09643b5a651b09dc86db8c`.
-- Goal/Project references canonical Task IDs only; Task payload is not copied.
-- No new Task store/schema/persistence in the foundation.
-- Fresh exact-head validation is required after the #290 merge before Merge eligibility returns.
+Current exact head: `588e4b1151a6ef73aa6fe10db5969dd36b9b0651`.
 
-### #291 — Safe rescheduling planner
-- #288 dependency is now merged and the PR targets `main` directly.
-- Reconciled without force-push onto current main.
-- Current head: `c9118468df0dfe13f5202060820b3cea03b4a6b2`.
-- Consumes the single merged conflict engine; no duplicate overlap logic.
-- Suggestion-only; no automatic Task/Calendar mutation.
-- Feature-specific documentation lives with the branch in `docs/RESCHEDULING_PRIORITY_LANE_2026-08-27.md`.
+State at this checkpoint:
+- reconciled onto current `main`;
+- merge-base evidence is current `main`;
+- Parallel Fast CI #845 ✅;
+- promoted from Draft to Ready only after fast validation;
+- full Arvin Build #958 and Device Smoke #204 started on the exact head;
+- progress is read-only and derives only from canonical `Task.id` + `Task.completed`;
+- no new Task database/repository/storage/migration;
+- invalid/missing/duplicate Goal references never expose a misleading completion ratio.
 
-### #294 / Issue #293 — Calendar conflict projection
-- Reconciled without force-push onto current main.
-- Current head: `89d24ca8830979d6a06478707be9524fa135385b`.
-- Reuses existing FollowUp → CalendarReminder projection and the existing 30-minute timed-event convention.
-- Completed and all-day reminders do not block clock-time availability.
-- No second Calendar/storage/repository.
+Merge rule: do not merge until the exact-head heavy gates are green and `main` still matches the validated ancestry.
 
-## Automation lane
+## Active product lane B — capability #18 Task sync revision bridge
+PR #299 — `feat(sync): derive stable revisions from canonical Tasks`
 
-### #282 — stale heavy gate guard
-- Reconciled without force-push onto current main.
-- Current head: `a6eb178cfa81921aa26fe0fb086a96e3f621f6ef`.
-- Cancels only stale queued/in-progress PR Build/Device runs after `main` advances and only with positive GitHub ancestry evidence.
-- Never cancels main validation or Parallel Fast Lane.
-- No auto-rebase, force-push, or auto-merge.
-- Workflow, Python self-test, Flutter contract test and dedicated documentation remain isolated from product files.
-- Must pass fresh exact-head validation before activation/merge.
+Current exact head: `28c1d9c69e172dbdc680f4cdfb4c7c8cc28a0bf5`.
 
-## Existing priority capabilities reused, not rebuilt
-FollowUp automation, Timeline, and Quick Capture already have canonical implementations/evidence. New scheduling/planning/sync work must integrate with those foundations rather than creating parallel implementations.
+State at this checkpoint:
+- reconciled onto current `main`;
+- compare evidence: ahead of current main, behind by zero;
+- only the canonical Task sync revision service + focused test remain as the live diff;
+- Parallel Fast CI #846 ✅;
+- promoted from Draft to Ready only after fast validation;
+- full Arvin Build #959 and Device Smoke #205 started on the exact head;
+- SHA-256 fingerprint is derived from canonical `Task.toJson()` using the existing cryptography dependency;
+- no provider/cloud/network/background write choice;
+- no second Task/sync storage model;
+- timestamps are evidence only and never silently choose a conflict winner.
 
-## Next merge protocol
-1. Confirm post-#290 main Build/Device validation.
-2. Let #289/#291/#294/#282 validate independently on current main.
-3. Merge the first fully-green product lane whose exact head still contains current main.
-4. Immediately reconcile the remaining lanes and invalidate old-base evidence.
-5. Activate #282 only after its own exact-head review/gates are green, then let GitHub automatically stop stale heavy PR gates on future main advances.
-6. Refresh current-state/handoff and scorecards only after merged evidence warrants it.
+Merge rule: do not merge until exact-head heavy gates are green and current-main ancestry remains valid.
 
-## Safety result at checkpoint
-Code delivery, CI, GitHub automation and documentation are progressing concurrently. Product branches touch separate files, no direct writes go to `main`, force-push is not used, and no duplicate domain storage has been introduced.
+## Automation lane — stale heavy PR gate guard
+PR #282 — `ci: cancel stale heavy PR gates when main advances`
+
+Current reconciled head: `40d207a2c19c70ffe1e5e57c0fbbf4b3cefb5db3`.
+
+State at this checkpoint:
+- rebuilt as a non-force merge reconciliation onto current `main`;
+- product files are untouched;
+- Build #960 and Device Smoke #206 started; Parallel Wave #848 entered the queue;
+- runs only after push to `main`/`master`;
+- inspects only queued/in-progress pull-request runs for `Arvin Build` and `Arvin Device Smoke`;
+- classifies staleness from the immutable exact run `head_sha`;
+- cancellation requires positive GitHub compare evidence that the exact run head no longer contains current main;
+- uncertain API evidence is skipped, never cancelled;
+- main validation and Parallel Fast Lane are never cancelled;
+- no auto-rebase, no force-push and no auto-merge.
+
+Purpose: reduce wasted heavy-runner time after a product merge moves `main`, without serializing independent development lanes.
+
+## Documentation lane
+PR #292 — this document.
+
+The documentation branch is reconciled onto current `main` independently from product and automation branches. It remains Draft while product heads continue to move, so documentation never blocks or invalidates product delivery.
+
+## Merge coordination rule from this checkpoint
+1. Let #297 and #299 complete heavy gates in parallel.
+2. Let #282 validate independently without competing for product merge priority.
+3. Merge only the first product PR whose exact head is fully green and still contains current main.
+4. Immediately treat the other product PR's old heavy evidence as stale if main moves; reconcile and rerun only what is required.
+5. After product delivery stabilizes, merge #282 if its exact-head gates are green so future stale heavy runs are cancelled automatically.
+6. Refresh this documentation and the official scorecard only after merged evidence justifies a stage change.
+
+## Non-technical status
+The priority wave is moving on three tracks at once: product capability #15, product capability #18, and GitHub automation. Their fast checks are already passing; full Android checks are running in parallel. Documentation is being updated at the same time, with no direct writes to `main` and no force-push.
