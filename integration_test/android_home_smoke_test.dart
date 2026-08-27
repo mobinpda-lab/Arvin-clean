@@ -27,12 +27,20 @@ void main() {
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
     final tagField = find.byKey(const ValueKey('task-editor-tag'));
+    final followUpToggle =
+        find.byKey(const ValueKey('task-editor-followup-enabled'));
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(titleField, findsOneWidget);
     expect(descriptionField, findsOneWidget);
     expect(tagField, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
+    expect(followUpToggle, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-date')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-time')), findsNothing);
+
+    await tester.tap(followUpToggle);
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
 
@@ -46,9 +54,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    final saveButton = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
+    await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsNothing);
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
     expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
   });
