@@ -7,6 +7,39 @@ import 'services/canonical_notebook_repository.dart';
 
 enum _NotebookCreateMode { note, checklist }
 
+class _ChecklistPreset {
+  const _ChecklistPreset({
+    required this.id,
+    required this.title,
+    this.items = const [],
+  });
+
+  final String id;
+  final String title;
+  final List<String> items;
+}
+
+const _checklistPresets = <_ChecklistPreset>[
+  _ChecklistPreset(
+    id: 'shopping',
+    title: 'لیست خرید',
+    items: ['[ ] نان', '[ ] شیر', '[ ] میوه'],
+  ),
+  _ChecklistPreset(
+    id: 'travel',
+    title: 'وسایل سفر',
+    items: ['[ ] مدارک', '[ ] شارژر', '[ ] لباس'],
+  ),
+  _ChecklistPreset(
+    id: 'today',
+    title: 'کارهای امروز',
+  ),
+  _ChecklistPreset(
+    id: 'blank',
+    title: 'چک‌لیست جدید',
+  ),
+];
+
 class NotebookPage extends StatefulWidget {
   NotebookPage({
     super.key,
@@ -79,18 +112,64 @@ class _NotebookPageState extends State<NotebookPage> {
                 leading: const Icon(Icons.note_alt_outlined),
                 title: const Text('یادداشت ساده'),
                 subtitle: const Text('برای متن، توضیح و یادداشت‌های آزاد'),
-                onTap: () => Navigator.of(sheetContext).pop(_NotebookCreateMode.note),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_NotebookCreateMode.note),
               ),
               ListTile(
                 key: const ValueKey('notebook-create-checklist'),
                 leading: const Icon(Icons.checklist_outlined),
                 title: const Text('چک‌لیست'),
                 subtitle: const Text('برای لیست خرید، سفر و کارهای مرحله‌ای'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_NotebookCreateMode.checklist),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_NotebookCreateMode.checklist),
               ),
               TextButton(
                 key: const ValueKey('notebook-create-cancel'),
+                onPressed: () => Navigator.of(sheetContext).pop(),
+                child: const Text('انصراف'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<_ChecklistPreset?> _chooseChecklistPreset() {
+    return showModalBottomSheet<_ChecklistPreset>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'قالب چک‌لیست',
+                style: Theme.of(sheetContext).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              for (final preset in _checklistPresets)
+                ListTile(
+                  key: ValueKey('notebook-preset-${preset.id}'),
+                  leading: Icon(
+                    preset.id == 'shopping'
+                        ? Icons.shopping_basket_outlined
+                        : preset.id == 'travel'
+                            ? Icons.luggage_outlined
+                            : preset.id == 'today'
+                                ? Icons.today_outlined
+                                : Icons.checklist_outlined,
+                  ),
+                  title: Text(preset.title),
+                  subtitle: preset.items.isEmpty
+                      ? const Text('از یک چک‌لیست خالی شروع کنید')
+                      : Text('${preset.items.length} مورد پیشنهادی قابل ویرایش'),
+                  onTap: () => Navigator.of(sheetContext).pop(preset),
+                ),
+              TextButton(
+                key: const ValueKey('notebook-preset-cancel'),
                 onPressed: () => Navigator.of(sheetContext).pop(),
                 child: const Text('انصراف'),
               ),
@@ -105,15 +184,25 @@ class _NotebookPageState extends State<NotebookPage> {
     final mode = await _chooseCreateMode();
     if (!mounted || mode == null) return;
 
-    final isChecklist = mode == _NotebookCreateMode.checklist;
+    if (mode == _NotebookCreateMode.note) {
+      final note = await widget.repository.createNote(title: 'یادداشت جدید');
+      if (!mounted) return;
+      await _open(note, startEditing: true);
+      return;
+    }
+
+    final preset = await _chooseChecklistPreset();
+    if (!mounted || preset == null) return;
+
     final note = await widget.repository.createNote(
-      title: isChecklist ? 'چک‌لیست جدید' : 'یادداشت جدید',
+      title: preset.title,
+      checklist: preset.items,
     );
     if (!mounted) return;
     await _open(
       note,
       startEditing: true,
-      focusChecklistOnOpen: isChecklist,
+      focusChecklistOnOpen: preset.items.isEmpty,
     );
   }
 
@@ -270,6 +359,50 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _scheduleAutosave();
   }
 
+  Future<void> _editChecklistItem(int index) async {
+    if (!_editing) return;
+    final controller = TextEditingController(
+      text: _checklistLabel(_checklist[index]),
+    );
+    final replacement = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ویرایش مورد'),
+        content: TextField(
+          key: const ValueKey('notebook-checklist-edit-input'),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'متن مورد'),
+          onSubmitted: (value) =>
+              Navigator.of(dialogContext).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-checklist-edit-save'),
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('ذخیره'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (!mounted || replacement == null || replacement.isEmpty) return;
+    final prefix = _checked(_checklist[index]) ? '[x] ' : '[ ] ';
+    setState(() => _checklist[index] = '$prefix$replacement');
+    _scheduleAutosave();
+  }
+
+  void _removeChecklistItem(int index) {
+    if (!_editing) return;
+    setState(() => _checklist.removeAt(index));
+    _scheduleAutosave();
+  }
+
   @override
   void dispose() {
     _autosaveTimer?.cancel();
@@ -337,6 +470,29 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   ? (value) => _toggleChecklist(index, value)
                   : null,
               title: Text(_checklistLabel(_checklist[index])),
+              secondary: _editing
+                  ? PopupMenuButton<String>(
+                      key: ValueKey('notebook-check-menu-$index'),
+                      tooltip: 'گزینه‌های مورد',
+                      onSelected: (action) {
+                        if (action == 'edit') {
+                          _editChecklistItem(index);
+                        } else if (action == 'remove') {
+                          _removeChecklistItem(index);
+                        }
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text('ویرایش مورد'),
+                        ),
+                        PopupMenuItem(
+                          value: 'remove',
+                          child: Text('حذف مورد'),
+                        ),
+                      ],
+                    )
+                  : null,
             ),
           if (_editing)
             Row(
