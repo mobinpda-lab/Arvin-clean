@@ -488,10 +488,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     switch (action) {
       case _CalendarMoreAction.systemCalendar:
         await _exportToSystemCalendar(context);
+        return;
       case _CalendarMoreAction.timeline:
         await _openTimeline(context);
+        return;
       case _CalendarMoreAction.conflicts:
         await _openConflictAdvice(context, reminders);
+        return;
     }
   }
 
@@ -503,14 +506,18 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     switch (index) {
       case 0:
         Navigator.of(context).maybePop();
+        return;
       case 1:
         return;
       case 2:
         _openNotebook(context);
+        return;
       case 3:
         _openNextAction(context);
+        return;
       case 4:
         _openMore(context, reminders);
+        return;
     }
   }
 
