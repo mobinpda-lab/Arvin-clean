@@ -2,7 +2,7 @@ name: Arvin Device Smoke
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'device/**']
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened, ready_for_review]
