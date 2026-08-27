@@ -71,7 +71,8 @@ class CalendarReschedulingAdvisor {
       }
     }
 
-    if (target == null) {
+    final selectedTarget = target;
+    if (selectedTarget == null) {
       return CalendarReschedulingAdvice(
         state: CalendarReschedulingAdviceState.targetUnavailable,
       );
@@ -81,29 +82,30 @@ class CalendarReschedulingAdvisor {
         .findConflicts(projected)
         .where(
           (conflict) =>
-              conflict.first.id == target!.id || conflict.second.id == target.id,
+              conflict.first.id == selectedTarget.id ||
+              conflict.second.id == selectedTarget.id,
         )
         .toList(growable: false);
 
     if (targetConflicts.isEmpty) {
       return CalendarReschedulingAdvice(
         state: CalendarReschedulingAdviceState.noConflict,
-        target: target,
+        target: selectedTarget,
       );
     }
 
     final suggestions = _planner.suggest(
-      busy: projected.where((interval) => interval.id != target!.id),
+      busy: projected.where((interval) => interval.id != selectedTarget.id),
       windowStart: windowStart,
       windowEnd: windowEnd,
-      duration: target.end.difference(target.start),
+      duration: selectedTarget.end.difference(selectedTarget.start),
       step: step,
       limit: limit,
     );
 
     return CalendarReschedulingAdvice(
       state: CalendarReschedulingAdviceState.conflict,
-      target: target,
+      target: selectedTarget,
       conflicts: targetConflicts,
       suggestions: suggestions,
     );
