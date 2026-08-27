@@ -4,6 +4,7 @@ import '../calendar_page.dart';
 import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
+import '../services/calendar_rescheduling_advisor.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
@@ -17,10 +18,12 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     super.key,
     required this.tasks,
     this.projection = const FollowUpCalendarProjection(),
+    this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
   });
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
+  final CalendarReschedulingAdvisor reschedulingAdvisor;
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -42,6 +45,11 @@ class CanonicalCalendarLauncher extends StatelessWidget {
       icon: Icons.notifications_active_outlined,
       title: 'پیگیری‌ها و مناسبت‌ها',
       body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.warning_amber_outlined,
+      title: 'بررسی تداخل‌ها',
+      body: 'دکمه «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی می‌کند و فقط پیشنهاد زمان جایگزین نشان می‌دهد؛ هیچ تغییری خودکار اعمال نمی‌شود.',
     ),
     ContextualHelpStep(
       icon: Icons.event_available_outlined,
@@ -134,6 +142,120 @@ class CanonicalCalendarLauncher extends StatelessWidget {
     );
   }
 
+  Future<void> _openConflictAdvice(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) async {
+    final entries = <_CalendarConflictAdviceEntry>[];
+
+    for (final reminder in reminders) {
+      if (reminder.completed || reminder.isAllDay) continue;
+      final dayEnd = DateTime(
+        reminder.date.year,
+        reminder.date.month,
+        reminder.date.day,
+      ).add(const Duration(days: 1));
+      final advice = reschedulingAdvisor.advise(
+        reminders: reminders,
+        reminderId: reminder.id,
+        windowStart: reminder.date,
+        windowEnd: dayEnd,
+        limit: 3,
+      );
+      if (!advice.hasConflict) continue;
+      entries.add(
+        _CalendarConflictAdviceEntry(
+          reminder: reminder,
+          advice: advice,
+        ),
+      );
+    }
+
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  entries.isEmpty
+                      ? 'تداخل زمانی پیدا نشد'
+                      : 'تداخل‌های زمانی',
+                  style: Theme.of(sheetContext)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 12),
+                if (entries.isEmpty)
+                  const Text(
+                    'بین پیگیری‌های زمان‌دار فعلی تداخلی دیده نشد.',
+                  )
+                else
+                  for (final entry in entries) ...[
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              entry.reminder.title,
+                              style: Theme.of(sheetContext)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${_digits('${entry.advice.conflicts.length}')} تداخل در این زمان پیدا شد.',
+                            ),
+                            const SizedBox(height: 10),
+                            if (entry.advice.suggestions.isEmpty)
+                              const Text(
+                                'تا پایان همین روز زمان خالی پیشنهادی پیدا نشد.',
+                              )
+                            else ...[
+                              const Text('زمان‌های پیشنهادی:'),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  for (final suggestion
+                                      in entry.advice.suggestions)
+                                    Chip(
+                                      label: Text(
+                                        'پیشنهاد ${_time(suggestion.start)}',
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                const SizedBox(height: 8),
+                const Text(
+                  'این بخش فقط پیشنهاد می‌دهد و هیچ زمانی را خودکار تغییر نمی‌دهد.',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _exportToSystemCalendar(BuildContext context) async {
     final eligible = projection
         .project(tasks)
@@ -210,6 +332,17 @@ class CanonicalCalendarLauncher extends StatelessWidget {
             ),
           ),
           Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton.extended(
+              heroTag: 'arvin-calendar-conflict-advice',
+              tooltip: 'بررسی تداخل‌های زمانی',
+              onPressed: () => _openConflictAdvice(context, reminders),
+              icon: const Icon(Icons.warning_amber_outlined),
+              label: const Text('تداخل‌ها'),
+            ),
+          ),
+          Positioned(
             left: 16,
             bottom: 16,
             child: Column(
@@ -254,4 +387,30 @@ class CanonicalCalendarLauncher extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CalendarConflictAdviceEntry {
+  const _CalendarConflictAdviceEntry({
+    required this.reminder,
+    required this.advice,
+  });
+
+  final CalendarReminder reminder;
+  final CalendarReschedulingAdvice advice;
+}
+
+String _digits(String value) {
+  const western = '0123456789';
+  const persian = '۰۱۲۳۴۵۶۷۸۹';
+  var result = value;
+  for (var i = 0; i < western.length; i++) {
+    result = result.replaceAll(western[i], persian[i]);
+  }
+  return result;
+}
+
+String _time(DateTime value) {
+  return _digits(
+    '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+  );
 }

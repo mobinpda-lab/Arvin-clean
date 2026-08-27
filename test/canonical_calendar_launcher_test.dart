@@ -29,6 +29,45 @@ void main() {
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsOneWidget);
     expect(find.text('خط زمانی'), findsOneWidget);
+    expect(find.text('تداخل‌ها'), findsOneWidget);
+  });
+
+  testWidgets('real calendar conflict button shows safe replacement suggestions',
+      (tester) async {
+    final when = DateTime(2026, 8, 27, 9);
+    final tasks = [
+      Task(
+        id: 'conflict-a',
+        title: 'جلسه مشتری',
+        followUps: [
+          FollowUp(id: 'follow-a', dateTime: when, note: 'پیگیری قرارداد'),
+        ],
+      ),
+      Task(
+        id: 'conflict-b',
+        title: 'جلسه داخلی',
+        followUps: [
+          FollowUp(id: 'follow-b', dateTime: when, note: 'هماهنگی تیم'),
+        ],
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('تداخل‌ها'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تداخل‌های زمانی'), findsOneWidget);
+    expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsWidgets);
+    expect(find.text('جلسه داخلی — هماهنگی تیم'), findsWidgets);
+    expect(find.textContaining('پیشنهاد ۰۹:۳۰'), findsWidgets);
+    expect(
+      find.textContaining('هیچ زمانی را خودکار تغییر نمی‌دهد'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('next action opens canonical ranked suggestion page',
