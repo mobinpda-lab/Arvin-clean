@@ -34,4 +34,26 @@ void main() {
     expect(preferences.containsKey(TaskStore.key), isTrue);
     expect(preferences.getKeys(), {TaskStore.key});
   });
+
+  test('preset starter checklist is created in the same canonical Task', () async {
+    final repository = CanonicalNotebookRepository(
+      store: TaskStore(),
+      now: () => DateTime.utc(2026, 8, 27, 11),
+    );
+
+    final note = await repository.createNote(
+      id: 'shopping-note',
+      title: 'لیست خرید',
+      checklist: const ['[ ] نان', '[ ] شیر', '[ ] میوه'],
+    );
+
+    final stored = (await TaskStore().load()).single;
+    expect(stored.id, note.id);
+    expect(stored.title, 'لیست خرید');
+    expect(stored.checklist, ['[ ] نان', '[ ] شیر', '[ ] میوه']);
+    expect(stored.isSimpleNote, isTrue);
+
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getKeys(), {TaskStore.key});
+  });
 }
