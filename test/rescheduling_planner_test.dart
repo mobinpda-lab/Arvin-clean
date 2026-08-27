@@ -47,6 +47,22 @@ void main() {
     expect(result.single.end, DateTime(2026, 8, 27, 10, 30));
   });
 
+  test('candidate identity is independent from caller-provided interval ids', () {
+    final result = planner.suggest(
+      busy: [
+        busy('__reschedule_candidate__1', 8, 0, 9, 0),
+        busy('overlapping-busy', 8, 30, 8, 45),
+      ],
+      windowStart: DateTime(2026, 8, 27, 10),
+      windowEnd: DateTime(2026, 8, 27, 10, 30),
+      duration: const Duration(minutes: 30),
+      limit: 1,
+    );
+
+    expect(result, hasLength(1));
+    expect(result.single.start, DateTime(2026, 8, 27, 10));
+  });
+
   test('returns empty when no candidate fits the requested window', () {
     final result = planner.suggest(
       busy: [busy('meeting', 9, 0, 11, 0)],
