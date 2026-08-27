@@ -16,6 +16,8 @@ void main() {
       workflow,
       contains('reactivecircus/android-emulator-runner@v2'),
     );
+    expect(workflow, contains('people-device-smoke:'));
+    expect(workflow, contains('timeout-minutes: 20'));
     expect(
       workflow,
       contains(
