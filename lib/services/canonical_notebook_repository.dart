@@ -37,12 +37,15 @@ class CanonicalNotebookRepository {
     return null;
   }
 
-  Future<Task> createNote({String? id}) async {
+  Future<Task> createNote({
+    String? id,
+    String title = 'یادداشت جدید',
+  }) async {
     final tasks = await _store.load();
     final createdAt = _now();
     final note = Task(
       id: id ?? 'note-${createdAt.microsecondsSinceEpoch}',
-      title: 'یادداشت جدید',
+      title: title.trim().isEmpty ? 'یادداشت جدید' : title.trim(),
       createdAt: createdAt,
       updatedAt: createdAt,
     );
