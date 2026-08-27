@@ -5,6 +5,7 @@ import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
+import 'services/interactive_guide_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
@@ -15,11 +16,17 @@ import 'settings_page.dart';
 import 'theme/app_fonts.dart';
 import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
+import 'widgets/home_interactive_guide.dart';
 
-void main() => runApp(const ArvinApp());
+void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({
+    super.key,
+    this.enableFirstRunGuide = false,
+  });
+
+  final bool enableFirstRunGuide;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -73,6 +80,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          enableFirstRunGuide: widget.enableFirstRunGuide,
         ),
       ),
     );
@@ -88,10 +96,12 @@ class HomePage extends StatefulWidget {
       fontFamily: null,
     ),
     this.onSettingsChanged,
+    this.enableFirstRunGuide = false,
   });
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
+  final bool enableFirstRunGuide;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -103,16 +113,30 @@ class _HomePageState extends State<HomePage> {
   final TaskStore taskStore = TaskStore();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
+  final InteractiveGuideService interactiveGuideService =
+      InteractiveGuideService();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
   final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
   final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
+  final GlobalKey _quickCaptureGuideKey =
+      GlobalKey(debugLabel: 'home-guide-quick-capture');
+  final GlobalKey _backupGuideKey =
+      GlobalKey(debugLabel: 'home-guide-backup');
+  final GlobalKey _searchGuideKey =
+      GlobalKey(debugLabel: 'home-guide-search');
+  final GlobalKey _filtersGuideKey =
+      GlobalKey(debugLabel: 'home-guide-filters');
+  final GlobalKey _newTaskGuideKey =
+      GlobalKey(debugLabel: 'home-guide-new-task');
   List<Task> tasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
   bool selectionMode = false;
+  bool _firstRunGuideChecked = false;
+  bool _interactiveGuideRunning = false;
   String query = '';
   String filter = 'فعال';
 
@@ -172,6 +196,73 @@ class _HomePageState extends State<HomePage> {
         loading = false;
       });
     }
+    await _maybeShowFirstRunGuide();
+  }
+
+  Future<void> _maybeShowFirstRunGuide() async {
+    if (!widget.enableFirstRunGuide || _firstRunGuideChecked) return;
+    _firstRunGuideChecked = true;
+    final shouldShow = await interactiveGuideService.shouldShow();
+    if (!mounted || !shouldShow) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _startInteractiveGuide();
+    });
+  }
+
+  Future<void> _startInteractiveGuide() async {
+    if (!mounted || loading || _interactiveGuideRunning) return;
+    _interactiveGuideRunning = true;
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) {
+      _interactiveGuideRunning = false;
+      return;
+    }
+
+    final finished = await showHomeInteractiveGuide(
+      context: context,
+      targets: [
+        HomeGuideTarget(
+          key: _quickCaptureGuideKey,
+          title: 'ثبت سریع',
+          description:
+              'وقتی عجله دارید، این دکمه را بزنید و فقط متن کار را سریع ثبت کنید. جزئیات را بعداً می‌توانید کامل کنید.',
+          icon: Icons.bolt_outlined,
+        ),
+        HomeGuideTarget(
+          key: _backupGuideKey,
+          title: 'پشتیبان‌گیری',
+          description:
+              'از اینجا پوشه پشتیبان را انتخاب می‌کنید، Backup می‌سازید یا اطلاعات قبلی را بازیابی می‌کنید.',
+          icon: Icons.backup_outlined,
+        ),
+        HomeGuideTarget(
+          key: _searchGuideKey,
+          title: 'جست‌وجو',
+          description:
+              'بخشی از عنوان، توضیح یا برچسب را بنویسید تا آروین کار موردنظر را سریع پیدا کند.',
+          icon: Icons.search,
+        ),
+        HomeGuideTarget(
+          key: _filtersGuideKey,
+          title: 'فیلتر کارها',
+          description:
+              'با این بخش بین کارهای فعال، بایگانی و سطل زباله جابه‌جا می‌شوید.',
+          icon: Icons.filter_alt_outlined,
+        ),
+        HomeGuideTarget(
+          key: _newTaskGuideKey,
+          title: 'ساخت کار جدید',
+          description:
+              'برای ثبت یک کار کامل با عنوان، توضیحات، برچسب و تاریخ پیگیری از این دکمه استفاده کنید.',
+          icon: Icons.add_circle_outline,
+        ),
+      ],
+    );
+
+    if (finished) {
+      await interactiveGuideService.markSeen();
+    }
+    _interactiveGuideRunning = false;
   }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
@@ -537,6 +628,10 @@ class _HomePageState extends State<HomePage> {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
           },
+          onStartInteractiveGuide: () {
+            Navigator.of(context).pop();
+            Future<void>.delayed(Duration.zero, _startInteractiveGuide);
+          },
         ),
       ),
     );
@@ -737,11 +832,13 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
+            key: _quickCaptureGuideKey,
             onPressed: loading || selectionMode ? null : _quickCapture,
             tooltip: 'ثبت سریع',
             icon: const Icon(Icons.bolt_outlined),
           ),
           IconButton(
+            key: _backupGuideKey,
             onPressed: _backupMenu,
             tooltip: 'پشتیبان',
             icon: const Icon(Icons.backup_outlined),
@@ -762,6 +859,7 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   child: TextField(
+                    key: _searchGuideKey,
                     onChanged: (value) => setState(() => query = value),
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search),
@@ -770,6 +868,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 SizedBox(
+                  key: _filtersGuideKey,
                   height: 52,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
@@ -839,6 +938,7 @@ class _HomePageState extends State<HomePage> {
             ),
       floatingActionButton: selected.isEmpty
           ? FloatingActionButton.extended(
+              key: _newTaskGuideKey,
               onPressed: _add,
               icon: const Icon(Icons.add),
               label: const Text('کار جدید'),
