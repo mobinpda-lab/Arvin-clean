@@ -9,6 +9,12 @@ void main() {
     );
 
     expect(find.text('راهنمای استفاده از آروین'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('شروع سریع در ۳۰ ثانیه'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('شروع سریع در ۳۰ ثانیه'), findsOneWidget);
 
     await tester.scrollUntilVisible(
@@ -30,7 +36,6 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
-
     expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
 
     await tester.scrollUntilVisible(
