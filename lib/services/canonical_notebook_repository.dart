@@ -40,12 +40,14 @@ class CanonicalNotebookRepository {
   Future<Task> createNote({
     String? id,
     String title = 'یادداشت جدید',
+    List<String> checklist = const [],
   }) async {
     final tasks = await _store.load();
     final createdAt = _now();
     final note = Task(
       id: id ?? 'note-${createdAt.microsecondsSinceEpoch}',
       title: title.trim().isEmpty ? 'یادداشت جدید' : title.trim(),
+      checklist: List<String>.of(checklist),
       createdAt: createdAt,
       updatedAt: createdAt,
     );

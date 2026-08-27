@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'services/app_settings_service.dart';
+import 'user_guide_page.dart';
+import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -8,17 +10,42 @@ class SettingsPage extends StatefulWidget {
     required this.service,
     required this.onSettingsChanged,
     required this.onOpenBackup,
+    this.onStartInteractiveGuide,
   });
 
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
+  final VoidCallback? onStartInteractiveGuide;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  static const _backupHelpSteps = <ContextualHelpStep>[
+    ContextualHelpStep(
+      icon: Icons.folder_outlined,
+      title: 'اول پوشه را انتخاب کنید',
+      body: 'یک پوشه امن برای فایل‌های پشتیبان انتخاب کنید تا آروین بداند نسخه‌ها را کجا نگه دارد.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.backup_outlined,
+      title: 'پشتیبان بسازید',
+      body: 'گزینه «ایجاد Backup» یک نسخه قابل انتقال از اطلاعات فعلی شما می‌سازد.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.lock_outline,
+      title: 'رمزگذاری اختیاری است',
+      body: 'اگر از پشتیبان رمزگذاری‌شده استفاده می‌کنید، رمز را جای امن نگه دارید؛ آروین آن را ذخیره نمی‌کند.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.restore,
+      title: 'بازیابی با دقت',
+      body: 'برای برگرداندن اطلاعات، فایل درست را انتخاب کنید. آروین قبل از جایگزینی اطلاعات مسیر بازیابی را کنترل می‌کند.',
+    ),
+  ];
+
   AppSettings? settings;
 
   @override
@@ -51,6 +78,22 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) return;
     setState(() => settings = next);
     widget.onSettingsChanged(next);
+  }
+
+  Future<void> _openUserGuide() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const UserGuidePage(),
+      ),
+    );
+  }
+
+  Future<void> _showBackupHelp() {
+    return showContextualHelp(
+      context,
+      title: 'راهنمای پشتیبان‌گیری',
+      steps: _backupHelpSteps,
+    );
   }
 
   @override
@@ -111,12 +154,43 @@ class _SettingsPageState extends State<SettingsPage> {
                       'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
                     ),
                   ),
+                  const Divider(height: 24),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.menu_book_outlined),
+                    title: const Text('راهنمای استفاده'),
+                    subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: _openUserGuide,
+                  ),
+                  if (widget.onStartInteractiveGuide != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.slideshow_outlined),
+                      title: const Text('راهنمای تعاملی صفحه اصلی'),
+                      subtitle: const Text(
+                        'دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند',
+                      ),
+                      trailing: const Icon(Icons.play_arrow_rounded),
+                      onTap: widget.onStartInteractiveGuide,
+                    ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.backup_outlined),
                     title: const Text('پشتیبان‌گیری و بازیابی'),
                     subtitle: const Text('استفاده از مسیر موجود Backup/Restore آروین'),
-                    trailing: const Icon(Icons.chevron_left),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          key: const ValueKey('backup-context-help'),
+                          tooltip: 'راهنمای پشتیبان‌گیری',
+                          onPressed: _showBackupHelp,
+                          icon: const Icon(Icons.help_outline),
+                        ),
+                        const Icon(Icons.chevron_left),
+                      ],
+                    ),
                     onTap: widget.onOpenBackup,
                   ),
                 ],

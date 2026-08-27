@@ -14,6 +14,12 @@ void main() {
     expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
 
+    final skipGuide = find.text('رد کردن');
+    if (skipGuide.evaluate().isNotEmpty) {
+      await tester.tap(skipGuide);
+      await tester.pumpAndSettle();
+    }
+
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
 
