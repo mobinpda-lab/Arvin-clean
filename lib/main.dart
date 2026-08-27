@@ -542,7 +542,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Future<void> _openAbout(BuildContext drawerContext) async {
     Navigator.pop(drawerContext);
     await Future<void>.delayed(Duration.zero);
@@ -726,7 +725,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+              'بسم الله الرحمن الرحیم',
               style: TextStyle(fontSize: 13),
             ),
             SizedBox(height: 3),
