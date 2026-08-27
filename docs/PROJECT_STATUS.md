@@ -5,23 +5,20 @@
 GitHub تنها Source of Truth عملیاتی پروژه است. هر SHA، PR، CI، درصد یا وضعیت باید قبل از اقدام دوباره از GitHub تازه بررسی شود.
 
 - Branch مرجع: `main`
-- snapshot مبنا: `bec99214534a8c9972f9e3145dde792cecf2f9e3`
-- آخرین Merge: PR #245 — audit مرز canonical Privacy / Encryption
-- Mergeهای مهم همین موج: #243 deterministic Device lane، #242 Semantic Search v1، #247 parallel APK Build، #245 Privacy audit
-- post-#242 main: Build #829 ✅ / Device #69 ✅
-- post-#247 main: Build #832 ✅ / Device #72 ✅
-- #245 exact head: Parallel #754 ✅ / Build #834 ✅ / Device #74 ✅
-- post-#245 main: Build #835 و Device Smoke بعد از Merge فعال شده‌اند و باید قبل از ادعای post-merge green دوباره خوانده شوند.
+- snapshot ممیزی این سند: `cd7b823a0d96e657912e5beb953c4e4f93582679`
+- آخرین Merge: PR #268 — انتخاب `یادداشت ساده` / `چک‌لیست` در Notebook
+- #268 exact-head: Parallel #788 ✅ / Build #892 ✅ Release+Debug APK / Device #138 ✅
+- post-#268 main: Build #894 ✅ Release+Debug APK / Device #140 ✅
 - Project A-H: **70.0%**
 - Extension roadmap: **25.0% overall / 59.4% Wave X1**
 
 ## قرارداد اجرای سریع
 
-هدف، تحویل در چند ساعت به‌جای چند روز است، بدون قربانی‌کردن صحت:
+هدف تحویل معتبر در چند ساعت به‌جای چند روز است:
 
 1. Audit زنده GitHub قبل از تصمیم.
 2. Laneهای مستقل هم‌زمان؛ Block یک Lane نباید بقیه را متوقف کند.
-3. Merge فقط با evidence همان Head SHA.
+3. Merge فقط با evidence همان exact Head SHA و current base.
 4. بعد از Merge، `main` دوباره Build + Device Smoke می‌شود.
 5. Implementation، Tests، Automation و Documentation هم‌زمان جلو می‌روند.
 6. Foundation موازی برای Task/FollowUp/Search/Backup/Sync/Widget/Storage ممنوع است مگر audit مستقل آن را توجیه کند.
@@ -29,62 +26,88 @@ GitHub تنها Source of Truth عملیاتی پروژه است. هر SHA، PR�
 
 ## Foundation فعلی
 
-مسیر canonical محصول همچنان:
+مسیر canonical محصول:
 
 `Task / Unified Item → Reminder → FollowUps[] → History`
 
-Home، Search، Today، FollowUp، Timeline، Reminder، Calendar، Backup، Settings، Widget و Report باید همین foundation را مصرف کنند.
+Notebook نیز فقط از مسیر:
 
-## تحویل‌های اخیر
+`NotebookPage → CanonicalNotebookRepository → Task.checklist → TaskStore`
 
-### Semantic Search v1 — PR #242
-- روی `TaskSearchService` موجود ادغام شد؛ Search engine/UI/index/database دوم ساخته نشد.
-- aliasهای محدود فارسی با OR داخل گروه و AND بین termها.
-- exact-head: Parallel #751 / Build #826 / Device #66 ✅
-- post-merge: Build #829 / Device #69 ✅
-- Issue #241 بسته شد.
+استفاده می‌کند.
 
-### Deterministic Device validation — PR #243
-- مسیر `device/**` برای exact-ref Device Smoke اضافه شد.
-- API/automation دیگر برای smoke دقیق به delivery اتفاقی PR event وابسته نیست.
+## تحویل‌های Merge‌شده اخیر
 
-### Faster Build — PR #247
-- Analyze/tests یک بار در `quality` اجرا می‌شوند.
-- Release و Debug APK بعد از آن به‌صورت matrix مستقل و موازی ساخته/verify/upload می‌شوند.
-- exact-head: Parallel #753 / Build #831 / Device #71 ✅
-- post-merge: Build #832 / Device #72 ✅
+### Notebook create mode — #268
 
-### Privacy / Encryption boundary — PR #245
-- مرز امن اولین implementation روی همان portable backup bytes موجود تعریف شد.
-- legacy plaintext v1 باید قابل خواندن بماند.
-- encrypted envelope آینده باید versioned و authenticated باشد.
-- local TaskStore encryption و multi-device sync عمداً از این slice جدا نگه داشته شدند.
-- credential/token نباید وارد portable Settings/backup شود؛ regression اجرایی دارد.
-- Issue #248 قدم بعدی implementation را بدون شروع premature code ثبت کرده است.
+- ساخت یادداشت اکنون `یادداشت ساده` یا `چک‌لیست` را پیشنهاد می‌دهد.
+- checklist mode روی همان `Task.checklist` باز می‌شود و input را focus می‌کند.
+- cancel هیچ Taskی ایجاد نمی‌کند.
+- storage/model/database جدید ساخته نشده است.
+- exact-head و post-merge Build/Device کامل سبز هستند.
+
+### Daily Content wave — Issue #260
+
+- #261 — foundation
+- #265 — preferences
+- #266 — notification sink
+- #262 — Calendar card
+- #263 — pack codec
+- #273 — bounded local cache
+
+Provider/network production هنوز باید source/license gate و validation/cache موجود را رعایت کند.
+
+### Semantic Search / CI foundations
+
+- #242 — Semantic Search v1 روی `TaskSearchService` موجود
+- #243 — deterministic `device/**` exact-ref smoke fallback
+- #247 — shared quality + Release/Debug APK parallel Build
+
+## Laneهای فعال
+
+### Quick checklist templates — PR #281 / Issue #270
+
+- base: `cd7b823...`
+- Draft head در زمان این snapshot: `7dd8699d9f66afbba2edf7d8ff99f06a82f3b4db`
+- presetها: `لیست خرید | وسایل سفر | کارهای امروز | چک‌لیست جدید`
+- shopping/travel starter items canonical و قابل rename/remove/check/add هستند.
+- today/blank خالی شروع می‌شوند و input فوری focus می‌شود.
+- هیچ template entity، storage key یا migration جدیدی وجود ندارد.
+- Draft Build/Device jobها skip و Parallel #792 Fast Lane را اجرا می‌کند.
+
+### Documentation — PR #277 / Issue #276
+
+Live Handoff/Status روی post-#268 main بازسازی شده‌اند. PR تا settle شدن #281 Draft می‌ماند و سپس یک reconcile نهایی می‌شود.
+
+### Automation hardening — Issue #278
+
+هدف جلوگیری از هدررفت Runner روی heavy PR gateهایی است که با جلو رفتن main stale می‌شوند؛ بدون تضعیف exact-head/current-base rule.
 
 ## Score رسمی
 
 ### Project gates A-H
+
 A=70, B=70, C=70, D=70, E=70, F=70, G=70, H=70 → **70.0%**.
 
-رسیدن به 85/100 هنوز به physical-device/E2E و closureهای تعریف‌شده در scorecard وابسته است؛ emulator/CI به‌تنهایی باعث افزایش مصنوعی نمی‌شود.
-
 ### Extension roadmap
-- Semantic Search: **85**
-- Privacy / Encryption: **10** (audit؛ implementation هنوز شروع نشده)
+
 - Overall: **25.0%**
 - Wave X1: **59.4%**
 
-## Laneهای بعدی
+PR باز یا work-in-progress امتیاز رسمی ایجاد نمی‌کند.
 
-1. بستن post-merge Build/Device روی main فعلی.
-2. Merge کردن همین refresh مستندات پس از Progress Score + Fast Lane دقیق.
-3. سپس Issue #248: prototype کوچک encrypted backup envelope روی همان `ArvinBackupService`؛ legacy-v1 read + authenticated-failure tests، بدون local TaskStore encryption یا Sync موازی.
-4. انتخاب Gap محصولی بعدی فقط بعد از audit زنده backlog/roadmap.
+## نزدیک‌ترین ترتیب تحویل
+
+1. بستن Fast CI #281.
+2. اگر سبز: Ready و full Build + Device روی exact head.
+3. قفل مجدد current main/head و Merge فقط اگر evidence هنوز معتبر باشد.
+4. post-merge Build + Device روی main جدید.
+5. reconcile نهایی #277 و validation/merge مستندات.
+6. اجرای مستقل automation hardening #278 و بازکردن Lane بعدی پس از fresh audit.
 
 ## Definition of Done
 
-قابلیت فقط وقتی Done است که مسیر canonical، UI/عملیات واقعی حسب نیاز، regression/E2E، CI دقیق، APK/device evidence و Status/Handoff همگرا باشند.
+قابلیت فقط وقتی Done است که implementation canonical، تست، CI دقیق، APK/device evidence حسب نیاز، integration امن و current-state docs با واقعیت GitHub همگرا باشند.
 
 ## Trigger ادامه
 
