@@ -4,6 +4,14 @@ import 'dart:typed_data';
 import 'package:saf/saf.dart';
 
 import 'cloud_backup_provider.dart';
+import 'services/encrypted_backup_envelope.dart';
+
+typedef BackupLocalWriter = Future<void> Function(
+  String directoryUri,
+  String fileName,
+  String mimeType,
+  Uint8List bytes,
+);
 
 /// Portable Android backup service based on the Storage Access Framework.
 ///
@@ -19,17 +27,53 @@ class ArvinBackupService {
   // this assignment cannot use an initializing formal without changing the
   // constructor's dependency-injection behavior.
   // ignore: prefer_initializing_formals
-  ArvinBackupService({Saf? safClient, this.cloudProvider}) : saf = safClient ?? Saf();
+  ArvinBackupService({
+    Saf? safClient,
+    this.cloudProvider,
+    ArvinEncryptedBackupEnvelope? encryptedEnvelope,
+    BackupLocalWriter? localWriter,
+  })  : saf = safClient ?? Saf(),
+        encryptedEnvelope =
+            encryptedEnvelope ?? ArvinEncryptedBackupEnvelope(),
+        _localWriter = localWriter;
 
   static const int backupFormatVersion = 1;
   static const String backupType = 'arvin_backup';
 
   final Saf saf;
   final CloudBackupProvider? cloudProvider;
+  final ArvinEncryptedBackupEnvelope encryptedEnvelope;
+  final BackupLocalWriter? _localWriter;
 
   Future<String?> chooseDirectory() async {
     final directory = await saf.pickDirectory();
     return directory?.uri;
+  }
+
+  /// Produces the single byte stream used by both SAF and cloud backup.
+  ///
+  /// Plaintext v1 remains the default. Supplying a passphrase explicitly opts
+  /// this one backup into the versioned authenticated encryption envelope.
+  Future<Uint8List> prepareBackupBytes(
+    Map<String, dynamic> payload, {
+    String? passphrase,
+  }) async {
+    final plainBytes = encodeBackupDocument(payload);
+    if (passphrase == null) return plainBytes;
+    return encryptedEnvelope.encrypt(plainBytes, passphrase: passphrase);
+  }
+
+  /// Opens either a legacy/plaintext v1 document or an encrypted envelope,
+  /// then sends the resulting plaintext through the existing validator.
+  Future<Map<String, dynamic>> decodeBackupBytes(
+    Uint8List bytes, {
+    String? passphrase,
+  }) async {
+    final plainBytes = await encryptedEnvelope.decodeForRestore(
+      bytes,
+      passphrase: passphrase,
+    );
+    return validateBackupDocument(jsonDecode(utf8.decode(plainBytes)));
   }
 
   Future<void> writeBackup({
@@ -37,16 +81,34 @@ class ArvinBackupService {
     required Map<String, dynamic> payload,
     required String fileName,
     bool uploadToCloud = true,
+    String? encryptionPassphrase,
   }) async {
-    final bytes = encodeBackupDocument(payload);
-    await saf.writeFileBytes(directoryUri, fileName, 'application/json', bytes);
+    final bytes = await prepareBackupBytes(
+      payload,
+      passphrase: encryptionPassphrase,
+    );
+
+    final localWriter = _localWriter;
+    if (localWriter != null) {
+      await localWriter(directoryUri, fileName, 'application/json', bytes);
+    } else {
+      await saf.writeFileBytes(
+        directoryUri,
+        fileName,
+        'application/json',
+        bytes,
+      );
+    }
 
     if (uploadToCloud && cloudProvider != null) {
       await cloudProvider!.uploadBackup(fileName: fileName, bytes: bytes);
     }
   }
 
-  Future<Map<String, dynamic>?> readCloudBackup(String fileName) async {
+  Future<Map<String, dynamic>?> readCloudBackup(
+    String fileName, {
+    String? passphrase,
+  }) async {
     final provider = cloudProvider;
     if (provider == null) {
       throw StateError('No cloud backup provider configured');
@@ -54,7 +116,7 @@ class ArvinBackupService {
 
     final bytes = await provider.downloadBackup(fileName);
     if (bytes == null) return null;
-    return validateBackupDocument(jsonDecode(utf8.decode(bytes)));
+    return decodeBackupBytes(bytes, passphrase: passphrase);
   }
 
   Future<void> deleteCloudBackup(String fileName) async {
@@ -65,13 +127,12 @@ class ArvinBackupService {
     await provider.deleteBackup(fileName);
   }
 
-  Future<Map<String, dynamic>?> readBackup() async {
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async {
     final file = await saf.pickFile();
     if (file == null) return null;
 
     final bytes = await saf.readFileBytes(file.uri);
-    final decoded = jsonDecode(utf8.decode(bytes));
-    return validateBackupDocument(decoded);
+    return decodeBackupBytes(bytes, passphrase: passphrase);
   }
 
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
@@ -132,7 +193,20 @@ class ArvinBackupService {
   }
 
   (int, int, int) _toJalali(int gy, int gm, int gd) {
-    const gregorianMonthDays = <int>[0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    const gregorianMonthDays = <int>[
+      0,
+      31,
+      59,
+      90,
+      120,
+      151,
+      181,
+      212,
+      243,
+      273,
+      304,
+      334,
+    ];
 
     var jy = gy > 1600 ? 979 : 0;
     gy -= gy > 1600 ? 1600 : 621;
