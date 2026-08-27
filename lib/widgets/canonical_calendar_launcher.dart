@@ -8,6 +8,7 @@ import '../services/follow_up_calendar_projection.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
 import '../task_timeline_page.dart';
+import 'contextual_help.dart';
 
 /// Small UI boundary that keeps Home unaware of calendar/timeline/next-action
 /// projection details while reusing canonical Tasks supplied by Home.
@@ -20,6 +21,57 @@ class CanonicalCalendarLauncher extends StatelessWidget {
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
+
+  static const _calendarHelpSteps = <ContextualHelpStep>[
+    ContextualHelpStep(
+      icon: Icons.touch_app_outlined,
+      title: 'انتخاب روز',
+      body: 'روی هر روز بزنید تا پیگیری‌ها، مناسبت‌ها و اطلاعات همان روز پایین تقویم دیده شود.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.swap_horiz,
+      title: 'تغییر ماه',
+      body: 'با فلش‌های کنار نام ماه بین ماه قبل و بعد جابه‌جا شوید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.today_outlined,
+      title: 'برگشت به امروز',
+      body: 'دکمه «امروز» شما را مستقیم به تاریخ امروز برمی‌گرداند.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.notifications_active_outlined,
+      title: 'پیگیری‌ها و مناسبت‌ها',
+      body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.event_available_outlined,
+      title: 'تقویم دستگاه',
+      body: 'از دکمه «تقویم دستگاه» می‌توانید یک پیگیری فعال را به تقویم گوشی منتقل کنید.',
+    ),
+  ];
+
+  static const _notebookHelpSteps = <ContextualHelpStep>[
+    ContextualHelpStep(
+      icon: Icons.add_circle_outline,
+      title: 'یادداشت جدید',
+      body: 'دکمه «یادداشت جدید» را بزنید و بین یادداشت ساده یا چک‌لیست انتخاب کنید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.checklist_outlined,
+      title: 'قالب آماده',
+      body: 'برای چک‌لیست می‌توانید از قالب خرید، سفر، کارهای امروز یا فهرست خالی شروع کنید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.edit_outlined,
+      title: 'ویرایش یادداشت',
+      body: 'یادداشت را باز کنید و دکمه ویرایش را بزنید؛ تغییرات هنگام کار ذخیره می‌شوند.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.task_alt_outlined,
+      title: 'تیک زدن موارد',
+      body: 'در حالت ویرایش می‌توانید موردهای چک‌لیست را تیک بزنید، تغییر دهید یا حذف کنید.',
+    ),
+  ];
 
   Future<void> _openTimeline(BuildContext context) async {
     if (tasks.isEmpty) {
@@ -71,7 +123,12 @@ class CanonicalCalendarLauncher extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (_) => Directionality(
           textDirection: TextDirection.rtl,
-          child: NotebookPage(),
+          child: ContextualHelpOverlay(
+            title: 'راهنمای دفترچه',
+            steps: _notebookHelpSteps,
+            buttonKey: const ValueKey('notebook-context-help'),
+            child: NotebookPage(),
+          ),
         ),
       ),
     );
@@ -145,7 +202,12 @@ class CanonicalCalendarLauncher extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: IranianOfficialCalendarPage(reminders: reminders),
+            child: ContextualHelpOverlay(
+              title: 'راهنمای تقویم',
+              steps: _calendarHelpSteps,
+              buttonKey: const ValueKey('calendar-context-help'),
+              child: IranianOfficialCalendarPage(reminders: reminders),
+            ),
           ),
           Positioned(
             left: 16,
