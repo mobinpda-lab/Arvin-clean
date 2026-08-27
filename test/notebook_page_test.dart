@@ -86,7 +86,7 @@ void main() {
     expect(await repository.loadNotes(), isEmpty);
   });
 
-  testWidgets('simple-note mode preserves the current notebook creation path',
+  testWidgets('simple-note editor stays text focused and hides checklist controls',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7));
     await pumpNotebook(tester, repository);
@@ -100,10 +100,12 @@ void main() {
       find.byKey(const ValueKey('notebook-title')),
     );
     expect(title.controller?.text, 'یادداشت جدید');
+    expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
+    expect(find.text('چک‌لیست'), findsNothing);
 
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
-    expect(notes.single.title, 'یادداشت جدید');
     expect(notes.single.checklist, isEmpty);
   });
 
@@ -184,11 +186,6 @@ void main() {
 
     await openChecklistPreset(tester, 'blank');
 
-    final title = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-title')),
-    );
-    expect(title.controller?.text, 'چک‌لیست جدید');
-
     final checklistInput = tester.widget<TextField>(
       find.byKey(const ValueKey('notebook-checklist-input')),
     );
@@ -205,7 +202,7 @@ void main() {
     expect(persisted.checklist, ['[ ] ارسال گزارش']);
   });
 
-  testWidgets('existing note opens read-only then autosaves edits and checklist',
+  testWidgets('existing simple note has explicit edit button and no checklist block',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 26, 10));
     final note = await repository.createNote(id: 'ui-note');
@@ -217,18 +214,14 @@ void main() {
     );
 
     await pumpNotebook(tester, repository);
-
     await tester.tap(find.byKey(const ValueKey('notebook-note-ui-note')));
     await tester.pumpAndSettle();
 
-    final initialTitle = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-title')),
-    );
-    expect(initialTitle.readOnly, isTrue);
+    expect(find.text('ویرایش'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('notebook-edit')));
     await tester.pump();
-
     await tester.enterText(
       find.byKey(const ValueKey('notebook-title')),
       'یادداشت ویرایش‌شده',
@@ -237,30 +230,63 @@ void main() {
       find.byKey(const ValueKey('notebook-description')),
       'متن ذخیره‌شده خودکار',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-      'ارسال گزارش',
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-checklist-add')));
     await tester.pump(const Duration(milliseconds: 500));
 
     final persisted = await repository.loadNote('ui-note');
     expect(persisted?.title, 'یادداشت ویرایش‌شده');
     expect(persisted?.description, 'متن ذخیره‌شده خودکار');
-    expect(persisted?.checklist, ['[ ] ارسال گزارش']);
+    expect(persisted?.checklist, isEmpty);
+  });
 
-    await tester.tap(find.byKey(const ValueKey('notebook-check-0')));
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(
-      (await repository.loadNote('ui-note'))?.checklist,
-      ['[x] ارسال گزارش'],
+  testWidgets('category selection immediately moves the same canonical note',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 28, 0));
+    final first = await repository.createNote(
+      id: 'first',
+      title: 'یادداشت اول',
+      category: 'اداری',
     );
+    final target = await repository.createNote(id: 'target', title: 'یادداشت دوم');
+    expect(first.category, 'اداری');
+    expect(target.category, isNull);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-done')));
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-target')));
     await tester.pumpAndSettle();
-    final readOnlyAgain = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-title')),
+
+    await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-اداری')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('دسته: اداری'), findsOneWidget);
+    final persisted = await repository.loadNote('target');
+    expect(persisted?.id, 'target');
+    expect(persisted?.category, 'اداری');
+    expect(await repository.loadNotes(), hasLength(2));
+  });
+
+  testWidgets('new category is created and applied without an extra save step',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 28, 1));
+    await repository.createNote(id: 'category-note', title: 'دسته‌بندی');
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-category-note')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-new')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-category-new-input')),
+      'شخصی',
     );
-    expect(readOnlyAgain.readOnly, isTrue);
+    await tester.tap(find.byKey(const ValueKey('notebook-category-new-save')));
+    await tester.pumpAndSettle();
+
+    expect((await repository.loadNote('category-note'))?.category, 'شخصی');
+    expect(find.text('دسته: شخصی'), findsOneWidget);
   });
 }
