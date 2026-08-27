@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'فعال'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
