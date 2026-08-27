@@ -138,12 +138,15 @@ class _NotebookPageState extends State<NotebookPage> {
   Future<_ChecklistPreset?> _chooseChecklistPreset() {
     return showModalBottomSheet<_ChecklistPreset>(
       context: context,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             children: [
               Text(
                 'قالب چک‌لیست',
@@ -361,19 +364,18 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
 
   Future<void> _editChecklistItem(int index) async {
     if (!_editing) return;
-    final controller = TextEditingController(
-      text: _checklistLabel(_checklist[index]),
-    );
+    var editedLabel = _checklistLabel(_checklist[index]);
     final replacement = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('ویرایش مورد'),
-        content: TextField(
+        content: TextFormField(
           key: const ValueKey('notebook-checklist-edit-input'),
-          controller: controller,
+          initialValue: editedLabel,
           autofocus: true,
           decoration: const InputDecoration(labelText: 'متن مورد'),
-          onSubmitted: (value) =>
+          onChanged: (value) => editedLabel = value,
+          onFieldSubmitted: (value) =>
               Navigator.of(dialogContext).pop(value.trim()),
         ),
         actions: [
@@ -384,13 +386,12 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
           FilledButton(
             key: const ValueKey('notebook-checklist-edit-save'),
             onPressed: () =>
-                Navigator.of(dialogContext).pop(controller.text.trim()),
+                Navigator.of(dialogContext).pop(editedLabel.trim()),
             child: const Text('ذخیره'),
           ),
         ],
       ),
     );
-    controller.dispose();
     if (!mounted || replacement == null || replacement.isEmpty) return;
     final prefix = _checked(_checklist[index]) ? '[x] ' : '[ ] ';
     setState(() => _checklist[index] = '$prefix$replacement');
