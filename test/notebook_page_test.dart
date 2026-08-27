@@ -40,7 +40,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-create-checklist')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(ValueKey('notebook-preset-$presetId')));
+    final preset = find.byKey(ValueKey('notebook-preset-$presetId'));
+    await tester.ensureVisible(preset);
+    await tester.tap(preset);
     await tester.pumpAndSettle();
   }
 
@@ -76,7 +78,9 @@ void main() {
     expect(find.text('کارهای امروز'), findsOneWidget);
     expect(find.text('چک‌لیست جدید'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-preset-cancel')));
+    final cancel = find.byKey(const ValueKey('notebook-preset-cancel'));
+    await tester.ensureVisible(cancel);
+    await tester.tap(cancel);
     await tester.pumpAndSettle();
 
     expect(await repository.loadNotes(), isEmpty);
