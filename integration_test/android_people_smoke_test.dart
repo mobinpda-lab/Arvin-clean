@@ -39,11 +39,7 @@ void main() {
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
-    final menu = find.byIcon(Icons.menu);
-    expect(menu, findsOneWidget);
-    await tester.tap(menu);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تقویم').first);
+    await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('بیشتر'));
