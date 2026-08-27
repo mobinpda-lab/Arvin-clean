@@ -72,12 +72,12 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     ContextualHelpStep(
       icon: Icons.warning_amber_outlined,
       title: 'بررسی تداخل‌ها',
-      body: 'دکمه «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی می‌کند و زمان جایگزین پیشنهاد می‌دهد؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
+      body: 'از «بیشتر» و سپس «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی کنید؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
     ),
     ContextualHelpStep(
       icon: Icons.event_available_outlined,
       title: 'تقویم دستگاه',
-      body: 'از دکمه «تقویم دستگاه» می‌توانید یک پیگیری فعال را به تقویم گوشی منتقل کنید.',
+      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید یک پیگیری فعال را به تقویم گوشی منتقل کنید.',
     ),
   ];
 
@@ -443,77 +443,137 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
+  Future<void> _openMore(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) async {
+    final action = await showModalBottomSheet<_CalendarMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: const Text('تقویم دستگاه'),
+                subtitle: const Text('افزودن پیگیری فعال به تقویم گوشی'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_CalendarMoreAction.systemCalendar),
+              ),
+              ListTile(
+                leading: const Icon(Icons.timeline_outlined),
+                title: const Text('خط زمانی'),
+                subtitle: const Text('نمایش روند زمانی یک کار'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_CalendarMoreAction.timeline),
+              ),
+              ListTile(
+                leading: const Icon(Icons.warning_amber_outlined),
+                title: const Text('تداخل‌ها'),
+                subtitle: const Text('بررسی تداخل پیگیری‌های زمان‌دار'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_CalendarMoreAction.conflicts),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == null || !context.mounted) return;
+
+    switch (action) {
+      case _CalendarMoreAction.systemCalendar:
+        await _exportToSystemCalendar(context);
+        return;
+      case _CalendarMoreAction.timeline:
+        await _openTimeline(context);
+        return;
+      case _CalendarMoreAction.conflicts:
+        await _openConflictAdvice(context, reminders);
+        return;
+    }
+  }
+
+  void _onBottomDestinationSelected(
+    BuildContext context,
+    int index,
+    List<CalendarReminder> reminders,
+  ) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).maybePop();
+        return;
+      case 1:
+        return;
+      case 2:
+        _openNotebook(context);
+        return;
+      case 3:
+        _openNextAction(context);
+        return;
+      case 4:
+        _openMore(context, reminders);
+        return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final reminders = widget.projection.project(_tasks);
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ContextualHelpOverlay(
-              title: 'راهنمای تقویم',
-              steps: _calendarHelpSteps,
-              buttonKey: const ValueKey('calendar-context-help'),
-              child: IranianOfficialCalendarPage(reminders: reminders),
+      child: Scaffold(
+        body: ContextualHelpOverlay(
+          title: 'راهنمای تقویم',
+          steps: _calendarHelpSteps,
+          buttonKey: const ValueKey('calendar-context-help'),
+          child: IranianOfficialCalendarPage(reminders: reminders),
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: 1,
+          onDestinationSelected: (index) =>
+              _onBottomDestinationSelected(context, index, reminders),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'خانه',
             ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FloatingActionButton.extended(
-              heroTag: 'arvin-calendar-conflict-advice',
-              tooltip: 'بررسی تداخل‌های زمانی',
-              onPressed: () => _openConflictAdvice(context, reminders),
-              icon: const Icon(Icons.warning_amber_outlined),
-              label: const Text('تداخل‌ها'),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: 'تقویم',
             ),
-          ),
-          Positioned(
-            left: 16,
-            bottom: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                FloatingActionButton.extended(
-                  heroTag: 'arvin-system-calendar-export',
-                  tooltip: 'افزودن پیگیری به تقویم دستگاه',
-                  onPressed: () => _exportToSystemCalendar(context),
-                  icon: const Icon(Icons.event_available_outlined),
-                  label: const Text('تقویم دستگاه'),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton.extended(
-                  heroTag: 'arvin-canonical-notebook',
-                  tooltip: 'دفترچه آروین',
-                  onPressed: () => _openNotebook(context),
-                  icon: const Icon(Icons.note_alt_outlined),
-                  label: const Text('دفترچه'),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton.extended(
-                  heroTag: 'arvin-canonical-next-action',
-                  tooltip: 'اقدام بعدی هوشمند',
-                  onPressed: () => _openNextAction(context),
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  label: const Text('اقدام بعدی'),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton.extended(
-                  heroTag: 'arvin-canonical-timeline',
-                  tooltip: 'خط زمانی کار',
-                  onPressed: () => _openTimeline(context),
-                  icon: const Icon(Icons.timeline_outlined),
-                  label: const Text('خط زمانی'),
-                ),
-              ],
+            NavigationDestination(
+              icon: Icon(Icons.note_alt_outlined),
+              selectedIcon: Icon(Icons.note_alt),
+              label: 'دفترچه',
             ),
-          ),
-        ],
+            NavigationDestination(
+              icon: Icon(Icons.auto_awesome_outlined),
+              selectedIcon: Icon(Icons.auto_awesome),
+              label: 'اقدام بعدی',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.more_horiz),
+              selectedIcon: Icon(Icons.more_horiz),
+              label: 'بیشتر',
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+enum _CalendarMoreAction {
+  systemCalendar,
+  timeline,
+  conflicts,
 }
 
 class _CalendarConflictAdviceEntry {

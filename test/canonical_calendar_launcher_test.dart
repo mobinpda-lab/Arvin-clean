@@ -24,6 +24,11 @@ class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
   }
 }
 
+Future<void> _openMoreMenu(WidgetTester tester) async {
+  await tester.tap(find.text('بیشتر'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('launcher accepts canonical follow-ups without parallel storage',
       (tester) async {
@@ -46,9 +51,14 @@ void main() {
     );
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('خانه'), findsOneWidget);
+    expect(find.text('تقویم'), findsOneWidget);
+    expect(find.text('دفترچه'), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsOneWidget);
-    expect(find.text('خط زمانی'), findsOneWidget);
-    expect(find.text('تداخل‌ها'), findsOneWidget);
+    expect(find.text('بیشتر'), findsOneWidget);
+    expect(find.text('خط زمانی'), findsNothing);
+    expect(find.text('تداخل‌ها'), findsNothing);
   });
 
   testWidgets('real calendar conflict button shows safe replacement suggestions',
@@ -76,6 +86,7 @@ void main() {
     );
     await tester.pump();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
 
@@ -136,6 +147,7 @@ void main() {
     );
     await tester.pump();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     final apply = find.textContaining('اعمال ۰۹:۳۰').first;
@@ -203,6 +215,7 @@ void main() {
     );
     await tester.pump();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
@@ -259,6 +272,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
     await tester.pumpAndSettle();
 
@@ -279,6 +293,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
     await tester.pumpAndSettle();
 
@@ -297,6 +312,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
     await tester.pump();
 
