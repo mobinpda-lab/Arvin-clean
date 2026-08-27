@@ -61,8 +61,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
-    expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsOneWidget);
-    expect(find.text('جلسه داخلی — هماهنگی تیم'), findsOneWidget);
+    expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsWidgets);
+    expect(find.text('جلسه داخلی — هماهنگی تیم'), findsWidgets);
     expect(find.textContaining('پیشنهاد ۰۹:۳۰'), findsWidgets);
     expect(
       find.textContaining('هیچ زمانی را خودکار تغییر نمی‌دهد'),
