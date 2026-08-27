@@ -21,20 +21,20 @@ void main() {
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
 
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'عنوان',
-      description: 'Task dialog title field',
-    );
-    final descriptionField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'توضیحات',
-      description: 'Task dialog description field',
-    );
+    final titleField = find.byKey(const ValueKey('task-editor-title'));
+    final descriptionField =
+        find.byKey(const ValueKey('task-editor-description'));
+    final saveTask = find.byKey(const ValueKey('task-editor-save'));
+
+    expect(titleField, findsOneWidget);
+    expect(descriptionField, findsOneWidget);
+    expect(saveTask, findsOneWidget);
 
     await tester.enterText(titleField, 'تست افراد اندروید');
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
-    await tester.tap(find.text('ذخیره'));
+    await tester.ensureVisible(saveTask);
+    await tester.pumpAndSettle();
+    await tester.tap(saveTask);
     await tester.pumpAndSettle();
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
@@ -44,7 +44,10 @@ void main() {
 
     await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('خط زمانی'));
+    final timelineAction = find.text('خط زمانی');
+    await tester.ensureVisible(timelineAction);
+    await tester.pumpAndSettle();
+    await tester.tap(timelineAction);
     await tester.pumpAndSettle();
 
     final timelineChooser = find.text('انتخاب کار برای خط زمانی');

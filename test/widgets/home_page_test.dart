@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'فعال'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
@@ -75,7 +75,8 @@ void main() {
     expect(find.text('خرید'), findsNothing);
   });
 
-  testWidgets('first delete still moves an active task to trash', (tester) async {
+  testWidgets('default rightward swipe still moves an active task to trash',
+      (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
     });
@@ -84,7 +85,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result = await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    expect(dismissible.direction, DismissDirection.horizontal);
+    final result =
+        await dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pumpAndSettle();
 
     expect(result, isTrue);
@@ -111,7 +114,9 @@ void main() {
     expect(find.text('حذف آزمایشی'), findsOneWidget);
 
     var dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final cancelled = dismissible.confirmDismiss!(DismissDirection.endToStart);
+    expect(dismissible.direction, DismissDirection.horizontal);
+    final cancelled =
+        dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pumpAndSettle();
 
     expect(find.text('حذف دائمی'), findsOneWidget);
@@ -123,7 +128,8 @@ void main() {
     expect(find.text('حذف آزمایشی'), findsOneWidget);
 
     dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final confirmed = dismissible.confirmDismiss!(DismissDirection.endToStart);
+    final confirmed =
+        dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'حذف برای همیشه'));
     await tester.pumpAndSettle();

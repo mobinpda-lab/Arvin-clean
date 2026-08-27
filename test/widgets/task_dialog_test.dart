@@ -28,14 +28,25 @@ void main() {
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
 
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), '  تماس با مشتری  ');
-    await tester.enterText(fields.at(1), '  توضیح پیگیری  ');
-    await tester.enterText(fields.at(2), 'مهم');
-    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      '  تماس با مشتری  ',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-description')),
+      '  توضیح پیگیری  ',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-tag')),
+      'مهم',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
     await tester.pump();
 
-    await tester.tap(find.text('ذخیره'));
+    final save = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -77,11 +88,21 @@ void main() {
     expect(find.text('ویرایش کار'), findsOneWidget);
     expect(find.text('کار موجود'), findsOneWidget);
     expect(find.text('توضیح موجود'), findsOneWidget);
-    expect(find.text('پیگیری'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(InputChip),
+        matching: find.text('پیگیری'),
+      ),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.text('ذخیره'));
+    final save = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
     await tester.pumpAndSettle();
 
+    expect(result, isNotNull);
     expect(result!.id, 'existing-id');
     expect(result!.title, 'کار موجود');
     expect(result!.description, 'توضیح موجود');
@@ -111,7 +132,11 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('لغو'));
+
+    final cancel = find.byKey(const ValueKey('task-editor-cancel'));
+    await tester.ensureVisible(cancel);
+    await tester.pumpAndSettle();
+    await tester.tap(cancel);
     await tester.pumpAndSettle();
 
     expect(result, isNull);

@@ -11,7 +11,7 @@ void main() {
     app.main();
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
 
     final skipGuide = find.text('رد کردن');
@@ -23,37 +23,36 @@ void main() {
     await tester.tap(find.text('کار جدید'));
     await tester.pumpAndSettle();
 
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'عنوان',
-      description: 'Task dialog title field',
-    );
-    final descriptionField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'توضیحات',
-      description: 'Task dialog description field',
-    );
-    final tagField = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.decoration?.labelText == 'تگ',
-      description: 'Task dialog tag field',
-    );
+    final titleField = find.byKey(const ValueKey('task-editor-title'));
+    final descriptionField =
+        find.byKey(const ValueKey('task-editor-description'));
+    final tagField = find.byKey(const ValueKey('task-editor-tag'));
 
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(titleField, findsOneWidget);
     expect(descriptionField, findsOneWidget);
     expect(tagField, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
 
     await tester.enterText(titleField, 'تست واقعی اندروید');
     await tester.enterText(
       descriptionField,
       'ثبت از مسیر Home روی Emulator',
     );
-    await tester.tap(find.text('ذخیره'));
+    await tester.enterText(tagField, 'آزمایش');
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
+    await tester.pumpAndSettle();
+    expect(find.text('آزمایش'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
     expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
 
-    // Mobile contract: Calendar opens compact in weekly mode, not full month.
+    // Binding mobile contract: Calendar opens compact in weekly mode.
     await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
