@@ -24,7 +24,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
 
-    expect(find.text('تقویم'), findsOneWidget);
+    final calendarDrawerItem = find.widgetWithText(ListTile, 'تقویم');
+    expect(calendarDrawerItem, findsOneWidget);
     expect(scaffold.isDrawerOpen, isTrue);
 
     final drawerRect = tester.getRect(find.byType(Drawer));
@@ -33,7 +34,7 @@ void main() {
       greaterThan(tester.getSize(find.byType(Scaffold).first).width / 2),
     );
 
-    await tester.tap(find.text('تقویم'));
+    await tester.tap(calendarDrawerItem);
     await tester.pumpAndSettle();
 
     expect(find.byType(IranianOfficialCalendarPage), findsOneWidget);

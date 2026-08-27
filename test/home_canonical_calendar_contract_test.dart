@@ -18,7 +18,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('تقویم'));
+    await tester.tap(find.widgetWithText(ListTile, 'تقویم'));
     await tester.pumpAndSettle();
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);

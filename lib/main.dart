@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
+import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
@@ -14,7 +15,9 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'theme/app_fonts.dart';
+import 'task_next_action_page.dart';
 import 'task_timeline_page.dart';
+import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
 
@@ -599,23 +602,85 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _openCalendar(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
+  Future<void> _openPrimaryCalendar() async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: CanonicalCalendarLauncher(tasks: _searchSource),
-        ),
+        builder: (_) => CanonicalCalendarLauncher(tasks: _searchSource),
       ),
     );
   }
 
-  Future<void> _openSettings(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
+  Widget _primaryNotebookShell() {
+    return ArvinPrimaryPageShell(
+      selected: ArvinPrimaryDestination.notebook,
+      onSelected: (destination) => _onPrimaryChildDestinationSelected(
+        destination,
+        current: ArvinPrimaryDestination.notebook,
+      ),
+      child: NotebookPage(),
+    );
+  }
+
+  Widget _primaryNextActionShell() {
+    return ArvinPrimaryPageShell(
+      selected: ArvinPrimaryDestination.nextAction,
+      onSelected: (destination) => _onPrimaryChildDestinationSelected(
+        destination,
+        current: ArvinPrimaryDestination.nextAction,
+      ),
+      child: TaskNextActionPage(tasks: _searchSource),
+    );
+  }
+
+  Future<void> _openPrimaryNotebook() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => _primaryNotebookShell()),
+    );
+  }
+
+  Future<void> _openPrimaryNextAction() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => _primaryNextActionShell()),
+    );
+  }
+
+  void _onPrimaryChildDestinationSelected(
+    ArvinPrimaryDestination destination, {
+    required ArvinPrimaryDestination current,
+  }) {
+    if (destination == current) return;
+
+    switch (destination) {
+      case ArvinPrimaryDestination.home:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return;
+      case ArvinPrimaryDestination.calendar:
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(
+            builder: (_) => CanonicalCalendarLauncher(tasks: _searchSource),
+          ),
+        );
+        return;
+      case ArvinPrimaryDestination.notebook:
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(builder: (_) => _primaryNotebookShell()),
+        );
+        return;
+      case ArvinPrimaryDestination.nextAction:
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(builder: (_) => _primaryNextActionShell()),
+        );
+        return;
+      case ArvinPrimaryDestination.more:
+        _openPrimaryMore();
+        return;
+    }
+  }
+
+  Future<void> _openPrimarySettings() async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -629,7 +694,7 @@ class _HomePageState extends State<HomePage> {
             Future<void>.delayed(Duration.zero, _backupMenu);
           },
           onStartInteractiveGuide: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).popUntil((route) => route.isFirst);
             Future<void>.delayed(Duration.zero, _startInteractiveGuide);
           },
         ),
@@ -637,15 +702,135 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _openAbout(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
+  void _showAbout() {
     showAboutDialog(
       context: context,
       applicationName: 'آروین',
       applicationLegalese: 'مدیریت کارها و پیگیری‌ها',
     );
+  }
+
+  Future<void> _openPrimaryMore() async {
+    final action = await showModalBottomSheet<_HomeMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.today_outlined),
+                title: const Text('امروز'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+              ),
+              ListTile(
+                leading: const Icon(Icons.archive_outlined),
+                title: const Text('بایگانی'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.archive),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('سطل زباله'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.trash),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.backup_outlined),
+                title: const Text('پشتیبان‌گیری'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('تنظیمات'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.settings),
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('درباره آروین'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.about),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _HomeMoreAction.today:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() {
+          filter = 'امروز';
+          selected.clear();
+          selectionMode = false;
+        });
+        return;
+      case _HomeMoreAction.archive:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() {
+          filter = 'بایگانی';
+          selected.clear();
+          selectionMode = false;
+        });
+        return;
+      case _HomeMoreAction.trash:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() {
+          filter = 'سطل زباله';
+          selected.clear();
+          selectionMode = false;
+        });
+        return;
+      case _HomeMoreAction.backup:
+        await _backupMenu();
+        return;
+      case _HomeMoreAction.settings:
+        await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.about:
+        _showAbout();
+        return;
+    }
+  }
+
+  void _onPrimaryDestinationSelected(ArvinPrimaryDestination destination) {
+    switch (destination) {
+      case ArvinPrimaryDestination.home:
+        return;
+      case ArvinPrimaryDestination.calendar:
+        _openPrimaryCalendar();
+        return;
+      case ArvinPrimaryDestination.notebook:
+        _openPrimaryNotebook();
+        return;
+      case ArvinPrimaryDestination.nextAction:
+        _openPrimaryNextAction();
+        return;
+      case ArvinPrimaryDestination.more:
+        _openPrimaryMore();
+        return;
+    }
+  }
+
+  Future<void> _openCalendar(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    await _openPrimaryCalendar();
+  }
+
+  Future<void> _openSettings(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    await _openPrimarySettings();
+  }
+
+  Future<void> _openAbout(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    _showAbout();
   }
 
   Widget _taskCard(Task task) {
@@ -945,7 +1130,10 @@ class _HomePageState extends State<HomePage> {
             )
           : null,
       bottomNavigationBar: selected.isEmpty
-          ? null
+          ? ArvinPrimaryNavigation(
+              selected: ArvinPrimaryDestination.home,
+              onSelected: _onPrimaryDestinationSelected,
+            )
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(8),
@@ -968,6 +1156,15 @@ class _HomePageState extends State<HomePage> {
             ),
     );
   }
+}
+
+enum _HomeMoreAction {
+  today,
+  archive,
+  trash,
+  backup,
+  settings,
+  about,
 }
 
 class _Stat extends StatelessWidget {
