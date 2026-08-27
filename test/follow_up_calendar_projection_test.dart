@@ -49,7 +49,7 @@ void main() {
     final target = projection.resolveTarget(<Task>[task], reminder.id);
 
     expect(target, isNotNull);
-    expect(target!.task, same(task));
+    expect(target!.taskId, task.id);
     expect(target.followUp, same(followUp));
   });
 
@@ -69,7 +69,7 @@ void main() {
 
     expect(reminder.id, 'followup:task:customer:42:fu:part:2');
     expect(target, isNotNull);
-    expect(target!.task.id, 'task:customer:42');
+    expect(target!.taskId, 'task:customer:42');
     expect(target.followUp.id, 'fu:part:2');
   });
 
