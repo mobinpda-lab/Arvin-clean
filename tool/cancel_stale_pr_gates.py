@@ -3,8 +3,9 @@
 
 Runs on a push to main/master. It inspects queued/in-progress pull-request
 runs for Arvin Build and Arvin Device Smoke. A run is cancelled only when
-GitHub proves that the PR head no longer contains the current main commit.
-Uncertain API evidence is logged and skipped rather than cancelled.
+GitHub proves that the exact commit being tested by that run no longer
+contains the current main commit. Uncertain API evidence is logged and skipped
+rather than cancelled.
 """
 
 from __future__ import annotations
@@ -46,7 +47,7 @@ def _request(
 
 
 def head_contains_current_main(compare_payload: dict[str, Any], current_main: str) -> bool:
-    """Return True only when compare evidence proves head contains main."""
+    """Return True only when compare evidence proves run head contains main."""
     status = compare_payload.get("status")
     if status in {"ahead", "identical"}:
         return True
@@ -60,6 +61,11 @@ def _pr_number(run: dict[str, Any]) -> int | None:
         return None
     number = pull_requests[0].get("number")
     return number if isinstance(number, int) else None
+
+
+def _run_head_sha(run: dict[str, Any]) -> str:
+    value = run.get("head_sha")
+    return value.strip() if isinstance(value, str) else ""
 
 
 def _list_active_runs(repository: str, token: str) -> list[dict[str, Any]]:
@@ -94,17 +100,12 @@ def run_guard(repository: str, token: str, current_main: str) -> int:
             print(f"skip run={run_id} workflow={name}: no PR number evidence")
             continue
 
-        try:
-            pr = _request(
-                "GET",
-                f"/repos/{repository}/pulls/{pr_number}",
-                token=token,
-            )
-            head_sha = ((pr.get("head") or {}).get("sha") or "").strip()
-            if not head_sha:
-                print(f"skip run={run_id} pr=#{pr_number}: no head SHA")
-                continue
+        head_sha = _run_head_sha(run)
+        if not head_sha:
+            print(f"skip run={run_id} pr=#{pr_number}: no run head SHA evidence")
+            continue
 
+        try:
             comparison = _request(
                 "GET",
                 f"/repos/{repository}/compare/{current_main}...{head_sha}",
@@ -116,14 +117,14 @@ def run_guard(repository: str, token: str, current_main: str) -> int:
             if head_contains_current_main(comparison, current_main):
                 print(
                     f"keep run={run_id} workflow={name} pr=#{pr_number} "
-                    f"head={head_sha} main={current_main} status={status} "
+                    f"run_head={head_sha} main={current_main} status={status} "
                     f"merge_base={merge_base}"
                 )
                 continue
 
             print(
                 f"cancel run={run_id} workflow={name} pr=#{pr_number} "
-                f"head={head_sha} main={current_main} status={status} "
+                f"run_head={head_sha} main={current_main} status={status} "
                 f"merge_base={merge_base}"
             )
             _request(
@@ -145,6 +146,8 @@ def run_guard(repository: str, token: str, current_main: str) -> int:
 
 def _self_test() -> None:
     main = "main-sha"
+    assert _run_head_sha({"head_sha": " run-sha "}) == "run-sha"
+    assert _run_head_sha({}) == ""
     assert head_contains_current_main({"status": "identical"}, main)
     assert head_contains_current_main({"status": "ahead"}, main)
     assert head_contains_current_main(

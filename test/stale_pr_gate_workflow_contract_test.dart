@@ -19,6 +19,7 @@ void main() {
     expect(script, contains('HEAVY_WORKFLOWS = {"Arvin Build", "Arvin Device Smoke"}'));
     expect(script, contains('ACTIVE_STATUSES = ("queued", "in_progress")'));
     expect(script, contains('event != "pull_request"'));
+    expect(script, contains('run.get("head_sha")'));
     expect(script, contains('/compare/{current_main}...{head_sha}'));
     expect(script, contains('merge_base_commit'));
     expect(script, contains('/actions/runs/{run_id}/cancel'));
@@ -26,6 +27,7 @@ void main() {
 
     expect(workflow, isNot(contains('pull_request:')));
     expect(workflow, isNot(contains('workflow_run:')));
+    expect(script, isNot(contains('/pulls/{pr_number}')));
     expect(script, isNot(contains('merge_pull_request')));
     expect(script, isNot(contains('update_ref')));
   });
