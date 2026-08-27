@@ -37,7 +37,9 @@ class GoalProgressSnapshot {
       projects.fold(0, (sum, project) => sum + project.completedItems);
 
   double? get completionRatio {
-    if (!validation.isValid) return null;
+    if (!validation.isValid || projects.any((project) => !project.isValid)) {
+      return null;
+    }
     if (totalItems == 0) return 0;
     return completedItems / totalItems;
   }
@@ -56,10 +58,13 @@ class GoalProjectProgressService {
     required Iterable<Task> canonicalTasks,
   }) {
     final tasksById = <String, Task>{};
+    final duplicateCanonicalTaskIds = <String>{};
     for (final task in canonicalTasks) {
-      if (task.id.isNotEmpty) {
-        tasksById[task.id] = task;
+      if (task.id.isEmpty) continue;
+      if (tasksById.containsKey(task.id)) {
+        duplicateCanonicalTaskIds.add(task.id);
       }
+      tasksById[task.id] = task;
     }
 
     final validation = const GoalProjectService().validate(
@@ -84,7 +89,8 @@ class GoalProjectProgressService {
         if (task.completed) {
           completedItems++;
         }
-        if (invalidItems.contains(itemId)) {
+        if (invalidItems.contains(itemId) ||
+            duplicateCanonicalTaskIds.contains(itemId)) {
           hasDuplicateItem = true;
         }
       }
