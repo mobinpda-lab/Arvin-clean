@@ -131,6 +131,63 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
     });
   }
 
+  Widget _buildDayCell({
+    required int index,
+    required int firstOffset,
+    required int daysInMonth,
+    required JalaliDate today,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+  }) {
+    final day = index - firstOffset + 1;
+    if (day < 1 || day > daysInMonth) {
+      return const SizedBox(height: 38);
+    }
+
+    final value = JalaliDate(_visibleYear, _visibleMonth, day);
+    final selected = _isSameJalali(value, _selected);
+    final isToday = _isSameJalali(value, today);
+    final enabled = _isAllowed(value);
+
+    return SizedBox(
+      height: 38,
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: InkWell(
+          key: ValueKey('persian-date-day-$day'),
+          borderRadius: BorderRadius.circular(999),
+          onTap: enabled
+              ? () => setState(() {
+                    _selected = value;
+                  })
+              : null,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: selected ? colorScheme.primary : null,
+              border: isToday && !selected
+                  ? Border.all(color: colorScheme.primary)
+                  : null,
+            ),
+            child: Center(
+              child: Text(
+                _calendar.toPersianDigits('$day'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: !enabled
+                      ? colorScheme.onSurface.withValues(alpha: 0.35)
+                      : selected
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurface,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -146,6 +203,18 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
         DropdownMenuItem<int>(
           value: year,
           child: Text(_calendar.toPersianDigits('$year')),
+        ),
+    ];
+
+    final dayCells = <Widget>[
+      for (var index = 0; index < 42; index++)
+        _buildDayCell(
+          index: index,
+          firstOffset: firstOffset,
+          daysInMonth: daysInMonth,
+          today: today,
+          theme: theme,
+          colorScheme: colorScheme,
         ),
     ];
 
@@ -234,61 +303,17 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
               ],
             ),
             const SizedBox(height: 4),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                childAspectRatio: 1.12,
-              ),
-              itemCount: 42,
-              itemBuilder: (context, index) {
-                final day = index - firstOffset + 1;
-                if (day < 1 || day > daysInMonth) {
-                  return const SizedBox.shrink();
-                }
-
-                final value = JalaliDate(_visibleYear, _visibleMonth, day);
-                final selected = _isSameJalali(value, _selected);
-                final isToday = _isSameJalali(value, today);
-                final enabled = _isAllowed(value);
-
-                return Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: InkWell(
-                    key: ValueKey('persian-date-day-$day'),
-                    borderRadius: BorderRadius.circular(999),
-                    onTap: enabled
-                        ? () => setState(() {
-                              _selected = value;
-                            })
-                        : null,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: selected ? colorScheme.primary : null,
-                        border: isToday && !selected
-                            ? Border.all(color: colorScheme.primary)
-                            : null,
-                      ),
-                      child: Center(
-                        child: Text(
-                          _calendar.toPersianDigits('$day'),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: !enabled
-                                ? colorScheme.onSurface.withValues(alpha: 0.35)
-                                : selected
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.onSurface,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
+            Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                for (var row = 0; row < 6; row++)
+                  TableRow(
+                    children: [
+                      for (var column = 0; column < 7; column++)
+                        dayCells[(row * 7) + column],
+                    ],
                   ),
-                );
-              },
+              ],
             ),
           ],
         ),
