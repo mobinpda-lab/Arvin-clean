@@ -13,6 +13,7 @@ import '../services/follow_up_write_coordinator.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
 import '../task_timeline_page.dart';
+import 'arvin_primary_navigation.dart';
 import 'contextual_help.dart';
 
 /// Small UI boundary that keeps Home unaware of calendar/timeline/next-action
@@ -147,28 +148,98 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     );
   }
 
-  Future<void> _openNextAction(BuildContext context) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => TaskNextActionPage(tasks: _tasks),
+  Widget _notebookShell(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) {
+    return ArvinPrimaryPageShell(
+      selected: ArvinPrimaryDestination.notebook,
+      onSelected: (destination) => _onChildDestinationSelected(
+        context,
+        destination,
+        reminders,
+        current: ArvinPrimaryDestination.notebook,
+      ),
+      child: ContextualHelpOverlay(
+        title: 'راهنمای دفترچه',
+        steps: _notebookHelpSteps,
+        buttonKey: const ValueKey('notebook-context-help'),
+        child: NotebookPage(),
       ),
     );
   }
 
-  Future<void> _openNotebook(BuildContext context) async {
+  Widget _nextActionShell(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) {
+    return ArvinPrimaryPageShell(
+      selected: ArvinPrimaryDestination.nextAction,
+      onSelected: (destination) => _onChildDestinationSelected(
+        context,
+        destination,
+        reminders,
+        current: ArvinPrimaryDestination.nextAction,
+      ),
+      child: TaskNextActionPage(tasks: _tasks),
+    );
+  }
+
+  Future<void> _openNextAction(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: ContextualHelpOverlay(
-            title: 'راهنمای دفترچه',
-            steps: _notebookHelpSteps,
-            buttonKey: const ValueKey('notebook-context-help'),
-            child: NotebookPage(),
-          ),
-        ),
+        builder: (_) => _nextActionShell(context, reminders),
       ),
     );
+  }
+
+  Future<void> _openNotebook(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => _notebookShell(context, reminders),
+      ),
+    );
+  }
+
+  void _onChildDestinationSelected(
+    BuildContext context,
+    ArvinPrimaryDestination destination,
+    List<CalendarReminder> reminders, {
+    required ArvinPrimaryDestination current,
+  }) {
+    if (destination == current) return;
+
+    switch (destination) {
+      case ArvinPrimaryDestination.home:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return;
+      case ArvinPrimaryDestination.calendar:
+        Navigator.of(context).pop();
+        return;
+      case ArvinPrimaryDestination.notebook:
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(
+            builder: (_) => _notebookShell(context, reminders),
+          ),
+        );
+        return;
+      case ArvinPrimaryDestination.nextAction:
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(
+            builder: (_) => _nextActionShell(context, reminders),
+          ),
+        );
+        return;
+      case ArvinPrimaryDestination.more:
+        _openMore(context, reminders);
+        return;
+    }
   }
 
   Future<bool> _confirmAndApplyReschedule(
@@ -500,22 +571,22 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   void _onBottomDestinationSelected(
     BuildContext context,
-    int index,
+    ArvinPrimaryDestination destination,
     List<CalendarReminder> reminders,
   ) {
-    switch (index) {
-      case 0:
+    switch (destination) {
+      case ArvinPrimaryDestination.home:
         Navigator.of(context).maybePop();
         return;
-      case 1:
+      case ArvinPrimaryDestination.calendar:
         return;
-      case 2:
-        _openNotebook(context);
+      case ArvinPrimaryDestination.notebook:
+        _openNotebook(context, reminders);
         return;
-      case 3:
-        _openNextAction(context);
+      case ArvinPrimaryDestination.nextAction:
+        _openNextAction(context, reminders);
         return;
-      case 4:
+      case ArvinPrimaryDestination.more:
         _openMore(context, reminders);
         return;
     }
@@ -533,37 +604,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           buttonKey: const ValueKey('calendar-context-help'),
           child: IranianOfficialCalendarPage(reminders: reminders),
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: 1,
-          onDestinationSelected: (index) =>
-              _onBottomDestinationSelected(context, index, reminders),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'خانه',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined),
-              selectedIcon: Icon(Icons.calendar_month),
-              label: 'تقویم',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.note_alt_outlined),
-              selectedIcon: Icon(Icons.note_alt),
-              label: 'دفترچه',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.auto_awesome_outlined),
-              selectedIcon: Icon(Icons.auto_awesome),
-              label: 'اقدام بعدی',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.more_horiz),
-              selectedIcon: Icon(Icons.more_horiz),
-              label: 'بیشتر',
-            ),
-          ],
+        bottomNavigationBar: ArvinPrimaryNavigation(
+          selected: ArvinPrimaryDestination.calendar,
+          onSelected: (destination) =>
+              _onBottomDestinationSelected(context, destination, reminders),
         ),
       ),
     );
