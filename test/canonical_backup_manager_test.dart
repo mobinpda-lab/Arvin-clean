@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _FakeBackupService extends ArvinBackupService {
   Map<String, dynamic>? writtenPayload;
   Map<String, dynamic>? restoreDocument;
+  String? writtenEncryptionPassphrase;
+  String? readPassphrase;
 
   @override
   String createBackupFileName(DateTime dateTime) => 'canonical-backup.json';
@@ -21,11 +23,14 @@ class _FakeBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writtenPayload = payload;
+    writtenEncryptionPassphrase = encryptionPassphrase;
   }
 
   @override
-  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async =>
-      restoreDocument;
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async {
+    readPassphrase = passphrase;
+    return restoreDocument;
+  }
 }
 
 Task _completeTask() {
@@ -116,6 +121,23 @@ void main() {
     });
   });
 
+  test('manager routes backup passphrase without persisting it', () async {
+    const passphrase = 'operation-only-secret';
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+
+    await manager.backupCanonicalTasks(
+      [_completeTask()],
+      encryptionPassphrase: passphrase,
+    );
+
+    expect(service.writtenEncryptionPassphrase, passphrase);
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in prefs.getKeys()) {
+      expect('${prefs.get(key)}', isNot(contains(passphrase)));
+    }
+  });
+
   test('canonical restore decodes the complete Task without mutating storage', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
@@ -137,6 +159,24 @@ void main() {
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('arvin.tasks'), isNull);
+  });
+
+  test('manager routes restore passphrase to the service', () async {
+    const passphrase = 'restore-only-secret';
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+      };
+    final manager = ArvinBackupManager(service: service);
+
+    final candidate = await manager.restoreCanonicalBackup(
+      passphrase: passphrase,
+    );
+
+    expect(candidate, isNotNull);
+    expect(service.readPassphrase, passphrase);
   });
 
   test('canonical restore candidate returns tasks and optional settings together', () async {
