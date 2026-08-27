@@ -24,6 +24,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _tagController;
   DateTime? _followUpDateTime;
+  late bool _followUpEnabled;
   late List<String> _tags;
 
   @override
@@ -34,6 +35,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _descriptionController = TextEditingController(text: task?.description ?? '');
     _tagController = TextEditingController();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
+    _followUpEnabled = task?.followUpEnabled == true ||
+        (task?.followUps.isNotEmpty ?? false) ||
+        task?.followUpDate != null;
     _tags = List<String>.of(task?.tags ?? const []);
   }
 
@@ -78,6 +82,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     if (current != null) return current;
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day, now.hour, now.minute);
+  }
+
+  void _setFollowUpEnabled(bool value) {
+    setState(() {
+      _followUpEnabled = value;
+      if (value && _followUpDateTime == null) {
+        _followUpDateTime = _baseFollowUp();
+      }
+    });
   }
 
   Future<void> _pickDate() async {
@@ -137,7 +150,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     });
   }
 
-  void _clearFollowUp() {
+  void _clearFollowUpTime() {
     setState(() => _followUpDateTime = null);
   }
 
@@ -152,7 +165,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
 
   void _save() {
     final now = DateTime.now();
-    final id = widget.task?.id ?? now.microsecondsSinceEpoch.toString();
+    final existing = widget.task;
+    final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     Navigator.of(context).pop(
       Task(
         id: id,
@@ -160,10 +174,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ? 'بدون عنوان'
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        followUpEnabled: _followUpDateTime != null,
-        followUpDate: _followUpDateTime,
+        followUpEnabled: _followUpEnabled,
+        followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
-        createdAt: widget.task?.createdAt ?? now,
+        category: existing?.category,
+        checklist: List<String>.of(existing?.checklist ?? const []),
+        reminderDate: existing?.reminderDate,
+        archived: existing?.archived ?? false,
+        trashed: existing?.trashed ?? false,
+        completed: existing?.completed ?? false,
+        followUps: List<FollowUp>.of(existing?.followUps ?? const []),
+        recurrence: existing?.recurrence,
+        people: existing?.people ?? const [],
+        createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       ),
     );
@@ -245,6 +268,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   Widget build(BuildContext context) {
     final editing = widget.task != null;
     final followUp = _followUpDateTime;
+    final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
 
     return Dialog(
       key: const ValueKey('arvin-task-editor-dialog'),
@@ -371,68 +395,99 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'پیگیری',
-                              style: TextStyle(
-                                color: _brand,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
+                      CheckboxListTile(
+                        key: const ValueKey('task-editor-followup-enabled'),
+                        value: _followUpEnabled,
+                        onChanged: (value) => _setFollowUpEnabled(value ?? false),
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        activeColor: _brand,
+                        title: const Text(
+                          'کار پیگیری‌دار',
+                          style: TextStyle(
+                            color: _brand,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                        ),
+                      ),
+                      if (!_followUpEnabled && hasHistory)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, bottom: 6),
+                          child: Text(
+                            'سوابق پیگیری قبلی حفظ می‌شوند.',
+                            style: TextStyle(
+                              color: Color(0xFF77778A),
+                              fontSize: 12,
                             ),
                           ),
-                          if (followUp != null)
-                            TextButton.icon(
-                              key: const ValueKey('task-editor-clear-followup'),
-                              onPressed: _clearFollowUp,
-                              icon: const Icon(Icons.close, size: 17),
-                              label: const Text('حذف زمان'),
+                        ),
+                      if (_followUpEnabled) ...[
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'زمان پیگیری',
+                                style: TextStyle(
+                                  color: Color(0xFF77778A),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final dateButton = _dateTimeButton(
-                            key: const ValueKey('task-editor-date'),
-                            label: 'تاریخ',
-                            value: followUp == null
-                                ? 'انتخاب تاریخ'
-                                : _dateText(followUp),
-                            icon: Icons.calendar_month_outlined,
-                            onTap: _pickDate,
-                          );
-                          final timeButton = _dateTimeButton(
-                            key: const ValueKey('task-editor-time'),
-                            label: 'ساعت',
-                            value: followUp == null
-                                ? 'انتخاب ساعت'
-                                : _timeText(followUp),
-                            icon: Icons.schedule_outlined,
-                            onTap: _pickTime,
-                          );
+                            if (followUp != null)
+                              TextButton.icon(
+                                key: const ValueKey('task-editor-clear-followup'),
+                                onPressed: _clearFollowUpTime,
+                                icon: const Icon(Icons.close, size: 17),
+                                label: const Text('حذف زمان'),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final dateButton = _dateTimeButton(
+                              key: const ValueKey('task-editor-date'),
+                              label: 'تاریخ',
+                              value: followUp == null
+                                  ? 'انتخاب تاریخ'
+                                  : _dateText(followUp),
+                              icon: Icons.calendar_month_outlined,
+                              onTap: _pickDate,
+                            );
+                            final timeButton = _dateTimeButton(
+                              key: const ValueKey('task-editor-time'),
+                              label: 'ساعت',
+                              value: followUp == null
+                                  ? 'انتخاب ساعت'
+                                  : _timeText(followUp),
+                              icon: Icons.schedule_outlined,
+                              onTap: _pickTime,
+                            );
 
-                          if (constraints.maxWidth < 320) {
-                            return Column(
+                            if (constraints.maxWidth < 320) {
+                              return Column(
+                                children: [
+                                  dateButton,
+                                  const SizedBox(height: 10),
+                                  timeButton,
+                                ],
+                              );
+                            }
+
+                            return Row(
                               children: [
-                                dateButton,
-                                const SizedBox(height: 10),
-                                timeButton,
+                                Expanded(child: dateButton),
+                                const SizedBox(width: 10),
+                                Expanded(child: timeButton),
                               ],
                             );
-                          }
-
-                          return Row(
-                            children: [
-                              Expanded(child: dateButton),
-                              const SizedBox(width: 10),
-                              Expanded(child: timeButton),
-                            ],
-                          );
-                        },
-                      ),
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
