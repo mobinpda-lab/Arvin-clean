@@ -46,14 +46,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    final saveButton = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
+    await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsNothing);
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
     expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
 
     // Binding mobile contract: Calendar opens compact in weekly mode.
-    await tester.tap(find.text('تقویم'));
+    final calendarNav = find.text('تقویم');
+    await tester.ensureVisible(calendarNav);
+    await tester.pumpAndSettle();
+    await tester.tap(calendarNav);
     await tester.pumpAndSettle();
 
     expect(find.text('تقویم پیگیری'), findsOneWidget);
