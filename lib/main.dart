@@ -17,6 +17,7 @@ import 'theme/app_fonts.dart';
 import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
+import 'widgets/persian_date_picker.dart';
 
 void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
 
@@ -36,7 +37,7 @@ class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
-    usePersianDate: false,
+    usePersianDate: true,
     fontFamily: null,
   );
 
@@ -92,7 +93,7 @@ class HomePage extends StatefulWidget {
     super.key,
     this.settings = const AppSettings(
       themeMode: ThemeMode.system,
-      usePersianDate: false,
+      usePersianDate: true,
       fontFamily: null,
     ),
     this.onSettingsChanged,
@@ -123,8 +124,6 @@ class _HomePageState extends State<HomePage> {
       WidgetTaskSelectionService();
   final GlobalKey _quickCaptureGuideKey =
       GlobalKey(debugLabel: 'home-guide-quick-capture');
-  final GlobalKey _backupGuideKey =
-      GlobalKey(debugLabel: 'home-guide-backup');
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
   final GlobalKey _filtersGuideKey =
@@ -227,13 +226,6 @@ class _HomePageState extends State<HomePage> {
           description:
               'وقتی عجله دارید، این دکمه را بزنید و فقط متن کار را سریع ثبت کنید. جزئیات را بعداً می‌توانید کامل کنید.',
           icon: Icons.bolt_outlined,
-        ),
-        HomeGuideTarget(
-          key: _backupGuideKey,
-          title: 'پشتیبان‌گیری',
-          description:
-              'از اینجا پوشه پشتیبان را انتخاب می‌کنید، Backup می‌سازید یا اطلاعات قبلی را بازیابی می‌کنید.',
-          icon: Icons.backup_outlined,
         ),
         HomeGuideTarget(
           key: _searchGuideKey,
@@ -599,6 +591,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openBackup(BuildContext drawerContext) async {
+    Navigator.pop(drawerContext);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    await _backupMenu();
+  }
+
   Future<void> _openCalendar(BuildContext drawerContext) async {
     Navigator.pop(drawerContext);
     await Future<void>.delayed(Duration.zero);
@@ -648,6 +647,75 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  TaskSwipeAction _actionForSwipe(DismissDirection direction) {
+    return switch (direction) {
+      DismissDirection.endToStart => widget.settings.swipeRightAction,
+      DismissDirection.startToEnd => widget.settings.swipeLeftAction,
+      _ => TaskSwipeAction.none,
+    };
+  }
+
+  Future<bool> _applySwipe(Task task, DismissDirection direction) async {
+    if (task.trashed) {
+      if (direction != DismissDirection.endToStart) return false;
+      final approved = await _confirmDeleteForever(task);
+      if (!approved) return false;
+      await _deleteForever(task);
+      return true;
+    }
+
+    final action = _actionForSwipe(direction);
+    switch (action) {
+      case TaskSwipeAction.archive:
+        if (task.archived) return false;
+        setState(() {
+          task.archived = true;
+          task.trashed = false;
+        });
+        await _save();
+        return true;
+      case TaskSwipeAction.trash:
+        setState(() {
+          task.trashed = true;
+          task.archived = false;
+        });
+        await _save();
+        return true;
+      case TaskSwipeAction.none:
+        return false;
+    }
+  }
+
+  Widget _swipeBackground(TaskSwipeAction action) {
+    final colors = Theme.of(context).colorScheme;
+    final icon = switch (action) {
+      TaskSwipeAction.archive => Icons.archive_outlined,
+      TaskSwipeAction.trash => Icons.delete_outline,
+      TaskSwipeAction.none => Icons.block,
+    };
+    final label = switch (action) {
+      TaskSwipeAction.archive => 'بایگانی',
+      TaskSwipeAction.trash => 'سطل زباله',
+      TaskSwipeAction.none => 'بدون عمل',
+    };
+    final background = action == TaskSwipeAction.trash
+        ? colors.errorContainer
+        : colors.secondaryContainer;
+
+    return Container(
+      color: background,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -655,24 +723,16 @@ class _HomePageState extends State<HomePage> {
       key: ValueKey(task.id),
       direction: selectionMode
           ? DismissDirection.none
-          : DismissDirection.endToStart,
-      confirmDismiss: (_) async {
-        if (task.trashed) {
-          final approved = await _confirmDeleteForever(task);
-          if (!approved) return false;
-          await _deleteForever(task);
-        } else {
-          setState(() => task.trashed = true);
-          await _save();
-        }
-        return true;
-      },
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: const Icon(Icons.delete_outline),
-      ),
+          : task.trashed
+              ? DismissDirection.horizontal
+              : DismissDirection.horizontal,
+      confirmDismiss: (direction) => _applySwipe(task, direction),
+      background: task.trashed
+          ? _swipeBackground(TaskSwipeAction.none)
+          : _swipeBackground(widget.settings.swipeLeftAction),
+      secondaryBackground: task.trashed
+          ? _swipeBackground(TaskSwipeAction.trash)
+          : _swipeBackground(widget.settings.swipeRightAction),
       child: Card(
         child: ListTile(
           onLongPress: () => setState(() {
@@ -800,6 +860,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Divider(),
                 ListTile(
+                  key: const ValueKey('drawer-backup'),
+                  leading: const Icon(Icons.backup_outlined),
+                  title: const Text('پشتیبان‌گیری و بازیابی'),
+                  onTap: () => _openBackup(drawerContext),
+                ),
+                ListTile(
                   leading: const Icon(Icons.settings_outlined),
                   title: const Text('تنظیمات'),
                   onTap: () => _openSettings(drawerContext),
@@ -816,19 +882,25 @@ class _HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        title: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'بسم الله الرحمن الرحیم',
-              style: TextStyle(fontSize: 13),
-            ),
-            SizedBox(height: 3),
-            Text(
-              'مدیریت کارها وپیگیری آروین',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-          ],
+        toolbarHeight: 78,
+        title: const Padding(
+          key: ValueKey('home-title-block'),
+          padding: EdgeInsets.only(top: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'بسم الله الرحمن الرحیم',
+                key: ValueKey('home-bismillah'),
+                style: TextStyle(fontSize: 13),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'مدیریت کارها وپیگیری آروین',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -836,12 +908,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: loading || selectionMode ? null : _quickCapture,
             tooltip: 'ثبت سریع',
             icon: const Icon(Icons.bolt_outlined),
-          ),
-          IconButton(
-            key: _backupGuideKey,
-            onPressed: _backupMenu,
-            tooltip: 'پشتیبان',
-            icon: const Icon(Icons.backup_outlined),
           ),
           IconButton(
             onPressed: () => setState(() {
@@ -1001,6 +1067,8 @@ class TaskDialog extends StatefulWidget {
 }
 
 class _TaskDialogState extends State<TaskDialog> {
+  static const _dateFormatter = PersianDateFormatter();
+
   late final TextEditingController title;
   late final TextEditingController desc;
   late final TextEditingController tag;
@@ -1027,7 +1095,7 @@ class _TaskDialogState extends State<TaskDialog> {
   }
 
   Future<void> _pickDate() async {
-    final date = await showDatePicker(
+    final date = await showPersianDatePicker(
       context: context,
       initialDate: followUpDate ?? DateTime.now(),
       firstDate: DateTime(2000),
@@ -1131,7 +1199,7 @@ class _TaskDialogState extends State<TaskDialog> {
       ],
     );
   }
-}
 
-String _dateText(DateTime date) =>
-    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  String _dateText(DateTime date) =>
+      _dateFormatter.format(date, usePersianDate: true);
+}

@@ -12,13 +12,21 @@ void main() {
       themeMode: ThemeMode.dark,
       usePersianDate: true,
       fontFamily: 'Vazirmatn',
+      swipeRightAction: TaskSwipeAction.trash,
+      swipeLeftAction: TaskSwipeAction.archive,
     );
 
     final portable = service.toPortableJson(settings);
 
     expect(
       portable.keys.toSet(),
-      {'themeMode', 'usePersianDate', 'fontFamily'},
+      {
+        'themeMode',
+        'usePersianDate',
+        'fontFamily',
+        'swipeRightAction',
+        'swipeLeftAction',
+      },
     );
     expect(
       portable.keys.any((key) => key.toLowerCase().contains('token')),
@@ -36,6 +44,8 @@ void main() {
       themeMode: ThemeMode.system,
       usePersianDate: false,
       fontFamily: null,
+      swipeRightAction: TaskSwipeAction.trash,
+      swipeLeftAction: TaskSwipeAction.archive,
     );
 
     final bytes = ArvinBackupService.encodeBackupDocument({
@@ -48,6 +58,8 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
+      'swipeRightAction': 'trash',
+      'swipeLeftAction': 'archive',
     });
     expect(text.toLowerCase(), isNot(contains('accesstoken')));
     expect(text.toLowerCase(), isNot(contains('access_token')));

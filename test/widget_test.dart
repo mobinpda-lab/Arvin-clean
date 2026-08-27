@@ -14,6 +14,7 @@ void main() {
   testWidgets('Arvin starts with the approved Bismillah above the Persian title',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
 
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
@@ -21,7 +22,11 @@ void main() {
 
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     expect(appBar.centerTitle, isTrue);
-    final title = appBar.title! as Column;
+    expect(appBar.toolbarHeight, 78);
+
+    final titlePadding = appBar.title! as Padding;
+    expect(titlePadding.padding, const EdgeInsets.only(top: 12));
+    final title = titlePadding.child as Column;
     expect(title.children, hasLength(3));
     expect((title.children.first as Text).data, 'بسم الله الرحمن الرحیم');
     expect(title.children[1], isA<SizedBox>());
@@ -31,8 +36,7 @@ void main() {
     );
   });
 
-  testWidgets('HomePage exposes the current legacy workflow controls',
-      (tester) async {
+  testWidgets('HomePage exposes the corrected workflow controls', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -41,7 +45,11 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'سطل زباله'), findsOneWidget);
     expect(find.text('کار جدید'), findsOneWidget);
-    expect(find.byTooltip('پشتیبان'), findsOneWidget);
+    expect(find.byTooltip('پشتیبان'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
@@ -66,7 +74,7 @@ void main() {
     expect(find.text('کار مهاجرتی'), findsOneWidget);
     expect(find.text('داده قدیمی باید در Home دیده شود'), findsOneWidget);
     expect(find.text('مهاجرت'), findsOneWidget);
-    expect(find.textContaining('پیگیری: 2026/08/20'), findsOneWidget);
+    expect(find.textContaining('پیگیری: ۱۴۰۵/۰۵/۲۹'), findsOneWidget);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
