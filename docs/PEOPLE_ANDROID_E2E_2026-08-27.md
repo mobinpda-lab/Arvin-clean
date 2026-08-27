@@ -27,7 +27,8 @@ Close the People / Contacts stage-85 regression/E2E gap by exercising the existi
 - No standalone People repository, database, or storage key.
 - No cloud/network People sync.
 - Existing Home Android smoke remains mandatory.
-- The People E2E runs in the same Ready-only Device Smoke gate.
+- Home and People run as independent Ready-only Android emulator jobs so one flow cannot serialize or indefinitely block the other.
+- Each device job has a bounded workflow timeout to prevent a stuck emulator from holding the gate forever.
 
 ## Promotion rule
 
