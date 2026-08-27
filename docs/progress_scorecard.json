@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "roadmap": "docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md",
-  "baseline_date": "2026-08-26",
-  "baseline_main_sha": "4be29495711dbd6d5efa015eb8069231cdedd179",
+  "baseline_date": "2026-08-27",
+  "baseline_main_sha": "bec99214534a8c9972f9e3145dde792cecf2f9e3",
   "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
   "stage_meaning": {
     "0": "not started with dedicated evidence",
@@ -16,31 +16,31 @@
   },
   "wave_x1_feature_ids": [1, 2, 3, 6, 7, 10, 11, 17],
   "features": [
-    {"id": 1, "name": "Next Action هوشمند", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_NEXT_ACTION_2026-08-26.md", "PR #166"], "note": "Core ranking service is merged and tested; no user-facing UI yet."},
-    {"id": 2, "name": "FollowUp خودکار", "wave": "X1", "stage": 0, "evidence": [], "note": "Existing FollowUp foundation is not the automatic-follow-up feature itself."},
-    {"id": 3, "name": "Timeline کامل هر موضوع", "wave": "X1", "stage": 40, "evidence": ["docs/CANONICAL_TASK_TIMELINE_2026-08-26.md", "PR #164"], "note": "Canonical projection and tests are merged; full Timeline UI/history coverage is not complete."},
+    {"id": 1, "name": "Next Action هوشمند", "wave": "X1", "stage": 70, "evidence": ["docs/CANONICAL_NEXT_ACTION_2026-08-26.md", "PR #166", "PR #190", "lib/task_next_action_page.dart"], "note": "Deterministic canonical ranking is exposed through the real Home-accessible Calendar launcher. Final roadmap DoD/device closure is still required."},
+    {"id": 2, "name": "FollowUp خودکار", "wave": "X1", "stage": 85, "evidence": ["Issue #180", "PR #181", "PR #183", "PR #185", "PR #187", "PR #188", "PR #189", "Arvin Build #629", "Arvin Parallel Wave #445", "Arvin Build #631", "Arvin Build #640", "Arvin Parallel Wave #458", "Arvin Build #642", "Arvin Build #654"], "note": "Canonical due projection, real due UI, background notification delivery, reboot-safe AlarmManager scheduling and real add/edit rescheduling are merged with exact-head and post-merge evidence. Feature issue/handoff closure remains before 100."},
+    {"id": 3, "name": "Timeline کامل هر موضوع", "wave": "X1", "stage": 70, "evidence": ["docs/CANONICAL_TASK_TIMELINE_2026-08-26.md", "PR #164", "PR #186", "lib/task_timeline_page.dart"], "note": "Canonical Timeline has a real Home-accessible user entry and explicit Task selection. Final roadmap DoD/device closure remains."},
     {"id": 4, "name": "Voice Capture فارسی", "wave": "X2", "stage": 0, "evidence": [], "note": "Roadmap item only; no dedicated feature delivery credited."},
     {"id": 5, "name": "دستیار هوشمند آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 6, "name": "People / Contacts", "wave": "X1", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
-    {"id": 7, "name": "جستجوی معنایی", "wave": "X1", "stage": 25, "evidence": ["docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md", "PR #163"], "note": "Existing SearchService path is strengthened, but semantic-search behavior is not implemented; credit is limited to architecture/foundation stage."},
+    {"id": 7, "name": "جستجوی معنایی", "wave": "X1", "stage": 85, "evidence": ["docs/MULTITERM_CANONICAL_SEARCH_2026-08-26.md", "docs/SEMANTIC_QUERY_EXPANSION_2026-08-27.md", "PR #163", "Issue #241", "PR #242", "Arvin Parallel Wave #751", "Arvin Build #826", "Arvin Device Smoke #66", "Arvin Build #829", "Arvin Device Smoke #69"], "note": "Deterministic Persian semantic alias expansion is merged into the existing TaskSearchService and real Home search path without embeddings, network, index, database or parallel search UI. Exact-head Parallel/Build/APKs/Device and post-merge main Build/Device are complete; final roadmap handoff/DoD closure remains before 100."},
     {"id": 8, "name": "Weekly Review هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 9, "name": "Memory آروین", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 10, "name": "وضعیت منتظر پاسخ دیگران", "wave": "X1", "stage": 85, "evidence": ["docs/WAITING_FOR_RESPONSE_CONTRACT_2026-08-26.md", "docs/WAITING_FOR_RESPONSE_UI_2026-08-26.md", "PR #170", "PR #172", "Arvin Build #595", "Arvin Parallel Wave #418", "Arvin Build #596"], "note": "Canonical contract/core, real FollowUp add/edit switch and latest-state filter are wired to the existing persistence path; regression tests, exact-head CI/APK validation and post-merge main Build are complete. Final roadmap DoD/handoff closure is still required for 100."},
-    {"id": 11, "name": "Quick Capture", "wave": "X1", "stage": 40, "evidence": ["docs/QUICK_CAPTURE_CANONICAL_PARSER_2026-08-26.md", "PR #168"], "note": "Parser/core is merged and tested; no real quick-capture UI entry point yet."},
+    {"id": 11, "name": "Quick Capture", "wave": "X1", "stage": 70, "evidence": ["docs/QUICK_CAPTURE_CANONICAL_PARSER_2026-08-26.md", "docs/QUICK_CAPTURE_UI_2026-08-26.md", "PR #168", "PR #178", "lib/quick_capture_dialog.dart"], "note": "Parser plus compact Persian Home UI are wired through TaskMigrationWriter to the canonical Task path with regression coverage. Final roadmap DoD/device closure remains."},
     {"id": 12, "name": "Smart Calendar Assistant", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 13, "name": "تشخیص تداخل و زمان‌بندی هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 14, "name": "Rescheduling هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 15, "name": "Goal → Project → Item", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 16, "name": "Reminder مکانی", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
-    {"id": 17, "name": "Privacy / Encryption", "wave": "X1", "stage": 0, "evidence": [], "note": "No dedicated extension audit/delivery is credited yet."},
-    {"id": 18, "name": "Sync و Backup چنددستگاهی", "wave": "X2", "stage": 0, "evidence": [], "note": "Existing local backup foundation is not credited as multi-device sync completion."},
+    {"id": 17, "name": "Privacy / Encryption", "wave": "X1", "stage": 10, "evidence": ["Issue #244", "PR #245", "docs/PRIVACY_ENCRYPTION_BOUNDARY_AUDIT_2026-08-27.md", "test/privacy_backup_boundary_contract_test.dart", "Arvin Parallel Wave #754", "Arvin Build #834", "Arvin Device Smoke #74", "Issue #248"], "note": "Dedicated canonical encryption-boundary audit is merged with an executable credential-leak regression. The accepted first implementation boundary is the portable backup byte path; encryption itself is not yet implemented, so credit is intentionally limited to audit stage 10."},
+    {"id": 18, "name": "Sync و Backup چنددستگاهی", "wave": "X2", "stage": 0, "evidence": ["PR #222", "PR #236"], "note": "Lossless portable backup and portable Settings are merged, but full multi-device sync remains a distinct roadmap gap and receives no completion-stage credit yet."},
     {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
   ],
   "reported_metrics": {
-    "overall_percent": 12.1,
-    "wave_x1_percent": 28.7,
-    "features_at_core_or_better": 4,
-    "features_started": 5,
+    "overall_percent": 25.0,
+    "wave_x1_percent": 59.4,
+    "features_at_core_or_better": 6,
+    "features_started": 7,
     "features_done": 0
   }
 }
