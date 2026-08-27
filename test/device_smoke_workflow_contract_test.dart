@@ -26,7 +26,7 @@ void main() {
       ),
     );
     expect(workflow, contains('actions/upload-artifact@v4'));
-    expect(workflow, contains('arvin-home-screenshot-${{ github.sha }}'));
+    expect(workflow, contains(r'arvin-home-screenshot-${{ github.sha }}'));
     expect(workflow, contains('artifacts/screenshots/*.png'));
     expect(workflow, contains('if-no-files-found: error'));
   });
