@@ -1,7 +1,6 @@
+import 'package:arvin/user_guide_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../lib/user_guide_page.dart';
 
 void main() {
   testWidgets('user guide shows quick start and core help sections', (tester) async {
