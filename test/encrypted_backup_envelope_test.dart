@@ -99,6 +99,27 @@ void main() {
     expect(restored, orderedEquals(legacy));
   });
 
+  test('plaintext format validation stays owned by backup service', () async {
+    final envelope = fastEnvelope();
+    final unknown = Uint8List.fromList(
+      utf8.encode(jsonEncode({
+        'type': 'other_app',
+        'formatVersion': 1,
+        'tasks': <dynamic>[],
+      })),
+    );
+
+    final restored = await envelope.decodeForRestore(unknown);
+    expect(restored, orderedEquals(unknown));
+
+    expect(
+      () => ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(restored)),
+      ),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
   test('wrong passphrase fails before plaintext is returned', () async {
     final envelope = fastEnvelope();
     final encrypted = await envelope.encrypt(
