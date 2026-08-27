@@ -46,9 +46,11 @@ class TaskSyncApplyService {
         case SyncMergeDecision.identical:
         case SyncMergeDecision.useLocal:
           selectedById[item.id] = _requireLocal(item);
+          break;
         case SyncMergeDecision.remoteOnly:
         case SyncMergeDecision.useRemote:
           selectedById[item.id] = _requireRemote(item);
+          break;
         case SyncMergeDecision.conflict:
           final choice = conflictChoices[item.id];
           if (choice == null) {
@@ -59,6 +61,7 @@ class TaskSyncApplyService {
             TaskSyncConflictChoice.useRemote => _requireRemote(item),
           };
           resolvedConflictCount++;
+          break;
       }
     }
 
