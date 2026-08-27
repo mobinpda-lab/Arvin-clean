@@ -3,11 +3,11 @@ import '../models/task.dart';
 
 class FollowUpCalendarTarget {
   const FollowUpCalendarTarget({
-    required this.task,
+    required this.taskId,
     required this.followUp,
   });
 
-  final Task task;
+  final String taskId;
   final FollowUp followUp;
 }
 
@@ -27,7 +27,10 @@ class FollowUpCalendarProjection {
       if (task.trashed) continue;
       for (final followUp in task.followUps) {
         if (reminderIdFor(task, followUp) == reminderId) {
-          return FollowUpCalendarTarget(task: task, followUp: followUp);
+          return FollowUpCalendarTarget(
+            taskId: task.id,
+            followUp: followUp,
+          );
         }
       }
     }
