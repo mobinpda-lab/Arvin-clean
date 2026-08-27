@@ -26,7 +26,7 @@ class DailyContentPackCache implements DailyContentSource {
     final preferences = await SharedPreferences.getInstance();
     final raw = preferences.getString(rawPackKey);
     if (raw == null || raw.trim().isEmpty) {
-      throw const StateError('No valid Daily Content pack is cached');
+      throw StateError('No valid Daily Content pack is cached');
     }
     try {
       final pack = _codec.decode(raw);
@@ -35,7 +35,7 @@ class DailyContentPackCache implements DailyContentSource {
       }
       return pack;
     } on FormatException {
-      throw const StateError('No valid Daily Content pack is cached');
+      throw StateError('No valid Daily Content pack is cached');
     }
   }
 
