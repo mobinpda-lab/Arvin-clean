@@ -209,8 +209,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TaskSwipeAction>(
-                    key: const ValueKey('swipe-right-action'),
-                    value: current.swipeRightAction,
+                    key: ValueKey('swipe-right-action-${current.swipeRightAction.name}'),
+                    initialValue: current.swipeRightAction,
                     decoration: const InputDecoration(
                       labelText: 'کشیدن به راست',
                       prefixIcon: Icon(Icons.swipe_right_outlined),
@@ -225,8 +225,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TaskSwipeAction>(
-                    key: const ValueKey('swipe-left-action'),
-                    value: current.swipeLeftAction,
+                    key: ValueKey('swipe-left-action-${current.swipeLeftAction.name}'),
+                    initialValue: current.swipeLeftAction,
                     decoration: const InputDecoration(
                       labelText: 'کشیدن به چپ',
                       prefixIcon: Icon(Icons.swipe_left_outlined),
