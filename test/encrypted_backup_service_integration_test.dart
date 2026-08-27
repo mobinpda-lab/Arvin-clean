@@ -87,13 +87,15 @@ void main() {
         encryptionPassphrase: 'portable-passphrase',
       );
 
-      expect(localBytes, isNotNull);
+      final writtenBytes = localBytes;
+      expect(writtenBytes, isNotNull);
       expect(cloud.lastUploadedBytes, isNotNull);
-      expect(cloud.lastUploadedBytes, orderedEquals(localBytes!));
+      expect(cloud.lastUploadedBytes, orderedEquals(writtenBytes!));
 
-      final envelope = jsonDecode(utf8.decode(localBytes!)) as Map<String, dynamic>;
+      final envelope =
+          jsonDecode(utf8.decode(writtenBytes)) as Map<String, dynamic>;
       expect(envelope['type'], ArvinEncryptedBackupEnvelope.envelopeType);
-      expect(utf8.decode(localBytes!), isNot(contains('پیگیری قرارداد')));
+      expect(utf8.decode(writtenBytes), isNot(contains('پیگیری قرارداد')));
     });
 
     test('encrypted cloud restore authenticates then uses v1 validator', () async {
@@ -114,9 +116,10 @@ void main() {
       );
 
       expect(restored, isNotNull);
-      expect(restored!['type'], ArvinBackupService.backupType);
-      expect(restored['tasks'], hasLength(1));
-      expect(restored['settings'], isA<Map<String, dynamic>>());
+      final document = restored!;
+      expect(document['type'], ArvinBackupService.backupType);
+      expect(document['tasks'], hasLength(1));
+      expect(document['settings'], isA<Map<String, dynamic>>());
     });
 
     test('legacy plaintext backup still restores without a passphrase', () async {
@@ -136,8 +139,8 @@ void main() {
         passphrase: 'right-passphrase',
       );
 
-      expect(
-        () => service.decodeBackupBytes(
+      await expectLater(
+        service.decodeBackupBytes(
           encrypted,
           passphrase: 'wrong-passphrase',
         ),
@@ -148,8 +151,8 @@ void main() {
     test('empty passphrase cannot silently enable encryption', () async {
       final service = ArvinBackupService(encryptedEnvelope: _fastEnvelope());
 
-      expect(
-        () => service.prepareBackupBytes(_payload(), passphrase: '   '),
+      await expectLater(
+        service.prepareBackupBytes(_payload(), passphrase: '   '),
         throwsA(isA<FormatException>()),
       );
     });
