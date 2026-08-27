@@ -1,6 +1,6 @@
 # Priority Parallel Delivery Wave — 2026-08-27
 
-Refs #92 #195 #278 #284 #285 #286 #287 #293 #296 #298 #301 #303 #305.
+Refs #92 #195 #278 #284 #285 #286 #287 #293 #296 #298 #301 #303 #305 #307.
 
 ## Goal
 Deliver Arvin capabilities in hours rather than days through safe coordinated parallelism: product implementation, CI/GitHub automation, validation, scorekeeping and documentation move concurrently while production merges remain serialized.
@@ -17,7 +17,7 @@ Deliver Arvin capabilities in hours rather than days through safe coordinated pa
 - Scorecards change only from merged, validator-backed evidence.
 
 ## Current main
-Current `main`: `76d651f2540f59121cce657a7dab7305e4f35f0d`.
+Current `main`: `75a93f4df550c79a67bb0c168d5c320d1393c347`.
 
 ## Merged in the current priority wave
 - #288 — pure schedule conflict core ✅
@@ -28,32 +28,33 @@ Current `main`: `76d651f2540f59121cce657a7dab7305e4f35f0d`.
 - #299 — canonical Task -> stable SyncRevision bridge ✅
 - #297 — Goal/Project progress projected from canonical Task state ✅
 - #302 — real calendar conflict evidence -> safe replacement-time advice ✅
+- #304 — deterministic canonical Task-set sync merge planning ✅
 
-### Latest merge #302
-Exact reconciled head `3d7a5aa310c3494a9e3cf2621eb42b1df9805204` passed:
-- Arvin Parallel Wave #862 ✅
-- Arvin Build #976 ✅
-- Arvin Device Smoke #222 ✅
+### Latest merge #304
+Exact reconciled head `5373ba5df7172d1f0a0d4c4492162614420c5740` passed:
+- Arvin Parallel Wave #868 ✅
+- Arvin Build #988 ✅ quality + Release APK + Debug APK
+- Arvin Device Smoke #234 ✅
 
-The merged path remains read-only and suggestion-only: no automatic Calendar/Task/FollowUp mutation and no duplicate conflict/rescheduling engine.
+The merged Sync path now plans complete local/remote canonical Task sets and keeps real divergence as an explicit conflict. It still owns no provider/network/persistence/background write and never uses timestamps as a silent winner.
 
-## Active product lane — capability #18 Task-set sync planning
-Issue #303 / Draft PR #304 — `feat(sync): plan canonical Task-set merge decisions`
+## Active product lane — real scheduling UI
+Issue #307 / Draft PR #308 — `feat(calendar): expose safe conflict advice in real UI`
 
-Current reconciled head: `5373ba5df7172d1f0a0d4c4492162614420c5740`.
+Current reconciled head: `4b0da8bf64b0c1715ee9fc2d5c05ca1c067eb3c2`.
 
-- composes the already-merged TaskSyncRevisionService and SyncMergeService across complete local/remote canonical Task sets;
-- deterministic union-by-id plan;
-- explicit local-only / remote-only / identical / use-local / use-remote / conflict outcomes;
-- common-ancestor fingerprint evidence can prove a one-sided change;
-- duplicate/empty ids fail closed;
-- no network/provider/cloud choice, persistence, background write or second sync store;
-- the previous Fast CI evidence is historical after #302; fresh exact-head Fast CI is required before promotion.
+- real Home-accessible `تداخل‌ها` action on `CanonicalCalendarLauncher`;
+- reuses merged `CalendarReschedulingAdvisor` directly;
+- checks canonical Task/FollowUp reminders from the existing projection;
+- Persian read-only sheet shows affected reminders and deterministic replacement times;
+- explicit no-conflict result and explicit no-automatic-change message;
+- no duplicate scheduling algorithm, model, storage or write path;
+- fresh exact-head Fast CI is required before promotion to full Build/APK/Device.
 
 ## Automation lane — stale heavy PR gate guard
 PR #282 — `ci: cancel stale heavy PR gates when main advances`
 
-Current reconciled head: `a5eef2a5a4ea61c2d8f27446717e4fd686016545`.
+Current reconciled head: `5c59265ae65788f98772bed41028f60fd20f89c9`.
 
 - product files untouched;
 - examines only queued/in-progress PR `Arvin Build` / `Arvin Device Smoke` runs;
@@ -61,14 +62,14 @@ Current reconciled head: `a5eef2a5a4ea61c2d8f27446717e4fd686016545`.
 - cancels only with positive compare evidence that a run no longer contains current main;
 - uncertain evidence is skipped;
 - no auto-merge/rebase/force-push and no cancellation of main validation or Parallel Fast Lane;
-- exact-head validation must be fresh again after #302 before activation.
+- fresh exact-head gates are running after #304.
 
 ## Scorecard lane
 PR #306 — scorecard-only evidence reconciliation.
 
-Current reconciled head: `8c99aa03976a12fa6e0b1fac99f2cef30d3cd91a`.
+Current reconciled head: `be843a1a5248cd12666625ac164027aa6162d103`.
 
-Candidate evidence-backed stages:
+Evidence-backed candidate stages:
 - #13 Smart Conflict Detection: 40
 - #14 Smart Rescheduling: 40
 - #15 Goal -> Project -> Item: 40
@@ -76,7 +77,9 @@ Candidate evidence-backed stages:
 - #18 Sync / Backup multi-device: 40
 
 Candidate 19-feature extension metric: **37.4%**.
-This is not official until `Arvin Progress Score` validates the exact head and the scorecard PR is merged.
+On the current-main reconciled head, Arvin Progress Score #30 and Parallel Wave #878 are green. The value becomes official only after the scorecard PR is merged.
+
+#304 adds stronger Sync evidence but does not justify a stage increase above 40 because provider transport, persisted multi-device state and real user-facing conflict resolution remain open gaps.
 
 ## Documentation lane
 PR #292 — this live record.
@@ -84,12 +87,13 @@ PR #292 — this live record.
 Documentation remains independent from product files and is refreshed after product merges so future chats can resume from GitHub reality rather than conversational memory.
 
 ## Current merge protocol
-1. Let #304, #282 and #306 validate independently on the current main.
-2. Keep product work highest priority; promote #304 only after fresh Fast CI.
-3. Merge only an exact fully-green head whose ancestry still contains current main.
-4. After any Merge, reconcile the other lanes and discard stale-base validation evidence.
-5. Merge #282 once current-main gates are green so future stale heavy PR runs can be removed automatically.
-6. Merge #306 only after the progress validator recomputes the committed metrics exactly.
+1. Let #308, #282 and #306 validate independently on current main.
+2. Give #308 product delivery priority; do not move main with docs/automation while its heavy gates are active.
+3. Promote #308 only after fresh exact-head Fast CI succeeds, then require full Build/APK/Device.
+4. Merge only an exact fully-green head whose ancestry still contains current main.
+5. After a product Merge, reconcile #282/#306/#292 again and discard old-base validation evidence.
+6. Activate #282 once fresh current-main gates are green and it will not create avoidable product CI churn.
+7. Merge #306 only from validator-backed evidence; update #13/#14 again only if the real UI merge earns a higher stage under the committed metric contract.
 
 ## Non-technical status
-Three meaningful product steps have now landed in rapid sequence: canonical Sync revisions, Goal/Project progress, and smart calendar rescheduling advice. The next Sync layer, GitHub runner automation, evidence-based progress reporting and documentation are continuing in parallel, without direct main edits or force-push.
+Four meaningful product steps have landed rapidly: canonical Sync revisions, Goal/Project progress, smart calendar rescheduling advice and full Task-set Sync planning. The real scheduling UI, GitHub runner automation, evidence-based progress reporting and documentation are continuing in parallel, with no direct main edits and no force-push.
