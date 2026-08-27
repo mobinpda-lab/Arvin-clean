@@ -95,7 +95,7 @@ void main() {
         'title': 'bad',
         'people': 'not-a-list',
       }),
-      throwsFormatException,
+      throwsA(isA<FormatException>()),
     );
     expect(
       () => Task.fromJson(<String, dynamic>{
@@ -105,7 +105,7 @@ void main() {
           <String, dynamic>{'id': 'person-1'},
         ],
       }),
-      throwsFormatException,
+      throwsA(isA<FormatException>()),
     );
     expect(
       () => Task.fromJson(<String, dynamic>{
@@ -116,7 +116,7 @@ void main() {
           <String, dynamic>{'id': 'person-1', 'displayName': 'دوم'},
         ],
       }),
-      throwsFormatException,
+      throwsA(isA<FormatException>()),
     );
   });
 
@@ -187,10 +187,10 @@ void main() {
     };
 
     final restored = await manager.restoreCanonicalTasks();
+    final restoredTask = restored!.single;
 
-    expect(restored, isNotNull);
-    expect(restored!.single.people.single.id, 'person-backup');
-    expect(restored.single.people.single.displayName, 'نرگس');
+    expect(restoredTask.people.single.id, 'person-backup');
+    expect(restoredTask.people.single.displayName, 'نرگس');
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(TaskStore.key), isNull);
