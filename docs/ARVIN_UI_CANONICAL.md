@@ -9,6 +9,7 @@ This file is the **index of binding UI contracts**, not a replacement for their 
 
 Before changing a product surface, read the most specific applicable contract:
 
+- Final owner decision for Home + Reminder Widget + Simple Note/To-do: `docs/OWNER_UI_DECISION_HOME_WIDGET_NOTEBOOK_2026-08-28.md`
 - Home / Dashboard: `docs/HOME_STYLE_LOCK.md`
 - Follow-up-enabled Task detail + add FollowUp flow: GitHub Issue #357
 - Notebook / Simple Note / Checklist: `docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md`
@@ -37,7 +38,7 @@ AppShell / primary product surfaces include:
 
 - Persian RTL-first presentation.
 - Calm hierarchy and low visual noise.
-- Approved navigation, typography, spacing and component behavior remain stable.
+- Approved navigation, typography, spacing, color language and component behavior remain stable.
 - No UI redesign without explicit owner approval, design review, RTL verification, UX impact review and documentation.
 - Current APK screenshots are runtime evidence; they do not automatically replace an accepted canonical design.
 - A working backend/service does not count as UI completion when the accepted user interaction is missing.
@@ -46,13 +47,18 @@ AppShell / primary product surfaces include:
 
 ## Home Contract
 
-`docs/HOME_STYLE_LOCK.md` is binding for Home. In particular, do not replace its approved header/search/stat cards/task cards/compact circular add action/bottom navigation with an easier generic layout.
+`docs/OWNER_UI_DECISION_HOME_WIDGET_NOTEBOOK_2026-08-28.md` + `docs/HOME_STYLE_LOCK.md` are binding for Home.
+
+The owner-supplied Arvin dashboard reference is the final Home direction. Microsoft To Do is only a secondary source of small UX inspiration and is **not** the Home structure/color authority.
+
+In particular, do not replace the approved header/search/stat cards/task cards/compact circular add action/bottom navigation or indigo-led color system with an easier generic layout.
 
 Home identity safeguards:
 - `بسم الله الرحمن الرحیم` and the product title remain the protected identity block.
 - Backup is not a Home-header action.
 - Quick Capture/selection utilities must not displace the approved identity/header hierarchy.
 - Quick Capture remains a fast input to the same canonical Task path; it must not create a parallel model/storage/UI foundation.
+- final visual acceptance requires real-device comparison with the owner-supplied Home reference.
 
 ## Task / FollowUp Contract
 
@@ -67,9 +73,12 @@ Issue #357 is binding until superseded by a newer explicit owner decision:
 
 ## Notebook Contract
 
-- «یادداشت ساده» and «چک‌لیست» are distinct UX entry modes.
+- «یادداشت ساده» and «چک‌لیست / To-do» are distinct UX entry modes.
 - Both reuse canonical `Task / TaskStore / arvin.tasks`; no Note/checklist storage path may be created solely for UI separation.
 - A simple-note editor should remain visually simple and should not show checklist controls by default.
+- both surfaces expose a clear edit action and category selector.
+- selecting a category immediately reassigns the same canonical Task through `Task.category`; do not clone or duplicate the note.
+- Joplin is a behavioral UX reference for notebook/category organization only; Arvin keeps its own canonical Flutter/Task architecture.
 
 ## Navigation Contract
 
@@ -86,14 +95,16 @@ Arvin currently has distinct help concepts and they must not be conflated:
 
 If UI/navigation changes, outdated help text or illustrations keep the related acceptance row **Partial** until reconciled. In particular, old guide imagery must not reintroduce Backup in the Home header, an obsolete extended primary add action, or an obsolete Calendar-as-launcher navigation model.
 
-## Reminder Contract
+## Reminder / Widget Contract
 
-- `یادآور` label with smaller time beside it when a time exists.
-- All-day reminders must not display a fabricated time.
-- Reminder title is shown below.
-- Expandable details/actions are supported where approved.
-- Quick actions: complete, snooze, edit, convert to Task where the product contract permits.
-- Lock Screen/widget behavior must remain consistent with the approved concept and platform capability.
+`docs/OWNER_UI_DECISION_HOME_WIDGET_NOTEBOOK_2026-08-28.md` is binding for reminder/widget hierarchy.
+
+- `یادآور` is a type label; reminder content is the stronger main text.
+- timed reminders show real time as accent metadata.
+- all-day reminders show `تمام‌روز` and must not display a fabricated time.
+- collapsed and expanded cards preserve a rounded light surface and clear reminder icon/hierarchy as platform space allows.
+- expanded actions: complete, snooze, edit, convert to Task where permitted.
+- Lock Screen/widget behavior must remain consistent with the approved semantics and platform capability.
 
 ## Migration Direction
 
