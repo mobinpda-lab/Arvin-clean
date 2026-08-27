@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'services/app_settings_service.dart';
+import 'user_guide_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -8,11 +9,13 @@ class SettingsPage extends StatefulWidget {
     required this.service,
     required this.onSettingsChanged,
     required this.onOpenBackup,
+    this.onStartInteractiveGuide,
   });
 
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
+  final VoidCallback? onStartInteractiveGuide;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -51,6 +54,14 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) return;
     setState(() => settings = next);
     widget.onSettingsChanged(next);
+  }
+
+  Future<void> _openUserGuide() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const UserGuidePage(),
+      ),
+    );
   }
 
   @override
@@ -111,6 +122,26 @@ class _SettingsPageState extends State<SettingsPage> {
                       'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
                     ),
                   ),
+                  const Divider(height: 24),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.menu_book_outlined),
+                    title: const Text('راهنمای استفاده'),
+                    subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: _openUserGuide,
+                  ),
+                  if (widget.onStartInteractiveGuide != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.slideshow_outlined),
+                      title: const Text('راهنمای تعاملی صفحه اصلی'),
+                      subtitle: const Text(
+                        'دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند',
+                      ),
+                      trailing: const Icon(Icons.play_arrow_rounded),
+                      onTap: widget.onStartInteractiveGuide,
+                    ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.backup_outlined),
