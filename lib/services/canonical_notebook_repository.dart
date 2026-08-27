@@ -29,6 +29,18 @@ class CanonicalNotebookRepository {
     return notes;
   }
 
+  Future<List<String>> loadCategories() async {
+    final notes = await loadNotes();
+    final values = notes
+        .map((note) => note.category?.trim())
+        .whereType<String>()
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return values;
+  }
+
   Future<Task?> loadNote(String id) async {
     final tasks = await _store.load();
     for (final task in tasks) {
@@ -41,13 +53,18 @@ class CanonicalNotebookRepository {
     String? id,
     String title = 'یادداشت جدید',
     List<String> checklist = const [],
+    String? category,
   }) async {
     final tasks = await _store.load();
     final createdAt = _now();
+    final normalizedCategory = category?.trim();
     final note = Task(
       id: id ?? 'note-${createdAt.microsecondsSinceEpoch}',
       title: title.trim().isEmpty ? 'یادداشت جدید' : title.trim(),
       checklist: List<String>.of(checklist),
+      category: normalizedCategory == null || normalizedCategory.isEmpty
+          ? null
+          : normalizedCategory,
       createdAt: createdAt,
       updatedAt: createdAt,
     );
@@ -72,5 +89,23 @@ class CanonicalNotebookRepository {
     task.checklist = List<String>.of(checklist);
     task.updatedAt = _now();
     await _store.save(tasks);
+  }
+
+  /// Reassigns the same canonical Task to a category immediately.
+  /// Passing null/blank removes the category. No copy is created.
+  Future<Task> updateCategory({
+    required String id,
+    String? category,
+  }) async {
+    final tasks = await _store.load();
+    final index = tasks.indexWhere((task) => task.id == id);
+    if (index < 0) throw StateError('Notebook task not found: $id');
+
+    final task = tasks[index];
+    final normalized = category?.trim();
+    task.category = normalized == null || normalized.isEmpty ? null : normalized;
+    task.updatedAt = _now();
+    await _store.save(tasks);
+    return task;
   }
 }
