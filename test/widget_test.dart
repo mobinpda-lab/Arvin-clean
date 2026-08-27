@@ -18,7 +18,7 @@ void main() {
 
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
-    expect(find.text('مدیریت کارها وپیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
 
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     expect(appBar.centerTitle, isTrue);
@@ -32,7 +32,7 @@ void main() {
     expect(title.children[1], isA<SizedBox>());
     expect(
       (title.children[2] as Text).data,
-      'مدیریت کارها وپیگیری آروین',
+      'مدیریت کارها و پیگیری آروین',
     );
   });
 
