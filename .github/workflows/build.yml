@@ -14,14 +14,14 @@ permissions:
 # Fast Lane: Draft PRs receive fast validation from Arvin Parallel Wave.
 # The full APK gate runs only for ready/non-draft PR heads, main pushes,
 # explicit gate/** exact-SHA validation refs, or manual dispatch.
-# Main pushes use a unique run id so every merge keeps its own post-merge
-# build evidence.
+# Analyze/tests run once. Release and debug APKs then build in parallel on the
+# same exact SHA to reduce wall-clock merge time without weakening evidence.
 concurrency:
   group: arvin-build-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
@@ -30,22 +30,6 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Restore licensed IRANSansX fonts when configured
-        shell: bash
-        env:
-          IRANSANSX_FANUM_REGULAR_B64: ${{ secrets.IRANSANSX_FANUM_REGULAR_B64 }}
-          IRANSANSX_FANUM_BOLD_B64: ${{ secrets.IRANSANSX_FANUM_BOLD_B64 }}
-        run: |
-          if [[ -n "${IRANSANSX_FANUM_REGULAR_B64:-}" && -n "${IRANSANSX_FANUM_BOLD_B64:-}" ]]; then
-            mkdir -p assets/fonts
-            printf '%s' "$IRANSANSX_FANUM_REGULAR_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Regular.ttf
-            printf '%s' "$IRANSANSX_FANUM_BOLD_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Bold.ttf
-            test -s assets/fonts/IRANSansXFaNum-Regular.ttf
-            test -s assets/fonts/IRANSansXFaNum-Bold.ttf
-            echo "Licensed IRANSansX fonts restored for this private build context."
-          else
-            echo "IRANSansX secrets are not configured; build will use the platform fallback font."
-          fi
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Configure Android desugaring
@@ -103,21 +87,75 @@ jobs:
         run: flutter analyze
       - name: Test
         run: flutter test
-      - name: Build release APK
-        run: flutter build apk --release -t lib/main_iransans.dart
+
+  apk:
+    needs: quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [release, debug]
+    name: apk (${{ matrix.variant }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Restore licensed IRANSansX fonts when configured
+        shell: bash
+        env:
+          IRANSANSX_FANUM_REGULAR_B64: ${{ secrets.IRANSANSX_FANUM_REGULAR_B64 }}
+          IRANSANSX_FANUM_BOLD_B64: ${{ secrets.IRANSANSX_FANUM_BOLD_B64 }}
+        run: |
+          if [[ -n "${IRANSANSX_FANUM_REGULAR_B64:-}" && -n "${IRANSANSX_FANUM_BOLD_B64:-}" ]]; then
+            mkdir -p assets/fonts
+            printf '%s' "$IRANSANSX_FANUM_REGULAR_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Regular.ttf
+            printf '%s' "$IRANSANSX_FANUM_BOLD_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Bold.ttf
+            test -s assets/fonts/IRANSansXFaNum-Regular.ttf
+            test -s assets/fonts/IRANSansXFaNum-Bold.ttf
+            echo "Licensed IRANSansX fonts restored for this private build context."
+          else
+            echo "IRANSansX secrets are not configured; build will use the platform fallback font."
+          fi
+      - name: Generate Android platform
+        run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Configure Android desugaring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
+          path = next((p for p in candidates if p.exists()), None)
+          if path is None:
+              raise SystemExit('Android app Gradle file not found')
+          text = path.read_text()
+          is_kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
+          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
+          if flag not in text:
+              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
+              else:
+                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+          if 'desugar_jdk_libs:2.1.5' not in text:
+              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
+              else:
+                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
+          path.write_text(text)
+          PY
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build APK
+        run: flutter build apk --${{ matrix.variant }} -t lib/main_iransans.dart
       - name: Verify APK
-        run: test -s build/app/outputs/flutter-apk/app-release.apk
+        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-      - name: Build debug APK
-        run: flutter build apk --debug -t lib/main_iransans.dart
-      - name: Verify debug APK
-        run: test -s build/app/outputs/flutter-apk/app-debug.apk
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: arvin-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: arvin-${{ matrix.variant }}-apk
+          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
