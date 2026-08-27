@@ -2,7 +2,7 @@
   "schema_version": 1,
   "roadmap": "docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md",
   "baseline_date": "2026-08-27",
-  "baseline_main_sha": "bec99214534a8c9972f9e3145dde792cecf2f9e3",
+  "baseline_main_sha": "806860ca0dcd75e342c388858397d05e0c360336",
   "allowed_stages": [0, 10, 25, 40, 55, 70, 85, 100],
   "stage_meaning": {
     "0": "not started with dedicated evidence",
@@ -32,15 +32,15 @@
     {"id": 14, "name": "Rescheduling هوشمند", "wave": "X2", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 15, "name": "Goal → Project → Item", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
     {"id": 16, "name": "Reminder مکانی", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."},
-    {"id": 17, "name": "Privacy / Encryption", "wave": "X1", "stage": 10, "evidence": ["Issue #244", "PR #245", "docs/PRIVACY_ENCRYPTION_BOUNDARY_AUDIT_2026-08-27.md", "test/privacy_backup_boundary_contract_test.dart", "Arvin Parallel Wave #754", "Arvin Build #834", "Arvin Device Smoke #74", "Issue #248"], "note": "Dedicated canonical encryption-boundary audit is merged with an executable credential-leak regression. The accepted first implementation boundary is the portable backup byte path; encryption itself is not yet implemented, so credit is intentionally limited to audit stage 10."},
-    {"id": 18, "name": "Sync و Backup چنددستگاهی", "wave": "X2", "stage": 0, "evidence": ["PR #222", "PR #236"], "note": "Lossless portable backup and portable Settings are merged, but full multi-device sync remains a distinct roadmap gap and receives no completion-stage credit yet."},
+    {"id": 17, "name": "Privacy / Encryption", "wave": "X1", "stage": 85, "evidence": ["Issue #244", "PR #245", "PR #249", "PR #251", "PR #255", "Issue #250", "docs/PRIVACY_ENCRYPTION_BOUNDARY_AUDIT_2026-08-27.md", "test/privacy_backup_boundary_contract_test.dart", "Arvin Parallel Wave #764", "Arvin Build #850", "Arvin Device Smoke #90", "Arvin Parallel Wave #767", "Arvin Build #855", "Arvin Device Smoke #98", "Arvin Build #856", "Arvin Device Smoke #101"], "note": "Versioned authenticated encrypted backup is merged through the existing canonical backup byte path with legacy plaintext compatibility, shared SAF/cloud bytes, explicit Persian opt-in/passphrase UX, no passphrase persistence, wrong-passphrase mutation protection, exact-head APK/device evidence and post-merge main validation. Final roadmap-wide DoD/handoff closure remains before 100."},
+    {"id": 18, "name": "Sync و Backup چنددستگاهی", "wave": "X2", "stage": 40, "evidence": ["PR #222", "PR #236", "PR #290", "PR #299", "lib/services/sync_merge_service.dart", "lib/services/task_sync_revision_service.dart", "Arvin Parallel Wave #846", "Arvin Build #959", "Arvin Device Smoke #205"], "note": "Portable backup/settings foundations now have a deterministic safe sync merge core plus a canonical Task-to-SyncRevision SHA-256 bridge with focused and exact-head CI/APK/device evidence. Provider transport, persisted multi-device state, user-facing conflict resolution and full end-to-end sync remain separate gaps, so credit is conservatively limited to core stage 40."},
     {"id": 19, "name": "Personal Assistant بومی ایران", "wave": "X3", "stage": 0, "evidence": [], "note": "Not started with dedicated evidence."}
   ],
   "reported_metrics": {
-    "overall_percent": 25.0,
-    "wave_x1_percent": 59.4,
-    "features_at_core_or_better": 6,
-    "features_started": 7,
+    "overall_percent": 31.1,
+    "wave_x1_percent": 68.8,
+    "features_at_core_or_better": 8,
+    "features_started": 8,
     "features_done": 0
   }
 }
