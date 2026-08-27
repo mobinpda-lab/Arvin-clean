@@ -30,6 +30,7 @@ void main() {
       description: 'توضیحات',
       createdAt: DateTime.parse('2026-08-01T08:00:00.000'),
       updatedAt: DateTime.parse('2026-08-02T09:00:00.000'),
+      dueDate: DateTime.parse('2026-08-02T18:30:00.000'),
       followUpEnabled: true,
       followUpDate: DateTime.parse('2026-08-03T10:00:00.000'),
       tags: ['a', 'b'],
@@ -60,6 +61,7 @@ void main() {
     expect(restored.description, original.description);
     expect(restored.createdAt, original.createdAt);
     expect(restored.updatedAt, original.updatedAt);
+    expect(restored.dueDate, original.dueDate);
     expect(restored.followUpEnabled, original.followUpEnabled);
     expect(restored.followUpDate, original.followUpDate);
     expect(restored.tags, original.tags);
@@ -87,11 +89,37 @@ void main() {
     expect(task.tags, isEmpty);
     expect(task.checklist, isEmpty);
     expect(task.followUps, isEmpty);
+    expect(task.dueDate, isNull);
     expect(task.followUpEnabled, isFalse);
     expect(task.archived, isFalse);
     expect(task.trashed, isFalse);
     expect(task.completed, isFalse);
     expect(task.recurrence, isNull);
+  });
+
+  test('due date stays independent from reminder and follow-up timestamps', () {
+    final due = DateTime.parse('2026-09-11T16:00:00.000');
+    final reminder = DateTime.parse('2026-09-09T10:00:00.000');
+    final followUp = DateTime.parse('2026-09-10T12:30:00.000');
+    final task = Task(
+      id: 'due-independent-1',
+      title: 'استقلال تاریخ‌ها',
+      dueDate: due,
+      reminderDate: reminder,
+      followUpEnabled: true,
+      followUpDate: followUp,
+      followUps: [
+        FollowUp(id: 'f1', dateTime: followUp, note: 'پیگیری'),
+      ],
+    );
+
+    final restored = Task.fromJson(task.toJson());
+
+    expect(restored.dueDate, due);
+    expect(restored.reminderDate, reminder);
+    expect(restored.followUpDate, followUp);
+    expect(restored.followUps.single.dateTime, followUp);
+    expect(restored.dueDate, isNot(restored.reminderDate));
   });
 
   test('invalid legacy followUpDate does not create a synthetic followUp', () {
@@ -161,5 +189,6 @@ void main() {
     expect(task.id, 'legacy-reminder');
     expect(task.title, 'داده قدیمی');
     expect(task.reminderDate, isNull);
+    expect(task.dueDate, isNull);
   });
 }
