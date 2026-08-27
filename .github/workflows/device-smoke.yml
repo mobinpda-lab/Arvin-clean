@@ -69,4 +69,12 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+          script: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+      - name: Upload real Home screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-home-screenshot-${{ github.sha }}
+          path: artifacts/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
