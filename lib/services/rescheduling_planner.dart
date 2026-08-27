@@ -53,8 +53,8 @@ class ReschedulingPlanner {
       ]);
       final candidateIsFree = conflicts.every(
         (conflict) =>
-            conflict.first.id != candidate.id &&
-            conflict.second.id != candidate.id,
+            !identical(conflict.first, candidate) &&
+            !identical(conflict.second, candidate),
       );
 
       if (candidateIsFree) {
