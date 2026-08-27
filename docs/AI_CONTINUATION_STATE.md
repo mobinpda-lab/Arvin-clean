@@ -1,53 +1,65 @@
 # Arvin AI Continuation State
 
-Last updated: 2026-08-25
+Last updated: 2026-08-27
 
 ## Source of truth
-GitHub Reality > approved architecture decisions > docs/ARVIN_PROJECT_OPERATING_PACKAGE.md v49.0 > CI/workflow evidence > chat memory.
+GitHub Reality > approved architecture decisions > docs/ARVIN_PROJECT_OPERATING_PACKAGE.md > current continuation docs > exact-head CI/workflow evidence > chat memory.
 
-## Current main
-Main SHA at the start of this snapshot: `ab9209114aea9cc853b31099cebe75e8206e0b70`
+## Current main snapshot
+Main SHA at the start of this documentation lane: `20c881d6f744bc53eb22ca63c59523e352433b49`.
 
-Latest completed PR: #147 — `feat(home): connect RTL drawer to official calendar`
-- Merge method: squash
-- Tested head: `ef56fd73a4ba1b677adf4db96e08bd89153563cf`
-- Arvin Build #534: completed / success
-- Arvin Parallel Wave #355: completed / success
-- Result: Home now exposes the official Iranian calendar through the existing RTL Scaffold drawer without introducing a Router/AppShell or changing storage/migration foundations.
+Latest merged baseline observed here includes PR #337 — canonical People Android emulator E2E.
 
-Previous completed PRs in this wave:
-- #145 — preserve canonical fields on transitional Home saves
-- #144 — harden FollowUp quick-add task selection and failure tests
+This SHA is a snapshot only. Every continuation MUST refresh live `main`, open PRs and exact-head workflows before merge or progress claims.
 
-## Active work
-No feature PR is intentionally marked as the sole active continuation point by this snapshot. Before starting work, re-read live GitHub because new PRs or commits may exist after this file was written.
+## Active Maximum Parallel wave
+Detailed operational map: `docs/MAXIMUM_PARALLEL_CONTINUATION_2026-08-27.md`.
 
-## Next actions
-1. Re-read `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 and verify live `main`, open PRs, and exact-head workflows.
-2. Select the nearest real incomplete Definition-of-Done item, preferring independent lanes that can progress in parallel without overlapping foundations.
-3. Recommended next lanes after Calendar navigation stabilization:
-   - complete remaining Unified Item migration in Home;
-   - connect the existing SearchService to UI without creating another search engine;
-   - complete Notebook Note/Edit/Checklist contract;
-   - implement Reminder/Notification on the shared foundation;
-   - audit Backup/Restore end-to-end.
-4. Keep PRs small, independently testable, and merge only after Analyze → Test → APK → Evidence → Review on the exact SHA.
+Current lanes at this snapshot:
+- PR #345 — canonical Sync apply through TaskStore; open/Ready/mergeable. Exact-head Fast/quality/APK/device evidence was observed green during the wave; refresh before merge.
+- PR #346 — idempotent external Calendar sync planner; open/Ready/mergeable. Provider-neutral contract only.
+- PR #347 — comprehensive architecture/target reconciliation; documentation-only, open/Ready/mergeable.
+- Issue #348 — next Android Calendar Provider execution lane after #346 contract integration.
+- Issue #349 / PR #351 — versioned remote snapshot + compare-and-swap + retry boundary. PR #351 is intentionally stacked on #345 and remains Draft until the parent is merged/reconciled.
+- Existing UI/device/E2E lanes remain independent and must not be stopped by documentation, Sync or Calendar work when boundaries do not overlap.
+
+## Highest-value continuation
+1. Refresh GitHub state first.
+2. If #345 still has full exact-head green evidence and current-main compatibility, merge/revalidate it.
+3. Rebuild/reconcile #351 from the resulting fresh `main`, then continue remote transport/retry validation.
+4. Independently complete exact-head gates for #346 and start #348 after its contract is safely integrated.
+5. Integrate #347 when its documentation gate is clean.
+6. Continue non-conflicting UI/device/E2E/product lanes at the same time.
+
+Dependency order does NOT mean global serialization. One blocked lane must not stop unrelated production.
+
+## Permanent Maximum Parallel / no-stop rule
+Development stays parallel, coordinated, fast and evidence-driven.
+
+Documentation, architecture reconciliation, reporting, backlog audit and CI observation MUST run as independent lanes and MUST NOT stop non-conflicting product production.
+
+A lane may wait only for a real technical dependency, overlapping canonical ownership, exact-head validation failure, stale-main reconciliation, or a destructive/data/security risk. Waiting in one lane never authorizes stopping unrelated lanes.
 
 ## Non-negotiable architecture rules
 - Flutter, Persian, RTL.
-- `arvin.tasks` remains the main Home data path unless an approved migration explicitly changes it.
-- Task, Note, Reminder and FollowUp converge on the shared Unified Item/Task foundation.
-- Do not create parallel Model, Repository, Storage, Sync Engine, Router, AppShell, or UI foundation when an existing one can be extended.
-- Existing Search, Calendar, Backup and Notebook capabilities must be audited before rebuilding.
+- `arvin.tasks` remains the canonical Task persistence path unless an approved migration explicitly replaces it.
+- Task / FollowUps[] remain canonical product foundations; composition is preferred over a giant duplicate Unified model.
+- Calendar projections consume canonical Task/FollowUp data; external calendars are not Arvin's source of truth.
+- Backup/Restore uses its canonical serialized path. Dropbox/cloud backup semantics must not be silently reused as live multi-device Sync state.
+- Sync uses canonical Task JSON/revision evidence, explicit conflict decisions and fail-closed stale/precondition checks; no timestamp/last-write-wins shortcut.
+- Do not create parallel Model, Repository, Storage, Sync Engine, Router, AppShell, Calendar database or UI foundation when an existing one can be extended.
+- No credentials/tokens in portable backup or ordinary settings payloads.
 - CI evidence is valid only for the exact SHA it tested.
 - No force updates or destructive history rewrites for normal continuation.
 - Preserve the project identity and «بسم الله الرحمن الرحیم».
 
 ## Continuation protocol
-The command `ادامه` means: re-check GitHub first, read this file plus the v49 operating package, then continue the nearest real task from repository reality rather than from chat memory.
+The command `ادامه` means:
+- re-check GitHub first;
+- read this file, `docs/ARVIN_CONTINUATION_COMMAND.md`, `docs/MAXIMUM_PARALLEL_CONTINUATION_2026-08-27.md`, and the operating package relevant to the task;
+- continue the nearest real unfinished gaps in parallel when independent;
+- never stop unrelated production because one lane is waiting;
+- validate exact resulting refs before merge/promotion.
 
-## Speed rule
-Development should stay parallel, coordinated and fast, targeting useful verified output in hours rather than days. Speed must come from independent lanes, small PRs, reuse of existing foundations and avoiding rework—not from skipping tests, APK builds, review or exact-SHA evidence.
-
-## Progress baseline
-The last explicitly established v49 progress baseline was 33%. Recalculate only after real merged work is evaluated against the full Definition of Done; do not increase progress just because commits or PRs exist.
+## Progress rule
+Do not reuse historical manual percentages as current truth. Recalculate progress only from current scorecards/Definitions of Done and merged validated evidence. Documentation, issue creation, branch creation or PR count earns no product progress by itself.
