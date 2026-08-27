@@ -13,6 +13,7 @@ import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
+import 'task_editor_dialog.dart';
 import 'theme/app_fonts.dart';
 import 'task_timeline_page.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -317,7 +318,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _add() async {
     final task = await showDialog<Task>(
       context: context,
-      builder: (_) => const TaskDialog(),
+      builder: (_) => const ArvinTaskEditorDialog(),
     );
     if (task == null) return;
     setState(() => tasks.add(task));
@@ -353,7 +354,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _edit(Task old) async {
     final edited = await showDialog<Task>(
       context: context,
-      builder: (_) => TaskDialog(task: old),
+      builder: (_) => ArvinTaskEditorDialog(task: old),
     );
     if (edited == null) return;
     setState(() {
