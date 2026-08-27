@@ -395,23 +395,27 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      CheckboxListTile(
-                        key: const ValueKey('task-editor-followup-enabled'),
-                        value: _followUpEnabled,
-                        onChanged: (value) => _setFollowUpEnabled(value ?? false),
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: _brand,
-                        title: const Text(
-                          'کار پیگیری‌دار',
-                          style: TextStyle(
-                            color: _brand,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
+                      Material(
+                        color: Colors.transparent,
+                        child: CheckboxListTile(
+                          key: const ValueKey('task-editor-followup-enabled'),
+                          value: _followUpEnabled,
+                          onChanged: (value) =>
+                              _setFollowUpEnabled(value ?? false),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          activeColor: _brand,
+                          title: const Text(
+                            'کار پیگیری‌دار',
+                            style: TextStyle(
+                              color: _brand,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        subtitle: const Text(
-                          'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                          subtitle: const Text(
+                            'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                          ),
                         ),
                       ),
                       if (!_followUpEnabled && hasHistory)
