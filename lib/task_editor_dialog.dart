@@ -174,6 +174,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ? 'بدون عنوان'
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
+        dueDate: existing?.dueDate,
         followUpEnabled: _followUpEnabled,
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
