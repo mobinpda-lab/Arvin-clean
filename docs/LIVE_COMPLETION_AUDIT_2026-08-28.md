@@ -2,85 +2,86 @@
 
 This note is the current GitHub recovery checkpoint for humans and AI agents. It records verified repository reality and the active Maximum Parallel execution map. It does not replace detailed product contracts.
 
-## Verified baseline
+## Current main
 
-Current validated `main`: `6ffbb81ee32a08501b40ab1e18917bff4fa499fc`.
+Current `main`: `4e30b7da2fb5dc3a68f297c577e01de60c5cfd51`.
 
-Post-merge validation for #407 is green:
-- Arvin Build #1258 — success
-- Arvin Device Smoke #504 — success
+Merged in the current wave:
+- #407 canonical Task batch mutation core
+- #409 independent FollowUp reminder core + safe legacy scheduling/history separation
+- #411 canonical Task multi-select/select-all/reconcile semantics
 
-#407 delivered the canonical Task bulk mutation core for safe batch trash, category reassignment and additive multi-tag operations while preserving Task identity, history, due dates and reminders.
+#409 and #411 each completed exact-head Fast, Build/APK and Device Smoke before merge. Post-wave Build and Device validation for combined `main` is running and remains the authority before calling the combined wave fully locked.
 
-## Active current-main lanes
+## Active product lane
 
 ### #408 — Task due-date editor
 
-Rebuilt from current main after stale #406 was retired.
+The canonical Task editor exposes a dedicated `موعد کار` block with Jalali date + explicit time, independent from Reminder and FollowUp time, using the existing `Task.dueDate` field.
 
-- dedicated `موعد کار` block in `ArvinTaskEditorDialog`
-- Jalali date and explicit time
-- independent from Task reminder and FollowUp time
-- create/edit/preserve/clear through canonical `Task.dueDate`
-- exact-head Fast gate is green
-- Ready/full Build + Device validation is running
+Current head: `af1a74e145894eda87902502b7e0acbfed2fa8bb`.
 
-Remaining owner boundary after this editor lands: canonical Home/Task Detail edit must assign `edited.dueDate` back to the existing Task and persist it end-to-end.
+The first Device failure was traced to the Android People smoke trying to tap the longer editor's Save button at the extreme bottom edge. The test now uses Flutter `Scrollable.ensureVisible(..., alignment: 0.5)` so Save is centered in the tappable viewport. A fresh Build + Device run is executing against the newer main that already contains #409/#411.
 
-### #409 — independent FollowUp reminder core
+After #408 lands, the remaining due-date owner boundary is Home/Task Detail edit persistence: copy `edited.dueDate` back onto the same canonical Task and persist it end-to-end.
 
-Rebuilt from current main after stale #404 was retired.
+## Delivered foundations that must not be rebuilt
 
+### FollowUp reminder
+
+#409 is merged.
 - optional `FollowUp.reminderDate`
-- same canonical Task `followUps[]` JSON envelope
+- stored inside canonical Task `followUps[]`
 - no second model/store/storage key/scheduler
 - legacy FollowUps without reminder remain valid
-- legacy Task `followUpDate` stays scheduling/enablement data and does not fabricate a real FollowUp history entry
-- migration adapter/reader/store/unified-item contracts are covered together
-- Draft Fast validation is running
+- legacy Task `followUpDate` remains scheduling/enablement data and does not fabricate real FollowUp history
 
-After the core is validated, UI and the existing notification/scheduler path should consume this same field in a separate slice.
+Next slice: expose/edit reminder in FollowUp UI and connect the same field to the existing scheduler/notification path.
 
-## Important audit corrections
+### Bulk operations
 
-### Home remains a P0 integration boundary
+#407 is merged: canonical safe batch trash, category reassignment and additive multi-tag mutation core.
 
-The model/service foundations already exist. Do not rebuild them. Remaining work is canonical Home wiring, discoverability and final device/visual acceptance.
+#411 is merged: canonical Task selection semantics for single/multi/select-all, filtered visible scopes, stale-selection reconciliation and selected Task projection while preserving canonical identity/order.
 
-### Task due date is a real user-path gap until Home persistence is wired
+#367 remains open for real Notes/Tasks selection UX plus PDF/share/print/delete/category/tag action wiring. Existing report/PDF foundations must be reused.
 
-`Task.dueDate`, serialization and scope/projection foundations exist. #408 covers editor create/edit/clear. The Home edit-copy boundary remains the final persistence gap.
+### Notebook
 
-### FollowUp history and legacy scheduling are different concepts
+Existing canonical Notebook persistence, simple-note/checklist split, autosave, explicit edit and same-id category reassignment remain valid foundations. Do not create a second Note store/model.
 
-A historical legacy `followUpDate` must not be fabricated into a real FollowUp history event. Real history begins only when a real FollowUp exists. This distinction is now the target migration contract in #409.
+## Important remaining boundaries
 
-### Bulk work is partially delivered, not complete
+### Home integration — P0
 
-#407 provides the canonical mutation core. #367 still owns user-facing multi-selection/select-all, category/tag actions and report/share/PDF/print completion.
+Existing Task due/scope/sort/presentation services remain the foundation. Remaining work is wiring/discoverability, correct edit persistence and final device/visual acceptance; do not create another Home list/store model.
 
-### Open PR count is not active work count
+### FollowUp reminder end-to-end — P0
 
-Historical/superseded PRs are preserved for evidence but are not merge candidates. Stale implementation lanes are rebuilt from current main rather than force-merged.
+Core persistence is merged. Remaining work is UI + existing notification/scheduler consumption of the same `FollowUp.reminderDate` field.
+
+### Bulk UX/export — P0
+
+Mutation + selection cores are merged. Remaining work is first-class selection UI and action wiring for Tasks and Notes, reusing canonical PDF/report/share/print foundations and safe trash/category/tag semantics.
 
 ## Active P0 order
 
-1. finish #408 full gates and merge safely
-2. persist due date through canonical Home/Task Detail edit path
-3. finish #409 Fast/full gates and merge safely
-4. add FollowUp reminder UI + existing scheduler/notification wiring
-5. continue #367 bulk UI/export lanes
+1. finish #408 fresh full gates and merge safely
+2. wire/persist `edited.dueDate` through canonical Home/Task Detail edit
+3. add FollowUp reminder UI + existing scheduler/notification wiring
+4. wire #407 + #411 into real Task/Notebook bulk selection/actions
+5. complete PDF/share/print surfaces for selected Notes/Tasks using existing report foundations
 6. finish Home final integration/visual acceptance
 
-P1/P2/P3 work may run independently when files and gates do not conflict, but must not starve the P0 path.
+P1/P2/P3 may proceed independently only when files/gates do not conflict and must not starve P0 completion.
 
 ## Maximum Parallel operating rule
 
 - one blocker pauses only its own lane
 - Draft PRs receive exact-head Fast validation
 - Ready production PRs receive full Build/APK/Device validation
-- current-main sanity is checked before promotion/merge
-- post-merge main is validated again
+- independent changes may validate on a shared base and merge as a wave when file ownership does not overlap
+- latest combined `main` is validated after every merge wave
 - CI wait time is reused for independent implementation, testing and documentation
 - stale/diverged/red PRs are never force-merged
 - superseded history is closed, not deleted
@@ -89,4 +90,4 @@ P1/P2/P3 work may run independently when files and gates do not conflict, but mu
 
 ## Reporting rule
 
-User-facing reports stay short and nontechnical: what entered the app, what is actively being completed and whether the latest validated base is healthy. Detailed evidence stays in GitHub.
+User-facing reports stay short and nontechnical: what entered the app, what is actively being completed and whether the latest combined validation is healthy. Detailed evidence stays in GitHub.
