@@ -40,6 +40,12 @@ Archived/trashed/missing Tasks fail explicitly rather than being silently resurr
 
 Today/Future/Overdue projection remains owned by `TaskDueScopeService` and uses only `Task.dueDate`. Reminder or FollowUp timestamps are never hidden substitutes for the Task due date.
 
+## Current-main reconciliation — 2026-08-28
+
+PR #383 was originally prepared before Sync apply PR #380 landed. Current `main` is now `c51a68e968ce0939ea521d4a647a6cc7fdf3a904`.
+
+The #380 merge adds Sync apply service/tests and does not overlap this seven-file Home/List service slice. This reconciliation commit exists so the exact-head Fast Gate validates #383 against the current product combination before promotion. No service behavior is changed by this documentation-only reconciliation.
+
 ## Still open under #369 / #375
 
 This slice intentionally does **not** claim final acceptance. Remaining executable work includes:
