@@ -2,12 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  test('legacy task JSON migrates to the Unified Task without data loss', () {
+  test('legacy task JSON preserves scheduling data without fake history', () {
+    final legacyDate = DateTime.parse('2026-08-20T09:30:00.000');
     final task = Task.fromJson({
       'id': 'legacy-1',
       'title': 'کار قدیمی',
       'description': 'اطلاعات قدیمی',
-      'followUpDate': '2026-08-20T09:30:00.000',
+      'followUpDate': legacyDate.toIso8601String(),
       'tags': ['قدیمی'],
       'archived': false,
       'trashed': false,
@@ -19,9 +20,9 @@ void main() {
     expect(task.description, 'اطلاعات قدیمی');
     expect(task.tags, ['قدیمی']);
     expect(task.followUpEnabled, isTrue);
-    expect(task.followUps, hasLength(1));
-    expect(task.followUps.single.dateTime,
-        DateTime.parse('2026-08-20T09:30:00.000'));
+    expect(task.followUpDate, legacyDate);
+    expect(task.followUps, isEmpty);
+    expect(task.lastFollowUp, isNull);
   });
 
   test('Unified Task JSON preserves reminder and recurrence fields', () {
