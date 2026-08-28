@@ -66,6 +66,45 @@ void main() {
     expect(result, <Task>[followed, updated, created]);
   });
 
+  test('last FollowUp sort ignores updatedAt and keeps no-history Tasks last', () {
+    final olderHistory = task(
+      'older-history',
+      updatedAt: DateTime(2026, 8, 31),
+      followUps: <FollowUp>[
+        FollowUp(id: 'older-f1', dateTime: DateTime(2026, 8, 20, 9)),
+      ],
+    );
+    final newerHistory = task(
+      'newer-history',
+      updatedAt: DateTime(2026, 8, 1),
+      followUps: <FollowUp>[
+        FollowUp(id: 'newer-f1', dateTime: DateTime(2026, 8, 23, 9)),
+        FollowUp(id: 'newer-f2', dateTime: DateTime(2026, 8, 28, 11)),
+      ],
+    );
+    final noHistory = task(
+      'no-history',
+      updatedAt: DateTime(2026, 9, 1),
+    );
+    const service = TaskListSortService();
+
+    expect(
+      service.sort(
+        <Task>[noHistory, olderHistory, newerHistory],
+        by: TaskListSort.lastFollowUp,
+      ),
+      <Task>[olderHistory, newerHistory, noHistory],
+    );
+    expect(
+      service.sort(
+        <Task>[noHistory, olderHistory, newerHistory],
+        by: TaskListSort.lastFollowUp,
+        descending: true,
+      ),
+      <Task>[newerHistory, olderHistory, noHistory],
+    );
+  });
+
   test('title sort supports ascending and descending without mutation', () {
     final alpha = task('a', title: 'Alpha');
     final beta = task('b', title: ' beta ');
