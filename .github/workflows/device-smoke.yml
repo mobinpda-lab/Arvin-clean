@@ -11,8 +11,10 @@ on:
 permissions:
   contents: read
 
+# PRs group by PR number; non-PR runs group by ref so a newer main/device run
+# cancels superseded work on that same ref instead of consuming emulator slots.
 concurrency:
-  group: arvin-device-smoke-${{ github.event.pull_request.number || github.run_id }}
+  group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:

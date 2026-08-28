@@ -11,16 +11,17 @@ permissions:
   contents: read
 
 # Fast Lane: wave/** and ci/** automation branches receive push validation.
-# Normal feature/fix/test work opens a PR immediately and receives one canonical
-# PR validation, avoiding duplicate push + pull_request runs for the same head.
-# The canonical APK gate lives in Arvin Build when a PR is ready or when an
-# exact-SHA gate/** validation ref is moved to the PR head.
+# Draft PRs receive one canonical Fast validation. Once a PR becomes Ready,
+# Arvin Build + Device Smoke become the full exact-head gate and Parallel Wave
+# skips duplicate analyze/test surface work. This keeps throughput high without
+# weakening the Ready/APK/device merge gate.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   quality:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +37,7 @@ jobs:
       - run: flutter test
 
   surface:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
