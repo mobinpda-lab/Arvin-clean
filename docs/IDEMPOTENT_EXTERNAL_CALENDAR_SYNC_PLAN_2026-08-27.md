@@ -57,4 +57,6 @@ The next vertical slice can implement an Android Calendar Provider adapter again
 
 ## Current-main reconciliation — 2026-08-28
 
-This contract was rebuilt on current main instead of reusing stale PR #346 evidence. The behavior remains intentionally unchanged; only the validation baseline was refreshed so promotion requires current exact-head CI.
+This contract is the fresh replacement for stale PR #346. It is now reconciled against post-Sync-apply main `c51a68e968ce0939ea521d4a647a6cc7fdf3a904`.
+
+No Calendar behavior was changed during reconciliation. This commit exists so the exact-head Fast Gate validates the three-file Calendar contract against the current product combination. After Fast success, promotion requires full Quality, debug/release APK and Home/People Device evidence on the same head before merge.
