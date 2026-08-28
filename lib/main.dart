@@ -11,6 +11,7 @@ import 'services/interactive_guide_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_migration_reader.dart';
 import 'services/task_migration_writer.dart';
+import 'services/task_edit_apply_service.dart';
 import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
@@ -115,6 +116,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TaskMigrationReader migrationReader = TaskMigrationReader();
   final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
+  final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
@@ -355,14 +357,7 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => ArvinTaskEditorDialog(task: old),
     );
     if (edited == null) return;
-    setState(() {
-      old.title = edited.title;
-      old.description = edited.description;
-      old.followUpEnabled = edited.followUpEnabled;
-      old.followUpDate = edited.followUpDate;
-      old.tags = List<String>.of(edited.tags);
-      old.updatedAt = DateTime.now();
-    });
+    setState(() => taskEditApplyService.apply(old, edited));
     await _save();
   }
 
