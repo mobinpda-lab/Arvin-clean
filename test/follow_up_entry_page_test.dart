@@ -12,6 +12,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> revealReminder(WidgetTester tester) async {
+    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
+    await tester.scrollUntilVisible(
+      reminder,
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(reminder, findsOneWidget);
+  }
+
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
@@ -42,7 +53,7 @@ void main() {
     expect(find.text('۱۴۰۵/۰۵/۲۳'), findsOneWidget);
     expect(find.text('۰۹:۳۰'), findsOneWidget);
     expect(find.text('عنوان پیگیری (اختیاری)'), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsOneWidget);
+    await revealReminder(tester);
 
     await tester.enterText(
       find.byKey(const ValueKey('follow-up-entry-title')),
@@ -134,8 +145,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    final reminderBlock = find.byKey(const ValueKey('follow-up-reminder-block'));
-    await tester.ensureVisible(reminderBlock);
+    await revealReminder(tester);
     expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
     expect(find.text('۰۷:۴۵'), findsOneWidget);
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
@@ -179,8 +189,9 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
+    await revealReminder(tester);
     final clear = find.byKey(const ValueKey('follow-up-reminder-clear'));
-    await tester.ensureVisible(clear);
+    expect(clear, findsOneWidget);
     await tester.tap(clear);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
