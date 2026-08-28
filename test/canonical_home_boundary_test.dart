@@ -16,11 +16,16 @@ void main() {
   test('Home edit mutates the existing canonical Task instead of replacing it', () {
     final source = File('lib/main.dart').readAsStringSync();
 
+    expect(source, contains("import 'services/task_edit_apply_service.dart';"));
+    expect(
+      source,
+      contains('final TaskEditApplyService taskEditApplyService = TaskEditApplyService();'),
+    );
     expect(source, contains('Future<void> _edit(Task old)'));
-    expect(source, contains('old.title = edited.title'));
-    expect(source, contains('old.followUpEnabled = edited.followUpEnabled'));
-    expect(source, contains('old.followUpDate = edited.followUpDate'));
-    expect(source, contains('old.updatedAt = DateTime.now()'));
+    expect(source, contains('taskEditApplyService.apply(old, edited)'));
+    expect(source, contains('await _save();'));
     expect(source, isNot(contains('tasks.map(_canonicalSnapshotOf)')));
+    expect(source, isNot(contains('tasks[tasks.indexOf(old)] = edited')));
+    expect(source, isNot(contains('tasks[index] = edited')));
   });
 }
