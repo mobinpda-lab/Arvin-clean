@@ -5,41 +5,13 @@ import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  Future<FollowUp?> openEditor(
-    WidgetTester tester, {
-    DateTime? initialDateTime,
-    FollowUp? initialFollowUp,
-  }) async {
-    FollowUp? result;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(
-                      initialDateTime: initialDateTime,
-                      initialFollowUp: initialFollowUp,
-                    ),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-    return result;
-  }
-
   Future<void> saveEditor(WidgetTester tester) async {
     final save = find.byKey(const ValueKey('follow-up-entry-save'));
-    await tester.ensureVisible(save);
+    await tester.scrollUntilVisible(
+      save,
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(save);
     await tester.pumpAndSettle();
   }
