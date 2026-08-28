@@ -1,74 +1,81 @@
 # Arvin live completion audit — 2026-08-28
 
-This note is the current GitHub recovery checkpoint for humans and AI agents. It records verified repository reality and the active Maximum Parallel execution map. It does not replace detailed product contracts.
+This is the current GitHub recovery checkpoint for Arvin. It records verified repository reality and the active Maximum Parallel execution map so work can resume safely without relying on chat history.
 
-## Current validated main
+## Current validated baseline
 
-Current `main`: `ef3ebae6e5b13e7f7da37442d316b22a1737c9f1`.
+Current product `main`: `66aa997c1cccdea349772b3e1c639398083ab731` after #418.
 
-Latest merged product wave includes:
+Recent delivered foundations include:
 - #407 canonical Task batch mutation core
 - #409 independent FollowUp reminder persistence/migration core
 - #411 canonical Task multi-select/select-all/reconcile semantics
+- #412 reusable responsive bulk-selection action bar
+- #414 canonical non-invasive FollowUp reminder projection
 - #415 canonical category/tag lifecycle core
+- #418 canonical Task editor-result apply core, including `dueDate` persistence while preserving Task identity/history
 
-Current-main Build and Device Smoke are green.
+#418 exact-head Fast, Build quality, release/debug APK and both Android Home/People Device Smoke gates were green before merge.
 
-## Active fresh lane
+## Active fresh lanes
 
-### #418 — canonical Task editor-result apply core
+### #422 — independent due-date editor
 
-Fresh from exact current main.
-- persists editor `dueDate` together with the existing canonical Task fields
-- preserves Task identity, creation time, FollowUp history and lifecycle flags
-- copies mutable collections rather than aliasing editor state
-- no second model/store/editor state
-- exact-head Fast is green
-- promoted to Ready; full Build/APK + Device gates are running
+Fresh current-main rebuild superseding historical #408 without force merge.
+- dedicated `موعد کار` block in the canonical Task editor
+- Jalali date + explicit time
+- independent from Reminder and FollowUp
+- create/edit/preserve/clear through `Task.dueDate`
+- Android editor interaction is scroll/hit-test safe
+- no second model/store/storage key/scheduler
+- initial exact-head Fast was green; branch was then merged forward with #418 and is re-running Fast on the real current-main combination
 
-Do not merge until full gates are green and current main remains compatible.
+### #421 — Home scope/sort projection
 
-After #418 lands, the next narrow P0 slice is Home wiring through this canonical apply path so due-date edits survive end-to-end.
+Fresh current-main rebuild superseding historical #417.
+- All / Notes / FollowUp-enabled / Today / Future / Overdue scopes
+- date / latest meaningful activity / title sorts
+- dueDate takes precedence with legacy Home follow-up fallback during migration
+- no Home UI/persistence ownership in this slice
+- initial Fast green; merged forward with #418 and re-validating exact head
 
-## Independent lanes requiring reconciliation before promotion/merge
+### #420 — canonical bulk report coordinator
 
-### #417 — Home scope/sort projection
+Fresh current-main rebuild superseding historical #416.
+- selected-items and visible/current-scope reports
+- delegates to existing `TaskReportProjection`
+- preserves canonical FollowUp history
+- no duplicate PDF renderer/report/share path
+- initial Fast green; merged forward with #418 and re-validating exact head
 
-Exact-head Fast is green, but its base predates current main. Keep Draft and rebuild/reconcile from current main before heavy validation.
+## Superseded history
 
-### #416 — bulk report coordinator
+#408, #416 and #417 are closed historical evidence only. They are not merge candidates. Their validated behavior was rebuilt on current main as #422, #420 and #421 respectively.
 
-Its historical exact head completed Fast + Build/APK + Device successfully, but current main has advanced. Preserve that evidence; rebuild/reconcile rather than merge stale/diverged work.
+Historical documentation PRs may remain for evidence, but this file is the live recovery source once its own fresh gates pass.
 
-### #408 — due-date editor
+## Canonical boundaries — do not duplicate
 
-The editor implementation is valuable evidence but the branch is behind current main. Do not force-merge. Reuse/rebuild only the validated behavior needed by the current integration path.
-
-### #413 and older documentation lanes
-
-Historical documentation is preserved, but stale documentation PRs are not merge candidates. This file supersedes their live-status role without deleting history.
-
-## Delivered foundations that must not be duplicated
-
-- canonical `Task` and `FollowUp` models
-- canonical `TaskStore` / existing `arvin.tasks` persistence
+- `Task` and `FollowUp` models
+- `TaskStore` and existing `arvin.tasks` persistence
 - FollowUp reminder field inside canonical FollowUp data
-- Task selection semantics
-- safe bulk trash/category/tag mutation core
-- canonical category/tag lifecycle core
-- existing Task report projection/PDF/print/share foundation
+- Task multi-selection semantics and bulk mutation core
+- category/tag lifecycle core
+- Task report projection/PDF/print/share foundation
 - canonical Notebook repository on the same Task storage foundation
+- Task editor-result apply service from #418
 
 ## Active P0 order
 
-1. finish #418 full Build/APK/Device gates and merge only if still current-main compatible
-2. wire Home/Task edit through the canonical apply service and lock due-date persistence end-to-end
-3. rebuild/reconcile #417 on current main and integrate final Home scopes/sorts
-4. continue FollowUp reminder UI + existing scheduler/notification wiring
-5. rebuild/reconcile bulk report/action lanes on current main and connect selection/mutation/report foundations
-6. finish Home final device/visual acceptance
+1. finish fresh exact-head Fast for #422, #421 and #420 after #418
+2. promote each independent green lane only while current-main compatible; require full Build/APK/Device before production merge
+3. land #422 due-date editor, then wire Home/Task edit to the #418 apply service for end-to-end due-date persistence
+4. integrate #421 Home scopes/sorts into the real Home UI with focused interaction/device acceptance
+5. connect #420 report scope with #412 selection UI and existing PDF/print/share foundation
+6. continue FollowUp reminder UI + existing scheduler/notification wiring using the canonical field already delivered
+7. finish Home final device/visual acceptance
 
-P1/P2/P3 work may continue independently when files and gates do not conflict, but must not starve P0 completion.
+P1/P2/P3 work may continue independently when files and gates do not conflict, but must not starve the P0 path.
 
 ## Maximum Parallel operating rule
 
@@ -76,12 +83,12 @@ P1/P2/P3 work may continue independently when files and gates do not conflict, b
 - Draft PRs receive exact-head Fast validation
 - Ready production PRs require full Build/APK/Device validation
 - current-main sanity is checked before promotion and merge
-- stale/diverged/conflicted/red work is rebuilt or reconciled, never force-merged
-- independent CI wait time is reused for product, test, documentation and CI/CD work
+- stale/diverged/conflicted/red work is rebuilt or merged forward safely; never force-merged
+- CI wait time is reused for independent product, test, documentation and CI/CD work
 - historical/superseded records are preserved rather than deleted
-- no duplicate Task/FollowUp/Note/Calendar/Sync foundation, store, storage key or scheduler
+- no duplicate Task/FollowUp/Note/Calendar/Sync foundation, repository, database, storage key or scheduler
 - no destructive rewrite of `main`
 
 ## Reporting rule
 
-User-facing reports stay short and nontechnical. Detailed evidence, head SHAs, gate status and continuation instructions stay in GitHub.
+User-facing reports stay short and nontechnical. Detailed evidence, gate status and continuation instructions stay in GitHub.
