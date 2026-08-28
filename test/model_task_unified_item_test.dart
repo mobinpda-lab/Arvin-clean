@@ -48,7 +48,7 @@ void main() {
     expect(restored.followUps.single.note, 'تماس انجام شد');
   });
 
-  test('legacy followUpDate data still migrates into follow-up history', () {
+  test('legacy followUpDate stays scheduling data and does not fabricate history', () {
     final legacyDate = DateTime(2026, 8, 13, 12);
     final task = Task.fromJson({
       'id': 'legacy',
@@ -57,8 +57,9 @@ void main() {
     });
 
     expect(task.followUpEnabled, isTrue);
-    expect(task.followUps, hasLength(1));
-    expect(task.followUps.single.dateTime, legacyDate);
+    expect(task.followUpDate, legacyDate);
+    expect(task.followUps, isEmpty);
+    expect(task.lastFollowUp, isNull);
   });
 
   test('missing category remains backward-compatible with legacy data', () {

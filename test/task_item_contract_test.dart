@@ -28,16 +28,19 @@ void main() {
       expect(task.lastFollowUpDate, DateTime(2026, 8, 15, 10, 30));
     });
 
-    test('legacy follow-up date migrates without creating a second item', () {
+    test('legacy follow-up date preserves the same item without fake history', () {
+      final legacyDate = DateTime(2026, 8, 15, 9);
       final task = Task.fromJson({
         'id': 'legacy-1',
         'title': 'کار قدیمی',
-        'followUpDate': '2026-08-15T09:00:00.000',
+        'followUpDate': legacyDate.toIso8601String(),
       });
 
       expect(task.id, 'legacy-1');
       expect(task.followUpEnabled, isTrue);
-      expect(task.followUps, hasLength(1));
+      expect(task.followUpDate, legacyDate);
+      expect(task.followUps, isEmpty);
+      expect(task.lastFollowUp, isNull);
       expect(task.isSimpleNote, isFalse);
     });
   });
