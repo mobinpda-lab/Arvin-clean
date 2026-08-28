@@ -15,9 +15,9 @@ import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
+import 'task_detail_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
-import 'task_timeline_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -178,10 +178,7 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => TaskTimelinePage(task: task)),
-    );
-    if (mounted) await _load();
+    await _openTaskDetail(task);
   }
 
   Future<void> _load() async {
@@ -367,6 +364,35 @@ class _HomePageState extends State<HomePage> {
       old.updatedAt = DateTime.now();
     });
     await _save();
+  }
+
+  Future<Task?> _editFromDetail(Task task) async {
+    await _edit(task);
+    return task;
+  }
+
+  Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
+    await taskStore.addFollowUp(task.id, followUp);
+    final updatedTasks = await taskStore.load();
+    final updated = updatedTasks.firstWhere((item) => item.id == task.id);
+    if (mounted) {
+      setState(() => tasks = List<Task>.of(updatedTasks));
+    }
+    return updated;
+  }
+
+  Future<void> _openTaskDetail(Task task) async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(
+          task: task,
+          onEdit: _editFromDetail,
+          onAddFollowUp: _addFollowUpFromDetail,
+        ),
+      ),
+    );
+    if (mounted) await _load();
   }
 
   Future<void> _archiveSelected() async {
@@ -928,7 +954,7 @@ class _HomePageState extends State<HomePage> {
                       selected.add(task.id);
                     }
                   })
-              : () => _edit(task),
+              : () => _openTaskDetail(task),
           leading: selectionMode
               ? Checkbox(
                   value: selected.contains(task.id),
