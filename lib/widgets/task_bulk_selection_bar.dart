@@ -100,15 +100,17 @@ class TaskBulkSelectionBar extends StatelessWidget {
                 ],
               );
 
+              final scrollableSummary = SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: summary,
+              );
+
               if (compact) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: summary,
-                    ),
+                    scrollableSummary,
                     const SizedBox(height: 4),
                     Align(alignment: Alignment.centerLeft, child: actions),
                   ],
@@ -117,7 +119,8 @@ class TaskBulkSelectionBar extends StatelessWidget {
 
               return Row(
                 children: [
-                  Expanded(child: summary),
+                  Expanded(child: scrollableSummary),
+                  const SizedBox(width: 4),
                   actions,
                 ],
               );
