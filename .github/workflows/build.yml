@@ -102,22 +102,6 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Restore licensed IRANSansX fonts when configured
-        shell: bash
-        env:
-          IRANSANSX_FANUM_REGULAR_B64: ${{ secrets.IRANSANSX_FANUM_REGULAR_B64 }}
-          IRANSANSX_FANUM_BOLD_B64: ${{ secrets.IRANSANSX_FANUM_BOLD_B64 }}
-        run: |
-          if [[ -n "${IRANSANSX_FANUM_REGULAR_B64:-}" && -n "${IRANSANSX_FANUM_BOLD_B64:-}" ]]; then
-            mkdir -p assets/fonts
-            printf '%s' "$IRANSANSX_FANUM_REGULAR_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Regular.ttf
-            printf '%s' "$IRANSANSX_FANUM_BOLD_B64" | base64 --decode > assets/fonts/IRANSansXFaNum-Bold.ttf
-            test -s assets/fonts/IRANSansXFaNum-Regular.ttf
-            test -s assets/fonts/IRANSansXFaNum-Bold.ttf
-            echo "Licensed IRANSansX fonts restored for this private build context."
-          else
-            echo "IRANSansX secrets are not configured; build will use the platform fallback font."
-          fi
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Configure Android desugaring
@@ -151,7 +135,7 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
       - name: Build APK
-        run: flutter build apk --${{ matrix.variant }} -t lib/main_iransans.dart
+        run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
       - name: Upload APK
