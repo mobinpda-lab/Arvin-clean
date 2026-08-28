@@ -52,9 +52,9 @@ void main() {
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'تماس فردا');
-    final save = find.text('ذخیره پیگیری');
-    await tester.ensureVisible(save);
-    await tester.pump();
+
+    final save = find.byKey(const ValueKey('follow-up-entry-save'));
+    expect(save, findsOneWidget);
     await tester.tap(save);
     await tester.pumpAndSettle();
 
