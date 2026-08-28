@@ -33,8 +33,12 @@ void main() {
     expect(descriptionField, findsOneWidget);
     expect(tagField, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-editor-followup-enabled')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('task-editor-date')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-time')), findsNothing);
 
     await tester.enterText(titleField, 'تست واقعی اندروید');
     await tester.enterText(
