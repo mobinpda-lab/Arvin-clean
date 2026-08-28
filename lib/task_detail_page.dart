@@ -8,6 +8,7 @@ import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
+import 'task_report_page.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
@@ -66,6 +67,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final updated = await edit(_task);
     if (!mounted || updated == null) return;
     setState(() => _task = updated);
+  }
+
+  Future<void> _openReport() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskReportPage(tasks: [_task]),
+      ),
+    );
   }
 
   Future<void> _addFollowUp() async {
@@ -255,6 +265,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         appBar: AppBar(
           title: const Text('جزئیات کار'),
           actions: [
+            IconButton(
+              key: const ValueKey('task-detail-report'),
+              onPressed: _openReport,
+              tooltip: 'PDF، چاپ و اشتراک‌گذاری',
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+            ),
             TextButton.icon(
               key: const ValueKey('task-detail-edit'),
               onPressed: widget.onEdit == null ? null : _edit,
