@@ -1,0 +1,1 @@
+Release gate checkpoint only. Runtime behavior is unchanged.
