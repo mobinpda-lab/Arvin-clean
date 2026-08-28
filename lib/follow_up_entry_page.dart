@@ -24,6 +24,7 @@ class FollowUpEntryPage extends StatefulWidget {
 class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   static const _waitingService = WaitingForResponseService();
   static const _dateFormatter = PersianDateFormatter();
+  static const _defaultTitle = 'پیگیری';
 
   late DateTime _dateTime;
   final _noteController = TextEditingController();
@@ -131,11 +132,12 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final result = _waitingForResponse
         ? WaitingForResponseService.canonicalResult
         : _waitingService.canonicalizeResult(rawResult);
+    final enteredTitle = _noteController.text.trim();
     final followUp = FollowUp(
       id: widget.initialFollowUp?.id ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       dateTime: _dateTime,
-      note: _noteController.text.trim(),
+      note: enteredTitle.isEmpty ? _defaultTitle : enteredTitle,
       result: result,
       nextFollowUp: _nextFollowUp,
     );
@@ -162,6 +164,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
+                    key: const ValueKey('follow-up-entry-date'),
                     onPressed: _pickDate,
                     icon: const Icon(Icons.calendar_month_outlined),
                     label: Text(_formatDate(_dateTime)),
@@ -170,6 +173,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
+                    key: const ValueKey('follow-up-entry-time'),
                     onPressed: _pickTime,
                     icon: const Icon(Icons.schedule_outlined),
                     label: Text(_formatTime(_dateTime)),
@@ -179,10 +183,12 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
             const SizedBox(height: 16),
             TextField(
+              key: const ValueKey('follow-up-entry-title'),
               controller: _noteController,
-              maxLines: 4,
+              maxLines: 2,
               decoration: const InputDecoration(
-                labelText: 'یادداشت پیگیری',
+                labelText: 'عنوان پیگیری (اختیاری)',
+                hintText: 'اگر خالی بماند «پیگیری» ثبت می‌شود',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -222,6 +228,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
+              key: const ValueKey('follow-up-entry-save'),
               onPressed: _save,
               icon: const Icon(Icons.save_outlined),
               label: Text(_editing ? 'ذخیره تغییرات' : 'ذخیره پیگیری'),
