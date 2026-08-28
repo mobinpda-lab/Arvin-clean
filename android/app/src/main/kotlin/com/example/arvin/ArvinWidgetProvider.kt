@@ -122,11 +122,79 @@ class ArvinWidgetProvider : AppWidgetProvider() {
         return latest
     }
 
+    /**
+     * Native mirror of Arvin's canonical Gregorian -> Jalali display rule.
+     *
+     * The widget can render while Flutter is not running, so it cannot call the
+     * Dart PersianDateFormatter directly. It keeps the canonical ISO timestamp
+     * unchanged in storage and derives only the user-visible Jalali/Persian text.
+     */
     private fun formatTimestamp(value: String): String {
-        if (value.length >= 16 && value[10] == 'T') {
-            return "${value.substring(0, 10)} | ${value.substring(11, 16)}"
+        if (value.length >= 16 &&
+            value.getOrNull(4) == '-' &&
+            value.getOrNull(7) == '-' &&
+            value.getOrNull(10) == 'T'
+        ) {
+            val year = value.substring(0, 4).toIntOrNull()
+            val month = value.substring(5, 7).toIntOrNull()
+            val day = value.substring(8, 10).toIntOrNull()
+            if (year != null && month != null && day != null) {
+                val (jalaliYear, jalaliMonth, jalaliDay) = toJalali(year, month, day)
+                val date =
+                    "${jalaliYear.toString().padStart(4, '0')}/" +
+                        "${jalaliMonth.toString().padStart(2, '0')}/" +
+                        jalaliDay.toString().padStart(2, '0')
+                val time = value.substring(11, 16)
+                return "${toPersianDigits(date)} | ${toPersianDigits(time)}"
+            }
         }
-        return value
+        return toPersianDigits(value)
+    }
+
+    private fun toJalali(year: Int, month: Int, day: Int): Triple<Int, Int, Int> {
+        val gy = year - 1600
+        val gm = month - 1
+        val gd = day - 1
+        val gDays = intArrayOf(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
+        var gDayNo =
+            365 * gy + (gy + 3) / 4 - (gy + 99) / 100 + (gy + 399) / 400
+        for (index in 0 until gm) {
+            gDayNo += gDays[index]
+        }
+        if (gm > 1 && isGregorianLeap(year)) {
+            gDayNo++
+        }
+        gDayNo += gd
+
+        var jDayNo = gDayNo - 79
+        val jNp = jDayNo / 12053
+        jDayNo %= 12053
+        var jy = 979 + 33 * jNp + 4 * (jDayNo / 1461)
+        jDayNo %= 1461
+        if (jDayNo >= 366) {
+            jy += (jDayNo - 1) / 365
+            jDayNo = (jDayNo - 1) % 365
+        }
+        val jm = if (jDayNo < 186) 1 + jDayNo / 31 else 7 + (jDayNo - 186) / 30
+        val jd = 1 + if (jDayNo < 186) jDayNo % 31 else (jDayNo - 186) % 30
+        return Triple(jy, jm, jd)
+    }
+
+    private fun isGregorianLeap(year: Int): Boolean =
+        year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+
+    private fun toPersianDigits(value: String): String {
+        val digits = "۰۱۲۳۴۵۶۷۸۹"
+        return buildString(value.length) {
+            value.forEach { character ->
+                if (character in '0'..'9') {
+                    append(digits[character - '0'])
+                } else {
+                    append(character)
+                }
+            }
+        }
     }
 
     private data class WidgetRow(
