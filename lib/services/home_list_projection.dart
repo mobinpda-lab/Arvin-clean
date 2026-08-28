@@ -39,10 +39,14 @@ class HomeListProjection {
           return !task.isSimpleNote;
         case HomeListScope.today:
           final date = _effectiveDate(task);
-          return date != null && _sameLocalDay(date, reference);
+          return !task.completed &&
+              date != null &&
+              _sameLocalDay(date, reference);
         case HomeListScope.future:
           final date = _effectiveDate(task);
-          return date != null && _day(date).isAfter(_day(reference));
+          return !task.completed &&
+              date != null &&
+              _day(date).isAfter(_day(reference));
         case HomeListScope.overdue:
           final date = _effectiveDate(task);
           return !task.completed &&
