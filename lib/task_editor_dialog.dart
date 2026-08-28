@@ -142,7 +142,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
 
   Future<void> _pickDueTime() async {
     final base = _baseDue();
-    final picked = await _pickClock(base: base, helpText: 'انتخاب ساعت موعد کار');
+    final picked = await _pickClock(
+      base: base,
+      helpText: 'انتخاب ساعت موعد کار',
+    );
     if (picked == null || !mounted) return;
     setState(() {
       _dueDateTime = DateTime(
@@ -186,7 +189,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
 
   Future<void> _pickFollowUpTime() async {
     final base = _baseFollowUp();
-    final picked = await _pickClock(base: base, helpText: 'انتخاب ساعت پیگیری');
+    final picked = await _pickClock(
+      base: base,
+      helpText: 'انتخاب ساعت پیگیری',
+    );
     if (picked == null || !mounted) return;
     setState(() {
       _followUpDateTime = DateTime(
@@ -285,13 +291,22 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: const TextStyle(color: Color(0xFF77778A), fontSize: 12)),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Color(0xFF77778A),
+                        fontSize: 12,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -328,7 +343,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         );
         if (constraints.maxWidth < 320) {
           return Column(
-            children: [dateButton, const SizedBox(height: 10), timeButton],
+            children: [
+              dateButton,
+              const SizedBox(height: 10),
+              timeButton,
+            ],
           );
         }
         return Row(
@@ -397,7 +416,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   key: const ValueKey('task-editor-title'),
                   controller: _titleController,
                   textInputAction: TextInputAction.next,
-                  decoration: _fieldDecoration(label: 'عنوان', hint: 'عنوان کار را بنویسید'),
+                  decoration: _fieldDecoration(
+                    label: 'عنوان',
+                    hint: 'عنوان کار را بنویسید',
+                  ),
                 ),
                 const SizedBox(height: 14),
                 TextField(
@@ -405,7 +427,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   controller: _descriptionController,
                   minLines: 3,
                   maxLines: 5,
-                  decoration: _fieldDecoration(label: 'توضیحات', hint: 'توضیحات را وارد کنید…'),
+                  decoration: _fieldDecoration(
+                    label: 'توضیحات',
+                    hint: 'توضیحات را وارد کنید…',
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Row(
@@ -416,7 +441,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         key: const ValueKey('task-editor-tag'),
                         controller: _tagController,
                         onSubmitted: (_) => _addTag(),
-                        decoration: _fieldDecoration(label: 'برچسب', hint: 'مثلاً مشتری، جلسه، مهم'),
+                        decoration: _fieldDecoration(
+                          label: 'برچسب',
+                          hint: 'مثلاً مشتری، جلسه، مهم',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -431,7 +459,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           backgroundColor: _softBrand,
                           foregroundColor: _brand,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                         ),
                         child: const Icon(Icons.add),
                       ),
@@ -472,10 +502,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               children: [
                                 Text(
                                   'موعد کار',
-                                  style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
+                                  style: TextStyle(
+                                    color: _brand,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
                                 ),
                                 SizedBox(height: 2),
-                                Text('مستقل از یادآور و زمان پیگیری', style: TextStyle(color: Color(0xFF77778A), fontSize: 12)),
+                                Text(
+                                  'مستقل از یادآور و زمان پیگیری',
+                                  style: TextStyle(
+                                    color: Color(0xFF77778A),
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -507,25 +547,38 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      CheckboxListTile(
-                        key: const ValueKey('task-editor-followup-enabled'),
-                        value: _followUpEnabled,
-                        onChanged: (value) => _setFollowUpEnabled(value ?? false),
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: _brand,
-                        title: const Text(
-                          'کار پیگیری‌دار',
-                          style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
+                      Material(
+                        color: Colors.transparent,
+                        child: CheckboxListTile(
+                          key: const ValueKey('task-editor-followup-enabled'),
+                          value: _followUpEnabled,
+                          onChanged: (value) =>
+                              _setFollowUpEnabled(value ?? false),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          activeColor: _brand,
+                          title: const Text(
+                            'کار پیگیری‌دار',
+                            style: TextStyle(
+                              color: _brand,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                          ),
                         ),
-                        subtitle: const Text('برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود'),
                       ),
                       if (!_followUpEnabled && hasHistory)
                         const Padding(
                           padding: EdgeInsets.only(top: 4, bottom: 6),
                           child: Text(
                             'سوابق پیگیری قبلی حفظ می‌شوند.',
-                            style: TextStyle(color: Color(0xFF77778A), fontSize: 12),
+                            style: TextStyle(
+                              color: Color(0xFF77778A),
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       if (_followUpEnabled) ...[
@@ -534,12 +587,17 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             const Expanded(
                               child: Text(
                                 'زمان پیگیری',
-                                style: TextStyle(color: Color(0xFF77778A), fontWeight: FontWeight.w700),
+                                style: TextStyle(
+                                  color: Color(0xFF77778A),
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                             if (followUp != null)
                               TextButton.icon(
-                                key: const ValueKey('task-editor-clear-followup'),
+                                key: const ValueKey(
+                                  'task-editor-clear-followup',
+                                ),
                                 onPressed: _clearFollowUpTime,
                                 icon: const Icon(Icons.close, size: 17),
                                 label: const Text('حذف زمان'),
@@ -570,9 +628,17 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           backgroundColor: _brand,
                           foregroundColor: Colors.white,
                           minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(17),
+                          ),
                         ),
-                        child: const Text('ذخیره', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        child: const Text(
+                          'ذخیره',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
