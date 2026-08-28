@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'persian_date_formatter.dart';
 import 'task_report_projection.dart';
@@ -21,14 +21,22 @@ class TaskReportPdfRenderer {
       : _fontLoader = fontLoader ?? _loadPersianFonts;
 
   static const _dateFormatter = PersianDateFormatter();
+  static const _regularFontAsset =
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Regular.ttf';
+  static const _boldFontAsset =
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Bold.ttf';
+
   final TaskReportFontLoader _fontLoader;
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
-    final results = await Future.wait<pw.Font>([
-      PdfGoogleFonts.notoNaskhArabicRegular(),
-      PdfGoogleFonts.notoNaskhArabicBold(),
+    final results = await Future.wait<ByteData>([
+      rootBundle.load(_regularFontAsset),
+      rootBundle.load(_boldFontAsset),
     ]);
-    return TaskReportFonts(base: results[0], bold: results[1]);
+    return TaskReportFonts(
+      base: pw.Font.ttf(results[0]),
+      bold: pw.Font.ttf(results[1]),
+    );
   }
 
   /// Canonical user-visible date/time format for PDF/Print/Share reports.
