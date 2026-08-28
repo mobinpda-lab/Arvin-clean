@@ -1,0 +1,1 @@
+Production gate marker only; no runtime behavior change.
