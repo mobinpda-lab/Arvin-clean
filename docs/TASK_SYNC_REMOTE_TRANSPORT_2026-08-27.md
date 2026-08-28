@@ -56,9 +56,11 @@ Existing `CloudBackupProvider` / Dropbox backup files remain portable Backup/Res
 
 ## Current-main reconciliation — 2026-08-28
 
-The stale stacked PR #351 is superseded by a fresh stack based on PR #380 / branch `feat/issue-342-sync-plan-apply-main`. This preserves the dependency while ensuring the parent implementation itself was rebuilt from current main.
+The stale stacked PR #351 is superseded by fresh PR #382 built from the current-main #380 Sync apply parent.
 
-After the parent is merged, this lane must be retargeted/reconciled to fresh main before final heavy validation and merge.
+PR #382 is now retargeted to `main` while kept Draft so a new Fast Gate can validate the combined exact head without starting duplicate Heavy CI. Until #380 merges, the visible diff may include the parent apply files; after #380 lands, GitHub should reduce the diff to the remote transport slice only.
+
+Final merge evidence is **not** inherited from this stacked Fast run. After #380 merges, this lane must be reconciled again to the new main, receive a fresh exact-head Fast run, then pass full Build/APK/Device before Ready/Merge.
 
 ## Next dependent slice
 
