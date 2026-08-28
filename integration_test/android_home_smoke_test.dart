@@ -6,7 +6,7 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Android launches Persian Home and creates a canonical Task',
+  testWidgets('Android launches Home, creates Task and opens compact calendar',
       (tester) async {
     app.main();
     await tester.pumpAndSettle();
@@ -63,5 +63,22 @@ void main() {
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsNothing);
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
     expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
+
+    // Binding mobile contract: Calendar opens compact in weekly mode.
+    final calendarNav = find.text('تقویم');
+    await tester.ensureVisible(calendarNav);
+    await tester.pumpAndSettle();
+    await tester.tap(calendarNav);
+    await tester.pumpAndSettle();
+
+    expect(find.text('تقویم پیگیری'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-week-view')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-month-view')), findsNothing);
+    expect(find.byType(GridView), findsNothing);
+    expect(
+      Directionality.of(tester.element(find.text('تقویم پیگیری'))),
+      TextDirection.rtl,
+    );
   });
 }

@@ -315,7 +315,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildViewModeSelector() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
       child: Center(
         child: SegmentedButton<_CalendarViewMode>(
           key: const ValueKey('calendar-view-mode-control'),
@@ -327,17 +327,14 @@ class _CalendarPageState extends State<CalendarPage> {
           segments: const [
             ButtonSegment<_CalendarViewMode>(
               value: _CalendarViewMode.day,
-              icon: Icon(Icons.view_day_outlined, size: 18),
               label: Text('روزانه'),
             ),
             ButtonSegment<_CalendarViewMode>(
               value: _CalendarViewMode.week,
-              icon: Icon(Icons.view_week_outlined, size: 18),
               label: Text('هفتگی'),
             ),
             ButtonSegment<_CalendarViewMode>(
               value: _CalendarViewMode.month,
-              icon: Icon(Icons.calendar_view_month_outlined, size: 18),
               label: Text('ماهانه'),
             ),
           ],
@@ -358,51 +355,46 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Container(
       key: const ValueKey('calendar-day-view'),
-      margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      height: 52,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: scheme.outlineVariant),
       ),
       child: Row(
         children: [
-          Icon(Icons.today_outlined, color: scheme.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _weekdayFull(_selectedDay),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _digits(
-                    '${jalali.year}/${jalali.month.toString().padLeft(2, '0')}/${jalali.day.toString().padLeft(2, '0')}',
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+          Text(
+            _weekdayFull(_selectedDay),
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _digits('${jalali.day}'),
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const Spacer(),
+          Container(
+            key: const ValueKey('calendar-day-count'),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: count > 0
+                  ? scheme.primaryContainer
+                  : scheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${_digits('$count')} مورد',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
-          if (count > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                '${_digits('$count')} مورد',
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
         ],
       ),
     );
@@ -414,13 +406,13 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Padding(
       key: const ValueKey('calendar-week-view'),
-      padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
       child: Row(
         children: [
           for (var offset = 0; offset < 7; offset++)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 1.5),
                 child: Builder(
                   builder: (context) {
                     final date = weekStart.add(Duration(days: offset));
@@ -428,13 +420,16 @@ class _CalendarPageState extends State<CalendarPage> {
                     final count = _forDay(date).length;
                     final selected = _sameDay(date, _selectedDay);
                     return InkWell(
-                      borderRadius: BorderRadius.circular(12),
+                      key: ValueKey(
+                        'calendar-week-day-${date.year}-${date.month}-${date.day}',
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () => _selectDay(date),
                       child: Container(
-                        height: 66,
+                        height: 58,
                         decoration: BoxDecoration(
                           color: selected ? scheme.primaryContainer : null,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: count > 0
                                 ? scheme.outlineVariant
@@ -451,10 +446,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                   .labelSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Text(
                               _digits('${jalali.day}'),
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                             if (count > 0)
                               Text(
@@ -491,7 +486,7 @@ class _CalendarPageState extends State<CalendarPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             children: [
               _Weekday('ش'),
@@ -505,14 +500,14 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+          padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisExtent: 42,
+              mainAxisExtent: 38,
             ),
             itemBuilder: (_, index) {
               if (index < leading) {
@@ -523,16 +518,17 @@ class _CalendarPageState extends State<CalendarPage> {
               final count = counts[day] ?? 0;
               final isSelected = _sameDay(date, _selectedDay);
               return Padding(
-                padding: const EdgeInsets.all(2),
+                padding: const EdgeInsets.all(1.5),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
+                  key: ValueKey('calendar-month-day-$day'),
+                  borderRadius: BorderRadius.circular(10),
                   onTap: () => _selectDay(date),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
                           ? Theme.of(context).colorScheme.primaryContainer
                           : null,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       border: count > 0
                           ? Border.all(
                               color:
@@ -549,7 +545,8 @@ class _CalendarPageState extends State<CalendarPage> {
                           Text(
                             _digits('$count'),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
+                              height: 1,
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -583,89 +580,101 @@ class _CalendarPageState extends State<CalendarPage> {
     final hasSelectedItems =
         selectedDailyContent != null || selectedReminders.isNotEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('تقویم پیگیری'),
-        actions: [
-          IconButton(
-            onPressed: _today,
-            tooltip: 'امروز',
-            icon: const Icon(Icons.today_outlined),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => _movePeriod(-1),
-                  tooltip: 'بازه قبل',
-                  icon: const Icon(Icons.chevron_right),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      _digits(
-                        '${selectedJalali.year}/${selectedJalali.month.toString().padLeft(2, '0')}',
-                      ),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _movePeriod(1),
-                  tooltip: 'بازه بعد',
-                  icon: const Icon(Icons.chevron_left),
-                ),
-              ],
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('تقویم پیگیری'),
+          actions: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: TextButton.icon(
+                key: const ValueKey('calendar-today'),
+                onPressed: _today,
+                icon: const Icon(Icons.today_outlined, size: 18),
+                label: const Text('امروز'),
+              ),
             ),
-          ),
-          _buildViewModeSelector(),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: _buildCalendarSurface(),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: !hasSelectedItems
-                ? Center(
-                    child: Text(
-                      'برای این روز یادآوری ثبت نشده است',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      if (selectedDailyContent != null) ...[
-                        _DailyContentCard(
-                          item: selectedDailyContent,
-                          onTap: () =>
-                              _showDailyContent(selectedDailyContent),
-                        ),
-                        if (selectedReminders.isNotEmpty)
-                          const SizedBox(height: 12),
-                      ],
-                      for (var index = 0;
-                          index < selectedReminders.length;
-                          index++) ...[
-                        if (index > 0) const SizedBox(height: 8),
-                        _ReminderCard(
-                          item: selectedReminders[index],
-                          dateLabel: _date(selectedReminders[index].date),
-                          timeLabel: _time(selectedReminders[index].date),
-                        ),
-                      ],
-                    ],
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 2, 10, 0),
+              child: Row(
+                children: [
+                  IconButton(
+                    key: const ValueKey('calendar-period-previous'),
+                    onPressed: () => _movePeriod(-1),
+                    tooltip: 'بازه قبل',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.chevron_right),
                   ),
-          ),
-        ],
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        _digits(
+                          '${selectedJalali.year}/${selectedJalali.month.toString().padLeft(2, '0')}',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    key: const ValueKey('calendar-period-next'),
+                    onPressed: () => _movePeriod(1),
+                    tooltip: 'بازه بعد',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                ],
+              ),
+            ),
+            _buildViewModeSelector(),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: _buildCalendarSurface(),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: !hasSelectedItems
+                  ? Center(
+                      child: Text(
+                        'برای این روز یادآوری ثبت نشده است',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    )
+                  : ListView(
+                      key: const ValueKey('calendar-selected-day-list'),
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+                      children: [
+                        if (selectedDailyContent != null) ...[
+                          _DailyContentCard(
+                            item: selectedDailyContent,
+                            onTap: () =>
+                                _showDailyContent(selectedDailyContent),
+                          ),
+                          if (selectedReminders.isNotEmpty)
+                            const SizedBox(height: 10),
+                        ],
+                        for (var index = 0;
+                            index < selectedReminders.length;
+                            index++) ...[
+                          if (index > 0) const SizedBox(height: 6),
+                          _ReminderCard(
+                            item: selectedReminders[index],
+                            dateLabel: _date(selectedReminders[index].date),
+                            timeLabel: _time(selectedReminders[index].date),
+                          ),
+                        ],
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
