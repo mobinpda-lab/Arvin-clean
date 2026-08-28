@@ -50,7 +50,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    final saveButton = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
+    await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
     expect(find.text('تست واقعی اندروید'), findsOneWidget);
