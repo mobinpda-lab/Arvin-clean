@@ -57,10 +57,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
+    expect(result!.id, 'due-safe');
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
     expect(result!.reminderDate, DateTime(2026, 9, 10, 9, 30));
-    expect(result!.followUpDate, DateTime(2026, 9, 12, 11));
     expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.dateTime, DateTime(2026, 9, 8, 10));
     expect(result!.followUps.single.note, 'تماس اولیه');
   });
 }
