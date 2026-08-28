@@ -39,7 +39,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final compact = constraints.maxWidth < 420;
+              final compact = constraints.maxWidth < 600;
               final summary = Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
