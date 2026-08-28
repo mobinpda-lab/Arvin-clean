@@ -41,7 +41,7 @@ void main() {
     expect(source, contains('putExtra(EXTRA_TASK_ID, row.taskId)'));
   });
 
-  test('Home consumes widget task id and opens the same canonical Task', () {
+  test('Home consumes widget task id and opens canonical Task detail', () {
     final source = File('lib/main.dart').readAsStringSync();
 
     expect(source, contains("import 'services/widget_task_bridge.dart';"));
@@ -49,10 +49,13 @@ void main() {
       source,
       contains("import 'services/widget_task_selection_service.dart';"),
     );
+    expect(source, contains("import 'task_detail_page.dart';"));
     expect(source, contains('widgetTaskBridge.listen(_openWidgetTask)'));
     expect(source, contains('consumeInitialTaskId()'));
     expect(source, contains('widgetTaskSelectionService.loadTask(taskId)'));
-    expect(source, contains('TaskTimelinePage(task: task)'));
+    expect(source, contains('await _openTaskDetail(task)'));
+    expect(source, contains('TaskDetailPage('));
+    expect(source, contains('onAddFollowUp: _addFollowUpFromDetail'));
     expect(source, contains('widgetTaskBridge.dispose()'));
   });
 }
