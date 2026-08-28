@@ -1,6 +1,6 @@
 import '../models/task.dart';
 
-enum TaskListSort { date, latest, title }
+enum TaskListSort { date, latest, lastFollowUp, title }
 
 /// Stable, non-mutating sorting for canonical Task lists.
 class TaskListSortService {
@@ -22,6 +22,11 @@ class TaskListSortService {
         TaskListSort.latest => _compareNullableDate(
             _latestMeaningful(left.value),
             _latestMeaningful(right.value),
+            descending: descending,
+          ),
+        TaskListSort.lastFollowUp => _compareNullableDate(
+            left.value.lastFollowUpDate,
+            right.value.lastFollowUpDate,
             descending: descending,
           ),
         TaskListSort.title => _directional(
