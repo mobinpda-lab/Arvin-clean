@@ -10,12 +10,14 @@ class TaskReportPage extends StatefulWidget {
   TaskReportPage({
     super.key,
     required this.tasks,
+    this.initialSelectedIds = const <String>{},
     TaskReportProjection? projection,
     TaskReportPdfRenderer? renderer,
   })  : projection = projection ?? const TaskReportProjection(),
         renderer = renderer ?? TaskReportPdfRenderer();
 
   final List<Task> tasks;
+  final Set<String> initialSelectedIds;
   final TaskReportProjection projection;
   final TaskReportPdfRenderer renderer;
 
@@ -24,10 +26,19 @@ class TaskReportPage extends StatefulWidget {
 }
 
 class _TaskReportPageState extends State<TaskReportPage> {
-  final Set<String> _selected = <String>{};
+  late final Set<String> _selected;
 
   List<Task> get _available =>
       widget.tasks.where((task) => !task.trashed).toList(growable: false);
+
+  @override
+  void initState() {
+    super.initState();
+    final availableIds = _available.map((task) => task.id).toSet();
+    _selected = widget.initialSelectedIds
+        .where(availableIds.contains)
+        .toSet();
+  }
 
   Future<void> _preview(
     BuildContext context, {
