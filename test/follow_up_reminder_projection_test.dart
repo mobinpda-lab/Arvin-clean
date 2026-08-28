@@ -52,39 +52,44 @@ void main() {
     expect(result.single.label, 'پیگیری');
   });
 
-  test('ignores disabled, expired, and trashed reminder work', () {
+  test('ignores disabled, expired, completed, archived, and trashed work', () {
+    FollowUp future(String id) => FollowUp(
+          id: id,
+          dateTime: now,
+          reminderDate: now.add(const Duration(hours: 1)),
+        );
+
     final tasks = [
       Task(
         id: 'active',
         title: 'فعال',
         followUps: [
-          FollowUp(
-            id: 'no-reminder',
-            dateTime: now,
-          ),
+          FollowUp(id: 'no-reminder', dateTime: now),
           FollowUp(
             id: 'expired',
             dateTime: now,
             reminderDate: now.subtract(const Duration(minutes: 1)),
           ),
-          FollowUp(
-            id: 'due-now',
-            dateTime: now,
-            reminderDate: now,
-          ),
+          FollowUp(id: 'due-now', dateTime: now, reminderDate: now),
         ],
+      ),
+      Task(
+        id: 'completed',
+        title: 'انجام‌شده',
+        completed: true,
+        followUps: [future('completed-future')],
+      ),
+      Task(
+        id: 'archived',
+        title: 'بایگانی',
+        archived: true,
+        followUps: [future('archived-future')],
       ),
       Task(
         id: 'trashed',
         title: 'حذف‌شده',
         trashed: true,
-        followUps: [
-          FollowUp(
-            id: 'future',
-            dateTime: now,
-            reminderDate: now.add(const Duration(hours: 1)),
-          ),
-        ],
+        followUps: [future('trashed-future')],
       ),
     ];
 
