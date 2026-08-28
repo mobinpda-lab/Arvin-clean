@@ -35,7 +35,7 @@ class FollowUpReminderProjection {
     final result = <FollowUpReminderCandidate>[];
 
     for (final task in tasks) {
-      if (task.trashed) continue;
+      if (task.completed || task.archived || task.trashed) continue;
 
       for (final followUp in task.followUps) {
         final reminderDate = followUp.reminderDate;
