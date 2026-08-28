@@ -26,4 +26,16 @@ void main() {
       isNot(contains(r'github.event.pull_request.number || github.run_id')),
     );
   });
+
+  test('Parallel Wave runs Fast for Draft PRs and skips duplicate Ready work', () {
+    final parallel =
+        File('.github/workflows/parallel-wave.yml').readAsStringSync();
+    const draftOnly =
+        "github.event_name != 'pull_request' || github.event.pull_request.draft == true";
+
+    expect(parallel.split(draftOnly).length - 1, 2);
+    expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
+    expect(parallel, contains('cancel-in-progress: true'));
+    expect(parallel, contains('Arvin Build + Device Smoke'));
+  });
 }
