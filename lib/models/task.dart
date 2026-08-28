@@ -6,6 +6,7 @@ class FollowUp {
   final DateTime dateTime;
   final String note;
   final String? result;
+  final DateTime? reminderDate;
   final DateTime? nextFollowUp;
 
   const FollowUp({
@@ -13,6 +14,7 @@ class FollowUp {
     required this.dateTime,
     this.note = '',
     this.result,
+    this.reminderDate,
     this.nextFollowUp,
   });
 
@@ -21,6 +23,7 @@ class FollowUp {
         'dateTime': dateTime.toIso8601String(),
         'note': note,
         'result': result,
+        'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
       };
 
@@ -30,6 +33,9 @@ class FollowUp {
       dateTime: DateTime.parse(json['dateTime'] as String),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
+      reminderDate: json['reminderDate'] == null
+          ? null
+          : DateTime.tryParse(json['reminderDate'] as String),
       nextFollowUp: json['nextFollowUp'] == null
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
@@ -175,20 +181,10 @@ class Task {
           .toList();
     }
 
-    if (loadedFollowUps.isEmpty && json['followUpDate'] != null) {
-      final oldDate = DateTime.tryParse(json['followUpDate'] as String);
-      if (oldDate != null) {
-        loadedFollowUps = [
-          FollowUp(
-            id: oldDate.microsecondsSinceEpoch.toString(),
-            dateTime: oldDate,
-            note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
-          ),
-        ];
-      }
-    }
-
     final loadedPeople = _decodePeople(json['people']);
+    final legacyFollowUpDate = json['followUpDate'] == null
+        ? null
+        : DateTime.tryParse(json['followUpDate'] as String);
 
     return Task(
       id: json['id'] as String? ?? '',
@@ -203,11 +199,9 @@ class Task {
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
-      followUpEnabled:
-          json['followUpEnabled'] as bool? ?? loadedFollowUps.isNotEmpty,
-      followUpDate: json['followUpDate'] == null
-          ? null
-          : DateTime.tryParse(json['followUpDate'] as String),
+      followUpEnabled: json['followUpEnabled'] as bool? ??
+          loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,
+      followUpDate: legacyFollowUpDate,
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
