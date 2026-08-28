@@ -25,7 +25,7 @@ void main() {
     expect(source, contains('private fun isGregorianLeap'));
     expect(
       source,
-      isNot(contains(r'return "${value.substring(0, 10)} | ${value.substring(11, 16)}"')),
+      isNot(contains(r'return "${value.substring(0, 10)} | ${value.substring(11, 16)}"'.replaceAll(r'\"', '"'))),
     );
   });
 }
