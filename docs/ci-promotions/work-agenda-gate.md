@@ -1,0 +1,1 @@
+CI gate checkpoint only; no runtime behavior change.
