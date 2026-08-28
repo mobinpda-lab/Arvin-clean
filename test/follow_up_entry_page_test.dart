@@ -7,11 +7,7 @@ import 'package:arvin/models/task.dart';
 void main() {
   Future<void> saveEditor(WidgetTester tester) async {
     final save = find.byKey(const ValueKey('follow-up-entry-save'));
-    await tester.scrollUntilVisible(
-      save,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
+    expect(save, findsOneWidget);
     await tester.tap(save);
     await tester.pumpAndSettle();
   }
