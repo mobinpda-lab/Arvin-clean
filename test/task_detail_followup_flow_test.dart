@@ -74,6 +74,11 @@ void main() {
 
   testWidgets('detail shows latest elapsed time, results and consecutive intervals',
       (tester) async {
+    tester.view.physicalSize = const Size(1080, 2600);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final first = FollowUp(
       id: 'f1',
       dateTime: DateTime(2026, 8, 20, 9, 20),
@@ -122,9 +127,15 @@ void main() {
       findsNothing,
     );
 
-    final latestY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-followup-f3'))).dy;
-    final secondY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-followup-f2'))).dy;
-    final firstY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-followup-f1'))).dy;
+    final latestY = tester
+        .getTopLeft(find.byKey(const ValueKey('task-detail-followup-f3')))
+        .dy;
+    final secondY = tester
+        .getTopLeft(find.byKey(const ValueKey('task-detail-followup-f2')))
+        .dy;
+    final firstY = tester
+        .getTopLeft(find.byKey(const ValueKey('task-detail-followup-f1')))
+        .dy;
     expect(latestY, lessThan(secondY));
     expect(secondY, lessThan(firstY));
   });
