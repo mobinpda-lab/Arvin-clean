@@ -56,7 +56,7 @@ void main() {
       find.byKey(const ValueKey('project-title-input')),
       'آروین',
     );
-    await tester.tap(find.byKey(const ValueKey('project-color-4281233632')));
+    await tester.tap(find.byKey(const ValueKey('project-color-4281303277')));
     await tester.tap(find.byKey(const ValueKey('project-dialog-save')));
     await tester.pumpAndSettle();
 
