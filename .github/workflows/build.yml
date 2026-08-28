@@ -16,8 +16,10 @@ permissions:
 # explicit gate/** exact-SHA validation refs, or manual dispatch.
 # Analyze/tests run once. Release and debug APKs then build in parallel on the
 # same exact SHA to reduce wall-clock merge time without weakening evidence.
+# PRs group by PR number; non-PR runs group by ref so a newer main/gate run
+# cancels superseded work on that same ref instead of consuming runners.
 concurrency:
-  group: arvin-build-${{ github.event.pull_request.number || github.run_id }}
+  group: arvin-build-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
