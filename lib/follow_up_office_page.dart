@@ -9,6 +9,7 @@ import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/automatic_follow_up_service.dart';
 import 'services/follow_up_write_coordinator.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 
 class FollowUpOfficePage extends StatefulWidget {
@@ -29,6 +30,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   static const _storeKey = 'arvin.tasks';
   static const _waitingService = WaitingForResponseService();
   static const _automaticService = AutomaticFollowUpService();
+  static const _dateFormatter = PersianDateFormatter();
 
   late final FollowUpWriteCoordinator _writer;
   bool _loading = true;
@@ -210,22 +212,12 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _digits(String value) {
-    const western = '0123456789';
-    const persian = '۰۱۲۳۴۵۶۷۸۹';
-    var result = value;
-    for (var i = 0; i < western.length; i++) {
-      result = result.replaceAll(western[i], persian[i]);
-    }
-    return result;
-  }
-
   String _dateTime(DateTime value) {
-    final date =
-        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return '${_digits(date)} • ساعت ${_digits(time)}';
+    final date = _dateFormatter.format(value, usePersianDate: true);
+    final time = _dateFormatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
+    return '$date • ساعت $time';
   }
 
   String _resultLabel(String? result) {
