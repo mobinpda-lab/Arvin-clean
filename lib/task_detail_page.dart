@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'android_automatic_follow_up_scheduler.dart';
 import 'follow_up_entry_page.dart';
+import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/follow_up_elapsed_formatter.dart';
+import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 
@@ -12,12 +15,14 @@ class TaskDetailPage extends StatefulWidget {
     required this.task,
     this.onEdit,
     this.onAddFollowUp,
+    this.onEditFollowUp,
     this.now,
   });
 
   final Task task;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
+  final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
 
   /// Optional fixed clock for deterministic UI tests. Production uses device time.
   final DateTime? now;
@@ -77,6 +82,47 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final updated = await add(_task, followUp);
     if (!mounted) return;
     setState(() => _task = updated);
+  }
+
+  Future<void> _editFollowUp(FollowUp existing) async {
+    final updated = await Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute<FollowUp>(
+        builder: (_) => FollowUpEntryPage(initialFollowUp: existing),
+      ),
+    );
+    if (!mounted || updated == null) return;
+
+    try {
+      final handler = widget.onEditFollowUp;
+      late final FollowUp persisted;
+      if (handler != null) {
+        persisted = await handler(_task, updated);
+      } else {
+        final writer = FollowUpWriteCoordinator(
+          repository: const FollowUpRepository(),
+          scheduler: AndroidAutomaticFollowUpScheduler(),
+        );
+        await writer.update(_task.id, updated);
+        persisted = updated;
+      }
+      if (!mounted) return;
+
+      final index = _task.followUps.indexWhere((item) => item.id == persisted.id);
+      if (index < 0) return;
+      setState(() {
+        final history = List<FollowUp>.of(_task.followUps);
+        history[index] = persisted;
+        _task.followUps = history;
+        _task.updatedAt = DateTime.now();
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ویرایش پیگیری انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
   }
 
   Widget _infoCard({
@@ -182,6 +228,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ],
                 ],
               ),
+            ),
+            IconButton(
+              key: ValueKey('task-detail-edit-followup-${followUp.id}'),
+              onPressed: () => _editFollowUp(followUp),
+              tooltip: 'ویرایش پیگیری',
+              icon: const Icon(Icons.edit_outlined, size: 19),
             ),
           ],
         ),
