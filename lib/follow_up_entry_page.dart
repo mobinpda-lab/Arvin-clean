@@ -217,7 +217,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
           title: Text(_editing ? 'ویرایش پیگیری' : 'ثبت پیگیری'),
         ),
         body: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             const Text(
               'تاریخ و ساعت به‌صورت خودکار از سیستم وارد شده‌اند و قابل ویرایش هستند.',
@@ -273,9 +273,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               maxLines: 3,
               decoration: InputDecoration(
                 labelText: 'نتیجه پیگیری',
-                hintText: _waitingForResponse
-                    ? 'وضعیت: منتظر پاسخ'
-                    : null,
+                hintText: _waitingForResponse ? 'وضعیت: منتظر پاسخ' : null,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -355,14 +353,19 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: FilledButton.icon(
               key: const ValueKey('follow-up-entry-save'),
               onPressed: _save,
               icon: const Icon(Icons.save_outlined),
               label: Text(_editing ? 'ذخیره تغییرات' : 'ذخیره پیگیری'),
             ),
-          ],
+          ),
         ),
       ),
     );
