@@ -54,11 +54,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'تماس فردا');
 
     final save = find.byKey(const ValueKey('follow-up-entry-save'));
-    await tester.scrollUntilVisible(
-      save,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
+    expect(save, findsOneWidget);
     await tester.tap(save);
     await tester.pumpAndSettle();
 
