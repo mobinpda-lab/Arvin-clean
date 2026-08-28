@@ -72,6 +72,54 @@ void main() {
     expect(find.text('پیگیری'), findsWidgets);
   });
 
+  testWidgets('existing FollowUp edits in place from detail without duplication',
+      (tester) async {
+    final original = FollowUp(
+      id: 'edit-f1',
+      dateTime: DateTime(2026, 8, 28, 10, 15),
+      note: 'متن اولیه',
+    );
+    final task = Task(
+      id: 'edit-task',
+      title: 'پیگیری قابل ویرایش',
+      followUpEnabled: true,
+      followUps: <FollowUp>[original],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onEdit: (value) async => value,
+          onAddFollowUp: (value, followUp) async => value,
+          onEditFollowUp: (value, followUp) async {
+            expect(value.id, 'edit-task');
+            expect(followUp.id, 'edit-f1');
+            return followUp;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('task-detail-edit-followup-edit-f1')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('ویرایش پیگیری'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-title')),
+      'متن اصلاح‌شده',
+    );
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, 'edit-f1');
+    expect(task.followUps.single.note, 'متن اصلاح‌شده');
+    expect(find.text('متن اصلاح‌شده'), findsOneWidget);
+  });
+
   testWidgets('detail shows latest elapsed time, results and consecutive intervals',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 2600);
