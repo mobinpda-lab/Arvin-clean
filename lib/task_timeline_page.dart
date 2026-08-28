@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/task_timeline_service.dart';
 import 'task_people_page.dart';
 import 'task_recurrence_page.dart';
@@ -15,22 +16,14 @@ class TaskTimelinePage extends StatelessWidget {
   final Task task;
   final TaskTimelineService service;
 
-  String _digits(String value) {
-    const western = '0123456789';
-    const persian = '۰۱۲۳۴۵۶۷۸۹';
-    var result = value;
-    for (var i = 0; i < western.length; i++) {
-      result = result.replaceAll(western[i], persian[i]);
-    }
-    return result;
-  }
+  static const _formatter = PersianDateFormatter();
 
   String _formatDateTime(DateTime value) {
-    final date =
-        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return '${_digits(date)} • ${_digits(time)}';
+    final date = _formatter.format(value, usePersianDate: true);
+    final time = _formatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
+    return '$date • $time';
   }
 
   String _label(TaskTimelineEntryKind kind) => switch (kind) {
