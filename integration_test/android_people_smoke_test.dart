@@ -32,10 +32,10 @@ void main() {
 
     await tester.enterText(titleField, 'تست افراد اندروید');
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
-    await tester.scrollUntilVisible(
-      saveTask,
-      180,
-      scrollable: find.byType(Scrollable).last,
+    await Scrollable.ensureVisible(
+      tester.element(saveTask),
+      alignment: 0.5,
+      duration: const Duration(milliseconds: 250),
     );
     await tester.pumpAndSettle();
     await tester.tap(saveTask);
