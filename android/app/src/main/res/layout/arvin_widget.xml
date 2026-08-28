@@ -5,16 +5,16 @@
     android:layoutDirection="rtl"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="#FFFDF8">
+    android:background="@drawable/arvin_widget_background">
 
     <TextView
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="پیگیری‌های آروین"
+        android:text="یادآورهای آروین"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:textColor="#1F2937"
+        android:textColor="#242438"
         android:gravity="start" />
 
     <TextView
@@ -22,8 +22,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="پیگیری فعالی وجود ندارد"
-        android:textColor="#6B7280"
+        android:text="یادآور فعالی وجود ندارد"
+        android:textColor="#77778A"
         android:gravity="start" />
 
     <LinearLayout
@@ -32,20 +32,32 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginTop="8dp"
-        android:padding="6dp">
+        android:padding="10dp"
+        android:background="#F7F7FC">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="یادآور"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#5B5DD6"
+            android:gravity="start" />
         <TextView
             android:id="@+id/widget_title_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textStyle="bold"
-            android:textColor="#111827"
+            android:textSize="16sp"
+            android:textColor="#242438"
             android:gravity="start" />
         <TextView
             android:id="@+id/widget_followup_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="#4B5563"
+            android:textColor="#77778A"
             android:gravity="start" />
     </LinearLayout>
 
@@ -54,21 +66,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="4dp"
-        android:padding="6dp">
+        android:layout_marginTop="6dp"
+        android:padding="10dp"
+        android:background="#F7F7FC">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="یادآور"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#5B5DD6"
+            android:gravity="start" />
         <TextView
             android:id="@+id/widget_title_2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textStyle="bold"
-            android:textColor="#111827"
+            android:textSize="16sp"
+            android:textColor="#242438"
             android:gravity="start" />
         <TextView
             android:id="@+id/widget_followup_2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="#4B5563"
+            android:textColor="#77778A"
             android:gravity="start" />
     </LinearLayout>
 
@@ -77,21 +101,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="4dp"
-        android:padding="6dp">
+        android:layout_marginTop="6dp"
+        android:padding="10dp"
+        android:background="#F7F7FC">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="یادآور"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#5B5DD6"
+            android:gravity="start" />
         <TextView
             android:id="@+id/widget_title_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textStyle="bold"
-            android:textColor="#111827"
+            android:textSize="16sp"
+            android:textColor="#242438"
             android:gravity="start" />
         <TextView
             android:id="@+id/widget_followup_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="#4B5563"
+            android:textColor="#77778A"
             android:gravity="start" />
     </LinearLayout>
 </LinearLayout>
