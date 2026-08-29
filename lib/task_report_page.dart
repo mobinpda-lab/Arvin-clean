@@ -226,7 +226,7 @@ class _TaskReportPageState extends State<TaskReportPage> {
                                   title: 'گزارش موارد انتخاب‌شده',
                                 ),
                         icon: const Icon(Icons.content_copy_outlined),
-                        label: Text('انتخاب‌شده (${_selected.length})'),
+                        label: Text('کپی انتخاب‌شده (${_selected.length})'),
                       ),
                     ),
                   ],
