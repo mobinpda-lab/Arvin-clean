@@ -1,70 +1,62 @@
 # Arvin Document Authority Index
 
-## Why this exists
-
-Arvin has accumulated historical snapshots, migration notes, architecture proposals, product contracts and live-status files. This index prevents a future session from treating an old but authoritative-looking file as current product truth.
-
-GitHub repository reality always outranks narrative documents.
+GitHub live reality outranks every narrative document.
 
 ## Authority order
 
-1. **Live GitHub reality** — current `main`, current code, current open/merged PRs/Issues, exact-head workflow evidence.
-2. **Newest explicit owner-approved product decision** — binding issue/design/contract for the affected surface.
-3. **`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0** — canonical governance and software-production rules.
-4. **Official scorecards** — `docs/project_completion_scorecard.json` for total Arvin; `docs/progress_scorecard.json` for the 19-feature extension.
-5. **Canonical product/UI indices** — `docs/ARVIN_UI_CANONICAL.md`, `docs/PRODUCT_CONTRACT_MATRIX.md`, and the detailed contract they link.
-6. **Implementation-specific current contracts** — current migration/security/calendar/sync/notebook/etc. documents when consistent with the above.
-7. **Dated snapshots / handoffs / historical technical records** — context and evidence only; never override live GitHub or newer contracts.
+1. Live `main`, current code, open/merged PRs/Issues and exact-head workflow evidence.
+2. Newest explicit owner-approved product decision.
+3. `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 and live execution board Issue #403.
+4. Official scorecards.
+5. Canonical product/UI indices such as `docs/PRODUCT_CONTRACT_MATRIX.md` and `docs/ARVIN_UI_CANONICAL.md`.
+6. Current implementation-specific contracts.
+7. Dated snapshots/handoffs/historical technical records.
 
 ## Active canonical references
 
 | Area | Active reference |
 | --- | --- |
-| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 |
+| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 + Issue #403 |
+| Live project snapshot | `docs/PROJECT_STATUS.md` |
 | Whole-project progress | `docs/project_completion_scorecard.json` + `docs/PROJECT_PROGRESS_METRIC.md` |
-| Extension progress | `docs/progress_scorecard.json` + `docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md` |
-| Cross-surface product acceptance | `docs/PRODUCT_CONTRACT_MATRIX.md` |
+| Product acceptance | `docs/PRODUCT_CONTRACT_MATRIX.md` |
 | UI index | `docs/ARVIN_UI_CANONICAL.md` |
 | Home | `docs/HOME_STYLE_LOCK.md` |
-| Task detail / follow-up-enabled UX | Issue #357 |
-| Notebook / Simple Note / Checklist | `docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md` + `docs/NOTEBOOK_COMPLETION_LANE_2026-08-26.md` |
-| Canonical Timeline | `docs/CANONICAL_TASK_TIMELINE_2026-08-26.md` + current code/evidence |
-| Current audit/reconciliation work | Issue #358 |
+| Task detail / FollowUp UX | Issue #357 |
+| Notebook | `docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md` |
+| Bidirectional Device Calendar Integration | `docs/BIDIRECTIONAL_DEVICE_CALENDAR_INTEGRATION_2026-08-29.md` + Issue #516 + existing provider lane #348 |
+| Report typography | current `TaskReportPdfRenderer` + bundled Vazirmatn UI FD regression evidence |
 
-## Snapshot documents: useful but time-sensitive
+## Calendar authority clarification — 2026-08-29
 
-These files may describe a real historical checkpoint, but their SHA/PR/percentages can become stale quickly. They must be reconciled with live GitHub before use:
+The binding target is now:
 
-- `docs/AI_CONTINUATION_STATE.md`
-- `docs/AI_HANDOFF_CURRENT_FA.md`
-- `docs/PROJECT_STATUS.md`
-- `docs/ARVIN_STATUS.md`
-- `docs/ARVIN_PROJECT_STATE.md`
-- dated progress snapshots/logs/audits
+`Arvin ↔ Android Calendar Provider ↔ Google / Samsung / Other compatible calendars`
 
-A stale snapshot is not an implementation bug by itself; it becomes a bug when someone uses it instead of current GitHub reality.
+This supersedes narrower historical Google-only export wording.
 
-## Historical / superseded technical records
+Rules:
+- one provider adapter foundation; no separate Google/Samsung engine without proven need;
+- Settings only under `تنظیمات → تقویم و همگام‌سازی`;
+- existing Work Agenda remains the aggregation foundation;
+- external events begin as external/read-only projections and never auto-convert to canonical Tasks;
+- external events stay outside Task Report/PDF/Share/Backup by default;
+- merged idempotent sync planning and Issue #348 provider work must be reused.
 
-`PROJECT_DOCUMENTATION_FA.md` at repository root is preserved as an important early technical/history record. Its older `ArvinTask` / `TaskRepository` / early Backup descriptions are **not** the current architecture authority. Do not start new work from that file without first reading v49, current `main`, scorecards, current contracts and code.
+## Snapshot rule
 
-Likewise, older v48.x governance documents, old manual percentage snapshots and superseded PR-era plans remain traceability evidence rather than competing active requirements.
+Files such as `AI_CONTINUATION_STATE.md`, `AI_HANDOFF_CURRENT_FA.md`, `PROJECT_STATUS.md`, `ARVIN_STATUS.md`, `ARVIN_PROJECT_STATE.md` and dated progress logs are time-sensitive. They must always be reconciled with live GitHub before action.
+
+## Historical-document rule
+
+Older architecture/proposal documents remain traceability evidence only. They cannot override current canonical Task/Project/Work Agenda/Report/Calendar decisions or newer owner-approved contracts.
 
 ## Conflict rule
 
-When two documents disagree:
+When documents disagree: check recency and owner approval, current code/data constraints, live PR/Issue/CI evidence, preserve historical lineage, update the active contract/index, and leave an owning Issue for any accepted but incomplete behavior.
 
-1. check which one is newer and whether it is explicitly owner-approved;
-2. check current code/data migration constraints;
-3. check live Issues/PRs and exact-head CI;
-4. preserve historical text rather than deleting it;
-5. update the active contract/index so the conflict is explicit;
-6. open or link an issue for any accepted behavior not yet implemented.
+## Requirement-loss prevention
 
-Example: a historical Simple Note proposal used `arvin.simple_notes`; current canonical Notebook deliberately uses `TaskStore/arvin.tasks`. The current canonical contract wins and the historical proposal remains only as lineage.
+A merged Foundation is not equivalent to complete product acceptance. Deferred requirements remain `Missing` or `Partial` in the Product Contract Matrix until UI, tests, exact-head evidence and applicable device/visual acceptance converge.
 
-## Requirement-loss prevention rule
-
-When a product requirement is deferred from one slice to another, the first slice must leave a durable pointer in `docs/PRODUCT_CONTRACT_MATRIX.md` with status **Missing** or **Partial** and an owning Issue. A domain/service/persistence merge may not silently convert the requirement to “done” when the accepted user interaction is still absent.
-
-This rule specifically protects cases such as the original FollowUp-enabled task detail/add-follow-up UX that was deferred during migration and later rediscovered.
+This especially applies to Task detail UX, Projects integration, Work Agenda outputs, canonical reporting, typography and the phased Device Calendar target.
