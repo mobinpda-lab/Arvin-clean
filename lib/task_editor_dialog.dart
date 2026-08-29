@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
+import 'widgets/project_selector_field.dart';
+import 'widgets/task_category_field.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
-  const ArvinTaskEditorDialog({super.key, this.task});
+  const ArvinTaskEditorDialog({
+    super.key,
+    this.task,
+    this.projects = const [],
+    this.selectedProjectId,
+    this.onProjectChanged,
+    this.knownCategories = const [],
+  });
 
   final Task? task;
+
+  /// First-class Projects remain independent from Task category and tags.
+  /// The editor owns no Project persistence; callers persist the selected id
+  /// through canonical ProjectPlan.itemIds after a successful Task save.
+  final List<ProjectPlan> projects;
+  final String? selectedProjectId;
+  final ValueChanged<String?>? onProjectChanged;
+
+  /// Existing canonical Task categories offered as quick choices.
+  final List<String> knownCategories;
 
   @override
   State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
@@ -26,6 +46,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   DateTime? _followUpDateTime;
   late bool _followUpEnabled;
   late List<String> _tags;
+  late String? _category;
+  late String? _selectedProjectId;
 
   @override
   void initState() {
@@ -39,6 +61,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         (task?.followUps.isNotEmpty ?? false) ||
         task?.followUpDate != null;
     _tags = List<String>.of(task?.tags ?? const []);
+    _category = task?.category;
+    _selectedProjectId = widget.selectedProjectId;
   }
 
   @override
@@ -52,14 +76,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   InputDecoration _fieldDecoration({
     required String label,
     String? hint,
-    Widget? suffixIcon,
   }) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
       filled: true,
       fillColor: _fieldSurface,
-      suffixIcon: suffixIcon,
       alignLabelWithHint: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       border: OutlineInputBorder(
@@ -167,6 +189,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final now = DateTime.now();
     final existing = widget.task;
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
+    widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
       Task(
         id: id,
@@ -178,7 +201,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpEnabled: _followUpEnabled,
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
-        category: existing?.category,
+        category: _category,
         checklist: List<String>.of(existing?.checklist ?? const []),
         reminderDate: existing?.reminderDate,
         archived: existing?.archived ?? false,
@@ -329,6 +352,21 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     hint: 'توضیحات را وارد کنید…',
                   ),
                 ),
+                const SizedBox(height: 14),
+                TaskCategoryField(
+                  value: _category,
+                  knownCategories: widget.knownCategories,
+                  onChanged: (value) => setState(() => _category = value),
+                ),
+                if (widget.projects.isNotEmpty || _selectedProjectId != null) ...[
+                  const SizedBox(height: 16),
+                  ProjectSelectorField(
+                    projects: widget.projects,
+                    selectedProjectId: _selectedProjectId,
+                    onChanged: (value) =>
+                        setState(() => _selectedProjectId = value),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
