@@ -1,11 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
+import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'services/project_plan_codec.dart';
 
 typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
   Map<String, dynamic>? settings,
+  List<ProjectPlan> projects,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -14,11 +17,14 @@ typedef CanonicalBackupCandidate = ({
 /// so the same format can later be used by scheduled backups and restore on a
 /// different device.
 class ArvinBackupManager {
-  ArvinBackupManager({ArvinBackupService? service})
-      : service = service ?? ArvinBackupService();
+  ArvinBackupManager({
+    ArvinBackupService? service,
+    this.projectCodec = const ProjectPlanCodec(),
+  }) : service = service ?? ArvinBackupService();
 
   static const String directoryKey = 'arvin.backup.directory';
   final ArvinBackupService service;
+  final ProjectPlanCodec projectCodec;
 
   Future<void> setDirectory(String? uri) async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,6 +50,7 @@ class ArvinBackupManager {
   Future<String?> backupTasks(
     List<Map<String, dynamic>> tasks, {
     Map<String, dynamic>? settings,
+    List<Map<String, dynamic>>? projects,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -55,6 +62,7 @@ class ArvinBackupManager {
       payload: <String, dynamic>{
         'tasks': tasks,
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
+        if (projects != null) 'projects': projects,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -63,16 +71,18 @@ class ArvinBackupManager {
   }
 
   /// Serializes the complete canonical Task shape into the existing Arvin
-  /// backup document. Optional settings ride in the same backward-compatible
-  /// document; no second backup representation is created.
+  /// backup document. Optional settings and Projects ride in the same backward-
+  /// compatible document; no second backup representation is created.
   Future<String?> backupCanonicalTasks(
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
+    Iterable<ProjectPlan>? projects,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
       tasks.map((task) => task.toJson()).toList(growable: false),
       settings: settings,
+      projects: projects == null ? null : projectCodec.encodeList(projects),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -81,8 +91,8 @@ class ArvinBackupManager {
       service.readBackup(passphrase: passphrase);
 
   /// Decodes one portable backup selection into a candidate without mutating
-  /// local storage. The same read yields both canonical tasks and optional
-  /// settings so the UI can validate and confirm the complete restore once.
+  /// local storage. The same read yields canonical tasks, optional settings,
+  /// and canonical Projects so the UI can validate and confirm restore once.
   Future<CanonicalBackupCandidate?> restoreCanonicalBackup({
     String? passphrase,
   }) async {
@@ -90,6 +100,7 @@ class ArvinBackupManager {
     if (document == null) return null;
 
     final tasks = _decodeCanonicalTasks(document);
+    final projects = _decodeCanonicalProjects(document);
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -100,6 +111,7 @@ class ArvinBackupManager {
       settings: rawSettings is Map
           ? Map<String, dynamic>.from(rawSettings)
           : null,
+      projects: projects,
     );
   }
 
@@ -134,5 +146,21 @@ class ArvinBackupManager {
     }
 
     return List<Task>.unmodifiable(tasks);
+  }
+
+  List<ProjectPlan> _decodeCanonicalProjects(Map<String, dynamic> document) {
+    final rawProjects = document['projects'];
+    if (rawProjects == null) return const <ProjectPlan>[];
+
+    final projects = projectCodec.decodeList(rawProjects);
+    final ids = <String>{};
+    for (final project in projects) {
+      if (!ids.add(project.id)) {
+        throw FormatException(
+          'Arvin backup contains duplicate project id: ${project.id}',
+        );
+      }
+    }
+    return projects;
   }
 }
