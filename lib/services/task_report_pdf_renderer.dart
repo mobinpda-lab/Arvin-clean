@@ -29,13 +29,11 @@ class TaskReportPdfRenderer {
   final TaskReportFontLoader _fontLoader;
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
-    final results = await Future.wait<ByteData>([
-      rootBundle.load(_regularFontAsset),
-      rootBundle.load(_boldFontAsset),
-    ]);
+    final regular = await rootBundle.load(_regularFontAsset);
+    final bold = await rootBundle.load(_boldFontAsset);
     return TaskReportFonts(
-      base: pw.Font.ttf(results[0]),
-      bold: pw.Font.ttf(results[1]),
+      base: pw.Font.ttf(regular),
+      bold: pw.Font.ttf(bold),
     );
   }
 
