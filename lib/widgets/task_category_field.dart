@@ -101,7 +101,10 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          onChanged: (_) => setState(() {}),
+          onChanged: (raw) {
+            setState(() {});
+            _apply(raw);
+          },
         ),
         if (categories.isNotEmpty) ...[
           const SizedBox(height: 8),
