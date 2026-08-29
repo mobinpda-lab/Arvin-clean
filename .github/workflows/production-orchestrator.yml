@@ -11,7 +11,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: read
+  actions: write
   issues: write
 
 concurrency:
@@ -38,18 +38,71 @@ jobs:
               owner, repo, state: 'open', base: 'main', per_page: 100,
             });
 
-            async function latestRun(name, headSha) {
-              const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
-                owner, repo, event: 'pull_request', head_sha: headSha, per_page: 100,
+            async function runsForHead(headSha) {
+              return github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                owner, repo, head_sha: headSha, per_page: 100,
               });
+            }
+
+            async function latestFastRun(headSha) {
+              const runs = await runsForHead(headSha);
               return runs
-                .filter(r => r.name === name)
+                .filter(r => r.name === 'Arvin Parallel Wave' && r.event === 'pull_request')
+                .sort((a, b) => b.id - a.id)[0] || null;
+            }
+
+            async function latestHeavyRun(name, headSha) {
+              const runs = await runsForHead(headSha);
+              return runs
+                .filter(r => r.name === name && ['pull_request', 'workflow_dispatch'].includes(r.event))
                 .sort((a, b) => b.id - a.id)[0] || null;
             }
 
             function runBaseSha(run, prNumber) {
               const pr = (run?.pull_requests || []).find(p => p.number === prNumber);
               return pr?.base?.sha || null;
+            }
+
+            async function headContainsCurrentMain(headSha) {
+              const comparison = await github.rest.repos.compareCommitsWithBasehead({
+                owner,
+                repo,
+                basehead: `${mainSha}...${headSha}`,
+              });
+              return comparison.data.merge_base_commit?.sha === mainSha;
+            }
+
+            async function dispatchHeavyIfNeeded(item, headSha) {
+              if (item.head.repo?.full_name !== `${owner}/${repo}`) {
+                core.warning(`#${item.number}: fork head cannot be dispatched safely; skip.`);
+                return;
+              }
+              const containsMain = await headContainsCurrentMain(headSha);
+              if (!containsMain) {
+                core.info(`#${item.number}: head does not contain current main; skip heavy dispatch.`);
+                return;
+              }
+
+              const [build, device] = await Promise.all([
+                latestHeavyRun('Arvin Build', headSha),
+                latestHeavyRun('Arvin Device Smoke', headSha),
+              ]);
+
+              const needsBuild = !build || (build.status === 'completed' && build.conclusion === 'skipped');
+              const needsDevice = !device || (device.status === 'completed' && device.conclusion === 'skipped');
+
+              if (needsBuild) {
+                core.info(`#${item.number}: dispatching Arvin Build on exact head branch ${item.head.ref}.`);
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo, workflow_id: 'build.yml', ref: item.head.ref,
+                });
+              }
+              if (needsDevice) {
+                core.info(`#${item.number}: dispatching Arvin Device Smoke on exact head branch ${item.head.ref}.`);
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo, workflow_id: 'device-smoke.yml', ref: item.head.ref,
+                });
+              }
             }
 
             for (const pr of pulls) {
@@ -62,7 +115,7 @@ jobs:
               const headSha = item.head.sha;
 
               if (item.draft) {
-                const fast = await latestRun('Arvin Parallel Wave', headSha);
+                const fast = await latestFastRun(headSha);
                 const fastBase = runBaseSha(fast, item.number);
                 if (fast?.status === 'completed' && fast?.conclusion === 'success' && fastBase === mainSha) {
                   core.info(`#${item.number}: Fast green on current main; marking ready.`);
@@ -73,25 +126,37 @@ jobs:
                       }
                     }
                   `, { id: item.node_id });
+                  await dispatchHeavyIfNeeded(item, headSha);
                 } else {
                   core.info(`#${item.number}: draft waiting for current-main Fast gate.`);
                 }
                 continue;
               }
 
+              const containsMain = await headContainsCurrentMain(headSha);
+              if (!containsMain) {
+                core.info(`#${item.number}: ready head is stale against current main; skip.`);
+                continue;
+              }
+
               const [build, device] = await Promise.all([
-                latestRun('Arvin Build', headSha),
-                latestRun('Arvin Device Smoke', headSha),
+                latestHeavyRun('Arvin Build', headSha),
+                latestHeavyRun('Arvin Device Smoke', headSha),
               ]);
-              const buildBase = runBaseSha(build, item.number);
-              const deviceBase = runBaseSha(device, item.number);
+
+              const needsBuild = !build || (build.status === 'completed' && build.conclusion === 'skipped');
+              const needsDevice = !device || (device.status === 'completed' && device.conclusion === 'skipped');
+              if (needsBuild || needsDevice) {
+                await dispatchHeavyIfNeeded(item, headSha);
+                continue;
+              }
+
               const heavyGreen =
                 build?.status === 'completed' && build?.conclusion === 'success' &&
                 device?.status === 'completed' && device?.conclusion === 'success';
-              const currentMainValidated = buildBase === mainSha && deviceBase === mainSha;
 
-              if (!heavyGreen || !currentMainValidated) {
-                core.info(`#${item.number}: ready but waiting for Build + Device on current main.`);
+              if (!heavyGreen) {
+                core.info(`#${item.number}: ready but waiting for Build + Device on exact head.`);
                 continue;
               }
 
