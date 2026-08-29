@@ -6,7 +6,7 @@ void main() {
   test('production orchestrator stays opt-in, serialized and current-main safe', () {
     final text = File('.github/workflows/production-orchestrator.yml').readAsStringSync();
 
-    expect(text, contains("cron: '*/15 * * * *'"));
+    expect(text, contains("cron: '*/8 * * * *'"));
     expect(text, contains("const AUTO_LABEL = 'arvin-auto';"));
     expect(text, contains('cancel-in-progress: false'));
     expect(text, contains("fast?.conclusion === 'success'"));
