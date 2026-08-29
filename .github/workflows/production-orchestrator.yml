@@ -51,10 +51,18 @@ jobs:
                 .sort((a, b) => b.id - a.id)[0] || null;
             }
 
-            async function latestHeavyRun(name, headSha) {
+            function runBelongsToPr(run, prNumber) {
+              return (run?.pull_requests || []).some(p => p.number === prNumber);
+            }
+
+            async function latestHeavyRun(name, headSha, prNumber) {
               const runs = await runsForHead(headSha);
               return runs
-                .filter(r => r.name === name && ['pull_request', 'workflow_dispatch'].includes(r.event))
+                .filter(r => r.name === name)
+                .filter(r =>
+                  r.event === 'workflow_dispatch' ||
+                  (r.event === 'pull_request' && runBelongsToPr(r, prNumber)),
+                )
                 .sort((a, b) => b.id - a.id)[0] || null;
             }
 
@@ -84,8 +92,8 @@ jobs:
               }
 
               const [build, device] = await Promise.all([
-                latestHeavyRun('Arvin Build', headSha),
-                latestHeavyRun('Arvin Device Smoke', headSha),
+                latestHeavyRun('Arvin Build', headSha, item.number),
+                latestHeavyRun('Arvin Device Smoke', headSha, item.number),
               ]);
 
               const needsBuild = !build || (build.status === 'completed' && build.conclusion === 'skipped');
@@ -140,8 +148,8 @@ jobs:
               }
 
               const [build, device] = await Promise.all([
-                latestHeavyRun('Arvin Build', headSha),
-                latestHeavyRun('Arvin Device Smoke', headSha),
+                latestHeavyRun('Arvin Build', headSha, item.number),
+                latestHeavyRun('Arvin Device Smoke', headSha, item.number),
               ]);
 
               const needsBuild = !build || (build.status === 'completed' && build.conclusion === 'skipped');
