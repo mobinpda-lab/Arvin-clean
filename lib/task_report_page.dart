@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'models/task.dart';
 import 'services/task_report_pdf_renderer.dart';
@@ -40,7 +41,9 @@ class _TaskReportPageState extends State<TaskReportPage> {
   void initState() {
     super.initState();
     final availableIds = _available.map((task) => task.id).toSet();
-    _selected = widget.initialSelectedIds.where(availableIds.contains).toSet();
+    _selected = widget.initialSelectedIds
+        .where(availableIds.contains)
+        .toSet();
   }
 
   TaskReport _buildReport({
@@ -53,20 +56,21 @@ class _TaskReportPageState extends State<TaskReportPage> {
         title: title,
       );
 
+  bool _ensureNotEmpty(BuildContext context, TaskReport report) {
+    if (report.entries.isNotEmpty) return true;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('موردی برای گزارش انتخاب نشده است')));
+    return false;
+  }
+
   Future<void> _copyText(
     BuildContext context, {
     Set<String>? selectedIds,
     String title = 'گزارش آروین',
   }) async {
     final report = _buildReport(selectedIds: selectedIds, title: title);
-    if (report.entries.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('موردی برای گزارش انتخاب نشده است')),
-        );
-      return;
-    }
+    if (!_ensureNotEmpty(context, report)) return;
 
     await Clipboard.setData(
       ClipboardData(text: widget.textRenderer.render(report)),
@@ -77,20 +81,34 @@ class _TaskReportPageState extends State<TaskReportPage> {
       ..showSnackBar(const SnackBar(content: Text('متن گزارش کپی شد')));
   }
 
+  Future<void> _shareText(
+    BuildContext context, {
+    Set<String>? selectedIds,
+    String title = 'گزارش آروین',
+  }) async {
+    final report = _buildReport(selectedIds: selectedIds, title: title);
+    if (!_ensureNotEmpty(context, report)) return;
+
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(
+      ShareParams(
+        text: widget.textRenderer.render(report),
+        title: title,
+        subject: title,
+        sharePositionOrigin: box == null
+            ? null
+            : box.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
+  }
+
   Future<void> _preview(
     BuildContext context, {
     Set<String>? selectedIds,
     String title = 'گزارش آروین',
   }) async {
     final report = _buildReport(selectedIds: selectedIds, title: title);
-    if (report.entries.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('موردی برای گزارش انتخاب نشده است')),
-        );
-      return;
-    }
+    if (!_ensureNotEmpty(context, report)) return;
 
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -119,14 +137,17 @@ class _TaskReportPageState extends State<TaskReportPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('PDF و چاپ')),
+        appBar: AppBar(title: const Text('گزارش و اشتراک‌گذاری')),
         body: tasks.isEmpty
             ? const Center(child: Text('کاری برای گزارش وجود ندارد'))
             : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 112),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 164),
                 itemCount: tasks.length,
                 itemBuilder: (context, index) {
                   final task = tasks[index];
+                  final itemTitle =
+                      task.title.trim().isEmpty ? 'بدون عنوان' : task.title;
+                  final reportTitle = 'گزارش $itemTitle';
                   return CheckboxListTile(
                     key: ValueKey('report-task-${task.id}'),
                     value: _selected.contains(task.id),
@@ -137,12 +158,10 @@ class _TaskReportPageState extends State<TaskReportPage> {
                         _selected.remove(task.id);
                       }
                     }),
-                    title: Text(
-                      task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
-                    ),
+                    title: Text(itemTitle),
                     subtitle: Text(task.completed ? 'انجام‌شده' : 'باز'),
                     secondary: Wrap(
-                      spacing: 2,
+                      spacing: 0,
                       children: [
                         IconButton(
                           key: ValueKey('report-copy-${task.id}'),
@@ -150,10 +169,19 @@ class _TaskReportPageState extends State<TaskReportPage> {
                           onPressed: () => _copyText(
                             context,
                             selectedIds: {task.id},
-                            title:
-                                'گزارش ${task.title.trim().isEmpty ? 'بدون عنوان' : task.title}',
+                            title: reportTitle,
                           ),
                           icon: const Icon(Icons.content_copy_outlined),
+                        ),
+                        IconButton(
+                          key: ValueKey('report-share-${task.id}'),
+                          tooltip: 'اشتراک متن همین مورد',
+                          onPressed: () => _shareText(
+                            context,
+                            selectedIds: {task.id},
+                            title: reportTitle,
+                          ),
+                          icon: const Icon(Icons.share_outlined),
                         ),
                         IconButton(
                           key: ValueKey('report-single-${task.id}'),
@@ -161,8 +189,7 @@ class _TaskReportPageState extends State<TaskReportPage> {
                           onPressed: () => _preview(
                             context,
                             selectedIds: {task.id},
-                            title:
-                                'گزارش ${task.title.trim().isEmpty ? 'بدون عنوان' : task.title}',
+                            title: reportTitle,
                           ),
                           icon: const Icon(Icons.picture_as_pdf_outlined),
                         ),
@@ -182,8 +209,7 @@ class _TaskReportPageState extends State<TaskReportPage> {
                     Expanded(
                       child: OutlinedButton.icon(
                         key: const ValueKey('report-copy-all'),
-                        onPressed:
-                            tasks.isEmpty ? null : () => _copyText(context),
+                        onPressed: tasks.isEmpty ? null : () => _copyText(context),
                         icon: const Icon(Icons.content_copy_outlined),
                         label: const Text('کپی متن همه'),
                       ),
@@ -210,9 +236,36 @@ class _TaskReportPageState extends State<TaskReportPage> {
                   children: [
                     Expanded(
                       child: FilledButton.tonalIcon(
+                        key: const ValueKey('report-share-all'),
+                        onPressed: tasks.isEmpty ? null : () => _shareText(context),
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('اشتراک همه'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton.tonalIcon(
+                        key: const ValueKey('report-share-selected'),
+                        onPressed: _selected.isEmpty
+                            ? null
+                            : () => _shareText(
+                                  context,
+                                  selectedIds: Set<String>.of(_selected),
+                                  title: 'گزارش موارد انتخاب‌شده',
+                                ),
+                        icon: const Icon(Icons.share_outlined),
+                        label: Text('اشتراک انتخابی (${_selected.length})'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.tonalIcon(
                         key: const ValueKey('report-all'),
-                        onPressed:
-                            tasks.isEmpty ? null : () => _preview(context),
+                        onPressed: tasks.isEmpty ? null : () => _preview(context),
                         icon: const Icon(Icons.print_outlined),
                         label: const Text('همه'),
                       ),
