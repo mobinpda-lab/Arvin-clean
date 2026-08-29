@@ -5,7 +5,7 @@ on:
     workflows: ['Arvin Parallel Wave', 'Arvin Build', 'Arvin Device Smoke']
     types: [completed]
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/8 * * * *'
   workflow_dispatch:
 
 permissions:
