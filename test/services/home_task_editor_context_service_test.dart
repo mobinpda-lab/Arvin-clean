@@ -13,7 +13,7 @@ void main() {
 
   test('loads Projects, selected membership and sorted known categories', () async {
     final store = ProjectStore();
-    await store.save(const [
+    await store.save([
       ProjectPlan(
         id: 'p1',
         title: 'پروژه یک',
@@ -42,7 +42,7 @@ void main() {
 
   test('new Task context stays unassigned', () async {
     final store = ProjectStore();
-    await store.save(const [ProjectPlan(id: 'p1', title: 'پروژه')]);
+    await store.save([ProjectPlan(id: 'p1', title: 'پروژه')]);
     final service = HomeTaskEditorContextService(
       assignmentService: TaskProjectAssignmentService(store: store),
     );
