@@ -21,6 +21,7 @@ GitHub repository reality always outranks narrative documents.
 | Area | Active reference |
 | --- | --- |
 | Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 |
+| CI orphan/stale-run isolation | `docs/CI_ORPHAN_RUN_ISOLATION_2026-08-29.md` + current Production Orchestrator contract |
 | Whole-project progress | `docs/project_completion_scorecard.json` + `docs/PROJECT_PROGRESS_METRIC.md` |
 | Extension progress | `docs/progress_scorecard.json` + `docs/PRODUCT_EXTENSION_ROADMAP_2026-08-15.md` |
 | Cross-surface product acceptance | `docs/PRODUCT_CONTRACT_MATRIX.md` |
@@ -30,6 +31,12 @@ GitHub repository reality always outranks narrative documents.
 | Notebook / Simple Note / Checklist | `docs/SIMPLE_NOTEBOOK_PRODUCT_CONTRACT.md` + `docs/NOTEBOOK_COMPLETION_LANE_2026-08-26.md` |
 | Canonical Timeline | `docs/CANONICAL_TASK_TIMELINE_2026-08-26.md` + current code/evidence |
 | Current audit/reconciliation work | Issue #358 |
+
+## CI evidence isolation
+
+A GitHub Actions record is not current production evidence merely because GitHub reports it as `queued`, `in_progress` or `completed`. It must also belong to the current work identity.
+
+Pull-request-triggered Heavy evidence must match the current open PR number and exact head. Orphan runs from closed/superseded PRs, runs without current PR association, and stale heads are historical evidence only and must not block, satisfy or redirect Production. If GitHub refuses cancellation of an orphan run, Production continues and the run remains quarantined from automation decisions.
 
 ## Snapshot documents: useful but time-sensitive
 
