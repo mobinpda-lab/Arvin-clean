@@ -25,7 +25,7 @@ class NoteAutoLinkDetector {
   const NoteAutoLinkDetector();
 
   static final RegExp _web = RegExp(
-    r'(?:(?:https?://)|(?:www\.))[A-Za-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+',
+    r"(?:(?:https?://)|(?:www\.))[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+",
     caseSensitive: false,
   );
 
