@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin_task_tracker/widgets/jalali_date_jump_dialog.dart';
+import 'package:arvin/widgets/jalali_date_jump_dialog.dart';
 
 void main() {
   testWidgets('returns the selected Jalali date without calendar side effects',
