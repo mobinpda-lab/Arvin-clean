@@ -1,93 +1,89 @@
 # Arvin — Project Status
 
-## وضعیت زنده — 2026-08-27
+## وضعیت زنده — 2026-08-29
 
-GitHub تنها Source of Truth عملیاتی پروژه است. هر SHA، PR، CI، درصد یا وضعیت باید قبل از اقدام دوباره از GitHub تازه بررسی شود.
+GitHub تنها Source of Truth عملیاتی پروژه است. هر SHA، PR، CI، درصد یا وضعیت باید پیش از اقدام دوباره از GitHub تازه بررسی شود.
 
-- Branch مرجع: `main`
-- snapshot مبنا: `bec99214534a8c9972f9e3145dde792cecf2f9e3`
-- آخرین Merge: PR #245 — audit مرز canonical Privacy / Encryption
-- Mergeهای مهم همین موج: #243 deterministic Device lane، #242 Semantic Search v1، #247 parallel APK Build، #245 Privacy audit
-- post-#242 main: Build #829 ✅ / Device #69 ✅
-- post-#247 main: Build #832 ✅ / Device #72 ✅
-- #245 exact head: Parallel #754 ✅ / Build #834 ✅ / Device #74 ✅
-- post-#245 main: Build #835 و Device Smoke بعد از Merge فعال شده‌اند و باید قبل از ادعای post-merge green دوباره خوانده شوند.
-- Project A-H: **70.0%**
-- Extension roadmap: **25.0% overall / 59.4% Wave X1**
+Baseline این بازنگری:
+- `main`: `bf3e7eb57aeb11df5283014ae8ef5401ec100815`
+- آخرین Merge مشاهده‌شده: PR #521 — Production Orchestrator هر 5 دقیقه
+- PR #519 merged: Phase 1 قرارداد تنظیمات Device Calendar Integration روی Foundation موجود Settings
+- اصل اجرایی مادر: **Maximum Parallel؛ سریع، خودکار، مستند، بدون توقف Production؛ Merge سریالی و current-main-safe**
+- Production Orchestrator: `Draft → Fast → Promote → Build + Device → serial merge` با cadence پنج‌دقیقه‌ای و triggerهای CI
 
-## قرارداد اجرای سریع
+این فایل snapshot است؛ GitHub زنده همیشه مقدم است.
 
-هدف، تحویل در چند ساعت به‌جای چند روز است، بدون قربانی‌کردن صحت:
+## Foundation canonical
 
-1. Audit زنده GitHub قبل از تصمیم.
-2. Laneهای مستقل هم‌زمان؛ Block یک Lane نباید بقیه را متوقف کند.
-3. Merge فقط با evidence همان Head SHA.
-4. بعد از Merge، `main` دوباره Build + Device Smoke می‌شود.
-5. Implementation، Tests، Automation و Documentation هم‌زمان جلو می‌روند.
-6. Foundation موازی برای Task/FollowUp/Search/Backup/Sync/Widget/Storage ممنوع است مگر audit مستقل آن را توجیه کند.
-7. PR کوچک، بازسازی‌پذیر و با conflict surface محدود ترجیح دارد.
+مسیر اصلی محصول:
 
-## Foundation فعلی
+`Task / Unified Item → Due Date / Reminder → FollowUps[] / FollowUp Reminder → Recurrence / History`
 
-مسیر canonical محصول همچنان:
+Home، Search، Today، Calendar، Work Agenda، Timeline، Reminder، FollowUp، Backup، Settings، Widget، Reports و Projects باید همین Foundationها را مصرف کنند.
 
-`Task / Unified Item → Reminder → FollowUps[] → History`
+قواعد حفاظت‌شده:
+- Foundation دوم برای Task/FollowUp/Reminder/Calendar/Work Agenda/Settings/Backup/Scheduler/Alarm ساخته نمی‌شود مگر Requirement مستقل اثبات‌شده.
+- Project مستقل از Category/Tags است؛ color متعلق به Project است و `Task.projectId` ساخته نمی‌شود.
+- Work Agenda یک Projection واحد باقی می‌ماند.
+- Reports یک `TaskReportProjection` canonical دارند؛ PDF/Text فقط rendererهای متفاوت همان داده‌اند.
+- Vazirmatn UI FD فونت canonical گزارش PDF است؛ Font Controller/Store موازی ساخته نمی‌شود.
 
-Home، Search، Today، FollowUp، Timeline، Reminder، Calendar، Backup، Settings، Widget و Report باید همین foundation را مصرف کنند.
+## تحویل‌های مهم اخیر
 
-## تحویل‌های اخیر
+### Projects
+ProjectPlan، lifecycle، selector، management page، ProjectStore، Task↔Project assignment، editor context، backup portability و ProjectBackupBridge روی مسیر canonical وجود دارند. Wiringهای بعدی باید همین اجزا را reuse کنند.
 
-### Semantic Search v1 — PR #242
-- روی `TaskSearchService` موجود ادغام شد؛ Search engine/UI/index/database دوم ساخته نشد.
-- aliasهای محدود فارسی با OR داخل گروه و AND بین termها.
-- exact-head: Parallel #751 / Build #826 / Device #66 ✅
-- post-merge: Build #829 / Device #69 ✅
-- Issue #241 بسته شد.
+### Work Agenda
+Projection، Report Adapter، PDF renderer و صفحه day/range موجودند. یک Task در یک روز به‌خاطر چند دلیل زمانی duplicate نمی‌شود. External Calendar integration باید همین Projection را extend کند.
 
-### Deterministic Device validation — PR #243
-- مسیر `device/**` برای exact-ref Device Smoke اضافه شد.
-- API/automation دیگر برای smoke دقیق به delivery اتفاقی PR event وابسته نیست.
+### Reports و Typography
+TaskReportProjection منبع canonical گزارش است. Copy Text و renderer متنی موجودند؛ native Share lane در PR #522 روی current main بازسازی شده است. PDF از bundled Vazirmatn UI FD استفاده می‌کند و regression واقعی بارگذاری فونت روی main موجود است.
 
-### Faster Build — PR #247
-- Analyze/tests یک بار در `quality` اجرا می‌شوند.
-- Release و Debug APK بعد از آن به‌صورت matrix مستقل و موازی ساخته/verify/upload می‌شوند.
-- exact-head: Parallel #753 / Build #831 / Device #71 ✅
-- post-merge: Build #832 / Device #72 ✅
+### Bidirectional Device Calendar Integration
+Target رسمی در Issue #516 تثبیت شده است:
 
-### Privacy / Encryption boundary — PR #245
-- مرز امن اولین implementation روی همان portable backup bytes موجود تعریف شد.
-- legacy plaintext v1 باید قابل خواندن بماند.
-- encrypted envelope آینده باید versioned و authenticated باشد.
-- local TaskStore encryption و multi-device sync عمداً از این slice جدا نگه داشته شدند.
-- credential/token نباید وارد portable Settings/backup شود؛ regression اجرایی دارد.
-- Issue #248 قدم بعدی implementation را بدون شروع premature code ثبت کرده است.
+`Arvin ↔ Android Calendar Provider ↔ Google / Samsung / Other compatible calendars`
 
-## Score رسمی
+PR #519 Phase 1 قرارداد تنظیمات را merge کرده است. Device calendar ids محلی می‌مانند و وارد portable Settings backup نمی‌شوند. Settings رسمی فقط از مسیر `تنظیمات → تقویم و همگام‌سازی` خواهد بود.
 
-### Project gates A-H
-A=70, B=70, C=70, D=70, E=70, F=70, G=70, H=70 → **70.0%**.
+Existing sync foundations مانند CalendarSyncRevisionService / CalendarSyncPlanService و Issue #348 باید reuse شوند؛ Google/Samsung engine جدا ساخته نمی‌شود مگر Requirement بعدی آن را توجیه کند.
 
-رسیدن به 85/100 هنوز به physical-device/E2E و closureهای تعریف‌شده در scorecard وابسته است؛ emulator/CI به‌تنهایی باعث افزایش مصنوعی نمی‌شود.
+## Laneهای فعال این snapshot
 
-### Extension roadmap
-- Semantic Search: **85**
-- Privacy / Encryption: **10** (audit؛ implementation هنوز شروع نشده)
-- Overall: **25.0%**
-- Wave X1: **59.4%**
+1. **PR #522 — native report text share**: rebuild مستقیم از current main، Draft + `arvin-auto`; Fast exact-head در حال اجرا/انتظار است و CI قدیمی #518 استفاده نمی‌شود.
+2. **Documentation reconciliation v2**: بازسازی مستقل مستندات روی current main بعد از Mergeهای #519/#521؛ بدون دخالت در product lane.
+3. **Calendar next phase**: بعد از تثبیت Settings contract، Settings UI و سپس read-only Android Calendar Provider discovery/read/permission روی existing #348.
 
-## Laneهای بعدی
+## Production safety
 
-1. بستن post-merge Build/Device روی main فعلی.
-2. Merge کردن همین refresh مستندات پس از Progress Score + Fast Lane دقیق.
-3. سپس Issue #248: prototype کوچک encrypted backup envelope روی همان `ArvinBackupService`؛ legacy-v1 read + authenticated-failure tests، بدون local TaskStore encryption یا Sync موازی.
-4. انتخاب Gap محصولی بعدی فقط بعد از audit زنده backlog/roadmap.
+1. Fresh audit قبل از write/merge.
+2. Laneهای مستقل هم‌زمان؛ Block یک Lane بقیه را متوقف نمی‌کند.
+3. Draft فقط با Fast exact-head معتبر است.
+4. Ready فقط با Build/APK + Device exact-head/current-main-safe قابل Merge است.
+5. Mergeها سریالی؛ بعد از هر Merge main و sibling laneها دوباره بررسی می‌شوند.
+6. CI قدیمی پس از تغییر main/head evidence نیست.
+7. No Force Push / Force Merge / Force Update.
+8. Workflow/Build/Device سالم Cancel یا Restart غیرضروری نمی‌شود.
+9. Documentation/typography/tests موازی‌اند و Production را block نمی‌کنند.
 
-## Definition of Done
+## Requirementهای حفظ‌شده
 
-قابلیت فقط وقتی Done است که مسیر canonical، UI/عملیات واقعی حسب نیاز، regression/E2E، CI دقیق، APK/device evidence و Status/Handoff همگرا باشند.
+- Projects ≠ Category/Tags.
+- Work Agenda یک Foundation واحد است.
+- Reports یک canonical projection دارند.
+- Vazirmatn UI FD canonical report typography است.
+- Bidirectional Device Calendar Integration Target رسمی است.
+- Google/Samsung از Android Calendar Provider adapter واحد استفاده می‌کنند.
+- External Calendar Events به‌صورت پیش‌فرض Task/Report/Backup نیستند.
+- Calendar permissions فقط هنگام نیاز درخواست می‌شوند و CI با داده synthetic است.
+- Maximum Parallel توسعه را موازی می‌کند، نه Merge را.
+
+## Score
+
+درصد تاریخی این فایل معیار تصمیم عملیاتی نیست. Score رسمی فقط از scorecard canonical و evidence واقعی به‌روز می‌شود. Foundation یا تعداد PR به‌تنهایی امتیاز DoD ایجاد نمی‌کند؛ physical-device/E2E و closureهای لازم باید کسب شوند.
 
 ## Trigger ادامه
 
 `ادامه آروین` یعنی:
 
-`Fresh GitHub audit → reconcile docs → parallel independent work → exact-head validation → safe merge → post-merge validation → next smallest real gap → document → short nontechnical owner report`
+`Fresh GitHub audit → reconcile docs → parallel independent work → exact-head validation → safe serial merge → post-merge validation → next smallest real gap → document → short nontechnical owner report`
