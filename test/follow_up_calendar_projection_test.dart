@@ -33,6 +33,74 @@ void main() {
     expect(reminders.last.date, DateTime(2026, 8, 27, 10));
   });
 
+  test('projects a task due date even without follow-up history', () {
+    final dueDate = DateTime(2026, 10, 5, 14, 30);
+    final task = Task(
+      id: 'dated-task',
+      title: 'ارسال پیش‌فاکتور',
+      dueDate: dueDate,
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-due:dated-task');
+    expect(reminders.single.title, 'ارسال پیش‌فاکتور');
+    expect(reminders.single.date, dueDate);
+  });
+
+  test('projects legacy follow-up date when canonical history is absent', () {
+    final followUpDate = DateTime(2026, 11, 12, 9);
+    final task = Task(
+      id: 'legacy-followup',
+      title: 'تماس مجدد',
+      followUpEnabled: true,
+      followUpDate: followUpDate,
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-followup:legacy-followup');
+    expect(reminders.single.date, followUpDate);
+  });
+
+  test('does not duplicate equivalent task and follow-up timestamps', () {
+    final date = DateTime(2026, 12, 1, 10);
+    final task = Task(
+      id: 'dedupe',
+      title: 'جلسه',
+      dueDate: date,
+      followUpEnabled: true,
+      followUpDate: date,
+      followUps: <FollowUp>[
+        FollowUp(id: 'fu', dateTime: date),
+      ],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'followup:dedupe:fu');
+  });
+
+  test('keeps distinct due date and follow-up timestamps visible', () {
+    final task = Task(
+      id: 'two-dates',
+      title: 'قرارداد',
+      dueDate: DateTime(2026, 12, 3, 16),
+      followUps: <FollowUp>[
+        FollowUp(id: 'fu', dateTime: DateTime(2026, 12, 3, 10)),
+      ],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id), contains('task-due:two-dates'));
+    expect(reminders.map((item) => item.id), contains('followup:two-dates:fu'));
+  });
+
   test('resolves a projected reminder back to its exact canonical target', () {
     final followUp = FollowUp(
       id: 'fu-1',
