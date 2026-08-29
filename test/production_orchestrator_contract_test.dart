@@ -9,15 +9,20 @@ void main() {
     expect(text, contains("cron: '*/8 * * * *'"));
     expect(text, contains("const AUTO_LABEL = 'arvin-auto';"));
     expect(text, contains('cancel-in-progress: false'));
+    expect(text, contains('actions: write'));
     expect(text, contains("fast?.conclusion === 'success'"));
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
-    expect(text, contains('buildBase === mainSha && deviceBase === mainSha'));
+    expect(text, contains('markPullRequestReadyForReview'));
+    expect(text, contains('createWorkflowDispatch'));
+    expect(text, contains("workflow_id: 'build.yml'"));
+    expect(text, contains("workflow_id: 'device-smoke.yml'"));
+    expect(text, contains("['pull_request', 'workflow_dispatch'].includes(r.event)"));
+    expect(text, contains('merge_base_commit?.sha === mainSha'));
     expect(text, contains('locked.data.head.sha !== headSha'));
     expect(text, contains('locked.data.mergeable !== true'));
     expect(text, contains("merge_method: 'squash'"));
     expect(text, contains('sha: headSha'));
-    expect(text, contains('markPullRequestReadyForReview'));
 
     // Never auto-process every PR: explicit label is mandatory.
     expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
