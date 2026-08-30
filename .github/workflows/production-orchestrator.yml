@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Optional arvin-auto PR to process end-to-end
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -21,6 +26,7 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Guarded promote and merge
         uses: actions/github-script@v7
@@ -29,14 +35,24 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const AUTO_LABEL = 'arvin-auto';
+            const directWake = context.eventName === 'workflow_dispatch';
+            const requestedPr = Number(context.payload.inputs?.pr_number || 0);
+            const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
             const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
             const mainSha = main.data.commit.sha;
             core.info(`Current main: ${mainSha}`);
 
-            const pulls = await github.paginate(github.rest.pulls.list, {
-              owner, repo, state: 'open', base: 'main', per_page: 100,
-            });
+            let pulls;
+            if (requestedPr) {
+              const requested = await github.rest.pulls.get({ owner, repo, pull_number: requestedPr });
+              pulls = [requested.data];
+              core.info(`Direct wake targets PR #${requestedPr}.`);
+            } else {
+              pulls = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: 'open', base: 'main', per_page: 100,
+              });
+            }
 
             async function runsForHead(headSha) {
               return github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
@@ -47,7 +63,7 @@ jobs:
             async function latestFastRun(headSha) {
               const runs = await runsForHead(headSha);
               return runs
-                .filter(r => r.name === 'Arvin Parallel Wave' && r.event === 'pull_request')
+                .filter(r => r.name === 'Arvin Parallel Wave' && ['pull_request', 'workflow_dispatch'].includes(r.event))
                 .sort((a, b) => b.id - a.id)[0] || null;
             }
 
@@ -72,15 +88,38 @@ jobs:
               return comparison.data.merge_base_commit?.sha === mainSha;
             }
 
+            async function fastGreenForCurrentMain(fast, item, headSha) {
+              if (fast?.status !== 'completed' || fast?.conclusion !== 'success') return false;
+              if (fast.event === 'pull_request') {
+                return runBaseSha(fast, item.number) === mainSha;
+              }
+              if (fast.event === 'workflow_dispatch') {
+                return headContainsCurrentMain(headSha);
+              }
+              return false;
+            }
+
+            async function waitForFast(item, headSha) {
+              for (let attempt = 1; attempt <= 72; attempt++) {
+                const fast = await latestFastRun(headSha);
+                if (fast?.status === 'completed') return fast;
+                if (attempt === 1 || attempt % 6 === 0) {
+                  core.info(`#${item.number}: waiting for exact-head Fast (${attempt}/72).`);
+                }
+                await sleep(10000);
+              }
+              return latestFastRun(headSha);
+            }
+
             async function dispatchHeavyIfNeeded(item, headSha) {
               if (item.head.repo?.full_name !== `${owner}/${repo}`) {
                 core.warning(`#${item.number}: fork head cannot be dispatched safely; skip.`);
-                return;
+                return false;
               }
               const containsMain = await headContainsCurrentMain(headSha);
               if (!containsMain) {
                 core.info(`#${item.number}: head does not contain current main; skip heavy dispatch.`);
-                return;
+                return false;
               }
 
               const [build, device] = await Promise.all([
@@ -90,19 +129,43 @@ jobs:
 
               const needsBuild = !build || (build.status === 'completed' && build.conclusion === 'skipped');
               const needsDevice = !device || (device.status === 'completed' && device.conclusion === 'skipped');
+              let dispatched = false;
 
               if (needsBuild) {
                 core.info(`#${item.number}: dispatching Arvin Build on exact head branch ${item.head.ref}.`);
                 await github.rest.actions.createWorkflowDispatch({
                   owner, repo, workflow_id: 'build.yml', ref: item.head.ref,
                 });
+                dispatched = true;
               }
               if (needsDevice) {
                 core.info(`#${item.number}: dispatching Arvin Device Smoke on exact head branch ${item.head.ref}.`);
                 await github.rest.actions.createWorkflowDispatch({
                   owner, repo, workflow_id: 'device-smoke.yml', ref: item.head.ref,
                 });
+                dispatched = true;
               }
+              return dispatched;
+            }
+
+            async function waitForHeavy(headSha, prNumber) {
+              let lastBuild = null;
+              let lastDevice = null;
+              for (let attempt = 1; attempt <= 120; attempt++) {
+                [lastBuild, lastDevice] = await Promise.all([
+                  latestHeavyRun('Arvin Build', headSha),
+                  latestHeavyRun('Arvin Device Smoke', headSha),
+                ]);
+                const settled =
+                  lastBuild?.status === 'completed' &&
+                  lastDevice?.status === 'completed';
+                if (settled) return { build: lastBuild, device: lastDevice };
+                if (attempt === 1 || attempt % 6 === 0) {
+                  core.info(`#${prNumber}: waiting for exact-head Build + Device (${attempt}/120).`);
+                }
+                await sleep(10000);
+              }
+              return { build: lastBuild, device: lastDevice };
             }
 
             for (const pr of pulls) {
@@ -114,10 +177,18 @@ jobs:
               if (item.state !== 'open' || item.base.ref !== 'main') continue;
               const headSha = item.head.sha;
 
+              const containsMain = await headContainsCurrentMain(headSha);
+              if (!containsMain) {
+                core.info(`#${item.number}: head is stale against current main; skip.`);
+                continue;
+              }
+
               if (item.draft) {
-                const fast = await latestFastRun(headSha);
-                const fastBase = runBaseSha(fast, item.number);
-                if (fast?.status === 'completed' && fast?.conclusion === 'success' && fastBase === mainSha) {
+                let fast = await latestFastRun(headSha);
+                if (directWake && fast?.status !== 'completed') {
+                  fast = await waitForFast(item, headSha);
+                }
+                if (await fastGreenForCurrentMain(fast, item, headSha)) {
                   core.info(`#${item.number}: Fast green on current main; marking ready.`);
                   await github.graphql(`
                     mutation($id: ID!) {
@@ -126,20 +197,13 @@ jobs:
                       }
                     }
                   `, { id: item.node_id });
-                  await dispatchHeavyIfNeeded(item, headSha);
                 } else {
                   core.info(`#${item.number}: draft waiting for current-main Fast gate.`);
+                  continue;
                 }
-                continue;
               }
 
-              const containsMain = await headContainsCurrentMain(headSha);
-              if (!containsMain) {
-                core.info(`#${item.number}: ready head is stale against current main; skip.`);
-                continue;
-              }
-
-              const [build, device] = await Promise.all([
+              let [build, device] = await Promise.all([
                 latestHeavyRun('Arvin Build', headSha),
                 latestHeavyRun('Arvin Device Smoke', headSha),
               ]);
@@ -148,6 +212,20 @@ jobs:
               const needsDevice = !device || (device.status === 'completed' && device.conclusion === 'skipped');
               if (needsBuild || needsDevice) {
                 await dispatchHeavyIfNeeded(item, headSha);
+              }
+
+              const heavySettled =
+                build?.status === 'completed' &&
+                device?.status === 'completed' &&
+                build?.conclusion !== 'skipped' &&
+                device?.conclusion !== 'skipped';
+
+              if (directWake && (!heavySettled || needsBuild || needsDevice)) {
+                const waited = await waitForHeavy(headSha, item.number);
+                build = waited.build;
+                device = waited.device;
+              } else if (!heavySettled || needsBuild || needsDevice) {
+                core.info(`#${item.number}: heavy gates dispatched/in progress; next orchestrator event will re-evaluate.`);
                 continue;
               }
 
@@ -156,7 +234,7 @@ jobs:
                 device?.status === 'completed' && device?.conclusion === 'success';
 
               if (!heavyGreen) {
-                core.info(`#${item.number}: ready but waiting for Build + Device on exact head.`);
+                core.info(`#${item.number}: Build + Device are not both green on exact head; no merge.`);
                 continue;
               }
 
@@ -176,7 +254,7 @@ jobs:
                 continue;
               }
 
-              core.info(`#${item.number}: exact-head heavy gates green on current main; squash merging.`);
+              core.info(`#${item.number}: exact-head Fast/Build/Device gates green on current main; squash merging.`);
               await github.rest.pulls.merge({
                 owner,
                 repo,
