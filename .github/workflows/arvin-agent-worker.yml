@@ -79,24 +79,32 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
           git switch -C "$BRANCH"
           git push --force-with-lease origin "$BRANCH"
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
-      - name: Open or reuse pull request
+      - name: Open or reuse guarded draft pull request
         if: steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
           EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
-            echo "PR #$EXISTING already exists; branch updated."
+            PR_NUMBER="$EXISTING"
+            echo "PR #$PR_NUMBER already exists; branch updated."
           else
-            gh pr create --repo "$GITHUB_REPOSITORY" \
+            PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" \
+              --draft \
               --head "$BRANCH" \
               --base main \
               --title "AI Worker: issue #$ARVIN_ISSUE_NUMBER" \
-              --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. CI, exact-head validation and promotion gates are required before merge."
+              --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.")
+            PR_NUMBER="${PR_URL##*/}"
           fi
+          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
+          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
