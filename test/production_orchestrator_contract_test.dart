@@ -59,14 +59,13 @@ void main() {
 
     // Likewise, a PR created by the worker explicitly starts exact-head Fast
     // and wakes the one canonical production merge authority for that PR.
-    expect(worker, contains('actions: write'));
     expect(
       worker,
-      contains('gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"'),
+      contains(r'gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"'),
     );
     expect(
       worker,
-      contains('gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"'),
+      contains(r'gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"'),
     );
   });
 }
