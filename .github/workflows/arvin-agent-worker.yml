@@ -112,7 +112,7 @@ jobs:
 
           # Events created with GITHUB_TOKEN are intentionally not relied on to
           # recursively start CI. Dispatch Fast explicitly on the exact worker
-          # branch, then wake the canonical orchestrator on main. The
-          # orchestrator polls only this exact head and keeps all merge gates.
+          # branch, then wake the canonical orchestrator for this PR on main.
+          # The orchestrator polls only the exact head and retains every gate.
           gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
-          gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main
+          gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"
