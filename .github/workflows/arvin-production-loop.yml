@@ -3,6 +3,11 @@ name: ARVIN Production Loop
 on:
   issues:
     types: [opened, labeled]
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  workflow_run:
+    workflows: ["Arvin Build", "Arvin Device Smoke", "Arvin Parallel Wave"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -17,11 +22,12 @@ permissions:
   actions: write
 
 concurrency:
-  group: arvin-production-loop-${{ github.event.issue.number || inputs.issue_number || github.run_id }}
+  group: arvin-production-loop-${{ github.event.issue.number || github.event.pull_request.number || github.event.workflow_run.id || inputs.issue_number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   analyze-and-queue:
+    if: ${{ github.event_name == 'issues' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Analyze task and build queue record
@@ -31,7 +37,13 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const issueNumber = context.payload.issue?.number || Number(context.payload.inputs?.issue_number);
-            if (!issueNumber) core.setFailed('An issue number is required.');
+            if (!issueNumber) {
+              if (context.payload.pull_request) {
+                core.info(`PR #${context.payload.pull_request.number} synchronized; queue remains PR-bound.`);
+                return;
+              }
+              core.setFailed('An issue number is required.');
+            }
 
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
             const text = `${issue.data.title}\n${issue.data.body || ''}`.toLowerCase();
@@ -57,8 +69,48 @@ jobs:
             if (!comments.some(c => c.body?.includes(marker))) {
               await github.rest.issues.createComment({
                 owner, repo, issue_number: issueNumber,
-                body: `${marker}\n\n### ARVIN Production Queue\n\n**Route:** ${route}\n\n**Workers:** ${workers.join(' → ')}\n\n**Policy:** maximum parallel development, current-main validation, exact-head CI, guarded promotion.\n\n**State:** queued — no automatic merge is permitted from an issue alone. A PR must pass the existing Fast + Build + Device gates before the Production Orchestrator can promote it.`
+                body: `${marker}\n\n### ARVIN Production Queue\n\n**Route:** ${route}\n\n**Workers:** ${workers.join(' → ')}\n\n**Policy:** maximum parallel development, current-main validation, exact-head CI, guarded promotion.\n\n**State:** queued. Worker execution must produce traceable PR/head evidence; no automatic merge is permitted from an issue alone.`
               });
             }
-
             core.info(`Issue #${issueNumber} routed to ${route}: ${workers.join(', ')}`);
+
+  feedback-loop:
+    if: ${{ github.event_name == 'workflow_run' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate completed worker gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const conclusion = run.conclusion || 'unknown';
+            const name = run.name;
+            const headSha = run.head_sha;
+            core.info(`${name} completed with ${conclusion} at ${headSha}`);
+
+            if (conclusion === 'success') {
+              core.info('Gate passed; existing Production Orchestrator remains responsible for promotion.');
+              return;
+            }
+
+            if (['failure', 'cancelled', 'timed_out'].includes(conclusion)) {
+              const marker = '<!-- arvin-auto-fix-task -->';
+              const title = `[AUTO-FIX] ${name} failed at ${headSha.slice(0, 12)}`;
+              const existing = await github.paginate(github.rest.issues.listForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'arvin-auto',
+                per_page: 100,
+              });
+              if (!existing.some(i => i.title === title)) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title,
+                  labels: ['arvin-auto'],
+                  body: `${marker}\n\nAutomated failure feedback.\n\n- Workflow: ${name}\n- Run: ${run.html_url}\n- Head SHA: ${headSha}\n- Conclusion: ${conclusion}\n\nRoute this issue to the appropriate worker. Do not bypass Fast/Build/Device or exact-head promotion gates.`
+                });
+              }
+              core.info('Failure converted into an idempotent auto-fix task.');
+            }
