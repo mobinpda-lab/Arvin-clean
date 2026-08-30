@@ -46,7 +46,16 @@ jobs:
               if (!alreadyRouted) {
                 await github.rest.issues.createComment({
                   owner, repo, issue_number: issue.number,
-                  body: `${marker}\n\n### ARVIN Task Analyzer\n\n- Route: **${route}**\n- Code Worker: **queued**\n- Test Worker: **queued**\n- Documentation Worker: **queued when required**\n- CI feedback: **required before promotion**\n- PR policy: **draft-first / controlled merge**\n\nThis routing record is generated automatically from the issue title/body. The production orchestrator remains the only component allowed to promote an eligible PR.`
+                  body: `${marker}\n\n### ARVIN Task Analyzer\n\n- Route: **${route}**\n- Code Worker: **queued**\n- Test Worker: **queued**\n- Documentation Worker: **queued when required**\n- CI feedback: **required before promotion**\n- PR policy: **draft-first / controlled merge**\n\nRouting is idempotent. The worker is activated automatically only for actionable feature/bugfix/core tasks; test/documentation-only tasks remain gated for their dedicated workers.`
+                });
+              }
+
+              const labels = (issue.labels || []).map(l => l.name);
+              const autoEligible = ['feature', 'bugfix', 'core'].includes(route) && !/(security|credential|secret|legal|destructive|migration)/.test(text);
+              if (autoEligible && !labels.includes('arvin-auto')) {
+                await github.rest.issues.addLabels({
+                  owner, repo, issue_number: issue.number,
+                  labels: ['arvin-auto']
                 });
               }
               return;
