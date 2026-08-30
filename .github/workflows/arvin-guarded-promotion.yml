@@ -1,0 +1,62 @@
+name: ARVIN Guarded Promotion
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: arvin-promotion-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  promote:
+    if: github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Verify exact head and required checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            CURRENT_SHA=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')
+            test "$CURRENT_SHA" = "$EXPECTED_SHA" || { echo "HEAD moved from $EXPECTED_SHA to $CURRENT_SHA"; exit 1; }
+            if gh pr checks "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --required 2>&1 | tee /tmp/checks.txt; then
+              echo "Required checks passed."
+              break
+            fi
+            if [ "$attempt" = "10" ]; then
+              echo "Required checks did not reach PASS within the bounded wait." >&2
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Re-verify exact head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          CURRENT_SHA=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')
+          test "$CURRENT_SHA" = "$EXPECTED_SHA"
+
+      - name: Enable repository auto-merge when available
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash || {
+            echo "AUTO_MERGE_NOT_ENABLED_OR_NOT_PERMITTED"
+            exit 1
+          }
