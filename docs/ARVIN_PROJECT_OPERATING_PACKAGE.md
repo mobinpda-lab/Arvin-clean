@@ -1,4 +1,4 @@
-# ARVIN PROJECT OPERATING PACKAGE v49.0
+# ARVIN PROJECT OPERATING PACKAGE v49.1
 ## Unified Canonical Software Production Standard
 
 **Project:** Arvin-clean
@@ -17,6 +17,7 @@
 6. No AI may claim that a change, test, build, workflow, PR or merge succeeded without direct evidence from the exact repository state involved.
 7. Existing capability must be reused. Duplicate models, repositories, storage paths, workflows or documentation layers require explicit justification.
 8. «بسم الله الرحمن الرحیم» is an inseparable project principle and must remain present in project identity and continuity documentation.
+9. **Arvin Preservation Rule:** Arvin project documentation, records, history, and evidence must never be deleted. This rule applies specifically to the Arvin project across all AI sessions and conversations. Ambiguous deletion instructions must never be interpreted as authorization to delete Arvin documentation, records, history, or evidence; explicit clarification is required instead.
 
 ## 1. Authority Model
 **GitHub Reality > Approved ADR/Architecture Decision > This Canonical Standard > Implementation/CI Procedures > Conversation/Memory.**
@@ -270,7 +271,7 @@ Other documents are classified as:
 
 No secondary governance document may contradict this document. If a rule changes, update this canonical document first and then update affected secondary documents.
 
-Historical documents must not be rewritten simply to erase history.
+**Permanent Arvin preservation policy:** Documentation, current-state records, architecture/ADR records, product/feature records, historical records, changelogs, audits, transfer/handoff history, and project evidence must not be deleted. Superseded material may be marked historical or archived while remaining recoverable and traceable. Historical documents must not be rewritten simply to erase history.
 
 ## 18. Knowledge Continuity and AI Handoff
 Project knowledge must survive a person, AI session or conversation ending.
@@ -330,6 +331,7 @@ Prohibited:
 - unnecessary workflow/documentation proliferation
 - sequentializing independent work without technical reason
 - allowing governance to become an unnecessary bottleneck
+- deleting Arvin project documentation, records, history, or evidence
 
 ## 22. Project Continuation and Status
 When continuing work, the AI must select the nearest real unfinished gap from GitHub reality, not invent a new task.
@@ -353,7 +355,7 @@ When another governance document conflicts with this file, this file governs unl
 When the repository and this document disagree about implementation state, GitHub wins and this document must be updated.
 
 **Canonical path:** `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
-**Current version:** v49.0
+**Current version:** v49.1
 
 ## 25. Owner Communication Contract
 All AI answers/reports for the project must be:
@@ -371,5 +373,6 @@ v47.x/v48.0 = governance foundation.
 v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication rules.
+v49.1 = adds the permanent Arvin-specific preservation rule: project documentation, records, history, and evidence must never be deleted; ambiguous deletion requests require clarification.
 
-Historical v48.x documents remain evidence of evolution; they are not competing active authorities.
+Historical v48.x and v49.0 documents/commits remain evidence of evolution; they are not competing active authorities.
