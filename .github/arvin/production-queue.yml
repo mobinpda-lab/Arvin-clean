@@ -1,0 +1,26 @@
+version: 1
+name: ARVIN Production Queue
+mode: maximum-parallel
+
+orchestrator:
+  priority: true
+  dependency-check: true
+  conflict-check: true
+
+workers:
+  - name: core-worker
+    role: core
+  - name: code-worker
+    role: implementation
+  - name: test-worker
+    role: quality
+  - name: documentation-worker
+    role: docs
+
+ci_feedback:
+  failure: return_to_worker
+  success: continue_pipeline
+
+merge_policy:
+  mode: controlled-auto-merge
+  require-ci: true
