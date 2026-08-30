@@ -23,29 +23,33 @@ jobs:
   code-worker:
     if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'arvin-auto'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
+      ARVIN_MAX_AUTO_FIX_ATTEMPTS: '3'
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Validate secret
-        run: test -n "$OPENAI_API_KEY"
+      - name: Validate secrets and task
+        run: |
+          test -n "$OPENAI_API_KEY"
+          test -n "$ARVIN_ISSUE_NUMBER"
 
       - name: Configure git
         run: |
           git config user.name "arvin-agent[bot]"
           git config user.email "arvin-agent[bot]@users.noreply.github.com"
 
-      - name: Generate bounded patch
+      - name: Generate, test and self-fix
         run: python3 .github/arvin/agent-runtime.py
 
-      - name: Run tests
+      - name: Final project validation
         run: |
           if [ -f pubspec.yaml ]; then
             flutter --version
@@ -80,13 +84,19 @@ jobs:
           git push --force-with-lease origin "$BRANCH"
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
-      - name: Open pull request
+      - name: Open or reuse pull request
         if: steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr create --repo "$GITHUB_REPOSITORY" \
-            --head "$BRANCH" \
-            --base main \
-            --title "AI Worker: issue #$ARVIN_ISSUE_NUMBER" \
-            --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. CI and required gates must pass before merge."
+          BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
+          EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already exists; branch updated."
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" \
+              --head "$BRANCH" \
+              --base main \
+              --title "AI Worker: issue #$ARVIN_ISSUE_NUMBER" \
+              --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. CI, exact-head validation and promotion gates are required before merge."
+          fi
