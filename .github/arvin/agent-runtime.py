@@ -9,6 +9,7 @@ API = "https://api.openai.com/v1/responses"
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6")
 MAX_FILES = int(os.getenv("ARVIN_MAX_FILES", "20"))
 MAX_DIFF = int(os.getenv("ARVIN_MAX_DIFF_CHARS", "30000"))
+MAX_FIX_ATTEMPTS = int(os.getenv("ARVIN_MAX_AUTO_FIX_ATTEMPTS", "3"))
 
 
 def run(cmd, check=True):
@@ -26,11 +27,7 @@ def github_json(url):
 
 
 def openai(prompt):
-    payload = {
-        "model": MODEL,
-        "input": prompt,
-        "temperature": 0,
-    }
+    payload = {"model": MODEL, "input": prompt, "temperature": 0}
     req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
         "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
         "Content-Type": "application/json",
@@ -59,6 +56,54 @@ def repo_context():
     return "\n".join(files)
 
 
+def project_test():
+    if Path("pubspec.yaml").is_file():
+        commands = [["flutter", "analyze"], ["flutter", "test"]]
+    elif Path("package.json").is_file():
+        commands = [["npm", "test", "--if-present"]]
+    else:
+        return True, "No supported project manifest detected; validation skipped safely."
+    output = []
+    for command in commands:
+        result = run(command, check=False)
+        output.append(f"$ {' '.join(command)}\n{result.stdout}\n{result.stderr}")
+        if result.returncode != 0:
+            return False, "\n".join(output)[-20000:]
+    return True, "\n".join(output)[-20000:]
+
+
+def request_diff(issue_number, title, body, context, failure=""):
+    failure_context = ""
+    if failure:
+        failure_context = f"\nPrevious validation failure:\n{failure}\n"
+    prompt = f"""You are the bounded Arvin Code Worker. Work only on the requested GitHub issue.
+
+Issue #{issue_number}: {title}
+{body}
+
+Repository file inventory:
+{context}
+{failure_context}
+Return ONLY a unified git diff. Do not include markdown fences. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Add or update tests when appropriate. If the issue is not sufficiently specified, return an empty diff.
+"""
+    return openai(prompt)
+
+
+def apply_diff(diff):
+    if not diff or "diff --git" not in diff:
+        return False, "No actionable diff returned"
+    if len(diff) > MAX_DIFF:
+        return False, "Generated diff exceeds safety limit"
+    Path("/tmp/arvin.patch").write_text(diff, encoding="utf-8")
+    check = run(["git", "apply", "--check", "/tmp/arvin.patch"], check=False)
+    if check.returncode != 0:
+        return False, check.stderr[-10000:]
+    applied = run(["git", "apply", "--whitespace=fix", "/tmp/arvin.patch"], check=False)
+    if applied.returncode != 0:
+        return False, applied.stderr[-10000:]
+    return True, "patch applied"
+
+
 def main():
     issue_number = os.environ.get("ARVIN_ISSUE_NUMBER")
     if not issue_number:
@@ -69,22 +114,47 @@ def main():
     title = issue.get("title", "")
     body = issue.get("body", "") or ""
     context = repo_context()
-    prompt = f"""You are the bounded Arvin Code Worker. Work only on the requested GitHub issue.\n\nIssue #{issue_number}: {title}\n{body}\n\nRepository file inventory:\n{context}\n\nReturn ONLY a unified git diff. Do not include markdown fences. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Add or update tests when appropriate. If the issue is not sufficiently specified, return an empty diff.\n"""
-    diff = openai(prompt)
-    if not diff or "diff --git" not in diff:
-        print("No actionable diff returned")
-        return 0
-    if len(diff) > MAX_DIFF:
-        print("Generated diff exceeds safety limit", file=sys.stderr)
-        return 3
-    Path("/tmp/arvin.patch").write_text(diff, encoding="utf-8")
-    result = run(["git", "apply", "--check", "/tmp/arvin.patch"], check=False)
-    if result.returncode != 0:
-        print(result.stderr, file=sys.stderr)
-        return 4
-    run(["git", "apply", "--whitespace=fix", "/tmp/arvin.patch"])
-    print(diff)
-    return 0
+
+    for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
+        diff = request_diff(issue_number, title, body, context)
+        ok, message = apply_diff(diff)
+        if not ok:
+            print(f"Attempt {attempt}: {message}", file=sys.stderr)
+            if attempt == MAX_FIX_ATTEMPTS:
+                return 4
+            run(["git", "reset", "--hard", "HEAD"], check=False)
+            continue
+
+        passed, evidence = project_test()
+        if passed:
+            print(f"AI Worker validation PASS on attempt {attempt}")
+            print(diff)
+            return 0
+
+        print(f"AI Worker validation FAIL on attempt {attempt}\n{evidence}", file=sys.stderr)
+        if attempt == MAX_FIX_ATTEMPTS:
+            return 5
+        failure_diff = run(["git", "diff"], check=False).stdout
+        run(["git", "reset", "--hard", "HEAD"], check=False)
+        context = f"{context}\nCurrent failed patch:\n{failure_diff[-12000:]}"
+        diff = request_diff(issue_number, title, body, context, evidence)
+        ok, message = apply_diff(diff)
+        if not ok:
+            print(f"Fix attempt {attempt} patch rejected: {message}", file=sys.stderr)
+            run(["git", "reset", "--hard", "HEAD"], check=False)
+            continue
+        passed, evidence = project_test()
+        if passed:
+            print(f"AI Worker self-fix PASS on attempt {attempt}")
+            print(diff)
+            return 0
+        if attempt == MAX_FIX_ATTEMPTS:
+            print(evidence, file=sys.stderr)
+            return 5
+        run(["git", "reset", "--hard", "HEAD"], check=False)
+        context = f"{context}\nLatest failed fix evidence:\n{evidence[-12000:]}"
+
+    return 5
 
 
 if __name__ == "__main__":
