@@ -14,6 +14,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: write
 
 concurrency:
   group: arvin-agent-${{ github.event.issue.number || inputs.issue_number }}
@@ -108,3 +109,10 @@ jobs:
           gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
           gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
+
+          # Events created with GITHUB_TOKEN are intentionally not relied on to
+          # recursively start CI. Dispatch Fast explicitly on the exact worker
+          # branch, then wake the canonical orchestrator on main. The
+          # orchestrator polls only this exact head and keeps all merge gates.
+          gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main
