@@ -88,8 +88,8 @@ void main() {
       return null;
     });
 
-    expect(
-      () => SystemCalendarBridge(channel: channel).listDeviceCalendarEvents(
+    await expectLater(
+      SystemCalendarBridge(channel: channel).listDeviceCalendarEvents(
         calendarIds: const <String>['12'],
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 5, 1),
