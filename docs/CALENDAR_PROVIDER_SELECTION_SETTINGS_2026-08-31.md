@@ -8,8 +8,8 @@ Connect the already-merged Android Calendar Provider discovery boundary to the a
 
 `تنظیمات → تقویم و همگام‌سازی → تقویم‌های دستگاه`
 
-- Opening the page checks read-only calendar permission without changing settings.
-- If permission is absent, the user can explicitly request `READ_CALENDAR` access.
+- Opening the page performs no platform permission call and does not change settings.
+- The user explicitly presses the provider-access action before Arvin requests/uses read-only `READ_CALENDAR` access.
 - After approval, Arvin lists calendars returned by the existing `arvin/system_calendar` bridge.
 - Google, Samsung and other Android calendars are identified from provider/account metadata.
 - The user can choose one target calendar and one or more calendars whose external events may later be shown in Arvin.
@@ -22,6 +22,7 @@ This slice still performs no direct event read, create, update, delete, recurren
 ## Validation
 
 Focused widget tests prove:
+- page load is non-mutating and does not require a live platform plugin;
 - pre-existing IDs remain visible before provider access;
 - Google/Samsung provider metadata renders through one common Android path;
 - target/visible selections persist through the canonical settings service;
