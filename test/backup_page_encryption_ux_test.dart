@@ -146,7 +146,42 @@ void main() {
     expect(service.writeCount, 0);
   });
 
-  testWidgets('encrypted restore forwards passphrase and replaces tasks once',
+  testWidgets('restore confirmation cancel never replaces local tasks',
+      (tester) async {
+    final service = _FakeBackupService()
+      ..readResult = <String, dynamic>{
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 'restored-1', 'title': 'بازیابی‌شده'},
+        ],
+      };
+    var replaceCount = 0;
+
+    await tester.pumpWidget(
+      _app(
+        service: service,
+        replaceTasks: (_) async => replaceCount += 1,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(service.readCount, 1);
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    expect(replaceCount, 0);
+
+    await tester.tap(find.byKey(const Key('restore_confirm_cancel')));
+    await tester.pumpAndSettle();
+
+    expect(replaceCount, 0);
+    expect(find.text('اطلاعات با موفقیت بازیابی شد'), findsNothing);
+  });
+
+  testWidgets('encrypted restore confirms then replaces tasks once',
       (tester) async {
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
@@ -177,10 +212,17 @@ void main() {
       'restore-secret',
     );
     await tester.tap(find.byKey(const Key('restore_passphrase_confirm')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(service.readCount, 1);
     expect(service.lastReadPassphrase, 'restore-secret');
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    expect(replaceCount, 0);
+
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pumpAndSettle();
+
     expect(replaceCount, 1);
     expect(replaced?.single['id'], 'restored-1');
     expect(find.text('اطلاعات با موفقیت بازیابی شد'), findsOneWidget);
