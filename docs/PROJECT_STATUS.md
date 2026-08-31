@@ -5,15 +5,13 @@
 GitHub تنها Source of Truth عملیاتی پروژه است. این فایل checkpoint زنده است و قبل از هر تصمیم باید با `main`، PRها، Issueها و exact-head CI دوباره تطبیق داده شود.
 
 - Branch مرجع: `main`
-- snapshot فعلی تأییدشده: `a9078ee58263b7d8fa8cf862305467992e178575`
-- آخرین Merge تأییدشده: PR #601 — `ci(agent): harden Worker reliability on latest main`
-- Merge قبلی مهم: PR #598 — Android Calendar Provider discovery
+- snapshot فعلی تأییدشده: `2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
+- آخرین Merge تأییدشده: PR #605 — `feat(calendar): add bounded read-only device event query`
+- Merge قبلی مهم: PR #601 — Worker reliability / launch authority
+- Calendar Provider discovery: PR #598 روی main
 - Calendar Settings UI: PR #592 روی main
 - Backup restore confirmation: PR #582 روی main
 - AI Worker timeout/budget hardening: PR #579 روی main
-- Calendar date-jump: PR #575 روی main
-- AI Code Worker GitHub-native fallback: PR #574 روی main
-- Production feedback loop: PR #573 روی main
 
 ## Release Blockers
 
@@ -22,8 +20,9 @@ GitHub تنها Source of Truth عملیاتی پروژه است. این فای�
 ## Core / Data
 
 - foundation اصلی Task / Reminder / FollowUp / History / Settings / Calendar / Backup باید reuse شود؛ store/model/repository موازی ممنوع است.
-- merge #601 هیچ product model/store/calendar data path جدیدی معرفی نکرد؛ scope آن workflow/test/docs مربوط به AI Worker بود.
-- merge #598 نیز Core/Data store جدیدی نساخت و فقط boundary اندروید و bridge provider-neutral تقویم را توسعه داد.
+- merge #605 هیچ Task/FollowUp store یا product database جدیدی نساخت؛ فقط bridge موجود `arvin/system_calendar` و مدل provider-neutral خواندن رویداد خارجی را توسعه داد.
+- read خارجی محدود و فقط‌خواندنی است: READ_CALENDAR موجود، حداکثر 20 تقویم و بازه حداکثر 93 روز؛ provider failure/permission denial نباید canonical Arvin data را mutate کند.
+- merge #601 نیز product model/store را تغییر نداد و scope آن automation/test/docs بود.
 - تغییر data-safety بدون migration/compatibility evidence مجاز به promotion نیست.
 
 ## Backup / Restore
@@ -49,26 +48,35 @@ GitHub تنها Source of Truth عملیاتی پروژه است. این فای�
 
 - READ_CALENDAR، permission status/request و Android `CalendarContract` provider enumeration روی `main` است.
 - typed provider metadata برای calendar/accountهای نصب‌شده در bridge موجود اضافه شده است.
-- WRITE_CALENDAR و event read/write/delete sync در این slice اضافه نشده است.
 - provider discovery foundation برای Google/Samsung/سایر تقویم‌های Android provider-neutral است؛ vendor SDK جدا ساخته نشده است.
 
-### PR #602 — Settings provider selection — Draft / exact-head Fast ✅
+### PR #605 — bounded read-only external event query ✅ merged
 
-Head: `1b28ab5fa2e6efa4da56c584fac7fa1445a67f1e`
+Merge SHA / current `main`: `2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 
-- PR باز، Draft و mergeable است.
-- Fast/Parallel run `33396542638` روی همین exact head با conclusion `success` کامل شده است؛ quality/analyze/test و calendar/typography/backup/followup/guide/release surfaces سبز هستند.
-- این slice فهرست واقعی providerها را فقط بعد از اقدام صریح کاربر می‌گیرد، Google/Samsung/other calendars را از همان `SystemCalendarBridge` نشان می‌دهد و target/visible IDs را در `CalendarIntegrationSettings` موجود ذخیره می‌کند.
-- permission/page load بدون selection نباید settings write ایجاد کند.
-- هیچ WRITE_CALENDAR، event read/write/delete، recurrence sync یا background sync اضافه نشده است.
-- base ثبت‌شده PR هنوز `a4c2a3ec...` است و بعد از merge #601، `main` به `a9078ee5...` جلو رفته؛ بنابراین Heavy/Device و promotion باید فقط پس از replay/reconcile روی current main انجام شود. Fast فعلی evidence معتبر exact-head تاریخی است، نه مجوز promotion روی main جدید.
-- branch `feat/calendar-provider-selection-settings-v2` از current `main` ساخته شده و اکنون 3 commit جلوتر از `main` و 0 commit عقب است. compare زنده دقیقاً سه فایل replay را نشان می‌دهد: `lib/calendar_integration_settings_page.dart`، `test/calendar_integration_settings_page_test.dart` و `docs/CALENDAR_PROVIDER_SELECTION_SETTINGS_2026-08-31.md`. این replay هنوز PR/CI current-main مستقل نگرفته و تا آن validation نباید production-ready تلقی شود.
+- bridge موجود با `listDeviceCalendarEvents` توسعه یافته است.
+- Android `CalendarContract.Instances` استفاده می‌شود تا recurrenceها در بازه درخواستی به‌صورت concrete instance خوانده شوند.
+- scope فقط READ_CALENDAR است؛ WRITE_CALENDAR، create/update/delete، Task import، background sync و Work Agenda UI اضافه نشده‌اند.
+- query در هر call به حداکثر 20 calendar و 93 روز محدود است و malformed/denied/unavailable path fail-closed برمی‌گردد.
+- pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` با conclusion `success` کامل شده بود؛ Build/Device روی آن Draft head `skipped` بودند.
+- در زمان این checkpoint برای merge SHA جدید `2ee2adc2...` workflow run مستقیم مشاهده نشد؛ بنابراین current-main post-merge Build/Device سبز ادعا نمی‌شود.
 
-Issue مالک: #597 باز است. Issue #595 پس از merge provider discovery بسته شده است. #348/#516 همچنان scope بزرگ‌تر integration/sync را نگه می‌دارند.
+### PR #604 / #607 — provider selection replay — exact-head validation کامل، ولی main جلو رفته
+
+Shared exact head: `6cdd6cd49ecb038851cce76a2a37e9c499f139fb`
+
+- #604 و #607 هر دو همان سه-file provider-selection implementation را حمل می‌کنند؛ #607 برای Fast رسمی روی API جدید Flutter ساخته شد.
+- exact-head Fast/Parallel run `33406629330`: `success`.
+- exact-head Heavy Build run `33406422054`: `success`؛ quality/test و Debug/Release APK کامل سبز شدند.
+- exact-head Device Smoke run `33406422349`: `success`؛ Home و People هر دو سبز شدند.
+- این evidence برای SHA `6cdd6cd4...` معتبر است، اما `main` بعداً با merge #605 به `2ee2adc2...` جلو رفته است؛ بنابراین #604/#607 بدون reconcile/replay روی current main مجوز promotion ندارند.
+- #604 و #607 هم‌پوشان هستند و نباید هر دو Heavy/merge budget جداگانه مصرف کنند؛ یک canonical replay کافی است.
+
+Issue مالک selection: #597 باز است. #348/#516 همچنان umbrella اجرای read/write/idempotent sync و external projection را نگه می‌دارند.
 
 ### PR #599 — provider-discovery duplicate Draft
 
-PR #599 هنوز باز و Draft است، ولی scope آن توسط merge #598 روی `main` پوشش داده شده است. مگر اینکه live diff gap جدید و غیرتکراری ثابت کند، نباید Heavy/Device یا merge budget مصرف کند.
+PR #599 هنوز باز است، ولی scope آن توسط merge #598 روی `main` پوشش داده شده است. مگر اینکه live diff gap جدید و غیرتکراری ثابت کند، نباید Heavy/Device یا merge budget مصرف کند.
 
 ## Automation / Production Orchestrator
 
@@ -76,31 +84,25 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 
 ### PR #601 — AI Worker launch + patch reliability ✅ merged
 
-Merge SHA / current `main`: `a9078ee58263b7d8fa8cf862305467992e178575`
-
-- AI Worker برای launch عادی `workflow_dispatch`-only شده و Orchestrator authority اصلی dispatch است.
+- normal AI Worker launch `workflow_dispatch`-only است و Orchestrator authority اصلی dispatch است.
 - Production Loop explicit dispatch برای Auto-Fixهای ساخته‌شده با `GITHUB_TOKEN` را حفظ می‌کند.
 - concurrency بر پایه issue input نگه داشته شده است.
-- `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ missing headers / context-invalid patch همچنان fail-closed است.
-- exact-head Fast/Parallel روی head `f2090840...` سبز بود.
-- Heavy Build run `33395334403`: quality + Debug APK + Release APK همگی success.
-- Device run `33395336405`: Home smoke + People smoke هر دو success.
-- PR #601 در 2026-08-31 merge شد؛ Issueهای #588 و #590 نیز completed/closed شده‌اند.
-- PR #600 اکنون historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
+- `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ malformed/context-invalid patch همچنان fail-closed است.
+- PR #600 historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-آخرین Production Loop تأییدشده روی current main که در این checkpoint دیده شد: run `33405071453`، conclusion `success` روی `a9078ee5...`.
+آخرین Production Loop تأییدشده‌ای که در این audit مشاهده شد run `33407326883` با conclusion `success` بود، اما head آن `a9078ee5...` است؛ برای current main `2ee2adc2...` در زمان checkpoint run مستقیم تازه‌ای مشاهده نشد و success روی current head ادعا نمی‌شود.
 
 ## CI / Build
 
-- current main #601 با exact-head Fast و Heavy Build/APK + Device سبز وارد main شد.
-- #602 exact-head Fast سبز دارد، ولی چون main بعد از base آن حرکت کرده است، Heavy برای head تاریخی آن معتبر نیست. current-main replay اکنون روی `feat/calendar-provider-selection-settings-v2` با سه فایل محدود انجام شده و مرحله بعدی باید PR/Exact-head Fast تازه روی همین replay باشد؛ سپس Ready → Heavy Build/APK + Device.
-- Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود؛ gate اصلی برای Draft همان Fast/Parallel است.
+- provider-selection exact head `6cdd6cd4...` دارای Fast + Heavy Build/APK + Device success کامل است، اما با حرکت main توسط #605 stale-for-promotion شده است.
+- merged #605 pre-merge Fast success دارد، ولی Build/Device آن Draft head skipped بودند و در زمان checkpoint post-merge run مستقیم روی `2ee2adc2...` مشاهده نشد؛ پس current-main CI باید جداگانه verify شود.
+- Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
 
 ## Progress / Evidence Dashboard
 
-Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 slice renderer deterministic را تعریف می‌کند. هیچ درصد جدیدی در این checkpoint به‌صورت دستی ادعا نمی‌شود؛ score رسمی فقط باید از scorecard/tool canonical و evidence همان `main` استخراج شود.
+Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 renderer deterministic را تعریف می‌کند. هیچ درصد جدیدی در این checkpoint به‌صورت دستی ادعا نمی‌شود؛ score رسمی فقط باید از scorecard/tool canonical و evidence همان `main` استخراج شود.
 
 ## CI / Merge Contract
 
@@ -114,12 +116,11 @@ Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 s
 
 ## Open operational lanes
 
-- #602 / #597 — Calendar provider selection: historical exact-head Fast سبز؛ head قدیمی برای promotion قابل استفاده نیست.
-- `feat/calendar-provider-selection-settings-v2` — current-main replay انجام شده؛ branch سه commit جلوتر از `main` و صفر commit عقب است و همان سه فایل محدود UI/test/docs را تغییر می‌دهد. هنوز PR/CI current-main تازه لازم است قبل از Heavy/Device/promotion.
-- #599 — provider-discovery duplicate Draft؛ باید supersede/close شود مگر gap جدید اثبات شود.
+- #597 / #604 / #607 — Calendar provider selection: exact-head Fast + Heavy + Device سبز روی `6cdd6cd4...`، ولی پس از merge #605 نیازمند current-main replay/reconcile است؛ فقط یک canonical PR ادامه یابد.
+- #516/#348 — bidirectional Android device-calendar integration: provider discovery + bounded read-only event query روی main هستند؛ external projection به Calendar/Work Agenda و سپس idempotent write/sync هنوز باقی است.
+- #599 — provider-discovery duplicate Draft؛ باید historical/superseded بماند مگر gap واقعی ثابت شود.
 - #600 — Worker reliability historical Draft؛ superseded توسط merged #601 و نباید دوباره promote شود.
 - #578/#583 — evidence-backed Progress Score dashboard: implementation/validation کامل نشده.
-- #516/#348 — bidirectional Android device-calendar integration: provider discovery foundation روی main است؛ event projection/read/write/sync مراحل بعدی هستند.
 
 ## Definition of Done
 
