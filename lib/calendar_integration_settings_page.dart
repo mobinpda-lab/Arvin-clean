@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'services/app_settings_service.dart';
+import 'services/system_calendar_bridge.dart';
 
-/// User-facing controls for the existing device-calendar integration settings.
+/// User-facing controls for device-calendar integration.
 ///
-/// Provider discovery/permissions remain owned by the Android Calendar Provider
-/// lane. This page only edits the canonical persisted preferences that already
-/// exist in [AppSettingsService].
+/// Provider discovery is read-only and uses Android Calendar Provider through
+/// [SystemCalendarBridge]. Persisted choices stay in the existing
+/// [AppSettingsService]; this page does not introduce a second settings store.
 class CalendarIntegrationSettingsPage extends StatefulWidget {
   const CalendarIntegrationSettingsPage({
     super.key,
     required this.service,
+    this.calendarBridge,
   });
 
   final AppSettingsService service;
+  final SystemCalendarBridge? calendarBridge;
 
   @override
   State<CalendarIntegrationSettingsPage> createState() =>
@@ -22,12 +26,18 @@ class CalendarIntegrationSettingsPage extends StatefulWidget {
 
 class _CalendarIntegrationSettingsPageState
     extends State<CalendarIntegrationSettingsPage> {
+  late final SystemCalendarBridge calendarBridge;
   CalendarIntegrationSettings? settings;
+  List<DeviceCalendarInfo> deviceCalendars = const <DeviceCalendarInfo>[];
+  bool providerPermissionGranted = false;
+  bool providerLoading = false;
   bool saving = false;
+  String? providerError;
 
   @override
   void initState() {
     super.initState();
+    calendarBridge = widget.calendarBridge ?? SystemCalendarBridge();
     _load();
   }
 
@@ -35,6 +45,34 @@ class _CalendarIntegrationSettingsPageState
     final appSettings = await widget.service.load();
     if (!mounted) return;
     setState(() => settings = appSettings.calendarIntegration);
+  }
+
+  Future<void> _loadProviderCalendars() async {
+    if (providerLoading) return;
+    setState(() {
+      providerLoading = true;
+      providerError = null;
+    });
+    try {
+      final granted = await calendarBridge.requestReadPermission();
+      final calendars = granted
+          ? await calendarBridge.listDeviceCalendars()
+          : const <DeviceCalendarInfo>[];
+      if (!mounted) return;
+      setState(() {
+        providerPermissionGranted = granted;
+        deviceCalendars = calendars;
+      });
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        providerPermissionGranted = false;
+        deviceCalendars = const <DeviceCalendarInfo>[];
+        providerError = error.message ?? error.code;
+      });
+    } finally {
+      if (mounted) setState(() => providerLoading = false);
+    }
   }
 
   Future<void> _save(CalendarIntegrationSettings next) async {
@@ -63,6 +101,117 @@ class _CalendarIntegrationSettingsPageState
       subtitle: Text(subtitle),
       value: value,
       onChanged: saving ? null : (enabled) => _save(update(enabled)),
+    );
+  }
+
+  String _providerLabel(DeviceCalendarInfo calendar) {
+    final type = calendar.accountType?.toLowerCase() ?? '';
+    if (type.contains('google')) return 'Google Calendar';
+    if (type.contains('samsung') || type.contains('osp')) {
+      return 'Samsung Calendar';
+    }
+    return calendar.accountName ?? 'تقویم دستگاه';
+  }
+
+  Widget _providerSelection(CalendarIntegrationSettings current) {
+    if (providerLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: LinearProgressIndicator(),
+      );
+    }
+
+    if (!providerPermissionGranted) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'برای دیدن تقویم‌های نصب‌شده، دسترسی فقط‌خواندنی تقویم لازم است. آروین در این مرحله هیچ رویدادی را مستقیم ایجاد، ویرایش یا حذف نمی‌کند.',
+              ),
+              if (providerError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'دسترسی تقویم در دسترس نیست: $providerError',
+                  key: const ValueKey('calendar-provider-error'),
+                ),
+              ],
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                key: const ValueKey('calendar-request-provider-permission'),
+                onPressed: _loadProviderCalendars,
+                icon: const Icon(Icons.event_available_outlined),
+                label: const Text('بررسی و دریافت دسترسی تقویم گوشی'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (deviceCalendars.isEmpty) {
+      return const ListTile(
+        key: ValueKey('calendar-provider-empty'),
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.event_busy_outlined),
+        title: Text('تقویمی روی دستگاه پیدا نشد'),
+        subtitle: Text('پس از اضافه‌شدن حساب تقویم در گوشی، دوباره این صفحه را باز کنید.'),
+      );
+    }
+
+    return Column(
+      children: deviceCalendars.map((calendar) {
+        final visible = current.visibleCalendarIds.contains(calendar.id);
+        return Card(
+          key: ValueKey('calendar-provider-${calendar.id}'),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(
+                  calendar.isPrimary
+                      ? Icons.star_outline_rounded
+                      : Icons.calendar_month_outlined,
+                ),
+                title: Text(calendar.displayName),
+                subtitle: Text(
+                  '${_providerLabel(calendar)}${calendar.accountName == null ? '' : ' • ${calendar.accountName}'}',
+                ),
+              ),
+              RadioListTile<String>(
+                key: ValueKey('calendar-target-${calendar.id}'),
+                title: const Text('تقویم مقصد آروین'),
+                subtitle: const Text('برای ارسال موارد آروین در مراحل همگام‌سازی بعدی'),
+                value: calendar.id,
+                groupValue: current.targetCalendarId,
+                onChanged: saving
+                    ? null
+                    : (value) {
+                        if (value == null) return;
+                        _save(current.copyWith(targetCalendarId: value));
+                      },
+              ),
+              CheckboxListTile(
+                key: ValueKey('calendar-visible-${calendar.id}'),
+                title: const Text('نمایش رویدادهای این تقویم در آروین'),
+                value: visible,
+                onChanged: saving
+                    ? null
+                    : (checked) {
+                        final nextIds = <String>{...current.visibleCalendarIds};
+                        if (checked == true) {
+                          nextIds.add(calendar.id);
+                        } else {
+                          nextIds.remove(calendar.id);
+                        }
+                        _save(current.copyWith(visibleCalendarIds: nextIds));
+                      },
+              ),
+            ],
+          ),
+        );
+      }).toList(growable: false),
     );
   }
 
@@ -99,7 +248,7 @@ class _CalendarIntegrationSettingsPageState
                     key: const ValueKey('calendar-sync-outbound'),
                     title: 'ارسال کارهای آروین به تقویم',
                     subtitle:
-                        'پس از آماده‌شدن Calendar Provider، موارد انتخاب‌شده به تقویم مقصد همگام می‌شوند.',
+                        'موارد انتخاب‌شده فقط پس از تکمیل موتور همگام‌سازی به تقویم مقصد ارسال خواهند شد.',
                     value: current.syncArvinToDevice,
                     update: (value) =>
                         current.copyWith(syncArvinToDevice: value),
@@ -117,7 +266,7 @@ class _CalendarIntegrationSettingsPageState
                     title: const Text('تقویم مقصد'),
                     subtitle: Text(
                       current.targetCalendarId == null
-                          ? 'هنوز انتخاب نشده؛ پس از دریافت دسترسی و شناسایی Calendar Provider قابل انتخاب می‌شود.'
+                          ? 'هنوز انتخاب نشده است.'
                           : 'شناسه فعلی: ${current.targetCalendarId}',
                     ),
                   ),
@@ -132,8 +281,10 @@ class _CalendarIntegrationSettingsPageState
                           : '${current.visibleCalendarIds.length} تقویم انتخاب شده: ${current.visibleCalendarIds.join('، ')}',
                     ),
                   ),
+                  _providerSelection(current),
+                  const SizedBox(height: 8),
                   const Text(
-                    'آروین برای Google Calendar و Samsung Calendar موتور جداگانه نمی‌سازد؛ هر دو از Calendar Provider اندروید استفاده خواهند کرد.',
+                    'Google Calendar، Samsung Calendar و سایر تقویم‌های اندروید از یک Calendar Provider مشترک استفاده می‌کنند؛ آروین موتور جداگانه و تکراری برای هر برند نمی‌سازد.',
                   ),
                   const Divider(height: 32),
                   const Text(
@@ -183,7 +334,7 @@ class _CalendarIntegrationSettingsPageState
                     key: const ValueKey('calendar-auto-sync'),
                     title: 'همگام‌سازی خودکار',
                     subtitle:
-                        'اجرای واقعی پس از اتصال Calendar Provider فعال خواهد شد.',
+                        'اجرای واقعی پس از تکمیل موتور همگام‌سازی فعال خواهد شد.',
                     value: current.autoSync,
                     update: (value) => current.copyWith(autoSync: value),
                   ),
