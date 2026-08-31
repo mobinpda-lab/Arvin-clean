@@ -136,18 +136,23 @@ class _JalaliDateJumpDialogState extends State<_JalaliDateJumpDialog> {
               ),
               SizedBox(
                 width: 88,
-                child: DropdownButtonFormField<int>(
-                  key: const ValueKey('calendar-jump-day'),
-                  initialValue: _day,
+                child: InputDecorator(
                   decoration: const InputDecoration(labelText: 'روز'),
-                  items: [
-                    for (var day = 1; day <= maxDay; day++)
-                      DropdownMenuItem(value: day, child: Text('$day')),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => _day = value);
-                  },
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      key: const ValueKey('calendar-jump-day'),
+                      value: _day,
+                      isExpanded: true,
+                      items: [
+                        for (var day = 1; day <= maxDay; day++)
+                          DropdownMenuItem(value: day, child: Text('$day')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _day = value);
+                      },
+                    ),
+                  ),
                 ),
               ),
             ],
