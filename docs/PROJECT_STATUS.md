@@ -1,93 +1,88 @@
 # Arvin — Project Status
 
-## وضعیت زنده — 2026-08-27
+## وضعیت زنده — 2026-08-31
 
-GitHub تنها Source of Truth عملیاتی پروژه است. هر SHA، PR، CI، درصد یا وضعیت باید قبل از اقدام دوباره از GitHub تازه بررسی شود.
+GitHub تنها Source of Truth عملیاتی پروژه است. این فایل checkpoint زنده است و قبل از هر تصمیم باید با `main`، PRها، Issueها و exact-head CI دوباره تطبیق داده شود.
 
 - Branch مرجع: `main`
-- snapshot مبنا: `bec99214534a8c9972f9e3145dde792cecf2f9e3`
-- آخرین Merge: PR #245 — audit مرز canonical Privacy / Encryption
-- Mergeهای مهم همین موج: #243 deterministic Device lane، #242 Semantic Search v1، #247 parallel APK Build، #245 Privacy audit
-- post-#242 main: Build #829 ✅ / Device #69 ✅
-- post-#247 main: Build #832 ✅ / Device #72 ✅
-- #245 exact head: Parallel #754 ✅ / Build #834 ✅ / Device #74 ✅
-- post-#245 main: Build #835 و Device Smoke بعد از Merge فعال شده‌اند و باید قبل از ادعای post-merge green دوباره خوانده شوند.
-- Project A-H: **70.0%**
-- Extension roadmap: **25.0% overall / 59.4% Wave X1**
+- snapshot فعلی: `377da2dfe0a5de6b998e2cfa520d13972918b4a9`
+- آخرین Merge تأییدشده: PR #582 — `fix(backup): confirm before replacing local data on latest main`
+- Merge مهم قبلی: PR #579 — سخت‌سازی خروجی patch و budget/timeout ارائه‌دهنده AI Worker
+- Calendar date-jump روی main: PR #575
+- AI Code Worker GitHub-native fallback روی main: PR #574
+- Production feedback loop روی main: PR #573
 
-## قرارداد اجرای سریع
+## Release / Data Safety
 
-هدف، تحویل در چند ساعت به‌جای چند روز است، بدون قربانی‌کردن صحت:
+### Backup / Restore — PR #582 ✅ merged
 
-1. Audit زنده GitHub قبل از تصمیم.
-2. Laneهای مستقل هم‌زمان؛ Block یک Lane نباید بقیه را متوقف کند.
-3. Merge فقط با evidence همان Head SHA.
-4. بعد از Merge، `main` دوباره Build + Device Smoke می‌شود.
-5. Implementation، Tests، Automation و Documentation هم‌زمان جلو می‌روند.
-6. Foundation موازی برای Task/FollowUp/Search/Backup/Sync/Widget/Storage ممنوع است مگر audit مستقل آن را توجیه کند.
-7. PR کوچک، بازسازی‌پذیر و با conflict surface محدود ترجیح دارد.
+- معماری Backup/Restore، encryption و callbackهای موجود حفظ شده‌اند.
+- پس از خواندن موفق backup و قبل از جایگزینی Taskهای فعلی، تأیید صریح کاربر لازم است.
+- Cancel نباید mutation ایجاد کند.
+- تعداد Taskهای ورودی در هشدار نمایش داده می‌شود.
+- failure behavior فایل invalid/encrypted حفظ شده است.
 
-## Foundation فعلی
+این تغییر از مسیر current-main تازه بازسازی شد و branch قدیمی #580 بدون merge بسته شد.
 
-مسیر canonical محصول همچنان:
+## Automation / Production Orchestrator
 
-`Task / Unified Item → Reminder → FollowUps[] → History`
+Production Orchestrator همچنان authority اصلی promotion/merge است. Worker و Production Loop مجاز به bypass کردن Fast/Build/Device یا merge مستقیم نیستند.
 
-Home، Search، Today، FollowUp، Timeline، Reminder، Calendar، Backup، Settings، Widget و Report باید همین foundation را مصرف کنند.
+### PR #593 — AI Worker reliability — Draft / Fast green
 
-## تحویل‌های اخیر
+Head: `76aa045af3450fbe3b7855c39d204af1a8babf05`
 
-### Semantic Search v1 — PR #242
-- روی `TaskSearchService` موجود ادغام شد؛ Search engine/UI/index/database دوم ساخته نشد.
-- aliasهای محدود فارسی با OR داخل گروه و AND بین termها.
-- exact-head: Parallel #751 / Build #826 / Device #66 ✅
-- post-merge: Build #829 / Device #69 ✅
-- Issue #241 بسته شد.
+- Orchestrator به launch authority عادی Worker تبدیل می‌شود؛ Worker `workflow_dispatch`-only می‌شود.
+- Production Loop dispatch صریح Auto-Fixهای token-created را حفظ می‌کند.
+- concurrency فقط با issue input کلید می‌خورد.
+- `git apply --recount` فقط بعد از validation ساختاری استفاده می‌شود تا hunk-count عددی اشتباه recover شود؛ context/header خراب همچنان fail-closed می‌ماند.
+- Fast/Parallel Wave run #1283 روی همین head موفق است؛ Build/Device در Draft طبق قرارداد skip شده‌اند.
+- PRهای #589 و #591 supersede و بسته شده‌اند تا Heavy validation تکراری ساخته نشود.
 
-### Deterministic Device validation — PR #243
-- مسیر `device/**` برای exact-ref Device Smoke اضافه شد.
-- API/automation دیگر برای smoke دقیق به delivery اتفاقی PR event وابسته نیست.
+Issues مالک: #588 و #590.
 
-### Faster Build — PR #247
-- Analyze/tests یک بار در `quality` اجرا می‌شوند.
-- Release و Debug APK بعد از آن به‌صورت matrix مستقل و موازی ساخته/verify/upload می‌شوند.
-- exact-head: Parallel #753 / Build #831 / Device #71 ✅
-- post-merge: Build #832 / Device #72 ✅
+## Calendar
 
-### Privacy / Encryption boundary — PR #245
-- مرز امن اولین implementation روی همان portable backup bytes موجود تعریف شد.
-- legacy plaintext v1 باید قابل خواندن بماند.
-- encrypted envelope آینده باید versioned و authenticated باشد.
-- local TaskStore encryption و multi-device sync عمداً از این slice جدا نگه داشته شدند.
-- credential/token نباید وارد portable Settings/backup شود؛ regression اجرایی دارد.
-- Issue #248 قدم بعدی implementation را بدون شروع premature code ثبت کرده است.
+### PR #592 — Device Calendar Settings UI — Draft / Fast green
 
-## Score رسمی
+Head: `7c75439189221be5d631b7a21866bde82a435e9b`
 
-### Project gates A-H
-A=70, B=70, C=70, D=70, E=70, F=70, G=70, H=70 → **70.0%**.
+- entry رسمی `تقویم و همگام‌سازی` در Settings canonical.
+- reuse فقط از `CalendarIntegrationSettings` و `AppSettingsService` موجود.
+- toggleهای safe برای intentهای sync و نمایش external eventها.
+- provider IDs تا زمان Android Calendar Provider discovery read-only می‌مانند.
+- حذف linked external event به‌صورت پیش‌فرض OFF است.
+- Fast/Parallel Wave run #1282 روی همین head موفق است؛ Build/Device در Draft طبق قرارداد skip شده‌اند.
+- PR #586 پس از حرکت main supersede و بسته شد.
 
-رسیدن به 85/100 هنوز به physical-device/E2E و closureهای تعریف‌شده در scorecard وابسته است؛ emulator/CI به‌تنهایی باعث افزایش مصنوعی نمی‌شود.
+Issue مالک: #584. Target بزرگ‌تر Bidirectional Device Calendar Integration در #516 باقی است و provider discovery/read/write هنوز خارج از این slice است.
 
-### Extension roadmap
-- Semantic Search: **85**
-- Privacy / Encryption: **10** (audit؛ implementation هنوز شروع نشده)
-- Overall: **25.0%**
-- Wave X1: **59.4%**
+## Progress / Evidence Dashboard
 
-## Laneهای بعدی
+Issue #578 همچنان باز است: Progress Score باید به dashboard زنده evidence-backed تبدیل شود بدون ساخت score source دوم. Issue #583 slice محدود renderer deterministic را تعریف کرده است. هیچ درصد جدیدی در این checkpoint به‌صورت دستی ادعا نمی‌شود؛ score رسمی باید فقط از scorecard/tool canonical و evidence همان main استخراج شود.
 
-1. بستن post-merge Build/Device روی main فعلی.
-2. Merge کردن همین refresh مستندات پس از Progress Score + Fast Lane دقیق.
-3. سپس Issue #248: prototype کوچک encrypted backup envelope روی همان `ArvinBackupService`؛ legacy-v1 read + authenticated-failure tests، بدون local TaskStore encryption یا Sync موازی.
-4. انتخاب Gap محصولی بعدی فقط بعد از audit زنده backlog/roadmap.
+## Core / Data Invariants
+
+- foundation اصلی محصول باید reuse شود؛ Task/FollowUp/Reminder/Calendar/Backup/Settings/Report نباید store/model/repository موازی بسازند.
+- تغییر data-safety بدون migration/compatibility evidence مجاز به promotion نیست.
+- Calendar integration باید روی foundation موجود و Android Calendar Provider adapter مشترک بنا شود؛ engine مستقل Google/Samsung ساخته نشود.
+
+## CI / Merge Contract
+
+1. هر Lane از current `main` ساخته یا reconcile شود.
+2. Draft فقط Fast/Parallel را می‌گیرد؛ Heavy Build/APK/Device باید بعد از Ready روی همان exact head انجام شود.
+3. Merge فقط با current-main ancestry، exact-head evidence و mergeability زنده.
+4. Mergeها serial هستند؛ انتظار یک Lane نباید Lane مستقل سالم را متوقف کند.
+5. PR/branch stale باید rebuild/reconcile شود، نه force merge.
+6. Documentation نباید validation سالم Product/Automation را stale کند؛ docs-only تغییرات در Lane جدا نگه داشته می‌شوند.
+
+## Open operational lanes
+
+- #592 — Calendar settings UI: Fast green، هنوز Draft/Heavy pending.
+- #593 — Worker launch + patch reliability: Fast green، هنوز Draft/Heavy pending.
+- #578/#583 — evidence-backed Progress Score dashboard: هنوز implementation/validation کامل نشده.
+- #516/#348 — bidirectional Android device-calendar integration: مراحل provider discovery/read/write و projection هنوز باقی است.
 
 ## Definition of Done
 
-قابلیت فقط وقتی Done است که مسیر canonical، UI/عملیات واقعی حسب نیاز، regression/E2E، CI دقیق، APK/device evidence و Status/Handoff همگرا باشند.
-
-## Trigger ادامه
-
-`ادامه آروین` یعنی:
-
-`Fresh GitHub audit → reconcile docs → parallel independent work → exact-head validation → safe merge → post-merge validation → next smallest real gap → document → short nontechnical owner report`
+قابلیت فقط وقتی Done است که implementation واقعی، مسیر canonical، تست، exact-head CI، Build/APK/Device لازم، merge امن و مستندات همگرا باشند. Conversation memory یا CI head قدیمی evidence برای head جدید نیست.
