@@ -36,6 +36,16 @@ void main() {
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
 
+    // Real failures are routed explicitly into the one Production Loop rather
+    // than depending on a recursive workflow_run callback from GITHUB_TOKEN.
+    expect(text, contains('async function reportFailure(run)'));
+    expect(text, contains("!['failure', 'timed_out'].includes(run?.conclusion)"));
+    expect(text, contains("workflow_id: 'arvin-production-loop.yml'"));
+    expect(text, contains('failure_head_sha: String(run.head_sha)'));
+    expect(text, contains('await reportFailure(fast);'));
+    expect(text, contains('await reportFailure(build);'));
+    expect(text, contains('await reportFailure(device);'));
+
     // Merge stays opt-in, current-main locked, exact-head locked and serial.
     expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
     expect(text, contains('preMergeMain.data.commit.sha !== mainSha'));
@@ -67,5 +77,21 @@ void main() {
       worker,
       contains(r'gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"'),
     );
+  });
+
+  test('production feedback ignores cancellations and explicitly launches worker', () {
+    final loop = File('.github/workflows/arvin-production-loop.yml').readAsStringSync();
+
+    expect(loop, contains('failure_workflow:'));
+    expect(loop, contains('failure_run_url:'));
+    expect(loop, contains('failure_head_sha:'));
+    expect(loop, contains('failure_conclusion:'));
+    expect(loop, contains("if (conclusion === 'cancelled')"));
+    expect(loop, contains('no Auto-Fix task is created'));
+    expect(loop, contains("!['failure', 'timed_out'].includes(conclusion)"));
+    expect(loop, contains('Auto-Fix already exists'));
+    expect(loop, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(loop, contains("inputs: { issue_number: String(created.data.number) }"));
+    expect(loop, isNot(contains("['failure', 'cancelled', 'timed_out'].includes(conclusion)")));
   });
 }
