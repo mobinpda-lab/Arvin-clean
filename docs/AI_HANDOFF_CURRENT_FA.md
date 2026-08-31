@@ -9,97 +9,84 @@
 در هر گفتگوی جدید یا Trigger «ادامه آروین»:
 
 1. `main`، PRهای باز، Issueهای فعال، Head SHAها و workflowهای همان Head را تازه از GitHub بخوان.
-2. این Handoff و `docs/PROJECT_STATUS.md` و scorecardها را با GitHub تطبیق بده؛ GitHub مقدم است.
+2. این Handoff و `docs/PROJECT_STATUS.md` را با GitHub تطبیق بده؛ GitHub مقدم است.
 3. قبل از foundation/model/storage جدید، کد canonical موجود را بخوان.
 4. کوچک‌ترین Gap واقعی و مستقل را انتخاب کن؛ Laneهای غیرمسدود را موازی ادامه بده.
-5. Merge فقط با exact-head evidence؛ سپس `main` را دوباره Build + Device validate کن.
+5. Merge فقط با exact-head evidence؛ mergeها سریالی باشند و سپس `main` دوباره Build + Device validate شود.
+6. Documentation هم‌زمان جلو برود، اما هیچ docs commit نباید PR validation سالم را بی‌دلیل stale کند.
 
-## Live Checkpoint — 2026-08-27
+## Live Checkpoint — 2026-08-31
 
-Snapshot مبنا:
+Snapshot فعلی `main`:
 
-`bec99214534a8c9972f9e3145dde792cecf2f9e3`
+`eb52e32f0c49e0ee83a57a4bb6a04157ef1114ed`
 
-این main نتیجه Merge PR #245 است.
+آخرین Merge تأییدشده: PR #575 — `fix(calendar): add explicit Jalali date jump on current main`.
 
-### Verified recent merges
+### Verified recent delivery
 
-- #243 — deterministic `device/**` exact-ref Device Smoke lane
-- #242 — Persian Semantic Search v1 on existing `TaskSearchService`
-- #247 — Build matrix: shared quality + parallel release/debug APK jobs
-- #245 — canonical Privacy / Encryption boundary audit
-
-### Verified evidence
-
-- #242 head: Parallel #751 / Build #826 / Device #66 ✅
-- post-#242 main: Build #829 / Device #69 ✅
-- #247 head: Parallel #753 / Build #831 / Device #71 ✅
-- post-#247 main: Build #832 / Device #72 ✅
-- #245 head: Parallel #754 / Build #834 / Device #74 ✅
-- post-#245 main: Build #835 + Device Smoke were triggered after merge; re-read live status before claiming post-merge success.
-
-## Official Scores
-
-- Project A-H: **70.0%**
-- Extension: **25.0% overall**
-- Wave X1: **59.4%**
-
-No score may increase from unmerged work. Project gates remain capped at 70 until their physical-device/E2E acceptance gaps are actually closed.
+- #575 — پرش مستقیم به تاریخ جلالی در Calendar؛ exact-head Fast + Analyze/Test + Debug/Release APK + Home/People Device Smoke سبز.
+- #574 — GitHub-native/Copilot fallback برای AI Worker روی main؛ ابزارهای Copilot read-only و Worker non-merge boundary حفظ شده است.
+- Production Loop روی main فعلی بعد از #575 موفق بوده است.
 
 ## Active Parallel Lanes
 
-### 1. Main health
+### 1. #579 — AI Worker hardening
 
-Close post-#245 Build #835 + Device Smoke on exact current main.
+Head: `25f243617f95728ad323a034266b224ca52637fb`
 
-### 2. Documentation — PR #227
+- Parallel/Fast: موفق.
+- ARVIN Orchestrator: موفق روی PR event.
+- Production Loop: موفق روی PR event.
+- Heavy Build و Device Smoke برای exact head با workflow_dispatch فعال شده‌اند؛ قبل از سبز شدن کامل merge نکن.
+- Scope: unified-diff validation، BOM/CRLF/fence normalization، provider timeout و retry budget، کاهش درخواست provider.
+- Product model/storage/UI را تغییر نمی‌دهد.
 
-This PR has been rebuilt on the post-#245 main. It must validate the scorecards via Arvin Progress Score and pass the normal exact-head Fast Lane before merge. It credits only merged evidence.
+### 2. #580 — Backup restore confirmation
 
-### 3. Security implementation — Issue #248
+Head فعلی: `1c562afa069c8abfbc8a2b24fdaadf75016a9f57`
 
-Next narrow slice after audit acceptance:
+- Draft و مستقل از #579.
+- safety UX: Restore بعد از خواندن فایل، قبل از replace نیاز به تأیید صریح دارد؛ Cancel صفر mutation.
+- Fast قبلی روی دو widget test جدید `pumpAndSettle timeout` داشت، نه product logic failure.
+- تست اصلاح شده و چون head عوض شده، exact-head Fast باید دوباره اجرا و مبنا قرار گیرد.
 
-`canonical validated backup bytes → versioned authenticated encrypted envelope → SAF / Cloud`
+## Release Blockers — current reality
 
-Restore:
-
-`SAF / Cloud → detect envelope → authenticate/decrypt → existing backup validation → restore candidate`
-
-Required:
-- legacy plaintext v1 read compatibility
-- authenticated corruption/tamper failure before mutation
-- recoverable cross-device key/passphrase design
-- same SAF/cloud byte path
-- no credential serialization
-
-Forbidden in this slice:
-- local `TaskStore` encryption migration
-- multi-device Sync implementation
-- second backup repository/database/path
-- hard-coded or device-only recovery assumption
+1. تکمیل Heavy exact-head evidence #579؛ اگر سبز شد، merge سریالی و post-merge Build/Device روی main جدید.
+2. revalidate #580 روی head جدید؛ سپس Ready → Heavy Build/Device → merge فقط بعد از main sanity.
+3. اثبات عملی یک چرخه واقعی AI Worker: Issue → patch معتبر → PR → CI، بدون merge خودکار یا دخالت foundation جدید.
+4. PRهای تاریخی/stale از baseهای قدیمی evidence فعلی نیستند و قبل از promotion باید روی current main rebuild/reconcile شوند.
 
 ## Product/Foundation Invariants
 
 - Persian RTL Flutter app.
 - Canonical foundation: `Task / Unified Item → Reminder → FollowUps[] → History`.
-- Home/Search/Today/Timeline/FollowUp/Calendar/Backup/Settings/Widget/PDF must converge on shared existing foundations.
-- Semantic Search remains deterministic/local v1; no required embeddings/network/index/database/search UI second path.
-- Backup SAF and cloud must continue sharing one canonical byte representation.
+- Home/Search/Today/Timeline/FollowUp/Calendar/Backup/Settings/Widget/PDF باید foundation موجود را reuse کنند.
+- Task model/store دوم ممنوع است مگر audit تازه الزام کند.
+- Backup SAF/cloud/encryption باید روی canonical byte/document path موجود همگرا بمانند.
+- Calendar داخلی موجود و validate شده است؛ external Google/Samsung sync موضوع مستقل است.
 
 ## Fast Lane Contract
 
-- Draft PR → Parallel Wave; heavy Build/Device skip.
+- Draft PR → Parallel Wave؛ Heavy Build/Device skip.
 - Ready PR → Build + Device.
-- Build → one `quality` job then independent parallel `apk (release)` / `apk (debug)` matrix jobs.
-- `device/**` provides deterministic exact-ref smoke fallback for automation/API delivery.
-- Do not create exact-ref fallback runs when normal PR event evidence already arrived unless needed; avoid duplicate CI.
-- Exact-head SHA must be rechecked immediately before merge.
+- Build → quality/analyze/tests سپس APK release/debug مستقل.
+- Device → Home + People smoke.
+- exact-head evidence تنها evidence معتبر برای merge است.
+- mergeها سریالی؛ بعد از هر merge، main دوباره validate می‌شود.
+- docs lane نباید برای «به‌روز بودن» مصنوعی، main را حرکت دهد و validation laneها را stale کند.
+
+## Documentation Rule
+
+- `PROJECT_STATUS.md` و این فایل checkpoint زنده‌اند.
+- اسناد موضوعی قدیمی تاریخچه هستند و حذف/بازنویسی بی‌دلیل ممنوع است.
+- اگر در یک بازه ساعتی تغییر معناداری در main/PR/evidence/Blocker رخ نداده باشد، docs commit نویزی ساخته نشود.
 
 ## Continuation Trigger
 
 «ادامه آروین» یعنی:
 
-`Fresh GitHub audit → reconcile stale docs → continue independent lanes in parallel → avoid duplicate foundations → validate exact head → merge safe work → post-merge validate → next real vertical slice → document → short nontechnical report`
+`Fresh GitHub audit → reconcile stale docs → continue independent lanes in parallel → avoid duplicate foundations → validate exact head → safe serial merge → post-merge validate → next real vertical slice → document in parallel → short nontechnical report`
 
 Repository reality always overrides conversation memory.
