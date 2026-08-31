@@ -45,6 +45,31 @@ void main() {
     expect('diff = request_diff('.allMatches(runtime).length, 1);
   });
 
+  test('AI worker has exactly one explicit launch authority', () {
+    final worker = File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
+    final router = File('.github/workflows/arvin-orchestrator.yml').readAsStringSync();
+    final productionLoop = File('.github/workflows/arvin-production-loop.yml').readAsStringSync();
+
+    // The worker itself is dispatch-only. It must not independently react to
+    // an arvin-auto label while the canonical router is already dispatching it.
+    expect(worker, contains('workflow_dispatch:'));
+    expect(worker, isNot(contains('\n  issues:\n')));
+    expect(worker, contains(r'group: arvin-agent-${{ inputs.issue_number }}'));
+    expect(worker, contains(r'ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}'));
+    expect(worker, isNot(contains("github.event.label.name == 'arvin-auto'")));
+
+    // User-created actionable issues are dispatched by ARVIN Orchestrator.
+    expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(router, contains('createWorkflowDispatch'));
+    expect(router, contains('<!-- arvin-worker-dispatch -->'));
+
+    // GITHUB_TOKEN-created Auto-Fix issues cannot rely on recursive events, so
+    // the Production Loop also explicitly dispatches the same worker exactly
+    // at creation time.
+    expect(productionLoop, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(productionLoop, contains('createWorkflowDispatch'));
+  });
+
   test('AI worker cannot become a second merge authority', () {
     final workflow = File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
 
