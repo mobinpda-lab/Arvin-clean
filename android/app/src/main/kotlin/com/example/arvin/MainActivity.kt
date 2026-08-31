@@ -1,6 +1,7 @@
 package com.example.arvin
 
 import android.Manifest
+import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
@@ -117,6 +118,62 @@ class MainActivity : FlutterActivity() {
                         )
                     }
                 }
+                METHOD_LIST_DEVICE_CALENDAR_EVENTS -> {
+                    if (!hasCalendarReadPermission()) {
+                        result.error(
+                            "calendar_permission_denied",
+                            "Calendar read permission is required",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+
+                    val calendarIds = call.argument<List<String>>("calendarIds")
+                        ?.map { it.trim() }
+                        ?.filter { it.isNotEmpty() }
+                        ?.distinct()
+                        .orEmpty()
+                    val startMillis = call.argument<Number>("startMillis")?.toLong()
+                    val endMillis = call.argument<Number>("endMillis")?.toLong()
+
+                    if (
+                        calendarIds.isEmpty() ||
+                        calendarIds.size > MAX_EVENT_QUERY_CALENDARS ||
+                        startMillis == null ||
+                        endMillis == null ||
+                        endMillis <= startMillis ||
+                        endMillis - startMillis > MAX_EVENT_QUERY_WINDOW_MILLIS
+                    ) {
+                        result.error(
+                            "invalid_event_query",
+                            "Calendar event query must use 1-$MAX_EVENT_QUERY_CALENDARS calendars and a bounded positive time window",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        result.success(
+                            readDeviceCalendarEvents(
+                                calendarIds = calendarIds,
+                                startMillis = startMillis,
+                                endMillis = endMillis,
+                            ),
+                        )
+                    } catch (error: SecurityException) {
+                        result.error(
+                            "calendar_query_denied",
+                            "Android Calendar Provider denied event access",
+                            error.message,
+                        )
+                    } catch (error: RuntimeException) {
+                        result.error(
+                            "calendar_query_failed",
+                            "Android Calendar Provider event query failed",
+                            error.message,
+                        )
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -194,6 +251,83 @@ class MainActivity : FlutterActivity() {
         return calendars
     }
 
+    private fun readDeviceCalendarEvents(
+        calendarIds: List<String>,
+        startMillis: Long,
+        endMillis: Long,
+    ): List<Map<String, Any?>> {
+        val instancesUri = CalendarContract.Instances.CONTENT_URI.buildUpon().also { builder ->
+            ContentUris.appendId(builder, startMillis)
+            ContentUris.appendId(builder, endMillis)
+        }.build()
+        val projection = arrayOf(
+            CalendarContract.Instances._ID,
+            CalendarContract.Instances.EVENT_ID,
+            CalendarContract.Instances.CALENDAR_ID,
+            CalendarContract.Instances.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Instances.TITLE,
+            CalendarContract.Instances.DESCRIPTION,
+            CalendarContract.Instances.BEGIN,
+            CalendarContract.Instances.END,
+            CalendarContract.Instances.ALL_DAY,
+            CalendarContract.Instances.EVENT_TIMEZONE,
+            CalendarContract.Instances.RRULE,
+            CalendarContract.Instances.STATUS,
+        )
+        val placeholders = calendarIds.joinToString(",") { "?" }
+        val selection =
+            "${CalendarContract.Instances.CALENDAR_ID} IN ($placeholders) AND " +
+                "(${CalendarContract.Instances.STATUS} IS NULL OR ${CalendarContract.Instances.STATUS} != ?)"
+        val selectionArgs = (calendarIds + CalendarContract.Events.STATUS_CANCELED.toString())
+            .toTypedArray()
+
+        val events = mutableListOf<Map<String, Any?>>()
+        contentResolver.query(
+            instancesUri,
+            projection,
+            selection,
+            selectionArgs,
+            "${CalendarContract.Instances.BEGIN} ASC, ${CalendarContract.Instances.END} ASC",
+        )?.use { cursor ->
+            val instanceIdIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances._ID)
+            val eventIdIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID)
+            val calendarIdIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
+            val calendarNameIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.CALENDAR_DISPLAY_NAME,
+            )
+            val titleIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.TITLE)
+            val descriptionIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.DESCRIPTION,
+            )
+            val beginIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
+            val endIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.END)
+            val allDayIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY)
+            val timezoneIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.EVENT_TIMEZONE,
+            )
+            val recurrenceIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.RRULE)
+
+            while (cursor.moveToNext()) {
+                events.add(
+                    mapOf(
+                        "instanceId" to cursor.getLong(instanceIdIndex).toString(),
+                        "eventId" to cursor.getLong(eventIdIndex).toString(),
+                        "calendarId" to cursor.getLong(calendarIdIndex).toString(),
+                        "calendarName" to cursor.getString(calendarNameIndex),
+                        "title" to cursor.getString(titleIndex).orEmpty(),
+                        "description" to cursor.getString(descriptionIndex),
+                        "startMillis" to cursor.getLong(beginIndex),
+                        "endMillis" to cursor.getLong(endIndex),
+                        "allDay" to (cursor.getInt(allDayIndex) != 0),
+                        "eventTimezone" to cursor.getString(timezoneIndex),
+                        "recurrenceRule" to cursor.getString(recurrenceIndex),
+                    ),
+                )
+            }
+        }
+        return events
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -232,6 +366,9 @@ class MainActivity : FlutterActivity() {
         const val METHOD_REQUEST_CALENDAR_READ_PERMISSION =
             "requestCalendarReadPermission"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
+        const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102
+        const val MAX_EVENT_QUERY_CALENDARS = 20
+        const val MAX_EVENT_QUERY_WINDOW_MILLIS = 93L * 24L * 60L * 60L * 1000L
     }
 }
