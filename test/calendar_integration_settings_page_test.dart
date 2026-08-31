@@ -172,7 +172,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.permissionStatusMethod:
+        case SystemCalendarBridge.requestPermissionMethod:
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -210,6 +210,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final request = find.byKey(
+      const ValueKey('calendar-request-provider-permission'),
+    );
+    await _scrollUntilVisible(tester, request);
+    await tester.tap(request);
+    await tester.pumpAndSettle();
+
     expect(find.text('Personal'), findsOneWidget);
     expect(find.text('Samsung Calendar'), findsWidgets);
     expect(find.textContaining('Google Calendar'), findsOneWidget);
@@ -232,13 +239,9 @@ void main() {
 
   testWidgets('permission request reveals provider list without settings write',
       (tester) async {
-    var granted = false;
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.permissionStatusMethod:
-          return granted;
         case SystemCalendarBridge.requestPermissionMethod:
-          granted = true;
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -267,6 +270,7 @@ void main() {
       const ValueKey('calendar-request-provider-permission'),
     );
     expect(request, findsOneWidget);
+    await _scrollUntilVisible(tester, request);
     await tester.tap(request);
     await tester.pumpAndSettle();
 
