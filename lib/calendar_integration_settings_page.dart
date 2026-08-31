@@ -164,6 +164,7 @@ class _CalendarIntegrationSettingsPageState
     return Column(
       children: deviceCalendars.map((calendar) {
         final visible = current.visibleCalendarIds.contains(calendar.id);
+        final isTarget = current.targetCalendarId == calendar.id;
         return Card(
           key: ValueKey('calendar-provider-${calendar.id}'),
           child: Column(
@@ -179,18 +180,21 @@ class _CalendarIntegrationSettingsPageState
                   '${_providerLabel(calendar)}${calendar.accountName == null ? '' : ' • ${calendar.accountName}'}',
                 ),
               ),
-              RadioListTile<String>(
+              ListTile(
                 key: ValueKey('calendar-target-${calendar.id}'),
+                enabled: !saving,
+                leading: Icon(
+                  isTarget
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
                 title: const Text('تقویم مقصد آروین'),
                 subtitle: const Text('برای ارسال موارد آروین در مراحل همگام‌سازی بعدی'),
-                value: calendar.id,
-                groupValue: current.targetCalendarId,
-                onChanged: saving
+                onTap: saving
                     ? null
-                    : (value) {
-                        if (value == null) return;
-                        _save(current.copyWith(targetCalendarId: value));
-                      },
+                    : () => _save(
+                          current.copyWith(targetCalendarId: calendar.id),
+                        ),
               ),
               CheckboxListTile(
                 key: ValueKey('calendar-visible-${calendar.id}'),
