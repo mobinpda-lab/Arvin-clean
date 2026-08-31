@@ -74,6 +74,30 @@ jobs:
                 .sort((a, b) => b.id - a.id)[0] || null;
             }
 
+            async function reportFailure(run) {
+              if (run?.status !== 'completed' || !['failure', 'timed_out'].includes(run?.conclusion)) {
+                return false;
+              }
+              if (!run.head_sha) {
+                core.warning(`${run.name}: actionable failure has no exact head SHA; feedback dispatch skipped.`);
+                return false;
+              }
+              core.info(`${run.name}: explicitly dispatching deterministic Production Loop feedback for ${run.head_sha}.`);
+              await github.rest.actions.createWorkflowDispatch({
+                owner,
+                repo,
+                workflow_id: 'arvin-production-loop.yml',
+                ref: 'main',
+                inputs: {
+                  failure_workflow: String(run.name || 'Unknown Gate'),
+                  failure_run_url: String(run.html_url || ''),
+                  failure_head_sha: String(run.head_sha),
+                  failure_conclusion: String(run.conclusion),
+                },
+              });
+              return true;
+            }
+
             function runBaseSha(run, prNumber) {
               const pr = (run?.pull_requests || []).find(p => p.number === prNumber);
               return pr?.base?.sha || null;
@@ -198,6 +222,7 @@ jobs:
                     }
                   `, { id: item.node_id });
                 } else {
+                  await reportFailure(fast);
                   core.info(`#${item.number}: draft waiting for current-main Fast gate.`);
                   continue;
                 }
@@ -234,6 +259,8 @@ jobs:
                 device?.status === 'completed' && device?.conclusion === 'success';
 
               if (!heavyGreen) {
+                await reportFailure(build);
+                await reportFailure(device);
                 core.info(`#${item.number}: Build + Device are not both green on exact head; no merge.`);
                 continue;
               }

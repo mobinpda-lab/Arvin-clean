@@ -11,9 +11,25 @@ on:
   workflow_dispatch:
     inputs:
       issue_number:
-        description: 'Issue to route through the production queue'
-        required: true
-        type: number
+        description: 'Optional issue to route through the production queue'
+        required: false
+        type: string
+      failure_workflow:
+        description: 'Optional failed gate workflow name'
+        required: false
+        type: string
+      failure_run_url:
+        description: 'Optional failed gate run URL'
+        required: false
+        type: string
+      failure_head_sha:
+        description: 'Optional failed gate exact head SHA'
+        required: false
+        type: string
+      failure_conclusion:
+        description: 'Optional failed gate conclusion'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -22,12 +38,12 @@ permissions:
   actions: write
 
 concurrency:
-  group: arvin-production-loop-${{ github.event.issue.number || github.event.pull_request.number || github.event.workflow_run.id || inputs.issue_number || github.run_id }}
-  cancel-in-progress: true
+  group: arvin-production-loop-${{ github.event.issue.number || github.event.pull_request.number || github.event.workflow_run.id || inputs.failure_head_sha || inputs.issue_number || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   analyze-and-queue:
-    if: ${{ github.event_name == 'issues' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'issues' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.issue_number != '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Analyze task and build queue record
@@ -36,13 +52,14 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const issueNumber = context.payload.issue?.number || Number(context.payload.inputs?.issue_number);
+            const issueNumber = context.payload.issue?.number || Number(context.payload.inputs?.issue_number || 0);
             if (!issueNumber) {
               if (context.payload.pull_request) {
                 core.info(`PR #${context.payload.pull_request.number} synchronized; queue remains PR-bound.`);
                 return;
               }
-              core.setFailed('An issue number is required.');
+              core.setFailed('An issue number is required for queue routing.');
+              return;
             }
 
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
@@ -75,42 +92,75 @@ jobs:
             core.info(`Issue #${issueNumber} routed to ${route}: ${workers.join(', ')}`);
 
   feedback-loop:
-    if: ${{ github.event_name == 'workflow_run' }}
+    if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && inputs.failure_head_sha != '') }}
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate completed worker gate
         uses: actions/github-script@v7
         with:
           script: |
-            const run = context.payload.workflow_run;
-            const conclusion = run.conclusion || 'unknown';
-            const name = run.name;
-            const headSha = run.head_sha;
-            core.info(`${name} completed with ${conclusion} at ${headSha}`);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const eventRun = context.payload.workflow_run;
+            const inputs = context.payload.inputs || {};
+
+            const conclusion = eventRun?.conclusion || inputs.failure_conclusion || 'unknown';
+            const name = eventRun?.name || inputs.failure_workflow || 'Unknown Gate';
+            const headSha = eventRun?.head_sha || inputs.failure_head_sha || '';
+            const runUrl = eventRun?.html_url || inputs.failure_run_url || '';
+
+            core.info(`${name} completed with ${conclusion} at ${headSha || 'unknown-head'}`);
 
             if (conclusion === 'success') {
               core.info('Gate passed; existing Production Orchestrator remains responsible for promotion.');
               return;
             }
 
-            if (['failure', 'cancelled', 'timed_out'].includes(conclusion)) {
-              const marker = '<!-- arvin-auto-fix-task -->';
-              const title = `[AUTO-FIX] ${name} failed at ${headSha.slice(0, 12)}`;
-              const existing = await github.paginate(github.rest.issues.listForRepo, {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                state: 'open',
-                labels: 'arvin-auto',
-                per_page: 100,
-              });
-              if (!existing.some(i => i.title === title)) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title,
-                  labels: ['arvin-auto'],
-                  body: `${marker}\n\nAutomated failure feedback.\n\n- Workflow: ${name}\n- Run: ${run.html_url}\n- Head SHA: ${headSha}\n- Conclusion: ${conclusion}\n\nRoute this issue to the appropriate worker. Do not bypass Fast/Build/Device or exact-head promotion gates.`
-                });
-              }
-              core.info('Failure converted into an idempotent auto-fix task.');
+            if (conclusion === 'cancelled') {
+              core.info('Cancelled gate is treated as protective/stale execution noise; no Auto-Fix task is created.');
+              return;
             }
+
+            if (!['failure', 'timed_out'].includes(conclusion)) {
+              core.info(`Conclusion ${conclusion} is not actionable for bounded auto-fix.`);
+              return;
+            }
+
+            if (!headSha) {
+              core.setFailed('Actionable failure feedback requires an exact head SHA.');
+              return;
+            }
+
+            const marker = '<!-- arvin-auto-fix-task -->';
+            const title = `[AUTO-FIX] ${name} failed at ${headSha.slice(0, 12)}`;
+            const existing = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: 'arvin-auto',
+              per_page: 100,
+            });
+            const duplicate = existing.find(i => i.title === title);
+            if (duplicate) {
+              core.info(`Auto-Fix already exists as #${duplicate.number}; no duplicate created.`);
+              return;
+            }
+
+            const created = await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              labels: ['arvin-auto'],
+              body: `${marker}\n\nAutomated failure feedback.\n\n- Workflow: ${name}\n- Run: ${runUrl}\n- Head SHA: ${headSha}\n- Conclusion: ${conclusion}\n\nRoute this issue to the bounded AI Code Worker. Do not bypass Fast/Build/Device or exact-head promotion gates.`
+            });
+
+            // An issue created with GITHUB_TOKEN must not depend on a recursive
+            // issues event to launch the worker. Dispatch it explicitly once.
+            await github.rest.actions.createWorkflowDispatch({
+              owner,
+              repo,
+              workflow_id: 'arvin-agent-worker.yml',
+              ref: 'main',
+              inputs: { issue_number: String(created.data.number) },
+            });
+            core.info(`Failure converted into Auto-Fix #${created.data.number} and AI Worker dispatched explicitly.`);
