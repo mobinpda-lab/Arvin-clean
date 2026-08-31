@@ -167,7 +167,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(service.readCount, 1);
     expect(find.text('تأیید بازیابی'), findsOneWidget);
@@ -211,7 +212,8 @@ void main() {
       'restore-secret',
     );
     await tester.tap(find.byKey(const Key('restore_passphrase_confirm')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(service.readCount, 1);
     expect(service.lastReadPassphrase, 'restore-secret');
