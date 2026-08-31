@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'calendar_integration_settings_page.dart';
 import 'services/app_settings_service.dart';
 import 'user_guide_page.dart';
 import 'widgets/contextual_help.dart';
@@ -140,6 +141,15 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _openCalendarIntegrationSettings() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => CalendarIntegrationSettingsPage(service: widget.service),
+      ),
+    );
+    await _load();
+  }
+
   Future<void> _showBackupHelp() {
     return showContextualHelp(
       context,
@@ -247,6 +257,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: const Text(
                       'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
                     ),
+                  ),
+                  const Divider(height: 24),
+                  ListTile(
+                    key: const ValueKey('calendar-integration-settings-entry'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.sync_outlined),
+                    title: const Text('تقویم و همگام‌سازی'),
+                    subtitle: Text(
+                      current.calendarIntegration.enabled
+                          ? 'اتصال تقویم دستگاه فعال است'
+                          : 'اتصال تقویم دستگاه خاموش است',
+                    ),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: _openCalendarIntegrationSettings,
                   ),
                   const Divider(height: 24),
                   ListTile(
