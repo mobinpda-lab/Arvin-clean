@@ -26,7 +26,7 @@ Mergeهای مهم همین موج:
 ### 1. AI Worker reliability — PR #600
 
 - Draft / open / mergeable
-- head: `92c33573ef94b8e6e4a6fb7aad9be22ea9e8c` is NOT the head; canonical PR head remains `92c33573ef94b8e6e4e76a5b35df997b84a9cac0`
+- head: `92c33573ef94b8e6e4e76a5b35df997b84a9cac0`
 - Fast run `33376661169`: ✅ complete on that exact head
 - quality/analyze/test + release/followup/typography/guide/calendar/backup surfaces all green on the historical exact head
 - `main` has since advanced through merged #598 to `a4c2a3ec...`
