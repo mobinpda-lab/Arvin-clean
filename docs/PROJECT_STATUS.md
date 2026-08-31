@@ -62,7 +62,7 @@ Head: `1b28ab5fa2e6efa4da56c584fac7fa1445a67f1e`
 - permission/page load بدون selection نباید settings write ایجاد کند.
 - هیچ WRITE_CALENDAR، event read/write/delete، recurrence sync یا background sync اضافه نشده است.
 - base ثبت‌شده PR هنوز `a4c2a3ec...` است و بعد از merge #601، `main` به `a9078ee5...` جلو رفته؛ بنابراین Heavy/Device و promotion باید فقط پس از replay/reconcile روی current main انجام شود. Fast فعلی evidence معتبر exact-head تاریخی است، نه مجوز promotion روی main جدید.
-- branch `feat/calendar-provider-selection-settings-v2` از current `main` ساخته شده و در این checkpoint هنوز دقیقاً روی `a9078ee5...` است؛ یعنی replay کد #602 روی آن هنوز commit نشده و نباید به‌عنوان implementation آماده تلقی شود.
+- branch `feat/calendar-provider-selection-settings-v2` از current `main` ساخته شده و اکنون 3 commit جلوتر از `main` و 0 commit عقب است. compare زنده دقیقاً سه فایل replay را نشان می‌دهد: `lib/calendar_integration_settings_page.dart`، `test/calendar_integration_settings_page_test.dart` و `docs/CALENDAR_PROVIDER_SELECTION_SETTINGS_2026-08-31.md`. این replay هنوز PR/CI current-main مستقل نگرفته و تا آن validation نباید production-ready تلقی شود.
 
 Issue مالک: #597 باز است. Issue #595 پس از merge provider discovery بسته شده است. #348/#516 همچنان scope بزرگ‌تر integration/sync را نگه می‌دارند.
 
@@ -88,12 +88,12 @@ Merge SHA / current `main`: `a9078ee58263b7d8fa8cf862305467992e178575`
 - PR #601 در 2026-08-31 merge شد؛ Issueهای #588 و #590 نیز completed/closed شده‌اند.
 - PR #600 اکنون historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-آخرین Production Loop تأییدشده روی current main که در این checkpoint دیده شد: run `33396874925`، conclusion `success` روی `a9078ee5...`.
+آخرین Production Loop تأییدشده روی current main که در این checkpoint دیده شد: run `33405071453`، conclusion `success` روی `a9078ee5...`.
 
 ## CI / Build
 
 - current main #601 با exact-head Fast و Heavy Build/APK + Device سبز وارد main شد.
-- #602 exact-head Fast سبز دارد، ولی چون main بعد از base آن حرکت کرده است، Heavy قبل از current-main replay معتبر نیست.
+- #602 exact-head Fast سبز دارد، ولی چون main بعد از base آن حرکت کرده است، Heavy برای head تاریخی آن معتبر نیست. current-main replay اکنون روی `feat/calendar-provider-selection-settings-v2` با سه فایل محدود انجام شده و مرحله بعدی باید PR/Exact-head Fast تازه روی همین replay باشد؛ سپس Ready → Heavy Build/APK + Device.
 - Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود؛ gate اصلی برای Draft همان Fast/Parallel است.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
@@ -114,8 +114,8 @@ Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 s
 
 ## Open operational lanes
 
-- #602 / #597 — Calendar provider selection: exact-head Fast سبز؛ نیازمند replay/reconcile روی `a9078ee5...` قبل از Heavy/Device/promotion.
-- `feat/calendar-provider-selection-settings-v2` — current-main replay branch وجود دارد ولی در این checkpoint هنوز هیچ تغییر نسبت به main ندارد.
+- #602 / #597 — Calendar provider selection: historical exact-head Fast سبز؛ head قدیمی برای promotion قابل استفاده نیست.
+- `feat/calendar-provider-selection-settings-v2` — current-main replay انجام شده؛ branch سه commit جلوتر از `main` و صفر commit عقب است و همان سه فایل محدود UI/test/docs را تغییر می‌دهد. هنوز PR/CI current-main تازه لازم است قبل از Heavy/Device/promotion.
 - #599 — provider-discovery duplicate Draft؛ باید supersede/close شود مگر gap جدید اثبات شود.
 - #600 — Worker reliability historical Draft؛ superseded توسط merged #601 و نباید دوباره promote شود.
 - #578/#583 — evidence-backed Progress Score dashboard: implementation/validation کامل نشده.
