@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'daily_content.dart';
+import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
   const CalendarReminder({
@@ -266,6 +267,19 @@ class _CalendarPageState extends State<CalendarPage> {
       _month = _toGregorian(jalali.year, jalali.month, 1);
       _selectedDay = today;
     });
+  }
+
+  Future<void> _jumpToDate() async {
+    final current = _toJalali(_selectedDay);
+    final selection = await showJalaliDateJumpDialog(
+      context,
+      initialYear: current.year,
+      initialMonth: current.month,
+      initialDay: current.day,
+      daysInMonth: _daysInJalaliMonth,
+    );
+    if (!mounted || selection == null) return;
+    _selectDay(_toGregorian(selection.year, selection.month, selection.day));
   }
 
   void _showDailyContent(DailyContentItem item) {
@@ -586,6 +600,11 @@ class _CalendarPageState extends State<CalendarPage> {
         appBar: AppBar(
           title: const Text('تقویم پیگیری'),
           actions: [
+            TextButton(
+              key: const ValueKey('calendar-date-jump'),
+              onPressed: _jumpToDate,
+              child: const Text('برو به تاریخ'),
+            ),
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 8),
               child: TextButton.icon(
