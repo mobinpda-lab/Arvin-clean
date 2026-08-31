@@ -59,7 +59,7 @@ Merge SHA / current `main`: `2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 - scope فقط READ_CALENDAR است؛ WRITE_CALENDAR، create/update/delete، Task import، background sync و Work Agenda UI اضافه نشده‌اند.
 - query در هر call به حداکثر 20 calendar و 93 روز محدود است و malformed/denied/unavailable path fail-closed برمی‌گردد.
 - pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` با conclusion `success` کامل شده بود؛ Build/Device روی آن Draft head `skipped` بودند.
-- current-main Production Loop run `33411270935` روی exact merge head `2ee2adc2...` با conclusion `success` کامل شده است.
+- current-main Production Loop run `33443096963` روی exact merge head `2ee2adc2...` با conclusion `success` کامل شده است؛ runهای قبلی `33439145235` و `33411270935` نیز روی همین head موفق بودند.
 - current-main Build/APK و Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده‌اند؛ Production Loop success جایگزین آن gateها نیست.
 
 ### PR #604 / #607 — provider selection replay — exact-head validation کامل، ولی main جلو رفته
@@ -91,7 +91,7 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 - `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ malformed/context-invalid patch همچنان fail-closed است.
 - PR #600 historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-Latest verified current-main Production Loop run `33439145235` در 2026-08-31T21:01Z روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شد و توسط Issue #608 راه‌اندازی شد. run قبلی `33411270935` نیز روی همین merge head موفق بود. این evidence سلامت Production Loop روی current main را تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
+Latest verified current-main Production Loop run `33443096963` در 2026-08-31T21:47Z روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شد. runهای `33439145235` و `33411270935` نیز روی همین merge head موفق بودند. این evidence سلامت Production Loop روی current main را تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
 
 ## CI / Build
 
@@ -100,6 +100,11 @@ Latest verified current-main Production Loop run `33439145235` در 2026-08-31T2
 - Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
+
+## Release
+
+- در GitHub تا این checkpoint هیچ Release منتشرشده‌ای برای repository ثبت نشده است.
+- بنابراین RC/Release باید فقط بعد از evidence مستقل و معتبر Build/APK/Device روی current main ادعا شود؛ Production Loop سبز به‌تنهایی معادل Release artifact یا RC-ready نیست.
 
 ## Product Evolution Roadmap
 
