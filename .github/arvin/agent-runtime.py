@@ -18,13 +18,7 @@ PROVIDER_BUDGET_SECONDS = int(os.getenv("ARVIN_PROVIDER_BUDGET_SECONDS", "540"))
 
 
 def run(cmd, check=True, timeout=None):
-    return subprocess.run(
-        cmd,
-        text=True,
-        capture_output=True,
-        check=check,
-        timeout=timeout,
-    )
+    return subprocess.run(cmd, text=True, capture_output=True, check=check, timeout=timeout)
 
 
 def github_json(url):
@@ -58,19 +52,10 @@ def openai_response(prompt, timeout_seconds):
 
 def copilot_response(prompt, timeout_seconds):
     command = [
-        "copilot",
-        "-s",
-        "--no-ask-user",
-        "--disable-builtin-mcps",
-        "--available-tools=view,grep,glob",
-        "--allow-tool=read",
-        "--deny-tool=write",
-        "--deny-tool=shell",
-        "--deny-tool=url",
-        "--model",
-        COPILOT_MODEL,
-        "-p",
-        prompt,
+        "copilot", "-s", "--no-ask-user", "--disable-builtin-mcps",
+        "--available-tools=view,grep,glob", "--allow-tool=read",
+        "--deny-tool=write", "--deny-tool=shell", "--deny-tool=url",
+        "--model", COPILOT_MODEL, "-p", prompt,
     ]
     try:
         result = run(command, check=False, timeout=timeout_seconds)
@@ -155,14 +140,12 @@ def validate_diff_structure(diff):
     value = normalize_diff(diff)
     if not value.startswith("diff --git "):
         return False, "Patch must begin with a complete `diff --git` file section"
-
     lines = value.splitlines()
     starts = [index for index, line in enumerate(lines) if line.startswith("diff --git ")]
     if not starts:
         return False, "No `diff --git` file section found"
     if len(starts) > MAX_FILES:
         return False, "Generated diff exceeds file-count safety limit"
-
     starts.append(len(lines))
     for section_index in range(len(starts) - 1):
         section = lines[starts[section_index]:starts[section_index + 1]]
@@ -188,10 +171,20 @@ def apply_diff(diff):
     if not valid:
         return False, structure_message
     Path("/tmp/arvin.patch").write_text(f"{diff}\n", encoding="utf-8")
-    check = run(["git", "apply", "--check", "/tmp/arvin.patch"], check=False)
+
+    # Model-generated diffs can have a correct body but stale numeric hunk
+    # counts. --recount only derives those counts from the body; it does not
+    # invent missing headers/context or bypass applicability checks.
+    check = run(
+        ["git", "apply", "--check", "--recount", "/tmp/arvin.patch"],
+        check=False,
+    )
     if check.returncode != 0:
         return False, check.stderr[-10000:]
-    applied = run(["git", "apply", "--whitespace=fix", "/tmp/arvin.patch"], check=False)
+    applied = run(
+        ["git", "apply", "--recount", "--whitespace=fix", "/tmp/arvin.patch"],
+        check=False,
+    )
     if applied.returncode != 0:
         return False, applied.stderr[-10000:]
     return True, "patch applied"
@@ -221,11 +214,7 @@ def main():
         try:
             timeout_seconds = next_provider_timeout(provider_deadline)
             diff = request_diff(
-                issue_number,
-                title,
-                body,
-                context,
-                failure,
+                issue_number, title, body, context, failure,
                 timeout_seconds=timeout_seconds,
             )
         except Exception as exc:
