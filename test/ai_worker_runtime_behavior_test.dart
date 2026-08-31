@@ -8,7 +8,10 @@ void main() {
 
     const script = r'''
 import importlib.util
+import os
+import tempfile
 import time
+from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
     "arvin_agent_runtime",
@@ -57,6 +60,42 @@ except TimeoutError as exc:
     assert "retry budget exhausted" in str(exc)
 else:
     raise AssertionError("expired provider deadline must fail")
+
+# A model can return a complete, applicable hunk whose numeric line counts are
+# wrong. Git --recount may repair only those counts; the patch body/context
+# still has to apply normally.
+original_cwd = os.getcwd()
+with tempfile.TemporaryDirectory() as temp_dir:
+    os.chdir(temp_dir)
+    try:
+        os.system("git init -q")
+        Path("a.txt").write_text("old\nkeep\n", encoding="utf-8")
+        wrong_counts = """diff --git a/a.txt b/a.txt
+--- a/a.txt
++++ b/a.txt
+@@ -1,99 +1,99 @@
+-old
++new
+ keep
+"""
+        ok, message = runtime.apply_diff(wrong_counts)
+        assert ok, message
+        assert Path("a.txt").read_text(encoding="utf-8") == "new\nkeep\n"
+
+        # Recount is not a bypass: missing context must still fail closed.
+        Path("a.txt").write_text("different\nkeep\n", encoding="utf-8")
+        impossible = """diff --git a/a.txt b/a.txt
+--- a/a.txt
++++ b/a.txt
+@@ -1,99 +1,99 @@
+-old
++new
+ keep
+"""
+        ok, message = runtime.apply_diff(impossible)
+        assert not ok
+    finally:
+        os.chdir(original_cwd)
 ''';
 
     final result = Process.runSync('python3', ['-c', script]);
