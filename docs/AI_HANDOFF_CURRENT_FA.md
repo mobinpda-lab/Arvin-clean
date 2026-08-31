@@ -52,7 +52,8 @@ Current main merge SHA:
 - malformed rows / denied permission / missing plugin fail closed هستند.
 - Task import، Work Agenda UI، WRITE_CALENDAR، create/update/delete، background sync و vendor SDK اضافه نشده‌اند.
 - pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` ✅ success؛ Build/Device آن Draft head skipped بودند.
-- در زمان این checkpoint روی merge SHA `2ee2adc2...` workflow run مستقیم تازه مشاهده نشد؛ current-main post-merge Build/Device سبز ادعا نمی‌شود.
+- current-main operational evidence تازه: Production Loop run `33411270935` روی exact head `2ee2adc2...` با conclusion `success` کامل شده است.
+- هنوز current-main Build/APK یا Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده؛ Production Loop success جایگزین آن gateها نیست.
 
 ### 3. Duplicate/superseded cleanup
 
@@ -92,7 +93,7 @@ PR #601 روی main باقی است:
 - concurrency issue-input keyed است
 - Git native `--recount` فقط بعد از structural validation استفاده می‌شود و malformed/context-invalid patch fail closed می‌ماند
 
-آخرین Production Loop مشاهده‌شده در audit: run `33407326883` ✅ success، اما head آن `a9078ee5...` است. برای current main `2ee2adc2...` در زمان checkpoint run مستقیم تازه مشاهده نشد؛ success روی current head ادعا نشود.
+Current-main evidence: Production Loop run `33411270935` روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` در 2026-08-31 با conclusion `success` کامل شده است. این evidence فقط سلامت همان workflow را ثابت می‌کند و به‌تنهایی Build/APK/Device یا RC readiness را اثبات نمی‌کند.
 
 ## Production / Merge Contract
 
@@ -115,7 +116,7 @@ PR #601 روی main باقی است:
 
 ## Continuation Priority
 
-1. current main `2ee2adc2...` و post-merge CI را دوباره verify کن؛ تا evidence تازه نیست success روی merge head ادعا نکن.
+1. current main `2ee2adc2...` و post-merge CI را دوباره verify کن؛ Production Loop روی current head سبز است اما Build/APK/Device فقط با evidence مستقل ادعا شوند.
 2. provider-selection را فقط در یک canonical PR از current main replay/reconcile کن؛ historical #604/#607 evidence را حفظ کن ولی دوباره duplicate Heavy اجرا نکن.
 3. پس از selection، external events را به existing Calendar/Work Agenda projection متصل کن؛ موتور/صفحه/Store دوم نساز.
 4. #599/#600 را historical/superseded نگه دار مگر gap واقعی ثابت شود.
