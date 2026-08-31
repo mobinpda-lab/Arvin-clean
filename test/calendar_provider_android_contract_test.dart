@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('calendar discovery remains read-only at Android permission boundary', () {
+  test('calendar provider remains read-only at Android permission boundary', () {
     final manifest = File('android/app/src/main/AndroidManifest.xml')
         .readAsStringSync();
 
@@ -11,7 +11,7 @@ void main() {
     expect(manifest, isNot(contains('android.permission.WRITE_CALENDAR')));
   });
 
-  test('native bridge exposes permission request and provider enumeration', () {
+  test('native bridge exposes calendar and bounded event enumeration', () {
     final mainActivity = File(
       'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
     ).readAsStringSync();
@@ -19,10 +19,16 @@ void main() {
     expect(mainActivity, contains('calendarReadPermissionGranted'));
     expect(mainActivity, contains('requestCalendarReadPermission'));
     expect(mainActivity, contains('listDeviceCalendars'));
+    expect(mainActivity, contains('listDeviceCalendarEvents'));
     expect(mainActivity, contains('Manifest.permission.READ_CALENDAR'));
     expect(mainActivity, contains('CalendarContract.Calendars.CONTENT_URI'));
     expect(mainActivity, contains('CalendarContract.Calendars.ACCOUNT_TYPE'));
     expect(mainActivity, contains('CalendarContract.Calendars.IS_PRIMARY'));
+    expect(mainActivity, contains('CalendarContract.Instances.CONTENT_URI'));
+    expect(mainActivity, contains('CalendarContract.Instances.BEGIN'));
+    expect(mainActivity, contains('CalendarContract.Instances.END'));
+    expect(mainActivity, contains('MAX_EVENT_QUERY_WINDOW_MILLIS'));
+    expect(mainActivity, contains('MAX_EVENT_QUERY_CALENDARS'));
     expect(mainActivity, contains('onRequestPermissionsResult'));
     expect(mainActivity, isNot(contains('Manifest.permission.WRITE_CALENDAR')));
   });
