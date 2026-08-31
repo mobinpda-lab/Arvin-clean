@@ -34,6 +34,18 @@ AppSettings _appSettings({
   );
 }
 
+Future<void> _scrollUntilVisible(
+  WidgetTester tester,
+  Finder finder,
+) async {
+  await tester.scrollUntilVisible(
+    finder,
+    260,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -55,12 +67,14 @@ void main() {
       ).value,
       isFalse,
     );
+
+    final deleteSwitch = find.byKey(const ValueKey('calendar-delete-linked'));
+    await _scrollUntilVisible(tester, deleteSwitch);
     expect(
-      tester.widget<SwitchListTile>(
-        find.byKey(const ValueKey('calendar-delete-linked')),
-      ).value,
+      tester.widget<SwitchListTile>(deleteSwitch).value,
       isFalse,
     );
+    expect(service.calendarSaveCount, 0);
   });
 
   testWidgets('calendar toggles persist through canonical settings service',
@@ -105,8 +119,8 @@ void main() {
     final entry = find.byKey(
       const ValueKey('calendar-integration-settings-entry'),
     );
+    await _scrollUntilVisible(tester, entry);
     expect(entry, findsOneWidget);
-    await tester.ensureVisible(entry);
     await tester.tap(entry);
     await tester.pumpAndSettle();
 
