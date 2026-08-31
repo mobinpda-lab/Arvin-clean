@@ -188,10 +188,27 @@ def apply_diff(diff):
     if not valid:
         return False, structure_message
     Path("/tmp/arvin.patch").write_text(f"{diff}\n", encoding="utf-8")
-    check = run(["git", "apply", "--check", "/tmp/arvin.patch"], check=False)
+
+    # Model-generated unified diffs can contain correct patch bodies with stale
+    # hunk line counts. Git's native --recount infers those counts from the
+    # actual hunk body; it does not invent missing headers/context or bypass a
+    # failed applicability check. This keeps recovery narrow and fail-closed.
+    check = run(
+        ["git", "apply", "--check", "--recount", "/tmp/arvin.patch"],
+        check=False,
+    )
     if check.returncode != 0:
         return False, check.stderr[-10000:]
-    applied = run(["git", "apply", "--whitespace=fix", "/tmp/arvin.patch"], check=False)
+    applied = run(
+        [
+            "git",
+            "apply",
+            "--recount",
+            "--whitespace=fix",
+            "/tmp/arvin.patch",
+        ],
+        check=False,
+    )
     if applied.returncode != 0:
         return False, applied.stderr[-10000:]
     return True, "patch applied"
