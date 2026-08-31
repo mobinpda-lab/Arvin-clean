@@ -15,6 +15,7 @@ permissions:
   issues: write
   pull-requests: write
   actions: write
+  copilot-requests: write
 
 concurrency:
   group: arvin-agent-${{ github.event.issue.number || inputs.issue_number }}
@@ -29,6 +30,7 @@ jobs:
       ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
+      ARVIN_COPILOT_MODEL: ${{ vars.ARVIN_COPILOT_MODEL || 'auto' }}
       ARVIN_MAX_AUTO_FIX_ATTEMPTS: '3'
       GITHUB_TOKEN: ${{ github.token }}
     steps:
@@ -37,10 +39,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate secrets and task
-        run: |
-          test -n "$OPENAI_API_KEY"
-          test -n "$ARVIN_ISSUE_NUMBER"
+      - name: Validate task
+        run: test -n "$ARVIN_ISSUE_NUMBER"
+
+      - name: Setup Flutter
+        if: ${{ hashFiles('pubspec.yaml') != '' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install GitHub Copilot CLI fallback
+        if: env.OPENAI_API_KEY == ''
+        run: npm install -g @github/copilot
 
       - name: Configure git
         run: |

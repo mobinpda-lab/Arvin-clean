@@ -7,6 +7,7 @@ from pathlib import Path
 
 API = "https://api.openai.com/v1/responses"
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6")
+COPILOT_MODEL = os.getenv("ARVIN_COPILOT_MODEL", "auto")
 MAX_FILES = int(os.getenv("ARVIN_MAX_FILES", "20"))
 MAX_DIFF = int(os.getenv("ARVIN_MAX_DIFF_CHARS", "30000"))
 MAX_FIX_ATTEMPTS = int(os.getenv("ARVIN_MAX_AUTO_FIX_ATTEMPTS", "3"))
@@ -26,7 +27,7 @@ def github_json(url):
         return json.load(r)
 
 
-def openai(prompt):
+def openai_response(prompt):
     payload = {"model": MODEL, "input": prompt, "temperature": 0}
     req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
         "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
@@ -42,7 +43,38 @@ def openai(prompt):
                 if c.get("type") == "output_text":
                     parts.append(c.get("text", ""))
         text = "\n".join(parts)
-    return text.strip()
+    return (text or "").strip()
+
+
+def copilot_response(prompt):
+    command = [
+        "copilot",
+        "-s",
+        "--no-ask-user",
+        "--disable-builtin-mcps",
+        "--available-tools=view,grep,glob",
+        "--allow-tool=read",
+        "--deny-tool=write",
+        "--deny-tool=shell",
+        "--deny-tool=url",
+        "--model",
+        COPILOT_MODEL,
+        "-p",
+        prompt,
+    ]
+    result = run(command, check=False)
+    if result.returncode != 0:
+        evidence = (result.stderr or result.stdout or "Copilot CLI failed")[-12000:]
+        raise RuntimeError(f"GitHub Copilot CLI fallback failed:\n{evidence}")
+    return result.stdout.strip()
+
+
+def model_response(prompt):
+    if os.getenv("OPENAI_API_KEY", "").strip():
+        print("ARVIN AI provider: OpenAI Responses API")
+        return openai_response(prompt)
+    print("ARVIN AI provider: GitHub Copilot CLI via GITHUB_TOKEN (read-only tools)")
+    return copilot_response(prompt)
 
 
 def repo_context():
@@ -58,9 +90,9 @@ def repo_context():
 
 def project_test():
     if Path("pubspec.yaml").is_file():
-        commands = [["flutter", "analyze"], ["flutter", "test"]]
+        commands = [["flutter", "pub", "get"], ["flutter", "analyze"], ["flutter", "test"]]
     elif Path("package.json").is_file():
-        commands = [["npm", "test", "--if-present"]]
+        commands = [["npm", "ci"], ["npm", "test", "--if-present"]]
     else:
         return True, "No supported project manifest detected; validation skipped safely."
     output = []
@@ -84,12 +116,27 @@ Issue #{issue_number}: {title}
 Repository file inventory:
 {context}
 {failure_context}
-Return ONLY a unified git diff. Do not include markdown fences. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Add or update tests when appropriate. If the issue is not sufficiently specified, return an empty diff.
+Inspect only repository files needed for this issue. Return ONLY a unified git diff beginning with `diff --git`. Do not include markdown fences or commentary. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Reuse canonical models, storage, repositories and UI paths. Add or update focused tests when appropriate. If the issue is not sufficiently specified or cannot be solved safely, return an empty response.
 """
-    return openai(prompt)
+    return model_response(prompt)
+
+
+def normalize_diff(text):
+    value = (text or "").strip()
+    if value.startswith("```"):
+        first_newline = value.find("\n")
+        if first_newline >= 0:
+            value = value[first_newline + 1:]
+        if value.endswith("```"):
+            value = value[:-3].rstrip()
+    start = value.find("diff --git ")
+    if start > 0:
+        value = value[start:]
+    return value
 
 
 def apply_diff(diff):
+    diff = normalize_diff(diff)
     if not diff or "diff --git" not in diff:
         return False, "No actionable diff returned"
     if len(diff) > MAX_DIFF:
@@ -116,7 +163,11 @@ def main():
     context = repo_context()
 
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
-        diff = request_diff(issue_number, title, body, context)
+        try:
+            diff = request_diff(issue_number, title, body, context)
+        except Exception as exc:
+            print(str(exc), file=sys.stderr)
+            return 6
         ok, message = apply_diff(diff)
         if not ok:
             print(f"Attempt {attempt}: {message}", file=sys.stderr)
@@ -128,7 +179,7 @@ def main():
         passed, evidence = project_test()
         if passed:
             print(f"AI Worker validation PASS on attempt {attempt}")
-            print(diff)
+            print(normalize_diff(diff))
             return 0
 
         print(f"AI Worker validation FAIL on attempt {attempt}\n{evidence}", file=sys.stderr)
@@ -137,7 +188,11 @@ def main():
         failure_diff = run(["git", "diff"], check=False).stdout
         run(["git", "reset", "--hard", "HEAD"], check=False)
         context = f"{context}\nCurrent failed patch:\n{failure_diff[-12000:]}"
-        diff = request_diff(issue_number, title, body, context, evidence)
+        try:
+            diff = request_diff(issue_number, title, body, context, evidence)
+        except Exception as exc:
+            print(str(exc), file=sys.stderr)
+            return 6
         ok, message = apply_diff(diff)
         if not ok:
             print(f"Fix attempt {attempt} patch rejected: {message}", file=sys.stderr)
@@ -146,7 +201,7 @@ def main():
         passed, evidence = project_test()
         if passed:
             print(f"AI Worker self-fix PASS on attempt {attempt}")
-            print(diff)
+            print(normalize_diff(diff))
             return 0
         if attempt == MAX_FIX_ATTEMPTS:
             print(evidence, file=sys.stderr)
