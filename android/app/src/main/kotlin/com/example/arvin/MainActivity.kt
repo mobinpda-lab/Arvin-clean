@@ -1,7 +1,11 @@
 package com.example.arvin
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.CalendarContract
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -11,6 +15,7 @@ class MainActivity : FlutterActivity() {
     private var widgetChannel: MethodChannel? = null
     private var systemCalendarChannel: MethodChannel? = null
     private var pendingWidgetTaskId: String? = null
+    private var pendingCalendarPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -64,9 +69,146 @@ class MainActivity : FlutterActivity() {
                         result.success(true)
                     }
                 }
+                METHOD_CALENDAR_READ_PERMISSION_GRANTED -> {
+                    result.success(hasCalendarReadPermission())
+                }
+                METHOD_REQUEST_CALENDAR_READ_PERMISSION -> {
+                    if (hasCalendarReadPermission()) {
+                        result.success(true)
+                        return@setMethodCallHandler
+                    }
+                    if (pendingCalendarPermissionResult != null) {
+                        result.error(
+                            "permission_request_in_progress",
+                            "Calendar permission request is already active",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    pendingCalendarPermissionResult = result
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.READ_CALENDAR),
+                        CALENDAR_PERMISSION_REQUEST_CODE,
+                    )
+                }
+                METHOD_LIST_DEVICE_CALENDARS -> {
+                    if (!hasCalendarReadPermission()) {
+                        result.error(
+                            "calendar_permission_denied",
+                            "Calendar read permission is required",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        result.success(readDeviceCalendars())
+                    } catch (error: SecurityException) {
+                        result.error(
+                            "calendar_query_denied",
+                            "Android Calendar Provider denied access",
+                            error.message,
+                        )
+                    } catch (error: RuntimeException) {
+                        result.error(
+                            "calendar_query_failed",
+                            "Android Calendar Provider query failed",
+                            error.message,
+                        )
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun hasCalendarReadPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_CALENDAR,
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun readDeviceCalendars(): List<Map<String, Any?>> {
+        val projection = arrayOf(
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.Calendars.OWNER_ACCOUNT,
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+            CalendarContract.Calendars.VISIBLE,
+            CalendarContract.Calendars.SYNC_EVENTS,
+            CalendarContract.Calendars.IS_PRIMARY,
+        )
+
+        val calendars = mutableListOf<Map<String, Any?>>()
+        contentResolver.query(
+            CalendarContract.Calendars.CONTENT_URI,
+            projection,
+            null,
+            null,
+            "${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} COLLATE NOCASE ASC",
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+            val displayNameIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            )
+            val accountNameIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.ACCOUNT_NAME,
+            )
+            val accountTypeIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.ACCOUNT_TYPE,
+            )
+            val ownerAccountIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.OWNER_ACCOUNT,
+            )
+            val accessLevelIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+            )
+            val visibleIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.VISIBLE,
+            )
+            val syncEventsIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.SYNC_EVENTS,
+            )
+            val primaryIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Calendars.IS_PRIMARY,
+            )
+
+            while (cursor.moveToNext()) {
+                calendars.add(
+                    mapOf(
+                        "id" to cursor.getLong(idIndex).toString(),
+                        "displayName" to cursor.getString(displayNameIndex).orEmpty(),
+                        "accountName" to cursor.getString(accountNameIndex),
+                        "accountType" to cursor.getString(accountTypeIndex),
+                        "ownerAccount" to cursor.getString(ownerAccountIndex),
+                        "accessLevel" to cursor.getInt(accessLevelIndex),
+                        "visible" to (cursor.getInt(visibleIndex) != 0),
+                        "syncEvents" to (cursor.getInt(syncEventsIndex) != 0),
+                        "isPrimary" to (cursor.getInt(primaryIndex) != 0),
+                    ),
+                )
+            }
+        }
+        return calendars
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        if (requestCode == CALENDAR_PERMISSION_REQUEST_CODE) {
+            val pending = pendingCalendarPermissionResult
+            pendingCalendarPermissionResult = null
+            pending?.success(
+                grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED,
+            )
+            return
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -85,5 +227,11 @@ class MainActivity : FlutterActivity() {
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
         const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
+        const val METHOD_CALENDAR_READ_PERMISSION_GRANTED =
+            "calendarReadPermissionGranted"
+        const val METHOD_REQUEST_CALENDAR_READ_PERMISSION =
+            "requestCalendarReadPermission"
+        const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
+        const val CALENDAR_PERMISSION_REQUEST_CODE = 4102
     }
 }
