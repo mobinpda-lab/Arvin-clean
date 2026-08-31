@@ -1,7 +1,9 @@
 import json
+import math
 import os
 import subprocess
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -11,10 +13,18 @@ COPILOT_MODEL = os.getenv("ARVIN_COPILOT_MODEL", "auto")
 MAX_FILES = int(os.getenv("ARVIN_MAX_FILES", "20"))
 MAX_DIFF = int(os.getenv("ARVIN_MAX_DIFF_CHARS", "30000"))
 MAX_FIX_ATTEMPTS = int(os.getenv("ARVIN_MAX_AUTO_FIX_ATTEMPTS", "3"))
+PROVIDER_TIMEOUT_SECONDS = int(os.getenv("ARVIN_PROVIDER_TIMEOUT_SECONDS", "180"))
+PROVIDER_BUDGET_SECONDS = int(os.getenv("ARVIN_PROVIDER_BUDGET_SECONDS", "540"))
 
 
-def run(cmd, check=True):
-    return subprocess.run(cmd, text=True, capture_output=True, check=check)
+def run(cmd, check=True, timeout=None):
+    return subprocess.run(
+        cmd,
+        text=True,
+        capture_output=True,
+        check=check,
+        timeout=timeout,
+    )
 
 
 def github_json(url):
@@ -27,13 +37,13 @@ def github_json(url):
         return json.load(r)
 
 
-def openai_response(prompt):
+def openai_response(prompt, timeout_seconds):
     payload = {"model": MODEL, "input": prompt, "temperature": 0}
     req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
         "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
         "Content-Type": "application/json",
     }, method="POST")
-    with urllib.request.urlopen(req) as r:
+    with urllib.request.urlopen(req, timeout=timeout_seconds) as r:
         data = json.load(r)
     text = data.get("output_text")
     if not text:
@@ -46,7 +56,7 @@ def openai_response(prompt):
     return (text or "").strip()
 
 
-def copilot_response(prompt):
+def copilot_response(prompt, timeout_seconds):
     command = [
         "copilot",
         "-s",
@@ -62,19 +72,24 @@ def copilot_response(prompt):
         "-p",
         prompt,
     ]
-    result = run(command, check=False)
+    try:
+        result = run(command, check=False, timeout=timeout_seconds)
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"GitHub Copilot CLI fallback timed out after {timeout_seconds}s"
+        ) from exc
     if result.returncode != 0:
         evidence = (result.stderr or result.stdout or "Copilot CLI failed")[-12000:]
         raise RuntimeError(f"GitHub Copilot CLI fallback failed:\n{evidence}")
     return result.stdout.strip()
 
 
-def model_response(prompt):
+def model_response(prompt, timeout_seconds):
     if os.getenv("OPENAI_API_KEY", "").strip():
         print("ARVIN AI provider: OpenAI Responses API")
-        return openai_response(prompt)
+        return openai_response(prompt, timeout_seconds)
     print("ARVIN AI provider: GitHub Copilot CLI via GITHUB_TOKEN (read-only tools)")
-    return copilot_response(prompt)
+    return copilot_response(prompt, timeout_seconds)
 
 
 def repo_context():
@@ -104,10 +119,10 @@ def project_test():
     return True, "\n".join(output)[-20000:]
 
 
-def request_diff(issue_number, title, body, context, failure=""):
+def request_diff(issue_number, title, body, context, failure="", timeout_seconds=None):
     failure_context = ""
     if failure:
-        failure_context = f"\nPrevious validation failure:\n{failure}\n"
+        failure_context = f"\nPrevious attempt evidence:\n{failure}\n"
     prompt = f"""You are the bounded Arvin Code Worker. Work only on the requested GitHub issue.
 
 Issue #{issue_number}: {title}
@@ -116,32 +131,63 @@ Issue #{issue_number}: {title}
 Repository file inventory:
 {context}
 {failure_context}
-Inspect only repository files needed for this issue. Return ONLY a unified git diff beginning with `diff --git`. Do not include markdown fences or commentary. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Reuse canonical models, storage, repositories and UI paths. Add or update focused tests when appropriate. If the issue is not sufficiently specified or cannot be solved safely, return an empty response.
+Inspect only repository files needed for this issue. Return ONLY a complete unified git diff beginning with `diff --git`. Every changed file must include its `---` and `+++` file headers followed by complete `@@` hunks. Do not return hunk-only fragments, markdown fences, prose or commentary. Do not modify CI permissions, secrets, authentication, or files outside the issue scope. Prefer the smallest safe change. Reuse canonical models, storage, repositories and UI paths. Add or update focused tests when appropriate. If the issue is not sufficiently specified or cannot be solved safely, return an empty response.
 """
-    return model_response(prompt)
+    return model_response(prompt, timeout_seconds)
 
 
 def normalize_diff(text):
-    value = (text or "").strip()
-    if value.startswith("```"):
-        first_newline = value.find("\n")
-        if first_newline >= 0:
-            value = value[first_newline + 1:]
-        if value.endswith("```"):
-            value = value[:-3].rstrip()
+    value = (text or "").replace("\r\n", "\n").replace("\r", "\n").lstrip("\ufeff").strip()
     start = value.find("diff --git ")
-    if start > 0:
-        value = value[start:]
-    return value
+    if start < 0:
+        return value
+    value = value[start:]
+    lines = value.splitlines()
+    normalized = []
+    for line in lines:
+        if normalized and line.strip() in {"```", "~~~"}:
+            break
+        normalized.append(line)
+    return "\n".join(normalized).strip()
+
+
+def validate_diff_structure(diff):
+    value = normalize_diff(diff)
+    if not value.startswith("diff --git "):
+        return False, "Patch must begin with a complete `diff --git` file section"
+
+    lines = value.splitlines()
+    starts = [index for index, line in enumerate(lines) if line.startswith("diff --git ")]
+    if not starts:
+        return False, "No `diff --git` file section found"
+    if len(starts) > MAX_FILES:
+        return False, "Generated diff exceeds file-count safety limit"
+
+    starts.append(len(lines))
+    for section_index in range(len(starts) - 1):
+        section = lines[starts[section_index]:starts[section_index + 1]]
+        minus = next((i for i, line in enumerate(section) if line.startswith("--- ")), None)
+        plus = next((i for i, line in enumerate(section) if line.startswith("+++ ")), None)
+        hunk = next((i for i, line in enumerate(section) if line.startswith("@@ ")), None)
+        if minus is None or plus is None:
+            return False, "Each file section must include both `---` and `+++` headers"
+        if hunk is None:
+            return False, "Each file section must include at least one complete `@@` hunk"
+        if not (minus < plus < hunk):
+            return False, "Patch file headers must precede the first hunk"
+    return True, "patch structure valid"
 
 
 def apply_diff(diff):
     diff = normalize_diff(diff)
-    if not diff or "diff --git" not in diff:
+    if not diff:
         return False, "No actionable diff returned"
     if len(diff) > MAX_DIFF:
         return False, "Generated diff exceeds safety limit"
-    Path("/tmp/arvin.patch").write_text(diff, encoding="utf-8")
+    valid, structure_message = validate_diff_structure(diff)
+    if not valid:
+        return False, structure_message
+    Path("/tmp/arvin.patch").write_text(f"{diff}\n", encoding="utf-8")
     check = run(["git", "apply", "--check", "/tmp/arvin.patch"], check=False)
     if check.returncode != 0:
         return False, check.stderr[-10000:]
@@ -149,6 +195,13 @@ def apply_diff(diff):
     if applied.returncode != 0:
         return False, applied.stderr[-10000:]
     return True, "patch applied"
+
+
+def next_provider_timeout(deadline):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("AI provider retry budget exhausted")
+    return max(1, min(PROVIDER_TIMEOUT_SECONDS, math.ceil(remaining)))
 
 
 def main():
@@ -161,19 +214,39 @@ def main():
     title = issue.get("title", "")
     body = issue.get("body", "") or ""
     context = repo_context()
+    provider_deadline = time.monotonic() + PROVIDER_BUDGET_SECONDS
+    failure = ""
 
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
         try:
-            diff = request_diff(issue_number, title, body, context)
+            timeout_seconds = next_provider_timeout(provider_deadline)
+            diff = request_diff(
+                issue_number,
+                title,
+                body,
+                context,
+                failure,
+                timeout_seconds=timeout_seconds,
+            )
         except Exception as exc:
-            print(str(exc), file=sys.stderr)
-            return 6
+            message = f"Attempt {attempt} provider failure: {exc}"
+            print(message, file=sys.stderr)
+            failure = message
+            if attempt == MAX_FIX_ATTEMPTS or time.monotonic() >= provider_deadline:
+                return 6
+            continue
+
         ok, message = apply_diff(diff)
         if not ok:
             print(f"Attempt {attempt}: {message}", file=sys.stderr)
+            run(["git", "reset", "--hard", "HEAD"], check=False)
+            failure = (
+                "Previous generated patch was rejected before apply: "
+                f"{message}. Return a complete unified diff with `diff --git`, `---`, `+++` "
+                "and full `@@` hunks for every file."
+            )
             if attempt == MAX_FIX_ATTEMPTS:
                 return 4
-            run(["git", "reset", "--hard", "HEAD"], check=False)
             continue
 
         passed, evidence = project_test()
@@ -183,31 +256,14 @@ def main():
             return 0
 
         print(f"AI Worker validation FAIL on attempt {attempt}\n{evidence}", file=sys.stderr)
+        failed_patch = run(["git", "diff"], check=False).stdout
+        run(["git", "reset", "--hard", "HEAD"], check=False)
+        failure = (
+            f"Previous patch applied but project validation failed:\n{evidence[-12000:]}\n"
+            f"Failed patch for repair context:\n{failed_patch[-12000:]}"
+        )
         if attempt == MAX_FIX_ATTEMPTS:
             return 5
-        failure_diff = run(["git", "diff"], check=False).stdout
-        run(["git", "reset", "--hard", "HEAD"], check=False)
-        context = f"{context}\nCurrent failed patch:\n{failure_diff[-12000:]}"
-        try:
-            diff = request_diff(issue_number, title, body, context, evidence)
-        except Exception as exc:
-            print(str(exc), file=sys.stderr)
-            return 6
-        ok, message = apply_diff(diff)
-        if not ok:
-            print(f"Fix attempt {attempt} patch rejected: {message}", file=sys.stderr)
-            run(["git", "reset", "--hard", "HEAD"], check=False)
-            continue
-        passed, evidence = project_test()
-        if passed:
-            print(f"AI Worker self-fix PASS on attempt {attempt}")
-            print(normalize_diff(diff))
-            return 0
-        if attempt == MAX_FIX_ATTEMPTS:
-            print(evidence, file=sys.stderr)
-            return 5
-        run(["git", "reset", "--hard", "HEAD"], check=False)
-        context = f"{context}\nLatest failed fix evidence:\n{evidence[-12000:]}"
 
     return 5
 
