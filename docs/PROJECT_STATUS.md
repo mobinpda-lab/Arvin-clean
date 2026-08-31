@@ -59,7 +59,8 @@ Merge SHA / current `main`: `2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 - scope فقط READ_CALENDAR است؛ WRITE_CALENDAR، create/update/delete، Task import، background sync و Work Agenda UI اضافه نشده‌اند.
 - query در هر call به حداکثر 20 calendar و 93 روز محدود است و malformed/denied/unavailable path fail-closed برمی‌گردد.
 - pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` با conclusion `success` کامل شده بود؛ Build/Device روی آن Draft head `skipped` بودند.
-- در زمان این checkpoint برای merge SHA جدید `2ee2adc2...` workflow run مستقیم مشاهده نشد؛ بنابراین current-main post-merge Build/Device سبز ادعا نمی‌شود.
+- current-main Production Loop run `33411270935` روی exact merge head `2ee2adc2...` با conclusion `success` کامل شده است.
+- current-main Build/APK و Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده‌اند؛ Production Loop success جایگزین آن gateها نیست.
 
 ### PR #604 / #607 — provider selection replay — exact-head validation کامل، ولی main جلو رفته
 
@@ -90,12 +91,12 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 - `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ malformed/context-invalid patch همچنان fail-closed است.
 - PR #600 historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-آخرین Production Loop تأییدشده‌ای که در این audit مشاهده شد run `33407326883` با conclusion `success` بود، اما head آن `a9078ee5...` است؛ برای current main `2ee2adc2...` در زمان checkpoint run مستقیم تازه‌ای مشاهده نشد و success روی current head ادعا نمی‌شود.
+Current-main Production Loop run `33411270935` روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شده است. این evidence سلامت همان workflow را روی current main تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
 
 ## CI / Build
 
 - provider-selection exact head `6cdd6cd4...` دارای Fast + Heavy Build/APK + Device success کامل است، اما با حرکت main توسط #605 stale-for-promotion شده است.
-- merged #605 pre-merge Fast success دارد، ولی Build/Device آن Draft head skipped بودند و در زمان checkpoint post-merge run مستقیم روی `2ee2adc2...` مشاهده نشد؛ پس current-main CI باید جداگانه verify شود.
+- merged #605 pre-merge Fast success دارد و current-main Production Loop نیز روی merge head سبز است، ولی Build/Device آن Draft head skipped بودند و current-main Build/APK/Device success مستقل در این checkpoint تأیید نشده است.
 - Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
