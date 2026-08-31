@@ -1,6 +1,6 @@
 # Arvin — Project Status
 
-## وضعیت زنده — 2026-08-31
+## وضعیت زنده — 2026-09-01
 
 GitHub تنها Source of Truth عملیاتی پروژه است. این فایل checkpoint زنده است و قبل از هر تصمیم باید با `main`، PRها، Issueها و exact-head CI دوباره تطبیق داده شود.
 
@@ -91,7 +91,7 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 - `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ malformed/context-invalid patch همچنان fail-closed است.
 - PR #600 historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-Current-main Production Loop run `33411270935` روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شده است. این evidence سلامت همان workflow را روی current main تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
+Latest verified current-main Production Loop run `33439145235` در 2026-08-31T21:01Z روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شد و توسط Issue #608 راه‌اندازی شد. run قبلی `33411270935` نیز روی همین merge head موفق بود. این evidence سلامت Production Loop روی current main را تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
 
 ## CI / Build
 
@@ -100,6 +100,17 @@ Current-main Production Loop run `33411270935` روی head `2ee2adc22a45ab5fda1d
 - Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
+
+## Product Evolution Roadmap
+
+Issue #608 در 2026-08-31 باز شد و roadmap تأییدشده پس از تثبیت RC/نسخه پایدار را ثبت می‌کند. ترتیب فعلی آن چهار Wave است:
+
+1. **Core Productivity** — Today Center، Next Action Foundation، Daily/Weekly Dashboard.
+2. **Knowledge Layer** — Task ↔ Notebook، Decision History، Unified Search.
+3. **Reporting** — Smart Reports و Timeline Activity History.
+4. **AI Assistant** — پیشنهاد اولویت، تشخیص عقب‌افتادگی، پیشنهاد Next Action و خلاصه پروژه‌ها پس از جمع شدن داده کافی.
+
+قیدهای ثبت‌شده در #608: reuse معماری فعلی، small slice، test/document/merge استاندارد، بدون Storage/Database جدید، بدون بازنویسی Task Engine و بدون Calendar مستقل. این roadmap برنامه بعد از RC است و نباید laneهای Release/validation فعلی را stale یا متوقف کند.
 
 ## Progress / Evidence Dashboard
 
@@ -122,6 +133,7 @@ Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 r
 - #599 — provider-discovery duplicate Draft؛ باید historical/superseded بماند مگر gap واقعی ثابت شود.
 - #600 — Worker reliability historical Draft؛ superseded توسط merged #601 و نباید دوباره promote شود.
 - #578/#583 — evidence-backed Progress Score dashboard: implementation/validation کامل نشده.
+- #608 — Product Evolution Roadmap بعد از RC؛ فعلاً مرجع برنامه‌ریزی است و نباید مسیر Release جاری را bypass کند.
 
 ## Definition of Done
 
