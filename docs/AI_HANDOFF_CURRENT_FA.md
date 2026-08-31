@@ -8,9 +8,9 @@ GitHub تنها Source of Truth عملیاتی است. این فایل فقط ch
 
 Current `main`:
 
-`a4c2a3eca5838808ed0dee7c389f2d0dce997ba6`
+`a9078ee58263b7d8fa8cf862305467992e178575`
 
-آخرین Merge تأییدشده: PR #598 — Android Calendar Provider discovery روی main.
+آخرین Merge تأییدشده: PR #601 — AI Worker reliability hardening.
 
 Mergeهای مهم همین موج:
 - #573 — deterministic Production feedback loop
@@ -20,29 +20,29 @@ Mergeهای مهم همین موج:
 - #582 — Backup restore confirmation safety
 - #592 — Calendar integration settings UI
 - #598 — Android Calendar Provider discovery
+- #601 — Worker single-launch authority + safe patch recount reliability
 
 ## Active Parallel Lanes
 
-### 1. AI Worker reliability — PR #600
+### 1. Calendar provider selection — PR #602 / Issue #597
 
-- Draft / open / mergeable
-- head: `92c33573ef94b8e6e4e76a5b35df997b84a9cac0`
-- Fast run `33376661169`: ✅ complete on that exact head
-- quality/analyze/test + release/followup/typography/guide/calendar/backup surfaces all green on the historical exact head
-- `main` has since advanced through merged #598 to `a4c2a3ec...`
-- therefore reconcile/rebuild #600 onto current main before any Heavy/Device or promotion; do not reuse pre-main-move evidence as current-main proof
-- normal Worker launch authority = Orchestrator explicit dispatch
-- Worker is workflow_dispatch-only for normal launch
-- Git native `--recount` after structural validation only; malformed/context-invalid patch remains fail-closed
-- supersedes closed #593; historical #589/#591 must not be promoted independently
-- owner issues: #588 + #590
+- PR #602: open / Draft / mergeable
+- head: `1b28ab5fa2e6efa4da56c584fac7fa1445a67f1e`
+- Fast/Parallel run `33396542638`: ✅ complete success on that exact head
+- quality/analyze/test + calendar/typography/backup/followup/guide/release surfaces all green
+- implementation uses existing `SystemCalendarBridge` + existing `CalendarIntegrationSettings` / `AppSettingsService`
+- provider permission/listing starts only after explicit user action; opening page does not perform platform permission access or settings mutation
+- target calendar + visible calendar IDs are persisted through canonical settings
+- Google/Samsung/other calendars remain one Android Calendar Provider path; no vendor-specific engine
+- no WRITE_CALENDAR, direct event read/write/delete, recurrence sync or background sync in this slice
+- PR base still predates merged #601, so do not promote its historical head to Heavy/Device without current-main replay
+- current-main replay branch `feat/calendar-provider-selection-settings-v2` exists but at this checkpoint is still exactly equal to `main` (`a9078ee5...`); code replay has not yet landed on it
 
-### 2. Provider duplicate cleanup — PR #599
+### 2. Duplicate/superseded cleanup
 
-- Draft / open
-- scope overlaps the now-merged #598 provider discovery
-- do not spend Heavy/Device or merge budget on #599 unless a fresh live diff proves a non-duplicate gap
-- preferred default is reconcile then supersede/close duplicate history without force merge
+- PR #599 overlaps merged provider-discovery #598; do not spend Heavy/Device or merge budget unless live diff proves a non-duplicate gap.
+- PR #600 is superseded by merged #601; it is historical evidence only and must not be promoted again.
+- Issues #588 and #590 are completed/closed by #601. Issue #595 is completed/closed by #598.
 
 ### 3. Live Progress Score — #578 / #583
 
@@ -54,7 +54,7 @@ Mergeهای مهم همین موج:
 
 ## Calendar Reality
 
-Provider discovery foundation is now on `main` through #598:
+Provider discovery foundation is on `main` through #598:
 - READ_CALENDAR only
 - permission status/request
 - Android CalendarContract calendar/provider enumeration
@@ -62,7 +62,22 @@ Provider discovery foundation is now on `main` through #598:
 - no WRITE_CALENDAR
 - no direct event read/write/delete sync
 
-Therefore #516/#348 still own the remaining bidirectional integration work: selected calendar wiring, event projection/read/write policy, sync execution/idempotency and related safety gates.
+PR #602 has Fast-proven provider-selection UI/persistence behavior, but because `main` moved through #601 after its base, it is not yet production-current. #516/#348 still own the larger bidirectional integration work after selection: event projection/read/write policy, sync execution/idempotency, delete/recurrence behavior and related safety gates.
+
+## Automation Reality
+
+PR #601 is merged to current `main`:
+- normal AI Worker launch is `workflow_dispatch`-only
+- ARVIN Orchestrator is canonical launch authority
+- Production Loop keeps explicit dispatch for GITHUB_TOKEN-created Auto-Fix issues
+- concurrency is issue-input keyed
+- Git native `--recount` is used after structural validation; malformed/context-invalid patch still fails closed
+
+Validation evidence for #601:
+- exact-head Fast/Parallel ✅
+- Build run `33395334403`: quality + debug APK + release APK ✅
+- Device run `33395336405`: Home + People smoke ✅
+- latest observed Production Loop on current main: run `33396874925` ✅ success
 
 ## Production / Merge Contract
 
@@ -73,23 +88,25 @@ Therefore #516/#348 still own the remaining bidirectional integration work: sele
 - merge serially; independent development lanes may run in parallel.
 - if `main` moves, affected lane must reconcile/rebuild; do not force merge stale work.
 - do not restart/cancel healthy workflows merely to accelerate another lane.
-- duplicate lanes must not receive duplicate Heavy/merge work.
+- duplicate/superseded lanes must not receive duplicate Heavy/merge work.
 
-## Core / Data Safety
+## Core / Data / Backup Safety
 
 - preserve existing Task / Reminder / FollowUp / History foundations.
 - no duplicate TaskStore, Settings store, Calendar engine, scheduler, report path or Backup repository.
-- Restore mutation remains behind successful read/validation and explicit confirmation before destructive replacement.
+- #601 changed automation/test/docs boundaries, not product model/store data.
+- Restore mutation remains behind successful read/validation and explicit confirmation before destructive replacement; no newer verified Backup change after #582 was found in this checkpoint.
 - Calendar integration remains provider-neutral Android Calendar Provider based; no independent Google/Samsung engine.
-- no open Issue with exact `release-blocker` label was found at this checkpoint, but RC readiness still depends on unresolved operational lanes and exact-head evidence.
+- no open Issue with exact `release-blocker` label was found at this checkpoint, but RC readiness still depends on unresolved operational/product lanes and exact-head evidence.
 
 ## Continuation Priority
 
-1. Re-read live `main` and PR #600; reconcile Worker reliability to current main before Heavy.
-2. Reconcile/supersede duplicate PR #599 so it cannot consume redundant validation or merge work.
-3. Continue #516/#348 from the merged provider-discovery foundation with the smallest non-duplicative calendar sync slice.
-4. Continue #578/#583 only by extending the existing canonical score tool.
-5. Keep documentation in this separate Draft lane; update this existing docs PR instead of creating repetitive hourly docs PRs.
+1. Replay the Fast-proven #602 three-file calendar-selection slice onto `feat/calendar-provider-selection-settings-v2` from current `main` `a9078ee5...`.
+2. Run fresh exact-head Fast on that current-main replay; only then Ready → Heavy Build/APK + Device → guarded serial merge.
+3. Reconcile/supersede #599 and #600 so duplicate historical Drafts cannot consume validation/merge budget.
+4. Continue #516/#348 only from canonical merged provider/settings foundations and after provider selection is production-current.
+5. Continue #578/#583 only by extending the existing canonical score tool.
+6. Keep documentation in this existing separate Draft lane; update it only on meaningful GitHub changes and never use docs commits to interrupt healthy Product/Automation validation.
 
 ## Continuation Trigger
 
