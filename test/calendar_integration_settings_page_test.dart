@@ -219,7 +219,7 @@ void main() {
 
     expect(find.text('Personal'), findsOneWidget);
     expect(find.text('Samsung Calendar'), findsWidgets);
-    expect(find.textContaining('Google Calendar'), findsOneWidget);
+    expect(find.text('Google Calendar • user@example.com'), findsOneWidget);
 
     final target = find.byKey(const ValueKey('calendar-target-12'));
     await _scrollUntilVisible(tester, target);
