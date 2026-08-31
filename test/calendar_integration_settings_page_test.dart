@@ -1,7 +1,9 @@
 import 'package:arvin/calendar_integration_settings_page.dart';
 import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/services/system_calendar_bridge.dart';
 import 'package:arvin/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,8 +49,18 @@ Future<void> _scrollUntilVisible(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const calendarChannel = MethodChannel(SystemCalendarBridge.channelName);
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
+    messenger.setMockMethodCallHandler(calendarChannel, null);
+  });
+
+  tearDown(() {
+    messenger.setMockMethodCallHandler(calendarChannel, null);
   });
 
   testWidgets('calendar settings load is non-mutating and delete stays off',
@@ -131,7 +143,7 @@ void main() {
     );
   });
 
-  testWidgets('existing provider ids are presented without inventing discovery',
+  testWidgets('existing provider ids remain visible before provider access',
       (tester) async {
     final service = _CountingSettingsService(
       _appSettings(
@@ -149,6 +161,116 @@ void main() {
 
     expect(find.textContaining('google-work'), findsWidgets);
     expect(find.textContaining('2 تقویم انتخاب شده'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('calendar-request-provider-permission')),
+      findsOneWidget,
+    );
+    expect(service.calendarSaveCount, 0);
+  });
+
+  testWidgets('discovered Google and Samsung calendars can be selected',
+      (tester) async {
+    messenger.setMockMethodCallHandler(calendarChannel, (call) async {
+      switch (call.method) {
+        case SystemCalendarBridge.permissionStatusMethod:
+          return true;
+        case SystemCalendarBridge.listCalendarsMethod:
+          return <Map<String, Object?>>[
+            <String, Object?>{
+              'id': '12',
+              'displayName': 'Personal',
+              'accountName': 'user@example.com',
+              'accountType': 'com.google',
+              'visible': true,
+              'syncEvents': true,
+              'isPrimary': true,
+            },
+            <String, Object?>{
+              'id': '21',
+              'displayName': 'Samsung Calendar',
+              'accountName': 'phone',
+              'accountType': 'com.osp.app.signin',
+              'visible': true,
+              'syncEvents': true,
+              'isPrimary': false,
+            },
+          ];
+      }
+      return null;
+    });
+
+    final service = _CountingSettingsService(_appSettings());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarIntegrationSettingsPage(
+          service: service,
+          calendarBridge: SystemCalendarBridge(channel: calendarChannel),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Personal'), findsOneWidget);
+    expect(find.text('Samsung Calendar'), findsWidgets);
+    expect(find.textContaining('Google Calendar'), findsOneWidget);
+
+    final target = find.byKey(const ValueKey('calendar-target-12'));
+    await _scrollUntilVisible(tester, target);
+    await tester.tap(target);
+    await tester.pumpAndSettle();
+
+    final visible = find.byKey(const ValueKey('calendar-visible-21'));
+    await _scrollUntilVisible(tester, visible);
+    await tester.tap(visible);
+    await tester.pumpAndSettle();
+
+    final saved = service.current.calendarIntegration;
+    expect(saved.targetCalendarId, '12');
+    expect(saved.visibleCalendarIds, contains('21'));
+    expect(service.calendarSaveCount, 2);
+  });
+
+  testWidgets('permission request reveals provider list without settings write',
+      (tester) async {
+    var granted = false;
+    messenger.setMockMethodCallHandler(calendarChannel, (call) async {
+      switch (call.method) {
+        case SystemCalendarBridge.permissionStatusMethod:
+          return granted;
+        case SystemCalendarBridge.requestPermissionMethod:
+          granted = true;
+          return true;
+        case SystemCalendarBridge.listCalendarsMethod:
+          return <Map<String, Object?>>[
+            <String, Object?>{
+              'id': '7',
+              'displayName': 'Work',
+              'accountType': 'com.google',
+            },
+          ];
+      }
+      return null;
+    });
+
+    final service = _CountingSettingsService(_appSettings());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarIntegrationSettingsPage(
+          service: service,
+          calendarBridge: SystemCalendarBridge(channel: calendarChannel),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final request = find.byKey(
+      const ValueKey('calendar-request-provider-permission'),
+    );
+    expect(request, findsOneWidget);
+    await tester.tap(request);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Work'), findsOneWidget);
     expect(service.calendarSaveCount, 0);
   });
 }
