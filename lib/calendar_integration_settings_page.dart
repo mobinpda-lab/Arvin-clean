@@ -45,19 +45,16 @@ class _CalendarIntegrationSettingsPageState
     final appSettings = await widget.service.load();
     if (!mounted) return;
     setState(() => settings = appSettings.calendarIntegration);
-    await _refreshProviderState();
   }
 
-  Future<void> _refreshProviderState({bool requestPermission = false}) async {
+  Future<void> _loadProviderCalendars() async {
     if (providerLoading) return;
     setState(() {
       providerLoading = true;
       providerError = null;
     });
     try {
-      final granted = requestPermission
-          ? await calendarBridge.requestReadPermission()
-          : await calendarBridge.hasReadPermission();
+      final granted = await calendarBridge.requestReadPermission();
       final calendars = granted
           ? await calendarBridge.listDeviceCalendars()
           : const <DeviceCalendarInfo>[];
@@ -144,9 +141,9 @@ class _CalendarIntegrationSettingsPageState
               const SizedBox(height: 12),
               FilledButton.icon(
                 key: const ValueKey('calendar-request-provider-permission'),
-                onPressed: () => _refreshProviderState(requestPermission: true),
+                onPressed: _loadProviderCalendars,
                 icon: const Icon(Icons.event_available_outlined),
-                label: const Text('دریافت دسترسی تقویم گوشی'),
+                label: const Text('بررسی و دریافت دسترسی تقویم گوشی'),
               ),
             ],
           ),
