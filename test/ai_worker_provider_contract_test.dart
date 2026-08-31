@@ -39,10 +39,27 @@ void main() {
     expect(runtime, contains('AI provider retry budget exhausted'));
     expect(runtime, contains('timeout=timeout_seconds'));
     expect(runtime, contains('for attempt in range(1, MAX_FIX_ATTEMPTS + 1):'));
-
-    // One provider request site inside the bounded attempt loop prevents the
-    // old nested self-fix path from multiplying MAX_FIX_ATTEMPTS calls.
+    expect(runtime, contains('"--recount"'));
     expect('diff = request_diff('.allMatches(runtime).length, 1);
+  });
+
+  test('AI worker has exactly one explicit launch authority', () {
+    final worker = File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
+    final router = File('.github/workflows/arvin-orchestrator.yml').readAsStringSync();
+    final productionLoop = File('.github/workflows/arvin-production-loop.yml').readAsStringSync();
+
+    expect(worker, contains('workflow_dispatch:'));
+    expect(worker, isNot(contains('\n  issues:\n')));
+    expect(worker, contains(r'group: arvin-agent-${{ inputs.issue_number }}'));
+    expect(worker, contains(r'ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}'));
+    expect(worker, isNot(contains("github.event.label.name == 'arvin-auto'")));
+
+    expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(router, contains('createWorkflowDispatch'));
+    expect(router, contains('<!-- arvin-worker-dispatch -->'));
+
+    expect(productionLoop, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(productionLoop, contains('createWorkflowDispatch'));
   });
 
   test('AI worker cannot become a second merge authority', () {
