@@ -87,71 +87,69 @@ class _JalaliDateJumpDialogState extends State<_JalaliDateJumpDialog> {
       textDirection: TextDirection.rtl,
       child: AlertDialog(
         title: const Text('برو به تاریخ'),
-        content: SizedBox(
-          width: 420,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 12,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                width: 112,
-                child: DropdownButtonFormField<int>(
-                  key: const ValueKey('calendar-jump-year'),
-                  initialValue: _year,
-                  decoration: const InputDecoration(labelText: 'سال'),
-                  items: [
-                    for (var year = _year - 10; year <= _year + 10; year++)
-                      DropdownMenuItem(value: year, child: Text('$year')),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _year = value;
-                      _normalizeDay();
-                    });
-                  },
-                ),
+              DropdownButtonFormField<int>(
+                key: const ValueKey('calendar-jump-year'),
+                initialValue: _year,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'سال'),
+                items: [
+                  for (var year = _year - 10; year <= _year + 10; year++)
+                    DropdownMenuItem(value: year, child: Text('$year')),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _year = value;
+                    _normalizeDay();
+                  });
+                },
               ),
-              SizedBox(
-                width: 132,
-                child: DropdownButtonFormField<int>(
-                  key: const ValueKey('calendar-jump-month'),
-                  initialValue: _month,
-                  decoration: const InputDecoration(labelText: 'ماه'),
-                  items: [
-                    for (var month = 1; month <= 12; month++)
-                      DropdownMenuItem(
-                        value: month,
-                        child: Text(_monthNames[month - 1]),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                key: const ValueKey('calendar-jump-month'),
+                initialValue: _month,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'ماه'),
+                items: [
+                  for (var month = 1; month <= 12; month++)
+                    DropdownMenuItem(
+                      value: month,
+                      child: Text(
+                        _monthNames[month - 1],
+                        overflow: TextOverflow.ellipsis,
                       ),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _month = value;
-                      _normalizeDay();
-                    });
-                  },
-                ),
-              ),
-              SizedBox(
-                width: 88,
-                child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'روز'),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      key: const ValueKey('calendar-jump-day'),
-                      value: _day,
-                      isExpanded: true,
-                      items: [
-                        for (var day = 1; day <= maxDay; day++)
-                          DropdownMenuItem(value: day, child: Text('$day')),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _day = value);
-                      },
                     ),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _month = value;
+                    _normalizeDay();
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              InputDecorator(
+                decoration: const InputDecoration(labelText: 'روز'),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    key: const ValueKey('calendar-jump-day'),
+                    value: _day,
+                    isExpanded: true,
+                    items: [
+                      for (var day = 1; day <= maxDay; day++)
+                        DropdownMenuItem(value: day, child: Text('$day')),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _day = value);
+                    },
                   ),
                 ),
               ),
