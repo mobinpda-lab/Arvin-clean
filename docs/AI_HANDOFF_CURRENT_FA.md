@@ -27,16 +27,18 @@ Mergeهای مهم همین موج:
 ### 1. Calendar provider selection — PR #602 / Issue #597
 
 - PR #602: open / Draft / mergeable
-- head: `1b28ab5fa2e6efa4da56c584fac7fa1445a67f1e`
-- Fast/Parallel run `33396542638`: ✅ complete success on that exact head
+- historical head: `1b28ab5fa2e6efa4da56c584fac7fa1445a67f1e`
+- Fast/Parallel run `33396542638`: ✅ complete success on that historical exact head
 - quality/analyze/test + calendar/typography/backup/followup/guide/release surfaces all green
 - implementation uses existing `SystemCalendarBridge` + existing `CalendarIntegrationSettings` / `AppSettingsService`
 - provider permission/listing starts only after explicit user action; opening page does not perform platform permission access or settings mutation
 - target calendar + visible calendar IDs are persisted through canonical settings
 - Google/Samsung/other calendars remain one Android Calendar Provider path; no vendor-specific engine
 - no WRITE_CALENDAR, direct event read/write/delete, recurrence sync or background sync in this slice
-- PR base still predates merged #601, so do not promote its historical head to Heavy/Device without current-main replay
-- current-main replay branch `feat/calendar-provider-selection-settings-v2` exists but at this checkpoint is still exactly equal to `main` (`a9078ee5...`); code replay has not yet landed on it
+- PR #602 base predates merged #601, so historical Fast evidence is not sufficient for promotion
+- current-main replay branch `feat/calendar-provider-selection-settings-v2` is now 3 commits ahead of `main` and 0 behind
+- live compare shows exactly three replayed paths: `lib/calendar_integration_settings_page.dart`, `test/calendar_integration_settings_page_test.dart`, `docs/CALENDAR_PROVIDER_SELECTION_SETTINGS_2026-08-31.md`
+- current-main replay still needs a fresh PR/exact-head Fast before any Ready → Heavy/Device promotion
 
 ### 2. Duplicate/superseded cleanup
 
@@ -62,7 +64,7 @@ Provider discovery foundation is on `main` through #598:
 - no WRITE_CALENDAR
 - no direct event read/write/delete sync
 
-PR #602 has Fast-proven provider-selection UI/persistence behavior, but because `main` moved through #601 after its base, it is not yet production-current. #516/#348 still own the larger bidirectional integration work after selection: event projection/read/write policy, sync execution/idempotency, delete/recurrence behavior and related safety gates.
+PR #602 has Fast-proven provider-selection UI/persistence behavior on a historical base. The current-main replay is now materialized as the same bounded three-file slice on `feat/calendar-provider-selection-settings-v2`, but it has not yet received fresh current-main PR/CI evidence. #516/#348 still own the larger bidirectional integration work after selection: event projection/read/write policy, sync execution/idempotency, delete/recurrence behavior and related safety gates.
 
 ## Automation Reality
 
@@ -77,7 +79,7 @@ Validation evidence for #601:
 - exact-head Fast/Parallel ✅
 - Build run `33395334403`: quality + debug APK + release APK ✅
 - Device run `33395336405`: Home + People smoke ✅
-- latest observed Production Loop on current main: run `33396874925` ✅ success
+- latest observed Production Loop on current main: run `33405071453` ✅ success
 
 ## Production / Merge Contract
 
@@ -101,7 +103,7 @@ Validation evidence for #601:
 
 ## Continuation Priority
 
-1. Replay the Fast-proven #602 three-file calendar-selection slice onto `feat/calendar-provider-selection-settings-v2` from current `main` `a9078ee5...`.
+1. Open/reconcile the current-main provider-selection replay from `feat/calendar-provider-selection-settings-v2` without modifying its bounded three-file scope.
 2. Run fresh exact-head Fast on that current-main replay; only then Ready → Heavy Build/APK + Device → guarded serial merge.
 3. Reconcile/supersede #599 and #600 so duplicate historical Drafts cannot consume validation/merge budget.
 4. Continue #516/#348 only from canonical merged provider/settings foundations and after provider selection is production-current.
