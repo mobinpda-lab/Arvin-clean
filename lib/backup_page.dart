@@ -244,6 +244,32 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
+  Future<bool> _confirmRestore(int taskCount) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تأیید بازیابی'),
+        content: Text(
+          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود. این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('restore_confirm_cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const Key('restore_confirm_apply'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('بازیابی'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
   Future<void> _restore({String? passphrase}) async {
     setState(() => busy = true);
     try {
@@ -253,6 +279,9 @@ class _BackupPageState extends State<BackupPage> {
           .whereType<Map>()
           .map((item) => Map<String, dynamic>.from(item))
           .toList();
+      if (!mounted) return;
+      final confirmed = await _confirmRestore(tasks.length);
+      if (!confirmed || !mounted) return;
       await widget.replaceTasks(tasks);
       if (mounted) _message('اطلاعات با موفقیت بازیابی شد');
     } catch (_) {
