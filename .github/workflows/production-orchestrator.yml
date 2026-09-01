@@ -282,13 +282,27 @@ jobs:
               }
 
               core.info(`#${item.number}: exact-head Fast/Build/Device gates green on current main; squash merging.`);
-              await github.rest.pulls.merge({
-                owner,
-                repo,
-                pull_number: item.number,
-                merge_method: 'squash',
-                sha: headSha,
+              const mergeResult = await github.rest.pulls.merge({
+                owner, repo, pull_number: item.number, merge_method: 'squash', sha: headSha,
               });
+              if (!mergeResult.data.merged) {
+                core.warning(`#${item.number}: merge rejected: ${mergeResult.data.message}`);
+                continue;
+              }
 
+              const mergedMain = mergeResult.data.sha;
+              const verifiedMain = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+              if (verifiedMain.data.commit.sha !== mergedMain) {
+                core.setFailed(`#${item.number}: merged SHA ${mergedMain} is not current main; stopping fail-closed.`);
+                return;
+              }
+
+              // Immediate self-wake removes the normal 5-minute polling gap after
+              // a successful merge. The scheduled trigger remains as a recovery
+              // watchdog; this explicit dispatch is the fast path for the queue.
+              core.info(`#${item.number}: merged as ${mergedMain}; immediately waking orchestrator for the next queued PR.`);
+              await github.rest.actions.createWorkflowDispatch({
+                owner, repo, workflow_id: 'production-orchestrator.yml', ref: 'main',
+              });
               return;
             }
