@@ -1,0 +1,32 @@
+# ARVIN-CLEAN — AI MASTER TRANSFER SPEC
+IDENTITY: Arvin-clean / Arvin v1 | Repo: mobinpda-lab/Arvin-clean | Platform: Flutter/Dart/Android | Main: main | Mission: Professional Persian RTL task/reminder/follow-up productivity system + autonomous software factory.
+AUTHORITY: GitHub Reality > Approved ADR/Architecture > Canonical Operating Standard > Implementation/CI Procedures > Conversation Memory. GitHub code=actual implementation; CI=exact-ref validation; Issues/PRs=execution/evidence; docs=contract/governance.
+CANONICAL: docs/ARVIN_PROJECT_OPERATING_PACKAGE.md v49.0. Historical docs are evidence only. «بسم الله الرحمن الرحیم» is an inseparable project identity/continuity principle.
+AI MODE: Observe→Audit→Understand→Plan→Parallelize→Execute→Validate→Document→Report. Never start from memory alone. Never claim work without exact GitHub evidence.
+PRODUCT VISION: Professional production-grade application; fast, reliable, Persian RTL, Jalali-first, offline-capable, recoverable, secure, extensible, multi-device/cloud-ready.
+CORE FEATURES: Task; Reminder; FollowUp; Jalali Calendar; Notifications; Backup/Restore; Cloud/Dropbox; Google Calendar; PDF/Print/Share; Security; Widget; Lock Screen; Multi-device Sync; reporting; project/product evolution.
+ARCHITECTURE: Clean Architecture + Feature-Based; Domain independent from infrastructure; stable shared foundations; no duplicate business/data authorities.
+CORE MODEL: Unified Item/Task shared foundation. FollowUp/Reminder/Calendar/Notification/Report/etc reuse canonical foundations; no competing models/stores without approved ADR.
+SYNC: Foundation Core, not feature. Device Sync + Conflict Resolution + Versioning + Offline Queue + Consistency + Recovery. Every Sync change requires schema/version/migration/backward-compatibility/conflict/offline/recovery/validation/rollback analysis.
+DATA: Incremental safe migrations; backward compatibility; reversible changes; backup/recovery before destructive operations; preserve user data.
+UI CONTRACT: Protected canonical Persian RTL UI; Jalali calendar; approved AppShell, Dashboard Timeline, Reminder Card, FollowUp Card, Calendar, Report Widget, Notification Widget, Lock Screen/Widget. No redesign without formal approval + validation.
+REMINDER UI: «یادآور» with compact time; title below; expandable details/actions; no fabricated time for all-day reminders; consistent widget/lock-screen behavior.
+QUALITY: flutter pub get→flutter analyze→flutter test→integration→flutter build apk→artifact/release validation; applicable Unit/Widget/Integration/Golden/RTL/Security/Performance/Migration/Sync tests.
+CI RULE: GitHub Actions is official evidence; local checks are feedback only. CI evidence is valid only for exact tested SHA/ref.
+RELEASE: Development→Validation→RC→Approval→Production→Monitoring. Release needs exact commit, version/tag, notes, validation evidence, recovery/rollback.
+RECOVERY: Detect→Classify→Assess→Contain→Recover→Validate→Document→Improve. Test backup restoration; monitoring and rollback are part of reliability.
+DOCUMENTATION: Canonical operating standard; Current-State records; ADR/Architecture; Product/Feature docs; Historical records; AI handoff/continuation records. Material change must update applicable docs + Issue/PR evidence.
+REPORTING: Compact management format: CURRENT STATE→DONE→STATUS→EVIDENCE→BLOCKER/RISK→NEXT ACTION. Labels: REALITY/PLAN/BLOCKED/DECISION REQUIRED. Never mix verified and planned status.
+GOVERNANCE: No direct normal development on main; Issue→Branch→Code→Test→Docs→PR→CI→Review→Merge. Reuse before rebuild. No duplicate stores/workflows/docs. No force push, gate bypass, fabricated evidence, unsafe migration or unreviewed foundation change.
+PARALLELISM: Independent lanes execute concurrently; shared foundations and conflicting files require dependency control. Merge remains controlled/serial. Each lane has objective/scope/owner/input/output/branch/boundary/dependencies/validation/evidence/integration/status.
+ASF VISION: Autonomous Software Factory from IDEA→PRODUCT DEFINITION→ARCHITECTURE→BOOTSTRAP→TASK DECOMPOSITION→ISSUES→PARALLEL WORKERS→CODE→TEST→AUTO-FIX→DOCS→PR→CI→BUILD→DEVICE TEST→SECURITY GATE→EXACT-HEAD VALIDATION→AUTO-MERGE→RELEASE→MONITORING→RECOVERY→ROLLBACK.
+AUTOMATION TARGET: 100% practical autonomous execution where technically possible, while preserving human approval for irreversible/product/security decisions. Automation must be evidence-first, idempotent, bounded, recoverable and auditable.
+FACTORY COMPONENTS: Issue orchestration; worker allocation; dependency/conflict detection; branch creation; implementation; test execution; self-fix loop; documentation update; PR creation; CI orchestration; exact-head gate; security gate; merge authority; release automation; artifact validation; monitoring; incident/recovery queue; rollback.
+SELF-FIX: Detect failure→classify→locate cause→apply bounded reversible fix→retest exact head→repeat within limit→escalate if unresolved. Never hide failures or weaken gates.
+MONITORING: CI/workflow/build/release/runtime health; stale evidence detection; failure classification; recovery queue; escalation; post-release observation.
+ROLLBACK: Preserve last known-good release/commit; detect regression; contain; revert/restore safely; validate; document root cause and corrective action.
+PLANNED/NOT-NECESSARILY-IMPLEMENTED: Full autonomous worker backend; first complete autonomous Issue→Commit→PR→CI→Merge proof; production RC/device/release evidence; Smart FollowUp; Multi-Device Sync; Project Tracking; Self-Fix/Recovery; real Release/Monitoring/Rollback; stronger factory evidence pipeline.
+CURRENT ESTIMATE: ~75% engineering completion; ~25% remaining; estimate only, not native GitHub metric.
+ACTIVE PRIORITY AREAS: Automation Runtime Worker (#620); Evidence Pipeline/first autonomous cycle (#619); Smart FollowUp (#621); Continuous Production (#617); RC/Release; Sync; Project Tracking; Self-Fix/Recovery.
+AI CONTINUATION: On «ادامه آروین», fresh-audit GitHub, identify nearest real unfinished work, avoid duplicate work, execute safe parallel lanes, validate exact head, document evidence, report compactly.
+TRANSFER RULE: This specification defines intended project identity/product/architecture/governance/roadmap, but repository code and exact GitHub evidence remain authoritative.
