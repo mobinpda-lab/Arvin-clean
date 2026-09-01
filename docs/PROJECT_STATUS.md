@@ -93,6 +93,30 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 
 Latest verified current-main Production Loop run `33443096963` در 2026-08-31T21:47Z روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شد. runهای `33439145235` و `33411270935` نیز روی همین merge head موفق بودند. این evidence سلامت Production Loop روی current main را تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
 
+## Resilient Production / Factory Protocol v2
+
+### PR #609 — resilient continuous production checkpoints 🟡 open draft
+
+- PR #609 در 2026-09-01 برای افزودن checkpointهای interruption-recovery باز شده است.
+- scope ثبت‌شده شامل `PROJECT_STATE.md`، `ROADMAP_QUEUE.md` و `DECISIONS.md` است.
+- هدف: حفظ canonical state در GitHub، ادامه‌پذیری پس از قطع session/connection و جلوگیری از توقف توسعه.
+- PR در این checkpoint `open`, `draft`, `mergeable` است و هنوز روی `main` ادغام نشده؛ بنابراین این قابلیت به‌عنوان merged production capability ادعا نمی‌شود.
+- این lane documentation/continuity باید از validation فعال Product/Automation جدا بماند و باعث stale شدن laneهای release نشود.
+
+### Issue #610 — Universal Autonomous Software Factory Protocol v2 🟡 open
+
+Issue #610 adoption لایه‌های عملیاتی زیر را برای آروین ثبت می‌کند:
+
+- Bottleneck Manager
+- Normal / Fast Delivery / Emergency RC production modes
+- Priority Engine مبتنی بر value/urgency/dependency/risk/effort
+- Parallel Conflict Controller برای shared files/modules/dependencies
+- Learning Loop پس از release
+- Evidence-Based Automation Score
+- Human Escalation فقط برای ambiguity/security/destructive/irreversible decisions
+
+این Issue در این checkpoint یک operating-policy task است، نه evidence اجرای کامل Level 10. تا زمانی که workflow/test/build/release/recovery evidence واقعی وجود نداشته باشد، `100% End-to-End Automation` ادعا نمی‌شود.
+
 ## CI / Build
 
 - provider-selection exact head `6cdd6cd4...` دارای Fast + Heavy Build/APK + Device success کامل است، اما با حرکت main توسط #605 stale-for-promotion شده است.
@@ -135,6 +159,8 @@ Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 r
 
 - #597 / #604 / #607 — Calendar provider selection: exact-head Fast + Heavy + Device سبز روی `6cdd6cd4...`، ولی پس از merge #605 نیازمند current-main replay/reconcile است؛ فقط یک canonical PR ادامه یابد.
 - #516/#348 — bidirectional Android device-calendar integration: provider discovery + bounded read-only event query روی main هستند؛ external projection به Calendar/Work Agenda و سپس idempotent write/sync هنوز باقی است.
+- #609 — Resilient Production checkpoint docs: open Draft, mergeable, not on main yet.
+- #610 — Factory Protocol v2 adoption task: open; policy integration pending evidence-backed implementation.
 - #599 — provider-discovery duplicate Draft؛ باید historical/superseded بماند مگر gap واقعی ثابت شود.
 - #600 — Worker reliability historical Draft؛ superseded توسط merged #601 و نباید دوباره promote شود.
 - #578/#583 — evidence-backed Progress Score dashboard: implementation/validation کامل نشده.
