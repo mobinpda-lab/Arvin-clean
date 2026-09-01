@@ -13,9 +13,27 @@ GitHub تنها Source of Truth عملیاتی پروژه است. این فای�
 - Backup restore confirmation: PR #582 روی main
 - AI Worker timeout/budget hardening: PR #579 روی main
 
-## Release Blockers
+## Release Blockers / RC Freeze
 
-در audit این checkpoint هیچ Issue باز با label دقیق `release-blocker` پیدا نشد. این به معنی RC-ready بودن خودکار نیست؛ laneهای باز باید همچنان current-main ancestry، exact-head Fast و در صورت promotion، Build/APK/Device معتبر داشته باشند.
+در audit این checkpoint هیچ Issue باز با label دقیق `release-blocker` تأیید نشد. این به معنی RC-ready بودن خودکار نیست؛ promotion همچنان به current-main ancestry، exact-head validation و در صورت نیاز Build/APK/Device معتبر نیاز دارد.
+
+### Issue #612 — RC Feature Freeze + Canonical PR policy 🟡 open
+
+قانون رسمی ثبت‌شده:
+
+```text
+Product Decision = FINAL
+        ↓
+Canonical PR Selected
+        ↓
+No Alternative PR
+        ↓
+Only Validation Remains
+```
+
+هدف این policy جلوگیری از بازشدن دوباره طراحی قابلیت نهایی‌شده، PRهای موازی و تکرار validation است. پس از FINAL شدن تصمیم محصول، فقط validation، test، build verification و release evidence باید باقی بماند. این rule به‌طور ویژه برای Calendar و سایر قابلیت‌های release-sensitive ثبت شده است.
+
+برای Calendar provider selection، PR #607 در body خود صراحتاً canonical Fast proof برای exact head مشترک `6cdd6cd49ecb038851cce76a2a37e9c499f139fb` معرفی شده و #604 را برای promotion supersede می‌کند. با این حال چون `main` بعداً توسط #605 جلو رفته، promotion نهایی هنوز به reconcile/replay روی current main نیاز دارد؛ طراحی محصول نباید دوباره باز شود.
 
 ## Core / Data
 
@@ -59,25 +77,45 @@ Merge SHA / current `main`: `2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 - scope فقط READ_CALENDAR است؛ WRITE_CALENDAR، create/update/delete، Task import، background sync و Work Agenda UI اضافه نشده‌اند.
 - query در هر call به حداکثر 20 calendar و 93 روز محدود است و malformed/denied/unavailable path fail-closed برمی‌گردد.
 - pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` با conclusion `success` کامل شده بود؛ Build/Device روی آن Draft head `skipped` بودند.
-- current-main Production Loop run `33443096963` روی exact merge head `2ee2adc2...` با conclusion `success` کامل شده است؛ runهای قبلی `33439145235` و `33411270935` نیز روی همین head موفق بودند.
-- current-main Build/APK و Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده‌اند؛ Production Loop success جایگزین آن gateها نیست.
+- current-main Build/APK و Device success مستقل برای merge SHA `2ee2adc2...` هنوز در این checkpoint تأیید نشده‌اند؛ Orchestrator/Production Loop success جایگزین آن gateها نیست.
 
-### PR #604 / #607 — provider selection replay — exact-head validation کامل، ولی main جلو رفته
+### PR #607 — Canonical provider-selection validation path 🟡 open
 
-Shared exact head: `6cdd6cd49ecb038851cce76a2a37e9c499f139fb`
+Shared exact head با #604: `6cdd6cd49ecb038851cce76a2a37e9c499f139fb`
 
-- #604 و #607 هر دو همان سه-file provider-selection implementation را حمل می‌کنند؛ #607 برای Fast رسمی روی API جدید Flutter ساخته شد.
+- #607 برای replay همان provider-selection implementation با latest Flutter API ساخته شده و در PR body به‌عنوان canonical Fast proof معرفی شده است.
 - exact-head Fast/Parallel run `33406629330`: `success`.
 - exact-head Heavy Build run `33406422054`: `success`؛ quality/test و Debug/Release APK کامل سبز شدند.
 - exact-head Device Smoke run `33406422349`: `success`؛ Home و People هر دو سبز شدند.
-- این evidence برای SHA `6cdd6cd4...` معتبر است، اما `main` بعداً با merge #605 به `2ee2adc2...` جلو رفته است؛ بنابراین #604/#607 بدون reconcile/replay روی current main مجوز promotion ندارند.
-- #604 و #607 هم‌پوشان هستند و نباید هر دو Heavy/merge budget جداگانه مصرف کنند؛ یک canonical replay کافی است.
+- این evidence برای SHA `6cdd6cd4...` معتبر است، اما چون `main` با #605 به `2ee2adc2...` جلو رفته، قبل از promotion نهایی باید همان مسیر canonical روی current main reconcile/replay شود.
+- Product Decision نباید دوباره باز شود؛ طبق #612 از این نقطه فقط validation/reconcile مجاز است.
+
+### PR #604 — historical provider-selection evidence
+
+#604 همان exact head و implementation را حمل می‌کند. طبق #607 برای promotion superseded است؛ evidence موجود آن historical/exact-SHA باقی می‌ماند ولی نباید lane موازی Heavy/merge ایجاد کند.
 
 Issue مالک selection: #597 باز است. #348/#516 همچنان umbrella اجرای read/write/idempotent sync و external projection را نگه می‌دارند.
 
 ### PR #599 — provider-discovery duplicate Draft
 
 PR #599 هنوز باز است، ولی scope آن توسط merge #598 روی `main` پوشش داده شده است. مگر اینکه live diff gap جدید و غیرتکراری ثابت کند، نباید Heavy/Device یا merge budget مصرف کند.
+
+## Multi Device Sync Architecture
+
+### PR #611 — Arvin Multi Device Sync Architecture v15 🟡 open draft
+
+PR #611 یک lane مستنداتی/معماری بعد از RC است و روی `main` merge نشده است.
+
+اصول ثبت‌شده در آن:
+
+- Direct Device-to-Device Sync اولویت اول است.
+- Local WiFi / Hotspot / WiFi Direct مسیر اصلی ارتباط هستند و اینترنت نباید prerequisite باشد.
+- Offline First و Local Database First حفظ می‌شوند.
+- Trusted Device Pairing و secure peer connection پایه multi-device هستند.
+- Cloud optional است و نباید محل اجرای Sync Logic باشد.
+- Conflict Resolution، Recovery، Audit و YadNegar integration در roadmap معماری لحاظ شده‌اند.
+
+این PR design reference آینده است و طبق policy فعلی نباید RC یا validation فعال Calendar را block یا stale کند.
 
 ## Automation / Production Orchestrator
 
@@ -91,21 +129,22 @@ Production Orchestrator همچنان authority اصلی promotion/merge است. 
 - `git apply --recount` فقط بعد از structural validation استفاده می‌شود؛ malformed/context-invalid patch همچنان fail-closed است.
 - PR #600 historical/superseded است و نباید دوباره Heavy یا promotion بگیرد.
 
-Latest verified current-main Production Loop run `33443096963` در 2026-08-31T21:47Z روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` با conclusion `success` کامل شد. runهای `33439145235` و `33411270935` نیز روی همین merge head موفق بودند. این evidence سلامت Production Loop روی current main را تأیید می‌کند، ولی Build/APK/Device یا RC readiness را به‌تنهایی ثابت نمی‌کند.
+Latest verified current-main ARVIN Orchestrator run: `33487725264` در 2026-09-01، event=`issues` برای Issue #612، head=`2ee2adc22a45ab5fda1dcd548672ddaf77717afc` و conclusion=`success`.
+
+این run نشان می‌دهد Orchestrator روی current main بعد از ثبت RC Freeze policy سالم اجرا شده است، ولی به‌تنهایی Build/APK/Device یا RC readiness را ثابت نمی‌کند.
 
 ## Resilient Production / Factory Protocol v2
 
 ### PR #609 — resilient continuous production checkpoints 🟡 open draft
 
-- PR #609 در 2026-09-01 برای افزودن checkpointهای interruption-recovery باز شده است.
 - scope ثبت‌شده شامل `PROJECT_STATE.md`، `ROADMAP_QUEUE.md` و `DECISIONS.md` است.
 - هدف: حفظ canonical state در GitHub، ادامه‌پذیری پس از قطع session/connection و جلوگیری از توقف توسعه.
-- PR در این checkpoint `open`, `draft`, `mergeable` است و هنوز روی `main` ادغام نشده؛ بنابراین این قابلیت به‌عنوان merged production capability ادعا نمی‌شود.
+- PR `open`, `draft`, `mergeable` است و هنوز روی `main` ادغام نشده؛ بنابراین merged production capability محسوب نمی‌شود.
 - این lane documentation/continuity باید از validation فعال Product/Automation جدا بماند و باعث stale شدن laneهای release نشود.
 
 ### Issue #610 — Universal Autonomous Software Factory Protocol v2 🟡 open
 
-Issue #610 adoption لایه‌های عملیاتی زیر را برای آروین ثبت می‌کند:
+Issue #610 adoption لایه‌های عملیاتی زیر را ثبت می‌کند:
 
 - Bottleneck Manager
 - Normal / Fast Delivery / Emergency RC production modes
@@ -115,31 +154,33 @@ Issue #610 adoption لایه‌های عملیاتی زیر را برای آرو
 - Evidence-Based Automation Score
 - Human Escalation فقط برای ambiguity/security/destructive/irreversible decisions
 
-این Issue در این checkpoint یک operating-policy task است، نه evidence اجرای کامل Level 10. تا زمانی که workflow/test/build/release/recovery evidence واقعی وجود نداشته باشد، `100% End-to-End Automation` ادعا نمی‌شود.
+این Issue operating-policy task است، نه evidence اجرای کامل Level 10. تا زمانی که workflow/test/build/release/recovery evidence واقعی وجود نداشته باشد، `100% End-to-End Automation` ادعا نمی‌شود.
 
 ## CI / Build
 
-- provider-selection exact head `6cdd6cd4...` دارای Fast + Heavy Build/APK + Device success کامل است، اما با حرکت main توسط #605 stale-for-promotion شده است.
-- merged #605 pre-merge Fast success دارد و current-main Production Loop نیز روی merge head سبز است، ولی Build/Device آن Draft head skipped بودند و current-main Build/APK/Device success مستقل در این checkpoint تأیید نشده است.
+- provider-selection exact head `6cdd6cd4...` دارای Fast + Heavy Build/APK + Device success کامل است، اما با حرکت main توسط #605 stale-for-promotion شده است؛ فقط #607 باید canonical validation path باشد.
+- merged #605 pre-merge Fast success دارد و current-main Orchestrator نیز روی merge head سبز است، ولی current-main Build/APK/Device success مستقل در این checkpoint تأیید نشده است.
 - Build/Device skipped روی Draft به‌تنهایی success/failure محصول محسوب نمی‌شود.
 - skipped/cancelled protective runs evidence محصول نیستند؛ فقط runهای exact-head و ancestry معتبر ملاک‌اند.
 - documentation lane جدا و Draft باقی می‌ماند تا validation فعال Product/Automation را stale نکند.
 
 ## Release
 
-- در GitHub تا این checkpoint هیچ Release منتشرشده‌ای برای repository ثبت نشده است.
-- بنابراین RC/Release باید فقط بعد از evidence مستقل و معتبر Build/APK/Device روی current main ادعا شود؛ Production Loop سبز به‌تنهایی معادل Release artifact یا RC-ready نیست.
+- GitHub Releases در این checkpoint خالی است؛ هیچ Release منتشرشده‌ای ثبت نشده است.
+- بنابراین RC/Release فقط بعد از evidence مستقل و معتبر Build/APK/Device روی current main قابل ادعا است؛ Orchestrator یا Production Loop سبز به‌تنهایی معادل Release artifact یا RC-ready نیست.
 
 ## Product Evolution Roadmap
 
-Issue #608 در 2026-08-31 باز شد و roadmap تأییدشده پس از تثبیت RC/نسخه پایدار را ثبت می‌کند. ترتیب فعلی آن چهار Wave است:
+Issue #608 roadmap تأییدشده پس از تثبیت RC/نسخه پایدار را ثبت می‌کند. ترتیب فعلی آن چهار Wave است:
 
 1. **Core Productivity** — Today Center، Next Action Foundation، Daily/Weekly Dashboard.
 2. **Knowledge Layer** — Task ↔ Notebook، Decision History، Unified Search.
 3. **Reporting** — Smart Reports و Timeline Activity History.
 4. **AI Assistant** — پیشنهاد اولویت، تشخیص عقب‌افتادگی، پیشنهاد Next Action و خلاصه پروژه‌ها پس از جمع شدن داده کافی.
 
-قیدهای ثبت‌شده در #608: reuse معماری فعلی، small slice، test/document/merge استاندارد، بدون Storage/Database جدید، بدون بازنویسی Task Engine و بدون Calendar مستقل. این roadmap برنامه بعد از RC است و نباید laneهای Release/validation فعلی را stale یا متوقف کند.
+قیدهای #608: reuse معماری فعلی، small slice، test/document/merge استاندارد، بدون Storage/Database جدید، بدون بازنویسی Task Engine و بدون Calendar مستقل. این roadmap بعد از RC است و نباید laneهای Release/validation فعلی را stale یا متوقف کند.
+
+PR #611 اکنون یک architecture lane جداگانه برای Multi Device Sync آینده است و باید همین اصل post-RC / non-blocking را رعایت کند.
 
 ## Progress / Evidence Dashboard
 
@@ -154,17 +195,21 @@ Issue #578 همچنان مرجع Progress Score evidence-backed است و #583 r
 5. PR/branch stale باید rebuild/reconcile شود، نه force merge.
 6. Documentation نباید validation سالم Product/Automation را stale کند؛ docs-only تغییرات در Lane جدا نگه داشته می‌شوند.
 7. duplicate/superseded lane نباید Heavy یا merge موازی بگیرد.
+8. پس از `Product Decision = FINAL` فقط یک Canonical PR مجاز به promotion است و فقط Validation باقی می‌ماند.
 
 ## Open operational lanes
 
-- #597 / #604 / #607 — Calendar provider selection: exact-head Fast + Heavy + Device سبز روی `6cdd6cd4...`، ولی پس از merge #605 نیازمند current-main replay/reconcile است؛ فقط یک canonical PR ادامه یابد.
-- #516/#348 — bidirectional Android device-calendar integration: provider discovery + bounded read-only event query روی main هستند؛ external projection به Calendar/Work Agenda و سپس idempotent write/sync هنوز باقی است.
+- #597 / #607 — Calendar provider selection: Product Decision نهایی؛ #607 canonical validation path است، exact-head Fast + Heavy + Device روی `6cdd6cd4...` سبز، اما پس از #605 نیازمند current-main replay/reconcile است.
+- #604 — provider-selection historical evidence؛ superseded برای promotion توسط #607.
+- #516/#348 — bidirectional Android device-calendar integration: provider discovery + bounded read-only event query روی main هستند؛ external projection و سپس idempotent write/sync هنوز باقی است.
 - #609 — Resilient Production checkpoint docs: open Draft, mergeable, not on main yet.
 - #610 — Factory Protocol v2 adoption task: open; policy integration pending evidence-backed implementation.
-- #599 — provider-discovery duplicate Draft؛ باید historical/superseded بماند مگر gap واقعی ثابت شود.
+- #611 — Multi Device Sync Architecture v15: open Draft، post-RC/non-blocking؛ Direct Device-to-Device اولویت اول.
+- #612 — RC Feature Freeze / Canonical PR policy: open operating-policy issue؛ طراحی FINAL را از validation جدا می‌کند.
+- #599 — provider-discovery duplicate Draft؛ historical/superseded مگر gap واقعی ثابت شود.
 - #600 — Worker reliability historical Draft؛ superseded توسط merged #601 و نباید دوباره promote شود.
 - #578/#583 — evidence-backed Progress Score dashboard: implementation/validation کامل نشده.
-- #608 — Product Evolution Roadmap بعد از RC؛ فعلاً مرجع برنامه‌ریزی است و نباید مسیر Release جاری را bypass کند.
+- #608 — Product Evolution Roadmap بعد از RC؛ مرجع برنامه‌ریزی و non-blocking برای Release جاری.
 
 ## Definition of Done
 
