@@ -4,7 +4,7 @@
 
 GitHub تنها Source of Truth عملیاتی است. این فایل فقط checkpoint فشرده برای ادامه سریع است؛ هر اجرای جدید باید قبل از اقدام، `main`، PRها، Issueها و exact-head CI را تازه بخواند.
 
-## Live Checkpoint — 2026-08-31
+## Live Checkpoint — 2026-09-01
 
 Current `main`:
 
@@ -52,16 +52,24 @@ Current main merge SHA:
 - malformed rows / denied permission / missing plugin fail closed هستند.
 - Task import، Work Agenda UI، WRITE_CALENDAR، create/update/delete، background sync و vendor SDK اضافه نشده‌اند.
 - pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` ✅ success؛ Build/Device آن Draft head skipped بودند.
-- current-main operational evidence تازه: Production Loop run `33411270935` روی exact head `2ee2adc2...` با conclusion `success` کامل شده است.
+- current-main operational evidence: Production Loop روی exact head `2ee2adc2...` موفق ثبت شده است.
 - هنوز current-main Build/APK یا Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده؛ Production Loop success جایگزین آن gateها نیست.
 
-### 3. Duplicate/superseded cleanup
+### 3. Resilient Production / Factory Protocol v2 — PR #609 / Issue #610
+
+- PR #609 یک docs-only continuity lane است و `PROJECT_STATE.md`، `ROADMAP_QUEUE.md` و `DECISIONS.md` را برای interruption recovery معرفی می‌کند.
+- وضعیت فعلی #609: open + draft + mergeable؛ هنوز روی `main` نیست، پس merged capability محسوب نمی‌شود.
+- Issue #610 adoption پروتکل Universal Autonomous Software Factory v2 را ثبت می‌کند: Bottleneck Manager، Production Modes، Priority Engine، Parallel Conflict Controller، Learning Loop، Evidence-Based Automation Score و Human Escalation Policy.
+- #610 operating-policy task است؛ وجود Issue/Docs به‌تنهایی evidence سطح 10 نیست. Automation level فقط با workflow/test/build/release/recovery evidence افزایش یابد.
+- این docs/continuity laneها نباید Product/Automation validation سالم را stale یا متوقف کنند.
+
+### 4. Duplicate/superseded cleanup
 
 - PR #599 scope merged provider-discovery #598 را overlap می‌کند؛ بدون live diff gap جدید Heavy/Device یا merge budget نگیرد.
 - PR #600 توسط merged #601 superseded است و historical evidence محسوب می‌شود.
 - provider-selection #604/#607 نیز یک implementation مشترک دارند؛ فقط یک current-main replay باید ادامه پیدا کند.
 
-### 4. Live Progress Score — #578 / #583
+### 5. Live Progress Score — #578 / #583
 
 - reuse existing `tool/progress_score.py` و canonical scorecards.
 - no second score source.
@@ -93,7 +101,7 @@ PR #601 روی main باقی است:
 - concurrency issue-input keyed است
 - Git native `--recount` فقط بعد از structural validation استفاده می‌شود و malformed/context-invalid patch fail closed می‌ماند
 
-Current-main evidence: Production Loop run `33411270935` روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` در 2026-08-31 با conclusion `success` کامل شده است. این evidence فقط سلامت همان workflow را ثابت می‌کند و به‌تنهایی Build/APK/Device یا RC readiness را اثبات نمی‌کند.
+Current-main Production Loop evidence روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` موفق است. این evidence فقط سلامت همان workflow را ثابت می‌کند و به‌تنهایی Build/APK/Device یا RC readiness را اثبات نمی‌کند.
 
 ## Production / Merge Contract
 
@@ -116,15 +124,17 @@ Current-main evidence: Production Loop run `33411270935` روی head `2ee2adc22a
 
 ## Continuation Priority
 
-1. current main `2ee2adc2...` و post-merge CI را دوباره verify کن؛ Production Loop روی current head سبز است اما Build/APK/Device فقط با evidence مستقل ادعا شوند.
-2. provider-selection را فقط در یک canonical PR از current main replay/reconcile کن؛ historical #604/#607 evidence را حفظ کن ولی دوباره duplicate Heavy اجرا نکن.
+1. current main `2ee2adc2...` و post-merge CI را verify کن؛ Build/APK/Device فقط با evidence مستقل ادعا شوند.
+2. provider-selection را فقط در یک canonical PR از current main replay/reconcile کن؛ historical #604/#607 evidence را حفظ کن ولی duplicate Heavy اجرا نکن.
 3. پس از selection، external events را به existing Calendar/Work Agenda projection متصل کن؛ موتور/صفحه/Store دوم نساز.
-4. #599/#600 را historical/superseded نگه دار مگر gap واقعی ثابت شود.
-5. #578/#583 را فقط با extension ابزار score canonical ادامه بده.
-6. Documentation را در همین Draft lane موجود نگه دار و فقط روی تغییر معنادار GitHub update کن؛ docs نباید Product/Automation validation سالم را stale کند.
+4. PR #609 را docs-only continuity lane نگه دار و فقط در نقطه امن reconcile/merge کن تا validation محصول stale نشود.
+5. Issue #610 را به‌عنوان operating-policy backlog اجرا کن؛ اول bottleneck/priority/conflict/evidence rules را روی automation موجود extend کن، نه اینکه workflow موازی تکراری بسازی.
+6. #599/#600 را historical/superseded نگه دار مگر gap واقعی ثابت شود.
+7. #578/#583 را فقط با extension ابزار score canonical ادامه بده.
+8. Documentation را در همین Draft lane موجود نگه دار و فقط روی تغییر معنادار GitHub update کن.
 
 ## Continuation Trigger
 
-`Fresh GitHub audit → parallel independent implementation → exact-head Fast → serial Ready/Heavy → guarded merge → post-merge re-audit → reconcile docs → next smallest real gap`
+`Fresh GitHub audit → detect bottleneck → prioritize → parallel independent work → exact-head Fast → serial Ready/Heavy → guarded merge → post-merge re-audit → evidence-backed docs checkpoint → next smallest real gap`
 
 Repository reality always overrides conversation memory and this checkpoint.
