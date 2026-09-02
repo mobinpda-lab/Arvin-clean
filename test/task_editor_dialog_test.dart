@@ -42,6 +42,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> ensureControlVisible(WidgetTester tester, Key key) async {
+    await tester.ensureVisible(find.byKey(key));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('existing follow-up task shows explicit toggle and date plus time',
       (tester) async {
     final task = Task(
@@ -86,6 +91,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await ensureControlVisible(tester, const ValueKey('task-editor-save'));
     await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
@@ -110,6 +116,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await ensureControlVisible(tester, const ValueKey('task-editor-date'));
     await tester.tap(find.byKey(const ValueKey('task-editor-date')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
@@ -122,6 +129,7 @@ void main() {
     expect(find.text('۱۰:۳۰'), findsOneWidget);
     expect(find.text('۱۴۰۵/۰۶/۰۶'), findsOneWidget);
 
+    await ensureControlVisible(tester, const ValueKey('task-editor-save'));
     await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
@@ -142,6 +150,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار بدون پیگیری',
     );
+    await ensureControlVisible(tester, const ValueKey('task-editor-save'));
     await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
@@ -155,6 +164,10 @@ void main() {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
 
+    await ensureControlVisible(
+      tester,
+      const ValueKey('task-editor-followup-enabled'),
+    );
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
 
@@ -165,6 +178,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار پیگیری‌دار جدید',
     );
+    await ensureControlVisible(tester, const ValueKey('task-editor-save'));
     await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
@@ -204,10 +218,15 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await ensureControlVisible(
+      tester,
+      const ValueKey('task-editor-followup-enabled'),
+    );
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
     expect(find.text('سوابق پیگیری قبلی حفظ می‌شوند.'), findsOneWidget);
 
+    await ensureControlVisible(tester, const ValueKey('task-editor-save'));
     await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
