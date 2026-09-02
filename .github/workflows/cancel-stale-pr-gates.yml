@@ -1,0 +1,26 @@
+name: Arvin Stale Gate Guard
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  actions: write
+  pull-requests: read
+
+concurrency:
+  group: arvin-stale-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cancel-stale-heavy-pr-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate guard logic
+        run: python3 tool/cancel_stale_pr_gates.py --self-test
+      - name: Cancel stale heavy pull-request gates
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tool/cancel_stale_pr_gates.py
