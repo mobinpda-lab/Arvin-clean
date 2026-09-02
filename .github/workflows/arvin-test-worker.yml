@@ -1,0 +1,150 @@
+name: ARVIN Test Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number assigned to the Test Worker'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: arvin-test-worker-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+env:
+  ISSUE_NUMBER: ${{ inputs.issue_number }}
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  test-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify issue is actionable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          issue="$(gh issue view "$ISSUE_NUMBER" --json state,labels,title,body)"
+          python3 - "$issue" "$ISSUE_NUMBER" <<'PY'
+          import json, sys
+          issue = json.loads(sys.argv[1])
+          issue_number = sys.argv[2]
+          if issue['state'] != 'OPEN':
+              raise SystemExit(f"Issue #{issue_number} is not open")
+          labels = {x['name'] for x in issue.get('labels', [])}
+          if 'arvin-auto' not in labels:
+              print('Issue has no arvin-auto label; continuing because dispatch is explicit.')
+          PY
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run Test Worker validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .arvin/evidence
+          flutter test \
+            test/ai_worker_provider_contract_test.dart \
+            test/ai_worker_runtime_behavior_test.dart \
+            test/production_orchestrator_contract_test.dart \
+            | tee .arvin/evidence/issue-${ISSUE_NUMBER}-test.log
+
+      - name: Capture evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN_SHA="$(git rev-parse HEAD)"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          cat > ".arvin/evidence/issue-${ISSUE_NUMBER}-test-worker.md" <<EOF
+          # ARVIN Test Worker Evidence
+
+          - Issue: #${ISSUE_NUMBER}
+          - Main SHA tested: ${MAIN_SHA}
+          - Workflow run: ${RUN_URL}
+          - Worker: test-worker
+          - Flutter: ${FLUTTER_VERSION}
+          - Result: PASS
+
+          ## Validation
+
+          Targeted automation contract tests passed:
+          - test/ai_worker_provider_contract_test.dart
+          - test/ai_worker_runtime_behavior_test.dart
+          - test/production_orchestrator_contract_test.dart
+
+          This evidence proves the Test Worker validation stage only. Build, Device, exact-head and merge gates remain owned by the canonical production pipeline.
+          EOF
+
+      - name: Create isolated evidence branch and commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="test/issue-${ISSUE_NUMBER}"
+          git config user.name 'arvin-test-worker[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git checkout -B "$BRANCH" origin/main
+          git add ".arvin/evidence/issue-${ISSUE_NUMBER}-test.log" ".arvin/evidence/issue-${ISSUE_NUMBER}-test-worker.md"
+          git commit -m "test: record Test Worker evidence for issue #${ISSUE_NUMBER}"
+          git push --force-with-lease origin "$BRANCH"
+
+      - name: Create or reuse draft PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="test/issue-${ISSUE_NUMBER}"
+          PR_URL="$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
+          if [ -z "$PR_URL" ]; then
+            PR_URL="$(gh pr create \
+              --draft \
+              --base main \
+              --head "$BRANCH" \
+              --title "test: Test Worker evidence for issue #${ISSUE_NUMBER}" \
+              --body "Refs #${ISSUE_NUMBER}\n\nTest Worker execution evidence is recorded on an isolated branch.\n\nFlow: Issue → Test Worker → Test Evidence → Draft PR → canonical CI/Build/Device/Exact-Head gates → Production Orchestrator.\n\nNo merge authority is granted to this worker.")"
+          fi
+          gh pr edit "$PR_URL" --add-label arvin-auto
+          echo "PR_URL=$PR_URL" >> "$GITHUB_ENV"
+
+      - name: Record issue execution evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker='<!-- arvin-test-worker-evidence -->'
+          if ! gh issue view "$ISSUE_NUMBER" --comments --json comments --jq '.comments[].body' | grep -Fq "$marker"; then
+            gh issue comment "$ISSUE_NUMBER" --body "$marker
+
+### ARVIN Test Worker
+
+- Result: **PASS**
+- Commit/branch: \`test/issue-${ISSUE_NUMBER}\`
+- PR: ${PR_URL}
+- Targeted automation tests: **PASS**
+- Next gates: canonical CI → Build → Device → exact-head → Production Gate
+"
+          fi
