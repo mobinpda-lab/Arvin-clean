@@ -7,17 +7,17 @@ on:
         description: GitHub issue number to implement
         required: true
         type: string
+      expected_main_sha:
+        description: Exact main SHA leased by the queue
+        required: true
+        type: string
 
 permissions:
   contents: write
   issues: write
   pull-requests: write
   actions: write
-  copilot-requests: write
 
-# One issue has one canonical launch authority. ARVIN Orchestrator (and the
-# Production Loop for GITHUB_TOKEN-created Auto-Fix issues) dispatch this
-# workflow explicitly. The worker never launches directly from an issue label.
 concurrency:
   group: arvin-agent-${{ inputs.issue_number }}
   cancel-in-progress: false
@@ -25,22 +25,41 @@ concurrency:
 jobs:
   code-worker:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}
+      ARVIN_EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
-      ARVIN_COPILOT_MODEL: ${{ vars.ARVIN_COPILOT_MODEL || 'auto' }}
       ARVIN_MAX_AUTO_FIX_ATTEMPTS: '3'
+      ARVIN_PROVIDER_TIMEOUT_SECONDS: '180'
+      ARVIN_PROVIDER_BUDGET_SECONDS: '540'
+      ASF_LEASE_SECONDS: '1800'
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout
+      - name: Checkout current main
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Validate task
-        run: test -n "$ARVIN_ISSUE_NUMBER"
+      - name: Validate exact main lease
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$ARVIN_EXPECTED_MAIN_SHA"
+
+      - name: Select issue-scoped worker branch
+        run: |
+          set -euo pipefail
+          branch="ai/issue-${ARVIN_ISSUE_NUMBER}"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch origin "$branch"
+            git switch -C "$branch" "origin/$branch"
+            git merge-base --is-ancestor "origin/main" HEAD || { echo 'Worker branch is stale relative to current main; fail closed.'; exit 8; }
+          else
+            git switch -c "$branch"
+          fi
+          echo "ARVIN_WORKER_BRANCH=$branch" >> "$GITHUB_ENV"
 
       - name: Setup Flutter
         if: ${{ hashFiles('pubspec.yaml') != '' }}
@@ -48,10 +67,6 @@ jobs:
         with:
           channel: stable
           cache: true
-
-      - name: Install GitHub Copilot CLI fallback
-        if: env.OPENAI_API_KEY == ''
-        run: npm install -g @github/copilot
 
       - name: Configure git
         run: |
@@ -64,7 +79,6 @@ jobs:
       - name: Final project validation
         run: |
           if [ -f pubspec.yaml ]; then
-            flutter --version
             flutter pub get
             flutter analyze
             flutter test
@@ -72,54 +86,36 @@ jobs:
             npm ci
             npm test --if-present
           else
-            echo "No supported project manifest detected; code-worker stops safely."
+            echo 'No supported project manifest detected.'
           fi
 
       - name: Commit worker result
-        id: commit
         run: |
-          if git diff --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          set -euo pipefail
+          git diff --quiet && { echo 'Worker produced no change.'; exit 1; }
           git add -A
-          git commit -m "feat(ai-worker): implement issue #$ARVIN_ISSUE_NUMBER"
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git commit -m "feat(ai-worker): implement issue #${ARVIN_ISSUE_NUMBER}"
 
       - name: Push worker branch
-        if: steps.commit.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
-          git switch -C "$BRANCH"
-          git push --force-with-lease origin "$BRANCH"
-          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+        run: git push origin "HEAD:${ARVIN_WORKER_BRANCH}"
 
       - name: Open or reuse guarded draft pull request
-        if: steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
-          EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
-          if [ -n "$EXISTING" ]; then
-            PR_NUMBER="$EXISTING"
-            echo "PR #$PR_NUMBER already exists; branch updated."
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$ARVIN_WORKER_BRANCH" --base main --state open --json number --jq '.[0].number')"
+          if [ -n "$existing" ]; then
+            pr="$existing"
           else
-            PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" \
-              --draft \
-              --head "$BRANCH" \
-              --base main \
-              --title "AI Worker: issue #$ARVIN_ISSUE_NUMBER" \
-              --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.")
-            PR_NUMBER="${PR_URL##*/}"
+            pr_url="$(gh pr create --repo "$GITHUB_REPOSITORY" --draft --head "$ARVIN_WORKER_BRANCH" --base main --title "AI Worker: issue #${ARVIN_ISSUE_NUMBER}" --body "Bounded autonomous Code Worker result for #${ARVIN_ISSUE_NUMBER}. Exact-head Fast, Build and Device gates remain required.")"
+            pr="${pr_url##*/}"
           fi
-          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
-          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
+          gh pr edit "$pr" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
+          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #${pr} from exact leased main ${ARVIN_EXPECTED_MAIN_SHA}."
+          echo "ARVIN_PR_NUMBER=$pr" >> "$GITHUB_ENV"
 
-          gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
-          gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"
+      - name: Wake canonical promotion gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$ARVIN_PR_NUMBER"
