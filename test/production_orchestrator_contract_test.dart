@@ -65,7 +65,7 @@ void main() {
     expect(router, contains('arvin-worker-dispatch'));
     expect(router, contains('createWorkflowDispatch'));
     expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(router, contains("inputs: { issue_number: String(issue.number) }"));
+    expect(router, contains('inputs: { issue_number: String(item.number) }'));
 
     // Likewise, a PR created by the worker explicitly starts exact-head Fast
     // and wakes the one canonical production merge authority for that PR.
