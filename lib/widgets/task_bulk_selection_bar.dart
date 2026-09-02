@@ -11,6 +11,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
     required this.allVisibleSelected,
     required this.onToggleAll,
     required this.onClearSelection,
+    this.onArchive,
     this.onTrash,
     this.onCategory,
     this.onTags,
@@ -21,6 +22,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
   final bool allVisibleSelected;
   final VoidCallback onToggleAll;
   final VoidCallback onClearSelection;
+  final VoidCallback? onArchive;
   final VoidCallback? onTrash;
   final VoidCallback? onCategory;
   final VoidCallback? onTags;
@@ -37,7 +39,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final compact = constraints.maxWidth < 420;
+              final compact = constraints.maxWidth < 600;
               final summary = Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -90,6 +92,12 @@ class TaskBulkSelectionBar extends StatelessWidget {
                     tooltip: 'تغییر دسته',
                     onPressed: onCategory,
                     icon: const Icon(Icons.folder_outlined),
+                  ),
+                  IconButton(
+                    key: const ValueKey('task-bulk-archive'),
+                    tooltip: 'بایگانی',
+                    onPressed: onArchive,
+                    icon: const Icon(Icons.archive_outlined),
                   ),
                   IconButton(
                     key: const ValueKey('task-bulk-trash'),
