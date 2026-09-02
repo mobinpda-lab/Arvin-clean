@@ -89,6 +89,32 @@ jobs:
                 body: `${marker}\n\n### ARVIN Production Queue\n\n**Route:** ${route}\n\n**Workers:** ${workers.join(' → ')}\n\n**Policy:** maximum parallel development, current-main validation, exact-head CI, guarded promotion.\n\n**State:** queued. Worker execution must produce traceable PR/head evidence; no automatic merge is permitted from an issue alone.`
               });
             }
+
+            if (route === 'test') {
+              const dispatchMarker = '<!-- arvin-test-worker-dispatch -->';
+              const branch = `test/issue-${issueNumber}`;
+              const openPrs = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: 'open', head: `${owner}:${branch}`, per_page: 100,
+              });
+              const alreadyDispatched = comments.some(c => c.body?.includes(dispatchMarker));
+              if (!alreadyDispatched && openPrs.length === 0) {
+                await github.rest.actions.createWorkflowDispatch({
+                  owner,
+                  repo,
+                  workflow_id: 'arvin-test-worker.yml',
+                  ref: 'main',
+                  inputs: { issue_number: String(issueNumber) },
+                });
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issueNumber,
+                  body: `${dispatchMarker}\n\n### ARVIN Test Worker\n\nTest Worker dispatched for issue #${issueNumber}. The worker must create an isolated evidence branch and Draft PR; promotion remains owned by the canonical production gates.`
+                });
+                core.info(`Test Worker dispatched for issue #${issueNumber}.`);
+              } else {
+                core.info(`Test Worker already dispatched or PR exists for issue #${issueNumber}; no duplicate launch.`);
+              }
+            }
+
             core.info(`Issue #${issueNumber} routed to ${route}: ${workers.join(', ')}`);
 
   feedback-loop:
