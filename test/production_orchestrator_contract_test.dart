@@ -13,8 +13,6 @@ void main() {
     expect(text, contains('cancel-in-progress: false'));
     expect(text, contains('actions: write'));
 
-    // Fast can be started either by the normal PR event or by the explicit
-    // token-safe worker dispatch. It must still be completed and successful.
     expect(
       text,
       contains("fast?.status !== 'completed' || fast?.conclusion !== 'success'"),
@@ -27,8 +25,6 @@ void main() {
     expect(text, contains('merge_base_commit?.sha === mainSha'));
     expect(text, contains('markPullRequestReadyForReview'));
 
-    // Heavy gates are explicitly dispatched on the exact worker head and the
-    // direct wake polls them instead of depending on recursive workflow_run.
     expect(text, contains('createWorkflowDispatch'));
     expect(text, contains("workflow_id: 'build.yml'"));
     expect(text, contains("workflow_id: 'device-smoke.yml'"));
@@ -36,8 +32,6 @@ void main() {
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
 
-    // Real failures are routed explicitly into the one Production Loop rather
-    // than depending on a recursive workflow_run callback from GITHUB_TOKEN.
     expect(text, contains('async function reportFailure(run)'));
     expect(text, contains("!['failure', 'timed_out'].includes(run?.conclusion)"));
     expect(text, contains("workflow_id: 'arvin-production-loop.yml'"));
@@ -46,7 +40,6 @@ void main() {
     expect(text, contains('await reportFailure(build);'));
     expect(text, contains('await reportFailure(device);'));
 
-    // Merge stays opt-in, current-main locked, exact-head locked and serial.
     expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
     expect(text, contains('preMergeMain.data.commit.sha !== mainSha'));
     expect(text, contains('locked.data.head.sha !== headSha'));
@@ -60,15 +53,11 @@ void main() {
     final router = File('.github/workflows/arvin-orchestrator.yml').readAsStringSync();
     final worker = File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
 
-    // A label added with GITHUB_TOKEN must not be the only way to start the
-    // code worker. The router explicitly starts it once and leaves a marker.
     expect(router, contains('arvin-worker-dispatch'));
     expect(router, contains('createWorkflowDispatch'));
     expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(router, contains("inputs: { issue_number: String(issue.number) }"));
+    expect(router, contains('inputs: { issue_number: String(item.number) }'));
 
-    // Likewise, a PR created by the worker explicitly starts exact-head Fast
-    // and wakes the one canonical production merge authority for that PR.
     expect(
       worker,
       contains(r'gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"'),
