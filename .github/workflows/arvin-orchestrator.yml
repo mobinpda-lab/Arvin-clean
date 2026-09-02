@@ -5,6 +5,8 @@ on:
     types: [opened, labeled]
   pull_request:
     types: [opened, synchronize, ready_for_review]
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -13,14 +15,15 @@ permissions:
   actions: write
 
 concurrency:
-  group: arvin-orchestrator-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+  group: arvin-orchestrator
+  cancel-in-progress: false
 
 jobs:
   route:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Task Analyzer and Worker Routing
+      - name: Task Analyzer, queue sweep and Worker Routing
         uses: actions/github-script@v7
         with:
           script: |
@@ -28,56 +31,89 @@ jobs:
             const repo = context.repo.repo;
             const issue = context.payload.issue;
             const pr = context.payload.pull_request;
+            const workerDispatchMarker = '<!-- arvin-worker-dispatch -->';
+            const testWorkerDispatchMarker = '<!-- arvin-test-worker-dispatch -->';
+            const routerMarker = '<!-- arvin-task-router -->';
 
-            if (issue) {
-              const text = `${issue.title}\n${issue.body || ''}`.toLowerCase();
+            function classify(item) {
+              const text = `${item.title}\n${item.body || ''}`.toLowerCase();
               let route = 'feature';
               if (/(bug|fix|fail|error|crash|regression)/.test(text)) route = 'bugfix';
               else if (/(test|ci|quality|coverage)/.test(text)) route = 'test';
               else if (/(doc|documentation|readme|guide)/.test(text)) route = 'documentation';
               else if (/(core|architecture|foundation|database|storage|sync)/.test(text)) route = 'core';
+              return { route, text };
+            }
 
-              const marker = '<!-- arvin-task-router -->';
-              const workerDispatchMarker = '<!-- arvin-worker-dispatch -->';
-              const comments = await github.paginate(github.rest.issues.listComments, {
-                owner, repo, issue_number: issue.number, per_page: 100,
+            async function commentsFor(issueNumber) {
+              return github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: issueNumber, per_page: 100,
               });
-              const alreadyRouted = comments.some(c => c.body?.includes(marker));
-              const alreadyDispatched = comments.some(c => c.body?.includes(workerDispatchMarker));
+            }
+
+            async function routeIssue(item, scheduledSweep = false) {
+              const { route, text } = classify(item);
+              const comments = await commentsFor(item.number);
+              const alreadyRouted = comments.some(c => c.body?.includes(routerMarker));
+              const alreadyCodeDispatched = comments.some(c => c.body?.includes(workerDispatchMarker));
+              const alreadyTestDispatched = comments.some(c => c.body?.includes(testWorkerDispatchMarker));
 
               if (!alreadyRouted) {
                 await github.rest.issues.createComment({
-                  owner, repo, issue_number: issue.number,
-                  body: `${marker}\n\n### ARVIN Task Analyzer\n\n- Route: **${route}**\n- Code Worker: **queued**\n- Test Worker: **queued**\n- Documentation Worker: **queued when required**\n- CI feedback: **required before promotion**\n- PR policy: **draft-first / controlled merge**\n\nRouting is idempotent. The worker is activated automatically only for actionable feature/bugfix/core tasks; test/documentation-only tasks remain gated for their dedicated workers.`
+                  owner, repo, issue_number: item.number,
+                  body: `${routerMarker}\n\n### ARVIN Task Analyzer\n\n- Route: **${route}**\n- Code Worker: **queued**\n- Test Worker: **queued**\n- Documentation Worker: **queued when required**\n- CI feedback: **required before promotion**\n- PR policy: **draft-first / controlled merge**\n\nRouting is idempotent. Scheduled queue sweeps are recovery-safe and never bypass promotion gates.`
                 });
               }
 
-              const labels = (issue.labels || []).map(l => l.name);
-              const autoEligible = ['feature', 'bugfix', 'core'].includes(route) && !/(security|credential|secret|legal|destructive|migration)/.test(text);
-              if (autoEligible && !labels.includes('arvin-auto')) {
+              const labels = new Set((item.labels || []).map(l => l.name));
+              const blocked = /(security|credential|secret|legal|destructive|migration)/.test(text);
+              const codeEligible = ['feature', 'bugfix', 'core'].includes(route) && !blocked;
+
+              if (codeEligible && !labels.has('arvin-auto')) {
                 await github.rest.issues.addLabels({
-                  owner, repo, issue_number: issue.number,
-                  labels: ['arvin-auto']
+                  owner, repo, issue_number: item.number, labels: ['arvin-auto'],
                 });
               }
 
-              // Do not depend on the issues:labeled event created by
-              // GITHUB_TOKEN to recursively start another workflow. For every
-              // actionable issue, dispatch the bounded worker explicitly once.
-              if (autoEligible && !alreadyDispatched) {
+              if (codeEligible && !alreadyCodeDispatched) {
+                core.info(`#${item.number}: dispatching Code Worker (${scheduledSweep ? 'queue sweep' : 'event'}).`);
                 await github.rest.actions.createWorkflowDispatch({
-                  owner,
-                  repo,
-                  workflow_id: 'arvin-agent-worker.yml',
-                  ref: 'main',
-                  inputs: { issue_number: String(issue.number) },
+                  owner, repo, workflow_id: 'arvin-agent-worker.yml', ref: 'main',
+                  inputs: { issue_number: String(item.number) },
                 });
                 await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: issue.number,
-                  body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${issue.number}. This marker prevents duplicate worker launches for the same routed issue.`
+                  owner, repo, issue_number: item.number,
+                  body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${item.number}. Scheduled sweeps will not duplicate this launch marker.`
                 });
+              }
+
+              if (route === 'test' && labels.has('arvin-auto') && !alreadyTestDispatched) {
+                core.info(`#${item.number}: dispatching Test Worker (${scheduledSweep ? 'queue sweep' : 'event'}).`);
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo, workflow_id: 'arvin-test-worker.yml', ref: 'main',
+                  inputs: { issue_number: String(item.number) },
+                });
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: item.number,
+                  body: `${testWorkerDispatchMarker}\nARVIN Test Worker explicitly dispatched for issue #${item.number}. This marker prevents duplicate queue-sweep launches.`
+                });
+              }
+            }
+
+            if (issue) {
+              await routeIssue(issue, false);
+              return;
+            }
+
+            if (context.eventName === 'schedule') {
+              const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                owner, repo, state: 'open', per_page: 100, sort: 'updated', direction: 'desc',
+              });
+              core.info(`24h queue sweep: ${openIssues.length} open issues inspected.`);
+              for (const item of openIssues) {
+                const labels = new Set((item.labels || []).map(l => l.name));
+                if (!labels.has('arvin-auto')) continue;
+                await routeIssue(item, true);
               }
               return;
             }
