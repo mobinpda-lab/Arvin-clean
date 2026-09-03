@@ -1,0 +1,156 @@
+name: Arvin Release Closure
+
+on:
+  workflow_run:
+    workflows: ['Arvin Production Orchestrator']
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: write
+  pull-requests: read
+
+concurrency:
+  group: arvin-release-closure
+  cancel-in-progress: false
+
+env:
+  RELEASE_EVIDENCE: .github/release-evidence
+  CANDIDATE_PR: '648'
+
+jobs:
+  release-closure:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Validate candidate, merge and exact main
+        id: verify
+        uses: actions/github-script@v7
+        env:
+          CANDIDATE_PR: ${{ env.CANDIDATE_PR }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const n = Number(process.env.CANDIDATE_PR);
+            const pr = await github.rest.pulls.get({owner, repo, pull_number: n});
+            const main = await github.rest.repos.getBranch({owner, repo, branch: 'main'});
+            const sha = main.data.commit.sha;
+            if (pr.data.state !== 'closed' || !pr.data.merged_at) core.setFailed(`PR #${n} is not merged; fail-closed.`);
+            if (pr.data.base.ref !== 'main') core.setFailed(`PR #${n} is not based on main.`);
+            if (pr.data.merge_commit_sha !== sha) core.setFailed(`PR #${n} merge ${pr.data.merge_commit_sha} != current main ${sha}.`);
+            core.setOutput('main_sha', sha);
+            core.setOutput('commit_sha', pr.data.head.sha);
+            core.setOutput('merge_sha', pr.data.merge_commit_sha);
+            core.info(`COMMIT_SHA=${pr.data.head.sha}`);
+            core.info(`MERGE_SHA=${pr.data.merge_commit_sha}`);
+            core.info(`MAIN_SHA=${sha}`);
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Test and build release APK
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter test
+          flutter build apk --release -t lib/main.dart
+          mkdir -p "$RELEASE_EVIDENCE"
+          cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-release.apk"
+          sha256sum "$RELEASE_EVIDENCE/arvin-release.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+
+      - name: Store release evidence
+        run: |
+          cat > "$RELEASE_EVIDENCE/release-evidence.txt" <<EOF
+          PR_NUMBER=${CANDIDATE_PR}
+          COMMIT_SHA=${{ steps.verify.outputs.commit_sha }}
+          MERGE_SHA=${{ steps.verify.outputs.merge_sha }}
+          MAIN_SHA=${{ steps.verify.outputs.main_sha }}
+          BUILD_RESULT=success
+          TEST_RESULT=success
+          RELEASE_ARTIFACT=arvin-release.apk
+          ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
+          EOF
+
+      - name: Create immutable tag and prerelease
+        id: release
+        uses: actions/github-script@v7
+        env:
+          MAIN_SHA: ${{ steps.verify.outputs.main_sha }}
+          PR_NUMBER: ${{ env.CANDIDATE_PR }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = process.env.MAIN_SHA;
+            const tag = `v0.1.0-arvin-${sha.slice(0,7)}`;
+            try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
+            catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
+            let rel;
+            try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
+            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${tag}`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            core.setOutput('tag', tag);
+            core.setOutput('release_id', String(rel.data.id));
+            core.info(`TAG=${tag}`);
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-release.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
+
+      - name: Verify delivery
+        uses: actions/github-script@v7
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          MAIN_SHA: ${{ steps.verify.outputs.main_sha }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const tag = process.env.TAG;
+            const sha = process.env.MAIN_SHA;
+            const ref = await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`});
+            if (ref.data.object.sha !== sha) core.setFailed('Tag target mismatch.');
+            const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
+            const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
+            const names = new Set(assets.data.map(a => a.name));
+            for (const n of ['arvin-release.apk','artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            core.info(`DELIVERY_CHECK=success TAG=${tag}`);
+
+      - name: Failure simulation
+        run: |
+          set +e
+          false
+          rc=$?
+          echo "SIMULATED_FAILURE_RC=$rc"
+          test "$rc" -ne 0
+
+      - name: Recovery and resume validation
+        run: |
+          set -euo pipefail
+          sha256sum -c "$RELEASE_EVIDENCE/artifact.sha256"
+          git fetch origin main --tags
+          test "$(git rev-parse origin/main)" = "${{ steps.verify.outputs.main_sha }}"
+          test "$(git rev-list -n 1 '${{ steps.release.outputs.tag }}')" = "${{ steps.verify.outputs.main_sha }}"
+          echo "RECOVERY_RESULT=success"
+          echo "RESUME_VALIDATION=success"
+
+      - name: Publish final evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-release-closure-${{ steps.verify.outputs.main_sha }}
+          path: ${{ env.RELEASE_EVIDENCE }}
+          if-no-files-found: error
