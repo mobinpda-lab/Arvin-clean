@@ -58,6 +58,42 @@ class FollowUpRepository {
     await prefs.setString(key, jsonEncode(tasks));
   }
 
+  Future<FollowUp> setCompleted(
+    String taskId,
+    String followUpId,
+    bool completed,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final tasks = await _loadRawTasks(prefs);
+    final taskIndex = tasks.indexWhere((task) => task['id'] == taskId);
+    if (taskIndex < 0) {
+      throw StateError('Task not found: $taskId');
+    }
+
+    final existing = _decodeFollowUps(tasks[taskIndex]);
+    final followUpIndex = existing.indexWhere((item) => item.id == followUpId);
+    if (followUpIndex < 0) {
+      throw StateError('FollowUp not found: $followUpId');
+    }
+
+    final current = existing[followUpIndex];
+    final updatedFollowUp = FollowUp(
+      id: current.id,
+      dateTime: current.dateTime,
+      note: current.note,
+      result: current.result,
+      reminderDate: current.reminderDate,
+      nextFollowUp: current.nextFollowUp,
+      completed: completed,
+    );
+    final updated = List<FollowUp>.of(existing)
+      ..[followUpIndex] = updatedFollowUp;
+    tasks[taskIndex]['followUps'] =
+        updated.map((item) => item.toJson()).toList();
+    await prefs.setString(key, jsonEncode(tasks));
+    return updatedFollowUp;
+  }
+
   Future<List<FollowUp>> _loadForTask(
     SharedPreferences prefs,
     String taskId,
