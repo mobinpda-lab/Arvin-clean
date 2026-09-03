@@ -48,7 +48,10 @@ jobs:
               await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:leased','factory:in-progress'] });
               await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-lease -->\nARVIN Queue leased issue #${number} against exact main ${main.data.commit.sha}.` });
               try {
-                await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'arvin-agent-worker.yml', ref: 'main', inputs: { issue_number: String(number) } });
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo, workflow_id: 'arvin-agent-worker.yml', ref: 'main',
+                  inputs: { issue_number: String(number), expected_main_sha: main.data.commit.sha }
+                });
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-dispatch -->\nAI Code Worker dispatched for #${number}; exact-main snapshot=${main.data.commit.sha}.` });
               } catch (error) {
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'factory:leased' }).catch(() => {});
@@ -56,4 +59,4 @@ jobs:
                 await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:blocked'] });
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `ARVIN Queue dispatch failed closed: ${error.message}` });
               }
-            }
+            ]
