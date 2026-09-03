@@ -2,104 +2,139 @@
 
 ## Primary Rule
 
-مرجع حاکم فرایند `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 است. GitHub تنها Source of Truth عملیاتی است؛ این فایل فقط checkpoint فشرده برای ادامه سریع است.
+GitHub تنها Source of Truth عملیاتی است. این فایل فقط checkpoint فشرده برای ادامه سریع است؛ هر اجرای جدید باید قبل از اقدام، `main`، PRها، Issueها و exact-head CI را تازه بخواند.
 
-## Start Here
+## Live Checkpoint — 2026-09-01
 
-در هر گفتگوی جدید یا Trigger «ادامه آروین»:
+Current `main`:
 
-1. `main`، PRهای باز، Issueهای فعال، Head SHAها و workflowهای همان Head را تازه از GitHub بخوان.
-2. این Handoff و `docs/PROJECT_STATUS.md` و scorecardها را با GitHub تطبیق بده؛ GitHub مقدم است.
-3. قبل از foundation/model/storage جدید، کد canonical موجود را بخوان.
-4. کوچک‌ترین Gap واقعی و مستقل را انتخاب کن؛ Laneهای غیرمسدود را موازی ادامه بده.
-5. Merge فقط با exact-head evidence؛ سپس `main` را دوباره Build + Device validate کن.
+`2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 
-## Live Checkpoint — 2026-08-27
+آخرین Merge تأییدشده: PR #605 — bounded read-only Android calendar event query.
 
-Snapshot مبنا:
-
-`bec99214534a8c9972f9e3145dde792cecf2f9e3`
-
-این main نتیجه Merge PR #245 است.
-
-### Verified recent merges
-
-- #243 — deterministic `device/**` exact-ref Device Smoke lane
-- #242 — Persian Semantic Search v1 on existing `TaskSearchService`
-- #247 — Build matrix: shared quality + parallel release/debug APK jobs
-- #245 — canonical Privacy / Encryption boundary audit
-
-### Verified evidence
-
-- #242 head: Parallel #751 / Build #826 / Device #66 ✅
-- post-#242 main: Build #829 / Device #69 ✅
-- #247 head: Parallel #753 / Build #831 / Device #71 ✅
-- post-#247 main: Build #832 / Device #72 ✅
-- #245 head: Parallel #754 / Build #834 / Device #74 ✅
-- post-#245 main: Build #835 + Device Smoke were triggered after merge; re-read live status before claiming post-merge success.
-
-## Official Scores
-
-- Project A-H: **70.0%**
-- Extension: **25.0% overall**
-- Wave X1: **59.4%**
-
-No score may increase from unmerged work. Project gates remain capped at 70 until their physical-device/E2E acceptance gaps are actually closed.
+Mergeهای مهم همین موج:
+- #579 — AI patch validation + provider timeout/budget hardening
+- #582 — Backup restore confirmation safety
+- #592 — Calendar integration settings UI
+- #598 — Android Calendar Provider discovery
+- #601 — Worker single-launch authority + safe patch recount reliability
+- #605 — bounded provider-neutral read-only external event query
 
 ## Active Parallel Lanes
 
-### 1. Main health
+### 1. Calendar provider selection — Issue #597 / PR #604 / PR #607
 
-Close post-#245 Build #835 + Device Smoke on exact current main.
+Shared validated head:
 
-### 2. Documentation — PR #227
+`6cdd6cd49ecb038851cce76a2a37e9c499f139fb`
 
-This PR has been rebuilt on the post-#245 main. It must validate the scorecards via Arvin Progress Score and pass the normal exact-head Fast Lane before merge. It credits only merged evidence.
+- #604 و #607 یک implementation هم‌پوشان provider-selection را حمل می‌کنند؛ #607 برای گرفتن Fast رسمی پس از اصلاح API منسوخ Flutter ساخته شد.
+- Fast/Parallel run `33406629330`: ✅ success.
+- Heavy Build run `33406422054`: ✅ quality/test + Debug APK + Release APK success.
+- Device Smoke run `33406422349`: ✅ Home + People success.
+- implementation existing `SystemCalendarBridge` + existing `CalendarIntegrationSettings` / `AppSettingsService` را reuse می‌کند.
+- permission/listing فقط با اقدام صریح کاربر آغاز می‌شود؛ page load به‌تنهایی platform permission یا settings write ایجاد نمی‌کند.
+- target calendar + visible calendar IDs از canonical settings استفاده می‌کنند.
+- Google/Samsung/other calendars همان Android Calendar Provider path را استفاده می‌کنند؛ vendor-specific engine ساخته نشده است.
+- WRITE_CALENDAR و direct event mutation هنوز خارج از این slice هستند.
+- چون `main` بعد از این validation با merge #605 به `2ee2adc2...` جلو رفته، این SHA اکنون evidence تاریخی معتبر است اما promotion-current نیست. مرحله بعد فقط یک canonical replay/reconcile روی current main است؛ #604 و #607 نباید هر دو جداگانه Heavy/merge شوند.
 
-### 3. Security implementation — Issue #248
+### 2. Read-only external event provider — PR #605 ✅ merged
 
-Next narrow slice after audit acceptance:
+Current main merge SHA:
 
-`canonical validated backup bytes → versioned authenticated encrypted envelope → SAF / Cloud`
+`2ee2adc22a45ab5fda1dcd548672ddaf77717afc`
 
-Restore:
+- existing `arvin/system_calendar` bridge اکنون `listDeviceCalendarEvents` دارد.
+- Android `CalendarContract.Instances` concrete recurrence instanceها را در window محدود می‌خواند.
+- READ_CALENDAR only؛ هر call حداکثر 20 calendar و 93 روز.
+- provider-neutral event model شامل شناسه‌ها، calendar name، title/description، start/end/all-day، timezone و recurrence rule است.
+- malformed rows / denied permission / missing plugin fail closed هستند.
+- Task import، Work Agenda UI، WRITE_CALENDAR، create/update/delete، background sync و vendor SDK اضافه نشده‌اند.
+- pre-merge exact-head `071abc3b...` Fast/Parallel run `33406072049` ✅ success؛ Build/Device آن Draft head skipped بودند.
+- current-main operational evidence: Production Loop روی exact head `2ee2adc2...` موفق ثبت شده است.
+- هنوز current-main Build/APK یا Device success مستقل برای merge SHA `2ee2adc2...` در این checkpoint تأیید نشده؛ Production Loop success جایگزین آن gateها نیست.
 
-`SAF / Cloud → detect envelope → authenticate/decrypt → existing backup validation → restore candidate`
+### 3. Resilient Production / Factory Protocol v2 — PR #609 / Issue #610
 
-Required:
-- legacy plaintext v1 read compatibility
-- authenticated corruption/tamper failure before mutation
-- recoverable cross-device key/passphrase design
-- same SAF/cloud byte path
-- no credential serialization
+- PR #609 یک docs-only continuity lane است و `PROJECT_STATE.md`، `ROADMAP_QUEUE.md` و `DECISIONS.md` را برای interruption recovery معرفی می‌کند.
+- وضعیت فعلی #609: open + draft + mergeable؛ هنوز روی `main` نیست، پس merged capability محسوب نمی‌شود.
+- Issue #610 adoption پروتکل Universal Autonomous Software Factory v2 را ثبت می‌کند: Bottleneck Manager، Production Modes، Priority Engine، Parallel Conflict Controller، Learning Loop، Evidence-Based Automation Score و Human Escalation Policy.
+- #610 operating-policy task است؛ وجود Issue/Docs به‌تنهایی evidence سطح 10 نیست. Automation level فقط با workflow/test/build/release/recovery evidence افزایش یابد.
+- این docs/continuity laneها نباید Product/Automation validation سالم را stale یا متوقف کنند.
 
-Forbidden in this slice:
-- local `TaskStore` encryption migration
-- multi-device Sync implementation
-- second backup repository/database/path
-- hard-coded or device-only recovery assumption
+### 4. Duplicate/superseded cleanup
 
-## Product/Foundation Invariants
+- PR #599 scope merged provider-discovery #598 را overlap می‌کند؛ بدون live diff gap جدید Heavy/Device یا merge budget نگیرد.
+- PR #600 توسط merged #601 superseded است و historical evidence محسوب می‌شود.
+- provider-selection #604/#607 نیز یک implementation مشترک دارند؛ فقط یک current-main replay باید ادامه پیدا کند.
 
-- Persian RTL Flutter app.
-- Canonical foundation: `Task / Unified Item → Reminder → FollowUps[] → History`.
-- Home/Search/Today/Timeline/FollowUp/Calendar/Backup/Settings/Widget/PDF must converge on shared existing foundations.
-- Semantic Search remains deterministic/local v1; no required embeddings/network/index/database/search UI second path.
-- Backup SAF and cloud must continue sharing one canonical byte representation.
+### 5. Live Progress Score — #578 / #583
 
-## Fast Lane Contract
+- reuse existing `tool/progress_score.py` و canonical scorecards.
+- no second score source.
+- exact-main SHA و PASS/FAIL/BLOCKED evidence required.
+- stale evidence هرگز score را بالا نبرد.
+- درصد دستی ساخته/ویرایش نشود.
 
-- Draft PR → Parallel Wave; heavy Build/Device skip.
-- Ready PR → Build + Device.
-- Build → one `quality` job then independent parallel `apk (release)` / `apk (debug)` matrix jobs.
-- `device/**` provides deterministic exact-ref smoke fallback for automation/API delivery.
-- Do not create exact-ref fallback runs when normal PR event evidence already arrived unless needed; avoid duplicate CI.
-- Exact-head SHA must be rechecked immediately before merge.
+## Calendar Reality
+
+روی current `main` اکنون این foundations وجود دارند:
+- Settings UI از #592
+- READ_CALENDAR permission/provider discovery از #598
+- bounded read-only event query از #605
+
+هنوز باقی است:
+- provider selection replay روی current main (#597)
+- external event projection به Calendar/Work Agenda موجود
+- Arvin→provider idempotent create/update + stable mapping
+- delete/conflict/import policies و real-device evidence برای مراحل write/sync
+
+#516/#348 umbrella اجرای بزرگ‌تر را نگه می‌دارند. Work Agenda موجود باید aggregator بماند و engine/report path دوم ساخته نشود.
+
+## Automation Reality
+
+PR #601 روی main باقی است:
+- normal AI Worker launch = `workflow_dispatch`-only
+- ARVIN Orchestrator = canonical launch authority
+- Production Loop explicit dispatch برای GITHUB_TOKEN Auto-Fix حفظ شده است
+- concurrency issue-input keyed است
+- Git native `--recount` فقط بعد از structural validation استفاده می‌شود و malformed/context-invalid patch fail closed می‌ماند
+
+Current-main Production Loop evidence روی head `2ee2adc22a45ab5fda1dcd548672ddaf77717afc` موفق است. این evidence فقط سلامت همان workflow را ثابت می‌کند و به‌تنهایی Build/APK/Device یا RC readiness را اثبات نمی‌کند.
+
+## Production / Merge Contract
+
+- Production Orchestrator canonical promotion/merge authority است.
+- Worker/Production Loop نباید gateها را bypass یا مستقیم merge کنند.
+- Draft → exact-head Fast/Parallel.
+- Ready → Heavy Build/APK + Device روی همان head و current-main ancestry.
+- merge serial؛ development laneهای مستقل parallel.
+- اگر `main` حرکت کرد، affected lane reconcile/rebuild شود؛ force merge ممنوع.
+- healthy workflow برای سرعت دادن lane دیگر restart/cancel نشود.
+- duplicate/superseded lane duplicate Heavy/merge نگیرد.
+
+## Core / Data / Backup Safety
+
+- existing Task / Reminder / FollowUp / History / Settings / Work Agenda / Backup foundations حفظ شوند.
+- duplicate TaskStore, Settings store, Calendar engine, scheduler, report path یا Backup repository ساخته نشود.
+- #605 فقط provider bridge/read model را گسترش داده و canonical Task/FollowUp data را mutate نمی‌کند.
+- Restore mutation همچنان بعد از read/validation موفق و confirmation صریح است؛ بعد از #582 تغییر Backup جدیدی تأیید نشد.
+- هیچ Issue باز با label دقیق `release-blocker` در این checkpoint پیدا نشد، اما RC readiness به current-main CI و laneهای باز وابسته است.
+
+## Continuation Priority
+
+1. current main `2ee2adc2...` و post-merge CI را verify کن؛ Build/APK/Device فقط با evidence مستقل ادعا شوند.
+2. provider-selection را فقط در یک canonical PR از current main replay/reconcile کن؛ historical #604/#607 evidence را حفظ کن ولی duplicate Heavy اجرا نکن.
+3. پس از selection، external events را به existing Calendar/Work Agenda projection متصل کن؛ موتور/صفحه/Store دوم نساز.
+4. PR #609 را docs-only continuity lane نگه دار و فقط در نقطه امن reconcile/merge کن تا validation محصول stale نشود.
+5. Issue #610 را به‌عنوان operating-policy backlog اجرا کن؛ اول bottleneck/priority/conflict/evidence rules را روی automation موجود extend کن، نه اینکه workflow موازی تکراری بسازی.
+6. #599/#600 را historical/superseded نگه دار مگر gap واقعی ثابت شود.
+7. #578/#583 را فقط با extension ابزار score canonical ادامه بده.
+8. Documentation را در همین Draft lane موجود نگه دار و فقط روی تغییر معنادار GitHub update کن.
 
 ## Continuation Trigger
 
-«ادامه آروین» یعنی:
+`Fresh GitHub audit → detect bottleneck → prioritize → parallel independent work → exact-head Fast → serial Ready/Heavy → guarded merge → post-merge re-audit → evidence-backed docs checkpoint → next smallest real gap`
 
-`Fresh GitHub audit → reconcile stale docs → continue independent lanes in parallel → avoid duplicate foundations → validate exact head → merge safe work → post-merge validate → next real vertical slice → document → short nontechnical report`
-
-Repository reality always overrides conversation memory.
+Repository reality always overrides conversation memory and this checkpoint.
