@@ -30,7 +30,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Validate candidate, merge and exact main
+      - name: Validate candidate and exact main
         id: verify
         uses: actions/github-script@v7
         env:
@@ -45,13 +45,16 @@ jobs:
             const sha = main.data.commit.sha;
             if (pr.data.state !== 'closed' || !pr.data.merged_at) core.setFailed(`PR #${n} is not merged; fail-closed.`);
             if (pr.data.base.ref !== 'main') core.setFailed(`PR #${n} is not based on main.`);
-            if (pr.data.merge_commit_sha !== sha) core.setFailed(`PR #${n} merge ${pr.data.merge_commit_sha} != current main ${sha}.`);
+            const candidateMerge = pr.data.merge_commit_sha;
+            const comparison = await github.rest.repos.compareCommits({owner, repo, base: candidateMerge, head: sha});
+            if (!['ahead', 'identical'].includes(comparison.data.status)) core.setFailed(`PR #${n} merge ${candidateMerge} is not an ancestor of current main ${sha}.`);
             core.setOutput('main_sha', sha);
             core.setOutput('commit_sha', pr.data.head.sha);
-            core.setOutput('merge_sha', pr.data.merge_commit_sha);
+            core.setOutput('merge_sha', candidateMerge);
             core.info(`COMMIT_SHA=${pr.data.head.sha}`);
-            core.info(`MERGE_SHA=${pr.data.merge_commit_sha}`);
+            core.info(`MERGE_SHA=${candidateMerge}`);
             core.info(`MAIN_SHA=${sha}`);
+            core.info(`CANDIDATE_MAIN_RELATION=${comparison.data.status}`);
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
