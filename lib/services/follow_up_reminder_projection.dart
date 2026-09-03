@@ -38,6 +38,7 @@ class FollowUpReminderProjection {
       if (task.completed || task.archived || task.trashed) continue;
 
       for (final followUp in task.followUps) {
+        if (followUp.completed) continue;
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isBefore(now)) continue;
 
