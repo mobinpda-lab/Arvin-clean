@@ -63,20 +63,21 @@ jobs:
                 });
               }
 
-              // Scheduled sweeps must not re-dispatch work that already has a
-              // worker marker. This preserves idempotency without relying on a
-              // GITHUB_TOKEN-created labeled event to recursively trigger us.
               if (autoEligible && !alreadyDispatched) {
+                const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
                 await github.rest.actions.createWorkflowDispatch({
                   owner,
                   repo,
                   workflow_id: 'arvin-agent-worker.yml',
                   ref: 'main',
-                  inputs: { issue_number: String(item.number) },
+                  inputs: {
+                    issue_number: String(item.number),
+                    expected_main_sha: main.data.commit.sha,
+                  },
                 });
                 await github.rest.issues.createComment({
                   owner, repo, issue_number: item.number,
-                  body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${item.number}. This marker prevents duplicate worker launches for the same routed issue.`
+                  body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${item.number} at exact main ${main.data.commit.sha}. This marker prevents duplicate worker launches for the same routed issue.`
                 });
               }
             }
@@ -91,11 +92,6 @@ jobs:
               return;
             }
 
-            // 24h queue sweeper: recover actionable issues that were created or
-            // labeled while a previous orchestrator run was unavailable. Test
-            // and documentation routes intentionally stay with their dedicated
-            // workers; security/credentials/secrets/legal/destructive/migration
-            // work is fail-closed and never dispatched to the Code Worker.
             const queued = await github.paginate(github.rest.issues.listForRepo, {
               owner, repo, state: 'open', per_page: 100,
             });
