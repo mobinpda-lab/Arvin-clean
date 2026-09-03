@@ -8,6 +8,7 @@ class FollowUp {
   final String? result;
   final DateTime? reminderDate;
   final DateTime? nextFollowUp;
+  final bool completed;
 
   const FollowUp({
     required this.id,
@@ -16,6 +17,7 @@ class FollowUp {
     this.result,
     this.reminderDate,
     this.nextFollowUp,
+    this.completed = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +27,7 @@ class FollowUp {
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
+        'completed': completed,
       };
 
   factory FollowUp.fromJson(Map<String, dynamic> json) {
@@ -39,6 +42,7 @@ class FollowUp {
       nextFollowUp: json['nextFollowUp'] == null
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
+      completed: json['completed'] as bool? ?? false,
     );
   }
 }
@@ -79,13 +83,7 @@ class Task {
   String description;
   DateTime? createdAt;
   DateTime? updatedAt;
-
-  /// Optional date/time when the Task itself is intended or due.
-  ///
-  /// This is deliberately independent from [reminderDate] and FollowUp
-  /// timestamps. Undated Tasks/Notes remain valid with a null value.
   DateTime? dueDate;
-
   bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
@@ -97,10 +95,6 @@ class Task {
   bool completed;
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
-
-  /// Optional canonical Person references attached to this Task.
-  /// The list is immutable so provider/UI code cannot mutate persistence state
-  /// behind the Task boundary.
   final List<PersonReference> people;
 
   bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
@@ -236,10 +230,6 @@ class Task {
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 
-  /// The follow-up date rendered by the legacy Home view during migration.
-  ///
-  /// Prefer the latest canonical history entry when one exists while still
-  /// preserving the legacy single followUpDate fallback for older data.
   DateTime? get legacyHomeFollowUpDate =>
       followUps.isEmpty ? followUpDate : lastFollowUpDate;
 }
