@@ -32,7 +32,10 @@ def github_json(url):
 
 
 def openai_response(prompt, timeout_seconds):
-    payload = {"model": MODEL, "input": prompt, "temperature": 0}
+    # GPT-5.6 is a reasoning-family Responses API model. Keep the request
+    # limited to model/input so provider-specific sampling parameters cannot
+    # make an otherwise valid worker request fail with HTTP 400.
+    payload = {"model": MODEL, "input": prompt}
     req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
         "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
         "Content-Type": "application/json",
@@ -171,10 +174,6 @@ def apply_diff(diff):
     if not valid:
         return False, structure_message
     Path("/tmp/arvin.patch").write_text(f"{diff}\n", encoding="utf-8")
-
-    # Model-generated diffs can have a correct body but stale numeric hunk
-    # counts. --recount only derives those counts from the body; it does not
-    # invent missing headers/context or bypass applicability checks.
     check = run(
         ["git", "apply", "--check", "--recount", "/tmp/arvin.patch"],
         check=False,
