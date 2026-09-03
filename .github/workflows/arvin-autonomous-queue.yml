@@ -59,4 +59,4 @@ jobs:
                 await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:blocked'] });
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `ARVIN Queue dispatch failed closed: ${error.message}` });
               }
-            ]
+            }
