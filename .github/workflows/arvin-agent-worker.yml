@@ -7,6 +7,10 @@ on:
         description: GitHub issue number to implement
         required: true
         type: string
+      expected_main_sha:
+        description: Exact main SHA captured by the autonomous queue lease
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,9 +19,9 @@ permissions:
   actions: write
   copilot-requests: write
 
-# One issue has one canonical launch authority. ARVIN Orchestrator (and the
-# Production Loop for GITHUB_TOKEN-created Auto-Fix issues) dispatch this
-# workflow explicitly. The worker never launches directly from an issue label.
+# One issue has one canonical launch authority. ARVIN Orchestrator and the
+# Production Loop dispatch this workflow explicitly. The worker never launches
+# directly from an issue label.
 concurrency:
   group: arvin-agent-${{ inputs.issue_number }}
   cancel-in-progress: false
@@ -28,19 +32,27 @@ jobs:
     timeout-minutes: 35
     env:
       ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}
+      ARVIN_EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
       ARVIN_COPILOT_MODEL: ${{ vars.ARVIN_COPILOT_MODEL || 'auto' }}
       ARVIN_MAX_AUTO_FIX_ATTEMPTS: '3'
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout
+      - name: Checkout exact leased main
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Validate task
-        run: test -n "$ARVIN_ISSUE_NUMBER"
+      - name: Validate exact main lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ARVIN_ISSUE_NUMBER"
+          test -n "$ARVIN_EXPECTED_MAIN_SHA"
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$ARVIN_EXPECTED_MAIN_SHA"
 
       - name: Setup Flutter
         if: ${{ hashFiles('pubspec.yaml') != '' }}
@@ -119,7 +131,7 @@ jobs:
           fi
           gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
           gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
+            --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER from exact leased main $ARVIN_EXPECTED_MAIN_SHA. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
 
           gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
           gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"
