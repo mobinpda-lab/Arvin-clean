@@ -42,4 +42,41 @@ void main() {
     expect(loaded.single.id, 'old-1');
     expect(loaded.single.completed, isFalse);
   });
+
+  test('TaskStore preserves FollowUp completion state across save and load', () async {
+    final store = TaskStore();
+    final followUpDate = DateTime.utc(2026, 9, 3, 10);
+    await store.save(<Task>[
+      Task(
+        id: 'followup-1',
+        title: 'Follow-up task',
+        followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'fu-1',
+            dateTime: followUpDate,
+            note: 'Call customer',
+            completed: true,
+          ),
+        ],
+      ),
+    ]);
+
+    final loaded = await store.load();
+
+    expect(loaded.single.followUps, hasLength(1));
+    expect(loaded.single.followUps.single.id, 'fu-1');
+    expect(loaded.single.followUps.single.note, 'Call customer');
+    expect(loaded.single.followUps.single.completed, isTrue);
+  });
+
+  test('FollowUp remains compatible with older data without completed', () {
+    final followUp = FollowUp.fromJson(<String, dynamic>{
+      'id': 'legacy-fu',
+      'dateTime': '2026-09-03T10:00:00.000Z',
+      'note': 'Legacy follow-up',
+    });
+
+    expect(followUp.completed, isFalse);
+  });
 }
