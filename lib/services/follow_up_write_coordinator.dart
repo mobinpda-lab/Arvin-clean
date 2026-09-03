@@ -23,6 +23,20 @@ class FollowUpWriteCoordinator {
     await _rescheduleBestEffort();
   }
 
+  Future<FollowUp> setCompleted(
+    String taskId,
+    String followUpId,
+    bool completed,
+  ) async {
+    final followUp = await repository.setCompleted(
+      taskId,
+      followUpId,
+      completed,
+    );
+    await _rescheduleBestEffort();
+    return followUp;
+  }
+
   Future<void> _rescheduleBestEffort() async {
     try {
       await scheduler.reschedule();
