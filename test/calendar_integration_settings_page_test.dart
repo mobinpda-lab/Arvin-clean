@@ -282,8 +282,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final status = find.byKey(const ValueKey('calendar-target-status'));
-    await tester.ensureVisible(status);
-    await tester.pumpAndSettle();
+    await _scrollUntilVisible(tester, status);
     final statusTile = tester.widget<ListTile>(status);
     expect(statusTile.subtitle, isA<Text>());
     expect((statusTile.subtitle! as Text).data, 'Personal • Google Calendar • user@example.com');
