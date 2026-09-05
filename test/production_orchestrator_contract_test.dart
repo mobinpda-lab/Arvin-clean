@@ -56,7 +56,12 @@ void main() {
     expect(router, contains('arvin-worker-dispatch'));
     expect(router, contains('createWorkflowDispatch'));
     expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(router, contains('inputs: { issue_number: String(item.number) }'));
+    expect(
+      router,
+      contains(
+        'inputs: { issue_number: String(item.number), expected_main_sha: expectedMainSha }',
+      ),
+    );
 
     expect(
       worker,
@@ -80,7 +85,15 @@ void main() {
     expect(loop, contains("!['failure', 'timed_out'].includes(conclusion)"));
     expect(loop, contains('Auto-Fix already exists'));
     expect(loop, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(loop, contains("inputs: { issue_number: String(created.data.number) }"));
+    expect(
+      loop,
+      contains(
+        'inputs: {\n'
+        '                issue_number: String(created.data.number),\n'
+        '                expected_main_sha: expectedMainSha,\n'
+        '              },',
+      ),
+    );
     expect(loop, isNot(contains("['failure', 'cancelled', 'timed_out'].includes(conclusion)")));
   });
 }
