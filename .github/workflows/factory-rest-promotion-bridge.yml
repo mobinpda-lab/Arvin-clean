@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  actions: read
+  actions: write
 
 concurrency:
   group: factory-rest-promotion-bridge
@@ -29,7 +29,7 @@ jobs:
               owner, repo, state: 'open', base: 'main', per_page: 100,
             });
             for (const pr of pulls) {
-              if (!pr.draft || !(pr.labels || []).some(l => l.name === 'arvin-auto')) continue;
+              if (!(pr.labels || []).some(l => l.name === 'arvin-auto')) continue;
               const head = pr.head.sha;
               const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
                 owner, repo, head_sha: head, per_page: 100,
@@ -40,10 +40,23 @@ jobs:
               const base = fast.pull_requests?.find(p => p.number === pr.number)?.base?.sha;
               const main = (await github.rest.repos.getBranch({owner,repo,branch:'main'})).data.commit.sha;
               if (base !== main) continue;
-              await github.request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
-                owner, repo, pull_number: pr.number, draft: false,
-              });
-              core.notice(`#${pr.number}: promoted Draft -> Ready using REST after exact-head Fast gate.`);
+
+              if (pr.draft) {
+                await github.request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
+                  owner, repo, pull_number: pr.number, draft: false,
+                });
+                core.notice(`#${pr.number}: promoted Draft -> Ready using REST after exact-head Fast gate.`);
+              } else {
+                const orchestratorRuns = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  owner, repo, workflow_id: '345148430', per_page: 10,
+                });
+                const recent = orchestratorRuns.find(r => r.status === 'in_progress' || (Date.now() - new Date(r.updated_at).getTime()) < 4 * 60 * 1000);
+                if (recent) continue;
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo, workflow_id: 'production-orchestrator.yml', ref: 'main',
+                });
+                core.notice(`#${pr.number}: ready exact-head PR detected; waking Production Orchestrator.`);
+              }
               return;
             }
-            core.info('No eligible Draft arvin-auto PR requires REST promotion.');
+            core.info('No eligible arvin-auto PR requires REST promotion/watchdog wake.');
