@@ -180,6 +180,16 @@ jobs:
               body: `${marker}\n\nAutomated failure feedback.\n\n- Workflow: ${name}\n- Run: ${runUrl}\n- Head SHA: ${headSha}\n- Conclusion: ${conclusion}\n\nRoute this issue to the bounded AI Code Worker. Do not bypass Fast/Build/Device or exact-head promotion gates.`
             });
 
+            // Capture the current main head immediately before worker dispatch.
+            // The failure head remains provenance for the Auto-Fix issue; the
+            // worker lease must target the current main head it will mutate from.
+            const { data: mainRef } = await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: 'heads/main',
+            });
+            const expectedMainSha = mainRef.object.sha;
+
             // An issue created with GITHUB_TOKEN must not depend on a recursive
             // issues event to launch the worker. Dispatch it explicitly once.
             await github.rest.actions.createWorkflowDispatch({
@@ -187,6 +197,9 @@ jobs:
               repo,
               workflow_id: 'arvin-agent-worker.yml',
               ref: 'main',
-              inputs: { issue_number: String(created.data.number) },
+              inputs: {
+                issue_number: String(created.data.number),
+                expected_main_sha: expectedMainSha,
+              },
             });
-            core.info(`Failure converted into Auto-Fix #${created.data.number} and AI Worker dispatched explicitly.`);
+            core.info(`Failure converted into Auto-Fix #${created.data.number} and AI Worker dispatched explicitly against current main ${expectedMainSha}.`);
