@@ -237,6 +237,59 @@ void main() {
     expect(service.calendarSaveCount, 2);
   });
 
+  testWidgets('selected target status shows discovered calendar label',
+      (tester) async {
+    messenger.setMockMethodCallHandler(calendarChannel, (call) async {
+      switch (call.method) {
+        case SystemCalendarBridge.requestPermissionMethod:
+          return true;
+        case SystemCalendarBridge.listCalendarsMethod:
+          return <Map<String, Object?>>[
+            <String, Object?>{
+              'id': '12',
+              'displayName': 'Personal',
+              'accountName': 'user@example.com',
+              'accountType': 'com.google',
+              'visible': true,
+              'syncEvents': true,
+              'isPrimary': true,
+            },
+          ];
+      }
+      return null;
+    });
+
+    final service = _CountingSettingsService(
+      _appSettings(
+        calendar: const CalendarIntegrationSettings(targetCalendarId: '12'),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarIntegrationSettingsPage(
+          service: service,
+          calendarBridge: SystemCalendarBridge(channel: calendarChannel),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final request = find.byKey(
+      const ValueKey('calendar-request-provider-permission'),
+    );
+    await _scrollUntilVisible(tester, request);
+    await tester.tap(request);
+    await tester.pumpAndSettle();
+
+    final status = tester.widget<ListTile>(
+      find.byKey(const ValueKey('calendar-target-status')),
+    );
+    expect(status.subtitle, isA<Text>());
+    expect((status.subtitle! as Text).data, 'Personal • Google Calendar • user@example.com');
+    expect(find.textContaining('شناسه فعلی: 12'), findsNothing);
+    expect(service.calendarSaveCount, 0);
+  });
+
   testWidgets('permission request reveals provider list without settings write',
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
