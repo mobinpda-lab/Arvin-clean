@@ -70,6 +70,7 @@ void main() {
             dateTime: now,
             reminderDate: now.subtract(const Duration(minutes: 1)),
           ),
+          FollowUp(id: 'completed-future', dateTime: now, reminderDate: now.add(const Duration(hours: 2)), completed: true),
           FollowUp(id: 'due-now', dateTime: now, reminderDate: now),
         ],
       ),
@@ -77,7 +78,7 @@ void main() {
         id: 'completed',
         title: 'انجام‌شده',
         completed: true,
-        followUps: [future('completed-future')],
+        followUps: [future('completed-task-future')],
       ),
       Task(
         id: 'archived',
