@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arvin-asf-queue-task-v1",
+  "title": "Arvin ASF Queue Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "TASK_ID",
+    "PROJECT",
+    "SOURCE",
+    "TYPE",
+    "PRIORITY",
+    "DEPENDENCIES",
+    "OWNER_WORKER",
+    "STATUS",
+    "RISK",
+    "EXPECTED_OUTPUT",
+    "VALIDATION",
+    "RETRY_COUNT",
+    "BLOCKER",
+    "EVIDENCE",
+    "NEXT_ACTION"
+  ],
+  "properties": {
+    "TASK_ID": {"type": "string", "minLength": 1},
+    "PROJECT": {"type": "string", "minLength": 1},
+    "SOURCE": {"type": "string", "minLength": 1},
+    "TYPE": {"type": "string", "enum": ["product", "research", "architecture", "planning", "development", "test", "security", "documentation", "devops", "release", "recovery", "optimization", "quality"]},
+    "PRIORITY": {"type": "integer", "minimum": 0},
+    "DEPENDENCIES": {"type": "array", "items": {"type": "string"}},
+    "OWNER_WORKER": {"type": "string", "minLength": 1},
+    "STATUS": {"type": "string", "enum": ["INCOMING", "PRIORITY", "READY", "RUNNING", "VALIDATING", "COMPLETED", "FAILED", "RECOVERY", "BLOCKED", "DEAD_LETTER"]},
+    "RISK": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH"]},
+    "INPUT": {},
+    "EXPECTED_OUTPUT": {"type": "string", "minLength": 1},
+    "VALIDATION": {"type": "array", "items": {"type": "string"}},
+    "RETRY_COUNT": {"type": "integer", "minimum": 0, "maximum": 3},
+    "BLOCKER": {"type": ["string", "null"]},
+    "EVIDENCE": {"type": "array", "items": {"type": "string"}},
+    "NEXT_ACTION": {"type": "string", "minLength": 1}
+  }
+}
