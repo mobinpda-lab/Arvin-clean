@@ -40,12 +40,12 @@ Future<void> _scrollUntilVisible(
   WidgetTester tester,
   Finder finder,
 ) async {
-  await tester.scrollUntilVisible(
-    finder,
-    260,
-    scrollable: find.byType(Scrollable).first,
-  );
-  await tester.pumpAndSettle();
+  final scrollable = find.byType(Scrollable).first;
+  for (var attempt = 0; attempt < 20 && finder.evaluate().isEmpty; attempt += 1) {
+    await tester.drag(tester.element(scrollable), const Offset(0, -260));
+    await tester.pumpAndSettle();
+  }
+  expect(finder, findsOneWidget);
 }
 
 void main() {
