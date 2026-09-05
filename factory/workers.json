@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "workers": [
+    {"id":"arvin-code","role":"coding","capabilities":["flutter","dart","github"],"capacity":1,"status":"managed-by-workflow"},
+    {"id":"arvin-test","role":"testing","capabilities":["flutter-test","analyze","evidence"],"capacity":1,"status":"managed-by-workflow"},
+    {"id":"arvin-orchestrator","role":"orchestration","capabilities":["queue","lease","gates","merge"],"capacity":1,"status":"managed-by-workflow"}
+  ],
+  "allocation_policy": "capability-match + issue-scope + lease + concurrency",
+  "duplicate_execution": "deny"
+}
