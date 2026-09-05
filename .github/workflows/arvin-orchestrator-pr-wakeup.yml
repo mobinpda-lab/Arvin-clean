@@ -1,0 +1,38 @@
+name: ARVIN Orchestrator PR Wakeup
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: arvin-orchestrator-wakeup-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wake canonical Production Orchestrator
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            if (!pr || pr.base?.ref !== 'main' || pr.head?.repo?.full_name !== `${owner}/${repo}`) {
+              core.info('Ignoring fork or non-main PR.');
+              return;
+            }
+            await github.rest.actions.createWorkflowDispatch({
+              owner,
+              repo,
+              workflow_id: 'production-orchestrator.yml',
+              ref: 'main',
+              inputs: { pr_number: String(pr.number) },
+            });
+            core.notice(`Production Orchestrator wake dispatched for PR #${pr.number}.`);
