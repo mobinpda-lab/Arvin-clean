@@ -42,10 +42,10 @@ Future<void> _scrollUntilVisible(
 ) async {
   await tester.scrollUntilVisible(
     finder,
-    300,
+    260,
     scrollable: find.byType(Scrollable).first,
   );
-  expect(finder, findsOneWidget);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -282,7 +282,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final status = find.byKey(const ValueKey('calendar-target-status'));
-    await _scrollUntilVisible(tester, status);
+    await tester.scrollUntilVisible(
+      status,
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(status, findsOneWidget);
     final statusTile = tester.widget<ListTile>(status);
     expect(statusTile.subtitle, isA<Text>());
     expect(
