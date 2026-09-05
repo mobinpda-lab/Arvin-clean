@@ -113,6 +113,19 @@ class _CalendarIntegrationSettingsPageState
     return calendar.accountName ?? 'تقویم دستگاه';
   }
 
+  String _targetCalendarLabel(CalendarIntegrationSettings current) {
+    final targetId = current.targetCalendarId;
+    if (targetId == null) return 'هنوز انتخاب نشده است.';
+    for (final calendar in deviceCalendars) {
+      if (calendar.id != targetId) continue;
+      final provider = _providerLabel(calendar);
+      final account = calendar.accountName;
+      final context = account == null ? provider : '$provider • $account';
+      return '${calendar.displayName} • $context';
+    }
+    return 'شناسه فعلی: $targetId';
+  }
+
   Widget _providerSelection(CalendarIntegrationSettings current) {
     if (providerLoading) {
       return const Padding(
@@ -268,11 +281,7 @@ class _CalendarIntegrationSettingsPageState
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.event_available_outlined),
                     title: const Text('تقویم مقصد'),
-                    subtitle: Text(
-                      current.targetCalendarId == null
-                          ? 'هنوز انتخاب نشده است.'
-                          : 'شناسه فعلی: ${current.targetCalendarId}',
-                    ),
+                    subtitle: Text(_targetCalendarLabel(current)),
                   ),
                   ListTile(
                     key: const ValueKey('calendar-visible-status'),
