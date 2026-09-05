@@ -281,11 +281,11 @@ void main() {
     await tester.tap(request);
     await tester.pumpAndSettle();
 
-    final status = tester.widget<ListTile>(
-      find.byKey(const ValueKey('calendar-target-status')),
-    );
-    expect(status.subtitle, isA<Text>());
-    expect((status.subtitle! as Text).data, 'Personal • Google Calendar • user@example.com');
+    final status = find.byKey(const ValueKey('calendar-target-status'));
+    await _scrollUntilVisible(tester, status);
+    final statusTile = tester.widget<ListTile>(status);
+    expect(statusTile.subtitle, isA<Text>());
+    expect((statusTile.subtitle! as Text).data, 'Personal • Google Calendar • user@example.com');
     expect(find.textContaining('شناسه فعلی: 12'), findsNothing);
     expect(service.calendarSaveCount, 0);
   });
