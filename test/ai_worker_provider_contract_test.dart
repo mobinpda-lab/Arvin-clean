@@ -8,8 +8,9 @@ void main() {
     final runtime = File('.github/arvin/agent-runtime.py').readAsStringSync();
 
     expect(workflow, contains('copilot-requests: write'));
-    expect(workflow, contains("if: env.OPENAI_API_KEY == ''"));
+    expect(workflow, isNot(contains("if: env.OPENAI_API_KEY == ''")));
     expect(workflow, contains('npm install -g @github/copilot'));
+    expect(workflow, contains('OPENAI exhausted on HTTP 429; switching to bounded read-only Copilot fallback.'));
     expect(workflow, contains('uses: subosito/flutter-action@v2'));
     expect(workflow, contains('test -n "\$ARVIN_ISSUE_NUMBER"'));
     expect(workflow, isNot(contains('test -n "\$OPENAI_API_KEY"')));
