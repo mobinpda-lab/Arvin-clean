@@ -45,8 +45,12 @@ void main() {
       descriptionField,
       'ثبت از مسیر Home روی Emulator',
     );
+    await tester.ensureVisible(tagField);
     await tester.enterText(tagField, 'آزمایش');
-    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
+    final addTagButton =
+        find.byKey(const ValueKey('task-editor-add-tag'));
+    await tester.ensureVisible(addTagButton);
+    await tester.tap(addTagButton);
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
 
