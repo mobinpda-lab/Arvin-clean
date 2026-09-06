@@ -67,7 +67,7 @@ class _ArvinAppState extends State<ArvinApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'مدیریت کارها وپیگیری آروین',
+      title: 'مدیریت کارها و پیگیری آروین',
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
