@@ -52,7 +52,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('وزیرحرف فونت عمومی و پیش‌فرض آروین است'),
+    expect(find.textContaining('Vazirharf فونت عمومی و پیش‌فرض آروین است'),
         findsOneWidget);
     await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
