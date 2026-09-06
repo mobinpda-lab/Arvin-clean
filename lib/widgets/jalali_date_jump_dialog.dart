@@ -71,13 +71,13 @@ class _JalaliDateJumpDialogState extends State<_JalaliDateJumpDialog> {
   void initState() {
     super.initState();
     _year = widget.initialYear;
-    _month = widget.initialMonth.clamp(1, 12);
-    _day = widget.initialDay.clamp(1, widget.daysInMonth(_year, _month));
+    _month = widget.initialMonth.clamp(1, 12).toInt();
+    _day = widget.initialDay.clamp(1, widget.daysInMonth(_year, _month)).toInt();
   }
 
   void _normalizeDay() {
     final maxDay = widget.daysInMonth(_year, _month);
-    _day = _day.clamp(1, maxDay);
+    _day = _day.clamp(1, maxDay).toInt();
   }
 
   @override
