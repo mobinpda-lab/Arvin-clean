@@ -8,8 +8,14 @@ void main() {
       'lib/services/task_report_pdf_renderer.dart',
     ).readAsStringSync();
 
-    expect(source, contains('assets/fonts/vazirharf/VazirHarf-Regular.ttf'));
-    expect(source, contains('assets/fonts/vazirharf/VazirHarf-Bold.ttf'));
+    expect(
+      source,
+      contains('assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf'),
+    );
+    expect(
+      source,
+      contains('assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf'),
+    );
     expect(source, contains('rootBundle.load(_regularFontAsset)'));
     expect(source, contains('rootBundle.load(_boldFontAsset)'));
     expect(source, isNot(contains('PdfGoogleFonts')));
