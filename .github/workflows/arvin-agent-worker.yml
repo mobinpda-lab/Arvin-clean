@@ -81,7 +81,7 @@ jobs:
             exit 0
           fi
           if grep -q "HTTP 429" /tmp/arvin-worker-openai.log; then
-            echo "OpenAI exhausted on HTTP 429; switching to bounded read-only Copilot fallback."
+            echo "OPENAI exhausted on HTTP 429; switching to bounded read-only Copilot fallback."
             OPENAI_API_KEY="" python3 .github/arvin/agent-runtime.py
             exit $?
           fi
