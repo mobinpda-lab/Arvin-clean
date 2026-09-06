@@ -6,6 +6,7 @@ import sys
 import time
 import urllib.request
 from pathlib import Path
+from urllib.error import HTTPError
 
 API = "https://api.openai.com/v1/responses"
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6")
@@ -15,6 +16,9 @@ MAX_DIFF = int(os.getenv("ARVIN_MAX_DIFF_CHARS", "30000"))
 MAX_FIX_ATTEMPTS = int(os.getenv("ARVIN_MAX_AUTO_FIX_ATTEMPTS", "3"))
 PROVIDER_TIMEOUT_SECONDS = int(os.getenv("ARVIN_PROVIDER_TIMEOUT_SECONDS", "180"))
 PROVIDER_BUDGET_SECONDS = int(os.getenv("ARVIN_PROVIDER_BUDGET_SECONDS", "540"))
+PROVIDER_MAX_429_RETRIES = int(os.getenv("ARVIN_PROVIDER_MAX_429_RETRIES", "3"))
+PROVIDER_429_BASE_DELAY_SECONDS = int(os.getenv("ARVIN_PROVIDER_429_BASE_DELAY_SECONDS", "5"))
+PROVIDER_429_MAX_DELAY_SECONDS = int(os.getenv("ARVIN_PROVIDER_429_MAX_DELAY_SECONDS", "60"))
 
 
 def run(cmd, check=True, timeout=None):
@@ -31,6 +35,17 @@ def github_json(url):
         return json.load(r)
 
 
+def _retry_after_seconds(error, retry_index):
+    header = error.headers.get("Retry-After") if error.headers else None
+    try:
+        if header is not None:
+            return max(0, min(PROVIDER_429_MAX_DELAY_SECONDS, int(float(header))))
+    except (TypeError, ValueError):
+        pass
+    exponential = PROVIDER_429_BASE_DELAY_SECONDS * (2 ** max(0, retry_index - 1))
+    return max(0, min(PROVIDER_429_MAX_DELAY_SECONDS, exponential))
+
+
 def openai_response(prompt, timeout_seconds):
     # GPT-5.6 is a reasoning-family Responses API model. Keep the request
     # limited to model/input so provider-specific sampling parameters cannot
@@ -40,8 +55,33 @@ def openai_response(prompt, timeout_seconds):
         "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
         "Content-Type": "application/json",
     }, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout_seconds) as r:
-        data = json.load(r)
+    deadline = time.monotonic() + timeout_seconds
+    retry_index = 0
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("OpenAI provider retry budget exhausted")
+        try:
+            with urllib.request.urlopen(req, timeout=max(1, math.ceil(remaining))) as r:
+                data = json.load(r)
+            break
+        except HTTPError as exc:
+            if exc.code != 429 or retry_index >= PROVIDER_MAX_429_RETRIES:
+                raise
+            retry_index += 1
+            delay = _retry_after_seconds(exc, retry_index)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("OpenAI provider retry budget exhausted") from exc
+            delay = min(delay, max(0, remaining - 1))
+            print(
+                f"ARVIN AI provider returned HTTP 429; bounded retry {retry_index}/"
+                f"{PROVIDER_MAX_429_RETRIES} after {delay}s",
+                file=sys.stderr,
+            )
+            if delay > 0:
+                time.sleep(delay)
+
     text = data.get("output_text")
     if not text:
         parts = []
