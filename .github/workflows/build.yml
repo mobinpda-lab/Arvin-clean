@@ -36,6 +36,8 @@ jobs:
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Restore font submodule after Flutter generation
+        run: git submodule update --init --force --depth=1 assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
@@ -110,6 +112,8 @@ jobs:
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Restore font submodule after Flutter generation
+        run: git submodule update --init --force --depth=1 assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
