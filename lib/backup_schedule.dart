@@ -67,7 +67,7 @@ class BackupSchedule {
     );
   }
 
-  static int _validHour(int value) => value.clamp(0, 23);
+  static int _validHour(int value) => value.clamp(0, 23).toInt();
 
-  static int _validMinute(int value) => value.clamp(0, 59);
+  static int _validMinute(int value) => value.clamp(0, 59).toInt();
 }
