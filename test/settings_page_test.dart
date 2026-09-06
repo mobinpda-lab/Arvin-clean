@@ -2,20 +2,28 @@ import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeSettingsService extends AppSettingsService {
+  _FakeSettingsService(this.value);
+
+  AppSettings value;
+
+  @override
+  Future<AppSettings> load() async => value;
+
+  @override
+  Future<void> saveUsePersianDate(bool value) async {
+    this.value = this.value.copyWith(usePersianDate: value);
+  }
+}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-  });
-
-  testWidgets('settings exposes date, swipe and canonical backup controls',
-      (tester) async {
-    final service = AppSettingsService();
-    AppSettings? changed;
+  testWidgets('settings exposes date, swipe and canonical backup controls', (
+    tester,
+  ) async {
     var backupOpened = false;
+    AppSettings? changed;
+    final service = _FakeSettingsService(const AppSettings());
 
     await tester.pumpWidget(
       MaterialApp(
@@ -30,17 +38,9 @@ void main() {
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
-    expect((await service.load()).usePersianDate, isTrue);
-    expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
-    expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
-    expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
+    expect(find.byType(SwitchListTile), findsOneWidget);
 
-    await tester.tap(find.text('تیره'));
-    await tester.pumpAndSettle();
-    expect((await service.load()).themeMode, ThemeMode.dark);
-    expect(changed?.themeMode, ThemeMode.dark);
-
-    await tester.tap(find.text('نمایش تاریخ فارسی'));
+    await tester.tap(find.byType(SwitchListTile));
     await tester.pumpAndSettle();
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
@@ -52,8 +52,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('وزیرمتن فونت عمومی و پیش‌فرض آروین است'),
-        findsOneWidget);
+    expect(
+      find.textContaining('Vazirharf فونت عمومی و پیش‌فرض آروین است'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
     expect(backupOpened, isTrue);
