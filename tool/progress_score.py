@@ -21,6 +21,89 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+EVIDENCE_STATUSES = {'PASS', 'FAIL', 'BLOCKED'}
+
+
+def _validate_main_sha(main_sha: str) -> None:
+    if not isinstance(main_sha, str) or not SHA_RE.fullmatch(main_sha):
+        raise ValueError('current main SHA must be a full 40-character commit SHA')
+
+
+def _evidence_status(main_sha: str, evidence: dict | None) -> str:
+    if evidence is None:
+        return 'BLOCKED'
+    if not isinstance(evidence, dict):
+        raise ValueError('gate evidence must be an object')
+
+    status = evidence.get('status')
+    if status not in EVIDENCE_STATUSES:
+        raise ValueError(
+            f"gate evidence status must be one of {sorted(EVIDENCE_STATUSES)}"
+        )
+
+    evidence_sha = evidence.get('sha')
+    if not isinstance(evidence_sha, str) or not SHA_RE.fullmatch(evidence_sha):
+        return 'BLOCKED'
+    if evidence_sha != main_sha:
+        return 'BLOCKED'
+    return status
+
+
+def render_dashboard(
+    current_main_sha: str,
+    gate_evidence: dict,
+    project_path: Path = PROJECT_SCORECARD,
+    extension_path: Path = EXTENSION_SCORECARD,
+) -> str:
+    """Render scorecards and exact-main gate evidence without network access."""
+    _validate_main_sha(current_main_sha)
+    if not isinstance(gate_evidence, dict):
+        raise ValueError('gate evidence must be an object keyed by gate ID')
+
+    project_data = load_json(project_path)
+    extension_data = load_json(extension_path)
+    project = validate_project(project_data)
+    extension = validate_extension(extension_data)
+
+    unknown_gates = set(gate_evidence) - EXPECTED_GATE_IDS
+    if unknown_gates:
+        raise ValueError(f'unknown gate evidence: {sorted(unknown_gates)}')
+
+    lines = [
+        '# Arvin progress dashboard',
+        '',
+        f'Current main: `{current_main_sha}`',
+        '',
+        '## Whole-project completion',
+        '',
+        f"**{project['total_percent']:.1f}%** — 8 canonical delivery gates",
+        '',
+        '| Gate | Scorecard stage | Evidence |',
+        '| --- | ---: | --- |',
+    ]
+    gates_by_id = {gate['id']: gate for gate in project_data['gates']}
+    for gate_id in sorted(EXPECTED_GATE_IDS):
+        gate = gates_by_id[gate_id]
+        status = _evidence_status(current_main_sha, gate_evidence.get(gate_id))
+        lines.append(f"| {gate_id} | {gate['stage']}% | {status} |")
+
+    lines.extend(
+        [
+            '',
+            '## 19-feature extension',
+            '',
+            f"**{extension['overall_percent']:.1f}%** — 19-feature extension roadmap",
+            '',
+            f"Wave X1: **{extension['wave_x1_percent']:.1f}%**",
+            '',
+            'The whole-project and 19-feature extension metrics are separate '
+            'scorecard calculations.',
+            '',
+        ]
+    )
+    return '\n'.join(lines)
+
+
 def validate_allowed_stages(data: dict, label: str, errors: list[str]) -> None:
     declared = set(data.get('allowed_stages', []))
     if declared != ALLOWED_STAGES:
@@ -184,7 +267,28 @@ def main() -> None:
         action='store_true',
         help='validate the committed whole-project and extension scorecards',
     )
+    parser.add_argument(
+        '--render',
+        action='store_true',
+        help='render a deterministic Markdown dashboard from exact-main evidence',
+    )
+    parser.add_argument(
+        '--main-sha',
+        help='current main commit SHA used to validate supplied evidence',
+    )
+    parser.add_argument(
+        '--evidence-file',
+        type=Path,
+        help='JSON object keyed by gate ID with status and sha fields',
+    )
     args = parser.parse_args()
+
+    if args.render:
+        if args.main_sha is None or args.evidence_file is None:
+            parser.error('--render requires --main-sha and --evidence-file')
+        evidence = load_json(args.evidence_file)
+        print(render_dashboard(args.main_sha, evidence))
+        return
 
     project = validate_project(load_json(PROJECT_SCORECARD))
     extension = validate_extension(load_json(EXTENSION_SCORECARD))
