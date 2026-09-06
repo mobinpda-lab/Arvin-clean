@@ -27,7 +27,7 @@ jobs:
       - name: Initialize VazirHarf submodule
         run: git submodule sync --recursive && git submodule update --init --recursive
       - name: Preserve VazirHarf assets
-        run: test -f assets/fonts/vazirharf/Vazirharf-Regular.ttf && cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
+        run: test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf && cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -63,7 +63,7 @@ jobs:
       - name: Initialize VazirHarf submodule
         run: git submodule sync --recursive && git submodule update --init --recursive
       - name: Preserve VazirHarf assets
-        run: test -f assets/fonts/vazirharf/Vazirharf-Regular.ttf && cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
+        run: test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf && cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
