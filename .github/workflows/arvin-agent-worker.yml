@@ -62,7 +62,6 @@ jobs:
           cache: true
 
       - name: Install GitHub Copilot CLI fallback
-        if: env.OPENAI_API_KEY == ''
         run: npm install -g @github/copilot
 
       - name: Configure git
@@ -71,7 +70,23 @@ jobs:
           git config user.email "arvin-agent[bot]@users.noreply.github.com"
 
       - name: Generate, test and self-fix
-        run: python3 .github/arvin/agent-runtime.py
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          python3 .github/arvin/agent-runtime.py 2>&1 | tee /tmp/arvin-worker-openai.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            exit 0
+          fi
+          if grep -q "HTTP 429" /tmp/arvin-worker-openai.log; then
+            echo "OpenAI exhausted on HTTP 429; switching to bounded read-only Copilot fallback."
+            OPENAI_API_KEY="" python3 .github/arvin/agent-runtime.py
+            exit $?
+          fi
+          echo "Primary AI provider failed without an HTTP 429; fail-closed." >&2
+          exit "$rc"
 
       - name: Final project validation
         run: |
