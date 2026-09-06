@@ -2,9 +2,6 @@ import 'package:flutter/services.dart';
 
 abstract final class AppFonts {
   static const String vazirharfFamily = 'VazirHarf';
-  // Temporary source-compatibility alias for legacy call sites. The actual
-  // rendered font is VazirHarf v34.003; migrate call sites to vazirharfFamily.
-  static const String vazirmatnFamily = vazirharfFamily;
   static const String iranSansXFamily = 'IRANSansXFaNum';
 
   static const String iranSansXRegularAsset =
