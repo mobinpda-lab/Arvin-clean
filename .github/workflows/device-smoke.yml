@@ -38,6 +38,27 @@ jobs:
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+      - name: Configure Android desugaring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = next((p for p in (Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')) if p.exists()), None)
+          if path is None:
+              raise SystemExit('Android app Gradle file not found')
+          text = path.read_text()
+          kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if kts else 'coreLibraryDesugaringEnabled true'
+          dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
+          if flag not in text:
+              m = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              text = text[:m.end()] + '\n        ' + flag + text[m.end():] if m else text + '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+          if 'desugar_jdk_libs:2.1.5' not in text:
+              m = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              text = text[:m.end()] + '\n    ' + dep + text[m.end():] if m else text + '\n\ndependencies {\n    ' + dep + '\n}\n'
+          path.write_text(text)
+          PY
       - name: Get dependencies
         run: flutter pub get
       - name: Enable KVM
@@ -76,6 +97,27 @@ jobs:
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+      - name: Configure Android desugaring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = next((p for p in (Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')) if p.exists()), None)
+          if path is None:
+              raise SystemExit('Android app Gradle file not found')
+          text = path.read_text()
+          kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if kts else 'coreLibraryDesugaringEnabled true'
+          dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
+          if flag not in text:
+              m = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              text = text[:m.end()] + '\n        ' + flag + text[m.end():] if m else text + '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+          if 'desugar_jdk_libs:2.1.5' not in text:
+              m = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              text = text[:m.end()] + '\n    ' + dep + text[m.end():] if m else text + '\n\ndependencies {\n    ' + dep + '\n}\n'
+          path.write_text(text)
+          PY
       - name: Get dependencies
         run: flutter pub get
       - name: Enable KVM
