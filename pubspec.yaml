@@ -14,10 +14,19 @@ dependencies:
   android_alarm_manager_plus: ^5.1.1
   flutter_local_notifications: ^22.3.0
 
-dev_dependencies:
+ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Vazirharf
+      fonts:
+        - asset: assets/fonts/vazirharf/Vazirharf-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/vazirharf/Vazirharf-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/vazirharf/Vazirharf-Bold.ttf
+          weight: 700
