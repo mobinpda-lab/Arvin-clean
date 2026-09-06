@@ -170,93 +170,51 @@ class _SettingsPageState extends State<SettingsPage> {
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  const Text(
-                    'نمایش',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  const Text('نمایش', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   SegmentedButton<ThemeMode>(
                     segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        label: Text('سیستم'),
-                        icon: Icon(Icons.settings_suggest_outlined),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        label: Text('روشن'),
-                        icon: Icon(Icons.light_mode_outlined),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        label: Text('تیره'),
-                        icon: Icon(Icons.dark_mode_outlined),
-                      ),
+                      ButtonSegment(value: ThemeMode.system, label: Text('سیستم'), icon: Icon(Icons.settings_suggest_outlined)),
+                      ButtonSegment(value: ThemeMode.light, label: Text('روشن'), icon: Icon(Icons.light_mode_outlined)),
+                      ButtonSegment(value: ThemeMode.dark, label: Text('تیره'), icon: Icon(Icons.dark_mode_outlined)),
                     ],
                     selected: {current.themeMode},
-                    onSelectionChanged: (selection) =>
-                        _setTheme(selection.first),
+                    onSelectionChanged: (selection) => _setTheme(selection.first),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('نمایش تاریخ فارسی'),
-                    subtitle: const Text(
-                      'تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.',
-                    ),
+                    subtitle: const Text('تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.'),
                     value: current.usePersianDate,
                     onChanged: _setPersianDate,
                   ),
                   const Divider(height: 32),
-                  const Text(
-                    'حرکت کارت‌ها',
-                    key: ValueKey('swipe-settings-title'),
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  const Text('حرکت کارت‌ها', key: ValueKey('swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  const Text(
-                    'عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.',
-                  ),
+                  const Text('عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.'),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TaskSwipeAction>(
                     key: const ValueKey('swipe-right-action'),
                     initialValue: current.swipeRightAction,
-                    decoration: const InputDecoration(
-                      labelText: 'کشیدن به راست',
-                      prefixIcon: Icon(Icons.swipe_right_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()),
                     items: _swipeItems(),
-                    onChanged: (action) {
-                      if (action != null) {
-                        _setSwipeAction(rightSide: true, action: action);
-                      }
-                    },
+                    onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); },
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TaskSwipeAction>(
                     key: const ValueKey('swipe-left-action'),
                     initialValue: current.swipeLeftAction,
-                    decoration: const InputDecoration(
-                      labelText: 'کشیدن به چپ',
-                      prefixIcon: Icon(Icons.swipe_left_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()),
                     items: _swipeItems(),
-                    onChanged: (action) {
-                      if (action != null) {
-                        _setSwipeAction(rightSide: false, action: action);
-                      }
-                    },
+                    onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); },
                   ),
                   const Divider(height: 32),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.text_fields),
                     title: const Text('فونت'),
-                    subtitle: const Text(
-                      'وزیرمتن فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.',
-                    ),
+                    subtitle: const Text('Vazirharf فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.'),
                   ),
                   const Divider(height: 24),
                   ListTile(
@@ -264,11 +222,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.sync_outlined),
                     title: const Text('تقویم و همگام‌سازی'),
-                    subtitle: Text(
-                      current.calendarIntegration.enabled
-                          ? 'اتصال تقویم دستگاه فعال است'
-                          : 'اتصال تقویم دستگاه خاموش است',
-                    ),
+                    subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'),
                     trailing: const Icon(Icons.chevron_left),
                     onTap: _openCalendarIntegrationSettings,
                   ),
@@ -286,9 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.slideshow_outlined),
                       title: const Text('راهنمای تعاملی صفحه اصلی'),
-                      subtitle: const Text(
-                        'دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند',
-                      ),
+                      subtitle: const Text('دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند'),
                       trailing: const Icon(Icons.play_arrow_rounded),
                       onTap: widget.onStartInteractiveGuide,
                     ),
@@ -300,12 +252,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          key: const ValueKey('backup-context-help'),
-                          tooltip: 'راهنمای پشتیبان‌گیری',
-                          onPressed: _showBackupHelp,
-                          icon: const Icon(Icons.help_outline),
-                        ),
+                        IconButton(key: const ValueKey('backup-context-help'), tooltip: 'راهنمای پشتیبان‌گیری', onPressed: _showBackupHelp, icon: const Icon(Icons.help_outline)),
                         const Icon(Icons.chevron_left),
                       ],
                     ),
