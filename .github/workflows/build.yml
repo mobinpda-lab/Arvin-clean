@@ -11,13 +11,6 @@ on:
 permissions:
   contents: read
 
-# Fast Lane: Draft PRs receive fast validation from Arvin Parallel Wave.
-# The full APK gate runs only for ready/non-draft PR heads, main pushes,
-# explicit gate/** exact-SHA validation refs, or manual dispatch.
-# Analyze/tests run once. Release and debug APKs then build in parallel on the
-# same exact SHA to reduce wall-clock merge time without weakening evidence.
-# PRs group by PR number; non-PR runs group by ref so a newer main/gate run
-# cancels superseded work on that same ref instead of consuming runners.
 concurrency:
   group: arvin-build-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
@@ -28,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -100,6 +95,8 @@ jobs:
     name: apk (${{ matrix.variant }})
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
