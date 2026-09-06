@@ -1,0 +1,47 @@
+name: Sync Vazirharf Assets
+
+on:
+  push:
+    branches:
+      - feature/core-foundation-stabilization
+    paths-ignore:
+      - 'assets/fonts/vazirharf/**'
+      - '.github/workflows/sync-vazirharf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Vazirharf v34.002
+        run: |
+          set -euo pipefail
+          mkdir -p assets/fonts/vazirharf
+          base='https://raw.githubusercontent.com/nadalaba/vazirharf/v34.002/fonts/ttf'
+          curl -fsSL "$base/Vazirharf-Regular.ttf" -o assets/fonts/vazirharf/Vazirharf-Regular.ttf
+          curl -fsSL "$base/Vazirharf-Medium.ttf" -o assets/fonts/vazirharf/Vazirharf-Medium.ttf
+          curl -fsSL "$base/Vazirharf-Bold.ttf" -o assets/fonts/vazirharf/Vazirharf-Bold.ttf
+      - name: Apply font to Arvin app theme
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('lib/main.dart')
+          s = p.read_text(encoding='utf-8')
+          old = "theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),"
+          new = "theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, fontFamily: 'Vazirharf'),"
+          if old in s:
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit synchronized font assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/fonts/vazirharf lib/main.dart
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'chore(font): sync Vazirharf v34.002 [skip ci]'
+          git push
