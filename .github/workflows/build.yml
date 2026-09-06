@@ -21,14 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Initialize VazirHarf submodule
-        run: git submodule sync --recursive && git submodule update --init --recursive
-      - name: Verify VazirHarf assets
-        run: test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
-      - name: Preserve VazirHarf assets
-        run: cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
+      - name: Fetch pinned VazirHarf
+        run: |
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -36,7 +36,7 @@ jobs:
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Restore VazirHarf assets
-        run: mkdir -p assets/fonts && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
@@ -78,14 +78,14 @@ jobs:
     name: apk (${{ matrix.variant }})
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Initialize VazirHarf submodule
-        run: git submodule sync --recursive && git submodule update --init --recursive
-      - name: Verify VazirHarf assets
-        run: test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
-      - name: Preserve VazirHarf assets
-        run: cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
+      - name: Fetch pinned VazirHarf
+        run: |
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -93,7 +93,7 @@ jobs:
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
       - name: Restore VazirHarf assets
-        run: mkdir -p assets/fonts && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
