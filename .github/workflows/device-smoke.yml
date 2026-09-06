@@ -24,42 +24,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Preserve VazirHarf assets
+        run: cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
-      - name: Restore font submodule after Flutter generation
-        run: git submodule update --init --force --depth=1 assets/fonts/vazirharf
-      - name: Configure Android desugaring
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
-          path = next((p for p in candidates if p.exists()), None)
-          if path is None:
-              raise SystemExit('Android app Gradle file not found')
-          text = path.read_text()
-          is_kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
-          if flag not in text:
-              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
-              else:
-                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
-          if 'desugar_jdk_libs:2.1.5' not in text:
-              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
-              else:
-                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
-          path.write_text(text)
-          PY
+      - name: Restore VazirHarf assets
+        run: mkdir -p assets/fonts && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Get dependencies
         run: flutter pub get
       - name: Enable KVM
@@ -84,42 +58,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Preserve VazirHarf assets
+        run: cp -a assets/fonts/vazirharf "$RUNNER_TEMP/vazirharf"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
-      - name: Restore font submodule after Flutter generation
-        run: git submodule update --init --force --depth=1 assets/fonts/vazirharf
-      - name: Configure Android desugaring
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
-          path = next((p for p in candidates if p.exists()), None)
-          if path is None:
-              raise SystemExit('Android app Gradle file not found')
-          text = path.read_text()
-          is_kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
-          if flag not in text:
-              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
-              else:
-                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
-          if 'desugar_jdk_libs:2.1.5' not in text:
-              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
-              else:
-                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
-          path.write_text(text)
-          PY
+      - name: Restore VazirHarf assets
+        run: mkdir -p assets/fonts && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Get dependencies
         run: flutter pub get
       - name: Enable KVM
