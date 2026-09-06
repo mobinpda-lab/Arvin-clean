@@ -25,7 +25,7 @@ class BackupNotificationService implements BackupNotificationSink {
 
     const settings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
-      const InitializationSettings(android: settings),
+      settings: const InitializationSettings(android: settings),
     );
 
     final android = _plugin.resolvePlatformSpecificImplementation<
