@@ -22,8 +22,12 @@ class ArvinPrimaryNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationBar(
       selectedIndex: selected.index,
-      onDestinationSelected: (index) =>
-          onSelected(ArvinPrimaryDestination.values[index]),
+      onDestinationSelected: (index) {
+        if (index < 0 || index >= ArvinPrimaryDestination.values.length) {
+          return;
+        }
+        onSelected(ArvinPrimaryDestination.values[index]);
+      },
       destinations: const [
         NavigationDestination(
           icon: Icon(Icons.home_outlined),
