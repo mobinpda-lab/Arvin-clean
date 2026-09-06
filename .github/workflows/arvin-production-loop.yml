@@ -90,6 +90,36 @@ jobs:
               });
             }
 
+            if (['feature', 'bugfix', 'core'].includes(route)) {
+              const dispatchMarker = '<!-- arvin-code-worker-dispatch -->';
+              const branch = `ai/issue-${issueNumber}`;
+              const openPrs = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: 'open', head: `${owner}:${branch}`, per_page: 100,
+              });
+              const alreadyDispatched = comments.some(c => c.body?.includes(dispatchMarker));
+              if (!alreadyDispatched && openPrs.length === 0) {
+                const { data: mainRef } = await github.rest.git.getRef({ owner, repo, ref: 'heads/main' });
+                const expectedMainSha = mainRef.object.sha;
+                await github.rest.actions.createWorkflowDispatch({
+                  owner,
+                  repo,
+                  workflow_id: 'arvin-agent-worker.yml',
+                  ref: 'main',
+                  inputs: {
+                    issue_number: String(issueNumber),
+                    expected_main_sha: expectedMainSha,
+                  },
+                });
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issueNumber,
+                  body: `${dispatchMarker}\n\n### ARVIN Code Worker\n\nCode Worker dispatched for issue #${issueNumber}; exact-main snapshot=${expectedMainSha}. The worker must fail closed if main moves before checkout. Promotion remains owned by the canonical Production Orchestrator.`
+                });
+                core.info(`Code Worker dispatched for issue #${issueNumber} against exact main ${expectedMainSha}.`);
+              } else {
+                core.info(`Code Worker already dispatched or PR exists for issue #${issueNumber}; no duplicate launch.`);
+              }
+            }
+
             if (route === 'test') {
               const dispatchMarker = '<!-- arvin-test-worker-dispatch -->';
               const branch = `test/issue-${issueNumber}`;
