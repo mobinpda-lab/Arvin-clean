@@ -17,7 +17,6 @@ permissions:
   issues: write
   pull-requests: write
   actions: write
-  copilot-requests: write
 
 # One issue has one canonical launch authority. ARVIN Orchestrator and the
 # Production Loop dispatch this workflow explicitly. The worker never launches
@@ -35,7 +34,6 @@ jobs:
       ARVIN_EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
-      ARVIN_COPILOT_MODEL: ${{ vars.ARVIN_COPILOT_MODEL || 'auto' }}
       ARVIN_MAX_AUTO_FIX_ATTEMPTS: '3'
       GITHUB_TOKEN: ${{ github.token }}
     steps:
@@ -61,9 +59,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install GitHub Copilot CLI fallback
-        run: npm install -g @github/copilot
-
       - name: Configure git
         run: |
           git config user.name "arvin-agent[bot]"
@@ -72,21 +67,8 @@ jobs:
       - name: Generate, test and self-fix
         shell: bash
         run: |
-          set -uo pipefail
-          set +e
-          python3 .github/arvin/agent-runtime.py 2>&1 | tee /tmp/arvin-worker-openai.log
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            exit 0
-          fi
-          if grep -q "HTTP 429" /tmp/arvin-worker-openai.log; then
-            echo "OPENAI exhausted on HTTP 429; switching to bounded read-only Copilot fallback."
-            OPENAI_API_KEY="" python3 .github/arvin/agent-runtime.py
-            exit $?
-          fi
-          echo "Primary AI provider failed without an HTTP 429; fail-closed." >&2
-          exit "$rc"
+          set -euo pipefail
+          python3 .github/arvin/agent-runtime.py
 
       - name: Final project validation
         run: |
