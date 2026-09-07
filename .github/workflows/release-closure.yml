@@ -33,3 +33,245 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+
+      - name: Detect pending release
+        id: release_state
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const main = await github.rest.repos.getBranch({owner, repo, branch: 'main'});
+            const sha = main.data.commit.sha;
+            const tag = `v0.1.0-arvin-${sha.slice(0,7)}`;
+            let complete = false;
+            try {
+              const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
+              const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
+              const names = new Set(assets.data.map(a => a.name));
+              complete = ['arvin-release.apk','artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+            } catch (_) {}
+            core.setOutput('already_released', complete ? 'true' : 'false');
+            core.info(`MAIN_SHA=${sha}`);
+            core.info(`RELEASE_TAG=${tag}`);
+            core.info(`ALREADY_RELEASED=${complete}`);
+
+      - name: Validate candidate and exact main
+        if: steps.release_state.outputs.already_released != 'true'
+        id: verify
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const main = await github.rest.repos.getBranch({owner, repo, branch: 'main'});
+            const sha = main.data.commit.sha;
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner, repo, state: 'closed', base: 'main', per_page: 100,
+              sort: 'updated', direction: 'desc'
+            });
+            const candidates = pulls
+              .filter(pr => pr.merged_at)
+              .filter(pr => (pr.labels || []).some(label => label.name === 'arvin-auto'))
+              .sort((a,b) => new Date(b.merged_at) - new Date(a.merged_at));
+            let selected = null;
+            for (const pr of candidates) {
+              if (!pr.merge_commit_sha) continue;
+              const comparison = await github.rest.repos.compareCommits({owner, repo, base: pr.merge_commit_sha, head: sha});
+              if (['ahead', 'identical'].includes(comparison.data.status)) {
+                selected = {pr, comparison};
+                break;
+              }
+            }
+            if (!selected) core.setFailed(`No merged arvin-auto PR with an ancestor merge commit was found for current main ${sha}.`);
+            const pr = selected.pr;
+            const comparison = selected.comparison;
+            core.setOutput('candidate_pr', String(pr.number));
+            core.setOutput('main_sha', sha);
+            core.setOutput('commit_sha', pr.head.sha);
+            core.setOutput('merge_sha', pr.merge_commit_sha);
+            core.info(`CANDIDATE_PR=${pr.number}`);
+            core.info(`COMMIT_SHA=${pr.head.sha}`);
+            core.info(`MERGE_SHA=${pr.merge_commit_sha}`);
+            core.info(`MAIN_SHA=${sha}`);
+            core.info(`CANDIDATE_MAIN_RELATION=${comparison.data.status}`);
+
+      - name: Setup Flutter
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android platform
+        if: steps.release_state.outputs.already_released != 'true'
+        run: flutter create --no-pub --platforms=android --project-name arvin .
+
+      - name: Restore VazirHarf assets
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p assets/fonts
+          rm -rf assets/fonts/vazirharf
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
+          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
+
+      - name: Configure Android desugaring
+        if: steps.release_state.outputs.already_released != 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
+          path = next((p for p in candidates if p.exists()), None)
+          if path is None:
+              raise SystemExit('Android app Gradle file not found')
+          text = path.read_text()
+          is_kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
+          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
+          if flag not in text:
+              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
+              else:
+                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+          if 'desugar_jdk_libs:2.1.5' not in text:
+              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              if match:
+                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
+              else:
+                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
+          path.write_text(text)
+          PY
+
+      - name: Android V2 audit
+        if: steps.release_state.outputs.already_released != 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('android/app/src/main')
+          activities = list(root.rglob('MainActivity.kt')) + list(root.rglob('MainActivity.java'))
+          if not activities:
+              raise SystemExit('MainActivity.kt/java not found after Android generation')
+          text = activities[0].read_text(encoding='utf-8')
+          if 'FlutterActivity' not in text:
+              raise SystemExit('MainActivity does not use FlutterActivity')
+          forbidden = ('io.flutter.app.', 'PluginRegistry.Registrar')
+          for candidate in root.rglob('*'):
+              if candidate.is_file():
+                  content = candidate.read_text(encoding='utf-8', errors='ignore')
+                  for token in forbidden:
+                      if token in content:
+                          raise SystemExit(f'deleted Android v1 embedding reference: {token} in {candidate}')
+          print(f'Android V2 audit passed: {activities[0]}')
+          PY
+
+      - name: Test and build release APK
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter test
+          flutter build apk --release -t lib/main.dart
+          mkdir -p "$RELEASE_EVIDENCE"
+          cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-release.apk"
+          sha256sum "$RELEASE_EVIDENCE/arvin-release.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+
+      - name: Store release evidence
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          CANDIDATE_PR: ${{ steps.verify.outputs.candidate_pr }}
+        run: |
+          cat > "$RELEASE_EVIDENCE/release-evidence.txt" <<EOF
+          PR_NUMBER=${CANDIDATE_PR}
+          COMMIT_SHA=${{ steps.verify.outputs.commit_sha }}
+          MERGE_SHA=${{ steps.verify.outputs.merge_sha }}
+          MAIN_SHA=${{ steps.verify.outputs.main_sha }}
+          BUILD_RESULT=success
+          TEST_RESULT=success
+          RELEASE_ARTIFACT=arvin-release.apk
+          ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
+          EOF
+
+      - name: Create immutable tag and prerelease
+        if: steps.release_state.outputs.already_released != 'true'
+        id: release
+        uses: actions/github-script@v7
+        env:
+          MAIN_SHA: ${{ steps.verify.outputs.main_sha }}
+          PR_NUMBER: ${{ steps.verify.outputs.candidate_pr }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = process.env.MAIN_SHA;
+            const tag = `v0.1.0-arvin-${sha.slice(0,7)}`;
+            try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
+            catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
+            let rel;
+            try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
+            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${tag}`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            core.setOutput('tag', tag);
+            core.setOutput('release_id', String(rel.data.id));
+            core.info(`TAG=${tag}`);
+
+      - name: Upload release assets
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-release.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
+
+      - name: Verify delivery
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: actions/github-script@v7
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          MAIN_SHA: ${{ steps.verify.outputs.main_sha }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const tag = process.env.TAG;
+            const sha = process.env.MAIN_SHA;
+            const ref = await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`});
+            if (ref.data.object.sha !== sha) core.setFailed('Tag target mismatch.');
+            const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
+            const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
+            const names = new Set(assets.data.map(a => a.name));
+            for (const n of ['arvin-release.apk','artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            core.info(`DELIVERY_CHECK=success TAG=${tag}`);
+
+      - name: Recovery and resume validation
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
+          sha256sum -c "$RELEASE_EVIDENCE/artifact.sha256"
+          git fetch origin main --tags
+          test "$(git rev-parse origin/main)" = "${{ steps.verify.outputs.main_sha }}"
+          test "$(git rev-list -n 1 '${{ steps.release.outputs.tag }}')" = "${{ steps.verify.outputs.main_sha }}"
+          echo "RECOVERY_RESULT=success"
+          echo "RESUME_VALIDATION=success"
+
+      - name: Publish final evidence
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-release-closure-${{ steps.verify.outputs.main_sha }}
+          path: ${{ env.RELEASE_EVIDENCE }}
+          if-no-files-found: error
