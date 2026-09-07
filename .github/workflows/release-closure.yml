@@ -32,6 +32,17 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Fetch pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+
       - name: Detect pending release
         id: release_state
         uses: actions/github-script@v7
@@ -104,6 +115,16 @@ jobs:
       - name: Generate Android platform
         if: steps.release_state.outputs.already_released != 'true'
         run: flutter create --no-pub --platforms=android --project-name arvin .
+
+      - name: Restore VazirHarf assets
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p assets/fonts
+          rm -rf assets/fonts/vazirharf
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
+          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
 
       - name: Configure Android desugaring
         if: steps.release_state.outputs.already_released != 'true'
