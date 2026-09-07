@@ -5,7 +5,7 @@ on:
     workflows: ['Arvin Production Orchestrator']
     types: [completed]
   schedule:
-    - cron: '7/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
