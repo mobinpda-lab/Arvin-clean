@@ -50,7 +50,6 @@ jobs:
                 owner, repo, issue_number: item.number, per_page: 100,
               });
               const alreadyRouted = comments.some(c => c.body?.includes(marker));
-              const alreadyDispatched = comments.some(c => c.body?.includes(workerDispatchMarker));
 
               if (!alreadyRouted) {
                 await github.rest.issues.createComment({
@@ -65,18 +64,28 @@ jobs:
                 await github.rest.issues.addLabels({ owner, repo, issue_number: item.number, labels: ['arvin-auto'] });
               }
 
-              if (autoEligible && !alreadyDispatched) {
+              if (autoEligible) {
                 const expectedMainSha = await currentMainSha();
-                await github.rest.actions.createWorkflowDispatch({
-                  owner, repo,
-                  workflow_id: 'arvin-agent-worker.yml',
-                  ref: 'main',
-                  inputs: { issue_number: String(item.number), expected_main_sha: expectedMainSha },
-                });
-                await github.rest.issues.createComment({
-                  owner, repo, issue_number: item.number,
-                  body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${item.number} against exact main ${expectedMainSha}. This marker prevents duplicate worker launches for the same routed issue.`
-                });
+                const dispatchComments = comments.filter(c => c.body?.includes(workerDispatchMarker));
+                const latestDispatch = dispatchComments.length ? dispatchComments[dispatchComments.length - 1] : null;
+                const match = latestDispatch?.body?.match(/exact main ([0-9a-f]{40})/i);
+                const alreadyDispatchedForCurrentMain = match?.[1]?.toLowerCase() === expectedMainSha.toLowerCase();
+
+                if (!alreadyDispatchedForCurrentMain) {
+                  await github.rest.actions.createWorkflowDispatch({
+                    owner, repo,
+                    workflow_id: 'arvin-agent-worker.yml',
+                    ref: 'main',
+                    inputs: { issue_number: String(item.number), expected_main_sha: expectedMainSha },
+                  });
+                  const reason = match
+                    ? `Previous worker snapshot ${match[1]} is stale; current main is ${expectedMainSha}.`
+                    : `No prior worker dispatch was found for current main ${expectedMainSha}.`;
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: item.number,
+                    body: `${workerDispatchMarker}\nAI Code Worker explicitly dispatched for issue #${item.number} against exact main ${expectedMainSha}. ${reason} This marker is idempotent for the current main snapshot.`
+                  });
+                }
               }
             }
 
