@@ -257,15 +257,6 @@ jobs:
             for (const n of ['arvin-release.apk','artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
             core.info(`DELIVERY_CHECK=success TAG=${tag}`);
 
-      - name: Failure simulation
-        if: steps.release_state.outputs.already_released != 'true'
-        run: |
-          set +e
-          false
-          rc=$?
-          echo "SIMULATED_FAILURE_RC=$rc"
-          test "$rc" -ne 0
-
       - name: Recovery and resume validation
         if: steps.release_state.outputs.already_released != 'true'
         run: |
