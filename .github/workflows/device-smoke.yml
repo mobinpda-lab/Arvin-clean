@@ -11,8 +11,6 @@ on:
 permissions:
   contents: read
 
-# PRs group by PR number; non-PR runs group by ref so a newer main/device run
-# cancels superseded work on that same ref instead of consuming emulator slots.
 concurrency:
   group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
@@ -24,38 +22,41 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch pinned VazirHarf
+        run: |
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Restore VazirHarf assets
+        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
-          path = next((p for p in candidates if p.exists()), None)
+          path = next((p for p in (Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')) if p.exists()), None)
           if path is None:
               raise SystemExit('Android app Gradle file not found')
           text = path.read_text()
-          is_kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
+          kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if kts else 'coreLibraryDesugaringEnabled true'
+          dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
           if flag not in text:
-              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
-              else:
-                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+              m = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              text = text[:m.end()] + '\n        ' + flag + text[m.end():] if m else text + '\n\ncompileOptions {\n        ' + flag + '\n}\n'
           if 'desugar_jdk_libs:2.1.5' not in text:
-              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
-              else:
-                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
+              m = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              text = text[:m.end()] + '\n    ' + dep + text[m.end():] if m else text + '\n\ndependencies {\n    ' + dep + '\n}\n'
           path.write_text(text)
           PY
       - name: Get dependencies
@@ -80,38 +81,41 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch pinned VazirHarf
+        run: |
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - name: Generate Android platform
         run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Restore VazirHarf assets
+        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Configure Android desugaring
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
-          path = next((p for p in candidates if p.exists()), None)
+          path = next((p for p in (Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')) if p.exists()), None)
           if path is None:
               raise SystemExit('Android app Gradle file not found')
           text = path.read_text()
-          is_kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
+          kts = path.suffix == '.kts'
+          flag = 'isCoreLibraryDesugaringEnabled = true' if kts else 'coreLibraryDesugaringEnabled true'
+          dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
           if flag not in text:
-              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
-              else:
-                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
+              m = re.search(r'(?m)^\s*compileOptions\s*\{', text)
+              text = text[:m.end()] + '\n        ' + flag + text[m.end():] if m else text + '\n\ncompileOptions {\n        ' + flag + '\n}\n'
           if 'desugar_jdk_libs:2.1.5' not in text:
-              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
-              else:
-                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
+              m = re.search(r'(?m)^\s*dependencies\s*\{', text)
+              text = text[:m.end()] + '\n    ' + dep + text[m.end():] if m else text + '\n\ndependencies {\n    ' + dep + '\n}\n'
           path.write_text(text)
           PY
       - name: Get dependencies

@@ -1,5 +1,5 @@
 name: arvin
-description: نرم‌افزار مدیریت کارها و پیگیری‌ها برای اندروید، ساخته‌شده با Flutter.
+description: نرم‌افزار مدیریت کارها وپیگیری‌ها برای اندروید، ساخته‌شده با Flutter.
 publish_to: "none"
 version: 1.0.0+1
 
@@ -33,13 +33,13 @@ flutter:
   assets:
     - assets/fonts/
   fonts:
-    - family: Vazirmatn
+    - family: VazirHarf
       fonts:
-        - asset: assets/fonts/vazirmatn/Vazirmatn-UI-FD-Regular.ttf
+        - asset: assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
           weight: 400
-        - asset: assets/fonts/vazirmatn/Vazirmatn-UI-FD-Medium.ttf
+        - asset: assets/fonts/vazirharf/fonts/ttf/Vazirharf-Medium.ttf
           weight: 500
-        - asset: assets/fonts/vazirmatn/Vazirmatn-UI-FD-SemiBold.ttf
+        - asset: assets/fonts/vazirharf/fonts/ttf/Vazirharf-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/vazirmatn/Vazirmatn-UI-FD-Bold.ttf
+        - asset: assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
           weight: 700
