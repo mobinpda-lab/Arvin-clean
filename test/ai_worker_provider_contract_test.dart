@@ -55,7 +55,7 @@ void main() {
         File('.github/workflows/arvin-production-loop.yml').readAsStringSync();
 
     expect(worker, contains('workflow_dispatch:'));
-    expect(worker, isNot(contains('\\n  issues:\\n')));
+    expect(worker, isNot(contains('\n  issues:\n')));
     expect(worker, contains(r'group: arvin-agent-${{ inputs.issue_number }}'));
     expect(worker, contains(r'ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}'));
     expect(worker, isNot(contains("github.event.label.name == 'arvin-auto'")));
