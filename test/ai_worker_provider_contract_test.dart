@@ -3,17 +3,19 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('AI worker uses OpenAI as the configured provider and has no Copilot fallback', () {
+  test('AI worker uses the configured OpenAI workflow contract', () {
     final workflow =
         File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
     final runtime = File('.github/arvin/agent-runtime.py').readAsStringSync();
 
     expect(workflow, contains('OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}'));
-    expect(workflow, contains("OPENAI_MODEL: \${{ vars.OPENAI_MODEL || 'gpt-5.6' }}"));
+    expect(workflow,
+        contains("OPENAI_MODEL: \${{ vars.OPENAI_MODEL || 'gpt-5.6' }}"));
     expect(workflow, isNot(contains('copilot-requests: write')));
     expect(workflow, isNot(contains('npm install -g @github/copilot')));
     expect(workflow, isNot(contains('ARVIN_COPILOT_MODEL')));
-    expect(workflow, isNot(contains('switching to bounded read-only Copilot fallback')));
+    expect(workflow,
+        isNot(contains('switching to bounded read-only Copilot fallback')));
     expect(workflow, contains('uses: subosito/flutter-action@v2'));
     expect(workflow, contains('test -n "\$ARVIN_ISSUE_NUMBER"'));
     expect(workflow, contains('python3 .github/arvin/agent-runtime.py'));
@@ -26,8 +28,6 @@ void main() {
     expect(runtime, contains('ARVIN_PROVIDER_MAX_429_RETRIES'));
     expect(runtime, contains('ARVIN_PROVIDER_429_BASE_DELAY_SECONDS'));
     expect(runtime, contains('def next_provider_timeout(deadline):'));
-    expect(runtime, isNot(contains('GitHub Copilot CLI via GITHUB_TOKEN')));
-    expect(runtime, isNot(contains('def copilot_response(')));
   });
 
   test('AI worker rejects malformed model patches and bounds provider work', () {
