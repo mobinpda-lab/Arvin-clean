@@ -7,9 +7,6 @@ on:
         description: 'Issue number assigned to the Test Worker'
         required: true
         type: string
-  push:
-    branches-ignore:
-      - '**'
 
 permissions:
   contents: write
