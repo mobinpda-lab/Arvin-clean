@@ -65,12 +65,30 @@ jobs:
           git config user.email "arvin-agent[bot]@users.noreply.github.com"
 
       - name: Generate, test and self-fix
+        id: generate
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           python3 .github/arvin/agent-runtime.py
+          rc=$?
+          if [ "$rc" -eq 75 ]; then
+            echo "provider_pressure=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "provider_pressure=false" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+
+      - name: Release lease on provider pressure
+        if: steps.generate.outputs.provider_pressure == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh issue edit "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label factory:leased --remove-label factory:in-progress || true
+          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-provider-pressure -->\\nAI provider returned HTTP 429. No product failure is claimed; worker lease was released and immediate retry was suppressed. Deterministic/non-AI lanes may continue; retry only after cooldown."
 
       - name: Final project validation
+        if: steps.generate.outputs.provider_pressure != 'true'
         run: |
           if [ -f pubspec.yaml ]; then
             flutter --version
@@ -85,6 +103,7 @@ jobs:
           fi
 
       - name: Commit worker result
+        if: steps.generate.outputs.provider_pressure != 'true'
         id: commit
         run: |
           if git diff --quiet; then
@@ -96,7 +115,7 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Push worker branch
-        if: steps.commit.outputs.changed == 'true'
+        if: steps.generate.outputs.provider_pressure != 'true' && steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -107,7 +126,7 @@ jobs:
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
       - name: Open or reuse guarded draft pull request
-        if: steps.commit.outputs.changed == 'true'
+        if: steps.generate.outputs.provider_pressure != 'true' && steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
