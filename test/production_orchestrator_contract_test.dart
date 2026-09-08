@@ -90,6 +90,10 @@ void main() {
     expect(loop, contains("labels: ['arvin-auto']"));
     expect(loop, contains("workflow_id: 'arvin-autonomous-queue.yml'"));
     expect(loop, isNot(contains("workflow_id: 'arvin-agent-worker.yml'")));
+    expect(loop, contains('const title = issue.data.title.toLowerCase()'));
+    expect(loop, isNot(contains("const text = \`${issue.data.title}\\n${issue.data.body || ''}\`.toLowerCase()")));
+    expect(loop, contains("error?.status !== 422"));
+    expect(loop, contains('Leaving only the test-worker gate unverified'));
     expect(loop, isNot(contains("['failure', 'cancelled', 'timed_out'].includes(conclusion)")));
   });
 }
