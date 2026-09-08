@@ -31,62 +31,63 @@ class TaskSyncApplyService {
   Future<TaskSyncApplyResult> apply({
     required TaskSyncPlan plan,
     Map<String, TaskSyncConflictChoice> conflictChoices = const {},
-  }) async {
+  }) {
     _validatePlanAndChoices(plan, conflictChoices);
 
-    final currentLocal = await _store.load();
-    _assertCurrentLocalMatchesPlan(plan, currentLocal);
+    return _store.mutate<TaskSyncApplyResult>((currentLocal) {
+      _assertCurrentLocalMatchesPlan(plan, currentLocal);
 
-    final selectedById = <String, Task>{};
-    var resolvedConflictCount = 0;
+      final selectedById = <String, Task>{};
+      var resolvedConflictCount = 0;
 
-    for (final item in plan.items) {
-      switch (item.result.decision) {
-        case SyncMergeDecision.localOnly:
-        case SyncMergeDecision.identical:
-        case SyncMergeDecision.useLocal:
-          selectedById[item.id] = _requireLocal(item);
-          break;
-        case SyncMergeDecision.remoteOnly:
-        case SyncMergeDecision.useRemote:
-          selectedById[item.id] = _requireRemote(item);
-          break;
-        case SyncMergeDecision.conflict:
-          final choice = conflictChoices[item.id];
-          if (choice == null) {
-            throw StateError('Unresolved sync conflict: ${item.id}');
-          }
-          selectedById[item.id] = switch (choice) {
-            TaskSyncConflictChoice.useLocal => _requireLocal(item),
-            TaskSyncConflictChoice.useRemote => _requireRemote(item),
-          };
-          resolvedConflictCount++;
-          break;
+      for (final item in plan.items) {
+        switch (item.result.decision) {
+          case SyncMergeDecision.localOnly:
+          case SyncMergeDecision.identical:
+          case SyncMergeDecision.useLocal:
+            selectedById[item.id] = _requireLocal(item);
+            break;
+          case SyncMergeDecision.remoteOnly:
+          case SyncMergeDecision.useRemote:
+            selectedById[item.id] = _requireRemote(item);
+            break;
+          case SyncMergeDecision.conflict:
+            final choice = conflictChoices[item.id];
+            if (choice == null) {
+              throw StateError('Unresolved sync conflict: ${item.id}');
+            }
+            selectedById[item.id] = switch (choice) {
+              TaskSyncConflictChoice.useLocal => _requireLocal(item),
+              TaskSyncConflictChoice.useRemote => _requireRemote(item),
+            };
+            resolvedConflictCount++;
+            break;
+        }
       }
-    }
 
-    // Preserve the user's current local ordering for existing records. New
-    // remote-only records are appended in the deterministic plan order.
-    final merged = <Task>[];
-    for (final localTask in currentLocal) {
-      final selected = selectedById.remove(localTask.id);
-      if (selected != null) merged.add(selected);
-    }
-    for (final item in plan.items) {
-      final selected = selectedById.remove(item.id);
-      if (selected != null) merged.add(selected);
-    }
+      final merged = <Task>[];
+      for (final localTask in currentLocal) {
+        final selected = selectedById.remove(localTask.id);
+        if (selected != null) merged.add(selected);
+      }
+      for (final item in plan.items) {
+        final selected = selectedById.remove(item.id);
+        if (selected != null) merged.add(selected);
+      }
 
-    if (selectedById.isNotEmpty) {
-      throw StateError('Sync plan produced unconsumed Task ids.');
-    }
+      if (selectedById.isNotEmpty) {
+        throw StateError('Sync plan produced unconsumed Task ids.');
+      }
 
-    // One canonical write only after all validation and conflict resolution.
-    await _store.save(merged);
-    return TaskSyncApplyResult(
-      tasks: merged,
-      resolvedConflictCount: resolvedConflictCount,
-    );
+      currentLocal
+        ..clear()
+        ..addAll(merged);
+
+      return TaskSyncApplyResult(
+        tasks: merged,
+        resolvedConflictCount: resolvedConflictCount,
+      );
+    });
   }
 
   void _validatePlanAndChoices(
