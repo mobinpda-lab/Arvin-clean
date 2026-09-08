@@ -109,6 +109,7 @@ jobs:
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.0'
           channel: stable
           cache: true
 
