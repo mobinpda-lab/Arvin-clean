@@ -25,18 +25,18 @@ void main() {
     expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
   });
 
-  testWidgets('Bismillah uses the lowered Home header block', (tester) async {
+  testWidgets('Home uses the canonical header identity block', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
+    expect(find.byType(AppBar), findsNothing);
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    final appBar = tester.widget<AppBar>(find.byType(AppBar));
-    expect(appBar.toolbarHeight, 78);
-
-    final padding = tester.widget<Padding>(
-      find.byKey(const ValueKey('home-title-block')),
-    );
-    expect(padding.padding, const EdgeInsets.only(top: 12));
+    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
   testWidgets('RTL default left swipe archives and right swipe trashes',
