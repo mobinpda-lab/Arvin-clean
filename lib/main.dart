@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'notebook_page.dart';
-import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
@@ -130,8 +129,6 @@ class _HomePageState extends State<HomePage> {
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
 
-  final GlobalKey _quickCaptureGuideKey =
-      GlobalKey(debugLabel: 'home-guide-quick-capture');
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
   final GlobalKey _filtersGuideKey =
