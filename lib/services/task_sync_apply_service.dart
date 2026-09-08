@@ -31,7 +31,7 @@ class TaskSyncApplyService {
   Future<TaskSyncApplyResult> apply({
     required TaskSyncPlan plan,
     Map<String, TaskSyncConflictChoice> conflictChoices = const {},
-  }) {
+  }) async {
     _validatePlanAndChoices(plan, conflictChoices);
 
     return _store.mutate<TaskSyncApplyResult>((currentLocal) {
