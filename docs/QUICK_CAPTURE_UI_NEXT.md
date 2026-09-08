@@ -1,1 +1,0 @@
-Quick Capture UI remains an active parallel lane. Next change must wire the existing dialog to Home and save only through the existing canonical migration writer. No duplicate parser, model, repository, database, or storage key is allowed.
