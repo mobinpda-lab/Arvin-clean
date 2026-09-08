@@ -326,32 +326,6 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
-  Future<void> _quickCapture() async {
-    final captured = await showDialog<Task>(
-      context: context,
-      builder: (_) => const QuickCaptureDialog(),
-    );
-    if (captured == null) return;
-
-    try {
-      await migrationWriter.save([..._searchSource, captured]);
-      await _load();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
-  }
-
   Future<void> _edit(Task old) async {
     final edited = await showDialog<Task>(
       context: context,
@@ -419,11 +393,6 @@ class _HomePageState extends State<HomePage> {
       task.archived = false;
     });
     await _save();
-  }
-
-  void _openFilter(BuildContext drawerContext, String nextFilter) {
-    Navigator.pop(drawerContext);
-    _selectHomeStat(nextFilter);
   }
 
   void _selectHomeStat(String nextFilter) {
@@ -625,13 +594,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Future<void> _openBackup(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    await _backupMenu();
   }
 
   Future<void> _openPrimaryCalendar() async {
@@ -836,25 +798,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _openCalendar(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    await _openPrimaryCalendar();
-  }
-
-  Future<void> _openSettings(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    await _openPrimarySettings();
-  }
-
-  Future<void> _openAbout(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    _showAbout();
-  }
-
   TaskSwipeAction _actionForSwipe(DismissDirection direction) {
     return switch (direction) {
       DismissDirection.endToStart => widget.settings.swipeRightAction,
@@ -995,63 +938,6 @@ enum _HomeMoreAction {
   about,
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat(
-    this.label,
-    this.value,
-    this.icon, {
-    required this.semanticKey,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final int value;
-  final IconData icon;
-  final Key semanticKey;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Semantics(
-      key: semanticKey,
-      button: true,
-      selected: selected,
-      label: 'فیلتر $label، $value مورد',
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        color: selected ? colors.secondaryContainer : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: selected
-              ? BorderSide(color: colors.primary, width: 1.4)
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: selected ? colors.primary : null,
-                ),
-                const SizedBox(height: 2),
-                Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(label, style: const TextStyle(fontSize: 10)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// Backward-compatible public entry retained for existing callers/tests.
 /// The live implementation is the Home-aligned Arvin task editor.
