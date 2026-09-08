@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,9 +15,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'تقویم'));
+    await tester.tap(find.text('تقویم').last);
     await tester.pumpAndSettle();
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);

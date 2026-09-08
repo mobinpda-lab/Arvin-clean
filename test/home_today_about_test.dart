@@ -12,7 +12,12 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Today drawer shows only active canonical tasks due today',
+  Future<void> openMore(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('Today menu action shows only active canonical tasks due today',
       (tester) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day, 12);
@@ -44,9 +49,7 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
+    await openMore(tester);
     await tester.tap(find.widgetWithText(ListTile, 'امروز'));
     await tester.pumpAndSettle();
 
@@ -55,26 +58,23 @@ void main() {
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
   });
 
-  testWidgets('Today drawer has a dedicated empty state', (tester) async {
+  testWidgets('Today menu action has a dedicated empty state', (tester) async {
     SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
+    await openMore(tester);
     await tester.tap(find.widgetWithText(ListTile, 'امروز'));
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای امروز وجود ندارد'), findsOneWidget);
   });
 
-  testWidgets('About drawer opens Flutter built-in Arvin about dialog',
+  testWidgets('About menu action opens the built-in Arvin about dialog',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
+    await openMore(tester);
     await tester.tap(find.widgetWithText(ListTile, 'درباره آروین'));
     await tester.pumpAndSettle();
 

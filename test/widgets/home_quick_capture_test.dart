@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 
 void main() {
-  testWidgets('Home quick capture persists canonical task and preserves history',
+  testWidgets('Home primary add persists canonical task and preserves history',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
@@ -30,25 +30,27 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('ثبت سریع'));
+    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
-
     await tester.enterText(
-      find.byType(EditableText).last,
-      'تماس با علی #فروش #مهم',
+      find.byKey(const ValueKey('task-editor-title')),
+      'تماس با علی',
     );
-    await tester.tap(find.text('ثبت'));
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-tag')),
+      'مهم',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
     expect(find.text('تماس با علی'), findsOneWidget);
-    expect(find.text('فروش'), findsOneWidget);
     expect(find.text('مهم'), findsOneWidget);
-    expect(find.textContaining('با ثبت سریع اضافه شد'), findsOneWidget);
 
     final prefs = await SharedPreferences.getInstance();
     final raw = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
     expect(raw, hasLength(2));
-
     final existing = Map<String, dynamic>.from(
       raw.firstWhere((item) => (item as Map)['id'] == 'existing') as Map,
     );
@@ -61,7 +63,7 @@ void main() {
       Map<String, dynamic>.from((existing['followUps'] as List).single as Map)['note'],
       'تاریخچه محفوظ',
     );
-    expect(captured['tags'], ['فروش', 'مهم']);
+    expect(captured['tags'], ['مهم']);
     expect(DateTime.tryParse(captured['createdAt'] as String? ?? ''), isNotNull);
   });
 }
