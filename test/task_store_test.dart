@@ -70,6 +70,38 @@ void main() {
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 
+
+  test('concurrent canonical mutations preserve both changes', () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(id: 'task-1', title: 'Original'),
+    ]);
+
+    await Future.wait<void>([
+      store.mutate<void>((tasks) {
+        tasks.single.title = 'Renamed';
+      }),
+      store.mutate<void>((tasks) {
+        tasks.single.tags = <String>['important'];
+      }),
+    ]);
+
+    final loaded = await store.load();
+    expect(loaded.single.title, 'Renamed');
+    expect(loaded.single.tags, <String>['important']);
+  });
+
+  test('TaskStore rejects malformed canonical document instead of empty fallback',
+      () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(TaskStore.key, '{"not":"a-list"}');
+
+    expect(
+      TaskStore().load(),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
   test('FollowUp remains compatible with older data without completed', () {
     final followUp = FollowUp.fromJson(<String, dynamic>{
       'id': 'legacy-fu',
