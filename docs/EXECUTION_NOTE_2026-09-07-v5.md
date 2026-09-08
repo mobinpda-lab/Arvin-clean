@@ -1,1 +1,0 @@
-Execution note for #755/#756: implementation is intentionally held from merge until the real Home route is wired and validated at exact head.
