@@ -1,0 +1,1 @@
+Execution lane: #755 / #756. The real Home route must be wired to the approved visual shell before this PR can be considered executable completion. No duplicate persistence/model path is permitted.
