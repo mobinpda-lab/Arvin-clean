@@ -9,71 +9,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: read
+  contents: read
 
 concurrency:
   group: arvin-build-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  bootstrap-reproducibility:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/issue-782-reproducible-build-current-main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout bootstrap branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Setup exact Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.47.0'
-          channel: stable
-          cache: true
-      - name: Generate repository-owned release inputs
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          flutter create --no-pub --platforms=android --project-name arvin .
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          path = next((p for p in (Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')) if p.exists()), None)
-          if path is None:
-              raise SystemExit('Android app Gradle file not found')
-          text = path.read_text()
-          kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if kts else 'coreLibraryDesugaringEnabled true'
-          dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'"
-          if flag not in text:
-              m = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              text = text[:m.end()] + '\n        ' + flag + text[m.end():] if m else text + '\n\ncompileOptions {\n        ' + flag + '\n}\n'
-          if 'desugar_jdk_libs:2.1.5' not in text:
-              m = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              text = text[:m.end()] + '\n    ' + dep + text[m.end():] if m else text + '\n\ndependencies {\n    ' + dep + '\n}\n'
-          path.write_text(text)
-          PY
-          flutter pub get
-          test -s pubspec.lock
-          test -f android/app/build.gradle.kts -o -f android/app/build.gradle
-          test -f android/gradle/wrapper/gradle-wrapper.properties
-          rm -f android/local.properties
-          git checkout "$BASE_SHA" -- .github/workflows/build.yml
-          git config user.name 'arvin-repro-bootstrap[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pubspec.lock android .github/workflows/build.yml
-          git reset -- android/local.properties 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo 'No reproducibility bootstrap changes required.'
-            exit 0
-          fi
-          git commit -m 'build(reproducibility): version dependency lock and Android toolchain'
-          git push origin HEAD:${{ github.head_ref }}
-
   quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
