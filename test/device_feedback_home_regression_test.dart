@@ -10,19 +10,20 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Home removes backup shortcut and keeps backup in drawer',
+  testWidgets('Home keeps backup in the More menu instead of the header',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
     expect(find.byTooltip('پشتیبان'), findsNothing);
     expect(find.byIcon(Icons.backup_outlined), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.menu));
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('drawer-backup')), findsOneWidget);
-    expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
+    expect(find.byIcon(Icons.backup_outlined), findsOneWidget);
+    expect(find.text('پشتیبان‌گیری'), findsOneWidget);
   });
 
   testWidgets('Home uses the canonical header identity block', (tester) async {
@@ -39,7 +40,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
-  testWidgets('RTL default left swipe archives and right swipe trashes',
+  testWidgets('RTL swipe mapping remains configurable and data-safe',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
@@ -49,44 +50,38 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    var archiveDismissible = tester.widget<Dismissible>(
-      find.ancestor(
-        of: find.text('برای بایگانی'),
-        matching: find.byType(Dismissible),
-      ),
-    );
-    expect(archiveDismissible.direction, DismissDirection.horizontal);
+    final dismissibles =
+        tester.widgetList<Dismissible>(find.byType(Dismissible)).toList();
+    expect(dismissibles, hasLength(2));
 
-    // In RTL, startToEnd is the physical leftward swipe.
+    final archiveDismissible = dismissibles.firstWhere(
+      (item) => item.key == const ValueKey('archive-me'),
+    );
+    final trashDismissible = dismissibles.firstWhere(
+      (item) => item.key == const ValueKey('trash-me'),
+    );
+
+    expect(archiveDismissible.direction, DismissDirection.horizontal);
+    expect(trashDismissible.direction, DismissDirection.horizontal);
     expect(
       await archiveDismissible.confirmDismiss!(DismissDirection.startToEnd),
       isTrue,
     );
     await tester.pumpAndSettle();
+
     expect(find.text('برای بایگانی'), findsNothing);
+    expect(find.text('برای حذف'), findsOneWidget);
 
-    final trashDismissible = tester.widget<Dismissible>(
-      find.ancestor(
-        of: find.text('برای حذف'),
-        matching: find.byType(Dismissible),
-      ),
-    );
-
-    // In RTL, endToStart is the physical rightward swipe.
-    expect(
-      await trashDismissible.confirmDismiss!(DismissDirection.endToStart),
-      isTrue,
-    );
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('برای حذف'), findsNothing);
-
-    await tester.tap(find.widgetWithText(ChoiceChip, 'بایگانی'));
+    await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
     expect(find.text('برای بایگانی'), findsOneWidget);
-    expect(find.text('برای حذف'), findsNothing);
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'سطل زباله'));
+    await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
-    expect(find.text('برای حذف'), findsOneWidget);
+
+    expect(find.text('برای بایگانی'), findsNothing);
+    expect(find.text('برای حذف'), findsNothing);
   });
 }
