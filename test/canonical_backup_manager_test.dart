@@ -110,14 +110,14 @@ void main() {
       settings: const <String, dynamic>{
         'themeMode': 'dark',
         'usePersianDate': true,
-        'fontFamily': 'Vazirmatn',
+        'fontFamily': 'VazirHarf',
       },
     );
 
     expect(service.writtenPayload?['settings'], {
       'themeMode': 'dark',
       'usePersianDate': true,
-      'fontFamily': 'Vazirmatn',
+      'fontFamily': 'VazirHarf',
     });
   });
 

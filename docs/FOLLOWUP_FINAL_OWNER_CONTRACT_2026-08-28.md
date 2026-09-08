@@ -61,7 +61,8 @@
 PDF و Print باید یک report projection/template مشترک داشته باشند. Share باید همان محتوای canonical را reuse کند و هیچ مدل یا persistence موازی نسازد. خروجی فارسی/RTL است.
 
 ## فونت و زبان
-- فونت برنامه: Vazirmatn از پروژه رسمی `rastikerdar/vazirmatn`، با asset/license داخل repository و theme canonical.
+- **فونت برنامه: VazirHarf v34.003**؛ منبع canonical: `nadalaba/vazirharf`، با asset/license داخل repository و theme canonical.
+- هیچ ارجاع اجرایی یا مستندی به Vazirmatn به‌عنوان فونت برنامه مجاز نیست.
 - تمام تاریخ‌های user-visible مربوط به FollowUp در تمام surfaceهای فعال: Jalali/Persian.
 - تمام ساعت‌های user-visible مربوط: Persian digits.
 - RTL و خوانایی viewportهای باریک Android الزامی است.
