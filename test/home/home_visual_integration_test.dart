@@ -25,4 +25,4 @@ void main() {
   });
 }
 
-// Keep this focused regression suite adjacent to the canonical Home shell.
+// Focused regression coverage for the canonical Home presentation shell.
