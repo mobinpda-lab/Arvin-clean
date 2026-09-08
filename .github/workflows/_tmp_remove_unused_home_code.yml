@@ -1,0 +1,54 @@
+name: temporary-remove-unused-home-code
+on:
+  push:
+    branches: [feat/home-visual-integration-2026-09-07]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove unreachable Home helpers
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('lib/main.dart')
+          s = p.read_text()
+          methods = [
+              '_quickCapture', '_openFilter', '_openBackup',
+              '_openCalendar', '_openSettings', '_openAbout',
+          ]
+          for name in methods:
+              marker = '\\n  '
+              start = s.find(marker + 'Future<void> ' + name + '(')
+              if start < 0:
+                  start = s.find(marker + 'void ' + name + '(')
+              if start < 0:
+                  raise SystemExit(f'missing method {name}')
+              brace = s.find('{', start)
+              depth = 0
+              end = None
+              for i in range(brace, len(s)):
+                  if s[i] == '{': depth += 1
+                  elif s[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i + 1
+                          break
+              if end is None: raise SystemExit(f'unclosed method {name}')
+              s = s[:start] + s[end:]
+          start = s.find('class _Stat extends StatelessWidget {')
+          if start < 0: raise SystemExit('missing _Stat')
+          end_marker = '\n/// Backward-compatible public entry retained for existing callers/tests.'
+          end = s.find(end_marker, start)
+          if end < 0: raise SystemExit('missing TaskDialog boundary')
+          s = s[:start] + s[end:]
+          p.write_text(s)
+      - name: Commit cleanup
+        run: |
+          git config user.name 'arvin-factory-bot'
+          git config user.email 'arvin-factory-bot@users.noreply.github.com'
+          git add lib/main.dart
+          git commit -m 'fix(home): remove unreachable legacy helpers'
+          git push
