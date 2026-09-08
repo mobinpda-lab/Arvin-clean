@@ -1,1 +1,0 @@
-This execution note supersedes no product contract. It only records the active implementation lane for #755/#756.
