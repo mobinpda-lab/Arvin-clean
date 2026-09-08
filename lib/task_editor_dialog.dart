@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
@@ -185,7 +186,80 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     });
   }
 
+  bool get _hasChanges {
+    final existing = widget.task;
+    final title = _titleController.text;
+    final description = _descriptionController.text;
+    final pendingTag = _tagController.text.trim();
+
+    if (existing == null) {
+      return title.trim().isNotEmpty ||
+          description.trim().isNotEmpty ||
+          pendingTag.isNotEmpty ||
+          _tags.isNotEmpty ||
+          _category != null ||
+          _selectedProjectId != widget.selectedProjectId ||
+          _followUpEnabled ||
+          _followUpDateTime != null;
+    }
+
+    final initialFollowUpEnabled = existing.followUpEnabled ||
+        existing.followUps.isNotEmpty ||
+        existing.followUpDate != null;
+    return title != existing.title ||
+        description != existing.description ||
+        pendingTag.isNotEmpty ||
+        !listEquals(_tags, existing.tags) ||
+        _category != existing.category ||
+        _selectedProjectId != widget.selectedProjectId ||
+        _followUpEnabled != initialFollowUpEnabled ||
+        _followUpDateTime != existing.legacyHomeFollowUpDate;
+  }
+
+  Future<void> _requestClose() async {
+    if (!_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تغییرات ذخیره نشده'),
+        content: const Text(
+          'برای جلوگیری از از دست رفتن اطلاعات، تغییرات را ذخیره کنید یا صریحاً بدون ذخیره خارج شوید.',
+        ),
+        actions: [
+          TextButton(
+            key: const ValueKey('task-editor-exit-continue'),
+            onPressed: () => Navigator.of(dialogContext).pop('continue'),
+            child: const Text('ادامه ویرایش'),
+          ),
+          TextButton(
+            key: const ValueKey('task-editor-exit-discard'),
+            onPressed: () => Navigator.of(dialogContext).pop('discard'),
+            child: const Text('بدون ذخیره'),
+          ),
+          FilledButton(
+            key: const ValueKey('task-editor-exit-save'),
+            onPressed: () => Navigator.of(dialogContext).pop('save'),
+            child: const Text('ذخیره'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (action == 'discard') {
+      Navigator.of(context).pop();
+    } else if (action == 'save') {
+      _save();
+    }
+  }
+
   void _save() {
+    final pendingTag = _tagController.text.trim();
+    if (pendingTag.isNotEmpty && !_tags.contains(pendingTag)) {
+      _tags.add(pendingTag);
+    }
     final now = DateTime.now();
     final existing = widget.task;
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
@@ -294,7 +368,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final followUp = _followUpDateTime;
     final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
 
-    return Dialog(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _requestClose();
+      },
+      child: Dialog(
       key: const ValueKey('arvin-task-editor-dialog'),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       backgroundColor: Colors.transparent,
@@ -326,7 +405,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     ),
                     IconButton(
                       tooltip: 'بستن',
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: _requestClose,
                       icon: const Icon(Icons.close),
                     ),
                   ],
@@ -577,6 +656,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
