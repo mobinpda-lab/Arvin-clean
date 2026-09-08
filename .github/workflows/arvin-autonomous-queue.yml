@@ -41,7 +41,7 @@ jobs:
             const candidates = issues
               .filter(i => !i.pull_request)
               .map(i => ({ issue: i, labels: new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)) }))
-              .filter(x => x.labels.has('factory:ready') || x.labels.has('arvin-auto'))
+              .filter(x => x.labels.has('factory:ready') || x.labels.has('arvin-auto') || x.labels.has('priority:release-blocker'))
               .filter(x => ![...blocked].some(l => x.labels.has(l)))
               .filter(x => !x.labels.has('factory:leased') && !x.labels.has('factory:in-progress'))
               .sort((a,b) => {
