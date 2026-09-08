@@ -338,4 +338,51 @@ void main() {
     expect(find.text('Work'), findsOneWidget);
     expect(service.calendarSaveCount, 0);
   });
+  testWidgets('permission denial leaves calendar settings unchanged',
+      (tester) async {
+    messenger.setMockMethodCallHandler(calendarChannel, (call) async {
+      switch (call.method) {
+        case SystemCalendarBridge.requestPermissionMethod:
+          return false;
+        case SystemCalendarBridge.listCalendarsMethod:
+          fail('calendar discovery must not run after permission denial');
+      }
+      return null;
+    });
+
+    final initial = const CalendarIntegrationSettings(
+      targetCalendarId: 'existing-target',
+      visibleCalendarIds: {'existing-visible'},
+    );
+    final service = _CountingSettingsService(_appSettings(calendar: initial));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarIntegrationSettingsPage(
+          service: service,
+          calendarBridge: SystemCalendarBridge(channel: calendarChannel),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final request = find.byKey(
+      const ValueKey('calendar-request-provider-permission'),
+    );
+    await _scrollUntilVisible(tester, request);
+    await tester.tap(request);
+    await tester.pumpAndSettle();
+
+    expect(service.calendarSaveCount, 0);
+    expect(service.current.calendarIntegration.targetCalendarId, 'existing-target');
+    expect(
+      service.current.calendarIntegration.visibleCalendarIds,
+      {'existing-visible'},
+    );
+    expect(
+      find.byKey(const ValueKey('calendar-request-provider-permission')),
+      findsOneWidget,
+    );
+  });
+
 }
