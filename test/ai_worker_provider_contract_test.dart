@@ -19,6 +19,9 @@ void main() {
     expect(workflow, contains('uses: subosito/flutter-action@v2'));
     expect(workflow, contains('test -n "\$ARVIN_ISSUE_NUMBER"'));
     expect(workflow, contains('python3 .github/arvin/agent-runtime.py'));
+    expect(workflow, contains('set +e'));
+    expect(workflow, contains('rc=\$?'));
+    expect(workflow, contains('if [ "\$rc" -eq 75 ]'));
 
     expect(runtime, contains('def model_response(prompt, timeout_seconds):'));
     expect(runtime, contains('OPENAI_API_KEY'));

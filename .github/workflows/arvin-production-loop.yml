@@ -63,13 +63,16 @@ jobs:
             }
 
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-            const text = `${issue.data.title}\n${issue.data.body || ''}`.toLowerCase();
+            const title = issue.data.title.toLowerCase();
 
+            // Route by the issue's declared purpose, not acceptance/test words
+            // embedded in a product issue body. This prevents feature issues
+            // from being misclassified merely because their DoD mentions CI.
             let route = 'feature';
-            if (/(bug|fix|fail|error|crash|regression)/.test(text)) route = 'bugfix';
-            else if (/(test|ci|quality|coverage)/.test(text)) route = 'test';
-            else if (/(doc|documentation|readme|guide)/.test(text)) route = 'documentation';
-            else if (/(core|architecture|foundation|database|storage|sync)/.test(text)) route = 'core';
+            if (/(bug|fix|fail|error|crash|regression)/.test(title)) route = 'bugfix';
+            else if (/(^|[\s:(])(test|ci|quality|coverage)([\s):]|$)/.test(title)) route = 'test';
+            else if (/(doc|documentation|readme|guide)/.test(title)) route = 'documentation';
+            else if (/(core|architecture|foundation|database|storage|sync)/.test(title)) route = 'core';
 
             const workers = {
               core: ['core-worker', 'test-worker'],
@@ -120,18 +123,27 @@ jobs:
               });
               const alreadyDispatched = comments.some(c => c.body?.includes(dispatchMarker));
               if (!alreadyDispatched && openPrs.length === 0) {
-                await github.rest.actions.createWorkflowDispatch({
-                  owner,
-                  repo,
-                  workflow_id: 'arvin-test-worker.yml',
-                  ref: 'main',
-                  inputs: { issue_number: String(issueNumber) },
-                });
-                await github.rest.issues.createComment({
-                  owner, repo, issue_number: issueNumber,
-                  body: `${dispatchMarker}\n\n### ARVIN Test Worker\n\nTest Worker dispatched for issue #${issueNumber}. The worker must create an isolated evidence branch and Draft PR; promotion remains owned by the canonical production gates.`
-                });
-                core.info(`Test Worker dispatched for issue #${issueNumber}.`);
+                let dispatched = false;
+                try {
+                  await github.rest.actions.createWorkflowDispatch({
+                    owner,
+                    repo,
+                    workflow_id: 'arvin-test-worker.yml',
+                    ref: 'main',
+                    inputs: { issue_number: String(issueNumber) },
+                  });
+                  dispatched = true;
+                } catch (error) {
+                  if (error?.status !== 422) throw error;
+                  core.warning(`Issue #${issueNumber}: Test Worker dispatch returned HTTP 422. Leaving only the test-worker gate unverified; unrelated production routing continues.`);
+                }
+                if (dispatched) {
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: issueNumber,
+                    body: `${dispatchMarker}\n\n### ARVIN Test Worker\n\nTest Worker dispatched for issue #${issueNumber}. The worker must create an isolated evidence branch and Draft PR; promotion remains owned by the canonical production gates.`
+                  });
+                  core.info(`Test Worker dispatched for issue #${issueNumber}.`);
+                }
               } else {
                 core.info(`Test Worker already dispatched or PR exists for issue #${issueNumber}; no duplicate launch.`);
               }
