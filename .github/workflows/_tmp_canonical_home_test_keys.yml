@@ -1,0 +1,37 @@
+name: temporary-canonical-home-test-keys
+on:
+  push:
+    branches: [feat/home-visual-integration-2026-09-07]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add stable canonical Home test keys
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('lib/main.dart')
+          s = p.read_text()
+          old = """      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 10), child: TextField(key: _searchGuideKey, onChanged: (value) => setState(() => query = value), decoration: InputDecoration("""
+          new = """      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 10), child: KeyedSubtree(key: const ValueKey('home-canonical-search'), child: TextField(key: _searchGuideKey, onChanged: (value) => setState(() => query = value), decoration: InputDecoration("""
+          if s.count(old) != 1: raise SystemExit(f'search anchor count={s.count(old)}')
+          s = s.replace(old, new)
+          old = """border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF4A4CAB), width: 1.4))))),"""
+          new = """border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF4A4CAB), width: 1.4))))))),"""
+          if s.count(old) != 1: raise SystemExit(f'search close anchor count={s.count(old)}')
+          s = s.replace(old, new)
+          old = """      floatingActionButton: selected.isEmpty ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: _newTaskGuideKey, child: ArvinHomePrimaryAddButton(onPressed: _add))) : null,"""
+          new = """      floatingActionButton: selected.isEmpty ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: KeyedSubtree(key: _newTaskGuideKey, child: ArvinHomePrimaryAddButton(onPressed: _add)))) : null,"""
+          if s.count(old) != 1: raise SystemExit(f'add anchor count={s.count(old)}')
+          s = s.replace(old, new)
+          p.write_text(s)
+      - name: Commit canonical Home test keys
+        run: |
+          git config user.name 'arvin-factory-bot'
+          git config user.email 'arvin-factory-bot@users.noreply.github.com'
+          git add lib/main.dart
+          git commit -m 'fix(home): expose stable canonical UI test keys'
+          git push
