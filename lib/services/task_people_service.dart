@@ -38,7 +38,7 @@ class TaskPeopleService {
     required String taskId,
     required String displayName,
     String? personId,
-  }) {
+  }) async {
     final normalizedName = displayName.trim();
     if (normalizedName.isEmpty) {
       throw ArgumentError.value(
@@ -69,10 +69,14 @@ class TaskPeopleService {
   Future<Task> removePerson({
     required String taskId,
     required String personId,
-  }) {
+  }) async {
     final normalizedPersonId = personId.trim();
     if (normalizedPersonId.isEmpty) {
-      throw ArgumentError.value(personId, 'personId', 'Person id must not be empty');
+      throw ArgumentError.value(
+        personId,
+        'personId',
+        'Person id must not be empty',
+      );
     }
 
     return _store.mutate<Task>((tasks) {
