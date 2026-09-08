@@ -10,6 +10,7 @@ import 'services/home_today_projection.dart';
 import 'services/interactive_guide_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_edit_apply_service.dart';
+import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
@@ -17,11 +18,13 @@ import 'settings_page.dart';
 import 'task_detail_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
+import 'task_report_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
+import 'widgets/task_bulk_selection_bar.dart';
 
 void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
 
@@ -125,6 +128,8 @@ class _HomePageState extends State<HomePage> {
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
+  final TaskBulkSelectionService taskBulkSelectionService =
+      const TaskBulkSelectionService();
 
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
@@ -408,7 +413,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _archiveSelected() async {
     setState(() {
       for (final task in tasks) {
-        if (selected.contains(task.id)) task.archived = true;
+        if (selected.contains(task.id)) {
+          task.archived = true;
+          task.trashed = false;
+        }
       }
       selected.clear();
       selectionMode = false;
@@ -419,12 +427,45 @@ class _HomePageState extends State<HomePage> {
   Future<void> _trashSelected() async {
     setState(() {
       for (final task in tasks) {
-        if (selected.contains(task.id)) task.trashed = true;
+        if (selected.contains(task.id)) {
+          task.trashed = true;
+          task.archived = false;
+        }
       }
       selected.clear();
       selectionMode = false;
     });
     await _save();
+  }
+
+  void _toggleAllVisibleSelection() {
+    setState(() {
+      final next = taskBulkSelectionService.selectAll(selected, visible);
+      selected
+        ..clear()
+        ..addAll(next);
+      selectionMode = selected.isNotEmpty;
+    });
+  }
+
+  void _clearBulkSelection() {
+    setState(() {
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  Future<void> _openSelectedReport() async {
+    final selectedIds = Set<String>.of(selected);
+    if (selectedIds.isEmpty) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskReportPage(
+          tasks: List<Task>.of(tasks),
+          initialSelectedIds: selectedIds,
+        ),
+      ),
+    );
   }
 
   Future<void> _restore(Task task) async {
@@ -932,12 +973,52 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onLongPress: () => setState(() { selectionMode = true; selected.add(task.id); }),
-          onTap: selectionMode ? () => setState(() { if (selected.contains(task.id)) { selected.remove(task.id); } else { selected.add(task.id); } }) : () => _openTaskDetail(task),
+          onLongPress: () => setState(() {
+            selectionMode = true;
+            selected
+              ..clear()
+              ..addAll(taskBulkSelectionService.toggle(selected, task.id));
+          }),
+          onTap: selectionMode
+              ? () => setState(() {
+                    final next =
+                        taskBulkSelectionService.toggle(selected, task.id);
+                    selected
+                      ..clear()
+                      ..addAll(next);
+                    selectionMode = selected.isNotEmpty;
+                  })
+              : () => _openTaskDetail(task),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              selectionMode ? Checkbox(value: selected.contains(task.id), onChanged: (_) => setState(() { if (selected.contains(task.id)) { selected.remove(task.id); } else { selected.add(task.id); } })) : IconButton(onPressed: () => _toggle(task), icon: Icon(task.completed ? Icons.check_circle_rounded : late ? Icons.warning_amber_rounded : Icons.radio_button_unchecked_rounded, color: task.completed ? const Color(0xFF409B51) : late ? const Color(0xFFDB8B23) : colors.primary)),
+              selectionMode
+                  ? Checkbox(
+                      value: selected.contains(task.id),
+                      onChanged: (_) => setState(() {
+                        final next =
+                            taskBulkSelectionService.toggle(selected, task.id);
+                        selected
+                          ..clear()
+                          ..addAll(next);
+                        selectionMode = selected.isNotEmpty;
+                      }),
+                    )
+                  : IconButton(
+                      onPressed: () => _toggle(task),
+                      icon: Icon(
+                        task.completed
+                            ? Icons.check_circle_rounded
+                            : late
+                                ? Icons.warning_amber_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                        color: task.completed
+                            ? const Color(0xFF409B51)
+                            : late
+                                ? const Color(0xFFDB8B23)
+                                : colors.primary,
+                      ),
+                    ),
               const SizedBox(width: 4),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(task.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: const Color(0xFF232433), fontWeight: FontWeight.w700, fontSize: 15, decoration: task.completed ? TextDecoration.lineThrough : null)),
@@ -1283,25 +1364,17 @@ class _HomePageState extends State<HomePage> {
               selected: ArvinPrimaryDestination.home,
               onSelected: _onPrimaryDestinationSelected,
             )
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    FilledButton.icon(
-                      onPressed: _archiveSelected,
-                      icon: const Icon(Icons.archive_outlined),
-                      label: const Text('بایگانی'),
-                    ),
-                    FilledButton.tonalIcon(
-                      onPressed: _trashSelected,
-                      icon: const Icon(Icons.delete_outline),
-                      label: const Text('حذف'),
-                    ),
-                  ],
-                ),
+          : TaskBulkSelectionBar(
+              selectedCount: selected.length,
+              allVisibleSelected: taskBulkSelectionService.allVisibleSelected(
+                selected,
+                visible,
               ),
+              onToggleAll: _toggleAllVisibleSelection,
+              onClearSelection: _clearBulkSelection,
+              onArchive: _archiveSelected,
+              onTrash: _trashSelected,
+              onShare: _openSelectedReport,
             ),
     );
   }
