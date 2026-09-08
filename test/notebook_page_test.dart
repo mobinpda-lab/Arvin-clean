@@ -289,4 +289,108 @@ void main() {
     expect((await repository.loadNote('category-note'))?.category, 'شخصی');
     expect(find.text('دسته: شخصی'), findsOneWidget);
   });
+  testWidgets('long press enables canonical Notebook bulk selection and select-all',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 12));
+    await repository.createNote(id: 'bulk-1', title: 'اول');
+    await repository.createNote(id: 'bulk-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-bulk-selection-bar')), findsOneWidget);
+    expect(find.text('1 انتخاب'), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 انتخاب'), findsWidgets);
+    expect(find.byKey(const ValueKey('task-bulk-share')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-bulk-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-bulk-tags')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-bulk-trash')), findsOneWidget);
+  });
+
+  testWidgets('bulk tag assignment preserves same Notebook ids and unrelated data',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 13));
+    await repository.createNote(id: 'bulk-tag-1', title: 'اول');
+    await repository.createNote(id: 'bulk-tag-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-tag-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-bulk-tags')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-bulk-tags-input')),
+      'مهم، مشتری',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-tags-apply')));
+    await tester.pumpAndSettle();
+
+    final first = await repository.loadNote('bulk-tag-1');
+    final second = await repository.loadNote('bulk-tag-2');
+    expect(first?.id, 'bulk-tag-1');
+    expect(second?.id, 'bulk-tag-2');
+    expect(first?.tags, <String>['مهم', 'مشتری']);
+    expect(second?.tags, <String>['مهم', 'مشتری']);
+    expect(await repository.loadNotes(), hasLength(2));
+  });
+
+
+  testWidgets('bulk category move preserves Notebook identities across reload',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
+    await repository.createNote(id: 'bulk-cat-1', title: 'اول');
+    await repository.createNote(id: 'bulk-cat-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-cat-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-bulk-category-input')),
+      'مشتریان',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-category-apply')));
+    await tester.pumpAndSettle();
+
+    final first = await repository.loadNote('bulk-cat-1');
+    final second = await repository.loadNote('bulk-cat-2');
+    expect(first?.id, 'bulk-cat-1');
+    expect(second?.id, 'bulk-cat-2');
+    expect(first?.category, 'مشتریان');
+    expect(second?.category, 'مشتریان');
+    expect(await repository.loadNotes(), hasLength(2));
+  });
+
+
+  testWidgets('bulk trash affects selected Notebook item only', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 15));
+    await repository.createNote(id: 'bulk-trash-1', title: 'اول');
+    await repository.createNote(id: 'bulk-trash-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-trash-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-trash')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-trash-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(await repository.loadNote('bulk-trash-1'), isNotNull);
+    expect((await repository.loadNote('bulk-trash-1'))?.trashed, isTrue);
+    expect((await repository.loadNote('bulk-trash-2'))?.trashed, isFalse);
+    expect((await repository.loadNotes()).map((note) => note.id), ['bulk-trash-2']);
+  });
+
+
 }

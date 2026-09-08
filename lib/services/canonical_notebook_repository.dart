@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'task_bulk_mutation_service.dart';
 import 'task_store.dart';
 
 /// Notebook persistence boundary backed only by the canonical `arvin.tasks`
@@ -12,6 +13,8 @@ class CanonicalNotebookRepository {
 
   final TaskStore _store;
   final DateTime Function() _now;
+
+  TaskBulkMutationService get _bulk => TaskBulkMutationService(now: _now);
 
   Future<List<Task>> loadNotes() async {
     final tasks = await _store.load();
@@ -108,5 +111,26 @@ class CanonicalNotebookRepository {
       task.updatedAt = _now();
       return task;
     });
+  }
+
+
+  Future<int> moveSelectedToTrash(Iterable<String> ids) {
+    return _store.mutate<int>((tasks) => _bulk.moveToTrash(tasks, ids));
+  }
+
+  Future<int> moveSelectedToCategory(
+    Iterable<String> ids,
+    String? category,
+  ) {
+    return _store.mutate<int>(
+      (tasks) => _bulk.moveToCategory(tasks, ids, category),
+    );
+  }
+
+  Future<int> addTagsToSelected(
+    Iterable<String> ids,
+    Iterable<String> tags,
+  ) {
+    return _store.mutate<int>((tasks) => _bulk.addTags(tasks, ids, tags));
   }
 }
