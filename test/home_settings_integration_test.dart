@@ -49,11 +49,13 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'arvin.settings.usePersianDate': true,
       'arvin.tasks':
-          '[{"id":"follow-date","title":"پیگیری نمونه","followUpDate":"2026-08-26T09:00:00.000"}]',
+          '[{"id":"dated","title":"کار تاریخ‌دار","followUpEnabled":true,"followUpDate":"2026-08-26T10:00:00.000"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    expect(find.textContaining('پیگیری:'), findsOneWidget);
+
+    expect(find.text('کار تاریخ‌دار'), findsOneWidget);
+    expect(find.textContaining('۱۴۰۵/۰۶/۰۴'), findsOneWidget);
   });
 }
