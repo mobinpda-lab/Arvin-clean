@@ -27,7 +27,7 @@ class ArvinTypographyApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         fontFamily: hasLicensedIranSansX
             ? AppFonts.iranSansXFamily
-            : AppFonts.vazirmatnFamily,
+            : AppFonts.vazirharfFamily,
       ),
       home: const Directionality(
         textDirection: TextDirection.rtl,
