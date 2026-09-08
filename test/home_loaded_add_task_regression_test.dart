@@ -1,5 +1,4 @@
 import 'package:arvin/main.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,21 +15,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار قبلی'), findsOneWidget);
 
-    await tester.tap(find.text('کار جدید'));
+    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'عنوان',
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار تازه',
     );
-    final descriptionField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'توضیحات',
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-description')),
+      'بعد از Load اضافه شد',
     );
-
-    await tester.enterText(titleField, 'کار تازه');
-    await tester.enterText(descriptionField, 'بعد از Load اضافه شد');
-    await tester.tap(find.text('ذخیره'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
     await tester.pumpAndSettle();
 
     expect(find.text('کار قبلی'), findsOneWidget);
