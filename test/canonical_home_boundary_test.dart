@@ -10,7 +10,10 @@ void main() {
     expect(source, isNot(contains('_legacyViewOf')));
     expect(source, isNot(contains('_canonicalSnapshotOf')));
     expect(source, contains('List<Task> tasks = [];'));
-    expect(source, contains('migrationWriter.save(List<Task>.of(tasks))'));
+    expect(source, contains('final TaskStore taskStore = TaskStore();'));
+    expect(source, contains('return taskStore.save(List<Task>.of(tasks));'));
+    expect(source, isNot(contains('TaskMigrationWriter')));
+    expect(source, isNot(contains('migrationWriter.save(')));
   });
 
   test('Home edit mutates the existing canonical Task instead of replacing it', () {
