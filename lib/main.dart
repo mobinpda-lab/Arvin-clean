@@ -9,8 +9,6 @@ import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
 import 'services/interactive_guide_service.dart';
 import 'services/persian_date_formatter.dart';
-import 'services/task_migration_reader.dart';
-import 'services/task_migration_writer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
@@ -115,8 +113,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TaskMigrationReader migrationReader = TaskMigrationReader();
-  final TaskMigrationWriter migrationWriter = TaskMigrationWriter();
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
   final ArvinBackupManager backupManager = ArvinBackupManager();
@@ -140,6 +136,7 @@ class _HomePageState extends State<HomePage> {
   List<Task> tasks = [];
   final Set<String> selected = <String>{};
   bool loading = true;
+  Object? loadFailure;
   bool selectionMode = false;
   bool _firstRunGuideChecked = false;
   bool _interactiveGuideRunning = false;
@@ -184,16 +181,17 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _load() async {
     try {
-      final value = await migrationReader.load();
+      final value = await taskStore.load();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
+        loadFailure = null;
         loading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        tasks = [];
+        loadFailure = error;
         loading = false;
       });
     }
@@ -252,7 +250,14 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> get _searchSource => List<Task>.of(tasks);
 
-  Future<void> _save() => migrationWriter.save(List<Task>.of(tasks));
+  Future<void> _save() {
+    if (loadFailure != null) {
+      throw StateError(
+        'Canonical task storage is unreadable; refusing Home write.',
+      );
+    }
+    return taskStore.save(List<Task>.of(tasks));
+  }
 
   DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
 
@@ -318,6 +323,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _quickCapture() async {
+    if (loadFailure != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'داده‌های کارها قابل خواندن نیست؛ ابتدا «تلاش دوباره» را بزنید.',
+            ),
+          ),
+        );
+      return;
+    }
+
     final captured = await showDialog<Task>(
       context: context,
       builder: (_) => const QuickCaptureDialog(),
@@ -325,7 +343,12 @@ class _HomePageState extends State<HomePage> {
     if (captured == null) return;
 
     try {
-      await migrationWriter.save([..._searchSource, captured]);
+      await taskStore.mutate<void>((stored) {
+        if (stored.any((task) => task.id == captured.id)) {
+          throw StateError('Duplicate Task id: ${captured.id}');
+        }
+        stored.add(captured);
+      });
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -1183,23 +1206,56 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
-                  : visible.isEmpty
+                  : loadFailure != null
                       ? Center(
-                          child: Text(
-                            filter == 'سطل زباله'
-                                ? 'سطل زباله خالی است'
-                                : filter == 'بایگانی'
-                                    ? 'بایگانی خالی است'
-                                    : filter == 'امروز'
-                                        ? 'کاری برای امروز وجود ندارد'
-                                        : filter == 'انجام‌شده'
-                                            ? 'کار انجام‌شده‌ای وجود ندارد'
-                                            : filter == 'عقب‌افتاده'
-                                                ? 'کار عقب‌افتاده‌ای وجود ندارد'
-                                                : 'کاری برای نمایش وجود ندارد',
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.storage_outlined, size: 40),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'داده‌های کارها قابل خواندن نیست',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  key: const ValueKey('home-storage-retry'),
+                                  onPressed: () {
+                                    setState(() => loading = true);
+                                    _load();
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('تلاش دوباره'),
+                                ),
+                              ],
+                            ),
                           ),
                         )
-                      : ListView.separated(
+                      : visible.isEmpty
+                          ? Center(
+                              child: Text(
+                                filter == 'سطل زباله'
+                                    ? 'سطل زباله خالی است'
+                                    : filter == 'بایگانی'
+                                        ? 'بایگانی خالی است'
+                                        : filter == 'امروز'
+                                            ? 'کاری برای امروز وجود ندارد'
+                                            : filter == 'انجام‌شده'
+                                                ? 'کار انجام‌شده‌ای وجود ندارد'
+                                                : filter == 'عقب‌افتاده'
+                                                    ? 'کار عقب‌افتاده‌ای وجود ندارد'
+                                                    : 'کاری برای نمایش وجود ندارد',
+                              ),
+                            )
+                          : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
                           itemCount: visible.length,
                           separatorBuilder: (_, __) =>
@@ -1210,7 +1266,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      floatingActionButton: selected.isEmpty
+      floatingActionButton: selected.isEmpty && loadFailure == null
           ? Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: KeyedSubtree(
