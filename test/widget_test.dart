@@ -19,37 +19,29 @@ void main() {
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
-
-    final appBar = tester.widget<AppBar>(find.byType(AppBar));
-    expect(appBar.centerTitle, isTrue);
-    expect(appBar.toolbarHeight, 78);
-
-    final titlePadding = appBar.title! as Padding;
-    expect(titlePadding.padding, const EdgeInsets.only(top: 12));
-    final title = titlePadding.child as Column;
-    expect(title.children, hasLength(3));
-    expect((title.children.first as Text).data, 'بسم الله الرحمن الرحیم');
-    expect(title.children[1], isA<SizedBox>());
-    expect(
-      (title.children[2] as Text).data,
-      'مدیریت کارها و پیگیری آروین',
-    );
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
   });
 
-  testWidgets('HomePage exposes the corrected workflow controls', (tester) async {
+  testWidgets('HomePage exposes the canonical workflow controls', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byType(TextField), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'فعال'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'بایگانی'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'سطل زباله'), findsOneWidget);
-    expect(find.text('کار جدید'), findsOneWidget);
-    expect(find.byTooltip('پشتیبان'), findsNothing);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stat-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stat-active')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stat-done')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stat-overdue')), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.menu));
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
+    expect(find.text('پشتیبان‌گیری'), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
