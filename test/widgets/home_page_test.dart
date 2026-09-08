@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -114,7 +115,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('حذف آزمایشی'), findsOneWidget);
-
     var dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
     expect(dismissible.direction, DismissDirection.horizontal);
     final cancelled =
@@ -125,7 +125,6 @@ void main() {
     expect(find.textContaining('قابل بازگشت نیست'), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'لغو'));
     await tester.pumpAndSettle();
-
     expect(await cancelled, isFalse);
     expect(find.text('حذف آزمایشی'), findsOneWidget);
 
@@ -150,7 +149,6 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
     expect(find.text('کار بایگانی'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -160,13 +158,11 @@ void main() {
 
     expect(find.text('کار بایگانی'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'بازگردانی به فعال'), findsOneWidget);
-
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار بایگانی'), findsNothing);
     expect(find.text('بایگانی خالی است'), findsOneWidget);
-
     await tester.tap(find.byKey(const ValueKey('home-stat-active')));
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsOneWidget);
@@ -181,7 +177,6 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
     expect(find.text('کار سطل'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -191,13 +186,11 @@ void main() {
 
     expect(find.text('کار سطل'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'بازگردانی به فعال'), findsOneWidget);
-
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار سطل'), findsNothing);
     expect(find.text('سطل زباله خالی است'), findsOneWidget);
-
     await tester.tap(find.byKey(const ValueKey('home-stat-active')));
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsOneWidget);
