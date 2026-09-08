@@ -24,3 +24,5 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
   });
 }
+
+// Keep this focused regression suite adjacent to the canonical Home shell.
