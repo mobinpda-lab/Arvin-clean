@@ -28,8 +28,8 @@ void main() {
     expect(text, contains('createWorkflowDispatch'));
     expect(text, contains('error?.status !== 422'));
     expect(text, contains('reusing existing'));
-    expect(text, contains("workflow_id: 'build.yml'"));
-    expect(text, contains("workflow_id: 'device-smoke.yml'"));
+    expect(text, contains("dispatchOrReuse('build.yml', 'Arvin Build')"));
+    expect(text, contains("dispatchOrReuse('device-smoke.yml', 'Arvin Device Smoke')"));
     expect(text, contains('waitForHeavy'));
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
