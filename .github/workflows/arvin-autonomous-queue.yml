@@ -32,7 +32,7 @@ jobs:
             const activeAiLease = issues
               .filter(i => !i.pull_request)
               .map(i => new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)))
-              .some(labels => labels.has('factory:leased') || labels.has('factory:in-progress'));
+              .some(labels => ![...blocked].some(l => labels.has(l)) && (labels.has('factory:leased') || labels.has('factory:in-progress')));
             if (activeAiLease) {
               core.info('An autonomous AI worker lease is already active; deferring new AI dispatch to avoid provider concurrency/429 pressure.');
               return;
