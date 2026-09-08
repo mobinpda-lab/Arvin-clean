@@ -16,7 +16,7 @@ Existing task-only documents remain valid. New documents may include an optional
 "settings": {
   "themeMode": "dark",
   "usePersianDate": true,
-  "fontFamily": "Vazirmatn"
+  "fontFamily": "VazirHarf"
 }
 ```
 
@@ -46,6 +46,13 @@ TimeJot's public product/help documentation reinforces a local-first device-tran
 The real Home backup path now loads the current `AppSettings`, serializes them through `AppSettingsService.toPortableJson`, and writes them beside the canonical Tasks in the same backup file.
 
 Restore reads Tasks and optional Settings from one file selection. Settings are decoded and validated before the confirmation dialog. The pre-restore emergency backup also includes the current Settings. After user confirmation, Tasks are written through the existing `TaskStore`; when imported Settings exist, they are saved through `AppSettingsService` and the app shell is notified immediately so theme/date/font changes take effect. Legacy Task-only backups continue restoring Tasks without overwriting current Settings.
+
+## Font canonicalization
+
+- The canonical public/default Arvin font is **VazirHarf v34.003**.
+- Portable `fontFamily` values use the canonical Flutter family name `VazirHarf` when an explicit family is stored.
+- No legacy Vazirmatn value/path is part of the current backup contract.
+- Backward compatibility for older task-only backups remains unchanged because the font field is optional.
 
 ## Guardrails
 
