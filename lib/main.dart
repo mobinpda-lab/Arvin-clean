@@ -10,6 +10,7 @@ import 'services/home_today_projection.dart';
 import 'services/interactive_guide_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_edit_apply_service.dart';
+import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
 import 'services/widget_task_bridge.dart';
@@ -130,6 +131,8 @@ class _HomePageState extends State<HomePage> {
       WidgetTaskSelectionService();
   final TaskBulkSelectionService taskBulkSelectionService =
       const TaskBulkSelectionService();
+  final TaskBulkMutationService taskBulkMutationService =
+      TaskBulkMutationService();
 
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
@@ -466,6 +469,110 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _moveSelectedToCategory() async {
+    if (selected.isEmpty) return;
+    var value = '';
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تغییر دسته موارد انتخاب‌شده'),
+        content: TextFormField(
+          key: const ValueKey('task-bulk-category-input'),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'نام دسته',
+            hintText: 'برای بدون دسته خالی بگذارید',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (next) => value = next,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('task-bulk-category-apply'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('اعمال'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+
+    final changed = taskBulkMutationService.moveToCategory(
+      tasks,
+      selected,
+      value,
+    );
+    if (changed == 0) return;
+
+    setState(() {
+      selected.clear();
+      selectionMode = false;
+    });
+    await _save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('دسته برای $changed مورد به‌روز شد')),
+      );
+  }
+
+  Future<void> _addTagsToSelected() async {
+    if (selected.isEmpty) return;
+    var value = '';
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('افزودن برچسب به موارد انتخاب‌شده'),
+        content: TextFormField(
+          key: const ValueKey('task-bulk-tags-input'),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'برچسب‌ها',
+            hintText: 'با ویرگول جدا کنید',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (next) => value = next,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('task-bulk-tags-apply'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('اعمال'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+
+    final tags = value
+        .split(RegExp(r'[,،]'))
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty);
+    final changed = taskBulkMutationService.addTags(tasks, selected, tags);
+    if (changed == 0) return;
+
+    setState(() {
+      selected.clear();
+      selectionMode = false;
+    });
+    await _save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('برچسب‌ها برای $changed مورد به‌روز شد')),
+      );
   }
 
   Future<void> _restore(Task task) async {
@@ -1374,6 +1481,8 @@ class _HomePageState extends State<HomePage> {
               onClearSelection: _clearBulkSelection,
               onArchive: _archiveSelected,
               onTrash: _trashSelected,
+              onCategory: _moveSelectedToCategory,
+              onTags: _addTagsToSelected,
               onShare: _openSelectedReport,
             ),
     );
