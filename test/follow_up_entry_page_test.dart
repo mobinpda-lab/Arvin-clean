@@ -202,4 +202,77 @@ void main() {
     expect(result!.id, initial.id);
     expect(result!.reminderDate, isNull);
   });
+  testWidgets('FollowUp Back prompts and save preserves entered changes',
+      (tester) async {
+    FollowUp? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(
+                      initialDateTime: DateTime(2026, 9, 8, 9, 15),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-safe-exit'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open-safe-exit'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-title')),
+      'پیگیری ذخیره‌شده',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تغییرات ذخیره نشده'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('follow-up-exit-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.note, 'پیگیری ذخیره‌شده');
+    expect(result!.dateTime, DateTime(2026, 9, 8, 9, 15));
+  });
+
+  testWidgets('unchanged FollowUp Back exits without a confirmation dialog',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => FollowUpEntryPage(
+                    initialDateTime: DateTime(2026, 9, 8, 9, 15),
+                  ),
+                ),
+              ),
+              child: const Text('open-unchanged'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open-unchanged'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تغییرات ذخیره نشده'), findsNothing);
+    expect(find.text('open-unchanged'), findsOneWidget);
+  });
+
 }

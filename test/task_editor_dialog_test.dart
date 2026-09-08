@@ -220,4 +220,45 @@ void main() {
     expect(result!.category, 'مشتریان');
     expect(result!.checklist, const ['[ ] ارسال قرارداد']);
   });
+  testWidgets('Back-style close prompts and can save Task edits without data loss',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار ذخیره‌شده هنگام خروج',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-tag')),
+      'فوری',
+    );
+
+    await tester.tap(find.byTooltip('بستن'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تغییرات ذخیره نشده'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-exit-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.title, 'کار ذخیره‌شده هنگام خروج');
+    expect(result!.tags, contains('فوری'));
+  });
+
+  testWidgets('explicit Task cancel remains zero-write', (tester) async {
+    Task? result = Task(id: 'sentinel', title: 'sentinel');
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'نباید ذخیره شود',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-cancel')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNull);
+    expect(find.text('تغییرات ذخیره نشده'), findsNothing);
+  });
+
 }
