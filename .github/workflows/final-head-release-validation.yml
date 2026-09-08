@@ -96,8 +96,11 @@ jobs:
           flutter pub get
           flutter analyze
 
-      - name: Test
+      - name: Unit and widget tests
         run: flutter test
+
+      - name: Integration tests
+        run: flutter test integration_test
 
       - name: Build release APK
         run: flutter build apk --release -t lib/main.dart
