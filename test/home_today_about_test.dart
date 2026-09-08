@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:arvin/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,7 +49,6 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
     await openMore(tester);
     await tester.tap(find.widgetWithText(ListTile, 'امروز'));
     await tester.pumpAndSettle();
@@ -74,7 +74,6 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
     await openMore(tester);
     await tester.tap(find.widgetWithText(ListTile, 'درباره آروین'));
     await tester.pumpAndSettle();
