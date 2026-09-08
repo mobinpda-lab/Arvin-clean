@@ -48,8 +48,8 @@ void main() {
   test('normalizes empty font selection back to app default', () async {
     final service = AppSettingsService();
 
-    await service.saveFontFamily('  Vazirmatn  ');
-    expect((await service.load()).fontFamily, 'Vazirmatn');
+    await service.saveFontFamily('  VazirHarf  ');
+    expect((await service.load()).fontFamily, 'VazirHarf');
 
     await service.saveFontFamily('   ');
     expect((await service.load()).fontFamily, isNull);
@@ -61,7 +61,7 @@ void main() {
     const source = AppSettings(
       themeMode: ThemeMode.dark,
       usePersianDate: true,
-      fontFamily: 'Vazirmatn',
+      fontFamily: 'VazirHarf',
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -72,13 +72,13 @@ void main() {
       'usePersianDate': true,
       'swipeRightAction': 'archive',
       'swipeLeftAction': 'trash',
-      'fontFamily': 'Vazirmatn',
+      'fontFamily': 'VazirHarf',
     });
 
     final decoded = service.decodePortableJson(json);
     expect(decoded.themeMode, ThemeMode.dark);
     expect(decoded.usePersianDate, isTrue);
-    expect(decoded.fontFamily, 'Vazirmatn');
+    expect(decoded.fontFamily, 'VazirHarf');
     expect(decoded.swipeRightAction, TaskSwipeAction.archive);
     expect(decoded.swipeLeftAction, TaskSwipeAction.trash);
   });
@@ -89,21 +89,21 @@ void main() {
     final restored = await service.restorePortableJson({
       'themeMode': 'light',
       'usePersianDate': true,
-      'fontFamily': '  Vazirmatn  ',
+      'fontFamily': '  VazirHarf  ',
       'swipeRightAction': 'archive',
       'swipeLeftAction': 'none',
     });
 
     expect(restored.themeMode, ThemeMode.light);
     expect(restored.usePersianDate, isTrue);
-    expect(restored.fontFamily, 'Vazirmatn');
+    expect(restored.fontFamily, 'VazirHarf');
     expect(restored.swipeRightAction, TaskSwipeAction.archive);
     expect(restored.swipeLeftAction, TaskSwipeAction.none);
 
     final loaded = await service.load();
     expect(loaded.themeMode, ThemeMode.light);
     expect(loaded.usePersianDate, isTrue);
-    expect(loaded.fontFamily, 'Vazirmatn');
+    expect(loaded.fontFamily, 'VazirHarf');
     expect(loaded.swipeRightAction, TaskSwipeAction.archive);
     expect(loaded.swipeLeftAction, TaskSwipeAction.none);
   });
