@@ -26,6 +26,8 @@ void main() {
     expect(text, contains('markPullRequestReadyForReview'));
 
     expect(text, contains('createWorkflowDispatch'));
+    expect(text, contains('error?.status !== 422'));
+    expect(text, contains('reusing existing'));
     expect(text, contains("workflow_id: 'build.yml'"));
     expect(text, contains("workflow_id: 'device-smoke.yml'"));
     expect(text, contains('waitForHeavy'));
