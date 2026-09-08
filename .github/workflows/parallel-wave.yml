@@ -2,50 +2,24 @@ name: Arvin Parallel Wave
 
 on:
   push:
-    branches: ['wave/**', 'ci/**', 'feat/home-visual-integration-2026-09-07']
+    branches: ['wave/**', 'ci/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
+# Fast Lane: wave/** and ci/** automation branches receive push validation.
+# Draft PRs receive one canonical Fast validation. Once a PR becomes Ready,
+# Arvin Build + Device Smoke become the full exact-head gate and Parallel Wave
+# skips duplicate analyze/test surface work. This keeps throughput high without
+# weakening the Ready/APK/device merge gate.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  home-fix:
-    if: ((github.event_name == 'push' && github.ref_name == 'feat/home-visual-integration-2026-09-07') || (github.event_name == 'pull_request' && github.head_ref == 'feat/home-visual-integration-2026-09-07')) && !contains(github.event.head_commit.message, '[home-fix]')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 1
-      - name: Repair generated Home syntax
-        shell: python
-        run: |
-          from pathlib import Path
-          p = Path('lib/main.dart')
-          s = p.read_text(encoding='utf-8')
-          old = """      return Semantics(key: ValueKey(keyName), button: true, selected: selected, label: 'فیلتر $label، $value مورد', child: Material(color: selected ? const Color(0xFFE9EAFF) : const Color(0xFFFDFDFE), borderRadius: BorderRadius.circular(16), child: InkWell(borderRadius: BorderRadius.circular(16), onTap: () => _selectHomeStat(target), child: Container(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED), width: selected ? 1.3 : 0.8)), child: Column(children: [Icon(icon, size: 19, color: accent), const SizedBox(height: 4), Text('$value', style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800, fontSize: 16)), const SizedBox(height: 1), Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF80829C), fontSize: 10))])))));"""
-          new = """      return Semantics(\n        key: ValueKey(keyName),\n        button: true,\n        selected: selected,\n        label: 'فیلتر $label، $value مورد',\n        child: Material(\n          color: selected ? const Color(0xFFE9EAFF) : const Color(0xFFFDFDFE),\n          borderRadius: BorderRadius.circular(16),\n          child: InkWell(\n            borderRadius: BorderRadius.circular(16),\n            onTap: () => _selectHomeStat(target),\n            child: Container(\n              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),\n              decoration: BoxDecoration(\n                borderRadius: BorderRadius.circular(16),\n                border: Border.all(\n                  color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED),\n                  width: selected ? 1.3 : 0.8,\n                ),\n              ),\n              child: Column(\n                children: [\n                  Icon(icon, size: 19, color: accent),\n                  const SizedBox(height: 4),\n                  Text('$value', style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800, fontSize: 16)),\n                  const SizedBox(height: 1),\n                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF80829C), fontSize: 10)),\n                ],\n              ),\n            ),\n          ),\n        ),\n      );"""
-          if old in s:
-              s = s.replace(old, new, 1)
-          marker = "    );\n  }\n\nenum _HomeMoreAction {"
-          if marker in s:
-              s = s.replace(marker, "    );\n  }\n}\n\nenum _HomeMoreAction {", 1)
-          p.write_text(s, encoding='utf-8')
-      - name: Commit Home syntax repair
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib/main.dart
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "fix(home): repair canonical route syntax [home-fix]"
-          git push origin "HEAD:${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
-
   quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
     runs-on: ubuntu-latest
@@ -99,17 +73,34 @@ jobs:
           ARVIN_SURFACE: ${{ matrix.area }}
         run: |
           case "$ARVIN_SURFACE" in
-            calendar) tests=$(find test -type f -name '*calendar*test.dart' -print) ;;
-            followup) tests=$(find test -type f \( -iname '*followup*test.dart' -o -iname '*follow_up*test.dart' \) -print) ;;
-            backup) tests=$(find test -type f -iname '*backup*test.dart' -print) ;;
-            typography) tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print) ;;
-            guide) tests=$(find test -type f \( -iname '*guide*test.dart' -o -iname '*help*test.dart' \) -print) ;;
-            release) tests=$(find test -type f \( -iname '*release*test.dart' -o -iname '*critical_path*test.dart' \) -print) ;;
-            *) echo "Unknown surface: $ARVIN_SURFACE"; exit 1 ;;
+            calendar)
+              tests=$(find test -type f -name '*calendar*test.dart' -print)
+              ;;
+            followup)
+              tests=$(find test -type f \( -iname '*followup*test.dart' -o -iname '*follow_up*test.dart' \) -print)
+              ;;
+            backup)
+              tests=$(find test -type f -iname '*backup*test.dart' -print)
+              ;;
+            typography)
+              tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print)
+              ;;
+            guide)
+              tests=$(find test -type f \( -iname '*guide*test.dart' -o -iname '*help*test.dart' \) -print)
+              ;;
+            release)
+              tests=$(find test -type f \( -iname '*release*test.dart' -o -iname '*critical_path*test.dart' \) -print)
+              ;;
+            *)
+              echo "Unknown surface: $ARVIN_SURFACE"
+              exit 1
+              ;;
           esac
           if [ -n "$tests" ]; then
             echo "$tests"
-            for test_file in $tests; do flutter test "$test_file"; done
+            for test_file in $tests; do
+              flutter test "$test_file"
+            done
           else
             echo "No dedicated ${ARVIN_SURFACE} tests found; running core smoke test only."
             flutter test test/task_store_test.dart
