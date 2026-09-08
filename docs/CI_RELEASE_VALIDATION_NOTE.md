@@ -1,11 +1,22 @@
 # CI Release Validation Note
 
-**Updated:** 2026-08-16
+**Updated:** 2026-09-08
 
-The release-validation workflow must validate the repository in the same generated Android environment used by the primary Build workflow.
+Arvin v1 release validation consumes repository-owned build inputs. Release workflows must not regenerate or patch critical Android/Gradle configuration at runtime.
 
-The Flutter project intentionally keeps generated Android platform files out of the repository. Therefore Release Validation must run `flutter create --no-pub --platforms=android --project-name arvin .` before auditing `android/app` and must apply the same core-library-desugaring configuration as `build.yml`.
+Canonical reproducible inputs:
+- Flutter SDK: `3.47.0`
+- dependency graph: committed `pubspec.lock`, resolved with `flutter pub get --enforce-lockfile`
+- Android project: committed `android/` configuration and Gradle wrapper
+- Gradle: `9.3.1`
+- Android Gradle Plugin: `9.1.0`
+- Kotlin Android plugin: `2.4.0`
+- Java/JVM target: `17`
+- core-library desugaring: `com.android.tools:desugar_jdk_libs:2.1.5`
+- VazirHarf source revision: `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`
 
-The workflow is also aligned with `main` so a manual release-validation run on the production branch does not fail merely because generated Android files are absent from source control.
+`Arvin Build`, `Arvin Device Smoke`, `Arvin Release Closure`, and `Arvin Final Head Release Validation` must validate these tracked inputs directly. Dependency resolution must fail on lock incompatibility and must not rewrite `pubspec.lock` silently.
 
-This is a CI-only correction. It does not change Task, Reminder, FollowUp, Calendar, migration, storage, or production save semantics.
+Android SDK compile/min/target values remain provided by the pinned Flutter 3.47.0 Gradle integration referenced by the tracked Android project; changing Flutter or the Android toolchain requires explicit lock/toolchain revalidation.
+
+This release-engineering contract does not change Task, Reminder, FollowUp, Calendar, migration, storage, or production save semantics.
