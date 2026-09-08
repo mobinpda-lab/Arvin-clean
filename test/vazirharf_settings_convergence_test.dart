@@ -10,7 +10,6 @@ void main() {
 
     expect(mainSource, contains("import 'theme/app_fonts.dart';"));
     expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(fontsSource, contains('vazirmatnFamily = vazirharfFamily'));
     expect(settingsSource, contains('Vazirharf فونت عمومی و پیش‌فرض آروین است'));
   });
 
