@@ -22,7 +22,7 @@ class FollowUpRepository {
   Future<void> add(String taskId, FollowUp followUp) async {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
-      task.followUps = [...task.followUps, followUp];
+      task.followUps = [..._decodeFollowUps(task), followUp];
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
