@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
+import 'task_report_page.dart';
+import 'widgets/task_bulk_selection_bar.dart';
 
 enum _NotebookCreateMode { note, checklist }
 
@@ -55,6 +57,8 @@ class NotebookPage extends StatefulWidget {
 class _NotebookPageState extends State<NotebookPage> {
   bool _loading = true;
   List<Task> _notes = const [];
+  bool _selectionMode = false;
+  final Set<String> _selected = <String>{};
 
   @override
   void initState() {
@@ -71,6 +75,117 @@ class _NotebookPageState extends State<NotebookPage> {
     });
   }
 
+  void _toggleSelection(String id) {
+    setState(() {
+      _selectionMode = true;
+      if (!_selected.add(id)) {
+        _selected.remove(id);
+      }
+      if (_selected.isEmpty) _selectionMode = false;
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selected.clear();
+      _selectionMode = false;
+    });
+  }
+
+  void _toggleAll() {
+    setState(() {
+      final visible = _notes.map((note) => note.id).toSet();
+      final allSelected = visible.isNotEmpty && visible.every(_selected.contains);
+      if (allSelected) {
+        _selected.removeAll(visible);
+      } else {
+        _selected.addAll(visible);
+      }
+      _selectionMode = _selected.isNotEmpty;
+    });
+  }
+
+  Future<void> _openSelectedReport() async {
+    if (_selected.isEmpty) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskReportPage(
+          tasks: List<Task>.of(_notes),
+          initialSelectedIds: Set<String>.of(_selected),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _trashSelected() async {
+    if (_selected.isEmpty) return;
+    final count = _selected.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('انتقال به سطل زباله'),
+        content: Text('$count یادداشت انتخاب‌شده منتقل شود؟'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
+          FilledButton(key: const ValueKey('notebook-bulk-trash-confirm'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('انتقال')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final changed = await widget.repository.moveSelectedToTrash(_selected);
+    if (!mounted) return;
+    _clearSelection();
+    await _reload();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$changed یادداشت به سطل زباله منتقل شد')));
+  }
+
+  Future<void> _moveSelectedToCategory() async {
+    if (_selected.isEmpty) return;
+    var value = '';
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تغییر دسته یادداشت‌ها'),
+        content: TextField(key: const ValueKey('notebook-bulk-category-input'), autofocus: true, decoration: const InputDecoration(labelText: 'نام دسته', hintText: 'برای بدون دسته خالی بگذارید'), onChanged: (next) => value = next),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
+          FilledButton(key: const ValueKey('notebook-bulk-category-apply'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('اعمال')),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+    final changed = await widget.repository.moveSelectedToCategory(_selected, value);
+    if (!mounted) return;
+    _clearSelection();
+    await _reload();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('دسته برای $changed یادداشت به‌روز شد')));
+  }
+
+  Future<void> _addTagsToSelected() async {
+    if (_selected.isEmpty) return;
+    var value = '';
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('افزودن برچسب'),
+        content: TextField(key: const ValueKey('notebook-bulk-tags-input'), autofocus: true, decoration: const InputDecoration(labelText: 'برچسب‌ها', hintText: 'با ویرگول جدا کنید'), onChanged: (next) => value = next),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
+          FilledButton(key: const ValueKey('notebook-bulk-tags-apply'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('اعمال')),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+    final tags = value.split(RegExp(r'[,،]')).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty);
+    final changed = await widget.repository.addTagsToSelected(_selected, tags);
+    if (!mounted) return;
+    _clearSelection();
+    await _reload();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('برچسب‌ها برای $changed یادداشت به‌روز شد')));
+  }
   Future<void> _open(
     Task note, {
     bool startEditing = false,
@@ -211,8 +326,12 @@ class _NotebookPageState extends State<NotebookPage> {
 
   @override
   Widget build(BuildContext context) {
+    final allVisibleSelected = _notes.isNotEmpty &&
+        _notes.every((note) => _selected.contains(note.id));
     return Scaffold(
-      appBar: AppBar(title: const Text('دفترچه آروین')),
+      appBar: AppBar(
+        title: Text(_selectionMode ? '${_selected.length} انتخاب' : 'دفترچه آروین'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _notes.isEmpty
@@ -223,50 +342,60 @@ class _NotebookPageState extends State<NotebookPage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final note = _notes[index];
+                    final selected = _selected.contains(note.id);
                     return Card(
                       child: ListTile(
                         key: ValueKey('notebook-note-${note.id}'),
-                        leading: Icon(
-                          note.checklist.isEmpty
-                              ? Icons.note_alt_outlined
-                              : Icons.checklist_outlined,
-                        ),
+                        leading: _selectionMode
+                            ? Checkbox(value: selected, onChanged: (_) => _toggleSelection(note.id))
+                            : Icon(note.checklist.isEmpty ? Icons.note_alt_outlined : Icons.checklist_outlined),
                         title: Text(note.title),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (note.description.trim().isNotEmpty)
-                              Text(
-                                note.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              )
+                              Text(note.description, maxLines: 2, overflow: TextOverflow.ellipsis)
                             else if (note.checklist.isNotEmpty)
                               Text('${note.checklist.length} مورد چک‌لیست'),
                             if (note.category?.trim().isNotEmpty ?? false)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'دسته: ${note.category}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
+                                child: Text('دسته: ${note.category}', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                              ),
+                            if (note.tags.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text('برچسب: ${note.tags.join('، ')}', style: Theme.of(context).textTheme.bodySmall),
                               ),
                           ],
                         ),
-                        onTap: () => _open(note),
+                        selected: selected,
+                        onLongPress: () => _toggleSelection(note.id),
+                        onTap: () => _selectionMode ? _toggleSelection(note.id) : _open(note),
                       ),
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(
-        key: const ValueKey('notebook-create'),
-        onPressed: _loading ? null : _create,
-        tooltip: 'یادداشت جدید',
-        child: const Icon(Icons.add),
-      ),
+      bottomNavigationBar: _selectionMode
+          ? TaskBulkSelectionBar(
+              selectedCount: _selected.length,
+              allVisibleSelected: allVisibleSelected,
+              onToggleAll: _toggleAll,
+              onClearSelection: _clearSelection,
+              onTrash: _trashSelected,
+              onCategory: _moveSelectedToCategory,
+              onTags: _addTagsToSelected,
+              onShare: _openSelectedReport,
+            )
+          : null,
+      floatingActionButton: _selectionMode
+          ? null
+          : FloatingActionButton(
+              key: const ValueKey('notebook-create'),
+              onPressed: _loading ? null : _create,
+              tooltip: 'یادداشت جدید',
+              child: const Icon(Icons.add),
+            ),
     );
   }
 }
