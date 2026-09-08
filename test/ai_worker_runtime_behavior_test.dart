@@ -61,6 +61,9 @@ except TimeoutError as exc:
 else:
     raise AssertionError("expired provider deadline must fail")
 
+assert runtime.PROVIDER_PRESSURE_EXIT_CODE == 75
+assert issubclass(runtime.ProviderPressureError, RuntimeError)
+
 original_cwd = os.getcwd()
 with tempfile.TemporaryDirectory() as temp_dir:
     os.chdir(temp_dir)
