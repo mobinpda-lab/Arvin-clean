@@ -14,8 +14,8 @@ void main() {
     await tester.pumpWidget(const ArvinApp(enableFirstRunGuide: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('1/4'), findsOneWidget);
-    expect(find.text('ثبت سریع'), findsOneWidget);
+    expect(find.text('1/3'), findsOneWidget);
+    expect(find.text('جست‌وجو'), findsOneWidget);
     expect(find.text('رد کردن'), findsOneWidget);
 
     await tester.tap(find.text('رد کردن'));
@@ -36,6 +36,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp(enableFirstRunGuide: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('1/4'), findsNothing);
+    expect(find.text('1/3'), findsNothing);
   });
 }
