@@ -16,39 +16,39 @@ class TaskRecurrenceRepository {
 
   Future<List<Task>> loadTasks() => _store.load();
 
-  Future<Task> setRule(String taskId, RecurrenceRule? rule) async {
-    final tasks = await _store.load();
-    final task = _find(tasks, taskId);
-    task.recurrence = rule;
-    task.updatedAt = _now();
-    await _store.save(tasks);
-    return task;
+  Future<Task> setRule(String taskId, RecurrenceRule? rule) {
+    return _store.mutate<Task>((tasks) {
+      final task = _find(tasks, taskId);
+      task.recurrence = rule;
+      task.updatedAt = _now();
+      return task;
+    });
   }
 
   Future<Task> resumeFromToday(
     String taskId, {
     DateTime? target,
-  }) async {
-    final tasks = await _store.load();
-    final task = _find(tasks, taskId);
-    final rule = task.recurrence;
-    final scheduledFrom = task.reminderDate;
+  }) {
+    return _store.mutate<Task>((tasks) {
+      final task = _find(tasks, taskId);
+      final rule = task.recurrence;
+      final scheduledFrom = task.reminderDate;
 
-    if (rule == null) {
-      throw StateError('Task has no recurrence: $taskId');
-    }
-    if (scheduledFrom == null) {
-      throw StateError('Task has no reminder schedule: $taskId');
-    }
+      if (rule == null) {
+        throw StateError('Task has no recurrence: $taskId');
+      }
+      if (scheduledFrom == null) {
+        throw StateError('Task has no reminder schedule: $taskId');
+      }
 
-    final next = rule.resumeFromToday(
-      scheduledFrom: scheduledFrom,
-      target: target ?? _now(),
-    );
-    task.reminderDate = next;
-    task.updatedAt = _now();
-    await _store.save(tasks);
-    return task;
+      final next = rule.resumeFromToday(
+        scheduledFrom: scheduledFrom,
+        target: target ?? _now(),
+      );
+      task.reminderDate = next;
+      task.updatedAt = _now();
+      return task;
+    });
   }
 
   Task _find(List<Task> tasks, String taskId) {

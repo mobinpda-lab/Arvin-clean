@@ -1,5 +1,5 @@
 import '../models/task.dart';
-import 'task_migration_reader.dart';
+import 'task_store.dart';
 
 /// Resolves a Widget-selected canonical Task id from Arvin's existing storage.
 ///
@@ -7,16 +7,16 @@ import 'task_migration_reader.dart';
 /// trusting Android/Widget payload data. Only the canonical Task id crosses the
 /// platform bridge.
 class WidgetTaskSelectionService {
-  WidgetTaskSelectionService({TaskMigrationReader? reader})
-      : _reader = reader ?? TaskMigrationReader();
+  WidgetTaskSelectionService({TaskStore? store})
+      : _store = store ?? TaskStore();
 
-  final TaskMigrationReader _reader;
+  final TaskStore _store;
 
   Future<Task?> loadTask(String taskId) async {
     final normalized = taskId.trim();
     if (normalized.isEmpty) return null;
 
-    final tasks = await _reader.load();
+    final tasks = await _store.load();
     for (final task in tasks) {
       if (task.id == normalized && !task.trashed) return task;
     }

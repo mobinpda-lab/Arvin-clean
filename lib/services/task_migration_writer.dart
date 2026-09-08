@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
 import 'task_migration_adapter.dart';
 import 'task_migration_reader.dart';
+import 'task_storage_lock.dart';
 
 /// Lossless, single-key write boundary for the transitional Home UI.
 ///
@@ -26,18 +27,20 @@ class TaskMigrationWriter {
   Future<void> saveTo(
     SharedPreferences prefs,
     List<Task> homeSnapshot,
-  ) async {
-    final encoded = mergeHomeSnapshot(
-      existingRaw: prefs.getString(TaskMigrationReader.legacyKey),
-      homeSnapshot: homeSnapshot,
-    );
-    final saved = await prefs.setString(
-      TaskMigrationReader.legacyKey,
-      encoded,
-    );
-    if (!saved) {
-      throw StateError('Could not persist the canonical Home snapshot');
-    }
+  ) {
+    return TaskStorageLock.synchronized<void>(() async {
+      final encoded = mergeHomeSnapshot(
+        existingRaw: prefs.getString(TaskMigrationReader.legacyKey),
+        homeSnapshot: homeSnapshot,
+      );
+      final saved = await prefs.setString(
+        TaskMigrationReader.legacyKey,
+        encoded,
+      );
+      if (!saved) {
+        throw StateError('Could not persist the canonical Home snapshot');
+      }
+    });
   }
 
   String mergeHomeSnapshot({

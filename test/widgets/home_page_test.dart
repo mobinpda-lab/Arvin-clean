@@ -195,4 +195,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsOneWidget);
   });
+  testWidgets('unreadable canonical storage is explicit and blocks Home writes',
+      (tester) async {
+    const corrupt = '{"not":"a-list"}';
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': corrupt,
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('داده‌های کارها قابل خواندن نیست'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'داده‌های کارها قابل خواندن نیست؛ ابتدا «تلاش دوباره» را بزنید.',
+      ),
+      findsOneWidget,
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('arvin.tasks'), corrupt);
+  });
+
 }

@@ -1,150 +1,99 @@
-import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'models/task.dart';
+import 'services/task_store.dart';
 
-/// Persistence boundary for FollowUp data.
+/// Canonical persistence boundary for FollowUp data.
 ///
-/// It preserves the existing `arvin.tasks` JSON envelope so current data
-/// remains backward compatible while the UI migrates from `followUpDate` to
-/// `followUps`.
+/// FollowUps remain embedded in the canonical Task document. All mutations are
+/// routed through [TaskStore.mutate] so FollowUp writes cannot race with Home,
+/// Notebook, recurrence, People, or Sync writes to `arvin.tasks`.
 class FollowUpRepository {
-  const FollowUpRepository({this.key = 'arvin.tasks'});
+  const FollowUpRepository();
 
-  final String key;
+  TaskStore get _store => TaskStore();
 
   Future<List<FollowUp>> loadForTask(String taskId) async {
-    final prefs = await SharedPreferences.getInstance();
-    return _loadForTask(prefs, taskId);
+    final tasks = await _store.load();
+    for (final task in tasks) {
+      if (task.id == taskId) return _decodeFollowUps(task);
+    }
+    return const [];
   }
 
   Future<void> add(String taskId, FollowUp followUp) async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = await _loadRawTasks(prefs);
-    final index = tasks.indexWhere((task) => task['id'] == taskId);
-    if (index < 0) {
-      throw StateError('Task not found: $taskId');
-    }
-
-    final existing = _decodeFollowUps(tasks[index]);
-    final task = tasks[index];
-    task['followUps'] = [...existing, followUp]
-        .map((item) => item.toJson())
-        .toList();
-
-    await prefs.setString(key, jsonEncode(tasks));
+    await _store.mutate<void>((tasks) {
+      final task = _requiredTask(tasks, taskId);
+      task.followUps = [..._decodeFollowUps(task), followUp];
+      task.followUpEnabled = true;
+      task.updatedAt = DateTime.now();
+    });
   }
 
   Future<void> update(String taskId, FollowUp followUp) async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = await _loadRawTasks(prefs);
-    final taskIndex = tasks.indexWhere((task) => task['id'] == taskId);
-    if (taskIndex < 0) {
-      throw StateError('Task not found: $taskId');
-    }
+    await _store.mutate<void>((tasks) {
+      final task = _requiredTask(tasks, taskId);
+      final existing = _decodeFollowUps(task);
+      final index = existing.indexWhere((item) => item.id == followUp.id);
+      if (index < 0) {
+        throw StateError('FollowUp not found: ${followUp.id}');
+      }
 
-    final existing = _decodeFollowUps(tasks[taskIndex]);
-    final followUpIndex =
-        existing.indexWhere((item) => item.id == followUp.id);
-    if (followUpIndex < 0) {
-      throw StateError('FollowUp not found: ${followUp.id}');
-    }
-
-    final updated = List<FollowUp>.of(existing)..[followUpIndex] = followUp;
-    tasks[taskIndex]['followUps'] =
-        updated.map((item) => item.toJson()).toList();
-
-    await prefs.setString(key, jsonEncode(tasks));
+      final updated = List<FollowUp>.of(existing)..[index] = followUp;
+      task.followUps = updated;
+      task.followUpEnabled = true;
+      task.updatedAt = DateTime.now();
+    });
   }
 
   Future<FollowUp> setCompleted(
     String taskId,
     String followUpId,
     bool completed,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = await _loadRawTasks(prefs);
-    final taskIndex = tasks.indexWhere((task) => task['id'] == taskId);
-    if (taskIndex < 0) {
-      throw StateError('Task not found: $taskId');
-    }
-
-    final existing = _decodeFollowUps(tasks[taskIndex]);
-    final followUpIndex = existing.indexWhere((item) => item.id == followUpId);
-    if (followUpIndex < 0) {
-      throw StateError('FollowUp not found: $followUpId');
-    }
-
-    final current = existing[followUpIndex];
-    final updatedFollowUp = FollowUp(
-      id: current.id,
-      dateTime: current.dateTime,
-      note: current.note,
-      result: current.result,
-      reminderDate: current.reminderDate,
-      nextFollowUp: current.nextFollowUp,
-      completed: completed,
-    );
-    final updated = List<FollowUp>.of(existing)
-      ..[followUpIndex] = updatedFollowUp;
-    tasks[taskIndex]['followUps'] =
-        updated.map((item) => item.toJson()).toList();
-    await prefs.setString(key, jsonEncode(tasks));
-    return updatedFollowUp;
-  }
-
-  Future<List<FollowUp>> _loadForTask(
-    SharedPreferences prefs,
-    String taskId,
-  ) async {
-    final tasks = await _loadRawTasks(prefs);
-    for (final task in tasks) {
-      if (task['id'] == taskId) {
-        return _decodeFollowUps(task);
+  ) {
+    return _store.mutate<FollowUp>((tasks) {
+      final task = _requiredTask(tasks, taskId);
+      final existing = _decodeFollowUps(task);
+      final index = existing.indexWhere((item) => item.id == followUpId);
+      if (index < 0) {
+        throw StateError('FollowUp not found: $followUpId');
       }
-    }
-    return const [];
+
+      final current = existing[index];
+      final updatedFollowUp = FollowUp(
+        id: current.id,
+        dateTime: current.dateTime,
+        note: current.note,
+        result: current.result,
+        reminderDate: current.reminderDate,
+        nextFollowUp: current.nextFollowUp,
+        completed: completed,
+      );
+      final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
+      task.followUps = updated;
+      task.followUpEnabled = true;
+      task.updatedAt = DateTime.now();
+      return updatedFollowUp;
+    });
   }
 
-  List<FollowUp> _decodeFollowUps(Map<String, dynamic> raw) {
-    final followUps = raw['followUps'];
-    if (followUps is List) {
-      return followUps
-          .whereType<Map>()
-          .map((item) => FollowUp.fromJson(Map<String, dynamic>.from(item)))
-          .toList();
-    }
-
-    final legacy = raw['followUpDate'];
-    if (legacy is String) {
-      final date = DateTime.tryParse(legacy);
-      if (date != null) {
-        return [
-          FollowUp(
-            id: date.microsecondsSinceEpoch.toString(),
-            dateTime: date,
-            note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
-          ),
-        ];
-      }
-    }
-
-    return const [];
+  Task _requiredTask(List<Task> tasks, String taskId) {
+    final index = tasks.indexWhere((task) => task.id == taskId);
+    if (index < 0) throw StateError('Task not found: $taskId');
+    return tasks[index];
   }
 
-  Future<List<Map<String, dynamic>>> _loadRawTasks(
-    SharedPreferences prefs,
-  ) async {
-    final raw = prefs.getString(key);
-    if (raw == null || raw.isEmpty) return [];
+  List<FollowUp> _decodeFollowUps(Task task) {
+    if (task.followUps.isNotEmpty) {
+      return List<FollowUp>.of(task.followUps);
+    }
 
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) return [];
-
-    return decoded
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
-        .toList();
+    final legacy = task.followUpDate;
+    if (legacy == null) return const [];
+    return <FollowUp>[
+      FollowUp(
+        id: legacy.microsecondsSinceEpoch.toString(),
+        dateTime: legacy,
+        note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
+      ),
+    ];
   }
 }

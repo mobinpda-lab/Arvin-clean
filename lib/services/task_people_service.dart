@@ -48,22 +48,22 @@ class TaskPeopleService {
       );
     }
 
-    final tasks = await _store.load();
-    final index = _requiredTaskIndex(tasks, taskId);
-    final task = tasks[index];
-    final person = PersonReference(
-      id: personId ?? _personIdFactory(),
-      displayName: normalizedName,
-    );
+    return _store.mutate<Task>((tasks) {
+      final index = _requiredTaskIndex(tasks, taskId);
+      final task = tasks[index];
+      final person = PersonReference(
+        id: personId ?? _personIdFactory(),
+        displayName: normalizedName,
+      );
 
-    if (task.people.any((existing) => existing.id == person.id)) {
-      throw StateError('Person already linked to Task: ${person.id}');
-    }
+      if (task.people.any((existing) => existing.id == person.id)) {
+        throw StateError('Person already linked to Task: ${person.id}');
+      }
 
-    final updated = _withPeople(task, [...task.people, person]);
-    tasks[index] = updated;
-    await _store.save(tasks);
-    return updated;
+      final updated = _withPeople(task, [...task.people, person]);
+      tasks[index] = updated;
+      return updated;
+    });
   }
 
   Future<Task> removePerson({
@@ -72,23 +72,27 @@ class TaskPeopleService {
   }) async {
     final normalizedPersonId = personId.trim();
     if (normalizedPersonId.isEmpty) {
-      throw ArgumentError.value(personId, 'personId', 'Person id must not be empty');
+      throw ArgumentError.value(
+        personId,
+        'personId',
+        'Person id must not be empty',
+      );
     }
 
-    final tasks = await _store.load();
-    final index = _requiredTaskIndex(tasks, taskId);
-    final task = tasks[index];
-    if (!task.people.any((person) => person.id == normalizedPersonId)) {
-      throw StateError('Person is not linked to Task: $normalizedPersonId');
-    }
+    return _store.mutate<Task>((tasks) {
+      final index = _requiredTaskIndex(tasks, taskId);
+      final task = tasks[index];
+      if (!task.people.any((person) => person.id == normalizedPersonId)) {
+        throw StateError('Person is not linked to Task: $normalizedPersonId');
+      }
 
-    final updated = _withPeople(
-      task,
-      task.people.where((person) => person.id != normalizedPersonId),
-    );
-    tasks[index] = updated;
-    await _store.save(tasks);
-    return updated;
+      final updated = _withPeople(
+        task,
+        task.people.where((person) => person.id != normalizedPersonId),
+      );
+      tasks[index] = updated;
+      return updated;
+    });
   }
 
   int _requiredTaskIndex(List<Task> tasks, String taskId) {
