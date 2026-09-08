@@ -123,6 +123,13 @@ class SystemCalendarBridge {
       'requestCalendarReadPermission';
   static const String listCalendarsMethod = 'listDeviceCalendars';
   static const String listEventsMethod = 'listDeviceCalendarEvents';
+  static const String writePermissionStatusMethod =
+      'calendarWritePermissionGranted';
+  static const String requestWritePermissionMethod =
+      'requestCalendarWritePermission';
+  static const String createProviderEventMethod = 'createDeviceCalendarEvent';
+  static const String updateProviderEventMethod = 'updateDeviceCalendarEvent';
+  static const String deleteProviderEventMethod = 'deleteDeviceCalendarEvent';
   static const int maxEventQueryCalendars = 20;
   static const Duration maxEventQueryWindow = Duration(days: 93);
 
@@ -168,6 +175,109 @@ class SystemCalendarBridge {
       if (error.code == 'permission_request_in_progress') return false;
       rethrow;
     }
+  }
+
+  Future<bool> hasWritePermission() async {
+    try {
+      return await _channel.invokeMethod<bool>(writePermissionStatusMethod) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  Future<bool> requestWritePermission() async {
+    try {
+      return await _channel.invokeMethod<bool>(requestWritePermissionMethod) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (error) {
+      if (error.code == 'permission_request_in_progress') return false;
+      rethrow;
+    }
+  }
+
+  Future<String?> createProviderEvent({
+    required String calendarId,
+    required String title,
+    required DateTime start,
+    required DateTime end,
+    required bool allDay,
+  }) async {
+    final eventId = await _channel.invokeMethod<String>(
+      createProviderEventMethod,
+      _providerEventPayload(
+        calendarId: calendarId,
+        title: title,
+        start: start,
+        end: end,
+        allDay: allDay,
+      ),
+    );
+    final normalized = eventId?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
+  Future<bool> updateProviderEvent({
+    required String calendarId,
+    required String eventId,
+    required String title,
+    required DateTime start,
+    required DateTime end,
+    required bool allDay,
+  }) async {
+    return await _channel.invokeMethod<bool>(
+          updateProviderEventMethod,
+          <String, Object?>{
+            ..._providerEventPayload(
+              calendarId: calendarId,
+              title: title,
+              start: start,
+              end: end,
+              allDay: allDay,
+            ),
+            'eventId': eventId,
+          },
+        ) ??
+        false;
+  }
+
+  Future<bool> deleteProviderEvent({
+    required String calendarId,
+    required String eventId,
+  }) async {
+    return await _channel.invokeMethod<bool>(
+          deleteProviderEventMethod,
+          <String, Object?>{
+            'calendarId': calendarId,
+            'eventId': eventId,
+          },
+        ) ??
+        false;
+  }
+
+  Map<String, Object?> _providerEventPayload({
+    required String calendarId,
+    required String title,
+    required DateTime start,
+    required DateTime end,
+    required bool allDay,
+  }) {
+    final normalizedCalendarId = calendarId.trim();
+    final normalizedTitle = title.trim();
+    if (normalizedCalendarId.isEmpty ||
+        normalizedTitle.isEmpty ||
+        !end.isAfter(start)) {
+      throw ArgumentError('Calendar provider event payload is invalid.');
+    }
+    return <String, Object?>{
+      'calendarId': normalizedCalendarId,
+      'title': normalizedTitle,
+      'startMillis': start.millisecondsSinceEpoch,
+      'endMillis': end.millisecondsSinceEpoch,
+      'allDay': allDay,
+    };
   }
 
   Future<List<DeviceCalendarInfo>> listDeviceCalendars() async {
