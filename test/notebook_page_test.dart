@@ -393,4 +393,37 @@ void main() {
   });
 
 
+  testWidgets('bulk report action preserves Notebook selection into export surface',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 16));
+    await repository.createNote(id: 'report-1', title: 'گزارش اول');
+    await repository.createNote(id: 'report-2', title: 'گزارش دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-report-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-share')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('گزارش و اشتراک‌گذاری'), findsOneWidget);
+    expect(
+      tester.widget<CheckboxListTile>(
+        find.byKey(const ValueKey('report-task-report-1')),
+      ).value,
+      isTrue,
+    );
+    expect(
+      tester.widget<CheckboxListTile>(
+        find.byKey(const ValueKey('report-task-report-2')),
+      ).value,
+      isTrue,
+    );
+    expect(find.byKey(const ValueKey('report-copy-selected')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-share-selected')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-selected')), findsOneWidget);
+  });
+
+
 }
