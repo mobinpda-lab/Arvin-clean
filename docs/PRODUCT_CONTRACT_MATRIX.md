@@ -8,6 +8,8 @@ It is a **discovery and acceptance registry**. It does not replace detailed cont
 
 Audit baseline when this file was created: `main` `df325a42523ef657344bb5173b32ae5e6b8c8221` on 2026-08-27.
 
+Live reconciliation refresh: 2026-09-08, based on current main lineage including `5cc493118d05a5988ffc344379a38af2693bfffe`; later merges still require revalidation before final release acceptance.
+
 ## Status meanings
 
 - **Missing** — accepted behavior is not implemented on current main.
