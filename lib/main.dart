@@ -967,7 +967,39 @@ class _HomePageState extends State<HomePage> {
     final overdueTasks = tasks.where((task) => !task.archived && !task.trashed && _overdue(task)).length;
     Widget stat(String label, int value, IconData icon, String target, Color accent, String keyName) {
       final selected = filter == target;
-      return Semantics(key: ValueKey(keyName), button: true, selected: selected, label: 'فیلتر $label، $value مورد', child: Material(color: selected ? const Color(0xFFE9EAFF) : const Color(0xFFFDFDFE), borderRadius: BorderRadius.circular(16), child: InkWell(borderRadius: BorderRadius.circular(16), onTap: () => _selectHomeStat(target), child: Container(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED), width: selected ? 1.3 : 0.8)), child: Column(children: [Icon(icon, size: 19, color: accent), const SizedBox(height: 4), Text('$value', style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800, fontSize: 16)), const SizedBox(height: 1), Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF80829C), fontSize: 10))])))));
+      return Semantics(
+        key: ValueKey(keyName),
+        button: true,
+        selected: selected,
+        label: 'فیلتر $label، $value مورد',
+        child: Material(
+          color: selected ? const Color(0xFFE9EAFF) : const Color(0xFFFDFDFE),
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _selectHomeStat(target),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED),
+                  width: selected ? 1.3 : 0.8,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(icon, size: 19, color: accent),
+                  const SizedBox(height: 4),
+                  Text('$value', style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800, fontSize: 16)),
+                  const SizedBox(height: 1),
+                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF80829C), fontSize: 10)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
     return Scaffold(backgroundColor: const Color(0xFFF8F8FB), body: SafeArea(child: Column(children: [
       Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
