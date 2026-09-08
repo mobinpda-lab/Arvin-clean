@@ -69,8 +69,13 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
+          # GitHub's bash wrapper starts with errexit enabled. Disable it only
+          # around the provider process so exit code 75 can be classified and
+          # the lease-release handler can run.
+          set +e
           python3 .github/arvin/agent-runtime.py
           rc=$?
+          set -e
           if [ "$rc" -eq 75 ]; then
             echo "provider_pressure=true" >> "$GITHUB_OUTPUT"
             exit 0
