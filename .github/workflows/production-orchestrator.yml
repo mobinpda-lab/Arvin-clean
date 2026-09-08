@@ -155,19 +155,31 @@ jobs:
               const needsDevice = !device || (device.status === 'completed' && device.conclusion === 'skipped');
               let dispatched = false;
 
+              async function dispatchOrReuse(workflowId, workflowName) {
+                try {
+                  await github.rest.actions.createWorkflowDispatch({
+                    owner, repo, workflow_id: workflowId, ref: item.head.ref,
+                  });
+                  return true;
+                } catch (error) {
+                  if (error?.status !== 422) throw error;
+                  const existing = await latestHeavyRun(workflowName, headSha);
+                  if (existing) {
+                    core.warning(`#${item.number}: ${workflowName} dispatch returned HTTP 422; reusing existing ${existing.event} run #${existing.id} for exact head ${headSha}.`);
+                    return false;
+                  }
+                  core.warning(`#${item.number}: ${workflowName} dispatch returned HTTP 422 and no exact-head run exists; leaving this gate unverified without failing unrelated orchestration.`);
+                  return false;
+                }
+              }
+
               if (needsBuild) {
                 core.info(`#${item.number}: dispatching Arvin Build on exact head branch ${item.head.ref}.`);
-                await github.rest.actions.createWorkflowDispatch({
-                  owner, repo, workflow_id: 'build.yml', ref: item.head.ref,
-                });
-                dispatched = true;
+                dispatched = (await dispatchOrReuse('build.yml', 'Arvin Build')) || dispatched;
               }
               if (needsDevice) {
                 core.info(`#${item.number}: dispatching Arvin Device Smoke on exact head branch ${item.head.ref}.`);
-                await github.rest.actions.createWorkflowDispatch({
-                  owner, repo, workflow_id: 'device-smoke.yml', ref: item.head.ref,
-                });
-                dispatched = true;
+                dispatched = (await dispatchOrReuse('device-smoke.yml', 'Arvin Device Smoke')) || dispatched;
               }
               return dispatched;
             }

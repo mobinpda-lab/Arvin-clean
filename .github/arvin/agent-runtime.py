@@ -19,6 +19,11 @@ PROVIDER_BUDGET_SECONDS = int(os.getenv("ARVIN_PROVIDER_BUDGET_SECONDS", "540"))
 PROVIDER_MAX_429_RETRIES = int(os.getenv("ARVIN_PROVIDER_MAX_429_RETRIES", "3"))
 PROVIDER_429_BASE_DELAY_SECONDS = int(os.getenv("ARVIN_PROVIDER_429_BASE_DELAY_SECONDS", "5"))
 PROVIDER_429_MAX_DELAY_SECONDS = int(os.getenv("ARVIN_PROVIDER_429_MAX_DELAY_SECONDS", "60"))
+PROVIDER_PRESSURE_EXIT_CODE = 75
+
+
+class ProviderPressureError(RuntimeError):
+    pass
 
 
 def run(cmd, check=True, timeout=None):
@@ -66,21 +71,11 @@ def openai_response(prompt, timeout_seconds):
                 data = json.load(r)
             break
         except HTTPError as exc:
-            if exc.code != 429 or retry_index >= PROVIDER_MAX_429_RETRIES:
-                raise
-            retry_index += 1
-            delay = _retry_after_seconds(exc, retry_index)
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise TimeoutError("OpenAI provider retry budget exhausted") from exc
-            delay = min(delay, max(0, remaining - 1))
-            print(
-                f"ARVIN AI provider returned HTTP 429; bounded retry {retry_index}/"
-                f"{PROVIDER_MAX_429_RETRIES} after {delay}s",
-                file=sys.stderr,
-            )
-            if delay > 0:
-                time.sleep(delay)
+            if exc.code == 429:
+                raise ProviderPressureError(
+                    "OpenAI provider pressure: HTTP 429; release lease and retry after cooldown"
+                ) from exc
+            raise
 
     text = data.get("output_text")
     if not text:
@@ -256,6 +251,9 @@ def main():
                 issue_number, title, body, context, failure,
                 timeout_seconds=timeout_seconds,
             )
+        except ProviderPressureError as exc:
+            print(str(exc), file=sys.stderr)
+            return PROVIDER_PRESSURE_EXIT_CODE
         except Exception as exc:
             message = f"Attempt {attempt} provider failure: {exc}"
             print(message, file=sys.stderr)
