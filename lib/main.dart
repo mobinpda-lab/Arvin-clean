@@ -926,7 +926,6 @@ class _HomePageState extends State<HomePage> {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
-
     return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode ? DismissDirection.none : DismissDirection.horizontal,
@@ -985,6 +984,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [FilledButton.icon(onPressed: _archiveSelected, icon: const Icon(Icons.archive_outlined), label: const Text('بایگانی')), FilledButton.tonalIcon(onPressed: _trashSelected, icon: const Icon(Icons.delete_outline), label: const Text('حذف'))]))),
     );
   }
+}
 
 enum _HomeMoreAction {
   today,
