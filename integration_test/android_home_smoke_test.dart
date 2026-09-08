@@ -12,7 +12,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
-    expect(find.text('کار جدید'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
 
     final skipGuide = find.text('رد کردن');
     if (skipGuide.evaluate().isNotEmpty) {
@@ -20,7 +20,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.text('کار جدید'));
+    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
     final titleField = find.byKey(const ValueKey('task-editor-title'));

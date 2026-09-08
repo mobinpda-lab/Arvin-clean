@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'notebook_page.dart';
-import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
@@ -21,6 +20,7 @@ import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
+import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
 
@@ -129,8 +129,6 @@ class _HomePageState extends State<HomePage> {
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
 
-  final GlobalKey _quickCaptureGuideKey =
-      GlobalKey(debugLabel: 'home-guide-quick-capture');
   final GlobalKey _searchGuideKey =
       GlobalKey(debugLabel: 'home-guide-search');
   final GlobalKey _filtersGuideKey =
@@ -223,13 +221,6 @@ class _HomePageState extends State<HomePage> {
     final finished = await showHomeInteractiveGuide(
       context: context,
       targets: [
-        HomeGuideTarget(
-          key: _quickCaptureGuideKey,
-          title: 'ثبت سریع',
-          description:
-              'وقتی عجله دارید، این دکمه را بزنید و فقط متن کار را سریع ثبت کنید. جزئیات را بعداً می‌توانید کامل کنید.',
-          icon: Icons.bolt_outlined,
-        ),
         HomeGuideTarget(
           key: _searchGuideKey,
           title: 'جست‌وجو',
@@ -325,32 +316,6 @@ class _HomePageState extends State<HomePage> {
     await _save();
   }
 
-  Future<void> _quickCapture() async {
-    final captured = await showDialog<Task>(
-      context: context,
-      builder: (_) => const QuickCaptureDialog(),
-    );
-    if (captured == null) return;
-
-    try {
-      await migrationWriter.save([..._searchSource, captured]);
-      await _load();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
-  }
-
   Future<void> _edit(Task old) async {
     final edited = await showDialog<Task>(
       context: context,
@@ -418,11 +383,6 @@ class _HomePageState extends State<HomePage> {
       task.archived = false;
     });
     await _save();
-  }
-
-  void _openFilter(BuildContext drawerContext, String nextFilter) {
-    Navigator.pop(drawerContext);
-    _selectHomeStat(nextFilter);
   }
 
   void _selectHomeStat(String nextFilter) {
@@ -624,13 +584,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Future<void> _openBackup(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    await _backupMenu();
   }
 
   Future<void> _openPrimaryCalendar() async {
@@ -835,25 +788,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _openCalendar(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    await _openPrimaryCalendar();
-  }
-
-  Future<void> _openSettings(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    await _openPrimarySettings();
-  }
-
-  Future<void> _openAbout(BuildContext drawerContext) async {
-    Navigator.pop(drawerContext);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    _showAbout();
-  }
-
   TaskSwipeAction _actionForSwipe(DismissDirection direction) {
     return switch (direction) {
       DismissDirection.endToStart => widget.settings.swipeRightAction,
@@ -924,86 +858,34 @@ class _HomePageState extends State<HomePage> {
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
-
+    final colors = Theme.of(context).colorScheme;
     return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode ? DismissDirection.none : DismissDirection.horizontal,
       confirmDismiss: (direction) => _applySwipe(task, direction),
-      background: task.trashed
-          ? _swipeBackground(TaskSwipeAction.none)
-          : _swipeBackground(widget.settings.swipeLeftAction),
-      secondaryBackground: task.trashed
-          ? _swipeBackground(TaskSwipeAction.trash)
-          : _swipeBackground(widget.settings.swipeRightAction),
-      child: Card(
-        child: ListTile(
-          onLongPress: () => setState(() {
-            selectionMode = true;
-            selected.add(task.id);
-          }),
-          onTap: selectionMode
-              ? () => setState(() {
-                    if (selected.contains(task.id)) {
-                      selected.remove(task.id);
-                    } else {
-                      selected.add(task.id);
-                    }
-                  })
-              : () => _openTaskDetail(task),
-          leading: selectionMode
-              ? Checkbox(
-                  value: selected.contains(task.id),
-                  onChanged: (_) => setState(() {
-                    if (selected.contains(task.id)) {
-                      selected.remove(task.id);
-                    } else {
-                      selected.add(task.id);
-                    }
-                  }),
-                )
-              : IconButton(
-                  onPressed: () => _toggle(task),
-                  icon: Icon(
-                    task.completed
-                        ? Icons.check_circle
-                        : late
-                            ? Icons.warning_amber
-                            : Icons.radio_button_unchecked,
-                  ),
-                ),
-          title: Text(
-            task.title,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              decoration: task.completed ? TextDecoration.lineThrough : null,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (task.description.isNotEmpty) Text(task.description),
-              if (task.tags.isNotEmpty)
-                Wrap(
-                  spacing: 4,
-                  children: task.tags
-                      .map(
-                        (tag) => Chip(
-                          label: Text(tag),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      )
-                      .toList(),
-                ),
-              if (followUpDate != null)
-                Text(
-                  'پیگیری: ${_date(followUpDate)} • ساعت ${_time(followUpDate)}${late ? '  •  عقب‌افتاده' : ''}',
-                ),
-              if (task.trashed || task.archived)
-                TextButton(
-                  onPressed: () => _restore(task),
-                  child: const Text('بازگردانی به فعال'),
-                ),
-            ],
+      background: task.trashed ? _swipeBackground(TaskSwipeAction.none) : _swipeBackground(widget.settings.swipeLeftAction),
+      secondaryBackground: task.trashed ? _swipeBackground(TaskSwipeAction.trash) : _swipeBackground(widget.settings.swipeRightAction),
+      child: Material(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 0,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onLongPress: () => setState(() { selectionMode = true; selected.add(task.id); }),
+          onTap: selectionMode ? () => setState(() { if (selected.contains(task.id)) { selected.remove(task.id); } else { selected.add(task.id); } }) : () => _openTaskDetail(task),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              selectionMode ? Checkbox(value: selected.contains(task.id), onChanged: (_) => setState(() { if (selected.contains(task.id)) { selected.remove(task.id); } else { selected.add(task.id); } })) : IconButton(onPressed: () => _toggle(task), icon: Icon(task.completed ? Icons.check_circle_rounded : late ? Icons.warning_amber_rounded : Icons.radio_button_unchecked_rounded, color: task.completed ? const Color(0xFF409B51) : late ? const Color(0xFFDB8B23) : colors.primary)),
+              const SizedBox(width: 4),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(task.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: const Color(0xFF232433), fontWeight: FontWeight.w700, fontSize: 15, decoration: task.completed ? TextDecoration.lineThrough : null)),
+                if (task.description.isNotEmpty) ...[const SizedBox(height: 4), Text(task.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF80829C), fontSize: 12))],
+                if (task.tags.isNotEmpty) ...[const SizedBox(height: 6), Wrap(spacing: 4, runSpacing: 4, children: task.tags.map((tag) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFE9EAFF), borderRadius: BorderRadius.circular(10)), child: Text(tag, style: const TextStyle(color: Color(0xFF4A4CAB), fontSize: 10)))).toList())],
+                if (followUpDate != null) ...[const SizedBox(height: 7), Row(children: [Icon(Icons.event_outlined, size: 15, color: late ? const Color(0xFFDB8B23) : const Color(0xFF80829C)), const SizedBox(width: 4), Flexible(child: Text('پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}', style: TextStyle(color: late ? const Color(0xFFDB8B23) : const Color(0xFF80829C), fontSize: 11, fontWeight: late ? FontWeight.w600 : FontWeight.w400)))])],
+                if (task.trashed || task.archived) TextButton(onPressed: () => _restore(task), child: const Text('بازگردانی به فعال')),
+              ])),
+            ]),
           ),
         ),
       ),
@@ -1012,24 +894,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final chips = <Widget>[];
-    for (final item in ['فعال', 'بایگانی', 'سطل زباله']) {
-      chips.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: ChoiceChip(
-            label: Text(item),
-            selected: filter == item,
-            onSelected: (_) => _selectHomeStat(item),
-          ),
-        ),
-      );
-    }
-
     final activeTasks = tasks
         .where((task) => !task.archived && !task.trashed && !task.completed)
         .length;
-    final allTasks = tasks.where((task) => !task.archived && !task.trashed).length;
+    final allTasks =
+        tasks.where((task) => !task.archived && !task.trashed).length;
     final doneTasks = tasks
         .where((task) => !task.archived && !task.trashed && task.completed)
         .length;
@@ -1037,175 +906,246 @@ class _HomePageState extends State<HomePage> {
         .where((task) => !task.archived && !task.trashed && _overdue(task))
         .length;
 
-    return Scaffold(
-      drawer: Drawer(
-        child: SafeArea(
-          child: Builder(
-            builder: (drawerContext) => ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const ListTile(
-                  leading: Icon(Icons.dashboard_outlined),
-                  title: Text(
-                    'آروین',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+    Widget stat(
+      String label,
+      int value,
+      IconData icon,
+      String target,
+      Color accent,
+      String keyName,
+    ) {
+      final isSelected = filter == target;
+      return Semantics(
+        key: ValueKey(keyName),
+        button: true,
+        selected: isSelected,
+        label: 'فیلتر $label، $value مورد',
+        child: Material(
+          color: isSelected
+              ? const Color(0xFFE9EAFF)
+              : const Color(0xFFFDFDFE),
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _selectHomeStat(target),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF4A4CAB)
+                      : const Color(0xFFE5E7ED),
+                  width: isSelected ? 1.3 : 0.8,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(icon, size: 19, color: accent),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$value',
+                    style: const TextStyle(
+                      color: Color(0xFF232433),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
                   ),
-                  subtitle: Text('مدیریت کارها و پیگیری‌ها'),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.today_outlined),
-                  title: const Text('امروز'),
-                  onTap: () => _openFilter(drawerContext, 'امروز'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.calendar_month_outlined),
-                  title: const Text('تقویم'),
-                  onTap: () => _openCalendar(drawerContext),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.archive_outlined),
-                  title: const Text('بایگانی'),
-                  onTap: () => _openFilter(drawerContext, 'بایگانی'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.delete_outline),
-                  title: const Text('سطل زباله'),
-                  onTap: () => _openFilter(drawerContext, 'سطل زباله'),
-                ),
-                const Divider(),
-                ListTile(
-                  key: const ValueKey('drawer-backup'),
-                  leading: const Icon(Icons.backup_outlined),
-                  title: const Text('پشتیبان‌گیری و بازیابی'),
-                  onTap: () => _openBackup(drawerContext),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings_outlined),
-                  title: const Text('تنظیمات'),
-                  onTap: () => _openSettings(drawerContext),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('درباره آروین'),
-                  onTap: () => _openAbout(drawerContext),
-                ),
-              ],
+                  const SizedBox(height: 1),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF80829C),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-      appBar: AppBar(
-        centerTitle: true,
-        toolbarHeight: 78,
-        title: const Padding(
-          key: ValueKey('home-title-block'),
-          padding: EdgeInsets.only(top: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'بسم الله الرحمن الرحیم',
-                key: ValueKey('home-bismillah'),
-                style: TextStyle(fontSize: 13),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8FB),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    key: const ValueKey('home-notifications'),
+                    tooltip: 'اعلان‌ها',
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند',
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.notifications_none_rounded),
+                  ),
+                  const Expanded(
+                    child: Column(
+                      children: [
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Color(0xFFF0F0F6),
+                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: Text(
+                              'بسم الله الرحمن الرحیم',
+                              key: ValueKey('home-bismillah'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF80829C),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 7),
+                        Text(
+                          'مدیریت کارها و پیگیری آروین',
+                          key: ValueKey('home-title-block'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF232433),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    key: const ValueKey('home-menu'),
+                    tooltip: 'منو',
+                    onPressed: _openPrimaryMore,
+                    icon: const Icon(Icons.menu_rounded),
+                  ),
+                ],
               ),
-              SizedBox(height: 4),
-              Text(
-                'مدیریت کارها و پیگیری آروین',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            key: _quickCaptureGuideKey,
-            onPressed: loading || selectionMode ? null : _quickCapture,
-            tooltip: 'ثبت سریع',
-            icon: const Icon(Icons.bolt_outlined),
-          ),
-          IconButton(
-            onPressed: () => setState(() {
-              selectionMode = !selectionMode;
-              if (!selectionMode) selected.clear();
-            }),
-            icon: Icon(selectionMode ? Icons.close : Icons.checklist),
-          ),
-        ],
-      ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: TextField(
-                    key: _searchGuideKey,
-                    onChanged: (value) => setState(() => query = value),
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      labelText: 'جست‌وجو',
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: KeyedSubtree(
+                key: const ValueKey('home-canonical-search'),
+                child: TextField(
+                  key: _searchGuideKey,
+                  onChanged: (value) => setState(() => query = value),
+                  decoration: InputDecoration(
+                    hintText: 'جست‌وجو در کارها',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    filled: true,
+                    fillColor: const Color(0xFFFDFDFE),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF4A4CAB),
+                        width: 1.4,
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(
-                  key: _filtersGuideKey,
-                  height: 52,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    children: chips,
+              ),
+            ),
+            Padding(
+              key: _filtersGuideKey,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: stat(
+                      'کل',
+                      allTasks,
+                      Icons.list_alt_rounded,
+                      'کل',
+                      const Color(0xFF4A4CAB),
+                      'home-stat-all',
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _Stat(
-                          'کل',
-                          allTasks,
-                          Icons.list_alt,
-                          semanticKey: const ValueKey('home-stat-all'),
-                          selected: filter == 'کل',
-                          onTap: () => _selectHomeStat('کل'),
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'فعال',
-                          activeTasks,
-                          Icons.pending_actions,
-                          semanticKey: const ValueKey('home-stat-active'),
-                          selected: filter == 'فعال',
-                          onTap: () => _selectHomeStat('فعال'),
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'انجام‌شده',
-                          doneTasks,
-                          Icons.check_circle,
-                          semanticKey: const ValueKey('home-stat-done'),
-                          selected: filter == 'انجام‌شده',
-                          onTap: () => _selectHomeStat('انجام‌شده'),
-                        ),
-                      ),
-                      Expanded(
-                        child: _Stat(
-                          'عقب‌افتاده',
-                          overdueTasks,
-                          Icons.warning_amber,
-                          semanticKey: const ValueKey('home-stat-overdue'),
-                          selected: filter == 'عقب‌افتاده',
-                          onTap: () => _selectHomeStat('عقب‌افتاده'),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: stat(
+                      'فعال',
+                      activeTasks,
+                      Icons.pending_actions_rounded,
+                      'فعال',
+                      const Color(0xFF2F80ED),
+                      'home-stat-active',
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: visible.isEmpty
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: stat(
+                      'انجام‌شده',
+                      doneTasks,
+                      Icons.check_circle_rounded,
+                      'انجام‌شده',
+                      const Color(0xFF409B51),
+                      'home-stat-done',
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: stat(
+                      'عقب‌افتاده',
+                      overdueTasks,
+                      Icons.warning_amber_rounded,
+                      'عقب‌افتاده',
+                      const Color(0xFFDB8B23),
+                      'home-stat-overdue',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'کارهای من',
+                      style: TextStyle(
+                        color: Color(0xFF232433),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (filter != 'کل')
+                    TextButton(
+                      onPressed: () => _selectHomeStat('کل'),
+                      child: const Text('مشاهده همه'),
+                    ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : visible.isEmpty
                       ? Center(
                           child: Text(
                             filter == 'سطل زباله'
@@ -1222,20 +1162,26 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                       : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
                           itemCount: visible.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
                           itemBuilder: (_, index) => _taskCard(visible[index]),
                         ),
-                ),
-              ],
             ),
+          ],
+        ),
+      ),
       floatingActionButton: selected.isEmpty
-          ? FloatingActionButton.extended(
-              key: _newTaskGuideKey,
-              onPressed: _add,
-              icon: const Icon(Icons.add),
-              label: const Text('کار جدید'),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: KeyedSubtree(
+                key: const ValueKey('home-canonical-add'),
+                child: KeyedSubtree(
+                  key: _newTaskGuideKey,
+                  child: ArvinHomePrimaryAddButton(onPressed: _add),
+                ),
+              ),
             )
           : null,
       bottomNavigationBar: selected.isEmpty
@@ -1276,63 +1222,6 @@ enum _HomeMoreAction {
   about,
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat(
-    this.label,
-    this.value,
-    this.icon, {
-    required this.semanticKey,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final int value;
-  final IconData icon;
-  final Key semanticKey;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Semantics(
-      key: semanticKey,
-      button: true,
-      selected: selected,
-      label: 'فیلتر $label، $value مورد',
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        color: selected ? colors.secondaryContainer : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: selected
-              ? BorderSide(color: colors.primary, width: 1.4)
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: selected ? colors.primary : null,
-                ),
-                const SizedBox(height: 2),
-                Text('$value', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(label, style: const TextStyle(fontSize: 10)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// Backward-compatible public entry retained for existing callers/tests.
 /// The live implementation is the Home-aligned Arvin task editor.

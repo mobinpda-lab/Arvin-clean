@@ -18,7 +18,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.text('کار جدید'));
+    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
     final titleField = find.byKey(const ValueKey('task-editor-title'));
