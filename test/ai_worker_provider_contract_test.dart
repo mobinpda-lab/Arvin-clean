@@ -53,6 +53,8 @@ void main() {
         File('.github/workflows/arvin-orchestrator.yml').readAsStringSync();
     final productionLoop =
         File('.github/workflows/arvin-production-loop.yml').readAsStringSync();
+    final queue =
+        File('.github/workflows/arvin-autonomous-queue.yml').readAsStringSync();
 
     expect(worker, contains('workflow_dispatch:'));
     expect(worker, isNot(contains('\n  issues:\n')));
@@ -60,12 +62,17 @@ void main() {
     expect(worker, contains(r'ARVIN_ISSUE_NUMBER: ${{ inputs.issue_number }}'));
     expect(worker, isNot(contains("github.event.label.name == 'arvin-auto'")));
 
-    expect(router, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(router, contains('createWorkflowDispatch'));
-    expect(router, contains('<!-- arvin-worker-dispatch -->'));
+    expect(queue, contains("workflow_id: 'arvin-agent-worker.yml'"));
+    expect(queue, contains('activeAiLease'));
+    expect(queue, contains('candidates.slice(0, 1)'));
+    expect(queue, contains('arvin-autonomous-stale-lease-release'));
 
-    expect(productionLoop, contains("workflow_id: 'arvin-agent-worker.yml'"));
-    expect(productionLoop, contains('createWorkflowDispatch'));
+    expect(router, isNot(contains("workflow_id: 'arvin-agent-worker.yml'")));
+    expect(router, contains('arvin-autonomous-queue-handoff'));
+    expect(router, contains("labels: ['factory:ready']"));
+
+    expect(productionLoop, isNot(contains("workflow_id: 'arvin-agent-worker.yml'")));
+    expect(productionLoop, contains("workflow_id: 'arvin-autonomous-queue.yml'"));
   });
 
   test('AI worker cannot become a second merge authority', () {
