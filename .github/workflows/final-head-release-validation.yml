@@ -13,6 +13,9 @@ concurrency:
   group: arvin-final-head-release-validation
   cancel-in-progress: false
 
+env:
+  FLUTTER_VERSION: '3.47.0'
+
 jobs:
   validate:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
@@ -46,52 +49,36 @@ jobs:
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
 
-      - name: Setup Flutter
+      - name: Setup exact Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Generate Android platform
-        run: flutter create --no-pub --platforms=android --project-name arvin .
+      - name: Verify repository-owned release inputs
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          test -s android/app/build.gradle.kts
+          test -s android/settings.gradle.kts
+          test -s android/gradle/wrapper/gradle-wrapper.properties
+          test -s android/gradle/wrapper/gradle-wrapper.jar
+          test -s android/gradlew
+          grep -q 'gradle-9.3.1-all.zip' android/gradle/wrapper/gradle-wrapper.properties
+          grep -q 'com.android.application.*9.1.0' android/settings.gradle.kts
+          grep -q 'org.jetbrains.kotlin.android.*2.4.0' android/settings.gradle.kts
+          grep -q 'VERSION_17' android/app/build.gradle.kts
+          grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
 
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
 
-      - name: Configure Android desugaring
-        shell: bash
+      - name: Analyze from locked dependency graph
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          candidates = [Path('android/app/build.gradle'), Path('android/app/build.gradle.kts')]
-          path = next((p for p in candidates if p.exists()), None)
-          if path is None:
-              raise SystemExit('Android app Gradle file not found')
-          text = path.read_text()
-          is_kts = path.suffix == '.kts'
-          flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-          dependency = ('coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'")
-          if flag not in text:
-              match = re.search(r'(?m)^\s*compileOptions\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n        ' + flag + text[match.end():]
-              else:
-                  text += '\n\ncompileOptions {\n        ' + flag + '\n}\n'
-          if 'desugar_jdk_libs:2.1.5' not in text:
-              match = re.search(r'(?m)^\s*dependencies\s*\{', text)
-              if match:
-                  text = text[:match.end()] + '\n    ' + dependency + text[match.end():]
-              else:
-                  text += '\n\ndependencies {\n    ' + dependency + '\n}\n'
-          path.write_text(text)
-          PY
-
-      - name: Analyze
-        run: |
-          set -euo pipefail
-          flutter pub get
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
           flutter analyze
 
       - name: Unit and widget tests
