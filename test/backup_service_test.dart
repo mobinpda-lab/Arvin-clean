@@ -52,7 +52,7 @@ void main() {
         'settings': <String, dynamic>{
           'themeMode': 'dark',
           'usePersianDate': true,
-          'fontFamily': 'Vazirmatn',
+          'fontFamily': 'VazirHarf',
         },
       });
       final decoded = jsonDecode(utf8.decode(bytes));
@@ -62,7 +62,7 @@ void main() {
       expect(document['settings'], {
         'themeMode': 'dark',
         'usePersianDate': true,
-        'fontFamily': 'Vazirmatn',
+        'fontFamily': 'VazirHarf',
       });
     });
 

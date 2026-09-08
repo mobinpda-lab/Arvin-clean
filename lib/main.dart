@@ -72,13 +72,13 @@ class _ArvinAppState extends State<ArvinApp> {
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.light,
-        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
-        fontFamily: settings.fontFamily ?? AppFonts.vazirmatnFamily,
+        fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
       ),
       themeMode: settings.themeMode,
       home: Directionality(
