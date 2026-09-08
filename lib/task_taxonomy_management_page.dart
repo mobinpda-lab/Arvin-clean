@@ -25,9 +25,8 @@ class TaskTaxonomyManagementPage extends StatefulWidget {
 
 class _TaskTaxonomyManagementPageState
     extends State<TaskTaxonomyManagementPage> {
-  late final TaskStore store = widget.store ?? TaskStore();
-  late final TaskTaxonomyMutationService mutationService =
-      widget.mutationService ?? TaskTaxonomyMutationService();
+  late final TaskStore store;
+  late final TaskTaxonomyMutationService mutationService;
 
   List<Task> tasks = const <Task>[];
   bool loading = true;
@@ -37,6 +36,9 @@ class _TaskTaxonomyManagementPageState
   @override
   void initState() {
     super.initState();
+    store = widget.store ?? TaskStore();
+    mutationService =
+        widget.mutationService ?? TaskTaxonomyMutationService();
     _load();
   }
 
