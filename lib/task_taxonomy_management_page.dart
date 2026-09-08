@@ -120,7 +120,9 @@ class _TaskTaxonomyManagementPageState
         ],
       ),
     );
-    controller.dispose();
+    // The dialog route may still be animating out when this Future resolves.
+    // Let the short-lived controller be collected with the route instead of
+    // disposing it while EditableText is still detaching.
     return result;
   }
 
