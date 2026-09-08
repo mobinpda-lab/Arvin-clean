@@ -73,13 +73,20 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-clear')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-archive')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-trash')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-tags')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-share')));
+    Future<void> tapKey(String key) async {
+      final finder = find.byKey(ValueKey(key));
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pump();
+    }
+
+    await tapKey('task-bulk-select-all');
+    await tapKey('task-bulk-clear');
+    await tapKey('task-bulk-archive');
+    await tapKey('task-bulk-trash');
+    await tapKey('task-bulk-category');
+    await tapKey('task-bulk-tags');
+    await tapKey('task-bulk-share');
 
     expect(toggled, 1);
     expect(cleared, 1);
