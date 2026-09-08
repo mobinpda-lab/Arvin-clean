@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'calendar_integration_settings_page.dart';
 import 'services/app_settings_service.dart';
+import 'task_taxonomy_management_page.dart';
 import 'user_guide_page.dart';
 import 'widgets/contextual_help.dart';
 
@@ -32,6 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() => TaskSwipeAction.values.map((action) => DropdownMenuItem<TaskSwipeAction>(value: action, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(_swipeActionIcon(action), size: 20), const SizedBox(width: 8), Text(_swipeActionLabel(action))]))).toList();
   Future<void> _openUserGuide() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const UserGuidePage())); }
   Future<void> _openCalendarIntegrationSettings() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => CalendarIntegrationSettingsPage(service: widget.service))); await _load(); }
+  Future<void> _openTaxonomyManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const TaskTaxonomyManagementPage())); }
   Future<void> _showBackupHelp() => showContextualHelp(context, title: 'راهنمای پشتیبان‌گیری', steps: _backupHelpSteps);
   @override Widget build(BuildContext context) {
     final current = settings;
@@ -43,6 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
       DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-right-action'), initialValue: current.swipeRightAction, decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); }),
       const SizedBox(height: 12), DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-left-action'), initialValue: current.swipeLeftAction, decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); }),
       const Divider(height: 32), ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: const Text('Vazirharf فونت عمومی و پیش‌فرض آروین است؛ فونت دارای مجوز فقط از همین تنظیمات قابل توسعه خواهد بود.')),
+      const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
       const Divider(height: 24), ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.menu_book_outlined), title: const Text('راهنمای استفاده'), subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'), trailing: const Icon(Icons.chevron_left), onTap: _openUserGuide),
       if (widget.onStartInteractiveGuide != null) ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.slideshow_outlined), title: const Text('راهنمای تعاملی صفحه اصلی'), subtitle: const Text('دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند'), trailing: const Icon(Icons.play_arrow_rounded), onTap: widget.onStartInteractiveGuide),
