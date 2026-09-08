@@ -4,9 +4,3 @@ analyzer:
   exclude:
     - build/**
     - .dart_tool/**
-
-linter:
-  rules:
-    avoid_print: true
-    prefer_final_fields: true
-    prefer_final_locals: true
