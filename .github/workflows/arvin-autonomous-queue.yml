@@ -29,6 +29,15 @@ jobs:
             const { owner, repo } = context.repo;
             const blocked = new Set(['do-not-merge','orchestrator:hold','orchestrator:manual','factory:blocked','factory:escalated']);
             const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            const activeAiLease = issues
+              .filter(i => !i.pull_request)
+              .map(i => new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)))
+              .some(labels => labels.has('factory:leased') || labels.has('factory:in-progress'));
+            if (activeAiLease) {
+              core.info('An autonomous AI worker lease is already active; deferring new AI dispatch to avoid provider concurrency/429 pressure.');
+              return;
+            }
+
             const candidates = issues
               .filter(i => !i.pull_request)
               .map(i => ({ issue: i, labels: new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)) }))
