@@ -2,6 +2,7 @@ package com.example.arvin
 
 import android.Manifest
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
@@ -10,6 +11,7 @@ import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.TimeZone
 
 /** Native boundary for routing Android Widget task taps into Flutter. */
 class MainActivity : FlutterActivity() {
@@ -17,6 +19,7 @@ class MainActivity : FlutterActivity() {
     private var systemCalendarChannel: MethodChannel? = null
     private var pendingWidgetTaskId: String? = null
     private var pendingCalendarPermissionResult: MethodChannel.Result? = null
+    private var pendingCalendarWritePermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -72,6 +75,92 @@ class MainActivity : FlutterActivity() {
                 }
                 METHOD_CALENDAR_READ_PERMISSION_GRANTED -> {
                     result.success(hasCalendarReadPermission())
+                }
+                METHOD_CALENDAR_WRITE_PERMISSION_GRANTED -> {
+                    result.success(hasCalendarWritePermission())
+                }
+                METHOD_REQUEST_CALENDAR_WRITE_PERMISSION -> {
+                    if (hasCalendarWritePermission()) {
+                        result.success(true)
+                        return@setMethodCallHandler
+                    }
+                    if (pendingCalendarWritePermissionResult != null) {
+                        result.error("permission_request_in_progress", "Calendar write permission request is already active", null)
+                        return@setMethodCallHandler
+                    }
+                    pendingCalendarWritePermissionResult = result
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_CALENDAR), CALENDAR_WRITE_PERMISSION_REQUEST_CODE)
+                }
+                METHOD_CREATE_DEVICE_CALENDAR_EVENT -> {
+                    if (!hasCalendarWritePermission()) {
+                        result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
+                        return@setMethodCallHandler
+                    }
+                    val calendarId = call.argument<String>("calendarId")?.trim()?.toLongOrNull()
+                    val title = call.argument<String>("title")?.trim().orEmpty()
+                    val startMillis = call.argument<Number>("startMillis")?.toLong()
+                    val endMillis = call.argument<Number>("endMillis")?.toLong()
+                    val allDay = call.argument<Boolean>("allDay") ?: false
+                    if (calendarId == null || title.isEmpty() || startMillis == null || endMillis == null || endMillis <= startMillis) {
+                        result.error("invalid_event", "Calendar provider event payload is incomplete", null)
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues(calendarId, title, startMillis, endMillis, allDay))
+                        result.success(uri?.lastPathSegment)
+                    } catch (error: SecurityException) {
+                        result.error("calendar_write_denied", "Android Calendar Provider denied create", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_write_failed", "Android Calendar Provider create failed", error.message)
+                    }
+                }
+                METHOD_UPDATE_DEVICE_CALENDAR_EVENT -> {
+                    if (!hasCalendarWritePermission()) {
+                        result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
+                        return@setMethodCallHandler
+                    }
+                    val calendarIdText = call.argument<String>("calendarId")?.trim().orEmpty()
+                    val calendarId = calendarIdText.toLongOrNull()
+                    val eventId = call.argument<String>("eventId")?.trim()?.toLongOrNull()
+                    val title = call.argument<String>("title")?.trim().orEmpty()
+                    val startMillis = call.argument<Number>("startMillis")?.toLong()
+                    val endMillis = call.argument<Number>("endMillis")?.toLong()
+                    val allDay = call.argument<Boolean>("allDay") ?: false
+                    if (calendarId == null || eventId == null || title.isEmpty() || startMillis == null || endMillis == null || endMillis <= startMillis) {
+                        result.error("invalid_event", "Calendar provider update payload is incomplete", null)
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        result.success(updated == 1)
+                    } catch (error: SecurityException) {
+                        result.error("calendar_write_denied", "Android Calendar Provider denied update", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_write_failed", "Android Calendar Provider update failed", error.message)
+                    }
+                }
+                METHOD_DELETE_DEVICE_CALENDAR_EVENT -> {
+                    if (!hasCalendarWritePermission()) {
+                        result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
+                        return@setMethodCallHandler
+                    }
+                    val calendarIdText = call.argument<String>("calendarId")?.trim().orEmpty()
+                    val calendarId = calendarIdText.toLongOrNull()
+                    val eventId = call.argument<String>("eventId")?.trim()?.toLongOrNull()
+                    if (calendarId == null || eventId == null) {
+                        result.error("invalid_event", "Calendar provider delete payload is incomplete", null)
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+                        val deleted = contentResolver.delete(uri, CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        result.success(deleted == 1)
+                    } catch (error: SecurityException) {
+                        result.error("calendar_write_denied", "Android Calendar Provider denied delete", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_write_failed", "Android Calendar Provider delete failed", error.message)
+                    }
                 }
                 METHOD_REQUEST_CALENDAR_READ_PERMISSION -> {
                     if (hasCalendarReadPermission()) {
@@ -184,6 +273,27 @@ class MainActivity : FlutterActivity() {
             this,
             Manifest.permission.READ_CALENDAR,
         ) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasCalendarWritePermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_CALENDAR,
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun eventValues(
+        calendarId: Long,
+        title: String,
+        startMillis: Long,
+        endMillis: Long,
+        allDay: Boolean,
+    ): ContentValues = ContentValues().apply {
+        put(CalendarContract.Events.CALENDAR_ID, calendarId)
+        put(CalendarContract.Events.TITLE, title)
+        put(CalendarContract.Events.DTSTART, startMillis)
+        put(CalendarContract.Events.DTEND, endMillis)
+        put(CalendarContract.Events.ALL_DAY, if (allDay) 1 else 0)
+        put(CalendarContract.Events.EVENT_TIMEZONE, if (allDay) "UTC" else TimeZone.getDefault().id)
+    }
 
     private fun readDeviceCalendars(): List<Map<String, Any?>> {
         val projection = arrayOf(
@@ -342,6 +452,15 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+        if (requestCode == CALENDAR_WRITE_PERMISSION_REQUEST_CODE) {
+            val pending = pendingCalendarWritePermissionResult
+            pendingCalendarWritePermissionResult = null
+            pending?.success(
+                grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED,
+            )
+            return
+        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
@@ -365,9 +484,17 @@ class MainActivity : FlutterActivity() {
             "calendarReadPermissionGranted"
         const val METHOD_REQUEST_CALENDAR_READ_PERMISSION =
             "requestCalendarReadPermission"
+        const val METHOD_CALENDAR_WRITE_PERMISSION_GRANTED =
+            "calendarWritePermissionGranted"
+        const val METHOD_REQUEST_CALENDAR_WRITE_PERMISSION =
+            "requestCalendarWritePermission"
+        const val METHOD_CREATE_DEVICE_CALENDAR_EVENT = "createDeviceCalendarEvent"
+        const val METHOD_UPDATE_DEVICE_CALENDAR_EVENT = "updateDeviceCalendarEvent"
+        const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
         const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102
+        const val CALENDAR_WRITE_PERMISSION_REQUEST_CODE = 4103
         const val MAX_EVENT_QUERY_CALENDARS = 20
         const val MAX_EVENT_QUERY_WINDOW_MILLIS = 93L * 24L * 60L * 60L * 1000L
     }
