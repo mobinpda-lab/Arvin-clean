@@ -53,8 +53,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      key: const ValueKey('quick-capture-dialog'),
       title: const Text('ثبت سریع'),
       content: TextField(
+        key: const ValueKey('quick-capture-input'),
         controller: _controller,
         autofocus: true,
         textInputAction: TextInputAction.done,
@@ -68,10 +70,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       ),
       actions: [
         TextButton(
+          key: const ValueKey('quick-capture-cancel'),
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('لغو'),
         ),
         FilledButton(
+          key: const ValueKey('quick-capture-submit'),
           onPressed: _submit,
           child: const Text('ثبت'),
         ),

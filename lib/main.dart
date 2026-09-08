@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'notebook_page.dart';
+import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
@@ -314,6 +315,32 @@ class _HomePageState extends State<HomePage> {
     if (task == null) return;
     setState(() => tasks.add(task));
     await _save();
+  }
+
+  Future<void> _quickCapture() async {
+    final captured = await showDialog<Task>(
+      context: context,
+      builder: (_) => const QuickCaptureDialog(),
+    );
+    if (captured == null) return;
+
+    try {
+      await migrationWriter.save([..._searchSource, captured]);
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
   }
 
   Future<void> _edit(Task old) async {
@@ -707,6 +734,14 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
             children: [
               ListTile(
+                key: const ValueKey('home-more-quick-capture'),
+                leading: const Icon(Icons.bolt_outlined),
+                title: const Text('ثبت سریع'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.quickCapture),
+              ),
+              const Divider(),
+              ListTile(
                 leading: const Icon(Icons.today_outlined),
                 title: const Text('امروز'),
                 onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
@@ -745,6 +780,9 @@ class _HomePageState extends State<HomePage> {
 
     if (action == null || !mounted) return;
     switch (action) {
+      case _HomeMoreAction.quickCapture:
+        await _quickCapture();
+        return;
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
         _selectHomeStat('امروز');
@@ -1214,6 +1252,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 enum _HomeMoreAction {
+  quickCapture,
   today,
   archive,
   trash,
