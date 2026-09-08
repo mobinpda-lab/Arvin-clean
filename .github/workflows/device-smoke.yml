@@ -73,7 +73,9 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+          script: |
+            flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+            flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
