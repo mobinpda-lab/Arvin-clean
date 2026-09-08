@@ -10,23 +10,18 @@ on:
 permissions:
   contents: write
 
-# Fast Lane: wave/** and ci/** automation branches receive push validation.
-# Draft PRs receive one canonical Fast validation. Once a PR becomes Ready,
-# Arvin Build + Device Smoke become the full exact-head gate and Parallel Wave
-# skips duplicate analyze/test surface work. This keeps throughput high without
-# weakening the Ready/APK/device merge gate.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   home-fix:
-    if: github.ref_name == 'feat/home-visual-integration-2026-09-07' && github.event_name == 'push' && !contains(github.event.head_commit.message, '[home-fix]')
+    if: ((github.event_name == 'push' && github.ref_name == 'feat/home-visual-integration-2026-09-07') || (github.event_name == 'pull_request' && github.head_ref == 'feat/home-visual-integration-2026-09-07')) && !contains(github.event.head_commit.message, '[home-fix]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
       - name: Repair generated Home syntax
         shell: python
@@ -49,7 +44,7 @@ jobs:
           git add lib/main.dart
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "fix(home): repair canonical route syntax [home-fix]"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
   quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
