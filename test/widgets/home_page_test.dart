@@ -14,8 +14,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-active')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-done')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-overdue')), findsOneWidget);
@@ -46,7 +46,7 @@ void main() {
     expect(find.text('تماس فروش'), findsOneWidget);
     expect(find.text('جلسه فنی'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const ValueKey('home-canonical-search')), 'فروش');
+    await tester.enterText(find.byType(TextField), 'فروش');
     await tester.pump();
 
     expect(find.text('تماس فروش'), findsOneWidget);
@@ -63,12 +63,12 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const ValueKey('home-canonical-search')), 'یادداشت کاری');
+    await tester.enterText(find.byType(TextField), 'یادداشت کاری');
     await tester.pump();
     expect(find.text('يادداشت كاری'), findsOneWidget);
     expect(find.text('کار دوم'), findsNothing);
 
-    await tester.enterText(find.byKey(const ValueKey('home-canonical-search')), 'مشتری');
+    await tester.enterText(find.byType(TextField), 'مشتری');
     await tester.pump();
     expect(find.text('کار دوم'), findsOneWidget);
     expect(find.text('يادداشت كاری'), findsNothing);
