@@ -343,4 +343,34 @@ void main() {
   });
 
 
+  testWidgets('bulk category move preserves Notebook identities across reload',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
+    await repository.createNote(id: 'bulk-cat-1', title: 'اول');
+    await repository.createNote(id: 'bulk-cat-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-cat-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-bulk-category-input')),
+      'مشتریان',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-category-apply')));
+    await tester.pumpAndSettle();
+
+    final first = await repository.loadNote('bulk-cat-1');
+    final second = await repository.loadNote('bulk-cat-2');
+    expect(first?.id, 'bulk-cat-1');
+    expect(second?.id, 'bulk-cat-2');
+    expect(first?.category, 'مشتریان');
+    expect(second?.category, 'مشتریان');
+    expect(await repository.loadNotes(), hasLength(2));
+  });
+
+
 }
