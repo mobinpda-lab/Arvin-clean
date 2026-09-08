@@ -32,6 +32,12 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   DateTime? _reminderDate;
   DateTime? _nextFollowUp;
   bool _waitingForResponse = false;
+  late DateTime _initialDateTime;
+  late String _initialNote;
+  late String _initialResult;
+  late DateTime? _initialReminderDate;
+  late DateTime? _initialNextFollowUp;
+  late bool _initialWaitingForResponse;
 
   bool get _editing => widget.initialFollowUp != null;
 
@@ -45,6 +51,12 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _reminderDate = initial?.reminderDate;
     _nextFollowUp = initial?.nextFollowUp;
+    _initialDateTime = _dateTime;
+    _initialNote = _noteController.text;
+    _initialResult = _resultController.text;
+    _initialReminderDate = _reminderDate;
+    _initialNextFollowUp = _nextFollowUp;
+    _initialWaitingForResponse = _waitingForResponse;
   }
 
   @override
@@ -188,6 +200,53 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     });
   }
 
+  bool get _hasChanges =>
+      _dateTime != _initialDateTime ||
+      _noteController.text != _initialNote ||
+      _resultController.text != _initialResult ||
+      _reminderDate != _initialReminderDate ||
+      _nextFollowUp != _initialNextFollowUp ||
+      _waitingForResponse != _initialWaitingForResponse;
+
+  Future<void> _requestClose() async {
+    if (!_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تغییرات ذخیره نشده'),
+        content: const Text(
+          'برای جلوگیری از از دست رفتن پیگیری، تغییرات را ذخیره کنید یا صریحاً بدون ذخیره خارج شوید.',
+        ),
+        actions: [
+          TextButton(
+            key: const ValueKey('follow-up-exit-continue'),
+            onPressed: () => Navigator.of(dialogContext).pop('continue'),
+            child: const Text('ادامه ویرایش'),
+          ),
+          TextButton(
+            key: const ValueKey('follow-up-exit-discard'),
+            onPressed: () => Navigator.of(dialogContext).pop('discard'),
+            child: const Text('بدون ذخیره'),
+          ),
+          FilledButton(
+            key: const ValueKey('follow-up-exit-save'),
+            onPressed: () => Navigator.of(dialogContext).pop('save'),
+            child: const Text('ذخیره'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (action == 'discard') {
+      Navigator.of(context).pop();
+    } else if (action == 'save') {
+      _save();
+    }
+  }
+
   void _save() {
     final rawResult = _resultController.text.trim();
     final result = _waitingForResponse
@@ -210,12 +269,23 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   @override
   Widget build(BuildContext context) {
     final reminder = _reminderDate;
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_editing ? 'ویرایش پیگیری' : 'ثبت پیگیری'),
-        ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _requestClose();
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              key: const ValueKey('follow-up-entry-back'),
+              tooltip: 'بازگشت',
+              onPressed: _requestClose,
+              icon: const Icon(Icons.arrow_back),
+            ),
+            title: Text(_editing ? 'ویرایش پیگیری' : 'ثبت پیگیری'),
+          ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
@@ -367,6 +437,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
