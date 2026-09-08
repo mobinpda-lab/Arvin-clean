@@ -373,4 +373,24 @@ void main() {
   });
 
 
+  testWidgets('bulk trash affects selected Notebook item only', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 8, 15));
+    await repository.createNote(id: 'bulk-trash-1', title: 'اول');
+    await repository.createNote(id: 'bulk-trash-2', title: 'دوم');
+
+    await pumpNotebook(tester, repository);
+    await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-trash-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-bulk-trash')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-trash-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(await repository.loadNote('bulk-trash-1'), isNotNull);
+    expect((await repository.loadNote('bulk-trash-1'))?.trashed, isTrue);
+    expect((await repository.loadNote('bulk-trash-2'))?.trashed, isFalse);
+    expect((await repository.loadNotes()).map((note) => note.id), ['bulk-trash-2']);
+  });
+
+
 }
