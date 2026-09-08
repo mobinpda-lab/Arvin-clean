@@ -20,7 +20,7 @@ Task, FollowUp, Reminder, Calendar, Notebook and Backup domain data are not stor
 
 ## Font guard
 
-Vazirmatn is bundled and registered on current `main` and is the canonical public/default Arvin font. `fontFamily == null` therefore means “use the Arvin default (Vazirmatn)”, not “create another font/settings controller”. Licensed/private fonts such as IRANSansX may be used only when their assets are legitimately available; additional public fonts must extend this same `AppSettingsService` contract rather than create a parallel settings system.
+**VazirHarf v34.003** is bundled and registered on current `main` and is the canonical public/default Arvin font. `fontFamily == null` therefore means “use the Arvin default (VazirHarf)”, not “create another font/settings controller”. Licensed/private fonts such as IRANSansX may be used only when their assets are legitimately available; additional public fonts must extend this same `AppSettingsService` contract rather than create a parallel settings system.
 
 ## Backup guard
 
@@ -32,7 +32,7 @@ Home keeps its existing Gregorian display by default for migration safety. When 
 
 ## Reconstruction evidence
 
-The Settings vertical slice was reconstructed on `main` `c93cd03ea48a91b792fb995537cac3c847920a89`, preserving the merged Android runtime fix, mutable canonical Task list, device-smoke workflow, and bundled Vazirmatn assets. Temporary reconstruction/convergence workflows self-remove; they are not part of the product diff.
+The Settings vertical slice was reconstructed on `main` `c93cd03ea48a91b792fb995537cac3c847920a89`, preserving the merged Android runtime fix, mutable canonical Task list, device-smoke workflow, and bundled VazirHarf assets. Temporary reconstruction/convergence workflows self-remove; they are not part of the product diff.
 
 ## Joplin reference guard
 
@@ -40,6 +40,7 @@ Joplin is useful as an architecture reference for future offline-first sync, rev
 
 ## Typography convergence
 
-- Vazirmatn bundled on `main` is the canonical public/default font.
-- `fontFamily == null` means use the Arvin default, not a second settings system.
+- **VazirHarf v34.003** is the canonical public/default Arvin font.
+- `fontFamily == null` means use the Arvin default VazirHarf.
 - Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
+- No legacy Vazirmatn asset, family, path, or documentation is part of the canonical Arvin typography contract.
