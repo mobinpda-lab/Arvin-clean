@@ -19,6 +19,9 @@ concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
+env:
+  FLUTTER_VERSION: '3.47.0'
+
 jobs:
   quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
@@ -29,6 +32,7 @@ jobs:
         run: python3 tool/validate_fast_lane.py
       - name: Fetch pinned VazirHarf
         run: |
+          set -euo pipefail
           git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
           git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
           git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
@@ -37,10 +41,15 @@ jobs:
           cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-      - run: flutter pub get
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
 
@@ -55,6 +64,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
         run: |
+          set -euo pipefail
           git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
           git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
           git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
@@ -63,10 +73,15 @@ jobs:
           cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-      - run: flutter pub get
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
       - name: Validate ${{ matrix.area }} surface independently
         shell: bash
         env:
