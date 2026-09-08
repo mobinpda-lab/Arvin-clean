@@ -42,6 +42,6 @@ void main() {
     expect(source, contains('_primaryNotebookShell'));
     expect(source, contains('_primaryNextActionShell'));
     expect(source, contains('FilledButton.icon('));
-    expect(source, contains('FilledButton.tonalIcon('));
+    expect(source, contains('TaskBulkSelectionBar('));
   });
 }

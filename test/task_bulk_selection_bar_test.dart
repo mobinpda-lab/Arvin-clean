@@ -9,6 +9,7 @@ void main() {
     bool allVisibleSelected = false,
     VoidCallback? onToggleAll,
     VoidCallback? onClear,
+    VoidCallback? onArchive,
     VoidCallback? onTrash,
     VoidCallback? onCategory,
     VoidCallback? onTags,
@@ -27,6 +28,7 @@ void main() {
                 allVisibleSelected: allVisibleSelected,
                 onToggleAll: onToggleAll ?? () {},
                 onClearSelection: onClear ?? () {},
+                onArchive: onArchive,
                 onTrash: onTrash,
                 onCategory: onCategory,
                 onTags: onTags,
@@ -53,6 +55,7 @@ void main() {
       (tester) async {
     var toggled = 0;
     var cleared = 0;
+    var archived = 0;
     var trashed = 0;
     var categorized = 0;
     var tagged = 0;
@@ -62,6 +65,7 @@ void main() {
       host(
         onToggleAll: () => toggled++,
         onClear: () => cleared++,
+        onArchive: () => archived++,
         onTrash: () => trashed++,
         onCategory: () => categorized++,
         onTags: () => tagged++,
@@ -69,15 +73,24 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-bulk-select-all')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-clear')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-trash')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-tags')));
-    await tester.tap(find.byKey(const ValueKey('task-bulk-share')));
+    Future<void> tapKey(String key) async {
+      final finder = find.byKey(ValueKey(key));
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pump();
+    }
+
+    await tapKey('task-bulk-select-all');
+    await tapKey('task-bulk-clear');
+    await tapKey('task-bulk-archive');
+    await tapKey('task-bulk-trash');
+    await tapKey('task-bulk-category');
+    await tapKey('task-bulk-tags');
+    await tapKey('task-bulk-share');
 
     expect(toggled, 1);
     expect(cleared, 1);
+    expect(archived, 1);
     expect(trashed, 1);
     expect(categorized, 1);
     expect(tagged, 1);
@@ -87,6 +100,12 @@ void main() {
   testWidgets('unwired actions stay disabled', (tester) async {
     await tester.pumpWidget(host());
 
+    expect(
+      tester.widget<IconButton>(
+        find.byKey(const ValueKey('task-bulk-archive')),
+      ).onPressed,
+      isNull,
+    );
     expect(
       tester.widget<IconButton>(
         find.byKey(const ValueKey('task-bulk-trash')),
@@ -123,6 +142,7 @@ void main() {
       host(
         width: 300,
         selectedCount: 12,
+        onArchive: () {},
         onTrash: () {},
         onCategory: () {},
         onTags: () {},
