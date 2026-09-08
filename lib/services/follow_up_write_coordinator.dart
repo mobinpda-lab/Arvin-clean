@@ -8,10 +8,12 @@ class FollowUpWriteCoordinator {
   const FollowUpWriteCoordinator({
     required this.repository,
     required this.scheduler,
+    this.reminderReschedule,
   });
 
   final FollowUpRepository repository;
   final AutomaticFollowUpSchedulerAdapter scheduler;
+  final Future<void> Function()? reminderReschedule;
 
   Future<void> add(String taskId, FollowUp followUp) async {
     await repository.add(taskId, followUp);
@@ -41,9 +43,16 @@ class FollowUpWriteCoordinator {
     try {
       await scheduler.reschedule();
     } catch (_) {
-      // Persistence already succeeded. A platform scheduling failure must not
-      // turn a saved user edit into a false write failure; the next app/runtime
-      // scheduling opportunity can retry from canonical Task/FollowUp data.
+      // Canonical persistence already succeeded; runtime can retry later.
+    }
+    final reminder = reminderReschedule;
+    if (reminder != null) {
+      try {
+        await reminder();
+      } catch (_) {
+        // Independent FollowUp reminder scheduling is also best-effort after
+        // the canonical write and will be reconstructed from TaskStore.
+      }
     }
   }
 }
