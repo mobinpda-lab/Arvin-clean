@@ -13,11 +13,11 @@ void main() {
   }) {
     return Task(
       id: id,
-      title: 'Task ' + id,
+      title: 'Task $id',
       completed: taskCompleted,
       followUps: [
         FollowUp(
-          id: 'fu-' + id,
+          id: 'fu-$id',
           dateTime: DateTime(2026, 9, 8, 10),
           reminderDate: reminder,
           completed: followUpCompleted,
@@ -55,7 +55,7 @@ void main() {
     final now = DateTime(2026, 9, 8, 12);
     final old = DateTime(2026, 9, 8, 13);
     final delivered = {
-      'one:fu-one': 'one:fu-one@' + old.toIso8601String(),
+      'one:fu-one': 'one:fu-one@${old.toIso8601String()}',
     };
 
     expect(
