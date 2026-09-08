@@ -29,10 +29,54 @@ jobs:
             const { owner, repo } = context.repo;
             const blocked = new Set(['do-not-merge','orchestrator:hold','orchestrator:manual','factory:blocked','factory:escalated']);
             const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+            const currentMainSha = main.data.commit.sha;
+            const releasedStale = new Set();
+
+            // Self-heal stale leases before deciding whether provider capacity is occupied.
+            // A stale exact-main worker is required to fail closed, so a lease with no open
+            // worker PR may be safely released once main has moved.
+            for (const issue of issues.filter(i => !i.pull_request)) {
+              const labels = new Set((issue.labels || []).map(x => typeof x === 'string' ? x : x.name));
+              if ([...blocked].some(l => labels.has(l))) continue;
+              if (!labels.has('factory:leased') && !labels.has('factory:in-progress')) continue;
+
+              const openPrs = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: 'open', head: `${owner}:ai/issue-${issue.number}`, per_page: 100,
+              });
+              if (openPrs.length) continue;
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: issue.number, per_page: 100,
+              });
+              const leaseComments = comments.filter(c => c.body?.includes('<!-- arvin-autonomous-lease -->'));
+              const latestLease = leaseComments.at(-1)?.body || '';
+              const match = latestLease.match(/exact main ([0-9a-f]{40})/i);
+              const leasedSha = match?.[1] || '';
+              if (!leasedSha || leasedSha === currentMainSha) continue;
+
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: 'factory:leased' }).catch(() => {});
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: 'factory:in-progress' }).catch(() => {});
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issue.number,
+                body: `<!-- arvin-autonomous-stale-lease-release -->\nStale autonomous lease released automatically: leased main ${leasedSha}, current main ${currentMainSha}, no open worker PR. The stale worker must fail closed; no completion is claimed.`
+              });
+              releasedStale.add(issue.number);
+            }
+
+            const activeAiLease = issues
+              .filter(i => !i.pull_request && !releasedStale.has(i.number))
+              .map(i => new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)))
+              .some(labels => ![...blocked].some(l => labels.has(l)) && (labels.has('factory:leased') || labels.has('factory:in-progress')));
+            if (activeAiLease) {
+              core.info('An autonomous AI worker lease is already active; deferring new AI dispatch to avoid provider concurrency/429 pressure.');
+              return;
+            }
+
             const candidates = issues
               .filter(i => !i.pull_request)
               .map(i => ({ issue: i, labels: new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)) }))
-              .filter(x => x.labels.has('factory:ready') || x.labels.has('arvin-auto'))
+              .filter(x => x.labels.has('factory:ready') || x.labels.has('arvin-auto') || x.labels.has('priority:release-blocker'))
               .filter(x => ![...blocked].some(l => x.labels.has(l)))
               .filter(x => !x.labels.has('factory:leased') && !x.labels.has('factory:in-progress'))
               .sort((a,b) => {
@@ -40,8 +84,9 @@ jobs:
                 return rank(a.labels) - rank(b.labels) || a.issue.number - b.issue.number;
               });
             if (!candidates.length) { core.info('No eligible ARVIN autonomous task.'); return; }
-            const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-            for (const item of candidates.slice(0, 3)) {
+            // AI provider capacity is intentionally serialized. Deterministic lanes may run in parallel,
+            // but the autonomous queue dispatches at most one AI worker per cycle to avoid 429 storms.
+            for (const item of candidates.slice(0, 1)) {
               const number = item.issue.number;
               await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:leased','factory:in-progress'] });
               await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-lease -->\nARVIN Queue leased issue #${number} against exact main ${main.data.commit.sha}.` });

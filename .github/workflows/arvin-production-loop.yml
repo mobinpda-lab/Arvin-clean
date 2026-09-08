@@ -91,33 +91,25 @@ jobs:
             }
 
             if (['feature', 'bugfix', 'core'].includes(route)) {
-              const dispatchMarker = '<!-- arvin-code-worker-dispatch -->';
-              const branch = `ai/issue-${issueNumber}`;
-              const openPrs = await github.paginate(github.rest.pulls.list, {
-                owner, repo, state: 'open', head: `${owner}:${branch}`, per_page: 100,
-              });
-              const alreadyDispatched = comments.some(c => c.body?.includes(dispatchMarker));
-              if (!alreadyDispatched && openPrs.length === 0) {
-                const { data: mainRef } = await github.rest.git.getRef({ owner, repo, ref: 'heads/main' });
-                const expectedMainSha = mainRef.object.sha;
-                await github.rest.actions.createWorkflowDispatch({
-                  owner,
-                  repo,
-                  workflow_id: 'arvin-agent-worker.yml',
-                  ref: 'main',
-                  inputs: {
-                    issue_number: String(issueNumber),
-                    expected_main_sha: expectedMainSha,
-                  },
-                });
+              const labels = ['factory:ready'];
+              if (route === 'core') labels.push('priority:core');
+              else labels.push('priority:feature');
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels });
+
+              const handoffMarker = '<!-- arvin-autonomous-queue-handoff -->';
+              if (!comments.some(c => c.body?.includes(handoffMarker))) {
                 await github.rest.issues.createComment({
                   owner, repo, issue_number: issueNumber,
-                  body: `${dispatchMarker}\n\n### ARVIN Code Worker\n\nCode Worker dispatched for issue #${issueNumber}; exact-main snapshot=${expectedMainSha}. The worker must fail closed if main moves before checkout. Promotion remains owned by the canonical Production Orchestrator.`
+                  body: `${handoffMarker}\n\nActionable ${route} work was reconciled into the canonical autonomous queue. AI worker dispatch is owned only by ARVIN Autonomous Task Queue so provider concurrency, stale leases, and duplicate dispatch are controlled centrally.`
                 });
-                core.info(`Code Worker dispatched for issue #${issueNumber} against exact main ${expectedMainSha}.`);
-              } else {
-                core.info(`Code Worker already dispatched or PR exists for issue #${issueNumber}; no duplicate launch.`);
               }
+
+              // Label writes made with GITHUB_TOKEN do not reliably recurse into another
+              // workflow, so wake the queue explicitly instead of dispatching an AI worker here.
+              await github.rest.actions.createWorkflowDispatch({
+                owner, repo, workflow_id: 'arvin-autonomous-queue.yml', ref: 'main',
+              });
+              core.info(`Issue #${issueNumber} handed to the canonical autonomous queue.`);
             }
 
             if (route === 'test') {
@@ -210,22 +202,13 @@ jobs:
               body: `${marker}\n\nAutomated failure feedback.\n\n- Workflow: ${name}\n- Run: ${runUrl}\n- Head SHA: ${headSha}\n- Conclusion: ${conclusion}\n\nRoute this issue to the bounded AI Code Worker. Do not bypass Fast/Build/Device or exact-head promotion gates.`
             });
 
-            // Capture the exact current main immediately before dispatch. The
-            // worker rejects stale heads before any mutation.
-            const { data: mainRef } = await github.rest.git.getRef({ owner, repo, ref: 'heads/main' });
-            const expectedMainSha = mainRef.object.sha;
-
-            // An issue created with GITHUB_TOKEN must not depend on a recursive
-            // issues event to launch the worker. Dispatch it explicitly once,
-            // carrying the exact-head contract required by the worker.
+            // GITHUB_TOKEN-created issues do not reliably recurse into issue-triggered
+            // workflows. Wake the canonical queue explicitly, but never dispatch the AI
+            // worker from this feedback loop; the queue owns provider concurrency and leases.
             await github.rest.actions.createWorkflowDispatch({
               owner,
               repo,
-              workflow_id: 'arvin-agent-worker.yml',
+              workflow_id: 'arvin-autonomous-queue.yml',
               ref: 'main',
-              inputs: {
-                issue_number: String(created.data.number),
-                expected_main_sha: expectedMainSha,
-              },
             });
-            core.info(`Failure converted into Auto-Fix #${created.data.number} and AI Worker dispatched against exact main ${expectedMainSha}.`);
+            core.info(`Failure converted into Auto-Fix #${created.data.number} and handed to the canonical autonomous queue.`);
