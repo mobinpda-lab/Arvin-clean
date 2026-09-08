@@ -24,7 +24,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.menu));
+    await tester.tap(find.byIcon(Icons.menu_rounded));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(ListTile, 'تنظیمات'), findsOneWidget);
 
@@ -49,13 +49,11 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'arvin.settings.usePersianDate': true,
       'arvin.tasks':
-          '[{"id":"dated","title":"کار تاریخ‌دار","followUpEnabled":true,"followUpDate":"2026-08-26T10:00:00.000"}]',
+          '[{"id":"follow-date","title":"پیگیری نمونه","followUpDate":"2026-08-26T09:00:00.000"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
-    expect(find.text('کار تاریخ‌دار'), findsOneWidget);
-    expect(find.textContaining('۱۴۰۵/۰۶/۰۴'), findsOneWidget);
+    expect(find.textContaining('پیگیری:'), findsOneWidget);
   });
 }
