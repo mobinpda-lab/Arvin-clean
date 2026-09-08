@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
 import 'models/task.dart';
 import 'notebook_page.dart';
@@ -391,6 +392,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
     await taskStore.addFollowUp(task.id, followUp);
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // Canonical write already succeeded; scheduler retries from TaskStore.
+    }
     final updatedTasks = await taskStore.load();
     final updated = updatedTasks.firstWhere((item) => item.id == task.id);
     if (mounted) {
