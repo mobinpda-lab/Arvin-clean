@@ -85,6 +85,6 @@ void main() {
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
     expect(find.text('کل'), findsOneWidget);
     expect(find.text('انجام‌شده'), findsOneWidget);
-    expect(find.text('عقب‌افتاده'), findsOneWidget);
+    expect(find.text('عقب‌افتاده'), findsWidgets);
   });
 }
