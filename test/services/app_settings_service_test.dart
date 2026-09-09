@@ -146,4 +146,19 @@ void main() {
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
+
+  test('persists Move to Today as a swipe action', () async {
+    SharedPreferences.setMockInitialValues({});
+    final service = AppSettingsService();
+
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.moveToToday,
+      left: TaskSwipeAction.archive,
+    );
+
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.moveToToday);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
 }
