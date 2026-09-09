@@ -14,26 +14,34 @@ class OfficialCalendarPage extends StatefulWidget {
     required this.years,
     this.reminders = const <CalendarReminder>[],
     this.initialSelectedDay,
+    this.onCompleteReminder,
+    this.onSnoozeReminder,
+    this.onEditReminder,
+    this.onConvertReminderToTask,
   });
 
   final OfficialCalendarReminderService service;
   final List<int> years;
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
+  final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
+  final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
+  final Future<void> Function(CalendarReminder reminder)? onEditReminder;
+  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
 
   @override
   State<OfficialCalendarPage> createState() => _OfficialCalendarPageState();
 }
 
-/// Ready-to-use 1405 composition. The official document spans Gregorian
-/// years 2026 and 2027, so both service partitions are loaded. Prayer Times
-/// use the existing official calendar provider boundary and do not create a
-/// second calendar source of truth.
 class IranianOfficialCalendarPage extends OfficialCalendarPage {
   const IranianOfficialCalendarPage({
     super.key,
     super.reminders,
     super.initialSelectedDay,
+    super.onCompleteReminder,
+    super.onSnoozeReminder,
+    super.onEditReminder,
+    super.onConvertReminderToTask,
   }) : super(
           service: const OfficialCalendarReminderService(
             <OfficialCalendarReminderSource>[
@@ -61,13 +69,10 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     final byId = <String, CalendarReminder>{
       for (final reminder in widget.reminders) reminder.id: reminder,
     };
-
     for (final reminder in officialGroups.expand((group) => group)) {
       byId.putIfAbsent(reminder.id, () => reminder);
     }
-
-    final merged = byId.values.toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final merged = byId.values.toList()..sort((a, b) => a.date.compareTo(b.date));
     return List<CalendarReminder>.unmodifiable(merged);
   }
 
@@ -89,26 +94,25 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
                 children: [
                   const Text('بارگذاری مناسبت‌های رسمی انجام نشد'),
                   const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _retry,
-                    child: const Text('تلاش دوباره'),
-                  ),
+                  TextButton(onPressed: _retry, child: const Text('تلاش دوباره')),
                 ],
               ),
             ),
           );
         }
-
         if (!snapshot.hasData) {
           return Scaffold(
             appBar: AppBar(title: const Text('تقویم پیگیری')),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
-
         return CalendarPage(
           reminders: snapshot.requireData,
           initialSelectedDay: widget.initialSelectedDay,
+          onCompleteReminder: widget.onCompleteReminder,
+          onSnoozeReminder: widget.onSnoozeReminder,
+          onEditReminder: widget.onEditReminder,
+          onConvertReminderToTask: widget.onConvertReminderToTask,
         );
       },
     );

@@ -33,10 +33,18 @@ class CalendarPage extends StatefulWidget {
     required this.reminders,
     this.initialSelectedDay,
     this.dailyContentForDate,
+    this.onCompleteReminder,
+    this.onSnoozeReminder,
+    this.onEditReminder,
+    this.onConvertReminderToTask,
   });
 
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
+  final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
+  final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
+  final Future<void> Function(CalendarReminder reminder)? onEditReminder;
+  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
 
   /// Optional Daily Content projection for the selected calendar date.
   ///
@@ -687,6 +695,10 @@ class _CalendarPageState extends State<CalendarPage> {
                             item: selectedReminders[index],
                             dateLabel: _date(selectedReminders[index].date),
                             timeLabel: _time(selectedReminders[index].date),
+                            onComplete: widget.onCompleteReminder,
+                            onSnooze: widget.onSnoozeReminder,
+                            onEdit: widget.onEditReminder,
+                            onConvertToTask: widget.onConvertReminderToTask,
                           ),
                         ],
                       ],
@@ -724,33 +736,132 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
-class _ReminderCard extends StatelessWidget {
+class _ReminderCard extends StatefulWidget {
   const _ReminderCard({
     required this.item,
     required this.dateLabel,
     required this.timeLabel,
+    this.onComplete,
+    this.onSnooze,
+    this.onEdit,
+    this.onConvertToTask,
   });
 
   final CalendarReminder item;
   final String dateLabel;
   final String timeLabel;
+  final Future<void> Function(CalendarReminder reminder)? onComplete;
+  final Future<void> Function(CalendarReminder reminder)? onSnooze;
+  final Future<void> Function(CalendarReminder reminder)? onEdit;
+  final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
+
+  @override
+  State<_ReminderCard> createState() => _ReminderCardState();
+}
+
+class _ReminderCardState extends State<_ReminderCard> {
+  bool _expanded = false;
+
+  bool get _hasActions =>
+      widget.onComplete != null ||
+      widget.onSnooze != null ||
+      widget.onEdit != null ||
+      widget.onConvertToTask != null;
+
+  Future<void> _run(
+    Future<void> Function(CalendarReminder reminder)? action,
+  ) async {
+    if (action == null) return;
+    await action(widget.item);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final subtitle = item.isAllDay
-        ? '$dateLabel\nرویداد تمام‌روز'
-        : '$dateLabel  •  ساعت $timeLabel\n${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
+        ? '${widget.dateLabel}\nرویداد تمام‌روز'
+        : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
+
     return Card(
-      child: ListTile(
-        leading: Icon(
-          item.isAllDay
-              ? Icons.event_outlined
-              : item.completed
-                  ? Icons.check_circle
-                  : Icons.notifications_active_outlined,
-        ),
-        title: Text(item.title),
-        subtitle: Text(subtitle),
+      child: Column(
+        children: [
+          ListTile(
+            key: ValueKey('reminder-card-${item.id}'),
+            onTap: _hasActions
+                ? () => setState(() => _expanded = !_expanded)
+                : null,
+            leading: CircleAvatar(
+              child: Icon(
+                item.isAllDay
+                    ? Icons.event_outlined
+                    : item.completed
+                        ? Icons.check_circle
+                        : Icons.notifications_active_outlined,
+              ),
+            ),
+            title: const Text(
+              'یادآور',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 2),
+                Text(
+                  item.title,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(subtitle),
+              ],
+            ),
+            trailing: _hasActions
+                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more)
+                : null,
+          ),
+          if (_expanded && _hasActions)
+            Padding(
+              key: ValueKey('reminder-actions-${item.id}'),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (widget.onComplete != null && !item.completed)
+                    ActionChip(
+                      key: ValueKey('reminder-complete-${item.id}'),
+                      avatar: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('انجام شد'),
+                      onPressed: () => _run(widget.onComplete),
+                    ),
+                  if (widget.onSnooze != null && !item.completed)
+                    ActionChip(
+                      key: ValueKey('reminder-snooze-${item.id}'),
+                      avatar: const Icon(Icons.snooze_outlined, size: 18),
+                      label: const Text('تعویق'),
+                      onPressed: () => _run(widget.onSnooze),
+                    ),
+                  if (widget.onEdit != null)
+                    ActionChip(
+                      key: ValueKey('reminder-edit-${item.id}'),
+                      avatar: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('ویرایش'),
+                      onPressed: () => _run(widget.onEdit),
+                    ),
+                  if (widget.onConvertToTask != null)
+                    ActionChip(
+                      key: ValueKey('reminder-convert-${item.id}'),
+                      avatar: const Icon(Icons.task_alt_outlined, size: 18),
+                      label: const Text('تبدیل به کار'),
+                      onPressed: () => _run(widget.onConvertToTask),
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
