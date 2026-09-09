@@ -60,7 +60,7 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p .github/calendar-provider-evidence
             {
               echo "HEAD_SHA=$(git rev-parse HEAD)"
@@ -75,7 +75,13 @@ jobs:
             adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
             adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
 
-            flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} 2>&1 | tee .github/calendar-provider-evidence/test-output.txt
+            if flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; then
+              cat .github/calendar-provider-evidence/test-output.txt
+            else
+              rc=$?
+              cat .github/calendar-provider-evidence/test-output.txt
+              exit $rc
+            fi
 
             if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then
               echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' | tee .github/calendar-provider-evidence/result.txt
