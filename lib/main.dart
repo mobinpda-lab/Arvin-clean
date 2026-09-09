@@ -9,6 +9,10 @@ import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
 import 'services/interactive_guide_service.dart';
+import 'services/task_due_scope_service.dart';
+import 'services/task_list_scope_service.dart';
+import 'services/task_list_sort_service.dart';
+import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
@@ -126,6 +130,9 @@ class _HomePageState extends State<HomePage> {
       InteractiveGuideService();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
   final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
+  final TaskListScopeService taskListScopeService = const TaskListScopeService();
+  final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
+  final TaskListSortService taskListSortService = const TaskListSortService();
   final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
@@ -151,6 +158,10 @@ class _HomePageState extends State<HomePage> {
   bool _interactiveGuideRunning = false;
   String query = '';
   String filter = 'کل';
+  TaskListScope _listScope = TaskListScope.all;
+  TaskDueScope? _dueScope;
+  TaskListSort _listSort = TaskListSort.date;
+  bool _sortDescending = false;
 
   @override
   void initState() {
@@ -279,11 +290,21 @@ class _HomePageState extends State<HomePage> {
     final matchingIds = query.trim().isEmpty
         ? null
         : homeSearchProjection.matchingIds(_searchSource, query);
-    final todayIds = filter == 'امروز'
-        ? homeTodayProjection.select(_searchSource).map((task) => task.id).toSet()
-        : null;
 
-    final result = tasks.where((task) {
+    Iterable<Task> scoped = tasks;
+    if (filter != 'بایگانی' && filter != 'سطل زباله') {
+      scoped = taskListScopeService.project(scoped, scope: _listScope);
+      final dueScope = _dueScope;
+      if (dueScope != null) {
+        scoped = taskDueScopeService.project(
+          scoped,
+          now: DateTime.now(),
+          scope: dueScope,
+        );
+      }
+    }
+
+    final result = scoped.where((task) {
       if (filter == 'کل' && (task.archived || task.trashed)) return false;
       if (filter == 'فعال' &&
           (task.archived || task.trashed || task.completed)) {
@@ -293,24 +314,41 @@ class _HomePageState extends State<HomePage> {
           (task.archived || task.trashed || !task.completed)) {
         return false;
       }
-      if (filter == 'عقب‌افتاده' &&
-          (task.archived || task.trashed || !_overdue(task))) {
-        return false;
-      }
       if (filter == 'بایگانی' && (!task.archived || task.trashed)) return false;
       if (filter == 'سطل زباله' && !task.trashed) return false;
-      if (filter == 'امروز' && (task.archived || task.trashed)) return false;
-      if (todayIds != null && !todayIds.contains(task.id)) return false;
       if (matchingIds != null && !matchingIds.contains(task.id)) return false;
       return true;
-    }).toList();
+    }).toList(growable: false);
 
-    result.sort(
-      (a, b) => (_homeFollowUpDate(a) ?? DateTime(9999))
-          .compareTo(_homeFollowUpDate(b) ?? DateTime(9999)),
+    return taskListSortService.sort(
+      result,
+      by: _listSort,
+      descending: _sortDescending,
     );
-    return result;
   }
+
+  String get _emptyVisibleLabel {
+    if (filter == 'سطل زباله') return 'سطل زباله خالی است';
+    if (filter == 'بایگانی') return 'بایگانی خالی است';
+    if (_dueScope == TaskDueScope.today) return 'کاری برای امروز وجود ندارد';
+    if (_dueScope == TaskDueScope.future) return 'کار آینده‌ای وجود ندارد';
+    if (_dueScope == TaskDueScope.overdue) return 'کار عقب‌افتاده‌ای وجود ندارد';
+    if (_listScope == TaskListScope.simpleNotes) {
+      return 'یادداشتی برای نمایش وجود ندارد';
+    }
+    if (_listScope == TaskListScope.followUpEnabled) {
+      return 'کار دارای پیگیری برای نمایش وجود ندارد';
+    }
+    if (filter == 'انجام‌شده') return 'کار انجام‌شده‌ای وجود ندارد';
+    return 'کاری برای نمایش وجود ندارد';
+  }
+
+  String _sortLabel(TaskListSort sort) => switch (sort) {
+        TaskListSort.date => 'تاریخ کار',
+        TaskListSort.latest => 'آخرین تغییر',
+        TaskListSort.lastFollowUp => 'آخرین پیگیری',
+        TaskListSort.title => 'عنوان',
+      };
 
   String _date(DateTime date) => persianDateFormatter.format(
         date,
@@ -591,10 +629,48 @@ class _HomePageState extends State<HomePage> {
 
   void _selectHomeStat(String nextFilter) {
     setState(() {
-      filter = nextFilter;
+      _listScope = TaskListScope.all;
+      if (nextFilter == 'امروز') {
+        filter = 'کل';
+        _dueScope = TaskDueScope.today;
+      } else if (nextFilter == 'عقب‌افتاده') {
+        filter = 'کل';
+        _dueScope = TaskDueScope.overdue;
+      } else {
+        filter = nextFilter;
+        _dueScope = null;
+      }
       selected.clear();
       selectionMode = false;
     });
+  }
+
+  void _selectListScope(TaskListScope scope) {
+    setState(() {
+      filter = 'کل';
+      _listScope = scope;
+      _dueScope = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  void _selectDueScope(TaskDueScope scope) {
+    setState(() {
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = scope;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  void _setListSort(TaskListSort sort) {
+    setState(() => _listSort = sort);
+  }
+
+  void _toggleSortDirection() {
+    setState(() => _sortDescending = !_sortDescending);
   }
 
   Future<bool> _confirmDeleteForever(Task task) async {
@@ -1037,6 +1113,17 @@ class _HomePageState extends State<HomePage> {
         });
         await _save();
         return true;
+      case TaskSwipeAction.moveToToday:
+        await TaskMoveToTodayService(store: taskStore).move(task.id);
+        await _load();
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text('«${task.title}» به امروز منتقل شد')),
+            );
+        }
+        return false;
       case TaskSwipeAction.none:
         return false;
     }
@@ -1047,11 +1134,13 @@ class _HomePageState extends State<HomePage> {
     final icon = switch (action) {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
+      TaskSwipeAction.moveToToday => Icons.today_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
+      TaskSwipeAction.moveToToday => 'انتقال به امروز',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
@@ -1157,8 +1246,12 @@ class _HomePageState extends State<HomePage> {
     final doneTasks = tasks
         .where((task) => !task.archived && !task.trashed && task.completed)
         .length;
-    final overdueTasks = tasks
-        .where((task) => !task.archived && !task.trashed && _overdue(task))
+    final overdueTasks = taskDueScopeService
+        .project(
+          tasks,
+          now: DateTime.now(),
+          scope: TaskDueScope.overdue,
+        )
         .length;
 
     Widget stat(
@@ -1169,7 +1262,11 @@ class _HomePageState extends State<HomePage> {
       Color accent,
       String keyName,
     ) {
-      final isSelected = filter == target;
+      final isSelected = target == 'عقب‌افتاده'
+          ? _dueScope == TaskDueScope.overdue
+          : filter == target &&
+              _dueScope == null &&
+              _listScope == TaskListScope.all;
       return Semantics(
         key: ValueKey(keyName),
         button: true,
@@ -1376,6 +1473,91 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    FilterChip(
+                      key: const ValueKey('home-scope-all'),
+                      label: const Text('همه'),
+                      selected: _listScope == TaskListScope.all && _dueScope == null,
+                      onSelected: (_) => _selectListScope(TaskListScope.all),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      key: const ValueKey('home-scope-notes'),
+                      label: const Text('یادداشت‌ها'),
+                      selected: _listScope == TaskListScope.simpleNotes && _dueScope == null,
+                      onSelected: (_) => _selectListScope(TaskListScope.simpleNotes),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      key: const ValueKey('home-scope-followups'),
+                      label: const Text('دارای پیگیری'),
+                      selected: _listScope == TaskListScope.followUpEnabled && _dueScope == null,
+                      onSelected: (_) => _selectListScope(TaskListScope.followUpEnabled),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      key: const ValueKey('home-scope-today'),
+                      label: const Text('امروز'),
+                      selected: _dueScope == TaskDueScope.today,
+                      onSelected: (_) => _selectDueScope(TaskDueScope.today),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      key: const ValueKey('home-scope-future'),
+                      label: const Text('آینده'),
+                      selected: _dueScope == TaskDueScope.future,
+                      onSelected: (_) => _selectDueScope(TaskDueScope.future),
+                    ),
+                    const SizedBox(width: 6),
+                    FilterChip(
+                      key: const ValueKey('home-scope-overdue'),
+                      label: const Text('عقب‌افتاده'),
+                      selected: _dueScope == TaskDueScope.overdue,
+                      onSelected: (_) => _selectDueScope(TaskDueScope.overdue),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: Row(
+                children: [
+                  const Text('مرتب‌سازی:'),
+                  const SizedBox(width: 8),
+                  DropdownButton<TaskListSort>(
+                    key: const ValueKey('home-sort-selector'),
+                    value: _listSort,
+                    items: TaskListSort.values
+                        .map(
+                          (sort) => DropdownMenuItem<TaskListSort>(
+                            value: sort,
+                            child: Text(_sortLabel(sort)),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (sort) {
+                      if (sort != null) _setListSort(sort);
+                    },
+                  ),
+                  IconButton(
+                    key: const ValueKey('home-sort-direction'),
+                    tooltip: _sortDescending ? 'مرتب‌سازی صعودی' : 'مرتب‌سازی نزولی',
+                    onPressed: _toggleSortDirection,
+                    icon: Icon(
+                      _sortDescending
+                          ? Icons.arrow_downward_rounded
+                          : Icons.arrow_upward_rounded,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Row(
                 children: [
@@ -1436,17 +1618,7 @@ class _HomePageState extends State<HomePage> {
                       : visible.isEmpty
                           ? Center(
                               child: Text(
-                                filter == 'سطل زباله'
-                                    ? 'سطل زباله خالی است'
-                                    : filter == 'بایگانی'
-                                        ? 'بایگانی خالی است'
-                                        : filter == 'امروز'
-                                            ? 'کاری برای امروز وجود ندارد'
-                                            : filter == 'انجام‌شده'
-                                                ? 'کار انجام‌شده‌ای وجود ندارد'
-                                                : filter == 'عقب‌افتاده'
-                                                    ? 'کار عقب‌افتاده‌ای وجود ندارد'
-                                                    : 'کاری برای نمایش وجود ندارد',
+                                _emptyVisibleLabel,
                               ),
                             )
                           : ListView.separated(
