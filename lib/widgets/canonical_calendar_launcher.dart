@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../android_automatic_follow_up_scheduler.dart';
 import '../android_follow_up_reminder_scheduler.dart';
 import '../calendar_page.dart';
+import '../follow_up_entry_page.dart';
 import '../follow_up_repository.dart';
 import '../models/task.dart';
 import '../notebook_page.dart';
@@ -41,15 +42,15 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late final List<Task> _tasks;
 
+  FollowUpWriteCoordinator get _followUpWriter => FollowUpWriteCoordinator(
+        repository: const FollowUpRepository(),
+        scheduler: AndroidAutomaticFollowUpScheduler(),
+        reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
+      );
+
   CalendarRescheduleApplyService get _applyService =>
       widget.rescheduleApplyService ??
-      CalendarRescheduleApplyService(
-        writer: FollowUpWriteCoordinator(
-          repository: const FollowUpRepository(),
-          scheduler: AndroidAutomaticFollowUpScheduler(),
-          reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
-        ),
-      );
+      CalendarRescheduleApplyService(writer: _followUpWriter);
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -111,6 +112,72 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   void initState() {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
+  }
+
+  void _replaceFollowUp(
+    FollowUpCalendarTarget target,
+    FollowUp updated,
+  ) {
+    final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
+    if (taskIndex < 0) return;
+    final task = _tasks[taskIndex];
+    final followUpIndex =
+        task.followUps.indexWhere((item) => item.id == updated.id);
+    if (followUpIndex < 0) return;
+    setState(() {
+      final next = List<FollowUp>.of(task.followUps);
+      next[followUpIndex] = updated;
+      task.followUps = next;
+      task.followUpEnabled = true;
+      task.updatedAt = DateTime.now();
+    });
+  }
+
+  FollowUpCalendarTarget? _targetFor(CalendarReminder reminder) =>
+      widget.projection.resolveTarget(_tasks, reminder.id);
+
+  Future<void> _completeReminder(CalendarReminder reminder) async {
+    final target = _targetFor(reminder);
+    if (target == null) return;
+    final updated = await _followUpWriter.setCompleted(
+      target.taskId,
+      target.followUp.id,
+      true,
+    );
+    if (!mounted) return;
+    _replaceFollowUp(target, updated);
+  }
+
+  Future<void> _snoozeReminder(CalendarReminder reminder) async {
+    final target = _targetFor(reminder);
+    if (target == null) return;
+    final current = target.followUp;
+    final updated = FollowUp(
+      id: current.id,
+      dateTime: current.dateTime.add(const Duration(minutes: 30)),
+      note: current.note,
+      result: current.result,
+      reminderDate: current.reminderDate?.add(const Duration(minutes: 30)),
+      nextFollowUp: current.nextFollowUp,
+      completed: current.completed,
+    );
+    await _followUpWriter.update(target.taskId, updated);
+    if (!mounted) return;
+    _replaceFollowUp(target, updated);
+  }
+
+  Future<void> _editReminder(CalendarReminder reminder) async {
+    final target = _targetFor(reminder);
+    if (target == null) return;
+    final updated = await Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute<FollowUp>(
+        builder: (_) => FollowUpEntryPage(initialFollowUp: target.followUp),
+      ),
+    );
+    if (updated == null) return;
+    await _followUpWriter.update(target.taskId, updated);
+    if (!mounted) return;
+    _replaceFollowUp(target, updated);
   }
 
   Future<void> _openTimeline(BuildContext context) async {
@@ -604,7 +671,12 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           title: 'راهنمای تقویم',
           steps: _calendarHelpSteps,
           buttonKey: const ValueKey('calendar-context-help'),
-          child: IranianOfficialCalendarPage(reminders: reminders),
+          child: IranianOfficialCalendarPage(
+            reminders: reminders,
+            onCompleteReminder: _completeReminder,
+            onSnoozeReminder: _snoozeReminder,
+            onEditReminder: _editReminder,
+          ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(
           selected: ArvinPrimaryDestination.calendar,
