@@ -1,0 +1,94 @@
+name: Arvin Calendar Provider Acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - '.github/workflows/calendar-provider-acceptance.yml'
+      - 'lib/services/calendar_provider_sync_executor.dart'
+      - 'lib/services/calendar_sync_plan_service.dart'
+      - 'lib/services/system_calendar_bridge.dart'
+      - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  android-calendar-provider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run real Calendar Provider acceptance or prove stock-emulator limitation
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            mkdir -p .github/calendar-provider-evidence
+            {
+              echo "HEAD_SHA=$(git rev-parse HEAD)"
+              echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+              echo "PROVIDER_DISCOVERY_BEGIN"
+              adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
+              echo "PROVIDER_DISCOVERY_END"
+            } | tee .github/calendar-provider-evidence/environment.txt
+
+            flutter build apk --debug -t lib/main.dart
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
+            adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+
+            flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} 2>&1 | tee .github/calendar-provider-evidence/test-output.txt
+
+            if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then
+              echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' | tee .github/calendar-provider-evidence/result.txt
+            elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then
+              echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' | tee .github/calendar-provider-evidence/result.txt
+            else
+              echo 'No explicit provider acceptance result was emitted.' >&2
+              exit 1
+            fi
+
+      - name: Publish exact-head provider evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-calendar-provider-acceptance-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .github/calendar-provider-evidence
+          if-no-files-found: error
