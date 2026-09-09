@@ -36,6 +36,14 @@ void main() {
     expect(find.byKey(const ValueKey('home-stat-active')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-done')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-notes')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-followups')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-today')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-future')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
 
