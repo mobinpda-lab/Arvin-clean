@@ -185,4 +185,24 @@ void main() {
     expect(reminders.single.id, 'followup:done:fu');
     expect(reminders.single.completed, isTrue);
   });
+
+  test('projects canonical FollowUp completion independently of parent task', () {
+    final reminder = projection.project(<Task>[
+      Task(
+        id: 'active-task',
+        title: 'کار فعال',
+        completed: false,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'done-followup',
+            dateTime: DateTime(2026, 9, 9, 12),
+            completed: true,
+          ),
+        ],
+      ),
+    ]).single;
+
+    expect(reminder.completed, isTrue);
+  });
+
 }
