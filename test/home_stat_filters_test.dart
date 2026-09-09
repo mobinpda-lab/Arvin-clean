@@ -11,7 +11,7 @@ void main() {
       'arvin.tasks': '[\n'
           '{"id":"active","title":"کار فعال","completed":false},\n'
           '{"id":"done","title":"کار انجام شده","completed":true},\n'
-          '{"id":"late","title":"کار عقب افتاده","completed":false,"followUpEnabled":true,"followUpDate":"2020-01-01T08:00:00.000"},\n'
+          '{"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n'
           '{"id":"archived","title":"کار بایگانی","archived":true}\n'
           ']',
     });
