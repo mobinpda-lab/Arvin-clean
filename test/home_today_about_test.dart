@@ -29,20 +29,20 @@ void main() {
           'id': 'today',
           'title': 'کار امروز',
           'followUpEnabled': true,
-          'followUpDate': today.toIso8601String(),
+          'dueDate': today.toIso8601String(),
         },
         {
           'id': 'tomorrow',
           'title': 'کار فردا',
           'followUpEnabled': true,
-          'followUpDate': tomorrow.toIso8601String(),
+          'dueDate': tomorrow.toIso8601String(),
         },
         {
           'id': 'completed',
           'title': 'کار انجام‌شده امروز',
           'completed': true,
           'followUpEnabled': true,
-          'followUpDate': today.toIso8601String(),
+          'dueDate': today.toIso8601String(),
         },
       ]),
     });

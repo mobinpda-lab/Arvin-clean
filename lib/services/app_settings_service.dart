@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum TaskSwipeAction { archive, trash, none }
+enum TaskSwipeAction { archive, trash, moveToToday, none }
 
 class CalendarIntegrationSettings {
   const CalendarIntegrationSettings({
