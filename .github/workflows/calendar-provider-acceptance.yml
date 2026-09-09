@@ -1,6 +1,15 @@
 name: Arvin Calendar Provider Acceptance
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - '.github/workflows/calendar-provider-acceptance.yml'
+      - 'lib/services/calendar_provider_sync_executor.dart'
+      - 'lib/services/calendar_sync_plan_service.dart'
+      - 'lib/services/system_calendar_bridge.dart'
+      - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
   pull_request:
     branches: [main]
     paths:
