@@ -60,7 +60,7 @@ class FollowUpCalendarProjection {
             id: reminderIdFor(task, followUp),
             title: note.isEmpty ? task.title : '${task.title} — $note',
             date: followUp.dateTime,
-            completed: task.completed,
+            completed: followUp.completed || task.completed,
           ),
         );
         taskDatesAlreadyProjected.add(followUp.dateTime);
