@@ -59,38 +59,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: |
-            set -eu
-            mkdir -p .github/calendar-provider-evidence
-            {
-              echo "HEAD_SHA=$(git rev-parse HEAD)"
-              echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
-              echo "PROVIDER_DISCOVERY_BEGIN"
-              adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
-              echo "PROVIDER_DISCOVERY_END"
-            } | tee .github/calendar-provider-evidence/environment.txt
-
-            flutter build apk --debug -t lib/main.dart
-            adb install -r build/app/outputs/flutter-apk/app-debug.apk
-            adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
-            adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
-
-            if flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; then
-              cat .github/calendar-provider-evidence/test-output.txt
-            else
-              rc=$?
-              cat .github/calendar-provider-evidence/test-output.txt
-              exit $rc
-            fi
-
-            if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then
-              echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' | tee .github/calendar-provider-evidence/result.txt
-            elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then
-              echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' | tee .github/calendar-provider-evidence/result.txt
-            else
-              echo 'No explicit provider acceptance result was emitted.' >&2
-              exit 1
-            fi
+          script: mkdir -p .github/calendar-provider-evidence && echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt && echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt && echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt && (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true) && echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt && flutter build apk --debug -t lib/main.dart && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell pm grant com.example.arvin android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; rc=$?; cat .github/calendar-provider-evidence/test-output.txt 2>/dev/null || true; if [ "$rc" -ne 0 ]; then exit "$rc"; fi; if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > .github/calendar-provider-evidence/result.txt; elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' > .github/calendar-provider-evidence/result.txt; else echo 'No explicit provider acceptance result was emitted.' >&2; exit 1; fi
 
       - name: Publish exact-head provider evidence
         uses: actions/upload-artifact@v4
