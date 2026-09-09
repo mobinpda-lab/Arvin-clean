@@ -1472,12 +1472,22 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            SizedBox(
+              height: 48,
               child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
+                    const Text(
+                      'کارهای من',
+                      style: TextStyle(
+                        color: Color(0xFF232433),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     FilterChip(
                       key: const ValueKey('home-scope-all'),
                       label: const Text('همه'),
@@ -1519,64 +1529,45 @@ class _HomePageState extends State<HomePage> {
                       selected: _dueScope == TaskDueScope.overdue,
                       onSelected: (_) => _selectDueScope(TaskDueScope.overdue),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-              child: Row(
-                children: [
-                  const Text('مرتب‌سازی:'),
-                  const SizedBox(width: 8),
-                  DropdownButton<TaskListSort>(
-                    key: const ValueKey('home-sort-selector'),
-                    value: _listSort,
-                    items: TaskListSort.values
-                        .map(
-                          (sort) => DropdownMenuItem<TaskListSort>(
-                            value: sort,
-                            child: Text(_sortLabel(sort)),
-                          ),
-                        )
-                        .toList(growable: false),
-                    onChanged: (sort) {
-                      if (sort != null) _setListSort(sort);
-                    },
-                  ),
-                  IconButton(
-                    key: const ValueKey('home-sort-direction'),
-                    tooltip: _sortDescending ? 'مرتب‌سازی صعودی' : 'مرتب‌سازی نزولی',
-                    onPressed: _toggleSortDirection,
-                    icon: Icon(
-                      _sortDescending
-                          ? Icons.arrow_downward_rounded
-                          : Icons.arrow_upward_rounded,
+                    const SizedBox(width: 12),
+                    const Text('مرتب‌سازی:'),
+                    const SizedBox(width: 6),
+                    DropdownButton<TaskListSort>(
+                      key: const ValueKey('home-sort-selector'),
+                      value: _listSort,
+                      items: TaskListSort.values
+                          .map(
+                            (sort) => DropdownMenuItem<TaskListSort>(
+                              value: sort,
+                              child: Text(_sortLabel(sort)),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (sort) {
+                        if (sort != null) _setListSort(sort);
+                      },
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
+                    IconButton(
+                      key: const ValueKey('home-sort-direction'),
+                      tooltip: _sortDescending
+                          ? 'مرتب‌سازی صعودی'
+                          : 'مرتب‌سازی نزولی',
+                      onPressed: _toggleSortDirection,
+                      icon: Icon(
+                        _sortDescending
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
                       ),
                     ),
-                  ),
-                  if (filter != 'کل')
-                    TextButton(
-                      onPressed: () => _selectHomeStat('کل'),
-                      child: const Text('مشاهده همه'),
-                    ),
-                ],
+                    if (filter != 'کل') ...[
+                      const SizedBox(width: 4),
+                      TextButton(
+                        onPressed: () => _selectHomeStat('کل'),
+                        child: const Text('مشاهده همه'),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             Expanded(
