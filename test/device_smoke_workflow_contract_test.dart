@@ -20,9 +20,16 @@ void main() {
     expect(workflow, contains('timeout-minutes: 20'));
     expect(
       workflow,
-      contains(
-        'flutter test integration_test/android_home_smoke_test.dart -d emulator-',
-      ),
+      contains('integration_test/android_home_smoke_test.dart'),
+    );
+    expect(
+      workflow,
+      contains('integration_test/android_quick_capture_smoke_test.dart'),
+    );
+    expect(
+      'flutter test'.allMatches(workflow.split('people-device-smoke:').first).length,
+      1,
+      reason: 'Home and Quick Capture must share one Flutter/DDS session',
     );
     expect(
       workflow,
