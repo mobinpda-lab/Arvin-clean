@@ -2,7 +2,7 @@ name: Arvin Final Head Release Validation
 
 on:
   workflow_run:
-    workflows: ['Arvin Production Orchestrator']
+    workflows: ['Arvin Release Closure']
     types: [completed]
   workflow_dispatch:
 
