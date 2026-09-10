@@ -27,24 +27,68 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const blocked = new Set(['do-not-merge','orchestrator:hold','orchestrator:manual','factory:blocked','factory:escalated']);
+            const hardBlocked = new Set(['do-not-merge','orchestrator:hold','orchestrator:manual','factory:escalated']);
+            const RETRYABLE_BLOCK_LABEL = 'factory:blocked';
+            const RETRY_COOLDOWN_MS = 15 * 60 * 1000;
             const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
             const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
             const currentMainSha = main.data.commit.sha;
             const releasedStale = new Set();
+            const recoveredBlocked = new Set();
+
+            function labelSet(issue) {
+              return new Set((issue.labels || []).map(x => typeof x === 'string' ? x : x.name));
+            }
+
+            async function openWorkerPr(issueNumber) {
+              const openPrs = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: 'open', head: `${owner}:ai/issue-${issueNumber}`, per_page: 100,
+              });
+              return openPrs.length > 0;
+            }
+
+            // Recover retryable dispatch blocks after a bounded cooldown. Previously
+            // factory:blocked was treated as a permanent exclusion, so one transient
+            // workflow-dispatch failure could leave the autonomous factory idle forever.
+            // Security/manual/escalated stops remain fail-closed and are never auto-cleared.
+            for (const issue of issues.filter(i => !i.pull_request)) {
+              const labels = labelSet(issue);
+              if ([...hardBlocked].some(l => labels.has(l))) continue;
+              if (!labels.has(RETRYABLE_BLOCK_LABEL)) continue;
+              if (labels.has('factory:leased') || labels.has('factory:in-progress')) continue;
+              if (await openWorkerPr(issue.number)) continue;
+
+              const updatedAt = Date.parse(issue.updated_at || issue.created_at || 0);
+              const ageMs = Number.isFinite(updatedAt) ? Date.now() - updatedAt : RETRY_COOLDOWN_MS;
+              if (ageMs < RETRY_COOLDOWN_MS) {
+                core.info(`#${issue.number}: retryable factory block cooling down (${Math.ceil((RETRY_COOLDOWN_MS - ageMs) / 60000)}m remaining).`);
+                continue;
+              }
+
+              await github.rest.issues.removeLabel({
+                owner, repo, issue_number: issue.number, name: RETRYABLE_BLOCK_LABEL,
+              }).catch(() => {});
+              await github.rest.issues.addLabels({
+                owner, repo, issue_number: issue.number, labels: ['factory:ready'],
+              });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issue.number,
+                body: `<!-- arvin-autonomous-block-recovery -->\nRetryable factory block recovered automatically after cooldown. Current main=${currentMainSha}. Permanent/manual/security stops were not bypassed.`
+              });
+              recoveredBlocked.add(issue.number);
+            }
 
             // Self-heal stale leases before deciding whether provider capacity is occupied.
             // A stale exact-main worker is required to fail closed, so a lease with no open
             // worker PR may be safely released once main has moved.
             for (const issue of issues.filter(i => !i.pull_request)) {
-              const labels = new Set((issue.labels || []).map(x => typeof x === 'string' ? x : x.name));
-              if ([...blocked].some(l => labels.has(l))) continue;
+              const labels = labelSet(issue);
+              if ([...hardBlocked].some(l => labels.has(l))) continue;
+              if (labels.has(RETRYABLE_BLOCK_LABEL) && !recoveredBlocked.has(issue.number)) continue;
               if (!labels.has('factory:leased') && !labels.has('factory:in-progress')) continue;
 
-              const openPrs = await github.paginate(github.rest.pulls.list, {
-                owner, repo, state: 'open', head: `${owner}:ai/issue-${issue.number}`, per_page: 100,
-              });
-              if (openPrs.length) continue;
+              const hasOpenWorkerPr = await openWorkerPr(issue.number);
+              if (hasOpenWorkerPr) continue;
 
               const comments = await github.paginate(github.rest.issues.listComments, {
                 owner, repo, issue_number: issue.number, per_page: 100,
@@ -66,8 +110,12 @@ jobs:
 
             const activeAiLease = issues
               .filter(i => !i.pull_request && !releasedStale.has(i.number))
-              .map(i => new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)))
-              .some(labels => ![...blocked].some(l => labels.has(l)) && (labels.has('factory:leased') || labels.has('factory:in-progress')));
+              .map(i => ({ issue: i, labels: labelSet(i) }))
+              .some(x =>
+                ![...hardBlocked].some(l => x.labels.has(l)) &&
+                (!x.labels.has(RETRYABLE_BLOCK_LABEL) || recoveredBlocked.has(x.issue.number)) &&
+                (x.labels.has('factory:leased') || x.labels.has('factory:in-progress'))
+              );
             if (activeAiLease) {
               core.info('An autonomous AI worker lease is already active; deferring new AI dispatch to avoid provider concurrency/429 pressure.');
               return;
@@ -75,15 +123,17 @@ jobs:
 
             const candidates = issues
               .filter(i => !i.pull_request)
-              .map(i => ({ issue: i, labels: new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name)) }))
+              .map(i => ({ issue: i, labels: labelSet(i) }))
               .filter(x => x.labels.has('factory:ready') || x.labels.has('arvin-auto') || x.labels.has('priority:release-blocker'))
-              .filter(x => ![...blocked].some(l => x.labels.has(l)))
+              .filter(x => ![...hardBlocked].some(l => x.labels.has(l)))
+              .filter(x => !x.labels.has(RETRYABLE_BLOCK_LABEL) || recoveredBlocked.has(x.issue.number))
               .filter(x => !x.labels.has('factory:leased') && !x.labels.has('factory:in-progress'))
               .sort((a,b) => {
                 const rank = s => s.has('priority:release-blocker') ? 0 : s.has('priority:core') ? 1 : s.has('priority:automation') ? 2 : s.has('priority:feature') ? 3 : 4;
                 return rank(a.labels) - rank(b.labels) || a.issue.number - b.issue.number;
               });
             if (!candidates.length) { core.info('No eligible ARVIN autonomous task.'); return; }
+
             // AI provider capacity is intentionally serialized. Deterministic lanes may run in parallel,
             // but the autonomous queue dispatches at most one AI worker per cycle to avoid 429 storms.
             for (const item of candidates.slice(0, 1)) {
@@ -97,9 +147,22 @@ jobs:
                 });
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-dispatch -->\nAI Code Worker dispatched for #${number}; exact-main snapshot=${main.data.commit.sha}.` });
               } catch (error) {
+                const status = Number(error?.status || 0);
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'factory:leased' }).catch(() => {});
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'factory:in-progress' }).catch(() => {});
-                await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:blocked'] });
-                await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `ARVIN Queue dispatch failed closed: ${error.message}` });
+
+                if ([401, 403, 404].includes(status)) {
+                  await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:escalated'] });
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: number,
+                    body: `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with non-retryable status ${status || 'unknown'}: ${error.message}. Manual/permission resolution is required; no automatic retry storm will occur.`
+                  });
+                } else {
+                  await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [RETRYABLE_BLOCK_LABEL] });
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: number,
+                    body: `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with retryable status ${status || 'unknown'}: ${error.message}. The queue will recover this block automatically after the bounded cooldown; no completion is claimed.`
+                  });
+                }
               }
             }
