@@ -1,0 +1,26 @@
+name: Arvin Task Dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Task identifier'
+        required: true
+        default: 'W1-001'
+
+jobs:
+  dispatch:
+    name: Dispatch Factory Task
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Task Event
+        run: echo "task_started:${{ inputs.task }}"
+
+      - name: Prepare Worker Assignment
+        run: echo "worker_assignment_ready"
+
+      - name: Execution Stream Update
+        run: echo "dispatcher_completed"
