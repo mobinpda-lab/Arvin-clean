@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [opened, synchronize, ready_for_review]
   workflow_run:
-    workflows: ["Arvin Build", "Arvin Device Smoke", "Arvin Parallel Wave"]
+    workflows: ["Arvin Build", "Arvin Device Smoke", "Arvin Parallel Wave", "ARVIN Test Worker"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -218,9 +218,6 @@ jobs:
             // workflows. Wake the canonical queue explicitly, but never dispatch the AI
             // worker from this feedback loop; the queue owns provider concurrency and leases.
             await github.rest.actions.createWorkflowDispatch({
-              owner,
-              repo,
-              workflow_id: 'arvin-autonomous-queue.yml',
-              ref: 'main',
+              owner, repo, workflow_id: 'arvin-autonomous-queue.yml', ref: 'main',
             });
             core.info(`Failure converted into Auto-Fix #${created.data.number} and handed to the canonical autonomous queue.`);
