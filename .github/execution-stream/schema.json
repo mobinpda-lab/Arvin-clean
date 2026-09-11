@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Arvin Execution Stream Event",
+  "type": "object",
+  "required": [
+    "event_id",
+    "timestamp",
+    "project",
+    "agent",
+    "component",
+    "task_id",
+    "event_type",
+    "status",
+    "message"
+  ],
+  "properties": {
+    "event_id": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "project": {"const": "ARVIN"},
+    "agent": {"type": "string"},
+    "component": {"type": "string"},
+    "task_id": {"type": "string"},
+    "event_type": {"type": "string"},
+    "status": {"enum": ["running", "success", "failed"]},
+    "message": {"type": "string"},
+    "metadata": {"type": "object"}
+  }
+}
