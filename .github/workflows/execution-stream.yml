@@ -1,0 +1,17 @@
+name: Arvin Execution Stream
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  execution-stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize execution stream
+        run: |
+          echo "Arvin Execution Stream active"
+          echo "Tracking commit: $GITHUB_SHA"
