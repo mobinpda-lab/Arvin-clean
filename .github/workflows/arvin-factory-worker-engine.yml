@@ -1,0 +1,29 @@
+name: Arvin Factory Worker Engine
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Factory task identifier'
+        required: true
+        default: 'W1-001'
+
+jobs:
+  worker-engine:
+    name: Execute Factory Worker Cycle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize Worker
+        run: echo "worker_started:${{ inputs.task }}"
+
+      - name: Execution Stream Event
+        run: echo "RUNNING:${{ inputs.task }}"
+
+      - name: Validation Gate
+        run: echo "Build -> Test -> Validation -> Release Gate"
+
+      - name: Worker Completion Event
+        run: echo "worker_cycle_ready"
