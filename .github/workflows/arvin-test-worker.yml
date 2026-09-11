@@ -23,6 +23,7 @@ env:
 
 jobs:
   test-worker:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.issue_number != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current main
