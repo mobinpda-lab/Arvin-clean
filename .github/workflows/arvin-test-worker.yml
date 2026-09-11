@@ -138,14 +138,15 @@ jobs:
           set -euo pipefail
           marker='<!-- arvin-test-worker-evidence -->'
           if ! gh issue view "$ISSUE_NUMBER" --comments --json comments --jq '.comments[].body' | grep -Fq "$marker"; then
-            gh issue comment "$ISSUE_NUMBER" --body "$marker
-
-### ARVIN Test Worker
-
-- Result: **PASS**
-- Commit/branch: \`test/issue-${ISSUE_NUMBER}\`
-- PR: ${PR_URL}
-- Targeted automation tests: **PASS**
-- Next gates: canonical CI → Build → Device → exact-head → Production Gate
-"
+            body="$(printf '%s\n' \
+              "$marker" \
+              "" \
+              "### ARVIN Test Worker" \
+              "" \
+              "- Result: **PASS**" \
+              "- Commit/branch: test/issue-${ISSUE_NUMBER}" \
+              "- PR: ${PR_URL}" \
+              "- Targeted automation tests: **PASS**" \
+              "- Next gates: canonical CI → Build → Device → exact-head → Production Gate")"
+            gh issue comment "$ISSUE_NUMBER" --body "$body"
           fi
