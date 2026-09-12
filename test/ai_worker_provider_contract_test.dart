@@ -27,7 +27,7 @@ void main() {
     expect(workflow, contains('--add-label factory:blocked'));
     expect(workflow, contains('canonical retryable factory cooldown'));
     expect(queue, contains("const RETRYABLE_BLOCK_LABEL = 'factory:blocked';"));
-    expect(queue, contains('const RETRY_COOLDOWN_MS = 15 * 60 * 1000;'));
+    expect(queue, contains('const RETRY_COOLDOWN_MS = 5 * 60 * 1000;'));
 
     expect(runtime, contains('def model_response(prompt, timeout_seconds):'));
     expect(runtime, contains('OPENAI_API_KEY'));
