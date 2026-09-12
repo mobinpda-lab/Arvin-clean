@@ -49,6 +49,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<String> _tags;
   late String? _category;
   late String? _selectedProjectId;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -256,6 +257,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   void _save() {
+    if (_saving) return;
+    _saving = true;
     final pendingTag = _tagController.text.trim();
     if (pendingTag.isNotEmpty && !_tags.contains(pendingTag)) {
       _tags.add(pendingTag);
@@ -374,289 +377,290 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         if (!didPop) _requestClose();
       },
       child: Dialog(
-      key: const ValueKey('arvin-task-editor-dialog'),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-      backgroundColor: Colors.transparent,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 430),
-        child: Material(
-          color: const Color(0xFFFDFDFF),
-          elevation: 10,
-          shadowColor: Colors.black26,
-          borderRadius: BorderRadius.circular(28),
-          clipBehavior: Clip.antiAlias,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        editing ? 'ویرایش کار' : 'کار جدید',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF242438),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'بستن',
-                      onPressed: _requestClose,
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                TextField(
-                  key: const ValueKey('task-editor-title'),
-                  controller: _titleController,
-                  textInputAction: TextInputAction.next,
-                  decoration: _fieldDecoration(
-                    label: 'عنوان',
-                    hint: 'عنوان کار را بنویسید',
-                  ),
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  key: const ValueKey('task-editor-description'),
-                  controller: _descriptionController,
-                  minLines: 3,
-                  maxLines: 5,
-                  decoration: _fieldDecoration(
-                    label: 'توضیحات',
-                    hint: 'توضیحات را وارد کنید…',
-                  ),
-                ),
-                const SizedBox(height: 14),
-                TaskCategoryField(
-                  value: _category,
-                  knownCategories: widget.knownCategories,
-                  onChanged: (value) => setState(() => _category = value),
-                ),
-                if (widget.projects.isNotEmpty || _selectedProjectId != null) ...[
-                  const SizedBox(height: 16),
-                  ProjectSelectorField(
-                    projects: widget.projects,
-                    selectedProjectId: _selectedProjectId,
-                    onChanged: (value) =>
-                        setState(() => _selectedProjectId = value),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        key: const ValueKey('task-editor-tag'),
-                        controller: _tagController,
-                        onSubmitted: (_) => _addTag(),
-                        decoration: _fieldDecoration(
-                          label: 'برچسب',
-                          hint: 'مثلاً مشتری، جلسه، مهم',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 52,
-                      height: 52,
-                      child: FilledButton(
-                        key: const ValueKey('task-editor-add-tag'),
-                        onPressed: _addTag,
-                        style: FilledButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          backgroundColor: _softBrand,
-                          foregroundColor: _brand,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Icon(Icons.add),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_tags.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _tags
-                        .map(
-                          (item) => InputChip(
-                            label: Text(item),
-                            backgroundColor: _softBrand,
-                            side: BorderSide.none,
-                            deleteIconColor: _brand,
-                            onDeleted: () =>
-                                setState(() => _tags.remove(item)),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-                const SizedBox(height: 18),
-                Container(
-                  key: const ValueKey('task-editor-followup-block'),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F7FF),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE8E6F7)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+        key: const ValueKey('arvin-task-editor-dialog'),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        backgroundColor: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Material(
+            color: const Color(0xFFFDFDFF),
+            elevation: 10,
+            shadowColor: Colors.black26,
+            borderRadius: BorderRadius.circular(28),
+            clipBehavior: Clip.antiAlias,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
                     children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: CheckboxListTile(
-                          key: const ValueKey('task-editor-followup-enabled'),
-                          value: _followUpEnabled,
-                          onChanged: (value) =>
-                              _setFollowUpEnabled(value ?? false),
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          activeColor: _brand,
-                          title: const Text(
-                            'کار پیگیری‌دار',
+                      Expanded(
+                        child: Text(
+                          editing ? 'ویرایش کار' : 'کار جدید',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF242438),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'بستن',
+                        onPressed: _requestClose,
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    key: const ValueKey('task-editor-title'),
+                    controller: _titleController,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _save(),
+                    decoration: _fieldDecoration(
+                      label: 'عنوان',
+                      hint: 'عنوان کار را بنویسید',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    key: const ValueKey('task-editor-description'),
+                    controller: _descriptionController,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: _fieldDecoration(
+                      label: 'توضیحات',
+                      hint: 'توضیحات را وارد کنید…',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TaskCategoryField(
+                    value: _category,
+                    knownCategories: widget.knownCategories,
+                    onChanged: (value) => setState(() => _category = value),
+                  ),
+                  if (widget.projects.isNotEmpty || _selectedProjectId != null) ...[
+                    const SizedBox(height: 16),
+                    ProjectSelectorField(
+                      projects: widget.projects,
+                      selectedProjectId: _selectedProjectId,
+                      onChanged: (value) =>
+                          setState(() => _selectedProjectId = value),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const ValueKey('task-editor-tag'),
+                          controller: _tagController,
+                          onSubmitted: (_) => _addTag(),
+                          decoration: _fieldDecoration(
+                            label: 'برچسب',
+                            hint: 'مثلاً مشتری، جلسه، مهم',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: FilledButton(
+                          key: const ValueKey('task-editor-add-tag'),
+                          onPressed: _addTag,
+                          style: FilledButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: _softBrand,
+                            foregroundColor: _brand,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          child: const Icon(Icons.add),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_tags.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _tags
+                          .map(
+                            (item) => InputChip(
+                              label: Text(item),
+                              backgroundColor: _softBrand,
+                              side: BorderSide.none,
+                              deleteIconColor: _brand,
+                              onDeleted: () =>
+                                  setState(() => _tags.remove(item)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  Container(
+                    key: const ValueKey('task-editor-followup-block'),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F7FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE8E6F7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: CheckboxListTile(
+                            key: const ValueKey('task-editor-followup-enabled'),
+                            value: _followUpEnabled,
+                            onChanged: (value) =>
+                                _setFollowUpEnabled(value ?? false),
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            activeColor: _brand,
+                            title: const Text(
+                              'کار پیگیری‌دار',
+                              style: TextStyle(
+                                color: _brand,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: const Text(
+                              'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                            ),
+                          ),
+                        ),
+                        if (!_followUpEnabled && hasHistory)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4, bottom: 6),
+                            child: Text(
+                              'سوابق پیگیری قبلی حفظ می‌شوند.',
+                              style: TextStyle(
+                                color: Color(0xFF77778A),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        if (_followUpEnabled) ...[
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'زمان پیگیری',
+                                  style: TextStyle(
+                                    color: Color(0xFF77778A),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              if (followUp != null)
+                                TextButton.icon(
+                                  key: const ValueKey('task-editor-clear-followup'),
+                                  onPressed: _clearFollowUpTime,
+                                  icon: const Icon(Icons.close, size: 17),
+                                  label: const Text('حذف زمان'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final dateButton = _dateTimeButton(
+                                key: const ValueKey('task-editor-date'),
+                                label: 'تاریخ',
+                                value: followUp == null
+                                    ? 'انتخاب تاریخ'
+                                    : _dateText(followUp),
+                                icon: Icons.calendar_month_outlined,
+                                onTap: _pickDate,
+                              );
+                              final timeButton = _dateTimeButton(
+                                key: const ValueKey('task-editor-time'),
+                                label: 'ساعت',
+                                value: followUp == null
+                                    ? 'انتخاب ساعت'
+                                    : _timeText(followUp),
+                                icon: Icons.schedule_outlined,
+                                onTap: _pickTime,
+                              );
+
+                              if (constraints.maxWidth < 320) {
+                                return Column(
+                                  children: [
+                                    dateButton,
+                                    const SizedBox(height: 10),
+                                    timeButton,
+                                  ],
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  Expanded(child: dateButton),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: timeButton),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: FilledButton(
+                          key: const ValueKey('task-editor-save'),
+                          onPressed: _save,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _brand,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(17),
+                            ),
+                          ),
+                          child: const Text(
+                            'ذخیره',
                             style: TextStyle(
-                              color: _brand,
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
                             ),
                           ),
-                          subtitle: const Text(
-                            'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
-                          ),
                         ),
                       ),
-                      if (!_followUpEnabled && hasHistory)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4, bottom: 6),
-                          child: Text(
-                            'سوابق پیگیری قبلی حفظ می‌شوند.',
-                            style: TextStyle(
-                              color: Color(0xFF77778A),
-                              fontSize: 12,
-                            ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          key: const ValueKey('task-editor-cancel'),
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            foregroundColor: _brand,
                           ),
+                          child: const Text('لغو'),
                         ),
-                      if (_followUpEnabled) ...[
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'زمان پیگیری',
-                                style: TextStyle(
-                                  color: Color(0xFF77778A),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            if (followUp != null)
-                              TextButton.icon(
-                                key: const ValueKey('task-editor-clear-followup'),
-                                onPressed: _clearFollowUpTime,
-                                icon: const Icon(Icons.close, size: 17),
-                                label: const Text('حذف زمان'),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final dateButton = _dateTimeButton(
-                              key: const ValueKey('task-editor-date'),
-                              label: 'تاریخ',
-                              value: followUp == null
-                                  ? 'انتخاب تاریخ'
-                                  : _dateText(followUp),
-                              icon: Icons.calendar_month_outlined,
-                              onTap: _pickDate,
-                            );
-                            final timeButton = _dateTimeButton(
-                              key: const ValueKey('task-editor-time'),
-                              label: 'ساعت',
-                              value: followUp == null
-                                  ? 'انتخاب ساعت'
-                                  : _timeText(followUp),
-                              icon: Icons.schedule_outlined,
-                              onTap: _pickTime,
-                            );
-
-                            if (constraints.maxWidth < 320) {
-                              return Column(
-                                children: [
-                                  dateButton,
-                                  const SizedBox(height: 10),
-                                  timeButton,
-                                ],
-                              );
-                            }
-
-                            return Row(
-                              children: [
-                                Expanded(child: dateButton),
-                                const SizedBox(width: 10),
-                                Expanded(child: timeButton),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: FilledButton(
-                        key: const ValueKey('task-editor-save'),
-                        onPressed: _save,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _brand,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(17),
-                          ),
-                        ),
-                        child: const Text(
-                          'ذخیره',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextButton(
-                        key: const ValueKey('task-editor-cancel'),
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          foregroundColor: _brand,
-                        ),
-                        child: const Text('لغو'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
