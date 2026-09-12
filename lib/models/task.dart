@@ -1,6 +1,8 @@
 import 'person_reference.dart';
 import 'recurrence.dart';
 
+enum TaskPriority { none, low, medium, high }
+
 class FollowUp {
   final String id;
   final DateTime dateTime;
@@ -70,6 +72,7 @@ class Task {
     this.category,
     this.checklist = const [],
     this.reminderDate,
+    this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -90,6 +93,7 @@ class Task {
   String? category;
   List<String> checklist;
   DateTime? reminderDate;
+  TaskPriority priority;
   bool archived;
   bool trashed;
   bool completed;
@@ -158,6 +162,7 @@ class Task {
         'category': category,
         'checklist': checklist,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -179,6 +184,11 @@ class Task {
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
+    final priorityName = json['priority'] as String?;
+    final loadedPriority = TaskPriority.values.firstWhere(
+      (value) => value.name == priorityName,
+      orElse: () => TaskPriority.none,
+    );
 
     return Task(
       id: json['id'] as String? ?? '',
@@ -206,6 +216,7 @@ class Task {
       reminderDate: json['reminderDate'] == null
           ? null
           : DateTime.tryParse(json['reminderDate'] as String),
+      priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
