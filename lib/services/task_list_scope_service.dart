@@ -17,11 +17,14 @@ class TaskListScopeService {
     return tasks.where((task) {
       if (task.archived || task.trashed) return false;
 
+      final hasFollowUp = task.followUpEnabled ||
+          task.followUpDate != null ||
+          task.followUps.isNotEmpty;
+
       return switch (scope) {
         TaskListScope.all => true,
-        TaskListScope.simpleNotes => task.isSimpleNote,
-        TaskListScope.followUpEnabled =>
-          task.followUpEnabled || task.followUps.isNotEmpty,
+        TaskListScope.simpleNotes => !hasFollowUp,
+        TaskListScope.followUpEnabled => hasFollowUp,
       };
     }).toList(growable: false);
   }
