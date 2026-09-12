@@ -4,67 +4,70 @@ Date: 2026-09-12
 
 ## Purpose
 
-This document is a current-state cleanup map for Arvin. It exists to prevent historical implementation slices, old migration boundaries, factory automation and product work from being treated as one active implementation path.
+This is the current-state map for repository cleanup. It separates executable product code, transitional migration code, historical documentation and factory automation.
 
-## Authority
+## Active authority
 
 - GitHub `main` is the executable source of truth.
-- `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 is the active governance reference.
+- `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 is the active production/governance reference.
 - `docs/ARVIN_PROJECT_STATE.md` is the current-state index.
-- Historical and dated documents are evidence only unless explicitly promoted.
+- Dated/historical documents are evidence, not competing active authorities.
 
-## Verified canonical product storage
+## Current canonical Task storage
 
-`lib/services/task_store.dart` is the current canonical Task persistence path used by `lib/main.dart`.
+`lib/services/task_store.dart` is the current Task persistence path used by `lib/main.dart`.
 
-- Storage key: `arvin.tasks`
-- Home owns `List<Task>` state.
-- Home saves through `TaskStore.save(...)`.
-- Mutating feature services can use `TaskStore.mutate(...)`.
-- No second Task model or second persistence key should be introduced.
+- key: `arvin.tasks`
+- Home state: `List<Task>`
+- normal save: `TaskStore.save(...)`
+- atomic mutation: `TaskStore.mutate(...)`
+- no second Task model/store/key is permitted.
 
-## Verified transitional / historical migration layer
+## Transitional migration layer
 
-The following remain in the repository but are not the current Home write/read path:
+These files still exist and are referenced by migration tests/integration seeding and historical material:
 
 - `lib/services/task_migration_reader.dart`
 - `lib/services/task_migration_writer.dart`
 - `lib/services/task_migration_adapter.dart`
 
-They are still referenced by migration-oriented tests, integration seeding and historical documentation. They must not be described as the active Home persistence authority.
+They are not the current Home persistence authority. They must not be used to introduce a second runtime storage path.
 
 ## Confirmed documentation drift
 
-Several dated documents still describe `TaskMigrationReader`/`TaskMigrationWriter` as the active Home boundary even though current `main.dart` uses `TaskStore`. This is documentation drift, not proof that two runtime stores are active.
+Several dated documents still describe `TaskMigrationReader`/`TaskMigrationWriter` as the active Home boundary, while the current Home code uses `TaskStore`. This is documentation drift, not proof of two active runtime stores.
 
-The repository should preserve these documents as historical evidence rather than deleting them blindly. New work must link to the current canonical state instead.
+Historical documents should be preserved unless a safe replacement is available. When a touched area is updated, its documentation must point to the current implementation.
 
-## Product conflict identified
+## Product integration conflict
 
-PR #885 creates the Wave 2 coordinator:
+PR #885 contains the Wave 2 coordinator and reuses existing services:
 
-- `lib/services/wave2_product_fast_track.dart`
-- existing `HomeTaskEditorContextService`
-- existing `TaskProjectAssignmentService`
+- `Wave2ProductFastTrack`
+- `HomeTaskEditorContextService`
+- `TaskProjectAssignmentService`
 
-The coordinator is not yet wired into the real Home `_add()` / `_edit()` path on `main`. Therefore the repository currently contains a prepared Wave 2 path alongside the older direct editor calls.
+The current Home `_add()` / `_edit()` path is still directly opening `ArvinTaskEditorDialog`. Therefore the prepared Wave 2 path has not yet become the real product path.
 
-This is the immediate product integration boundary. It must be completed before adding another Task-entry abstraction.
+Next product-critical sequence:
 
-## Quick Capture rule
+`Home +/Edit -> canonical Task Editor -> project/category context -> TaskStore save -> project assignment -> focused tests -> Analyze/Test -> APK Build -> Device Smoke`
 
-`QuickCaptureDialog` and `QuickCaptureService` may remain because they reuse the canonical `Task` model and `TaskStore` persistence. They are not a separate storage system. They must not evolve into a second Task-entry persistence architecture.
+No new Task-entry architecture should be created for this.
 
-## Factory rule
+## Quick Capture
 
-`.github/workflows/*factory*`, autonomous queue infrastructure and factory-only PRs are supporting mechanisms. They are not the product completion target. Factory changes must not outrank a product release blocker.
+`QuickCaptureDialog` and `QuickCaptureService` may remain because they reuse the canonical `Task` model and `TaskStore` persistence. They are a fast entry surface, not a second persistence system.
 
-## Cleanup policy
+## Factory
 
-1. Do not delete historical evidence solely because it is old.
-2. Do not maintain two active architectural authorities.
-3. Do not create another Task model, Task store or persistence key.
-4. Prefer small reversible cleanup PRs.
-5. Resolve documentation contradictions when touching the affected area.
-6. Product work proceeds independently of factory perfection.
-7. The next product-critical integration is Wave 2 Home Add/Edit wiring, followed by exact-head Analyze/Test/Build/Device Smoke.
+Factory workflows and autonomous queues are supporting mechanisms. Factory completion is not the product goal. Factory work must not outrank a product release blocker.
+
+## Cleanup rules
+
+1. Keep one active Task model and one active Task storage path.
+2. Keep historical evidence, but never treat it as current implementation.
+3. Reuse existing product services before creating new abstractions.
+4. Make cleanup changes small, reversible and PR-based.
+5. Validate product changes at the exact commit before integration.
+6. Product completion has priority over factory completion.
