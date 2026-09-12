@@ -31,6 +31,7 @@ import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_interactive_guide.dart';
+import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
 void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
@@ -162,6 +163,7 @@ class _HomePageState extends State<HomePage> {
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
+  String? _categoryFilter;
   TaskListSort _listSort = TaskListSort.date;
   bool _sortDescending = false;
 
@@ -253,7 +255,7 @@ class _HomePageState extends State<HomePage> {
           key: _filtersGuideKey,
           title: 'فیلتر کارها',
           description:
-              'با این بخش بین کارهای فعال، بایگانی و سطل زباله جابه‌جا می‌شوید.',
+              'کارت‌های وضعیت را لمس کنید یا از «بیشتر → کارهای من» برای فیلترهای کامل استفاده کنید.',
           icon: Icons.filter_alt_outlined,
         ),
         HomeGuideTarget(
@@ -271,6 +273,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
+
+  List<String> get _homeCategories {
+    final values = tasks
+        .map((task) => task.category?.trim())
+        .whereType<String>()
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return values;
+  }
 
   Future<void> _save() {
     if (loadFailure != null) {
@@ -304,6 +317,10 @@ class _HomePageState extends State<HomePage> {
           scope: dueScope,
         );
       }
+      final category = _categoryFilter;
+      if (category != null) {
+        scoped = scoped.where((task) => task.category?.trim() == category);
+      }
     }
 
     final result = scoped.where((task) {
@@ -332,14 +349,17 @@ class _HomePageState extends State<HomePage> {
   String get _emptyVisibleLabel {
     if (filter == 'سطل زباله') return 'سطل زباله خالی است';
     if (filter == 'بایگانی') return 'بایگانی خالی است';
+    if (_categoryFilter != null) {
+      return 'کاری در دسته «$_categoryFilter» وجود ندارد';
+    }
     if (_dueScope == TaskDueScope.today) return 'کاری برای امروز وجود ندارد';
     if (_dueScope == TaskDueScope.future) return 'کار آینده‌ای وجود ندارد';
     if (_dueScope == TaskDueScope.overdue) return 'کار عقب‌افتاده‌ای وجود ندارد';
     if (_listScope == TaskListScope.simpleNotes) {
-      return 'یادداشتی برای نمایش وجود ندارد';
+      return 'کار بدون پیگیری برای نمایش وجود ندارد';
     }
     if (_listScope == TaskListScope.followUpEnabled) {
-      return 'کار دارای پیگیری برای نمایش وجود ندارد';
+      return 'کار پیگیری‌دار برای نمایش وجود ندارد';
     }
     if (filter == 'انجام‌شده') return 'کار انجام‌شده‌ای وجود ندارد';
     return 'کاری برای نمایش وجود ندارد';
@@ -660,6 +680,7 @@ class _HomePageState extends State<HomePage> {
   void _selectHomeStat(String nextFilter) {
     setState(() {
       _listScope = TaskListScope.all;
+      _categoryFilter = null;
       if (nextFilter == 'امروز') {
         filter = 'کل';
         _dueScope = TaskDueScope.today;
@@ -680,6 +701,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = scope;
       _dueScope = null;
+      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -690,6 +712,18 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = scope;
+      _categoryFilter = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  void _selectCategory(String category) {
+    setState(() {
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _categoryFilter = category;
       selected.clear();
       selectionMode = false;
     });
@@ -1002,6 +1036,39 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openMyTasks() async {
+    final selection = await showHomeMyTasksSheet(
+      context: context,
+      categories: _homeCategories,
+    );
+    if (selection == null || !mounted) return;
+
+    switch (selection.kind) {
+      case HomeTaskFilterKind.all:
+        _selectHomeStat('کل');
+        return;
+      case HomeTaskFilterKind.today:
+        _selectDueScope(TaskDueScope.today);
+        return;
+      case HomeTaskFilterKind.followUp:
+        _selectListScope(TaskListScope.followUpEnabled);
+        return;
+      case HomeTaskFilterKind.withoutFollowUp:
+        _selectListScope(TaskListScope.simpleNotes);
+        return;
+      case HomeTaskFilterKind.completed:
+        _selectHomeStat('انجام‌شده');
+        return;
+      case HomeTaskFilterKind.incomplete:
+        _selectHomeStat('فعال');
+        return;
+      case HomeTaskFilterKind.category:
+        final category = selection.category;
+        if (category != null) _selectCategory(category);
+        return;
+    }
+  }
+
   Future<void> _openPrimaryMore() async {
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
@@ -1022,6 +1089,13 @@ class _HomePageState extends State<HomePage> {
                 title: const Text('ثبت سریع'),
                 onTap: () =>
                     Navigator.of(sheetContext).pop(_HomeMoreAction.quickCapture),
+              ),
+              ListTile(
+                key: const ValueKey('home-more-my-tasks'),
+                leading: const Icon(Icons.task_alt_outlined),
+                title: const Text('کارهای من'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
               ),
               const Divider(),
               ListTile(
@@ -1065,6 +1139,9 @@ class _HomePageState extends State<HomePage> {
     switch (action) {
       case _HomeMoreAction.quickCapture:
         await _quickCapture();
+        return;
+      case _HomeMoreAction.myTasks:
+        await _openMyTasks();
         return;
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -1292,11 +1369,12 @@ class _HomePageState extends State<HomePage> {
       Color accent,
       String keyName,
     ) {
-      final isSelected = target == 'عقب‌افتاده'
-          ? _dueScope == TaskDueScope.overdue
-          : filter == target &&
-              _dueScope == null &&
-              _listScope == TaskListScope.all;
+      final isSelected = _categoryFilter == null &&
+          (target == 'عقب‌افتاده'
+              ? _dueScope == TaskDueScope.overdue
+              : filter == target &&
+                  _dueScope == null &&
+                  _listScope == TaskListScope.all);
       return Semantics(
         key: ValueKey(keyName),
         button: true,
@@ -1509,57 +1587,6 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    const Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    FilterChip(
-                      key: const ValueKey('home-scope-all'),
-                      label: const Text('همه'),
-                      selected: _listScope == TaskListScope.all && _dueScope == null,
-                      onSelected: (_) => _selectListScope(TaskListScope.all),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      key: const ValueKey('home-scope-notes'),
-                      label: const Text('یادداشت‌ها'),
-                      selected: _listScope == TaskListScope.simpleNotes && _dueScope == null,
-                      onSelected: (_) => _selectListScope(TaskListScope.simpleNotes),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      key: const ValueKey('home-scope-followups'),
-                      label: const Text('دارای پیگیری'),
-                      selected: _listScope == TaskListScope.followUpEnabled && _dueScope == null,
-                      onSelected: (_) => _selectListScope(TaskListScope.followUpEnabled),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      key: const ValueKey('home-scope-today'),
-                      label: const Text('امروز'),
-                      selected: _dueScope == TaskDueScope.today,
-                      onSelected: (_) => _selectDueScope(TaskDueScope.today),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      key: const ValueKey('home-scope-future'),
-                      label: const Text('آینده'),
-                      selected: _dueScope == TaskDueScope.future,
-                      onSelected: (_) => _selectDueScope(TaskDueScope.future),
-                    ),
-                    const SizedBox(width: 6),
-                    FilterChip(
-                      key: const ValueKey('home-scope-overdue'),
-                      label: const Text('عقب‌افتاده'),
-                      selected: _dueScope == TaskDueScope.overdue,
-                      onSelected: (_) => _selectDueScope(TaskDueScope.overdue),
-                    ),
-                    const SizedBox(width: 12),
                     const Text('مرتب‌سازی:'),
                     const SizedBox(width: 6),
                     DropdownButton<TaskListSort>(
@@ -1589,11 +1616,15 @@ class _HomePageState extends State<HomePage> {
                             : Icons.arrow_upward_rounded,
                       ),
                     ),
-                    if (filter != 'کل') ...[
+                    if (filter != 'کل' ||
+                        _listScope != TaskListScope.all ||
+                        _dueScope != null ||
+                        _categoryFilter != null) ...[
                       const SizedBox(width: 4),
                       TextButton(
+                        key: const ValueKey('home-clear-task-filter'),
                         onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('مشاهده همه'),
+                        child: const Text('پاک کردن فیلتر'),
                       ),
                     ],
                   ],
@@ -1643,12 +1674,14 @@ class _HomePageState extends State<HomePage> {
                               ),
                             )
                           : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                          itemCount: visible.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (_, index) => _taskCard(visible[index]),
-                        ),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                              itemCount: visible.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (_, index) =>
+                                  _taskCard(visible[index]),
+                            ),
             ),
           ],
         ),
@@ -1690,6 +1723,7 @@ class _HomePageState extends State<HomePage> {
 
 enum _HomeMoreAction {
   quickCapture,
+  myTasks,
   today,
   archive,
   trash,
@@ -1697,7 +1731,6 @@ enum _HomeMoreAction {
   settings,
   about,
 }
-
 
 /// Backward-compatible public entry retained for existing callers/tests.
 /// The live implementation is the Home-aligned Arvin task editor.
