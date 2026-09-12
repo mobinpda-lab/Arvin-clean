@@ -29,4 +29,17 @@ void main() {
     expect(controller, contains("labels: ['factory:ready']"));
     expect(controller, contains("workflow_id: 'arvin-autonomous-queue.yml'"));
   });
+
+  test('bootstrap hold releases only after auto-close contract reaches main', () {
+    final controller = File(
+      '.github/workflows/arvin-recovery-wave-controller.yml',
+    ).readAsStringSync();
+
+    expect(controller, contains('arvin-auto-advance-bootstrap-hold'));
+    expect(controller, contains("workerAutoCloseToken = 'Closes #\$ARVIN_ISSUE_NUMBER'"));
+    expect(controller, contains("path: '.github/workflows/arvin-agent-worker.yml'"));
+    expect(controller, contains("name: 'orchestrator:hold'"));
+    expect(controller, contains('arvin-auto-advance-bootstrap-released'));
+    expect(controller, contains('Manual owner'));
+  });
 }
