@@ -44,19 +44,26 @@ void main() {
     expect(original.updatedAt, changedAt);
   });
 
-  test('deleting category only clears assignment and never deletes item', () {
+  test('referenced category cannot be destructively deleted', () {
     final tasks = [
       task(id: '1', category: 'فروش'),
       task(id: '2', category: 'فروش'),
       task(id: '3', category: 'شخصی'),
     ];
 
-    final changed = service.deleteCategory(tasks, 'فروش');
+    expect(
+      () => service.deleteCategory(tasks, 'فروش'),
+      throwsA(
+        isA<TaskTaxonomyDeleteBlocked>()
+            .having((error) => error.kind, 'kind', 'category')
+            .having((error) => error.value, 'value', 'فروش')
+            .having((error) => error.referenceCount, 'referenceCount', 2),
+      ),
+    );
 
-    expect(changed, 2);
     expect(tasks, hasLength(3));
-    expect(tasks[0].category, isNull);
-    expect(tasks[1].category, isNull);
+    expect(tasks[0].category, 'فروش');
+    expect(tasks[1].category, 'فروش');
     expect(tasks[2].category, 'شخصی');
   });
 
@@ -75,19 +82,40 @@ void main() {
     expect(tasks[2].tags, ['دیگر']);
   });
 
-  test('deleting tag removes association only from matching items', () {
+  test('referenced tag cannot be destructively deleted', () {
     final tasks = [
       task(id: '1', tags: ['مهم', 'فروش']),
       task(id: '2', tags: ['فروش']),
       task(id: '3', tags: ['شخصی']),
     ];
 
-    final changed = service.deleteTag(tasks, 'فروش');
+    expect(
+      () => service.deleteTag(tasks, 'فروش'),
+      throwsA(
+        isA<TaskTaxonomyDeleteBlocked>()
+            .having((error) => error.kind, 'kind', 'tag')
+            .having((error) => error.value, 'value', 'فروش')
+            .having((error) => error.referenceCount, 'referenceCount', 2),
+      ),
+    );
 
-    expect(changed, 2);
-    expect(tasks[0].tags, ['مهم']);
-    expect(tasks[1].tags, isEmpty);
+    expect(tasks[0].tags, ['مهم', 'فروش']);
+    expect(tasks[1].tags, ['فروش']);
     expect(tasks[2].tags, ['شخصی']);
+  });
+
+  test('usage counters include canonical Task/Note references', () {
+    final tasks = [
+      task(id: '1', category: 'فروش', tags: ['مهم']),
+      task(id: '2', category: 'فروش', tags: ['مهم', 'دیگر']),
+      task(id: '3', category: 'شخصی', tags: ['دیگر']),
+    ];
+
+    expect(service.categoryUsageCount(tasks, 'فروش'), 2);
+    expect(service.categoryUsageCount(tasks, 'ناموجود'), 0);
+    expect(service.tagUsageCount(tasks, 'مهم'), 2);
+    expect(service.tagUsageCount(tasks, 'دیگر'), 2);
+    expect(service.tagUsageCount(tasks, 'ناموجود'), 0);
   });
 
   test('blank or no-op taxonomy changes do nothing', () {
