@@ -19,6 +19,8 @@ class TaskEditApplyService {
     target.category = edited.category;
     target.checklist = List<String>.of(edited.checklist);
     target.reminderDate = edited.reminderDate;
+    target.priority = edited.priority;
+    target.completed = edited.completed;
     target.recurrence = edited.recurrence;
     target.updatedAt = _now();
   }
