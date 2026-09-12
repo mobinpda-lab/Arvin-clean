@@ -7,7 +7,9 @@ import 'services/task_taxonomy_mutation_service.dart';
 /// User-facing management for the canonical Task category/tag fields.
 ///
 /// This page owns no taxonomy database. Categories and tags are derived from
-/// canonical Tasks and every rename/delete is persisted through [TaskStore].
+/// canonical Tasks. Renames are persisted through [TaskStore], while deletion
+/// fails closed whenever a category/tag is still referenced by any canonical
+/// Task/Note item.
 class TaskTaxonomyManagementPage extends StatefulWidget {
   const TaskTaxonomyManagementPage({
     super.key,
@@ -126,30 +128,6 @@ class _TaskTaxonomyManagementPageState
     return result;
   }
 
-  Future<bool> _confirmDelete({
-    required String title,
-    required String message,
-  }) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('لغو'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('حذف'),
-              ),
-            ],
-          ),
-        ) ==
-        true;
-  }
-
   Future<void> _persistMutation(int changed, String successMessage) async {
     if (changed == 0 || saving) return;
     setState(() => saving = true);
@@ -194,19 +172,26 @@ class _TaskTaxonomyManagementPageState
     await _persistMutation(changed, '$changed مورد به «$next» منتقل شد');
   }
 
-  Future<void> _deleteCategory(String category) async {
+  void _showDeleteBlocked(TaskTaxonomyDeleteBlocked error) {
+    final kind = error.kind == 'category' ? 'دسته' : 'برچسب';
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '$kind «${error.value}» در ${error.referenceCount} مورد استفاده می‌شود و قابل حذف نیست. ابتدا موارد را منتقل/تغییرنام دهید.',
+          ),
+        ),
+      );
+  }
+
+  void _deleteCategory(String category) {
     if (saving) return;
-    final approved = await _confirmDelete(
-      title: 'حذف دسته',
-      message:
-          'دسته «$category» حذف شود؟ خود کارها و یادداشت‌ها حذف نمی‌شوند و فقط بدون دسته می‌مانند.',
-    );
-    if (!approved || !mounted) return;
-    setState(() {
-      _pendingChanged = mutationService.deleteCategory(tasks, category);
-    });
-    final changed = _takePendingChanged();
-    await _persistMutation(changed, 'دسته از $changed مورد برداشته شد');
+    try {
+      mutationService.deleteCategory(tasks, category);
+    } on TaskTaxonomyDeleteBlocked catch (error) {
+      _showDeleteBlocked(error);
+    }
   }
 
   Future<void> _renameTag(String tag) async {
@@ -228,19 +213,13 @@ class _TaskTaxonomyManagementPageState
     await _persistMutation(changed, '$changed مورد با برچسب «$next» به‌روز شد');
   }
 
-  Future<void> _deleteTag(String tag) async {
+  void _deleteTag(String tag) {
     if (saving) return;
-    final approved = await _confirmDelete(
-      title: 'حذف برچسب',
-      message:
-          'برچسب «$tag» از همه موارد حذف شود؟ هیچ کار یا یادداشتی حذف نمی‌شود.',
-    );
-    if (!approved || !mounted) return;
-    setState(() {
-      _pendingChanged = mutationService.deleteTag(tasks, tag);
-    });
-    final changed = _takePendingChanged();
-    await _persistMutation(changed, 'برچسب از $changed مورد برداشته شد');
+    try {
+      mutationService.deleteTag(tasks, tag);
+    } on TaskTaxonomyDeleteBlocked catch (error) {
+      _showDeleteBlocked(error);
+    }
   }
 
   int _pendingChanged = 0;
@@ -267,15 +246,15 @@ class _TaskTaxonomyManagementPageState
         children: [
           IconButton(
             key: ValueKey('taxonomy-$kind-rename-$value'),
-            tooltip: 'تغییر نام',
+            tooltip: 'تغییر نام / انتقال همه موارد',
             onPressed: saving ? null : onRename,
             icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
             key: ValueKey('taxonomy-$kind-delete-$value'),
-            tooltip: 'حذف',
+            tooltip: 'در حال استفاده است؛ حذف مسدود است',
             onPressed: saving ? null : onDelete,
-            icon: const Icon(Icons.delete_outline),
+            icon: const Icon(Icons.delete_outline, color: Colors.grey),
           ),
         ],
       ),
@@ -311,7 +290,7 @@ class _TaskTaxonomyManagementPageState
                         child: Padding(
                           padding: EdgeInsets.all(12),
                           child: Text(
-                            'دسته یا برچسب جدید هنگام ویرایش کار/یادداشت ساخته و همان‌جا روی همان مورد canonical ذخیره می‌شود. این صفحه فقط نام‌گذاری و حذف ارتباط‌ها را مدیریت می‌کند و مخزن جداگانه‌ای نمی‌سازد.',
+                            'دسته یا برچسب جدید هنگام ویرایش کار/یادداشت ساخته می‌شود. موردی که در کار یا یادداشت استفاده شده باشد حذف نمی‌شود؛ برای جابه‌جایی امن، آن را تغییرنام/منتقل کنید تا هیچ داده‌ای بی‌دسته یا بی‌برچسب نشود.',
                           ),
                         ),
                       ),
