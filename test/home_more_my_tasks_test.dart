@@ -59,15 +59,30 @@ void main() {
     await openMyTasks(tester);
 
     expect(find.text('کارهای من'), findsOneWidget);
-    expect(find.text('همه کارها'), findsOneWidget);
-    expect(find.text('کار امروز'), findsOneWidget);
-    expect(find.text('پیگیری‌دار'), findsOneWidget);
-    expect(find.text('بدون پیگیری'), findsOneWidget);
-    expect(find.text('انجام‌شده'), findsOneWidget);
-    expect(find.text('انجام‌نشده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-followup')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-without-followup')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-completed')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-incomplete')),
+      findsOneWidget,
+    );
     expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('اداری'), findsOneWidget);
-    expect(find.text('مشتری'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-category-اداری')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-category-مشتری')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('without-follow-up and category selections filter Home',
