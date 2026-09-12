@@ -11,7 +11,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('settings exposes date, swipe and canonical backup controls',
+  testWidgets('settings exposes date, swipe, projects and canonical backup controls',
       (tester) async {
     final service = AppSettingsService();
     AppSettings? changed;
@@ -46,14 +46,30 @@ void main() {
     expect(changed?.usePersianDate, isFalse);
 
     await tester.scrollUntilVisible(
-      find.text('پشتیبان‌گیری و بازیابی'),
-      300,
+      find.byKey(const ValueKey('projects-settings-entry')),
+      250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Vazirharf فونت عمومی و پیش‌فرض آروین است'),
         findsOneWidget);
+    expect(find.byKey(const ValueKey('projects-settings-entry')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
+    await tester.pumpAndSettle();
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('هنوز پروژه‌ای ساخته نشده است.'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('پشتیبان‌گیری و بازیابی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
     expect(backupOpened, isTrue);
