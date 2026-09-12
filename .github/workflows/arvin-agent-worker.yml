@@ -139,6 +139,7 @@ jobs:
           set -euo pipefail
           BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
           EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
+          PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\n\nCloses #$ARVIN_ISSUE_NUMBER"
           if [ -n "$EXISTING" ]; then
             PR_NUMBER="$EXISTING"
             echo "PR #$PR_NUMBER already exists; branch updated."
@@ -148,10 +149,12 @@ jobs:
               --head "$BRANCH" \
               --base main \
               --title "AI Worker: issue #$ARVIN_ISSUE_NUMBER" \
-              --body "Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.")
+              --body "$PR_BODY")
             PR_NUMBER="${PR_URL##*/}"
           fi
-          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label arvin-auto
+          # Keep reused worker PRs tied to their canonical source issue as well.
+          # GitHub closes the issue only after the guarded PR is actually merged.
+          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$PR_BODY" --add-label arvin-auto
           gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER from exact leased main $ARVIN_EXPECTED_MAIN_SHA. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
 
