@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'task_report_page.dart';
+import 'widgets/project_selector_field.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
 enum _NotebookCreateMode { note, checklist }
@@ -126,8 +128,15 @@ class _NotebookPageState extends State<NotebookPage> {
         title: const Text('انتقال به سطل زباله'),
         content: Text('$count یادداشت انتخاب‌شده منتقل شود؟'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
-          FilledButton(key: const ValueKey('notebook-bulk-trash-confirm'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('انتقال')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-bulk-trash-confirm'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('انتقال'),
+          ),
         ],
       ),
     );
@@ -137,7 +146,9 @@ class _NotebookPageState extends State<NotebookPage> {
     _clearSelection();
     await _reload();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$changed یادداشت به سطل زباله منتقل شد')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$changed یادداشت به سطل زباله منتقل شد')),
+    );
   }
 
   Future<void> _moveSelectedToCategory() async {
@@ -147,20 +158,38 @@ class _NotebookPageState extends State<NotebookPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تغییر دسته یادداشت‌ها'),
-        content: TextField(key: const ValueKey('notebook-bulk-category-input'), autofocus: true, decoration: const InputDecoration(labelText: 'نام دسته', hintText: 'برای بدون دسته خالی بگذارید'), onChanged: (next) => value = next),
+        content: TextField(
+          key: const ValueKey('notebook-bulk-category-input'),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'نام دسته',
+            hintText: 'برای بدون دسته خالی بگذارید',
+          ),
+          onChanged: (next) => value = next,
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
-          FilledButton(key: const ValueKey('notebook-bulk-category-apply'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('اعمال')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-bulk-category-apply'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('اعمال'),
+          ),
         ],
       ),
     );
     if (approved != true || !mounted) return;
-    final changed = await widget.repository.moveSelectedToCategory(_selected, value);
+    final changed =
+        await widget.repository.moveSelectedToCategory(_selected, value);
     if (!mounted) return;
     _clearSelection();
     await _reload();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('دسته برای $changed یادداشت به‌روز شد')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('دسته برای $changed یادداشت به‌روز شد')),
+    );
   }
 
   Future<void> _addTagsToSelected() async {
@@ -170,22 +199,43 @@ class _NotebookPageState extends State<NotebookPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('افزودن برچسب'),
-        content: TextField(key: const ValueKey('notebook-bulk-tags-input'), autofocus: true, decoration: const InputDecoration(labelText: 'برچسب‌ها', hintText: 'با ویرگول جدا کنید'), onChanged: (next) => value = next),
+        content: TextField(
+          key: const ValueKey('notebook-bulk-tags-input'),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'برچسب‌ها',
+            hintText: 'با ویرگول جدا کنید',
+          ),
+          onChanged: (next) => value = next,
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('لغو')),
-          FilledButton(key: const ValueKey('notebook-bulk-tags-apply'), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('اعمال')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-bulk-tags-apply'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('اعمال'),
+          ),
         ],
       ),
     );
     if (approved != true || !mounted) return;
-    final tags = value.split(RegExp(r'[,،]')).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty);
+    final tags = value
+        .split(RegExp(r'[,،]'))
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty);
     final changed = await widget.repository.addTagsToSelected(_selected, tags);
     if (!mounted) return;
     _clearSelection();
     await _reload();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('برچسب‌ها برای $changed یادداشت به‌روز شد')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('برچسب‌ها برای $changed یادداشت به‌روز شد')),
+    );
   }
+
   Future<void> _open(
     Task note, {
     bool startEditing = false,
@@ -283,7 +333,9 @@ class _NotebookPageState extends State<NotebookPage> {
                   title: Text(preset.title),
                   subtitle: preset.items.isEmpty
                       ? const Text('از یک چک‌لیست خالی شروع کنید')
-                      : Text('${preset.items.length} مورد پیشنهادی قابل ویرایش'),
+                      : Text(
+                          '${preset.items.length} مورد پیشنهادی قابل ویرایش',
+                        ),
                   onTap: () => Navigator.of(sheetContext).pop(preset),
                 ),
               TextButton(
@@ -326,11 +378,12 @@ class _NotebookPageState extends State<NotebookPage> {
 
   @override
   Widget build(BuildContext context) {
-    final allVisibleSelected = _notes.isNotEmpty &&
-        _notes.every((note) => _selected.contains(note.id));
+    final allVisibleSelected =
+        _notes.isNotEmpty && _notes.every((note) => _selected.contains(note.id));
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectionMode ? '${_selected.length} انتخاب' : 'دفترچه آروین'),
+        title:
+            Text(_selectionMode ? '${_selected.length} انتخاب' : 'دفترچه آروین'),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -347,31 +400,53 @@ class _NotebookPageState extends State<NotebookPage> {
                       child: ListTile(
                         key: ValueKey('notebook-note-${note.id}'),
                         leading: _selectionMode
-                            ? Checkbox(value: selected, onChanged: (_) => _toggleSelection(note.id))
-                            : Icon(note.checklist.isEmpty ? Icons.note_alt_outlined : Icons.checklist_outlined),
+                            ? Checkbox(
+                                value: selected,
+                                onChanged: (_) => _toggleSelection(note.id),
+                              )
+                            : Icon(
+                                note.checklist.isEmpty
+                                    ? Icons.note_alt_outlined
+                                    : Icons.checklist_outlined,
+                              ),
                         title: Text(note.title),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (note.description.trim().isNotEmpty)
-                              Text(note.description, maxLines: 2, overflow: TextOverflow.ellipsis)
+                              Text(
+                                note.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
                             else if (note.checklist.isNotEmpty)
                               Text('${note.checklist.length} مورد چک‌لیست'),
                             if (note.category?.trim().isNotEmpty ?? false)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
-                                child: Text('دسته: ${note.category}', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                                child: Text(
+                                  'دسته: ${note.category}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
                               ),
                             if (note.tags.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
-                                child: Text('برچسب: ${note.tags.join('، ')}', style: Theme.of(context).textTheme.bodySmall),
+                                child: Text(
+                                  'برچسب: ${note.tags.join('، ')}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               ),
                           ],
                         ),
                         selected: selected,
                         onLongPress: () => _toggleSelection(note.id),
-                        onTap: () => _selectionMode ? _toggleSelection(note.id) : _open(note),
+                        onTap: () => _selectionMode
+                            ? _toggleSelection(note.id)
+                            : _open(note),
                       ),
                     );
                   },
@@ -433,8 +508,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _loading = true;
   bool _editing = false;
   bool _saving = false;
+  bool _projectSaving = false;
   bool _checklistMode = false;
   String? _category;
+  List<ProjectPlan> _projects = const [];
+  String? _projectId;
   List<String> _checklist = [];
 
   @override
@@ -452,11 +530,24 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
       Navigator.of(context).pop();
       return;
     }
+
+    final projects = await widget.repository.loadProjects();
+    String? projectId;
+    try {
+      projectId = await widget.repository.projectIdForNote(widget.noteId);
+    } on StateError {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+    if (!mounted) return;
+
     _note = note;
     _title.text = note.title;
     _description.text = note.description;
     _checklist = List<String>.of(note.checklist);
     _category = note.category;
+    _projects = projects;
+    _projectId = projectId;
     _checklistMode = _checklistMode || note.checklist.isNotEmpty;
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
@@ -506,7 +597,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
           autofocus: true,
           decoration: const InputDecoration(labelText: 'نام دسته'),
           onChanged: (next) => value = next,
-          onSubmitted: (next) => Navigator.of(dialogContext).pop(next.trim()),
+          onSubmitted: (next) =>
+              Navigator.of(dialogContext).pop(next.trim()),
         ),
         actions: [
           TextButton(
@@ -560,7 +652,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               key: const ValueKey('notebook-category-new'),
               leading: const Icon(Icons.create_new_folder_outlined),
               title: const Text('دسته جدید'),
-              onTap: () => Navigator.of(sheetContext).pop(_newCategoryToken),
+              onTap: () =>
+                  Navigator.of(sheetContext).pop(_newCategoryToken),
             ),
           ],
         ),
@@ -571,7 +664,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     String? nextCategory;
     if (selected == _newCategoryToken) {
       nextCategory = await _promptNewCategory();
-      if (!mounted || nextCategory == null || nextCategory.trim().isEmpty) return;
+      if (!mounted ||
+          nextCategory == null ||
+          nextCategory.trim().isEmpty) {
+        return;
+      }
     } else if (selected == _clearCategoryToken) {
       nextCategory = null;
     } else {
@@ -587,6 +684,28 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
       _note = updated;
       _category = updated.category;
     });
+  }
+
+  Future<void> _changeProject(String? projectId) async {
+    if (!_editing || _projectSaving || projectId == _projectId) return;
+    setState(() => _projectSaving = true);
+    try {
+      await widget.repository.updateProject(
+        id: widget.noteId,
+        projectId: projectId,
+      );
+      if (!mounted) return;
+      setState(() => _projectId = projectId);
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تغییر پروژه ذخیره نشد: $error'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _projectSaving = false);
+    }
   }
 
   void _addChecklistItem() {
@@ -720,6 +839,19 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   : 'دسته: $_category',
             ),
           ),
+          const SizedBox(height: 16),
+          IgnorePointer(
+            ignoring: !_editing || _projectSaving,
+            child: Opacity(
+              opacity: _editing && !_projectSaving ? 1 : 0.72,
+              child: ProjectSelectorField(
+                key: const ValueKey('notebook-project-selector'),
+                projects: _projects,
+                selectedProjectId: _projectId,
+                onChanged: (value) => _changeProject(value),
+              ),
+            ),
+          ),
           if (_checklistMode) ...[
             const SizedBox(height: 20),
             Text(
@@ -768,8 +900,9 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                       controller: _checklistInput,
                       focusNode: _checklistFocus,
                       onSubmitted: (_) => _addChecklistItem(),
-                      decoration:
-                          const InputDecoration(labelText: 'مورد جدید چک‌لیست'),
+                      decoration: const InputDecoration(
+                        labelText: 'مورد جدید چک‌لیست',
+                      ),
                     ),
                   ),
                   IconButton(
