@@ -27,6 +27,8 @@ jobs:
             const { owner, repo } = context.repo;
             const parentIssue = 845;
             const waves = [846, 847, 848, 849, 850, 851, 852, 853];
+            const bootstrapHoldMarker = '<!-- arvin-auto-advance-bootstrap-hold -->';
+            const workerAutoCloseToken = 'Closes #$ARVIN_ISSUE_NUMBER';
             const hardBlocks = new Set([
               'do-not-merge',
               'orchestrator:hold',
@@ -66,6 +68,38 @@ jobs:
 
             const active = state[firstOpenIndex];
             const activeNumber = active.issue.number;
+
+            // A one-time bootstrap hold can protect the first post-Wave-0 task while
+            // the worker auto-close contract itself is being merged. Only a hold with
+            // the explicit marker is auto-released, and only after current main proves
+            // that guarded worker PRs contain the issue-closing token. Manual owner
+            // holds without this marker remain fail-closed.
+            if (active.labels.has('orchestrator:hold')) {
+              const activeComments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: activeNumber, per_page: 100,
+              });
+              const isBootstrapHold = activeComments.some(c => c.body?.includes(bootstrapHoldMarker));
+              if (isBootstrapHold) {
+                const workerFile = await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path: '.github/workflows/arvin-agent-worker.yml',
+                  ref: 'main',
+                });
+                const encoded = Array.isArray(workerFile.data) ? '' : (workerFile.data.content || '');
+                const workerText = Buffer.from(encoded, 'base64').toString('utf8');
+                if (workerText.includes(workerAutoCloseToken)) {
+                  await github.rest.issues.removeLabel({
+                    owner, repo, issue_number: activeNumber, name: 'orchestrator:hold',
+                  }).catch(() => {});
+                  active.labels.delete('orchestrator:hold');
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: activeNumber,
+                    body: '<!-- arvin-auto-advance-bootstrap-released -->\nBootstrap hold released automatically: current main contains the guarded worker issue-auto-close contract. Ordered recovery execution may continue without manual intervention.',
+                  });
+                }
+              }
+            }
 
             // Later waves must remain dormant until every earlier wave closes. Both
             // factory:ready and arvin-auto are queue-eligibility labels, so clear both
