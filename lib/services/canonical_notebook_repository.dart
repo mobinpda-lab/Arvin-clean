@@ -1,17 +1,27 @@
+import '../models/goal_project.dart';
 import '../models/task.dart';
 import 'task_bulk_mutation_service.dart';
+import 'task_project_assignment_service.dart';
 import 'task_store.dart';
 
 /// Notebook persistence boundary backed only by the canonical `arvin.tasks`
 /// store. It deliberately owns no key/database/model of its own.
+///
+/// Project membership is also delegated to the existing canonical
+/// [TaskProjectAssignmentService], where membership remains owned by
+/// `ProjectPlan.itemIds`. Notebook never writes a parallel `projectId` field.
 class CanonicalNotebookRepository {
   CanonicalNotebookRepository({
     TaskStore? store,
+    TaskProjectAssignmentService? projectAssignmentService,
     DateTime Function()? now,
   })  : _store = store ?? TaskStore(),
+        _projectAssignmentService =
+            projectAssignmentService ?? TaskProjectAssignmentService(),
         _now = now ?? DateTime.now;
 
   final TaskStore _store;
+  final TaskProjectAssignmentService _projectAssignmentService;
   final DateTime Function() _now;
 
   TaskBulkMutationService get _bulk => TaskBulkMutationService(now: _now);
@@ -113,6 +123,30 @@ class CanonicalNotebookRepository {
     });
   }
 
+  /// Loads the existing first-class Project collection without creating any
+  /// Notebook-owned Project state.
+  Future<List<ProjectPlan>> loadProjects() =>
+      _projectAssignmentService.loadProjects();
+
+  /// Resolves Project membership for the same canonical Note/Checklist id.
+  /// If the item is no longer a Notebook item, fail closed rather than keeping
+  /// or fabricating an orphan membership.
+  Future<String?> projectIdForNote(String id) async {
+    final note = await loadNote(id);
+    if (note == null) throw StateError('Notebook task not found: $id');
+    return _projectAssignmentService.projectIdForTask(id);
+  }
+
+  /// Assigns/reassigns/unassigns the same canonical Note/Checklist id using
+  /// `ProjectPlan.itemIds` through the existing ProjectStore path.
+  Future<void> updateProject({
+    required String id,
+    required String? projectId,
+  }) async {
+    final note = await loadNote(id);
+    if (note == null) throw StateError('Notebook task not found: $id');
+    await _projectAssignmentService.assign(taskId: id, projectId: projectId);
+  }
 
   Future<int> moveSelectedToTrash(Iterable<String> ids) {
     return _store.mutate<int>((tasks) => _bulk.moveToTrash(tasks, ids));
