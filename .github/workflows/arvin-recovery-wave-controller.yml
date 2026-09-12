@@ -67,7 +67,9 @@ jobs:
             const active = state[firstOpenIndex];
             const activeNumber = active.issue.number;
 
-            // Later waves must remain dormant until every earlier wave closes.
+            // Later waves must remain dormant until every earlier wave closes. Both
+            // factory:ready and arvin-auto are queue-eligibility labels, so clear both
+            // when there is no active lease/worker PR. Never disturb a live lease.
             for (let i = firstOpenIndex + 1; i < state.length; i++) {
               const later = state[i];
               if (later.issue.state !== 'open') continue;
@@ -75,14 +77,15 @@ jobs:
                 core.warning(`Later wave #${later.issue.number} is already active; controller will not mutate its lease.`);
                 continue;
               }
-              if (later.labels.has('factory:ready')) {
+              for (const eligibilityLabel of ['factory:ready', 'arvin-auto']) {
+                if (!later.labels.has(eligibilityLabel)) continue;
                 await github.rest.issues.removeLabel({
                   owner,
                   repo,
                   issue_number: later.issue.number,
-                  name: 'factory:ready',
+                  name: eligibilityLabel,
                 }).catch(() => {});
-                core.info(`Removed premature factory:ready from later wave #${later.issue.number}.`);
+                core.info(`Removed premature ${eligibilityLabel} from later wave #${later.issue.number}.`);
               }
             }
 
