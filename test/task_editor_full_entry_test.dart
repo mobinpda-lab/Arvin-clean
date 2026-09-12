@@ -113,4 +113,31 @@ void main() {
     expect(save, findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('hiding keyboard keeps draft and one save returns one Task',
+      (tester) async {
+    final results = <Task?>[];
+    await openEditor(
+      tester,
+      onResult: results.add,
+    );
+
+    final title = find.byKey(const ValueKey('task-editor-title'));
+    await tester.enterText(title, 'پیش‌نویس حفظ شود');
+    await tester.pump();
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+
+    expect(find.text('پیش‌نویس حفظ شود'), findsOneWidget);
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
+
+    final save = find.byKey(const ValueKey('task-editor-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(results, hasLength(1));
+    expect(results.single, isNotNull);
+    expect(results.single!.title, 'پیش‌نویس حفظ شود');
+  });
 }
