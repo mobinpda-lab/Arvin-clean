@@ -18,6 +18,7 @@ import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
+import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
@@ -124,6 +125,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
+  final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
   final InteractiveGuideService interactiveGuideService =
@@ -360,13 +362,25 @@ class _HomePageState extends State<HomePage> {
       );
 
   Future<void> _add() async {
+    final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
+    if (!mounted) return;
+    String? selectedProjectId = editorContext.selectedProjectId;
     final task = await showDialog<Task>(
       context: context,
-      builder: (_) => const ArvinTaskEditorDialog(),
+      builder: (_) => ArvinTaskEditorDialog(
+        projects: editorContext.projects,
+        selectedProjectId: editorContext.selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
+        knownCategories: editorContext.knownCategories,
+      ),
     );
     if (task == null) return;
     setState(() => tasks.add(task));
     await _save();
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: task.id,
+      projectId: selectedProjectId,
+    );
   }
 
   Future<void> _quickCapture() async {
@@ -414,13 +428,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _edit(Task old) async {
+    final editorContext = await wave2ProductFastTrack.prepareEditor(
+      tasks: tasks,
+      task: old,
+    );
+    if (!mounted) return;
+    String? selectedProjectId = editorContext.selectedProjectId;
     final edited = await showDialog<Task>(
       context: context,
-      builder: (_) => ArvinTaskEditorDialog(task: old),
+      builder: (_) => ArvinTaskEditorDialog(
+        task: old,
+        projects: editorContext.projects,
+        selectedProjectId: editorContext.selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
+        knownCategories: editorContext.knownCategories,
+      ),
     );
     if (edited == null) return;
     setState(() => taskEditApplyService.apply(old, edited));
     await _save();
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: edited.id,
+      projectId: selectedProjectId,
+    );
   }
 
   Future<Task?> _editFromDetail(Task task) async {
