@@ -839,19 +839,21 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   : 'دسته: $_category',
             ),
           ),
-          const SizedBox(height: 16),
-          IgnorePointer(
-            ignoring: !_editing || _projectSaving,
-            child: Opacity(
-              opacity: _editing && !_projectSaving ? 1 : 0.72,
-              child: ProjectSelectorField(
-                key: const ValueKey('notebook-project-selector'),
-                projects: _projects,
-                selectedProjectId: _projectId,
-                onChanged: (value) => _changeProject(value),
+          if (_projects.isNotEmpty || _projectId != null) ...[
+            const SizedBox(height: 16),
+            IgnorePointer(
+              ignoring: !_editing || _projectSaving,
+              child: Opacity(
+                opacity: _editing && !_projectSaving ? 1 : 0.72,
+                child: ProjectSelectorField(
+                  key: const ValueKey('notebook-project-selector'),
+                  projects: _projects,
+                  selectedProjectId: _projectId,
+                  onChanged: (value) => _changeProject(value),
+                ),
               ),
             ),
-          ),
+          ],
           if (_checklistMode) ...[
             const SizedBox(height: 20),
             Text(
