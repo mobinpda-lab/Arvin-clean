@@ -30,6 +30,7 @@ jobs:
             const hardBlocked = new Set(['do-not-merge','orchestrator:hold','orchestrator:manual','factory:escalated']);
             const RETRYABLE_BLOCK_LABEL = 'factory:blocked';
             const RETRY_COOLDOWN_MS = 15 * 60 * 1000;
+            const RECOVERY_WAVE_TITLE = /^\[ARVIN RECOVERY WAVE \d+\]/i;
             const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
             const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
             const currentMainSha = main.data.commit.sha;
@@ -38,6 +39,10 @@ jobs:
 
             function labelSet(issue) {
               return new Set((issue.labels || []).map(x => typeof x === 'string' ? x : x.name));
+            }
+
+            function isRecoveryWave(issue) {
+              return RECOVERY_WAVE_TITLE.test(issue.title || '');
             }
 
             async function openWorkerPr(issueNumber) {
@@ -129,6 +134,11 @@ jobs:
               .filter(x => !x.labels.has(RETRYABLE_BLOCK_LABEL) || recoveredBlocked.has(x.issue.number))
               .filter(x => !x.labels.has('factory:leased') && !x.labels.has('factory:in-progress'))
               .sort((a,b) => {
+                // Owner-directed Recovery Waves are an ordered temporary control plane.
+                // The Recovery Controller keeps only the first open wave eligible, so
+                // give that eligible wave precedence over historical ready backlog.
+                const recoveryDelta = Number(!isRecoveryWave(a.issue)) - Number(!isRecoveryWave(b.issue));
+                if (recoveryDelta !== 0) return recoveryDelta;
                 const rank = s => s.has('priority:release-blocker') ? 0 : s.has('priority:core') ? 1 : s.has('priority:automation') ? 2 : s.has('priority:feature') ? 3 : 4;
                 return rank(a.labels) - rank(b.labels) || a.issue.number - b.issue.number;
               });
