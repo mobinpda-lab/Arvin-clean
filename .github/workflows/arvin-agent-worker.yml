@@ -90,7 +90,8 @@ jobs:
         run: |
           set -euo pipefail
           gh issue edit "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label factory:leased --remove-label factory:in-progress || true
-          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-provider-pressure -->\\nAI provider returned HTTP 429. No product failure is claimed; worker lease was released and immediate retry was suppressed. Deterministic/non-AI lanes may continue; retry only after cooldown."
+          gh issue edit "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label factory:blocked
+          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-provider-pressure -->\\nAI provider returned HTTP 429. No product failure is claimed; worker lease was released and the issue entered the canonical retryable factory cooldown. The autonomous queue will recover it after the bounded cooldown; deterministic/non-AI lanes may continue."
 
       - name: Final project validation
         if: steps.generate.outputs.provider_pressure != 'true'
