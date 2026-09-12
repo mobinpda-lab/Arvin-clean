@@ -2,7 +2,8 @@
 
 Status: owner-directed recovery execution plan. Live GitHub reality always outranks stale snapshots.
 
-Parent requirement ledger: #845.
+Parent requirement ledger: #845.  
+Wave 0 exact-main audit: `docs/ARVIN_RECOVERY_WAVE0_EXACT_MAIN_AUDIT_2026-09-12.md`.
 
 ## Why this plan exists
 A fresh audit showed that many owner requirements had already been designed or partially implemented in Arvin, but some were hidden, incomplete, contradicted by stale documents, or missing from the installed UI. Recovery therefore follows **reuse → reconcile → implement → verify**, never a second architecture.
@@ -20,6 +21,12 @@ A fresh audit showed that many owner requirements had already been designed or p
 | W6 | #852 | Automatic Backup/Restore settings + font picker + grouped Settings |
 | W7 | #853 | Final convergence + exact-head release proof + #845 closure |
 
+## Wave 0 reconciliation rule
+
+The exact-main audit maps every #845 requirement to one of: Existing + verified foundation / Existing + hidden or partial / Partial / Missing / Superseded / Deferred, with a single owning Wave.
+
+During the recovery program, that audit is an explicit overlay on `docs/PRODUCT_CONTRACT_MATRIX.md` when an older matrix row has not yet been rewritten. Later implementation Waves must update the underlying matrix/status when their accepted behavior changes. This prevents a large historical matrix edit from becoming a prerequisite for recording a newer owner decision.
+
 ## Five-minute autonomous cycle
 Arvin already has the canonical `ARVIN Autonomous Task Queue` scheduled with `*/5 * * * *`.
 
@@ -34,6 +41,8 @@ This recovery plan adds `ARVIN Recovery Wave Controller`, also scheduled every f
 7. report wave activation/completion back to #845.
 
 The controller does **not** merge code, bypass checks, or create a second worker system.
+
+Provider-pressure safety is part of the control plane: an HTTP 429 is not a product failure. The AI lease is released and the issue must enter the canonical retryable cooldown so the five-minute scheduler cannot create a retry storm. Deterministic/non-AI work may continue while the provider is cooling down.
 
 ## Latest owner decisions that must override conflicting older UI wording
 - Keep Arvin's approved theme/color identity; do not redesign the whole app as Microsoft To Do.
