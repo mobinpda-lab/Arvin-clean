@@ -12,6 +12,7 @@ void main() {
     );
 
     expect(project.colorValue, 0xFF2F80ED);
+    expect(project.isArchived, isFalse);
     expect(project.canDelete, isTrue);
   });
 
@@ -38,12 +39,40 @@ void main() {
     expect(result, isEmpty);
   });
 
-  test('editing title or color preserves canonical task references', () {
+  test('archive preserves canonical item references and can be reversed', () {
+    final projects = [
+      ProjectPlan(
+        id: 'p1',
+        title: 'کاری',
+        itemIds: const ['task-1', 'note-1'],
+      ),
+    ];
+
+    final archived = service.setArchived(
+      projects,
+      projectId: 'p1',
+      isArchived: true,
+    );
+    expect(archived.single.isArchived, isTrue);
+    expect(archived.single.itemIds, ['task-1', 'note-1']);
+    expect(archived.single.canDelete, isFalse);
+
+    final restored = service.setArchived(
+      archived,
+      projectId: 'p1',
+      isArchived: false,
+    );
+    expect(restored.single.isArchived, isFalse);
+    expect(restored.single.itemIds, ['task-1', 'note-1']);
+  });
+
+  test('editing title or color preserves canonical task references and archive state', () {
     final projects = [
       ProjectPlan(
         id: 'p1',
         title: 'قدیمی',
         colorValue: 0xFF111111,
+        isArchived: true,
         itemIds: const ['task-1', 'task-2'],
       ),
     ];
@@ -57,6 +86,7 @@ void main() {
 
     expect(result.single.title, 'جدید');
     expect(result.single.colorValue, 0xFF22AA66);
+    expect(result.single.isArchived, isTrue);
     expect(result.single.itemIds, ['task-1', 'task-2']);
   });
 

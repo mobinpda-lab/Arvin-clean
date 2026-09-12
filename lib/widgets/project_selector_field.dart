@@ -6,6 +6,9 @@ import '../models/goal_project.dart';
 ///
 /// Projects deliberately render as bordered cards with their owned color and
 /// never as Tag chips, keeping Project and Tag semantics visibly distinct.
+/// Archived Projects are not offered for new assignments; an already-selected
+/// archived Project remains visible so editing an existing item never silently
+/// drops its membership.
 class ProjectSelectorField extends StatelessWidget {
   const ProjectSelectorField({
     super.key,
@@ -22,6 +25,13 @@ class ProjectSelectorField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visibleProjects = projects
+        .where(
+          (project) =>
+              !project.isArchived || project.id == selectedProjectId,
+        )
+        .toList(growable: false);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -43,11 +53,15 @@ class ProjectSelectorField extends StatelessWidget {
               selected: selectedProjectId == null,
               onTap: () => onChanged(null),
             ),
-            ...projects.map(
+            ...visibleProjects.map(
               (project) => _ProjectOption(
                 key: ValueKey('project-selector-${project.id}'),
-                title: project.title,
-                color: Color(project.colorValue),
+                title: project.isArchived
+                    ? '${project.title} (بایگانی‌شده)'
+                    : project.title,
+                color: project.isArchived
+                    ? const Color(0xFF9E9E9E)
+                    : Color(project.colorValue),
                 selected: selectedProjectId == project.id,
                 onTap: () => onChanged(project.id),
               ),

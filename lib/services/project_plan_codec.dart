@@ -15,6 +15,7 @@ class ProjectPlanCodec {
       'id': project.id,
       'title': project.title,
       'colorValue': project.colorValue,
+      'isArchived': project.isArchived,
       'itemIds': List<String>.of(project.itemIds),
     };
   }
@@ -37,6 +38,12 @@ class ProjectPlanCodec {
     final rawColor = map['colorValue'];
     final colorValue = rawColor is int ? rawColor : defaultColorValue;
 
+    final rawArchived = map['isArchived'];
+    if (rawArchived != null && rawArchived is! bool) {
+      throw const FormatException('Project isArchived must be a boolean');
+    }
+    final isArchived = rawArchived is bool ? rawArchived : false;
+
     final rawItemIds = map['itemIds'];
     final itemIds = rawItemIds == null
         ? const <String>[]
@@ -46,6 +53,7 @@ class ProjectPlanCodec {
       id: id,
       title: title,
       colorValue: colorValue,
+      isArchived: isArchived,
       itemIds: itemIds,
     );
   }

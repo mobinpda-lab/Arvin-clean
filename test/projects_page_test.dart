@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-      'renders colored project cards and blocks deleting non-empty project',
+      'renders project cards, blocks referenced delete and supports archive',
       (tester) async {
     var changed = <ProjectPlan>[];
     final projects = [
@@ -28,12 +28,21 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('کاری'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
-    expect(find.text('1 کار'), findsOneWidget);
+    expect(find.text('1 مورد'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('project-delete-work')));
     await tester.pump();
-    expect(find.text('پروژه دارای کار است و قابل حذف نیست.'), findsOneWidget);
+    expect(find.textContaining('قابل حذف نیست'), findsOneWidget);
     expect(changed, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('project-archive-work')));
+    await tester.pump();
+    expect(changed.singleWhere((item) => item.id == 'work').isArchived, isTrue);
+    expect(find.textContaining('بایگانی‌شده'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('project-archive-work')));
+    await tester.pump();
+    expect(changed.singleWhere((item) => item.id == 'work').isArchived, isFalse);
 
     await tester.tap(find.byKey(const ValueKey('project-delete-personal')));
     await tester.pump();
@@ -63,5 +72,6 @@ void main() {
     expect(changed, hasLength(1));
     expect(changed.single.title, 'آروین');
     expect(changed.single.colorValue, 0xFF2F80ED);
+    expect(changed.single.isArchived, isFalse);
   });
 }

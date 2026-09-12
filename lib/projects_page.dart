@@ -56,10 +56,31 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ));
   }
 
+  void _toggleArchive(ProjectPlan project) {
+    _commit(_service.setArchived(
+      _projects,
+      projectId: project.id,
+      isArchived: !project.isArchived,
+    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          project.isArchived
+              ? 'پروژه دوباره فعال شد.'
+              : 'پروژه بایگانی شد؛ کارهای داخل آن حفظ شدند.',
+        ),
+      ),
+    );
+  }
+
   void _deleteProject(ProjectPlan project) {
     if (!project.canDelete) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('پروژه دارای کار است و قابل حذف نیست.')),
+        const SnackBar(
+          content: Text(
+            'پروژه دارای مورد است و قابل حذف نیست؛ آن را بایگانی کنید یا ابتدا موارد را منتقل کنید.',
+          ),
+        ),
       );
       return;
     }
@@ -161,22 +182,33 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 final color = Color(project.colorValue);
                 return Card(
                   key: ValueKey('project-card-${project.id}'),
-                  color: color.withValues(alpha: 0.10),
+                  color: color.withValues(alpha: project.isArchived ? 0.05 : 0.10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
-                    side: BorderSide(color: color.withValues(alpha: 0.5)),
+                    side: BorderSide(
+                      color: color.withValues(alpha: project.isArchived ? 0.25 : 0.5),
+                    ),
                   ),
                   child: ListTile(
                     leading: Container(
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: color,
+                        color: project.isArchived ? Colors.grey : color,
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
-                    title: Text(project.title),
-                    subtitle: Text('${project.itemIds.length} کار'),
+                    title: Text(
+                      project.title,
+                      style: TextStyle(
+                        color: project.isArchived ? Colors.grey.shade700 : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      project.isArchived
+                          ? '${project.itemIds.length} مورد • بایگانی‌شده'
+                          : '${project.itemIds.length} مورد',
+                    ),
                     trailing: Wrap(
                       children: [
                         IconButton(
@@ -186,10 +218,20 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           icon: const Icon(Icons.edit_outlined),
                         ),
                         IconButton(
+                          key: ValueKey('project-archive-${project.id}'),
+                          tooltip: project.isArchived ? 'فعال‌سازی دوباره' : 'بایگانی',
+                          onPressed: () => _toggleArchive(project),
+                          icon: Icon(
+                            project.isArchived
+                                ? Icons.unarchive_outlined
+                                : Icons.archive_outlined,
+                          ),
+                        ),
+                        IconButton(
                           key: ValueKey('project-delete-${project.id}'),
                           tooltip: project.canDelete
                               ? 'حذف'
-                              : 'ابتدا کارهای پروژه را منتقل یا حذف کنید',
+                              : 'ابتدا موارد پروژه را منتقل کنید یا پروژه را بایگانی کنید',
                           onPressed: () => _deleteProject(project),
                           icon: Icon(
                             Icons.delete_outline,

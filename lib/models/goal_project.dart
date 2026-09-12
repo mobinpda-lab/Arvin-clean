@@ -3,6 +3,7 @@ class ProjectPlan {
     required this.id,
     required this.title,
     this.colorValue = 0xFF4A4CAB,
+    this.isArchived = false,
     Iterable<String> itemIds = const [],
   }) : itemIds = List.unmodifiable(itemIds);
 
@@ -14,6 +15,11 @@ class ProjectPlan {
   /// This deliberately stays a plain integer so the planning model remains
   /// Flutter/presentation independent. UI can render it as a Color.
   final int colorValue;
+
+  /// Archived Projects remain durable and keep their canonical item links, but
+  /// are hidden from new assignment choices. This gives the owner a safe
+  /// alternative to destructive deletion while preserving history.
+  final bool isArchived;
 
   /// References existing canonical Task ids. Item payloads are never copied
   /// into this planning domain, preserving Task as the executable source of
@@ -28,12 +34,14 @@ class ProjectPlan {
   ProjectPlan copyWith({
     String? title,
     int? colorValue,
+    bool? isArchived,
     Iterable<String>? itemIds,
   }) {
     return ProjectPlan(
       id: id,
       title: title ?? this.title,
       colorValue: colorValue ?? this.colorValue,
+      isArchived: isArchived ?? this.isArchived,
       itemIds: itemIds ?? this.itemIds,
     );
   }
@@ -58,7 +66,7 @@ class ProjectDeleteBlocked implements Exception {
 
   @override
   String toString() =>
-      'ProjectDeleteBlocked: project $projectId still contains canonical Tasks';
+      'ProjectDeleteBlocked: project $projectId still contains canonical items';
 }
 
 /// Pure lifecycle operations for Arvin's first-class Project menu.
@@ -91,6 +99,23 @@ class ProjectLifecycleService {
       if (project.id != projectId) return project;
       found = true;
       return project.copyWith(title: title, colorValue: colorValue);
+    }).toList(growable: false);
+    if (!found) {
+      throw ArgumentError.value(projectId, 'projectId', 'Unknown Project');
+    }
+    return List.unmodifiable(next);
+  }
+
+  List<ProjectPlan> setArchived(
+    Iterable<ProjectPlan> projects, {
+    required String projectId,
+    required bool isArchived,
+  }) {
+    var found = false;
+    final next = projects.map((project) {
+      if (project.id != projectId) return project;
+      found = true;
+      return project.copyWith(isArchived: isArchived);
     }).toList(growable: false);
     if (!found) {
       throw ArgumentError.value(projectId, 'projectId', 'Unknown Project');

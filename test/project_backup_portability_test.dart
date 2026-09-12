@@ -64,12 +64,13 @@ void main() {
         'id': 'project-1',
         'title': 'کاری',
         'colorValue': 0xFF2F80ED,
+        'isArchived': false,
         'itemIds': ['task-1'],
       },
     ]);
   });
 
-  test('canonical restore returns projects with task membership intact', () async {
+  test('canonical restore returns projects with task membership and archive state intact', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
         'type': ArvinBackupService.backupType,
@@ -80,6 +81,7 @@ void main() {
             'id': 'project-1',
             'title': 'کاری',
             'colorValue': 0xFF2F80ED,
+            'isArchived': true,
             'itemIds': ['task-1'],
           },
         ],
@@ -92,6 +94,7 @@ void main() {
     expect(candidate!.projects, hasLength(1));
     expect(candidate.projects.single.title, 'کاری');
     expect(candidate.projects.single.colorValue, 0xFF2F80ED);
+    expect(candidate.projects.single.isArchived, isTrue);
     expect(candidate.projects.single.itemIds, ['task-1']);
   });
 
