@@ -7,6 +7,8 @@ void main() {
     final workflow =
         File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
     final runtime = File('.github/arvin/agent-runtime.py').readAsStringSync();
+    final queue =
+        File('.github/workflows/arvin-autonomous-queue.yml').readAsStringSync();
 
     expect(workflow, contains('OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}'));
     expect(workflow,
@@ -22,6 +24,10 @@ void main() {
     expect(workflow, contains('set +e'));
     expect(workflow, contains('rc=\$?'));
     expect(workflow, contains('if [ "\$rc" -eq 75 ]'));
+    expect(workflow, contains('--add-label factory:blocked'));
+    expect(workflow, contains('canonical retryable factory cooldown'));
+    expect(queue, contains("const RETRYABLE_BLOCK_LABEL = 'factory:blocked';"));
+    expect(queue, contains('const RETRY_COOLDOWN_MS = 15 * 60 * 1000;'));
 
     expect(runtime, contains('def model_response(prompt, timeout_seconds):'));
     expect(runtime, contains('OPENAI_API_KEY'));
