@@ -36,12 +36,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-stat-active')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-done')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stat-overdue')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-notes')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-followups')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-today')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-future')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
@@ -49,7 +44,17 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-my-tasks')), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-more-my-tasks')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-my-tasks-without-followup')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
