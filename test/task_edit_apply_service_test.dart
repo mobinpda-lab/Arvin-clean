@@ -25,6 +25,7 @@ void main() {
       category: 'فروش',
       checklist: ['یک'],
       reminderDate: DateTime(2026, 8, 29, 8),
+      priority: TaskPriority.low,
       archived: true,
       completed: true,
       followUps: originalFollowUps,
@@ -40,6 +41,7 @@ void main() {
       category: 'مشتریان',
       checklist: ['یک', 'دو'],
       reminderDate: DateTime(2026, 8, 30, 12),
+      priority: TaskPriority.high,
       archived: false,
       completed: false,
       followUps: const [],
@@ -57,6 +59,8 @@ void main() {
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
     expect(target.reminderDate, DateTime(2026, 8, 30, 12));
+    expect(target.priority, TaskPriority.high);
+    expect(target.completed, isFalse);
     expect(target.updatedAt, appliedAt);
   });
 
@@ -93,7 +97,7 @@ void main() {
     expect(target.createdAt, createdAt);
     expect(target.archived, isTrue);
     expect(target.trashed, isTrue);
-    expect(target.completed, isTrue);
+    expect(target.completed, isFalse);
   });
 
   test('copies mutable collections instead of aliasing editor lists', () {

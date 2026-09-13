@@ -1,0 +1,1 @@
+Product-first Wave 2 branch active. Canonical editor context coordinator and guard tests are present. Home add/edit wiring remains the next required product implementation step.

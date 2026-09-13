@@ -7,6 +7,7 @@ void main() {
   Task task(
     String id, {
     bool followUpEnabled = false,
+    DateTime? followUpDate,
     List<FollowUp> followUps = const [],
     bool archived = false,
     bool trashed = false,
@@ -16,6 +17,7 @@ void main() {
       id: id,
       title: id,
       followUpEnabled: followUpEnabled,
+      followUpDate: followUpDate,
       followUps: followUps,
       archived: archived,
       trashed: trashed,
@@ -38,9 +40,13 @@ void main() {
     expect(identical(result.first, active), isTrue);
   });
 
-  test('simple-note scope uses canonical unified Item semantics', () {
-    final note = task('note');
+  test('without-follow-up scope excludes every canonical or legacy follow-up', () {
+    final plain = task('plain');
     final enabled = task('enabled', followUpEnabled: true);
+    final legacyDate = task(
+      'legacy-date',
+      followUpDate: DateTime(2026, 8, 28, 10),
+    );
     final historyOnly = task(
       'history',
       followUps: <FollowUp>[
@@ -49,16 +55,20 @@ void main() {
     );
 
     final result = const TaskListScopeService().project(
-      <Task>[note, enabled, historyOnly],
+      <Task>[plain, enabled, legacyDate, historyOnly],
       scope: TaskListScope.simpleNotes,
     );
 
-    expect(result, <Task>[note]);
+    expect(result, <Task>[plain]);
   });
 
-  test('follow-up scope accepts explicit enablement or canonical history', () {
-    final note = task('note');
+  test('follow-up scope accepts enablement, legacy date, or history', () {
+    final plain = task('plain');
     final enabled = task('enabled', followUpEnabled: true);
+    final legacyDate = task(
+      'legacy-date',
+      followUpDate: DateTime(2026, 8, 28, 10),
+    );
     final historyOnly = task(
       'history',
       followUps: <FollowUp>[
@@ -67,11 +77,11 @@ void main() {
     );
 
     final result = const TaskListScopeService().project(
-      <Task>[note, enabled, historyOnly],
+      <Task>[plain, enabled, legacyDate, historyOnly],
       scope: TaskListScope.followUpEnabled,
     );
 
-    expect(result, <Task>[enabled, historyOnly]);
+    expect(result, <Task>[enabled, legacyDate, historyOnly]);
   });
 
   test('projection never mutates or reorders the source list', () {
