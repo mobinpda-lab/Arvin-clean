@@ -2,41 +2,51 @@
 
 ## Purpose
 
-This audit identifies old assumptions that must not override the final Arvin UI reference and implementation contract.
+This audit prevents historical assumptions from overriding the final Arvin visual reference, product contract, and installed application evidence.
 
-## Authority Rule
+## Authority Rules
 
-The final installed Arvin reference and approved product contracts define the target output. Historical documents remain evidence only.
+1. The approved final visual reference defines appearance and layout.
+2. The implementation contract defines behavior and acceptance criteria.
+3. Installed application evidence is used to validate real user flows.
+4. Historical documents remain traceability evidence unless explicitly promoted.
 
 ## Conflict Locks
 
 ### Home
-- Old dashboard concepts that reintroduce removed statistical cards must not return.
-- Grouping views must use real Task data.
+- Removed statistical dashboard assumptions must not be restored accidentally.
+- Grouping controls must represent real data views.
+- Task counts must not be duplicated when an item appears in multiple views.
 
 ### Quick Entry
-- Quick registration and full form must share one persistence path.
-- Repeated entry workflow must preserve user context where defined.
+- Fast capture and full form must use one canonical save path.
+- Draft protection, keyboard behavior and repeated registration flow require real Android validation.
 
 ### Task Detail / Follow-up
-- Follow-up history is persistent timeline data.
-- Editing or completing a task must not erase history.
+- Follow-up history is append-only timeline data unless supported editing rules exist.
+- Completing or editing a task must preserve historical evidence.
 
 ### Notebook
-- Existing Notebook storage and Task-backed foundations must be preserved.
-- A visual redesign must not create parallel persistence.
+- Visual improvements must preserve canonical storage.
+- No parallel note persistence may be introduced only for UI similarity.
 
-### Categories / Projects / Labels
-- Taxonomy is a real data relationship, not only a visual filter.
+### Projects / Categories / Labels
+- Taxonomy is a real relationship in product data.
+- Filters and grouping must be connected to existing models.
 
-## Implementation Rule
+### Calendar / Next Actions / Settings
+- Existing foundations must be reused.
+- No placeholder controls or fake integrations are accepted.
 
-Before changing a screen:
-1. Check active contract.
-2. Check current model/service foundations.
-3. Check installed app behavior evidence.
-4. Implement with regression tests.
+## Implementation Gate
+
+Before changing any screen:
+1. Read active contract.
+2. Inspect current model and service layer.
+3. Compare with installed application evidence.
+4. Implement.
+5. Run analysis/tests and verify on Android.
 
 ## Status
 
-This document is an audit layer and does not mark implementation complete. Completion requires code, tests and Android verification evidence.
+This audit records reconciliation rules only. A feature is complete only with implementation evidence, tests and runtime verification.
