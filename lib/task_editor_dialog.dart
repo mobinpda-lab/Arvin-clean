@@ -710,7 +710,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(height: 10),
                       DropdownButtonFormField<RecurrenceFrequency>(
                         key: const ValueKey('task-editor-recurrence'),
-                        value: _recurrence?.frequency,
+                        initialValue: _recurrence?.frequency,
                         decoration: _fieldDecoration(label: 'تکرار'),
                         items: [
                           const DropdownMenuItem<RecurrenceFrequency>(
@@ -738,7 +738,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(height: 10),
                       DropdownButtonFormField<TaskPriority>(
                         key: const ValueKey('task-editor-priority'),
-                        value: _priority,
+                        initialValue: _priority,
                         decoration: _fieldDecoration(label: 'اولویت'),
                         items: TaskPriority.values
                             .map(
