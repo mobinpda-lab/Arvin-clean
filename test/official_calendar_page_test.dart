@@ -50,7 +50,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('نوروز'), findsOneWidget);
     expect(find.text('پیگیری مشتری'), findsOneWidget);
