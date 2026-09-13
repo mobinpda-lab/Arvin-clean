@@ -1,0 +1,140 @@
+name: ARVIN Guarded Intra-Wave Parallel Lane
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Recovery-wave issue number to validate
+        required: true
+        type: string
+      expected_main_sha:
+        description: Exact main SHA captured before lane execution
+        required: true
+        type: string
+      enable_parallel:
+        description: Explicit opt-in; must be true to activate the lane
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: arvin-intra-wave-parallel-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.guard.outputs.approved }}
+    steps:
+      - name: Verify explicit opt-in, ordered-wave scope and exact main
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          ENABLE_PARALLEL: ${{ inputs.enable_parallel }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ENABLE_PARALLEL" = "true"
+          test -n "$ISSUE_NUMBER"
+          test -n "$EXPECTED_MAIN_SHA"
+          actual="$(gh api repos/$GITHUB_REPOSITORY/commits/main --jq '.sha')"
+          test "$actual" = "$EXPECTED_MAIN_SHA"
+
+          title="$(gh api repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER --jq '.title')"
+          labels="$(gh api repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER --jq '[.labels[].name] | join(",")')"
+
+          case "$title" in
+            "[ARVIN RECOVERY WAVE "*"]") ;;
+            *)
+              echo "Refusing: issue is not an ARVIN Recovery Wave."
+              exit 1
+              ;;
+          esac
+
+          case ",$labels," in
+            *,factory:parallel-approved,*) ;;
+            *)
+              echo "Refusing: factory:parallel-approved is required."
+              exit 1
+              ;;
+          esac
+
+          if [[ ",$labels," == *",factory:leased,"* || ",$labels," == *",factory:in-progress,"* ]]; then
+            echo "Refusing: active recovery lease state is not parallelized by this lane."
+            exit 1
+          fi
+
+          echo "approved=true" >> "$GITHUB_OUTPUT"
+
+  independent-surfaces:
+    needs: guard
+    if: needs.guard.outputs.approved == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        area: [followup, calendar, backup, typography, guide, release]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify exact main before each lane
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+
+      - name: Fetch pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Validate independent surface
+        shell: bash
+        env:
+          ARVIN_SURFACE: ${{ matrix.area }}
+        run: |
+          set -euo pipefail
+          case "$ARVIN_SURFACE" in
+            calendar) tests=$(find test -type f -name '*calendar*test.dart' -print) ;;
+            followup) tests=$(find test -type f \( -iname '*followup*test.dart' -o -iname '*follow_up*test.dart' \) -print) ;;
+            backup) tests=$(find test -type f -iname '*backup*test.dart' -print) ;;
+            typography) tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print) ;;
+            guide) tests=$(find test -type f \( -iname '*guide*test.dart' -o -iname '*help*test.dart' \) -print) ;;
+            release) tests=$(find test -type f \( -iname '*release*test.dart' -o -iname '*critical_path*test.dart' \) -print) ;;
+            *) echo "Unknown surface: $ARVIN_SURFACE"; exit 1 ;;
+          esac
+          if [ -n "$tests" ]; then
+            for test_file in $tests; do flutter test "$test_file"; done
+          else
+            flutter test test/task_store_test.dart
+          fi
