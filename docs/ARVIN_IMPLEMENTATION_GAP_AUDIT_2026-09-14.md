@@ -17,6 +17,7 @@ The objective is not to redesign Arvin as a mockup. The objective is to identify
 - No parallel storage or duplicate architecture for visual similarity.
 - Historical documents remain traceability records unless explicitly superseded.
 - A capability is not complete only because a class, screen, or document exists.
+- Real Android behavior is required before production claims.
 
 ## Initial architecture findings
 
@@ -27,6 +28,7 @@ Existing foundations identified:
 - Notebook foundations.
 - Task detail surfaces.
 - Calendar-related foundations.
+- Existing contract matrix and authority documents.
 
 These foundations must be aligned with the final UX contract rather than replaced.
 
@@ -42,6 +44,17 @@ These foundations must be aligned with the final UX contract rather than replace
 | Calendar | Calendar contract | Jalali and task linkage tests |
 | Settings | Settings contract | Persistent configuration tests |
 
+## Production validation requirements
+
+Each completed wave must provide:
+
+- changed files
+- commit reference
+- test results
+- flutter analyze result
+- real Android verification where applicable
+- remaining limitations
+
 ## Current status
 
 Documentation authority: established.
@@ -50,6 +63,6 @@ Implementation convergence: pending audit execution.
 Next steps:
 
 1. Map every final contract item to existing Dart files.
-2. Mark Missing / Partial / Implemented / Verified.
+2. Mark Missing / Partial / Implemented / Tested / Android Verified.
 3. Fix highest-impact production blockers first.
 4. Produce evidence after each implementation wave.
