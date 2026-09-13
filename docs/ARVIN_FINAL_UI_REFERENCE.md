@@ -11,10 +11,26 @@ Priority order:
 2. Current canonical project documents when compatible.
 3. Old documents only as historical records.
 
-## Goal
-Prevent UI drift and conflicts. All future implementation must converge toward this reference.
+Conflicting old UI decisions must not influence implementation.
 
-## Covered Areas
+## Goal
+Prevent UI drift and ensure the final production application converges to the real installed Arvin experience.
+
+This reference covers both appearance and behavior:
+
+- screen structure
+- colors
+- placement
+- buttons
+- icons
+- navigation
+- workflows
+- information hierarchy
+
+---
+
+# Covered Product Areas
+
 - Home dashboard
 - Bottom navigation
 - Quick entry
@@ -31,18 +47,28 @@ Prevent UI drift and conflicts. All future implementation must converge toward t
 - Layout rules
 - Persian RTL behavior
 
-## Home Screen
+---
+
+# Home Screen
+
 Must preserve:
+
 - Header identity area
 - Search
 - Statistics cards
-- Navigation cards for time/projects/categories/labels
+- Time/projects/categories/labels navigation cards
 - Task cards
 - Quick actions
 - Bottom navigation
 
-## Quick Entry
+Home is the operational dashboard and must provide immediate visibility of work status.
+
+---
+
+# Quick Entry
+
 Required capabilities:
+
 - Fast task capture
 - Title input
 - Project selection
@@ -51,8 +77,14 @@ Required capabilities:
 - Date/time
 - Conversion to full task
 
-## Task Detail
+Quick creation must remain fast and simple.
+
+---
+
+# Task Detail
+
 Required:
+
 - Task context
 - Status
 - Reminder
@@ -62,23 +94,37 @@ Required:
 - Add follow-up
 - Complete action
 
-## Follow-up
-Follow-up is a core workflow:
+---
+
+# Follow-up
+
+Follow-up is a core Arvin workflow:
+
 - Create follow-up
 - Track responses
 - Show history
 - Manage reminders
+- Display next required action
 
-## Notebook
+---
+
+# Notebook
+
 Supports:
+
 - Notes
 - Checklists
 - Organization
 - Search
 - Editing
+- Categories
 
-## Visual Rules
+---
+
+# Visual System
+
 Preserve:
+
 - Approved color palette
 - Card hierarchy
 - Typography hierarchy
@@ -87,10 +133,41 @@ Preserve:
 - Rounded surfaces
 - RTL alignment
 
-## Conflict Resolution
+Semantic colors must communicate state:
+
+- completed
+- active
+- waiting
+- warning
+- important
+
+---
+
+# Organization Model
+
+Core entities:
+
+- Projects
+- Categories
+- Labels
+- Personal items
+- Work items
+- Unassigned items
+
+The UI must keep relationships clear.
+
+---
+
+# Conflict Resolution
+
 If older material conflicts with this document:
+
 - This reference has priority.
 - Conflicting old documents must be archived or marked superseded.
+- New implementation must not revive obsolete designs.
 
-## Production Objective
-Deliver the final Arvin product matching the approved installed experience, not an alternative interpretation.
+---
+
+# Production Objective
+
+Deliver the final Arvin product matching the approved installed experience with stable architecture, maintainability and production readiness.
