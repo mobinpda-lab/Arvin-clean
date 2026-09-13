@@ -60,52 +60,54 @@ class _LinkStore extends ExternalCalendarLinkStore {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('shows selected external device events without prompting permission',
-      (tester) async {
-    final now = DateTime.now();
-    final eventStart = DateTime(now.year, now.month, now.day, 10)
-        .add(const Duration(days: 1));
-    final bridge = _CalendarBridge(
-      permissionGranted: true,
-      events: [
-        DeviceCalendarEvent(
-          instanceId: 'instance-1',
-          eventId: 'event-1',
-          calendarId: 'calendar-7',
-          calendarName: 'Google شخصی',
-          title: 'جلسه مشتری',
-          start: eventStart,
-          end: eventStart.add(const Duration(hours: 1)),
-          allDay: false,
-        ),
-      ],
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: OfficialCalendarPage(
-          service: const OfficialCalendarReminderService([]),
-          years: <int>[now.year],
-          initialSelectedDay: eventStart,
-          settingsService: _SettingsService(
-            const CalendarIntegrationSettings(
-              enabled: true,
-              showExternalEvents: true,
-              visibleCalendarIds: {'calendar-7'},
-            ),
+  testWidgets(
+    'shows selected external device events without prompting permission',
+    (tester) async {
+      final now = DateTime.now();
+      final eventStart = DateTime(now.year, now.month, now.day, 10)
+          .add(const Duration(days: 1));
+      final bridge = _CalendarBridge(
+        permissionGranted: true,
+        events: [
+          DeviceCalendarEvent(
+            instanceId: 'instance-1',
+            eventId: 'event-1',
+            calendarId: 'calendar-7',
+            calendarName: 'Google شخصی',
+            title: 'جلسه مشتری',
+            start: eventStart,
+            end: eventStart.add(const Duration(hours: 1)),
+            allDay: false,
           ),
-          calendarBridge: bridge,
-          externalLinkStore: _LinkStore(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+        ],
+      );
 
-    expect(find.text('جلسه مشتری • Google شخصی'), findsOneWidget);
-    expect(bridge.listedEvents, isTrue);
-    expect(bridge.queriedCalendarIds, ['calendar-7']);
-    expect(bridge.requestedPermission, isFalse);
-  });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OfficialCalendarPage(
+            service: const OfficialCalendarReminderService([]),
+            years: <int>[now.year],
+            initialSelectedDay: eventStart,
+            settingsService: _SettingsService(
+              const CalendarIntegrationSettings(
+                enabled: true,
+                showExternalEvents: true,
+                visibleCalendarIds: {'calendar-7'},
+              ),
+            ),
+            calendarBridge: bridge,
+            externalLinkStore: _LinkStore(),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(find.text('جلسه مشتری • Google شخصی'), findsOneWidget);
+      expect(bridge.listedEvents, isTrue);
+      expect(bridge.queriedCalendarIds, ['calendar-7']);
+      expect(bridge.requestedPermission, isFalse);
+    },
+  );
 
   testWidgets('permission denial fails closed and keeps calendar usable',
       (tester) async {
@@ -130,7 +132,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(find.text('تقویم پیگیری'), findsOneWidget);
     expect(bridge.listedEvents, isFalse);
