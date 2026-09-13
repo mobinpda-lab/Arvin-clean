@@ -20,12 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Reconcile ordered recovery waves and wake factory
+      - name: Global reconcile, decide, and wake factory
         uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
             const parentIssue = 845;
+            const controlIssue = 881;
             const waves = [846, 847, 848, 849, 850, 851, 852, 853];
             const bootstrapHoldMarker = '<!-- arvin-auto-advance-bootstrap-hold -->';
             const workerAutoCloseToken = 'Closes #$ARVIN_ISSUE_NUMBER';
@@ -35,75 +36,146 @@ jobs:
               'orchestrator:manual',
               'factory:escalated',
             ]);
+            const activeStatuses = new Set(['queued', 'in_progress']);
+            const factoryWorkflows = [
+              'arvin-agent-worker.yml',
+              'arvin-autonomous-queue.yml',
+              'arvin-production-loop.yml',
+              'arvin-factory-wave.yml',
+            ];
 
+            const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+            const currentMainSha = main.data.commit.sha;
             const state = [];
             for (const issueNumber of waves) {
-              const response = await github.rest.issues.get({
-                owner,
-                repo,
-                issue_number: issueNumber,
-              });
+              const response = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
               const issue = response.data;
               const labels = new Set((issue.labels || []).map(x => typeof x === 'string' ? x : x.name));
               state.push({ issue, labels });
             }
 
-            const firstOpenIndex = state.findIndex(x => x.issue.state === 'open');
-            if (firstOpenIndex < 0) {
-              const comments = await github.paginate(github.rest.issues.listComments, {
-                owner, repo, issue_number: parentIssue, per_page: 100,
+            function hasHardBlock(labels) {
+              return [...hardBlocks].some(label => labels.has(label));
+            }
+
+            function issueRank(labels) {
+              if (labels.has('priority:release-blocker')) return 0;
+              if (labels.has('priority:core')) return 1;
+              if (labels.has('priority:feature')) return 2;
+              if (labels.has('priority:automation')) return 3;
+              return 4;
+            }
+
+            async function activeRunsFor(workflowFile) {
+              const response = await github.rest.actions.listWorkflowRuns({
+                owner, repo, workflow_id: workflowFile, per_page: 20,
               });
-              const marker = '<!-- arvin-recovery-waves-complete -->';
-              if (!comments.some(c => c.body?.includes(marker))) {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: parentIssue,
-                  body: `${marker}\nAll ordered ARVIN Recovery Waves (#846–#853) are closed. Run final exact-main checklist/evidence reconciliation before closing the parent issue.`,
-                });
+              return response.data.workflow_runs.filter(run => activeStatuses.has(run.status));
+            }
+
+            const openPrs = await github.paginate(github.rest.pulls.list, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+            const activeFactoryRuns = [];
+            for (const workflowFile of factoryWorkflows) {
+              for (const run of await activeRunsFor(workflowFile)) {
+                activeFactoryRuns.push({ workflowFile, id: run.id, status: run.status, headSha: run.head_sha });
               }
-              core.info('All recovery waves are closed.');
+            }
+
+            const releaseBlockers = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', labels: 'priority:release-blocker', per_page: 100,
+            });
+            const actionableReleaseBlockers = releaseBlockers.filter(i => !hasHardBlock(new Set((i.labels || []).map(x => typeof x === 'string' ? x : x.name))));
+
+            const firstOpenIndex = state.findIndex(x => x.issue.state === 'open');
+            const activeWave = firstOpenIndex >= 0 ? state[firstOpenIndex] : null;
+            const activeWaveNumber = activeWave?.issue.number || null;
+            const activeWaveHasWorkerPr = activeWaveNumber
+              ? (await github.paginate(github.rest.pulls.list, {
+                  owner, repo, state: 'open', head: `${owner}:ai/issue-${activeWaveNumber}`, per_page: 100,
+                })).length > 0
+              : false;
+
+            // Global reconcile evidence: update one durable control comment instead of
+            // creating a new comment every five minutes.
+            const reconcileMarker = '<!-- arvin-global-reconcile-state -->';
+            const controlComments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: controlIssue, per_page: 100,
+            });
+            const existing = controlComments.find(c => c.body?.includes(reconcileMarker));
+            const activeRunSummary = activeFactoryRuns.length
+              ? activeFactoryRuns.map(r => `${r.workflowFile}#${r.id}:${r.status}`).join(', ')
+              : 'none';
+            const prSummary = openPrs.length
+              ? openPrs.map(p => `#${p.number}:${p.head.ref}->${p.base.ref}`).slice(0, 12).join(', ')
+              : 'none';
+            const decisionBase = {
+              main: currentMainSha,
+              activeWave: activeWaveNumber || 'none',
+              releaseBlockers: actionableReleaseBlockers.map(i => i.number).slice(0, 12),
+              activeFactoryRuns: activeFactoryRuns.length,
+              openPrs: openPrs.length,
+              workerPr: activeWaveHasWorkerPr,
+            };
+
+            async function writeReconcileDecision(decision, detail) {
+              const body = `${reconcileMarker}\n### ARVIN Global Reconcile\n- main: \`${currentMainSha}\`\n- active wave: ${activeWaveNumber || 'none'}\n- release blockers: ${actionableReleaseBlockers.length ? actionableReleaseBlockers.map(i => `#${i.number}`).join(', ') : 'none'}\n- active factory runs: ${activeRunSummary}\n- open PRs: ${prSummary}\n- decision: **${decision}**\n- detail: ${detail}\n- cadence: every 5 minutes; human merge gate preserved.`;
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number: controlIssue, body });
+              }
+            }
+
+            // Product work and release blockers outrank factory improvement. The
+            // controller does not implement or merge work itself; it wakes the one
+            // canonical queue which owns worker leasing/dispatch.
+            if (activeFactoryRuns.some(r => r.workflowFile === 'arvin-agent-worker.yml')) {
+              await writeReconcileDecision('WAIT_ACTIVE_WORKER', 'An AI worker is already running; no duplicate dispatch.');
+              core.info(JSON.stringify(decisionBase));
               return;
             }
 
-            const active = state[firstOpenIndex];
-            const activeNumber = active.issue.number;
+            if (activeWaveHasWorkerPr) {
+              await writeReconcileDecision('WAIT_ACTIVE_PR', `Active wave #${activeWaveNumber} already has a worker PR; wait for exact-head CI/review.`);
+              return;
+            }
+
+            if (actionableReleaseBlockers.length > 0) {
+              await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'arvin-autonomous-queue.yml', ref: 'main' });
+              await writeReconcileDecision('WAKE_RELEASE_BLOCKER', `Canonical queue awakened for release-blocker priority; ${actionableReleaseBlockers.length} eligible blocker(s) exist.`);
+              return;
+            }
+
+            if (firstOpenIndex < 0) {
+              await writeReconcileDecision('FINAL_RECONCILE', 'All ordered Recovery Waves #846–#853 are closed; final exact-main release reconciliation is required.');
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: parentIssue, per_page: 100 });
+              const marker = '<!-- arvin-recovery-waves-complete -->';
+              if (!comments.some(c => c.body?.includes(marker))) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: parentIssue, body: `${marker}\nAll ordered ARVIN Recovery Waves (#846–#853) are closed. Run final exact-main checklist/evidence reconciliation before closing the parent issue.` });
+              }
+              return;
+            }
 
             // A one-time bootstrap hold can protect the first post-Wave-0 task while
-            // the worker auto-close contract itself is being merged. Only a hold with
-            // the explicit marker is auto-released, and only after current main proves
-            // that guarded worker PRs contain the issue-closing token. Manual owner
-            // holds without this marker remain fail-closed.
-            if (active.labels.has('orchestrator:hold')) {
-              const activeComments = await github.paginate(github.rest.issues.listComments, {
-                owner, repo, issue_number: activeNumber, per_page: 100,
-              });
+            // the worker auto-close contract itself is being merged.
+            if (activeWave.labels.has('orchestrator:hold')) {
+              const activeComments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: activeWaveNumber, per_page: 100 });
               const isBootstrapHold = activeComments.some(c => c.body?.includes(bootstrapHoldMarker));
               if (isBootstrapHold) {
-                const workerFile = await github.rest.repos.getContent({
-                  owner,
-                  repo,
-                  path: '.github/workflows/arvin-agent-worker.yml',
-                  ref: 'main',
-                });
+                const workerFile = await github.rest.repos.getContent({ owner, repo, path: '.github/workflows/arvin-agent-worker.yml', ref: 'main' });
                 const encoded = Array.isArray(workerFile.data) ? '' : (workerFile.data.content || '');
                 const workerText = Buffer.from(encoded, 'base64').toString('utf8');
                 if (workerText.includes(workerAutoCloseToken)) {
-                  await github.rest.issues.removeLabel({
-                    owner, repo, issue_number: activeNumber, name: 'orchestrator:hold',
-                  }).catch(() => {});
-                  active.labels.delete('orchestrator:hold');
-                  await github.rest.issues.createComment({
-                    owner, repo, issue_number: activeNumber,
-                    body: '<!-- arvin-auto-advance-bootstrap-released -->\nBootstrap hold released automatically: current main contains the guarded worker issue-auto-close contract. Ordered recovery execution may continue without manual intervention.',
-                  });
+                  await github.rest.issues.removeLabel({ owner, repo, issue_number: activeWaveNumber, name: 'orchestrator:hold' }).catch(() => {});
+                  activeWave.labels.delete('orchestrator:hold');
+                  await github.rest.issues.createComment({ owner, repo, issue_number: activeWaveNumber, body: '<!-- arvin-auto-advance-bootstrap-released -->\nBootstrap hold released automatically: current main contains the guarded worker issue-auto-close contract. Ordered recovery execution may continue without manual intervention.' });
                 }
               }
             }
 
-            // Later waves must remain dormant until every earlier wave closes. Both
-            // factory:ready and arvin-auto are queue-eligibility labels, so clear both
-            // when there is no active lease/worker PR. Never disturb a live lease.
+            // Later waves remain dormant until every earlier wave closes.
             for (let i = firstOpenIndex + 1; i < state.length; i++) {
               const later = state[i];
               if (later.issue.state !== 'open') continue;
@@ -113,64 +185,35 @@ jobs:
               }
               for (const eligibilityLabel of ['factory:ready', 'arvin-auto']) {
                 if (!later.labels.has(eligibilityLabel)) continue;
-                await github.rest.issues.removeLabel({
-                  owner,
-                  repo,
-                  issue_number: later.issue.number,
-                  name: eligibilityLabel,
-                }).catch(() => {});
-                core.info(`Removed premature ${eligibilityLabel} from later wave #${later.issue.number}.`);
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: later.issue.number, name: eligibilityLabel }).catch(() => {});
               }
             }
 
-            if ([...hardBlocks].some(label => active.labels.has(label))) {
-              core.warning(`Active recovery wave #${activeNumber} is hard-blocked; later waves remain held.`);
+            if (hasHardBlock(activeWave.labels)) {
+              await writeReconcileDecision('WAIT_HARD_BLOCK', `Active recovery wave #${activeWaveNumber} is hard-blocked; manual/security/escalated hold remains fail-closed.`);
               return;
             }
 
-            const openWorkerPrs = await github.paginate(github.rest.pulls.list, {
-              owner,
-              repo,
-              state: 'open',
-              head: `${owner}:ai/issue-${activeNumber}`,
-              per_page: 100,
-            });
-
-            if (active.labels.has('factory:leased') || active.labels.has('factory:in-progress') || openWorkerPrs.length > 0) {
-              core.info(`Recovery wave #${activeNumber} already has active factory work; no duplicate dispatch.`);
+            if (activeFactoryRuns.some(r => r.workflowFile === 'arvin-autonomous-queue.yml')) {
+              await writeReconcileDecision('WAIT_QUEUE', 'Canonical autonomous queue is already running; controller will not create a competing dispatch.');
               return;
             }
 
-            if (!active.labels.has('factory:ready')) {
-              await github.rest.issues.addLabels({
-                owner,
-                repo,
-                issue_number: activeNumber,
-                labels: ['factory:ready'],
-              });
+            if (activeWave.labels.has('factory:leased') || activeWave.labels.has('factory:in-progress')) {
+              await writeReconcileDecision('WAIT_LEASE', `Recovery wave #${activeWaveNumber} already has an autonomous lease; no duplicate dispatch.`);
+              return;
             }
 
-            const parentComments = await github.paginate(github.rest.issues.listComments, {
-              owner, repo, issue_number: parentIssue, per_page: 100,
-            });
-            const activationMarker = `<!-- arvin-recovery-wave-active:${activeNumber} -->`;
+            if (!activeWave.labels.has('factory:ready')) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: activeWaveNumber, labels: ['factory:ready'] });
+            }
+
+            const parentComments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: parentIssue, per_page: 100 });
+            const activationMarker = `<!-- arvin-recovery-wave-active:${activeWaveNumber} -->`;
             if (!parentComments.some(c => c.body?.includes(activationMarker))) {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: parentIssue,
-                body: `${activationMarker}\nARVIN Recovery Controller activated wave #${activeNumber}: **${active.issue.title}**. Later waves remain dormant until this wave closes. Controller cadence: every 5 minutes.`,
-              });
+              await github.rest.issues.createComment({ owner, repo, issue_number: parentIssue, body: `${activationMarker}\nARVIN Recovery Controller activated wave #${activeWaveNumber}: **${activeWave.issue.title}**. Later waves remain dormant until this wave closes. Controller cadence: every 5 minutes.` });
             }
 
-            // Wake the existing canonical queue explicitly. The queue itself also has a
-            // five-minute schedule, but this dispatch reduces latency and preserves one
-            // launch authority for the actual AI worker lease.
-            await github.rest.actions.createWorkflowDispatch({
-              owner,
-              repo,
-              workflow_id: 'arvin-autonomous-queue.yml',
-              ref: 'main',
-            });
-
-            core.info(`Recovery wave #${activeNumber} is ready and the canonical queue was awakened.`);
+            await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'arvin-autonomous-queue.yml', ref: 'main' });
+            await writeReconcileDecision('WAKE_PRODUCT_WAVE', `Wave #${activeWaveNumber} is eligible and canonical queue was awakened. Product/release work takes precedence over factory improvement; no auto-merge is performed.`);
+            core.info(`Recovery wave #${activeWaveNumber} is ready and canonical queue was awakened.`);
