@@ -16,6 +16,12 @@ class _FakeOfficialSource implements OfficialCalendarReminderSource {
   }
 }
 
+Future<void> _pumpAsyncCalendar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pump();
+}
+
 void main() {
   testWidgets('feeds official service output into the existing CalendarPage',
       (tester) async {
@@ -50,7 +56,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(seconds: 1));
+    await _pumpAsyncCalendar(tester);
 
     expect(find.text('نوروز'), findsOneWidget);
     expect(find.text('پیگیری مشتری'), findsOneWidget);
