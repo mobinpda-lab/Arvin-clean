@@ -52,12 +52,9 @@ class _CalendarBridge extends SystemCalendarBridge {
 }
 
 class _LinkStore extends ExternalCalendarLinkStore {
-  _LinkStore([this.links = const []]);
-
-  final List<ExternalCalendarEventLink> links;
-
   @override
-  Future<List<ExternalCalendarEventLink>> load() async => links;
+  Future<List<ExternalCalendarEventLink>> load() async =>
+      const <ExternalCalendarEventLink>[];
 }
 
 void main() {
