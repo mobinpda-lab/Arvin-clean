@@ -16,9 +16,12 @@ void main() {
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-done')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stat-active')), findsNothing);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
@@ -163,7 +166,7 @@ void main() {
 
     expect(find.text('کار بایگانی'), findsNothing);
     expect(find.text('بایگانی خالی است'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-stat-active')));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsOneWidget);
   });
@@ -191,10 +194,11 @@ void main() {
 
     expect(find.text('کار سطل'), findsNothing);
     expect(find.text('سطل زباله خالی است'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-stat-active')));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsOneWidget);
   });
+
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
       (tester) async {
     const corrupt = '{"not":"a-list"}';
@@ -223,5 +227,4 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('arvin.tasks'), corrupt);
   });
-
 }
