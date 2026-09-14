@@ -66,6 +66,7 @@ class CanonicalNotebookRepository {
     String? id,
     String title = 'یادداشت جدید',
     List<String> checklist = const [],
+    NotebookItemKind? notebookKind,
     String? category,
   }) {
     return _store.mutate<Task>((tasks) {
@@ -75,6 +76,8 @@ class CanonicalNotebookRepository {
         id: id ?? 'note-${createdAt.microsecondsSinceEpoch}',
         title: title.trim().isEmpty ? 'یادداشت جدید' : title.trim(),
         checklist: List<String>.of(checklist),
+        notebookKind: notebookKind ??
+            (checklist.isNotEmpty ? NotebookItemKind.checklist : NotebookItemKind.note),
         category: normalizedCategory == null || normalizedCategory.isEmpty
             ? null
             : normalizedCategory,
