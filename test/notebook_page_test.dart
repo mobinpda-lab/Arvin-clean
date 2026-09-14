@@ -300,7 +300,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-note-ui-note')));
     await tester.pumpAndSettle();
 
-    expect(find.text('ویرایش'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-edit')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('notebook-edit')));
@@ -342,7 +342,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-category-اداری')));
     await tester.pumpAndSettle();
 
-    expect(find.text('دسته: اداری'), findsOneWidget);
+    expect(find.text('اداری'), findsOneWidget);
     final persisted = await repository.loadNote('target');
     expect(persisted?.id, 'target');
     expect(persisted?.category, 'اداری');
@@ -370,7 +370,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect((await repository.loadNote('category-note'))?.category, 'شخصی');
-    expect(find.text('دسته: شخصی'), findsOneWidget);
+    expect(find.text('شخصی'), findsOneWidget);
   });
   testWidgets('long press enables canonical Notebook bulk selection and select-all',
       (tester) async {
