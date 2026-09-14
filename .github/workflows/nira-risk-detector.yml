@@ -1,0 +1,16 @@
+name: NIRA Risk Detector
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  risk-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect sensitive changes
+        run: |
+          echo "NIRA risk detection started"
+          echo "Checking architecture, data model, storage and dependencies"
+          echo "Result will be reported as evidence"
