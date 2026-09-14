@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'task_report_page.dart';
-import 'widgets/project_selector_field.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
 enum _NotebookCreateMode { note, checklist }
@@ -61,6 +59,26 @@ class _NotebookPageState extends State<NotebookPage> {
   List<Task> _notes = const [];
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
+  final TextEditingController _search = TextEditingController();
+  _NotebookCreateMode _activeMode = _NotebookCreateMode.note;
+  String _activeCategory = 'همه';
+
+  static const _referenceCategories = <String>['همه', 'شخصی', 'کاری', 'ایده‌ها'];
+
+  List<Task> get _visibleNotes {
+    final query = _search.text.trim().toLowerCase();
+    return _notes.where((note) {
+      final isChecklist = note.checklist.isNotEmpty;
+      if (_activeMode == _NotebookCreateMode.note && isChecklist) return false;
+      if (_activeMode == _NotebookCreateMode.checklist && !isChecklist) return false;
+      if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
+        return false;
+      }
+      if (query.isEmpty) return true;
+      return note.title.toLowerCase().contains(query) ||
+          note.description.toLowerCase().contains(query);
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -96,7 +114,7 @@ class _NotebookPageState extends State<NotebookPage> {
 
   void _toggleAll() {
     setState(() {
-      final visible = _notes.map((note) => note.id).toSet();
+      final visible = _visibleNotes.map((note) => note.id).toSet();
       final allSelected = visible.isNotEmpty && visible.every(_selected.contains);
       if (allSelected) {
         _selected.removeAll(visible);
@@ -351,11 +369,13 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _create() async {
-    final mode = await _chooseCreateMode();
-    if (!mounted || mode == null) return;
+    final mode = _activeMode;
 
     if (mode == _NotebookCreateMode.note) {
-      final note = await widget.repository.createNote(title: 'یادداشت جدید');
+      final note = await widget.repository.createNote(
+        title: 'یادداشت جدید',
+        category: _activeCategory == 'همه' ? null : _activeCategory,
+      );
       if (!mounted) return;
       await _open(note, startEditing: true);
       return;
@@ -367,6 +387,7 @@ class _NotebookPageState extends State<NotebookPage> {
     final note = await widget.repository.createNote(
       title: preset.title,
       checklist: preset.items,
+      category: _activeCategory == 'همه' ? null : _activeCategory,
     );
     if (!mounted) return;
     await _open(
@@ -378,79 +399,169 @@ class _NotebookPageState extends State<NotebookPage> {
 
   @override
   Widget build(BuildContext context) {
-    final allVisibleSelected =
-        _notes.isNotEmpty && _notes.every((note) => _selected.contains(note.id));
+    final visibleNotes = _visibleNotes;
+    final allVisibleSelected = visibleNotes.isNotEmpty &&
+        visibleNotes.every((note) => _selected.contains(note.id));
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(_selectionMode ? '${_selected.length} انتخاب' : 'دفترچه آروین'),
+        title: _selectionMode
+            ? Text('${_selected.length} انتخاب')
+            : const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('دفترچه'),
+                  Text(
+                    'یادداشت‌ها و چک‌لیست‌ها',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                  ),
+                ],
+              ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _notes.isEmpty
-              ? const Center(child: Text('هنوز یادداشتی ثبت نشده است'))
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _notes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final note = _notes[index];
-                    final selected = _selected.contains(note.id);
-                    return Card(
-                      child: ListTile(
-                        key: ValueKey('notebook-note-${note.id}'),
-                        leading: _selectionMode
-                            ? Checkbox(
-                                value: selected,
-                                onChanged: (_) => _toggleSelection(note.id),
-                              )
-                            : Icon(
-                                note.checklist.isEmpty
-                                    ? Icons.note_alt_outlined
-                                    : Icons.checklist_outlined,
-                              ),
-                        title: Text(note.title),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (note.description.trim().isNotEmpty)
-                              Text(
-                                note.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            else if (note.checklist.isNotEmpty)
-                              Text('${note.checklist.length} مورد چک‌لیست'),
-                            if (note.category?.trim().isNotEmpty ?? false)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'دسته: ${note.category}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            if (note.tags.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'برچسب: ${note.tags.join('، ')}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ),
-                          ],
-                        ),
-                        selected: selected,
-                        onLongPress: () => _toggleSelection(note.id),
-                        onTap: () => _selectionMode
-                            ? _toggleSelection(note.id)
-                            : _open(note),
-                      ),
-                    );
-                  },
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: TextField(
+                    key: const ValueKey('notebook-search'),
+                    controller: _search,
+                    onChanged: (_) => setState(() {}),
+                    decoration: const InputDecoration(
+                      hintText: 'جستجو در دفترچه',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
                 ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      for (final category in _referenceCategories)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            key: ValueKey('notebook-filter-$category'),
+                            label: Text(category),
+                            selected: _activeCategory == category,
+                            onSelected: (_) =>
+                                setState(() => _activeCategory = category),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: SegmentedButton<_NotebookCreateMode>(
+                    key: const ValueKey('notebook-mode-switch'),
+                    segments: const [
+                      ButtonSegment(
+                        value: _NotebookCreateMode.note,
+                        label: Text('یادداشت‌ها'),
+                        icon: Icon(Icons.note_alt_outlined),
+                      ),
+                      ButtonSegment(
+                        value: _NotebookCreateMode.checklist,
+                        label: Text('چک‌لیست‌ها'),
+                        icon: Icon(Icons.checklist_outlined),
+                      ),
+                    ],
+                    selected: {_activeMode},
+                    onSelectionChanged: (selection) => setState(
+                      () => _activeMode = selection.first,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: visibleNotes.isEmpty
+                      ? Center(
+                          child: Text(
+                            _notes.isEmpty
+                                ? 'هنوز یادداشتی ثبت نشده است'
+                                : 'موردی مطابق فیلتر فعلی پیدا نشد',
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                          itemCount: visibleNotes.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final note = visibleNotes[index];
+                            final selected = _selected.contains(note.id);
+                            final preview = note.description.trim().isNotEmpty
+                                ? note.description.trim()
+                                : note.checklist
+                                    .map(_checklistPreviewLabel)
+                                    .take(2)
+                                    .join(' • ');
+                            return Card(
+                              child: ListTile(
+                                key: ValueKey('notebook-note-${note.id}'),
+                                leading: _selectionMode
+                                    ? Checkbox(
+                                        value: selected,
+                                        onChanged: (_) =>
+                                            _toggleSelection(note.id),
+                                      )
+                                    : Icon(
+                                        note.checklist.isEmpty
+                                            ? Icons.note_alt_outlined
+                                            : Icons.checklist_outlined,
+                                      ),
+                                title: Text(note.title),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (preview.isNotEmpty)
+                                      Text(
+                                        preview,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    const SizedBox(height: 4),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: [
+                                        Text(
+                                          note.category?.trim().isNotEmpty ??
+                                                  false
+                                              ? note.category!
+                                              : 'بدون دسته',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        ),
+                                        Text(
+                                          _formatNotebookDate(
+                                            note.updatedAt ?? note.createdAt,
+                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                selected: selected,
+                                onLongPress: () =>
+                                    _toggleSelection(note.id),
+                                onTap: () => _selectionMode
+                                    ? _toggleSelection(note.id)
+                                    : _open(note),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
       bottomNavigationBar: _selectionMode
           ? TaskBulkSelectionBar(
               selectedCount: _selected.length,
@@ -468,10 +579,28 @@ class _NotebookPageState extends State<NotebookPage> {
           : FloatingActionButton(
               key: const ValueKey('notebook-create'),
               onPressed: _loading ? null : _create,
-              tooltip: 'یادداشت جدید',
+              tooltip: _activeMode == _NotebookCreateMode.note
+                  ? 'یادداشت جدید'
+                  : 'چک‌لیست جدید',
               child: const Icon(Icons.add),
             ),
     );
+  }
+
+  static String _checklistPreviewLabel(String item) =>
+      item.replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), '');
+
+  static String _formatNotebookDate(DateTime? value) {
+    if (value == null) return '';
+    final local = value.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${local.year}/${two(local.month)}/${two(local.day)}';
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 }
 
@@ -508,11 +637,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _loading = true;
   bool _editing = false;
   bool _saving = false;
-  bool _projectSaving = false;
   bool _checklistMode = false;
   String? _category;
-  List<ProjectPlan> _projects = const [];
-  String? _projectId;
   List<String> _checklist = [];
 
   @override
@@ -531,23 +657,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
       return;
     }
 
-    final projects = await widget.repository.loadProjects();
-    String? projectId;
-    try {
-      projectId = await widget.repository.projectIdForNote(widget.noteId);
-    } on StateError {
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
-    if (!mounted) return;
-
     _note = note;
     _title.text = note.title;
     _description.text = note.description;
     _checklist = List<String>.of(note.checklist);
     _category = note.category;
-    _projects = projects;
-    _projectId = projectId;
     _checklistMode = _checklistMode || note.checklist.isNotEmpty;
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
@@ -686,28 +800,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     });
   }
 
-  Future<void> _changeProject(String? projectId) async {
-    if (!_editing || _projectSaving || projectId == _projectId) return;
-    setState(() => _projectSaving = true);
-    try {
-      await widget.repository.updateProject(
-        id: widget.noteId,
-        projectId: projectId,
-      );
-      if (!mounted) return;
-      setState(() => _projectId = projectId);
-    } on Object catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تغییر پروژه ذخیره نشد: $error'),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _projectSaving = false);
-    }
-  }
-
   void _addChecklistItem() {
     if (!_editing || !_checklistMode) return;
     final value = _checklistInput.text.trim();
@@ -839,26 +931,29 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   : 'دسته: $_category',
             ),
           ),
-          if (_projects.isNotEmpty || _projectId != null) ...[
-            const SizedBox(height: 16),
-            IgnorePointer(
-              ignoring: !_editing || _projectSaving,
-              child: Opacity(
-                opacity: _editing && !_projectSaving ? 1 : 0.72,
-                child: ProjectSelectorField(
-                  key: const ValueKey('notebook-project-selector'),
-                  projects: _projects,
-                  selectedProjectId: _projectId,
-                  onChanged: (value) => _changeProject(value),
-                ),
-              ),
-            ),
-          ],
           if (_checklistMode) ...[
             const SizedBox(height: 20),
-            Text(
-              'چک‌لیست',
-              style: Theme.of(context).textTheme.titleMedium,
+            Builder(
+              builder: (context) {
+                final completed = _checklist.where(_checked).length;
+                final total = _checklist.length;
+                final progress = total == 0 ? 0.0 : completed / total;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'چک‌لیست — $completed از $total انجام شده',
+                      key: const ValueKey('notebook-checklist-progress-label'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      key: const ValueKey('notebook-checklist-progress'),
+                      value: progress,
+                    ),
+                  ],
+                );
+              },
             ),
             for (var index = 0; index < _checklist.length; index++)
               CheckboxListTile(
