@@ -166,6 +166,8 @@ void main() {
 
     expect(find.text('کار بایگانی'), findsNothing);
     expect(find.text('بایگانی خالی است'), findsOneWidget);
+    await tester.tap(find.text('پروژه‌ها'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsOneWidget);
@@ -194,6 +196,8 @@ void main() {
 
     expect(find.text('کار سطل'), findsNothing);
     expect(find.text('سطل زباله خالی است'), findsOneWidget);
+    await tester.tap(find.text('پروژه‌ها'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsOneWidget);
