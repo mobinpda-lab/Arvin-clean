@@ -76,6 +76,61 @@ void main() {
     expect(find.textContaining('در انتظار پیگیری'), findsNothing);
   });
 
+  testWidgets('offers year view with all Jalali months', (tester) async {
+    final day = DateTime(2026, 9, 15);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: const [],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('سالانه'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('calendar-year-view')), findsOneWidget);
+    for (var month = 1; month <= 12; month++) {
+      expect(find.byKey(ValueKey('calendar-year-month-$month')), findsOneWidget);
+    }
+  });
+
+  testWidgets('horizontal swipe advances every calendar view period', (tester) async {
+    final initial = DateTime(2026, 9, 15, 10);
+    const modes = <String>['روزانه', 'هفتگی', 'ماهانه', 'سالانه'];
+
+    for (final mode in modes) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CalendarPage(
+            initialSelectedDay: initial,
+            reminders: [
+              CalendarReminder(
+                id: 'origin-$mode',
+                title: 'رویداد مبدأ $mode',
+                date: initial,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(mode));
+      await tester.pumpAndSettle();
+      expect(find.text('رویداد مبدأ $mode'), findsOneWidget);
+
+      await tester.drag(
+        find.byKey(const ValueKey('calendar-swipe-surface')),
+        const Offset(-500, 0),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('رویداد مبدأ $mode'), findsNothing);
+    }
+  });
+
   testWidgets('expands reminder actions and routes applicable callbacks',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
