@@ -68,7 +68,7 @@ class _NotebookPageState extends State<NotebookPage> {
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      final isChecklist = note.checklist.isNotEmpty;
+      final isChecklist = note.isNotebookChecklist;
       if (_activeMode == _NotebookCreateMode.note && isChecklist) return false;
       if (_activeMode == _NotebookCreateMode.checklist && !isChecklist) return false;
       if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
@@ -374,6 +374,7 @@ class _NotebookPageState extends State<NotebookPage> {
     if (mode == _NotebookCreateMode.note) {
       final note = await widget.repository.createNote(
         title: 'یادداشت جدید',
+        notebookKind: NotebookItemKind.note,
         category: _activeCategory == 'همه' ? null : _activeCategory,
       );
       if (!mounted) return;
@@ -387,6 +388,7 @@ class _NotebookPageState extends State<NotebookPage> {
     final note = await widget.repository.createNote(
       title: preset.title,
       checklist: preset.items,
+      notebookKind: NotebookItemKind.checklist,
       category: _activeCategory == 'همه' ? null : _activeCategory,
     );
     if (!mounted) return;
@@ -509,9 +511,9 @@ class _NotebookPageState extends State<NotebookPage> {
                                             _toggleSelection(note.id),
                                       )
                                     : Icon(
-                                        note.checklist.isEmpty
-                                            ? Icons.note_alt_outlined
-                                            : Icons.checklist_outlined,
+                                        note.isNotebookChecklist
+                                            ? Icons.checklist_outlined
+                                            : Icons.note_alt_outlined,
                                       ),
                                 title: Text(note.title),
                                 subtitle: Column(
