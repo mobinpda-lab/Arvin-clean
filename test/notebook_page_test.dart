@@ -255,6 +255,35 @@ void main() {
     expect(find.text('چک‌لیست — 1 از 1 انجام شده'), findsOneWidget);
   });
 
+  testWidgets('editor matches content-first reference surface', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 12));
+    final note = await repository.createNote(
+      id: 'reference-editor',
+      title: 'ایده محصول',
+      category: 'ایده‌ها',
+    );
+    await repository.updateNote(
+      id: note.id,
+      title: 'ایده محصول',
+      description: 'متن یادداشت',
+      checklist: const [],
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-reference-editor')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-editor-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
+    expect(find.text('ایده‌ها'), findsOneWidget);
+
+    final description = tester.widget<TextField>(
+      find.byKey(const ValueKey('notebook-description')),
+    );
+    expect(description.maxLines, isNull);
+    expect(description.minLines, 12);
+  });
+
   testWidgets('existing simple note has explicit edit button and no checklist block',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 26, 10));
@@ -270,7 +299,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-note-ui-note')));
     await tester.pumpAndSettle();
 
-    expect(find.text('ویرایش'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-edit')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('notebook-edit')));
@@ -312,7 +341,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-category-اداری')));
     await tester.pumpAndSettle();
 
-    expect(find.text('دسته: اداری'), findsOneWidget);
+    expect(find.text('اداری'), findsOneWidget);
     final persisted = await repository.loadNote('target');
     expect(persisted?.id, 'target');
     expect(persisted?.category, 'اداری');
@@ -340,7 +369,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect((await repository.loadNote('category-note'))?.category, 'شخصی');
-    expect(find.text('دسته: شخصی'), findsOneWidget);
+    expect(find.text('شخصی'), findsOneWidget);
   });
   testWidgets('long press enables canonical Notebook bulk selection and select-all',
       (tester) async {

@@ -842,54 +842,102 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final noteDate = _note?.updatedAt ?? _note?.createdAt;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_checklistMode ? 'چک‌لیست' : 'یادداشت'),
+        title: const SizedBox.shrink(),
+        centerTitle: false,
         actions: [
           if (_editing)
-            TextButton.icon(
+            TextButton(
               key: const ValueKey('notebook-done'),
               onPressed: _finishEditing,
-              icon: const Icon(Icons.done),
-              label: const Text('تمام'),
+              child: const Text('ذخیره'),
             )
           else
-            TextButton.icon(
+            IconButton(
               key: const ValueKey('notebook-edit'),
               onPressed: () => setState(() => _editing = true),
+              tooltip: 'ویرایش',
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('ویرایش'),
             ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            key: const ValueKey('notebook-title'),
-            controller: _title,
-            readOnly: !_editing,
-            decoration: const InputDecoration(labelText: 'عنوان'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            key: const ValueKey('notebook-description'),
-            controller: _description,
-            readOnly: !_editing,
-            maxLines: 7,
-            decoration: const InputDecoration(labelText: 'متن یادداشت'),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            key: const ValueKey('notebook-category-picker'),
-            onPressed: _pickCategory,
-            icon: const Icon(Icons.folder_outlined),
-            label: Text(
-              _category == null || _category!.trim().isEmpty
-                  ? 'انتخاب دسته'
-                  : 'دسته: $_category',
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            TextField(
+              key: const ValueKey('notebook-title'),
+              controller: _title,
+              readOnly: !_editing,
+              maxLines: null,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+              decoration: const InputDecoration(
+                hintText: 'عنوان',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
-          ),
+            const SizedBox(height: 4),
+            if (noteDate != null)
+              Text(
+                _formatEditorDate(noteDate),
+                key: const ValueKey('notebook-editor-date'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withValues(alpha: 0.72),
+                    ),
+              ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: ActionChip(
+                key: const ValueKey('notebook-category-picker'),
+                avatar: const Icon(Icons.folder_outlined, size: 18),
+                label: Text(
+                  _category == null || _category!.trim().isEmpty
+                      ? 'انتخاب دسته'
+                      : _category!,
+                ),
+                onPressed: _pickCategory,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (!_checklistMode)
+              TextField(
+                key: const ValueKey('notebook-description'),
+                controller: _description,
+                readOnly: !_editing,
+                minLines: 12,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                textAlignVertical: TextAlignVertical.top,
+                decoration: const InputDecoration(
+                  hintText: 'شروع به نوشتن کنید…',
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              )
+            else if (_description.text.trim().isNotEmpty)
+              TextField(
+                key: const ValueKey('notebook-description'),
+                controller: _description,
+                readOnly: !_editing,
+                minLines: 2,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                decoration: const InputDecoration(
+                  hintText: 'توضیحات',
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
           if (_checklistMode) ...[
             const SizedBox(height: 20),
             Builder(
@@ -970,7 +1018,14 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               ),
           ],
         ],
+        ),
       ),
     );
+  }
+
+  static String _formatEditorDate(DateTime value) {
+    final local = value.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${local.year}/${two(local.month)}/${two(local.day)}  ${two(local.hour)}:${two(local.minute)}';
   }
 }
