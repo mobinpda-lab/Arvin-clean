@@ -1023,7 +1023,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 ],
               ),
           ],
-        ),
+        ],
       ),
     );
   }
