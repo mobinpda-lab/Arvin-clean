@@ -1,10 +1,8 @@
 import 'package:arvin/models/goal_project.dart';
-import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:arvin/services/task_store.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,8 +65,7 @@ void main() {
     );
   });
 
-  testWidgets('Notebook editor assigns Project without replacing Note identity',
-      (tester) async {
+  test('Notebook project membership survives editor UI removal', () async {
     final projectStore = ProjectStore();
     await projectStore.save([
       ProjectPlan(id: 'active-project', title: 'پروژه فعال'),
@@ -79,54 +76,28 @@ void main() {
       ),
     ]);
     final repository = repositoryWithProjects(projectStore);
-    await repository.createNote(id: 'ui-project-note', title: 'یادداشت من');
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Directionality(
-          textDirection: TextDirection.rtl,
-          child: NotebookPage(repository: repository),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(
-      find.byKey(const ValueKey('notebook-note-ui-project-note')),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      find.byKey(const ValueKey('notebook-project-selector')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('project-selector-active-project')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('project-selector-archived-project')),
-      findsNothing,
+    final note = await repository.createNote(
+      id: 'ui-project-note',
+      title: 'یادداشت من',
     );
 
-    await tester.tap(find.byKey(const ValueKey('notebook-edit')));
-    await tester.pump();
-    await tester.tap(
-      find.byKey(const ValueKey('project-selector-active-project')),
+    await repository.updateProject(
+      id: note.id,
+      projectId: 'active-project',
     );
-    await tester.pumpAndSettle();
 
-    expect(
-      await repository.projectIdForNote('ui-project-note'),
-      'active-project',
-    );
-    final stored = await repository.loadNote('ui-project-note');
+    expect(await repository.projectIdForNote(note.id), 'active-project');
+    final stored = await repository.loadNote(note.id);
     expect(stored?.id, 'ui-project-note');
     expect(stored?.title, 'یادداشت من');
+
+    final taskStoreRecord = (await TaskStore().load()).single;
+    expect(taskStoreRecord.id, 'ui-project-note');
+    expect(taskStoreRecord.toJson().containsKey('projectId'), isFalse);
   });
 
-  testWidgets('selected archived Project remains visible in Notebook editor',
-      (tester) async {
+  test('archived Project membership remains canonical without editor selector',
+      () async {
     final projectStore = ProjectStore();
     await projectStore.save([
       ProjectPlan(
@@ -142,22 +113,16 @@ void main() {
       projectId: 'archived-project',
     );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Directionality(
-          textDirection: TextDirection.rtl,
-          child: NotebookPage(repository: repository),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-note-archived-note')));
-    await tester.pumpAndSettle();
-
     expect(
-      find.byKey(const ValueKey('project-selector-archived-project')),
-      findsOneWidget,
+      await repository.projectIdForNote('archived-note'),
+      'archived-project',
     );
-    expect(find.text('پروژه قدیمی (بایگانی‌شده)'), findsOneWidget);
+    final projects = await projectStore.load();
+    expect(projects.single.itemIds, ['archived-note']);
+    expect(projects.single.isArchived, isTrue);
+
+    final stored = await repository.loadNote('archived-note');
+    expect(stored?.id, 'archived-note');
+    expect(stored?.title, 'یادداشت قدیمی');
   });
 }
