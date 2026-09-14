@@ -25,7 +25,7 @@ class _JalaliDate {
   final int day;
 }
 
-enum _CalendarViewMode { day, week, month }
+enum _CalendarViewMode { day, week, month, year }
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -264,6 +264,25 @@ class _CalendarPageState extends State<CalendarPage> {
       case _CalendarViewMode.month:
         _moveMonth(delta);
         return;
+      case _CalendarViewMode.year:
+        final current = _toJalali(_selectedDay);
+        final nextYear = current.year + delta;
+        final maxDay = _daysInJalaliMonth(nextYear, current.month);
+        _selectDay(_toGregorian(
+          nextYear,
+          current.month,
+          current.day > maxDay ? maxDay : current.day,
+        ));
+        return;
+    }
+  }
+
+  void _handleHorizontalSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -200) {
+      _movePeriod(1);
+    } else if (velocity > 200) {
+      _movePeriod(-1);
     }
   }
 
@@ -358,6 +377,10 @@ class _CalendarPageState extends State<CalendarPage> {
             ButtonSegment<_CalendarViewMode>(
               value: _CalendarViewMode.month,
               label: Text('ماهانه'),
+            ),
+            ButtonSegment<_CalendarViewMode>(
+              value: _CalendarViewMode.year,
+              label: Text('سالانه'),
             ),
           ],
           selected: <_CalendarViewMode>{_viewMode},
@@ -585,11 +608,86 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  static const _jalaliMonthNames = <String>[
+    'فروردین',
+    'اردیبهشت',
+    'خرداد',
+    'تیر',
+    'مرداد',
+    'شهریور',
+    'مهر',
+    'آبان',
+    'آذر',
+    'دی',
+    'بهمن',
+    'اسفند',
+  ];
+
+  Widget _buildYearView() {
+    final current = _toJalali(_selectedDay);
+    final counts = <int, int>{};
+    for (final item in widget.reminders) {
+      final jalali = _toJalali(item.date);
+      if (jalali.year == current.year) {
+        counts[jalali.month] = (counts[jalali.month] ?? 0) + 1;
+      }
+    }
+
+    return GridView.builder(
+      key: const ValueKey('calendar-year-view'),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      itemCount: 12,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 1.7,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+      ),
+      itemBuilder: (context, index) {
+        final month = index + 1;
+        final selected = month == current.month;
+        final count = counts[month] ?? 0;
+        final scheme = Theme.of(context).colorScheme;
+        return InkWell(
+          key: ValueKey('calendar-year-month-$month'),
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _selectDay(_toGregorian(current.year, month, 1)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: scheme.outlineVariant),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _jalaliMonthNames[index],
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                if (count > 0) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    '${_digits('$count')} مورد',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCalendarSurface() {
     return switch (_viewMode) {
       _CalendarViewMode.day => _buildDayView(),
       _CalendarViewMode.week => _buildWeekView(),
       _CalendarViewMode.month => _buildMonthView(),
+      _CalendarViewMode.year => _buildYearView(),
     };
   }
 
@@ -661,9 +759,14 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ),
             _buildViewModeSelector(),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _buildCalendarSurface(),
+            GestureDetector(
+              key: const ValueKey('calendar-swipe-surface'),
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragEnd: _handleHorizontalSwipe,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: _buildCalendarSurface(),
+              ),
             ),
             const Divider(height: 1),
             Expanded(
