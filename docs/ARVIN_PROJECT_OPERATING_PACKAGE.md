@@ -1,4 +1,4 @@
-# ARVIN PROJECT OPERATING PACKAGE v49.0
+# ARVIN PROJECT OPERATING PACKAGE v49.1
 ## Unified Canonical Software Production Standard
 
 **Project:** Arvin-clean
@@ -290,9 +290,25 @@ Handoff sequence:
 
 If knowledge exists only in conversation, it is not operationally safe.
 
-## 19. Evidence and Reporting
+## 19. Evidence, Traceability and Reporting
 Every meaningful change must leave a trace:
 `Requirement → Change → Commit → Validation → Evidence → Documentation → Integration`
+
+### Important-Change Traceability Standard
+A **major/important change** is not considered fully recorded merely because code and a Commit exist. It must leave a lightweight, queryable and reviewable trail connecting the need to the delivered result:
+
+`Need/Problem → Issue or Request → Decision → Code Change → Commit → Test/Control → Result`
+
+Required rules:
+- **Small, low-risk change:** Issue/appropriate request + Commit + focused validation is sufficient.
+- **Important change:** the complete trace above is required, preferably generated from existing GitHub artifacts and PR/CI data rather than manual reporting.
+- **Architecture, migration, storage, Sync, security or other major design decision:** an applicable ADR/decision record is also required.
+- The traceability check must be lightweight and must not unnecessarily serialize independent work.
+- A missing trace must be reported as **«مستندسازی ناقص»**, even when the code exists.
+- Factories should automate collection and checking of trace evidence wherever practical.
+- Historical evidence must be preserved; the goal is traceability, not rewriting history.
+
+The traceability requirement is a **control gate for important changes**, not a manual paperwork gate. Its purpose is to preserve speed while ensuring that every important product decision remains understandable and recoverable after the current AI session or developer changes.
 
 Reports must state only what is verified.
 
@@ -353,7 +369,7 @@ When another governance document conflicts with this file, this file governs unl
 When the repository and this document disagree about implementation state, GitHub wins and this document must be updated.
 
 **Canonical path:** `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
-**Current version:** v49.0
+**Current version:** v49.1
 
 ## 25. Owner Communication Contract
 All AI answers/reports for the project must be:
@@ -370,6 +386,5 @@ The final continuation marker is always separate from the main answer/report and
 v47.x/v48.0 = governance foundation.
 v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
-v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication rules.
-
-Historical v48.x documents remain evidence of evolution; they are not competing active authorities.
+v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
+v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
