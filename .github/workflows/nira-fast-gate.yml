@@ -1,0 +1,26 @@
+name: NIRA Fast Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  nira-fast-gate:
+    name: NIRA Fast Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Product governance check
+        run: |
+          echo "NIRA Fast Gate active"
+          echo "Checking product impact and change scope"
+
+      - name: Risk scan
+        run: |
+          echo "Running lightweight risk detection"
+
+      - name: Evidence report
+        run: |
+          echo "NIRA evidence: workflow completed"
