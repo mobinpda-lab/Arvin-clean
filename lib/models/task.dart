@@ -3,6 +3,8 @@ import 'recurrence.dart';
 
 enum TaskPriority { none, low, medium, high }
 
+enum NotebookItemKind { note, checklist }
+
 class FollowUp {
   final String id;
   final DateTime dateTime;
@@ -71,6 +73,7 @@ class Task {
     this.tags = const [],
     this.category,
     this.checklist = const [],
+    this.notebookKind,
     this.reminderDate,
     this.priority = TaskPriority.none,
     this.archived = false,
@@ -92,6 +95,7 @@ class Task {
   List<String> tags;
   String? category;
   List<String> checklist;
+  NotebookItemKind? notebookKind;
   DateTime? reminderDate;
   TaskPriority priority;
   bool archived;
@@ -102,6 +106,10 @@ class Task {
   final List<PersonReference> people;
 
   bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
+
+  bool get isNotebookChecklist =>
+      notebookKind == NotebookItemKind.checklist ||
+      (notebookKind == null && checklist.isNotEmpty);
 
   static List<PersonReference> _normalizePeople(
     Iterable<PersonReference> values,
@@ -161,6 +169,7 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
+        if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
@@ -213,6 +222,10 @@ class Task {
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      notebookKind: NotebookItemKind.values.cast<NotebookItemKind?>().firstWhere(
+            (value) => value?.name == json['notebookKind'],
+            orElse: () => null,
+          ),
       reminderDate: json['reminderDate'] == null
           ? null
           : DateTime.tryParse(json['reminderDate'] as String),
