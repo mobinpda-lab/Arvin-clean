@@ -52,30 +52,42 @@ def _retry_after_seconds(error, retry_index):
 
 
 def openai_response(prompt, timeout_seconds):
-    # GPT-5.6 is a reasoning-family Responses API model. Keep the request
-    # limited to model/input so provider-specific sampling parameters cannot
-    # make an otherwise valid worker request fail with HTTP 400.
     payload = {"model": MODEL, "input": prompt}
-    req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
-        "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
-        "Content-Type": "application/json",
-    }, method="POST")
     deadline = time.monotonic() + timeout_seconds
     retry_index = 0
+
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("OpenAI provider retry budget exhausted")
+
+        req = urllib.request.Request(API, data=json.dumps(payload).encode(), headers={
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        }, method="POST")
+
         try:
             with urllib.request.urlopen(req, timeout=max(1, math.ceil(remaining))) as r:
                 data = json.load(r)
             break
         except HTTPError as exc:
-            if exc.code == 429:
+            if exc.code != 429:
+                raise
+            retry_index += 1
+            if retry_index > PROVIDER_MAX_429_RETRIES:
                 raise ProviderPressureError(
-                    "OpenAI provider pressure: HTTP 429; release lease and retry after cooldown"
+                    "OpenAI provider pressure: HTTP 429 persisted after bounded retries; release lease and retry after cooldown"
                 ) from exc
-            raise
+            delay = min(_retry_after_seconds(exc, retry_index), max(0, deadline - time.monotonic()))
+            if delay <= 0:
+                raise ProviderPressureError(
+                    "OpenAI provider pressure: retry budget exhausted while waiting for cooldown"
+                ) from exc
+            print(
+                f"ARVIN AI provider returned HTTP 429; bounded retry {retry_index}/{PROVIDER_MAX_429_RETRIES} after {delay}s",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
 
     text = data.get("output_text")
     if not text:
