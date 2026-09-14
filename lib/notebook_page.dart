@@ -861,12 +861,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               tooltip: 'ویرایش',
               icon: const Icon(Icons.edit_outlined),
             ),
-          IconButton(
-            key: const ValueKey('notebook-more'),
-            onPressed: () {},
-            tooltip: 'گزینه‌های بیشتر',
-            icon: const Icon(Icons.more_vert),
-          ),
         ],
       ),
       body: SafeArea(
