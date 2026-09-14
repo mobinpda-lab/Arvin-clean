@@ -14,20 +14,24 @@ void main() {
       RegExp(r'wave2ProductFastTrack\.prepareEditor\(')
           .allMatches(source)
           .length,
-      2,
+      3,
     );
     expect(
       RegExp(r'wave2ProductFastTrack\.persistProjectSelection\(')
           .allMatches(source)
           .length,
-      2,
+      3,
     );
     expect(source, contains('projects: editorContext.projects'));
     expect(
       source,
       contains('knownCategories: editorContext.knownCategories'),
     );
-    expect(source, contains('onProjectChanged: (value) => selectedProjectId = value'));
+    expect(
+      source,
+      contains('onProjectChanged: (value) => selectedProjectId = value'),
+    );
+    expect(source, contains('Future<void> _addToProject(String projectId)'));
     expect(
       source,
       isNot(contains('builder: (_) => const ArvinTaskEditorDialog(),')),

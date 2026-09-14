@@ -74,7 +74,7 @@ void main() {
       find.byKey(const ValueKey('home-my-tasks-incomplete')),
       findsOneWidget,
     );
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsWidgets);
     expect(
       find.byKey(const ValueKey('home-my-tasks-category-اداری')),
       findsOneWidget,

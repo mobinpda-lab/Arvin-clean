@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
+import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'home/grouping/home_group.dart';
+import 'home/grouping/home_group_mode.dart';
+import 'home/grouping/home_grouping_service.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
@@ -14,6 +18,7 @@ import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/project_store.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
@@ -126,6 +131,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
+  final ProjectStore projectStore = ProjectStore();
+  final HomeGroupingService homeGroupingService = const HomeGroupingService();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
@@ -153,6 +160,8 @@ class _HomePageState extends State<HomePage> {
       GlobalKey(debugLabel: 'home-guide-new-task');
 
   List<Task> tasks = [];
+  List<ProjectPlan> projects = [];
+  HomeGroupMode _homeGroupMode = HomeGroupMode.time;
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -206,9 +215,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _load() async {
     try {
       final value = await taskStore.load();
+      final loadedProjects = await projectStore.load();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
+        projects = List<ProjectPlan>.of(loadedProjects);
         loadFailure = null;
         loading = false;
       });
@@ -343,6 +354,148 @@ class _HomePageState extends State<HomePage> {
       result,
       by: _listSort,
       descending: _sortDescending,
+    );
+  }
+
+  List<HomeGroup<Task>> get _homeGroups {
+    if (filter == 'بایگانی' || filter == 'سطل زباله') {
+      return [
+        HomeGroup<Task>(
+          id: 'filtered',
+          title: filter,
+          items: visible,
+        ),
+      ];
+    }
+    return homeGroupingService.buildGroups(
+      _homeGroupMode,
+      visible,
+      projects: projects,
+    );
+  }
+
+  String _homeModeLabel(HomeGroupMode mode) => switch (mode) {
+        HomeGroupMode.time => 'زمان',
+        HomeGroupMode.projects => 'پروژه‌ها',
+        HomeGroupMode.categories => 'دسته‌ها',
+        HomeGroupMode.labels => 'برچسب‌ها',
+      };
+
+  void _selectHomeGroupMode(HomeGroupMode mode) {
+    setState(() {
+      _homeGroupMode = mode;
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _categoryFilter = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  Future<void> _addToProject(String projectId) async {
+    final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
+    if (!mounted) return;
+    String? selectedProjectId = projectId;
+    final task = await showDialog<Task>(
+      context: context,
+      builder: (_) => ArvinTaskEditorDialog(
+        projects: editorContext.projects,
+        selectedProjectId: projectId,
+        onProjectChanged: (value) => selectedProjectId = value,
+        knownCategories: editorContext.knownCategories,
+      ),
+    );
+    if (task == null) return;
+    setState(() => tasks.add(task));
+    await _save();
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: task.id,
+      projectId: selectedProjectId,
+    );
+    await _load();
+  }
+
+  Widget _groupedTaskList() {
+    final groups = _homeGroups
+        .where(
+          (group) =>
+              group.items.isNotEmpty ||
+              _homeGroupMode == HomeGroupMode.projects,
+        )
+        .toList(growable: false);
+    if (groups.every((group) => group.items.isEmpty)) {
+      return Center(child: Text(_emptyVisibleLabel));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+      itemCount: groups.length,
+      itemBuilder: (context, groupIndex) {
+        final group = groups[groupIndex];
+        final projectGroup = _homeGroupMode == HomeGroupMode.projects &&
+            group.id != 'no_project' &&
+            projects.any((project) => project.id == group.id);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      group.title,
+                      style: const TextStyle(
+                        color: Color(0xFF232433),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    group.items.length.toString(),
+                    style: const TextStyle(
+                      color: Color(0xFF80829C),
+                      fontSize: 12,
+                    ),
+                  ),
+                  if (projectGroup) ...[
+                    const SizedBox(width: 4),
+                    IconButton(
+                      key: ValueKey('home-project-add-${group.id}'),
+                      tooltip: 'افزودن کار به ${group.title}',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _addToProject(group.id),
+                      icon: const Icon(Icons.add_circle_outline, size: 20),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (group.items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'کاری در این گروه وجود ندارد',
+                    style: TextStyle(
+                      color: Color(0xFF80829C),
+                      fontSize: 12,
+                    ),
+                  ),
+                )
+              else
+                ...[
+                  for (var index = 0; index < group.items.length; index++) ...[
+                    _taskCard(group.items[index]),
+                    if (index != group.items.length - 1)
+                      const SizedBox(height: 8),
+                  ],
+                ],
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1345,90 +1498,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final activeTasks = tasks
-        .where((task) => !task.archived && !task.trashed && !task.completed)
-        .length;
-    final allTasks =
-        tasks.where((task) => !task.archived && !task.trashed).length;
-    final doneTasks = tasks
-        .where((task) => !task.archived && !task.trashed && task.completed)
-        .length;
-    final overdueTasks = taskDueScopeService
-        .project(
-          tasks,
-          now: DateTime.now(),
-          scope: TaskDueScope.overdue,
-        )
-        .length;
-
-    Widget stat(
-      String label,
-      int value,
-      IconData icon,
-      String target,
-      Color accent,
-      String keyName,
-    ) {
-      final isSelected = _categoryFilter == null &&
-          (target == 'عقب‌افتاده'
-              ? _dueScope == TaskDueScope.overdue
-              : filter == target &&
-                  _dueScope == null &&
-                  _listScope == TaskListScope.all);
-      return Semantics(
-        key: ValueKey(keyName),
-        button: true,
-        selected: isSelected,
-        label: 'فیلتر $label، $value مورد',
-        child: Material(
-          color: isSelected
-              ? const Color(0xFFE9EAFF)
-              : const Color(0xFFFDFDFE),
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(target),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF4A4CAB)
-                      : const Color(0xFFE5E7ED),
-                  width: isSelected ? 1.3 : 0.8,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(icon, size: 19, color: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$value',
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF80829C),
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8FB),
       body: SafeArea(
@@ -1531,53 +1600,24 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: stat(
-                      'کل',
-                      allTasks,
-                      Icons.list_alt_rounded,
-                      'کل',
-                      const Color(0xFF4A4CAB),
-                      'home-stat-all',
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: stat(
-                      'فعال',
-                      activeTasks,
-                      Icons.pending_actions_rounded,
-                      'فعال',
-                      const Color(0xFF2F80ED),
-                      'home-stat-active',
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: stat(
-                      'انجام‌شده',
-                      doneTasks,
-                      Icons.check_circle_rounded,
-                      'انجام‌شده',
-                      const Color(0xFF409B51),
-                      'home-stat-done',
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: stat(
-                      'عقب‌افتاده',
-                      overdueTasks,
-                      Icons.warning_amber_rounded,
-                      'عقب‌افتاده',
-                      const Color(0xFFDB8B23),
-                      'home-stat-overdue',
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              child: SegmentedButton<HomeGroupMode>(
+                key: const ValueKey('home-four-view-selector'),
+                showSelectedIcon: false,
+                segments: HomeGroupMode.values
+                    .map(
+                      (mode) => ButtonSegment<HomeGroupMode>(
+                        value: mode,
+                        label: Text(_homeModeLabel(mode)),
+                      ),
+                    )
+                    .toList(growable: false),
+                selected: <HomeGroupMode>{_homeGroupMode},
+                onSelectionChanged: (selection) {
+                  if (selection.isNotEmpty) {
+                    _selectHomeGroupMode(selection.first);
+                  }
+                },
               ),
             ),
             SizedBox(
@@ -1667,21 +1707,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         )
-                      : visible.isEmpty
-                          ? Center(
-                              child: Text(
-                                _emptyVisibleLabel,
-                              ),
-                            )
-                          : ListView.separated(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                              itemCount: visible.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
-                              itemBuilder: (_, index) =>
-                                  _taskCard(visible[index]),
-                            ),
+                      : _groupedTaskList(),
             ),
           ],
         ),
