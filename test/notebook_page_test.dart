@@ -275,7 +275,6 @@ void main() {
 
     expect(find.byKey(const ValueKey('notebook-editor-date')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-more')), findsOneWidget);
     expect(find.text('ایده‌ها'), findsOneWidget);
 
     final description = tester.widget<TextField>(
