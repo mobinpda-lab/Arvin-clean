@@ -275,49 +275,6 @@ class _NotebookPageState extends State<NotebookPage> {
     await _reload();
   }
 
-  Future<_NotebookCreateMode?> _chooseCreateMode() {
-    return showModalBottomSheet<_NotebookCreateMode>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'چه چیزی می‌خواهید بسازید؟',
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                key: const ValueKey('notebook-create-note'),
-                leading: const Icon(Icons.note_alt_outlined),
-                title: const Text('یادداشت ساده'),
-                subtitle: const Text('برای متن، توضیح و یادداشت‌های آزاد'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_NotebookCreateMode.note),
-              ),
-              ListTile(
-                key: const ValueKey('notebook-create-checklist'),
-                leading: const Icon(Icons.checklist_outlined),
-                title: const Text('چک‌لیست'),
-                subtitle: const Text('برای لیست خرید، سفر و کارهای مرحله‌ای'),
-                onTap: () => Navigator.of(sheetContext)
-                    .pop(_NotebookCreateMode.checklist),
-              ),
-              TextButton(
-                key: const ValueKey('notebook-create-cancel'),
-                onPressed: () => Navigator.of(sheetContext).pop(),
-                child: const Text('انصراف'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<_ChecklistPreset?> _chooseChecklistPreset() {
     return showModalBottomSheet<_ChecklistPreset>(
       context: context,
