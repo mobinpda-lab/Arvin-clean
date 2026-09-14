@@ -463,8 +463,8 @@ class _HomePageState extends State<HomePage> {
                   if (projectGroup) ...[
                     const SizedBox(width: 4),
                     IconButton(
-                      key: ValueKey('home-project-add-' + group.id),
-                      tooltip: 'افزودن کار به ' + group.title,
+                      key: ValueKey('home-project-add-${group.id}'),
+                      tooltip: 'افزودن کار به ${group.title}',
                       visualDensity: VisualDensity.compact,
                       onPressed: () => _addToProject(group.id),
                       icon: const Icon(Icons.add_circle_outline, size: 20),
