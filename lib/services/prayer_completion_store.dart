@@ -62,9 +62,13 @@ class PrayerCompletionStore {
         final updatedAt =
             DateTime.tryParse(item['updatedAt']?.toString() ?? '');
         final statusName = item['status']?.toString();
-        final status = PrayerCompletionStatus.values
-            .where((value) => value.name == statusName)
-            .firstOrNull;
+        PrayerCompletionStatus? status;
+        for (final value in PrayerCompletionStatus.values) {
+          if (value.name == statusName) {
+            status = value;
+            break;
+          }
+        }
         if (prayerId is! String ||
             prayerId.isEmpty ||
             day == null ||
