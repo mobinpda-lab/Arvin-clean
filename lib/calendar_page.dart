@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'daily_content.dart';
+import 'services/prayer_completion_projection.dart';
 import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
@@ -37,6 +38,9 @@ class CalendarPage extends StatefulWidget {
     this.onSnoozeReminder,
     this.onEditReminder,
     this.onConvertReminderToTask,
+    this.prayerStatusFor,
+    this.onPrayerCompleted,
+    this.onPrayerNotCompleted,
   });
 
   final List<CalendarReminder> reminders;
@@ -45,6 +49,9 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
+  final PrayerCompletionStatus? Function(CalendarReminder reminder)? prayerStatusFor;
+  final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
+  final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
 
   /// Optional Daily Content projection for the selected calendar date.
   ///
@@ -802,6 +809,10 @@ class _CalendarPageState extends State<CalendarPage> {
                             onSnooze: widget.onSnoozeReminder,
                             onEdit: widget.onEditReminder,
                             onConvertToTask: widget.onConvertReminderToTask,
+                            prayerStatus: widget.prayerStatusFor
+                                ?.call(selectedReminders[index]),
+                            onPrayerCompleted: widget.onPrayerCompleted,
+                            onPrayerNotCompleted: widget.onPrayerNotCompleted,
                           ),
                         ],
                       ],
@@ -848,6 +859,9 @@ class _ReminderCard extends StatefulWidget {
     this.onSnooze,
     this.onEdit,
     this.onConvertToTask,
+    this.prayerStatus,
+    this.onPrayerCompleted,
+    this.onPrayerNotCompleted,
   });
 
   final CalendarReminder item;
@@ -857,6 +871,11 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
+  final PrayerCompletionStatus? prayerStatus;
+  final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
+  final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
+
+  bool get isPrayer => item.id.startsWith('prayer-');
 
   @override
   State<_ReminderCard> createState() => _ReminderCardState();
@@ -866,10 +885,13 @@ class _ReminderCardState extends State<_ReminderCard> {
   bool _expanded = false;
 
   bool get _hasActions =>
-      widget.onComplete != null ||
+      (widget.isPrayer &&
+          (widget.onPrayerCompleted != null ||
+              widget.onPrayerNotCompleted != null)) ||
+      (!widget.isPrayer && (widget.onComplete != null ||
       widget.onSnooze != null ||
       widget.onEdit != null ||
-      widget.onConvertToTask != null;
+      widget.onConvertToTask != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
@@ -933,28 +955,44 @@ class _ReminderCardState extends State<_ReminderCard> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (widget.onComplete != null && !item.completed)
+                  if (widget.isPrayer && widget.onPrayerCompleted != null)
+                    ActionChip(
+                      key: ValueKey('prayer-completed-${item.id}'),
+                      avatar: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('ادا شد'),
+                      onPressed: () => _run(widget.onPrayerCompleted),
+                    ),
+                  if (widget.isPrayer && widget.onPrayerNotCompleted != null)
+                    ActionChip(
+                      key: ValueKey('prayer-not-completed-${item.id}'),
+                      avatar: const Icon(Icons.cancel_outlined, size: 18),
+                      label: const Text('قضا شد'),
+                      onPressed: () => _run(widget.onPrayerNotCompleted),
+                    ),
+                  if (!widget.isPrayer &&
+                      widget.onComplete != null &&
+                      !item.completed)
                     ActionChip(
                       key: ValueKey('reminder-complete-${item.id}'),
                       avatar: const Icon(Icons.check_circle_outline, size: 18),
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (widget.onSnooze != null && !item.completed)
+                  if (!widget.isPrayer && widget.onSnooze != null && !item.completed)
                     ActionChip(
                       key: ValueKey('reminder-snooze-${item.id}'),
                       avatar: const Icon(Icons.snooze_outlined, size: 18),
                       label: const Text('تعویق'),
                       onPressed: () => _run(widget.onSnooze),
                     ),
-                  if (widget.onEdit != null)
+                  if (!widget.isPrayer && widget.onEdit != null)
                     ActionChip(
                       key: ValueKey('reminder-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEdit),
                     ),
-                  if (widget.onConvertToTask != null)
+                  if (!widget.isPrayer && widget.onConvertToTask != null)
                     ActionChip(
                       key: ValueKey('reminder-convert-${item.id}'),
                       avatar: const Icon(Icons.task_alt_outlined, size: 18),
