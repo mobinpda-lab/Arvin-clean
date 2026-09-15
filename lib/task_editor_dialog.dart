@@ -13,6 +13,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   const ArvinTaskEditorDialog({
     super.key,
     this.task,
+    this.initialDueDate,
     this.projects = const [],
     this.selectedProjectId,
     this.onProjectChanged,
@@ -20,6 +21,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   });
 
   final Task? task;
+  final DateTime? initialDueDate;
 
   /// First-class Projects remain independent from Task category and tags.
   /// The editor owns no Project persistence; callers persist the selected id
@@ -62,12 +64,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     super.initState();
     final task = widget.task;
     _titleController = TextEditingController(text: task?.title ?? '');
-    _descriptionController = TextEditingController(text: task?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: task?.description ?? '',
+    );
     _tagController = TextEditingController();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
-    _dueDateTime = task?.dueDate;
+    _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _reminderDateTime = task?.reminderDate;
-    _followUpEnabled = task?.followUpEnabled == true ||
+    _followUpEnabled =
+        task?.followUpEnabled == true ||
         (task?.followUps.isNotEmpty ?? false) ||
         task?.followUpDate != null;
     _completed = task?.completed ?? false;
@@ -86,10 +91,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     super.dispose();
   }
 
-  InputDecoration _fieldDecoration({
-    required String label,
-    String? hint,
-  }) {
+  InputDecoration _fieldDecoration({required String label, String? hint}) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
@@ -157,9 +159,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         textDirection: TextDirection.rtl,
         child: Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: _brand,
-                ),
+            colorScheme: Theme.of(context).colorScheme
+                .copyWith(primary: _brand),
           ),
           child: child!,
         ),
@@ -273,7 +274,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           _completed;
     }
 
-    final initialFollowUpEnabled = existing.followUpEnabled ||
+    final initialFollowUpEnabled =
+        existing.followUpEnabled ||
         existing.followUps.isNotEmpty ||
         existing.followUpDate != null;
     return title != existing.title ||
@@ -378,19 +380,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   String _priorityLabel(TaskPriority priority) => switch (priority) {
-        TaskPriority.none => 'بدون اولویت',
-        TaskPriority.low => 'کم',
-        TaskPriority.medium => 'متوسط',
-        TaskPriority.high => 'زیاد',
-      };
+    TaskPriority.none => 'بدون اولویت',
+    TaskPriority.low => 'کم',
+    TaskPriority.medium => 'متوسط',
+    TaskPriority.high => 'زیاد',
+  };
 
   String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
-        RecurrenceFrequency.daily => 'روزانه',
-        RecurrenceFrequency.weekly => 'هفتگی',
-        RecurrenceFrequency.monthly => 'ماهانه',
-        RecurrenceFrequency.yearly => 'سالانه',
-        RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
-      };
+    RecurrenceFrequency.daily => 'روزانه',
+    RecurrenceFrequency.weekly => 'هفتگی',
+    RecurrenceFrequency.monthly => 'ماهانه',
+    RecurrenceFrequency.yearly => 'سالانه',
+    RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
+  };
 
   Widget _dateTimeButton({
     required Key key,
@@ -535,7 +537,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final editing = widget.task != null;
     final followUp = _followUpDateTime;
     final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
-    final hasExistingDetails = widget.task != null &&
+    final hasExistingDetails =
+        widget.task != null &&
         (_dueDateTime != null ||
             _reminderDateTime != null ||
             _recurrence != null ||
@@ -612,7 +615,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     knownCategories: widget.knownCategories,
                     onChanged: (value) => setState(() => _category = value),
                   ),
-                  if (widget.projects.isNotEmpty || _selectedProjectId != null) ...[
+                  if (widget.projects.isNotEmpty ||
+                      _selectedProjectId != null) ...[
                     const SizedBox(height: 16),
                     ProjectSelectorField(
                       projects: widget.projects,
@@ -718,10 +722,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             child: Text('بدون تکرار'),
                           ),
                           ...RecurrenceFrequency.values.map(
-                            (frequency) => DropdownMenuItem<RecurrenceFrequency>(
-                              value: frequency,
-                              child: Text(_recurrenceLabel(frequency)),
-                            ),
+                            (frequency) =>
+                                DropdownMenuItem<RecurrenceFrequency>(
+                                  value: frequency,
+                                  child: Text(_recurrenceLabel(frequency)),
+                                ),
                           ),
                         ],
                         onChanged: (frequency) {
@@ -827,7 +832,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               ),
                               if (followUp != null)
                                 TextButton.icon(
-                                  key: const ValueKey('task-editor-clear-followup'),
+                                  key: const ValueKey(
+                                    'task-editor-clear-followup',
+                                  ),
                                   onPressed: _clearFollowUpTime,
                                   icon: const Icon(Icons.close, size: 17),
                                   label: const Text('حذف زمان'),

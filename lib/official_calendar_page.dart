@@ -20,6 +20,8 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onSnoozeReminder,
     this.onEditReminder,
     this.onConvertReminderToTask,
+    this.canMutateReminder,
+    this.onCreateTaskForDate,
   });
 
   final OfficialCalendarReminderService service;
@@ -29,7 +31,10 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
-  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
+  final Future<void> Function(CalendarReminder reminder)?
+  onConvertReminderToTask;
+  final bool Function(CalendarReminder reminder)? canMutateReminder;
+  final Future<void> Function(DateTime date)? onCreateTaskForDate;
 
   @override
   State<OfficialCalendarPage> createState() => _OfficialCalendarPageState();
@@ -44,15 +49,17 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onSnoozeReminder,
     super.onEditReminder,
     super.onConvertReminderToTask,
+    super.canMutateReminder,
+    super.onCreateTaskForDate,
   }) : super(
-          service: const OfficialCalendarReminderService(
-            <OfficialCalendarReminderSource>[
-              IranianOfficialHolidaySource(),
-              IranianPrayerTimeSource(),
-            ],
-          ),
-          years: const <int>[2026, 2027],
-        );
+         service: const OfficialCalendarReminderService(
+           <OfficialCalendarReminderSource>[
+             IranianOfficialHolidaySource(),
+             IranianPrayerTimeSource(),
+           ],
+         ),
+         years: const <int>[2026, 2027],
+       );
 }
 
 class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
@@ -156,6 +163,8 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
           onSnoozeReminder: widget.onSnoozeReminder,
           onEditReminder: widget.onEditReminder,
           onConvertReminderToTask: widget.onConvertReminderToTask,
+          canMutateReminder: widget.canMutateReminder,
+          onCreateTaskForDate: widget.onCreateTaskForDate,
           prayerStatusFor: _prayerStatus,
           onPrayerCompleted: (reminder) =>
               _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
