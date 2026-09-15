@@ -4,6 +4,8 @@ import 'calendar_official_reminders.dart';
 import 'calendar_page.dart';
 import 'iranian_official_holiday_source.dart';
 import 'iranian_prayer_time_source.dart';
+import 'services/prayer_completion_projection.dart';
+import 'services/prayer_completion_store.dart';
 
 /// Loads official providers through [OfficialCalendarReminderService] and
 /// hands their existing [CalendarReminder] output to [CalendarPage].
@@ -55,11 +57,27 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
 
 class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   late Future<List<CalendarReminder>> _loadFuture;
+  final PrayerCompletionStore _prayerStore = const PrayerCompletionStore();
+  List<PrayerCompletionRecord> _prayerRecords = const [];
 
   @override
   void initState() {
     super.initState();
     _loadFuture = _load();
+    _loadPrayerRecords();
+  }
+
+  /// Prayer state is additive user metadata and must never block the canonical
+  /// Calendar/official-provider surface from becoming usable.
+  Future<void> _loadPrayerRecords() async {
+    List<PrayerCompletionRecord> records;
+    try {
+      records = await _prayerStore.load();
+    } catch (_) {
+      records = const [];
+    }
+    if (!mounted) return;
+    setState(() => _prayerRecords = records);
   }
 
   Future<List<CalendarReminder>> _load() async {
@@ -72,12 +90,34 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     for (final reminder in officialGroups.expand((group) => group)) {
       byId.putIfAbsent(reminder.id, () => reminder);
     }
-    final merged = byId.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+    final merged = byId.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
     return List<CalendarReminder>.unmodifiable(merged);
   }
 
   void _retry() {
     setState(() => _loadFuture = _load());
+  }
+
+  PrayerCompletionStatus? _prayerStatus(CalendarReminder reminder) =>
+      const PrayerCompletionProjection().statusFor(
+        _prayerRecords,
+        day: reminder.date,
+        prayerId: reminder.id,
+      );
+
+  Future<void> _setPrayerStatus(
+    CalendarReminder reminder,
+    PrayerCompletionStatus status,
+  ) async {
+    await _prayerStore.setStatus(
+      day: reminder.date,
+      prayerId: reminder.id,
+      status: status,
+    );
+    final records = await _prayerStore.load();
+    if (!mounted) return;
+    setState(() => _prayerRecords = records);
   }
 
   @override
@@ -94,7 +134,10 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
                 children: [
                   const Text('بارگذاری مناسبت‌های رسمی انجام نشد'),
                   const SizedBox(height: 12),
-                  TextButton(onPressed: _retry, child: const Text('تلاش دوباره')),
+                  TextButton(
+                    onPressed: _retry,
+                    child: const Text('تلاش دوباره'),
+                  ),
                 ],
               ),
             ),
@@ -113,6 +156,11 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
           onSnoozeReminder: widget.onSnoozeReminder,
           onEditReminder: widget.onEditReminder,
           onConvertReminderToTask: widget.onConvertReminderToTask,
+          prayerStatusFor: _prayerStatus,
+          onPrayerCompleted: (reminder) =>
+              _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
+          onPrayerNotCompleted: (reminder) =>
+              _setPrayerStatus(reminder, PrayerCompletionStatus.notCompleted),
         );
       },
     );

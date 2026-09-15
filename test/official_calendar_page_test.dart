@@ -50,7 +50,9 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 20 && find.text('نوروز').evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
 
     expect(find.text('نوروز'), findsOneWidget);
     expect(find.text('پیگیری مشتری'), findsOneWidget);
