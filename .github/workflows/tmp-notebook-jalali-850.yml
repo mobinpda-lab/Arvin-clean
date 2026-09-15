@@ -1,0 +1,120 @@
+name: Temporary Notebook Jalali 850
+
+on:
+  push:
+    branches:
+      - fix/notebook-jalali-runtime-850
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - name: Apply Jalali notebook presentation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('lib/notebook_page.dart')
+          s = p.read_text()
+          old = "import 'services/canonical_notebook_repository.dart';\n"
+          new = old + "import 'services/persian_date_formatter.dart';\n"
+          if old not in s:
+              raise SystemExit('canonical notebook import not found')
+          s = s.replace(old, new, 1)
+          old = """  static String _formatNotebookDate(DateTime? value) {\n    if (value == null) return '';\n    final local = value.toLocal();\n    String two(int n) => n.toString().padLeft(2, '0');\n    return '${local.year}/${two(local.month)}/${two(local.day)}';\n  }\n"""
+          new = """  static String _formatNotebookDate(DateTime? value) {\n    if (value == null) return '';\n    final local = value.toLocal();\n    return const PersianDateFormatter().format(\n      local,\n      usePersianDate: true,\n    );\n  }\n"""
+          if old not in s:
+              raise SystemExit('notebook card Gregorian formatter not found')
+          s = s.replace(old, new, 1)
+          old = """  static String _formatEditorDate(DateTime value) {\n    final local = value.toLocal();\n    String two(int n) => n.toString().padLeft(2, '0');\n    return '${local.year}/${two(local.month)}/${two(local.day)}  ${two(local.hour)}:${two(local.minute)}';\n  }\n"""
+          new = """  static String _formatEditorDate(DateTime value) {\n    final local = value.toLocal();\n    const formatter = PersianDateFormatter();\n    final date = formatter.format(local, usePersianDate: true);\n    final time = formatter.toPersianDigits(\n      '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}',\n    );\n    return '$date  $time';\n  }\n"""
+          if old not in s:
+              raise SystemExit('notebook editor Gregorian formatter not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+          cat > test/notebook_jalali_date_test.dart <<'DART'
+          import 'dart:convert';
+
+          import 'package:flutter/material.dart';
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:shared_preferences/shared_preferences.dart';
+
+          import 'package:arvin/models/task.dart';
+          import 'package:arvin/notebook_page.dart';
+          import 'package:arvin/services/task_store.dart';
+
+          void main() {
+            TestWidgetsFlutterBinding.ensureInitialized();
+
+            setUp(() {
+              final timestamp = DateTime(2026, 9, 15, 13, 5);
+              final note = Task(
+                id: 'jalali-note',
+                title: 'یادداشت تاریخ شمسی',
+                createdAt: timestamp,
+                updatedAt: timestamp,
+                notebookKind: NotebookItemKind.note,
+              );
+              SharedPreferences.setMockInitialValues(<String, Object>{
+                TaskStore.key: jsonEncode([note.toJson()]),
+              });
+            });
+
+            testWidgets('Notebook card and editor render Jalali date with Persian digits',
+                (tester) async {
+              await tester.pumpWidget(MaterialApp(home: NotebookPage()));
+              await tester.pumpAndSettle();
+
+              expect(find.text('۱۴۰۵/۰۶/۲۴'), findsOneWidget);
+              expect(find.textContaining('2026/09/15'), findsNothing);
+
+              await tester.tap(find.byKey(const ValueKey('notebook-note-jalali-note')));
+              await tester.pumpAndSettle();
+
+              final dateFinder = find.byKey(const ValueKey('notebook-editor-date'));
+              expect(dateFinder, findsOneWidget);
+              final dateText = tester.widget<Text>(dateFinder).data;
+              expect(dateText, '۱۴۰۵/۰۶/۲۴  ۱۳:۰۵');
+              expect(dateText, isNot(contains('2026')));
+            });
+          }
+          DART
+          dart format lib/notebook_page.dart test/notebook_jalali_date_test.dart
+      - name: Prepare pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+      - name: Validate Notebook Jalali contract
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test test/notebook_jalali_date_test.dart test/notebook_page_test.dart
+      - name: Commit product fix and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git config user.name "arvin-notebook-worker[bot]"
+          git config user.email "arvin-notebook-worker[bot]@users.noreply.github.com"
+          git restore analysis_options.yaml pubspec.lock || true
+          rm -rf assets/fonts/vazirharf .dart_tool build .flutter-plugins-dependencies
+          rm -f .github/workflows/tmp-notebook-jalali-850.yml
+          git add -A
+          git commit -m "fix(notebook): render card and editor dates in Jalali (#850)"
+          git push origin HEAD:fix/notebook-jalali-runtime-850
