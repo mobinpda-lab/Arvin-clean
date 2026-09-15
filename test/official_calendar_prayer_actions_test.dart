@@ -12,7 +12,7 @@ class _PrayerSource implements OfficialCalendarReminderSource {
   Future<List<OfficialCalendarReminder>> load({required int year}) async => [
         OfficialCalendarReminder(
           id: 'prayer-test-2026-09-15-fajr',
-          kind: OfficialCalendarReminderKind.prayer,
+          kind: OfficialReminderKind.prayerTime,
           title: 'نماز صبح',
           date: DateTime(2026, 9, 15, 5, 10),
         ),
