@@ -903,9 +903,14 @@ class _ReminderCardState extends State<_ReminderCard> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
+    final prayerState = switch (widget.prayerStatus) {
+      PrayerCompletionStatus.completed => 'ادا شد',
+      PrayerCompletionStatus.notCompleted => 'قضا شد',
+      null => 'ثبت نشده',
+    };
     final subtitle = item.isAllDay
         ? '${widget.dateLabel}\nرویداد تمام‌روز'
-        : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${item.completed ? 'انجام‌شده' : 'در انتظار پیگیری'}';
+        : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${widget.isPrayer ? prayerState : (item.completed ? 'انجام‌شده' : 'در انتظار پیگیری')}';
 
     return Card(
       child: Column(
