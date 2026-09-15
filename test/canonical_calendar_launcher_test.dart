@@ -26,7 +26,8 @@ class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
 
 Future<void> _openMoreMenu(WidgetTester tester) async {
   await tester.tap(find.text('بیشتر'));
-  await tester.pumpAndSettle();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 void main() {
