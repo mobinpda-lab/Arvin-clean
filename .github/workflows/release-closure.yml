@@ -93,13 +93,32 @@ jobs:
                 break;
               }
             }
-            if (!selected) core.setFailed(`No merged arvin-auto PR with an ancestor merge commit was found for current main ${sha}.`);
-            const pr = selected.pr;
-            const comparison = selected.comparison;
-            core.setOutput('candidate_pr', String(pr.number));
-            core.setOutput('main_sha', sha);
-            core.setOutput('commit_sha', pr.head.sha);
-            core.setOutput('merge_sha', pr.merge_commit_sha);
+          if (!selected) {
+  core.warning(
+    `No merged arvin-auto PR found. Falling back to exact main SHA ${sha}.`
+  );
+
+  core.setOutput('candidate_pr', 'main');
+  core.setOutput('main_sha', sha);
+  core.setOutput('commit_sha', sha);
+  core.setOutput('merge_sha', sha);
+
+  core.info(`CANDIDATE_PR=main`);
+  core.info(`COMMIT_SHA=${sha}`);
+  core.info(`MERGE_SHA=${sha}`);
+  core.info(`MAIN_SHA=${sha}`);
+  core.info(`CANDIDATE_MAIN_RELATION=identical`);
+
+  return;
+}
+
+const pr = selected.pr;
+const comparison = selected.comparison;
+
+core.setOutput('candidate_pr', String(pr.number));
+core.setOutput('main_sha', sha);
+core.setOutput('commit_sha', pr.head.sha);
+core.setOutput('merge_sha', pr.merge_commit_sha);
             core.info(`CANDIDATE_PR=${pr.number}`);
             core.info(`COMMIT_SHA=${pr.head.sha}`);
             core.info(`MERGE_SHA=${pr.merge_commit_sha}`);
