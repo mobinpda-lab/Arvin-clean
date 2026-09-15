@@ -229,4 +229,48 @@ void main() {
     expect(snoozed, 1);
     expect(edited, 1);
   });
+
+  testWidgets('hides generic task actions for non-canonical reminder identities',
+      (tester) async {
+    final day = DateTime(2026, 9, 15, 10);
+    const ids = <String>[
+      'holiday-2026-09-15',
+      'task-due:task-1',
+      'task-followup:task-1:fu-1',
+      'external:provider:event-1',
+      'readonly:event-1',
+    ];
+
+    for (final id in ids) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CalendarPage(
+            key: ValueKey('calendar-$id'),
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(id: id, title: 'ردیف غیرقابل ویرایش', date: day),
+            ],
+            onCompleteReminder: (_) async {},
+            onSnoozeReminder: (_) async {},
+            onEditReminder: (_) async {},
+            onConvertReminderToTask: (_) async {},
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final card = find.byKey(ValueKey('reminder-card-$id'));
+      expect(card, findsOneWidget);
+      await tester.tap(card);
+      await tester.pump();
+
+      expect(find.byKey(ValueKey('reminder-actions-$id')), findsNothing);
+      expect(find.byKey(ValueKey('reminder-complete-$id')), findsNothing);
+      expect(find.byKey(ValueKey('reminder-snooze-$id')), findsNothing);
+      expect(find.byKey(ValueKey('reminder-edit-$id')), findsNothing);
+      expect(find.byKey(ValueKey('reminder-convert-$id')), findsNothing);
+    }
+  });
+
+
 }
