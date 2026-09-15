@@ -10,8 +10,8 @@ class _PrayerSource implements OfficialCalendarReminderSource {
   const _PrayerSource();
 
   @override
-  Future<List<CalendarReminder>> load({required int year}) async => [
-        CalendarReminder(
+  Future<List<OfficialCalendarReminder>> load({required int year}) async => [
+        OfficialCalendarReminder(
           id: 'prayer-test-2026-09-15-fajr',
           title: 'نماز صبح',
           date: DateTime(2026, 9, 15, 5, 10),
