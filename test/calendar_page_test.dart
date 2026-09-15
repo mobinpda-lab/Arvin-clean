@@ -103,9 +103,15 @@ void main() {
     }
   });
 
-  testWidgets('horizontal swipe advances every calendar view period', (tester) async {
+  testWidgets('horizontal swipe advances day week and month periods',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final initial = DateTime(2026, 9, 15, 10);
-    const modes = <String>['روزانه', 'هفتگی', 'ماهانه', 'سالانه'];
+    const modes = <String>['روزانه', 'هفتگی', 'ماهانه'];
 
     for (final mode in modes) {
       await tester.pumpWidget(
@@ -138,6 +144,38 @@ void main() {
 
       expect(find.text('رویداد مبدأ $mode'), findsNothing);
     }
+  });
+
+  testWidgets('horizontal swipe advances annual view by one Jalali year',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final initial = DateTime(2026, 9, 15, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: initial,
+          reminders: const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('سالانه'));
+    await tester.pumpAndSettle();
+    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+
+    await tester.fling(
+      find.byKey(const ValueKey('calendar-swipe-surface')),
+      const Offset(-500, 0),
+      1200,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۴۰۶/۰۶'), findsOneWidget);
   });
 
   testWidgets('expands reminder actions and routes applicable callbacks',
