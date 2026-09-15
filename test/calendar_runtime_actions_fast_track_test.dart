@@ -3,40 +3,60 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
 
+Future<void> _expectReadOnlyReminder(
+  WidgetTester tester, {
+  required String id,
+  required String title,
+}) async {
+  final day = DateTime(2026, 9, 15, 9);
+  final reminder = CalendarReminder(id: id, title: title, date: day);
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: CalendarPage(
+        initialSelectedDay: day,
+        reminders: [reminder],
+        canMutateReminder: (item) => item.id.startsWith('followup:'),
+        onCompleteReminder: (_) async {},
+        onSnoozeReminder: (_) async {},
+        onEditReminder: (_) async {},
+      ),
+    ),
+  );
+
+  await tester.tap(find.byKey(ValueKey('reminder-card-$id')));
+  await tester.pump();
+
+  expect(find.byKey(ValueKey('reminder-actions-$id')), findsNothing);
+  expect(find.byKey(ValueKey('reminder-complete-$id')), findsNothing);
+  expect(find.byKey(ValueKey('reminder-snooze-$id')), findsNothing);
+  expect(find.byKey(ValueKey('reminder-edit-$id')), findsNothing);
+}
+
 void main() {
-  testWidgets('read-only provider rows never expose generic Task actions', (
+  testWidgets('every read-only source hides generic Task actions', (
     tester,
   ) async {
-    final day = DateTime(2026, 9, 15, 9);
-    final prayer = CalendarReminder(
+    await _expectReadOnlyReminder(
+      tester,
       id: 'prayer-tehran-2026-09-15-fajr',
       title: 'نماز صبح',
-      date: day,
     );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CalendarPage(
-          initialSelectedDay: day,
-          reminders: [prayer],
-          canMutateReminder: (_) => false,
-          onCompleteReminder: (_) async {},
-          onSnoozeReminder: (_) async {},
-          onEditReminder: (_) async {},
-        ),
-      ),
+    await _expectReadOnlyReminder(
+      tester,
+      id: 'ir-holiday-1405-06-24',
+      title: 'تعطیلی رسمی',
     );
-
-    await tester.tap(find.byKey(ValueKey('reminder-card-${prayer.id}')));
-    await tester.pump();
-
-    expect(find.byKey(ValueKey('reminder-actions-${prayer.id}')), findsNothing);
-    expect(
-      find.byKey(ValueKey('reminder-complete-${prayer.id}')),
-      findsNothing,
+    await _expectReadOnlyReminder(
+      tester,
+      id: 'task-due:task-1',
+      title: 'موعد کار',
     );
-    expect(find.byKey(ValueKey('reminder-snooze-${prayer.id}')), findsNothing);
-    expect(find.byKey(ValueKey('reminder-edit-${prayer.id}')), findsNothing);
+    await _expectReadOnlyReminder(
+      tester,
+      id: 'task-followup:task-1',
+      title: 'پیگیری قدیمی',
+    );
   });
 
   testWidgets('canonical follow-up row keeps generic Task actions', (
@@ -54,7 +74,7 @@ void main() {
         home: CalendarPage(
           initialSelectedDay: day,
           reminders: [reminder],
-          canMutateReminder: (_) => true,
+          canMutateReminder: (item) => item.id.startsWith('followup:'),
           onCompleteReminder: (_) async {},
           onSnoozeReminder: (_) async {},
           onEditReminder: (_) async {},
