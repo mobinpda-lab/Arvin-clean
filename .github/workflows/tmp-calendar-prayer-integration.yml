@@ -1,0 +1,141 @@
+name: Temporary Calendar Prayer Integration
+
+on:
+  push:
+    branches:
+      - integrate/calendar-prayer-runtime-1032
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - name: Import non-conflicting #1032 runtime files
+        run: |
+          set -euo pipefail
+          git fetch origin fix/calendar-runtime-1032-deterministic
+          git checkout origin/fix/calendar-runtime-1032-deterministic -- \
+            lib/main.dart \
+            lib/task_editor_dialog.dart \
+            lib/widgets/canonical_calendar_launcher.dart \
+            test/calendar_runtime_actions_fast_track_test.dart \
+            test/home_wave2_editor_wiring_guard_test.dart
+      - name: Merge calendar runtime hooks into prayer-aware Calendar
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'missing expected block in {path}: {old[:120]!r}')
+              s = s.replace(old, new, 1)
+              p.write_text(s)
+
+          calendar = 'lib/calendar_page.dart'
+          replace_once(
+              calendar,
+              """    this.onConvertReminderToTask,\n    this.prayerStatusFor,\n""",
+              """    this.onConvertReminderToTask,\n    this.canMutateReminder,\n    this.onCreateTaskForDate,\n    this.prayerStatusFor,\n""",
+          )
+          replace_once(
+              calendar,
+              """  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;\n  final PrayerCompletionStatus? Function(CalendarReminder reminder)? prayerStatusFor;\n""",
+              """  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;\n\n  /// Generic Task/FollowUp actions are shown only for exact canonical targets.\n  final bool Function(CalendarReminder reminder)? canMutateReminder;\n\n  /// Creates a canonical Task with the pressed calendar date prefilled.\n  final Future<void> Function(DateTime date)? onCreateTaskForDate;\n\n  final PrayerCompletionStatus? Function(CalendarReminder reminder)? prayerStatusFor;\n""",
+          )
+          replace_once(
+              calendar,
+              """                      borderRadius: BorderRadius.circular(10),\n                      onTap: () => _selectDay(date),\n                      child: Container(\n""",
+              """                      borderRadius: BorderRadius.circular(10),\n                      onTap: () => _selectDay(date),\n                      onLongPress: widget.onCreateTaskForDate == null\n                          ? null\n                          : () => widget.onCreateTaskForDate!(date),\n                      child: Container(\n""",
+          )
+          replace_once(
+              calendar,
+              """                  key: ValueKey('calendar-month-day-$day'),\n                  borderRadius: BorderRadius.circular(10),\n                  onTap: () => _selectDay(date),\n                  child: Container(\n""",
+              """                  key: ValueKey('calendar-month-day-$day'),\n                  borderRadius: BorderRadius.circular(10),\n                  onTap: () => _selectDay(date),\n                  onLongPress: widget.onCreateTaskForDate == null\n                      ? null\n                      : () => widget.onCreateTaskForDate!(date),\n                  child: Container(\n""",
+          )
+          replace_once(
+              calendar,
+              """            GestureDetector(\n              key: const ValueKey('calendar-swipe-surface'),\n              behavior: HitTestBehavior.opaque,\n              onHorizontalDragEnd: _handleHorizontalSwipe,\n              child: AnimatedSwitcher(\n""",
+              """            GestureDetector(\n              key: const ValueKey('calendar-swipe-surface'),\n              behavior: HitTestBehavior.opaque,\n              onHorizontalDragEnd: _handleHorizontalSwipe,\n              onLongPress:\n                  _viewMode == _CalendarViewMode.day &&\n                      widget.onCreateTaskForDate != null\n                  ? () => widget.onCreateTaskForDate!(_selectedDay)\n                  : null,\n              child: AnimatedSwitcher(\n""",
+          )
+          replace_once(
+              calendar,
+              """                            onComplete: widget.onCompleteReminder,\n                            onSnooze: widget.onSnoozeReminder,\n                            onEdit: widget.onEditReminder,\n                            onConvertToTask: widget.onConvertReminderToTask,\n                            prayerStatus: widget.prayerStatusFor\n                                ?.call(selectedReminders[index]),\n""",
+              """                            onComplete:\n                                (widget.canMutateReminder?.call(\n                                          selectedReminders[index],\n                                        ) ??\n                                        true)\n                                    ? widget.onCompleteReminder\n                                    : null,\n                            onSnooze:\n                                (widget.canMutateReminder?.call(\n                                          selectedReminders[index],\n                                        ) ??\n                                        true)\n                                    ? widget.onSnoozeReminder\n                                    : null,\n                            onEdit:\n                                (widget.canMutateReminder?.call(\n                                          selectedReminders[index],\n                                        ) ??\n                                        true)\n                                    ? widget.onEditReminder\n                                    : null,\n                            onConvertToTask: widget.onConvertReminderToTask,\n                            prayerStatus: widget.prayerStatusFor\n                                ?.call(selectedReminders[index]),\n""",
+          )
+
+          official = 'lib/official_calendar_page.dart'
+          replace_once(
+              official,
+              """    this.onConvertReminderToTask,\n  });\n""",
+              """    this.onConvertReminderToTask,\n    this.canMutateReminder,\n    this.onCreateTaskForDate,\n  });\n""",
+          )
+          replace_once(
+              official,
+              """  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;\n\n  @override\n""",
+              """  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;\n  final bool Function(CalendarReminder reminder)? canMutateReminder;\n  final Future<void> Function(DateTime date)? onCreateTaskForDate;\n\n  @override\n""",
+          )
+          replace_once(
+              official,
+              """    super.onConvertReminderToTask,\n  }) : super(\n""",
+              """    super.onConvertReminderToTask,\n    super.canMutateReminder,\n    super.onCreateTaskForDate,\n  }) : super(\n""",
+          )
+          replace_once(
+              official,
+              """          onConvertReminderToTask: widget.onConvertReminderToTask,\n          prayerStatusFor: _prayerStatus,\n""",
+              """          onConvertReminderToTask: widget.onConvertReminderToTask,\n          canMutateReminder: widget.canMutateReminder,\n          onCreateTaskForDate: widget.onCreateTaskForDate,\n          prayerStatusFor: _prayerStatus,\n""",
+          )
+          PY
+          dart format \
+            lib/calendar_page.dart \
+            lib/official_calendar_page.dart \
+            lib/main.dart \
+            lib/task_editor_dialog.dart \
+            lib/widgets/canonical_calendar_launcher.dart \
+            test/calendar_runtime_actions_fast_track_test.dart \
+            test/home_wave2_editor_wiring_guard_test.dart
+      - name: Prepare pinned VazirHarf
+        run: |
+          set -euo pipefail
+          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+      - name: Validate combined Calendar and prayer runtime
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test \
+            test/calendar_page_test.dart \
+            test/calendar_runtime_actions_fast_track_test.dart \
+            test/home_wave2_editor_wiring_guard_test.dart \
+            test/official_calendar_prayer_actions_test.dart \
+            test/official_calendar_page_test.dart \
+            test/services/prayer_completion_store_test.dart
+      - name: Commit integrated product state and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git config user.name "arvin-integration-worker[bot]"
+          git config user.email "arvin-integration-worker[bot]@users.noreply.github.com"
+          git restore analysis_options.yaml pubspec.lock || true
+          rm -rf assets/fonts/vazirharf .dart_tool build .flutter-plugins-dependencies
+          rm -f .github/workflows/tmp-calendar-prayer-integration.yml
+          git add -A
+          git commit -m "fix(calendar): converge runtime actions with prayer state (#1032 #1033)"
+          git push origin HEAD:integrate/calendar-prayer-runtime-1032
