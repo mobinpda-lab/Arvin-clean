@@ -4,6 +4,8 @@ import 'calendar_official_reminders.dart';
 import 'calendar_page.dart';
 import 'iranian_official_holiday_source.dart';
 import 'iranian_prayer_time_source.dart';
+import 'services/prayer_completion_projection.dart';
+import 'services/prayer_completion_store.dart';
 
 /// Loads official providers through [OfficialCalendarReminderService] and
 /// hands their existing [CalendarReminder] output to [CalendarPage].
@@ -55,6 +57,8 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
 
 class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   late Future<List<CalendarReminder>> _loadFuture;
+  final PrayerCompletionStore _prayerStore = const PrayerCompletionStore();
+  List<PrayerCompletionRecord> _prayerRecords = const [];
 
   @override
   void initState() {
@@ -63,6 +67,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   }
 
   Future<List<CalendarReminder>> _load() async {
+    _prayerRecords = await _prayerStore.load();
     final officialGroups = await Future.wait(
       widget.years.map((year) => widget.service.load(year: year)),
     );
@@ -78,6 +83,29 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
 
   void _retry() {
     setState(() => _loadFuture = _load());
+  }
+
+  bool _isPrayer(CalendarReminder reminder) => reminder.id.startsWith('prayer-');
+
+  PrayerCompletionStatus? _prayerStatus(CalendarReminder reminder) =>
+      const PrayerCompletionProjection().statusFor(
+        _prayerRecords,
+        day: reminder.date,
+        prayerId: reminder.id,
+      );
+
+  Future<void> _setPrayerStatus(
+    CalendarReminder reminder,
+    PrayerCompletionStatus status,
+  ) async {
+    await _prayerStore.setStatus(
+      day: reminder.date,
+      prayerId: reminder.id,
+      status: status,
+    );
+    final records = await _prayerStore.load();
+    if (!mounted) return;
+    setState(() => _prayerRecords = records);
   }
 
   @override
@@ -113,6 +141,11 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
           onSnoozeReminder: widget.onSnoozeReminder,
           onEditReminder: widget.onEditReminder,
           onConvertReminderToTask: widget.onConvertReminderToTask,
+          prayerStatusFor: _prayerStatus,
+          onPrayerCompleted: (reminder) =>
+              _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
+          onPrayerNotCompleted: (reminder) =>
+              _setPrayerStatus(reminder, PrayerCompletionStatus.notCompleted),
         );
       },
     );
