@@ -48,6 +48,7 @@ void main() {
       findsOneWidget,
     );
   });
+
   testWidgets('does not show a synthetic midnight for all-day reminders',
       (tester) async {
     final holiday = DateTime(2026, 3, 21);
@@ -76,7 +77,13 @@ void main() {
     expect(find.textContaining('در انتظار پیگیری'), findsNothing);
   });
 
-  testWidgets('offers year view with all Jalali months', (tester) async {
+  testWidgets('offers year view with all Jalali months on a phone viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final day = DateTime(2026, 9, 15);
     await tester.pumpWidget(
       MaterialApp(
@@ -121,9 +128,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('رویداد مبدأ $mode'), findsOneWidget);
 
-      await tester.drag(
+      await tester.fling(
         find.byKey(const ValueKey('calendar-swipe-surface')),
         const Offset(-500, 0),
+        1200,
       );
       await tester.pumpAndSettle();
 
@@ -182,5 +190,4 @@ void main() {
     expect(snoozed, 1);
     expect(edited, 1);
   });
-
 }
