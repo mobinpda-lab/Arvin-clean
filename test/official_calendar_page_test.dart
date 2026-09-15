@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/calendar_official_reminders.dart';
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/official_calendar_page.dart';
+import 'package:arvin/services/app_settings_service.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
@@ -14,6 +15,22 @@ class _FakeOfficialSource implements OfficialCalendarReminderSource {
   Future<List<OfficialCalendarReminder>> load({required int year}) async {
     return items.where((item) => item.date.year == year).toList();
   }
+}
+
+class _DisabledExternalCalendarSettings extends AppSettingsService {
+  @override
+  Future<AppSettings> load() async => const AppSettings(
+        themeMode: ThemeMode.system,
+        usePersianDate: true,
+        fontFamily: null,
+        calendarIntegration: CalendarIntegrationSettings(),
+      );
+}
+
+Future<void> _pumpAsyncCalendar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pump();
 }
 
 void main() {
@@ -39,6 +56,7 @@ void main() {
             service: service,
             years: const <int>[2026],
             initialSelectedDay: selectedDay,
+            settingsService: _DisabledExternalCalendarSettings(),
             reminders: [
               CalendarReminder(
                 id: 'task-follow-up',
@@ -50,7 +68,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpAsyncCalendar(tester);
 
     expect(find.text('نوروز'), findsOneWidget);
     expect(find.text('پیگیری مشتری'), findsOneWidget);

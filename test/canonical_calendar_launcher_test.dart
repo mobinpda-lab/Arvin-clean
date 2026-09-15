@@ -24,9 +24,19 @@ class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
   }
 }
 
+/// Advances route/sheet animations without pumpAndSettle, which can hang while
+/// the calendar owns long-lived animation sources. The first pump starts any
+/// transition scheduled by the previous interaction; the timed pump advances
+/// it past Material route/sheet durations; the final pump flushes rebuilds.
+Future<void> _pumpBoundedUi(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pump();
+}
+
 Future<void> _openMoreMenu(WidgetTester tester) async {
   await tester.tap(find.text('بیشتر'));
-  await tester.pumpAndSettle();
+  await _pumpBoundedUi(tester);
 }
 
 void main() {
@@ -49,6 +59,7 @@ void main() {
         home: CanonicalCalendarLauncher(tasks: <Task>[task]),
       ),
     );
+    await _pumpBoundedUi(tester);
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -84,11 +95,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pump();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
     expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsWidgets);
@@ -145,21 +156,21 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
     final apply = find.textContaining('اعمال ۰۹:۳۰').first;
     await tester.tap(apply);
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.text('تأیید تغییر زمان'), findsOneWidget);
     expect(find.text('زمان فعلی: ۰۹:۰۰'), findsOneWidget);
     expect(find.text('زمان پیشنهادی: ۰۹:۳۰'), findsOneWidget);
 
     await tester.tap(find.text('لغو'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
     expect(scheduler.rescheduleCalls, 0);
     final afterCancelA = await repository.loadForTask('conflict-a');
     final afterCancelB = await repository.loadForTask('conflict-b');
@@ -167,9 +178,9 @@ void main() {
     expect(afterCancelB.single.dateTime, when);
 
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
     await tester.tap(find.text('اعمال زمان پیشنهادی'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(scheduler.rescheduleCalls, 1);
     expect(find.text('زمان پیگیری با موفقیت تغییر کرد'), findsOneWidget);
@@ -213,15 +224,15 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
     await tester.tap(find.text('اعمال زمان پیشنهادی'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.text('تغییر زمان انجام نشد؛ دوباره تلاش کنید'), findsOneWidget);
     expect(scheduler.rescheduleCalls, 0);
@@ -241,10 +252,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     await tester.tap(find.text('اقدام بعدی'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.byType(TaskNextActionPage), findsOneWidget);
     expect(find.text('تماس فوری'), findsOneWidget);
@@ -270,11 +281,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: [task])),
     );
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsOneWidget);
@@ -291,15 +302,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.text('انتخاب کار برای خط زمانی'), findsOneWidget);
     await tester.tap(find.text('کار دوم'));
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('ایجاد کار'), findsOneWidget);
@@ -310,11 +321,11 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(home: CanonicalCalendarLauncher(tasks: [])),
     );
-    await tester.pumpAndSettle();
+    await _pumpBoundedUi(tester);
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pump();
+    await _pumpBoundedUi(tester);
 
     expect(find.text('کاری برای نمایش خط زمانی وجود ندارد'), findsOneWidget);
   });
