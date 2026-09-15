@@ -1,5 +1,4 @@
 import 'package:arvin/calendar_official_reminders.dart';
-import 'package:arvin/calendar_page.dart';
 import 'package:arvin/official_calendar_page.dart';
 import 'package:arvin/services/prayer_completion_store.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ class _PrayerSource implements OfficialCalendarReminderSource {
   Future<List<OfficialCalendarReminder>> load({required int year}) async => [
         OfficialCalendarReminder(
           id: 'prayer-test-2026-09-15-fajr',
+          kind: OfficialCalendarReminderKind.prayer,
           title: 'نماز صبح',
           date: DateTime(2026, 9, 15, 5, 10),
         ),
