@@ -74,38 +74,156 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const main = await github.rest.repos.getBranch({owner, repo, branch: 'main'});
-            const sha = main.data.commit.sha;
-            const pulls = await github.paginate(github.rest.pulls.list, {
-              owner, repo, state: 'closed', base: 'main', per_page: 100,
-              sort: 'updated', direction: 'desc'
+
+            const main = await github.rest.repos.getBranch({
+              owner,
+              repo,
+              branch: 'main'
             });
+
+            const sha = main.data.commit.sha;
+
+            const pulls = await github.paginate(
+              github.rest.pulls.list,
+              {
+                owner,
+                repo,
+                state: 'closed',
+                base: 'main',
+                per_page: 100,
+                sort: 'updated',
+                direction: 'desc'
+              }
+            );
+
             const candidates = pulls
               .filter(pr => pr.merged_at)
-              .filter(pr => (pr.labels || []).some(label => label.name === 'arvin-auto'))
-              .sort((a,b) => new Date(b.merged_at) - new Date(a.merged_at));
+              .filter(pr =>
+                (pr.labels || []).some(
+                  label => label.name === 'arvin-auto'
+                )
+              )
+              .sort(
+                (a,b) =>
+                  new Date(b.merged_at) -
+                  new Date(a.merged_at)
+              );
+
             let selected = null;
+
             for (const pr of candidates) {
               if (!pr.merge_commit_sha) continue;
-              const comparison = await github.rest.repos.compareCommits({owner, repo, base: pr.merge_commit_sha, head: sha});
-              if (['ahead', 'identical'].includes(comparison.data.status)) {
-                selected = {pr, comparison};
+
+              const comparison =
+                await github.rest.repos.compareCommits({
+                  owner,
+                  repo,
+                  base: pr.merge_commit_sha,
+                  head: sha
+                });
+
+              if (
+                ['ahead','identical']
+                .includes(comparison.data.status)
+              ) {
+                selected = {
+                  pr,
+                  comparison
+                };
                 break;
               }
             }
-            if (!selected) core.setFailed(`No merged arvin-auto PR with an ancestor merge commit was found for current main ${sha}.`);
+
+            if (!selected) {
+              core.warning(
+                `No merged arvin-auto PR found. Falling back to exact main SHA ${sha}.`
+              );
+
+              core.setOutput(
+                'candidate_pr',
+                'main'
+              );
+
+              core.setOutput(
+                'main_sha',
+                sha
+              );
+
+              core.setOutput(
+                'commit_sha',
+                sha
+              );
+
+              core.setOutput(
+                'merge_sha',
+                sha
+              );
+
+              core.info(
+                `CANDIDATE_PR=main`
+              );
+
+              core.info(
+                `COMMIT_SHA=${sha}`
+              );
+
+              core.info(
+                `MERGE_SHA=${sha}`
+              );
+
+              core.info(
+                `MAIN_SHA=${sha}`
+              );
+
+              core.info(
+                `CANDIDATE_MAIN_RELATION=identical`
+              );
+
+              return;
+            }
+
             const pr = selected.pr;
             const comparison = selected.comparison;
-            core.setOutput('candidate_pr', String(pr.number));
-            core.setOutput('main_sha', sha);
-            core.setOutput('commit_sha', pr.head.sha);
-            core.setOutput('merge_sha', pr.merge_commit_sha);
-            core.info(`CANDIDATE_PR=${pr.number}`);
-            core.info(`COMMIT_SHA=${pr.head.sha}`);
-            core.info(`MERGE_SHA=${pr.merge_commit_sha}`);
-            core.info(`MAIN_SHA=${sha}`);
-            core.info(`CANDIDATE_MAIN_RELATION=${comparison.data.status}`);
 
+            core.setOutput(
+              'candidate_pr',
+              String(pr.number)
+            );
+
+            core.setOutput(
+              'main_sha',
+              sha
+            );
+
+            core.setOutput(
+              'commit_sha',
+              pr.head.sha
+            );
+
+            core.setOutput(
+              'merge_sha',
+              pr.merge_commit_sha
+            );
+
+            core.info(
+              `CANDIDATE_PR=${pr.number}`
+            );
+
+            core.info(
+              `COMMIT_SHA=${pr.head.sha}`
+            );
+
+            core.info(
+              `MERGE_SHA=${pr.merge_commit_sha}`
+            );
+
+            core.info(
+              `MAIN_SHA=${sha}`
+            );
+
+            core.info(
+              `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
+            );
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
