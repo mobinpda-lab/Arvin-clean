@@ -89,7 +89,8 @@ void main() {
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
     expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsWidgets);
