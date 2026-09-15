@@ -64,10 +64,23 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   void initState() {
     super.initState();
     _loadFuture = _load();
+    _loadPrayerRecords();
+  }
+
+  /// Prayer state is additive user metadata and must never block the canonical
+  /// Calendar/official-provider surface from becoming usable.
+  Future<void> _loadPrayerRecords() async {
+    List<PrayerCompletionRecord> records;
+    try {
+      records = await _prayerStore.load();
+    } catch (_) {
+      records = const [];
+    }
+    if (!mounted) return;
+    setState(() => _prayerRecords = records);
   }
 
   Future<List<CalendarReminder>> _load() async {
-    _prayerRecords = await _prayerStore.load();
     final officialGroups = await Future.wait(
       widget.years.map((year) => widget.service.load(year: year)),
     );
@@ -77,7 +90,8 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     for (final reminder in officialGroups.expand((group) => group)) {
       byId.putIfAbsent(reminder.id, () => reminder);
     }
-    final merged = byId.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+    final merged = byId.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
     return List<CalendarReminder>.unmodifiable(merged);
   }
 
@@ -120,7 +134,10 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
                 children: [
                   const Text('بارگذاری مناسبت‌های رسمی انجام نشد'),
                   const SizedBox(height: 12),
-                  TextButton(onPressed: _retry, child: const Text('تلاش دوباره')),
+                  TextButton(
+                    onPressed: _retry,
+                    child: const Text('تلاش دوباره'),
+                  ),
                 ],
               ),
             ),
