@@ -85,8 +85,6 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     setState(() => _loadFuture = _load());
   }
 
-  bool _isPrayer(CalendarReminder reminder) => reminder.id.startsWith('prayer-');
-
   PrayerCompletionStatus? _prayerStatus(CalendarReminder reminder) =>
       const PrayerCompletionProjection().statusFor(
         _prayerRecords,
