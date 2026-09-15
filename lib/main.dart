@@ -344,11 +344,13 @@ class _HomePageState extends State<HomePage> {
               (task.archived || task.trashed || !task.completed)) {
             return false;
           }
-          if (filter == 'بایگانی' && (!task.archived || task.trashed))
+          if (filter == 'بایگانی' && (!task.archived || task.trashed)) {
             return false;
+          }
           if (filter == 'سطل زباله' && !task.trashed) return false;
-          if (matchingIds != null && !matchingIds.contains(task.id))
+          if (matchingIds != null && !matchingIds.contains(task.id)) {
             return false;
+          }
           return true;
         })
         .toList(growable: false);
@@ -503,8 +505,9 @@ class _HomePageState extends State<HomePage> {
     }
     if (_dueScope == TaskDueScope.today) return 'کاری برای امروز وجود ندارد';
     if (_dueScope == TaskDueScope.future) return 'کار آینده‌ای وجود ندارد';
-    if (_dueScope == TaskDueScope.overdue)
+    if (_dueScope == TaskDueScope.overdue) {
       return 'کار عقب‌افتاده‌ای وجود ندارد';
+    }
     if (_listScope == TaskListScope.simpleNotes) {
       return 'کار بدون پیگیری برای نمایش وجود ندارد';
     }
