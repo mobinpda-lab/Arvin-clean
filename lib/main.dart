@@ -1090,6 +1090,8 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => CanonicalCalendarLauncher(tasks: _searchSource),
       ),
     );
+    if (!mounted) return;
+    await _load();
   }
 
   Widget _primaryNotebookShell() {
