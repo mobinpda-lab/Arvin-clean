@@ -111,6 +111,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CalendarPage(
+            key: ValueKey('calendar-$mode'),
             initialSelectedDay: initial,
             reminders: [
               CalendarReminder(
