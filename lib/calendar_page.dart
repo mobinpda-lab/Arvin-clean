@@ -877,6 +877,10 @@ class _ReminderCard extends StatefulWidget {
 
   bool get isPrayer => item.id.startsWith('prayer-');
 
+  /// Generic Task/FollowUp actions are safe only when the reminder carries
+  /// the canonical mutation identity produced by FollowUpCalendarProjection.
+  bool get hasCanonicalFollowUpTarget => item.id.startsWith('followup:');
+
   @override
   State<_ReminderCard> createState() => _ReminderCardState();
 }
@@ -888,10 +892,12 @@ class _ReminderCardState extends State<_ReminderCard> {
       (widget.isPrayer &&
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
-      (!widget.isPrayer && (widget.onComplete != null ||
-      widget.onSnooze != null ||
-      widget.onEdit != null ||
-      widget.onConvertToTask != null));
+      (!widget.isPrayer &&
+          widget.hasCanonicalFollowUpTarget &&
+          (widget.onComplete != null ||
+              widget.onSnooze != null ||
+              widget.onEdit != null ||
+              widget.onConvertToTask != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
@@ -975,6 +981,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
                   if (!widget.isPrayer &&
+                      widget.hasCanonicalFollowUpTarget &&
                       widget.onComplete != null &&
                       !item.completed)
                     ActionChip(
@@ -983,21 +990,27 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (!widget.isPrayer && widget.onSnooze != null && !item.completed)
+                  if (!widget.isPrayer &&
+                      widget.hasCanonicalFollowUpTarget &&
+                      widget.onSnooze != null && !item.completed)
                     ActionChip(
                       key: ValueKey('reminder-snooze-${item.id}'),
                       avatar: const Icon(Icons.snooze_outlined, size: 18),
                       label: const Text('تعویق'),
                       onPressed: () => _run(widget.onSnooze),
                     ),
-                  if (!widget.isPrayer && widget.onEdit != null)
+                  if (!widget.isPrayer &&
+                      widget.hasCanonicalFollowUpTarget &&
+                      widget.onEdit != null)
                     ActionChip(
                       key: ValueKey('reminder-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEdit),
                     ),
-                  if (!widget.isPrayer && widget.onConvertToTask != null)
+                  if (!widget.isPrayer &&
+                      widget.hasCanonicalFollowUpTarget &&
+                      widget.onConvertToTask != null)
                     ActionChip(
                       key: ValueKey('reminder-convert-${item.id}'),
                       avatar: const Icon(Icons.task_alt_outlined, size: 18),
