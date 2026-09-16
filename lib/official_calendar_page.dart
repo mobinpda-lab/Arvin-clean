@@ -20,6 +20,7 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onSnoozeReminder,
     this.onEditReminder,
     this.onConvertReminderToTask,
+    this.onCreateTaskForDate,
   });
 
   final OfficialCalendarReminderService service;
@@ -30,6 +31,7 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
+  final Future<void> Function(DateTime date)? onCreateTaskForDate;
 
   @override
   State<OfficialCalendarPage> createState() => _OfficialCalendarPageState();
@@ -44,6 +46,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onSnoozeReminder,
     super.onEditReminder,
     super.onConvertReminderToTask,
+    super.onCreateTaskForDate,
   }) : super(
           service: const OfficialCalendarReminderService(
             <OfficialCalendarReminderSource>[
