@@ -5,11 +5,15 @@ import 'calendar_page.dart';
 import 'iranian_official_holiday_source.dart';
 import 'iranian_prayer_time_source.dart';
 import 'prayer_completion_report_page.dart';
+import 'services/app_settings_service.dart';
+import 'services/external_calendar_event_projection.dart';
+import 'services/external_calendar_link_store.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/prayer_completion_store.dart';
+import 'services/system_calendar_bridge.dart';
 
-/// Loads official providers through [OfficialCalendarReminderService] and
-/// hands their existing [CalendarReminder] output to [CalendarPage].
+/// Loads canonical, official and user-approved external calendar reminders
+/// into the existing Calendar presentation without creating parallel Task data.
 class OfficialCalendarPage extends StatefulWidget {
   const OfficialCalendarPage({
     super.key,
@@ -23,6 +27,10 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onConvertReminderToTask,
     this.canMutateReminder,
     this.onCreateTaskForDate,
+    this.settingsService,
+    this.calendarBridge,
+    this.externalLinkStore,
+    this.externalProjection,
   });
 
   final OfficialCalendarReminderService service;
@@ -35,6 +43,10 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
   final bool Function(CalendarReminder reminder)? canMutateReminder;
   final Future<void> Function(DateTime date)? onCreateTaskForDate;
+  final AppSettingsService? settingsService;
+  final SystemCalendarBridge? calendarBridge;
+  final ExternalCalendarLinkStore? externalLinkStore;
+  final ExternalCalendarEventProjection? externalProjection;
 
   @override
   State<OfficialCalendarPage> createState() => _OfficialCalendarPageState();
@@ -51,6 +63,10 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onConvertReminderToTask,
     super.canMutateReminder,
     super.onCreateTaskForDate,
+    super.settingsService,
+    super.calendarBridge,
+    super.externalLinkStore,
+    super.externalProjection,
   }) : super(
          service: const OfficialCalendarReminderService(<OfficialCalendarReminderSource>[
            IranianOfficialHolidaySource(),
@@ -83,10 +99,48 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     setState(() => _prayerRecords = records);
   }
 
+  Future<List<CalendarReminder>> _loadExternalEvents() async {
+    try {
+      final settings = await (widget.settingsService ?? AppSettingsService()).load();
+      final integration = settings.calendarIntegration;
+      if (!integration.enabled || !integration.showExternalEvents || integration.visibleCalendarIds.isEmpty) {
+        return const <CalendarReminder>[];
+      }
+
+      final bridge = widget.calendarBridge ?? SystemCalendarBridge();
+      if (!await bridge.hasReadPermission()) return const <CalendarReminder>[];
+
+      final calendarIds = integration.visibleCalendarIds.toList()..sort();
+      final boundedIds = calendarIds.take(SystemCalendarBridge.maxEventQueryCalendars).toList(growable: false);
+      final now = DateTime.now().toLocal();
+      final today = DateTime(now.year, now.month, now.day);
+      final start = today.subtract(const Duration(days: 31));
+      final events = await bridge.listDeviceCalendarEvents(
+        calendarIds: boundedIds,
+        start: start,
+        end: start.add(SystemCalendarBridge.maxEventQueryWindow),
+      );
+
+      var links = const <dynamic>[];
+      try {
+        links = await (widget.externalLinkStore ?? ExternalCalendarLinkStore()).load();
+      } on FormatException {
+        // Corrupt sync metadata must not break canonical Calendar content.
+      }
+      return (widget.externalProjection ?? const ExternalCalendarEventProjection()).project(events, linkedEvents: links.cast());
+    } catch (_) {
+      return const <CalendarReminder>[];
+    }
+  }
+
   Future<List<CalendarReminder>> _load() async {
     final officialGroups = await Future.wait(widget.years.map((year) => widget.service.load(year: year)));
+    final external = await _loadExternalEvents();
     final byId = <String, CalendarReminder>{for (final reminder in widget.reminders) reminder.id: reminder};
     for (final reminder in officialGroups.expand((group) => group)) {
+      byId.putIfAbsent(reminder.id, () => reminder);
+    }
+    for (final reminder in external) {
       byId.putIfAbsent(reminder.id, () => reminder);
     }
     final merged = byId.values.toList()..sort((a, b) => a.date.compareTo(b.date));
@@ -110,9 +164,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
 
   Future<void> _openPrayerReport() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => PrayerCompletionReportPage(store: _prayerStore),
-      ),
+      MaterialPageRoute<void>(builder: (_) => PrayerCompletionReportPage(store: _prayerStore)),
     );
     await _loadPrayerRecords();
   }
