@@ -6,13 +6,9 @@ import 'package:arvin/main.dart';
 import 'package:arvin/official_calendar_page.dart';
 
 void main() {
-  testWidgets('primary Home navigation opens the official calendar',
-      (tester) async {
-    const stored =
-        '[{"id":"task-1","title":"کار نمونه","followUpEnabled":false,"futureField":{"keep":true}}]';
-    SharedPreferences.setMockInitialValues(<String, Object>{
-      'arvin.tasks': stored,
-    });
+  testWidgets('primary Home navigation opens the official calendar', (tester) async {
+    const stored = '[{"id":"task-1","title":"کار نمونه","followUpEnabled":false,"futureField":{"keep":true}}]';
+    SharedPreferences.setMockInitialValues(<String, Object>{'arvin.tasks': stored});
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -22,12 +18,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(IranianOfficialCalendarPage), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.byType(IranianOfficialCalendarPage))),
-      TextDirection.rtl,
-    );
+    expect(Directionality.of(tester.element(find.byType(IranianOfficialCalendarPage))), TextDirection.rtl);
 
-    await tester.pageBack();
+    // Calendar owns additional top-level controls, so do not depend on the
+    // framework Back tooltip hit-test location. Pop the route explicitly.
+    final calendarContext = tester.element(find.byType(IranianOfficialCalendarPage));
+    Navigator.of(calendarContext).pop();
     await tester.pumpAndSettle();
     expect(find.byType(HomePage), findsOneWidget);
 
