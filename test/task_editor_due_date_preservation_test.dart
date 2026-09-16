@@ -64,4 +64,101 @@ void main() {
     expect(result!.followUps.single.dateTime, DateTime(2026, 9, 8, 10));
     expect(result!.followUps.single.note, 'تماس اولیه');
   });
+
+  testWidgets('calendar selected date seeds a new canonical task due date',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Task? result;
+    final selectedDate = DateTime(2026, 9, 16);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  result = await showDialog<Task>(
+                    context: context,
+                    builder: (_) => ArvinTaskEditorDialog(
+                      initialDueDate: selectedDate,
+                    ),
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار تقویم',
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.title, 'کار تقویم');
+    expect(result!.dueDate, selectedDate);
+  });
+
+  testWidgets('existing task due date wins over calendar initial date',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Task? result;
+    final existingDueDate = DateTime(2026, 9, 20, 15, 30);
+    final task = Task(
+      id: 'existing-calendar-due',
+      title: 'کار موجود',
+      dueDate: existingDueDate,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  result = await showDialog<Task>(
+                    context: context,
+                    builder: (_) => ArvinTaskEditorDialog(
+                      task: task,
+                      initialDueDate: DateTime(2026, 9, 16),
+                    ),
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, existingDueDate);
+  });
 }
