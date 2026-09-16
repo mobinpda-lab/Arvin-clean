@@ -38,6 +38,8 @@ class CalendarPage extends StatefulWidget {
     this.onSnoozeReminder,
     this.onEditReminder,
     this.onConvertReminderToTask,
+    this.canMutateReminder,
+    this.onCreateTaskForDate,
     this.prayerStatusFor,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
@@ -48,8 +50,17 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
-  final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
-  final PrayerCompletionStatus? Function(CalendarReminder reminder)? prayerStatusFor;
+  final Future<void> Function(CalendarReminder reminder)?
+  onConvertReminderToTask;
+
+  /// Generic Task/FollowUp actions are shown only for exact canonical targets.
+  final bool Function(CalendarReminder reminder)? canMutateReminder;
+
+  /// Creates a canonical Task with the pressed calendar date prefilled.
+  final Future<void> Function(DateTime date)? onCreateTaskForDate;
+
+  final PrayerCompletionStatus? Function(CalendarReminder reminder)?
+  prayerStatusFor;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
 
@@ -101,15 +112,13 @@ class _CalendarPageState extends State<CalendarPage> {
       jDayNo = (jDayNo - 1) % 365;
     }
     final jm = jDayNo < 186 ? 1 + jDayNo ~/ 31 : 7 + (jDayNo - 186) ~/ 30;
-    final jd =
-        1 + (jDayNo < 186 ? jDayNo % 31 : (jDayNo - 186) % 30);
+    final jd = 1 + (jDayNo < 186 ? jDayNo % 31 : (jDayNo - 186) % 30);
     return _JalaliDate(jy, jm, jd);
   }
 
   DateTime _toGregorian(int jy, int jm, int jd) {
     var jy0 = jy - 979;
-    var jDayNo =
-        365 * jy0 + (jy0 ~/ 33) * 8 + ((jy0 % 33) + 3) ~/ 4;
+    var jDayNo = 365 * jy0 + (jy0 ~/ 33) * 8 + ((jy0 % 33) + 3) ~/ 4;
     for (var i = 1; i < jm; i++) {
       jDayNo += i <= 6 ? 31 : 30;
     }
@@ -170,8 +179,8 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   String _time(DateTime date) => _digits(
-        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
-      );
+    '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
+  );
 
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
@@ -275,11 +284,13 @@ class _CalendarPageState extends State<CalendarPage> {
         final current = _toJalali(_selectedDay);
         final nextYear = current.year + delta;
         final maxDay = _daysInJalaliMonth(nextYear, current.month);
-        _selectDay(_toGregorian(
-          nextYear,
-          current.month,
-          current.day > maxDay ? maxDay : current.day,
-        ));
+        _selectDay(
+          _toGregorian(
+            nextYear,
+            current.month,
+            current.day > maxDay ? maxDay : current.day,
+          ),
+        );
         return;
     }
   }
@@ -330,9 +341,7 @@ class _CalendarPageState extends State<CalendarPage> {
               children: [
                 Text(
                   'پیام روز • ${_dailyContentKindLabel(item.kind)}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
+                  style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
@@ -424,9 +433,7 @@ class _CalendarPageState extends State<CalendarPage> {
           const SizedBox(width: 8),
           Text(
             _digits('${jalali.day}'),
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
+            style: Theme.of(context).textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const Spacer(),
@@ -441,9 +448,7 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
             child: Text(
               '${_digits('$count')} مورد',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelMedium
+              style: Theme.of(context).textTheme.labelMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
@@ -477,6 +482,9 @@ class _CalendarPageState extends State<CalendarPage> {
                       ),
                       borderRadius: BorderRadius.circular(10),
                       onTap: () => _selectDay(date),
+                      onLongPress: widget.onCreateTaskForDate == null
+                          ? null
+                          : () => widget.onCreateTaskForDate!(date),
                       child: Container(
                         height: 58,
                         decoration: BoxDecoration(
@@ -493,9 +501,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           children: [
                             Text(
                               _weekdayShort(date),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 1),
@@ -506,9 +512,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             if (count > 0)
                               Text(
                                 _digits('$count'),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: scheme.primary,
                                       fontWeight: FontWeight.w700,
@@ -575,6 +579,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   key: ValueKey('calendar-month-day-$day'),
                   borderRadius: BorderRadius.circular(10),
                   onTap: () => _selectDay(date),
+                  onLongPress: widget.onCreateTaskForDate == null
+                      ? null
+                      : () => widget.onCreateTaskForDate!(date),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
@@ -583,8 +590,9 @@ class _CalendarPageState extends State<CalendarPage> {
                       borderRadius: BorderRadius.circular(10),
                       border: count > 0
                           ? Border.all(
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
                             )
                           : null,
                     ),
@@ -663,7 +671,9 @@ class _CalendarPageState extends State<CalendarPage> {
           onTap: () => _selectDay(_toGregorian(current.year, month, 1)),
           child: Container(
             decoration: BoxDecoration(
-              color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+              color: selected
+                  ? scheme.primaryContainer
+                  : scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: scheme.outlineVariant),
             ),
@@ -702,8 +712,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final selectedJalali = _toJalali(_selectedDay);
     final selectedReminders = _forDay(_selectedDay);
-    final selectedDailyContent =
-        widget.dailyContentForDate?.call(_selectedDay);
+    final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
     final hasSelectedItems =
         selectedDailyContent != null || selectedReminders.isNotEmpty;
 
@@ -770,6 +779,11 @@ class _CalendarPageState extends State<CalendarPage> {
               key: const ValueKey('calendar-swipe-surface'),
               behavior: HitTestBehavior.opaque,
               onHorizontalDragEnd: _handleHorizontalSwipe,
+              onLongPress:
+                  _viewMode == _CalendarViewMode.day &&
+                      widget.onCreateTaskForDate != null
+                  ? () => widget.onCreateTaskForDate!(_selectedDay)
+                  : null,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 child: _buildCalendarSurface(),
@@ -797,20 +811,41 @@ class _CalendarPageState extends State<CalendarPage> {
                           if (selectedReminders.isNotEmpty)
                             const SizedBox(height: 10),
                         ],
-                        for (var index = 0;
-                            index < selectedReminders.length;
-                            index++) ...[
+                        for (
+                          var index = 0;
+                          index < selectedReminders.length;
+                          index++
+                        ) ...[
                           if (index > 0) const SizedBox(height: 6),
                           _ReminderCard(
                             item: selectedReminders[index],
                             dateLabel: _date(selectedReminders[index].date),
                             timeLabel: _time(selectedReminders[index].date),
-                            onComplete: widget.onCompleteReminder,
-                            onSnooze: widget.onSnoozeReminder,
-                            onEdit: widget.onEditReminder,
+                            onComplete:
+                                (widget.canMutateReminder?.call(
+                                      selectedReminders[index],
+                                    ) ??
+                                    true)
+                                ? widget.onCompleteReminder
+                                : null,
+                            onSnooze:
+                                (widget.canMutateReminder?.call(
+                                      selectedReminders[index],
+                                    ) ??
+                                    true)
+                                ? widget.onSnoozeReminder
+                                : null,
+                            onEdit:
+                                (widget.canMutateReminder?.call(
+                                      selectedReminders[index],
+                                    ) ??
+                                    true)
+                                ? widget.onEditReminder
+                                : null,
                             onConvertToTask: widget.onConvertReminderToTask,
-                            prayerStatus: widget.prayerStatusFor
-                                ?.call(selectedReminders[index]),
+                            prayerStatus: widget.prayerStatusFor?.call(
+                              selectedReminders[index],
+                            ),
                             onPrayerCompleted: widget.onPrayerCompleted,
                             onPrayerNotCompleted: widget.onPrayerNotCompleted,
                           ),
@@ -888,10 +923,11 @@ class _ReminderCardState extends State<_ReminderCard> {
       (widget.isPrayer &&
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
-      (!widget.isPrayer && (widget.onComplete != null ||
-      widget.onSnooze != null ||
-      widget.onEdit != null ||
-      widget.onConvertToTask != null));
+      (!widget.isPrayer &&
+          (widget.onComplete != null ||
+              widget.onSnooze != null ||
+              widget.onEdit != null ||
+              widget.onConvertToTask != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
@@ -925,8 +961,8 @@ class _ReminderCardState extends State<_ReminderCard> {
                 item.isAllDay
                     ? Icons.event_outlined
                     : item.completed
-                        ? Icons.check_circle
-                        : Icons.notifications_active_outlined,
+                    ? Icons.check_circle
+                    : Icons.notifications_active_outlined,
               ),
             ),
             title: const Text(
@@ -939,9 +975,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                 const SizedBox(height: 2),
                 Text(
                   item.title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
+                  style: Theme.of(context).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
@@ -983,7 +1017,9 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (!widget.isPrayer && widget.onSnooze != null && !item.completed)
+                  if (!widget.isPrayer &&
+                      widget.onSnooze != null &&
+                      !item.completed)
                     ActionChip(
                       key: ValueKey('reminder-snooze-${item.id}'),
                       avatar: const Icon(Icons.snooze_outlined, size: 18),
@@ -1030,11 +1066,8 @@ class _Weekday extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-      );
+    child: Center(
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+    ),
+  );
 }

@@ -27,12 +27,14 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.projection = const FollowUpCalendarProjection(),
     this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
     this.rescheduleApplyService,
+    this.onCreateTaskForDate,
   });
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
   final CalendarReschedulingAdvisor reschedulingAdvisor;
   final CalendarRescheduleApplyService? rescheduleApplyService;
+  final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -43,10 +45,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late final List<Task> _tasks;
 
   FollowUpWriteCoordinator get _followUpWriter => FollowUpWriteCoordinator(
-        repository: const FollowUpRepository(),
-        scheduler: AndroidAutomaticFollowUpScheduler(),
-        reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
-      );
+    repository: const FollowUpRepository(),
+    scheduler: AndroidAutomaticFollowUpScheduler(),
+    reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
+  );
 
   CalendarRescheduleApplyService get _applyService =>
       widget.rescheduleApplyService ??
@@ -114,15 +116,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     _tasks = List<Task>.of(widget.tasks);
   }
 
-  void _replaceFollowUp(
-    FollowUpCalendarTarget target,
-    FollowUp updated,
-  ) {
+  void _replaceFollowUp(FollowUpCalendarTarget target, FollowUp updated) {
     final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
     if (taskIndex < 0) return;
     final task = _tasks[taskIndex];
-    final followUpIndex =
-        task.followUps.indexWhere((item) => item.id == updated.id);
+    final followUpIndex = task.followUps.indexWhere(
+      (item) => item.id == updated.id,
+    );
     if (followUpIndex < 0) return;
     setState(() {
       final next = List<FollowUp>.of(task.followUps);
@@ -135,6 +135,17 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   FollowUpCalendarTarget? _targetFor(CalendarReminder reminder) =>
       widget.projection.resolveTarget(_tasks, reminder.id);
+
+  bool _canMutateReminder(CalendarReminder reminder) =>
+      _targetFor(reminder) != null;
+
+  Future<void> _createTaskForDate(DateTime date) async {
+    final task = await widget.onCreateTaskForDate?.call(date);
+    if (task == null || !mounted || _tasks.any((item) => item.id == task.id)) {
+      return;
+    }
+    setState(() => _tasks.add(task));
+  }
 
   Future<void> _completeReminder(CalendarReminder reminder) async {
     final target = _targetFor(reminder);
@@ -202,7 +213,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             for (final task in _tasks)
               SimpleDialogOption(
                 onPressed: () => Navigator.of(dialogContext).pop(task),
-                child: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                child: Text(
+                  task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
+                ),
               ),
           ],
         ),
@@ -367,8 +380,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
       if (taskIndex >= 0) {
         final task = _tasks[taskIndex];
-        final followUpIndex =
-            task.followUps.indexWhere((item) => item.id == updated.id);
+        final followUpIndex = task.followUps.indexWhere(
+          (item) => item.id == updated.id,
+        );
         if (followUpIndex >= 0) {
           setState(() {
             final next = List<FollowUp>.of(task.followUps);
@@ -383,7 +397,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(content: Text('تغییر زمان انجام نشد؛ دوباره تلاش کنید')),
+            const SnackBar(
+              content: Text('تغییر زمان انجام نشد؛ دوباره تلاش کنید'),
+            ),
           );
       }
       return false;
@@ -412,10 +428,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       );
       if (!advice.hasConflict) continue;
       entries.add(
-        _CalendarConflictAdviceEntry(
-          reminder: reminder,
-          advice: advice,
-        ),
+        _CalendarConflictAdviceEntry(reminder: reminder, advice: advice),
       );
     }
 
@@ -432,19 +445,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  entries.isEmpty
-                      ? 'تداخل زمانی پیدا نشد'
-                      : 'تداخل‌های زمانی',
-                  style: Theme.of(sheetContext)
-                      .textTheme
-                      .titleLarge
+                  entries.isEmpty ? 'تداخل زمانی پیدا نشد' : 'تداخل‌های زمانی',
+                  style: Theme.of(sheetContext).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
                 if (entries.isEmpty)
-                  const Text(
-                    'بین پیگیری‌های زمان‌دار فعلی تداخلی دیده نشد.',
-                  )
+                  const Text('بین پیگیری‌های زمان‌دار فعلی تداخلی دیده نشد.')
                 else
                   for (final entry in entries) ...[
                     Card(
@@ -485,10 +492,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                                       onPressed: () async {
                                         final changed =
                                             await _confirmAndApplyReschedule(
-                                          sheetContext,
-                                          entry,
-                                          suggestion.start,
-                                        );
+                                              sheetContext,
+                                              entry,
+                                              suggestion.start,
+                                            );
                                         if (changed && sheetContext.mounted) {
                                           Navigator.of(sheetContext).pop(true);
                                         }
@@ -504,9 +511,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                     const SizedBox(height: 8),
                   ],
                 const SizedBox(height: 8),
-                const Text(
-                  'هیچ زمانی بدون تأیید شما تغییر نمی‌کند.',
-                ),
+                const Text('هیچ زمانی بدون تأیید شما تغییر نمی‌کند.'),
               ],
             ),
           ),
@@ -533,7 +538,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست')),
+          const SnackBar(
+            content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست'),
+          ),
         );
       return;
     }
@@ -600,22 +607,25 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                 leading: const Icon(Icons.event_available_outlined),
                 title: const Text('تقویم دستگاه'),
                 subtitle: const Text('افزودن پیگیری فعال به تقویم گوشی'),
-                onTap: () => Navigator.of(sheetContext)
-                    .pop(_CalendarMoreAction.systemCalendar),
+                onTap: () =>
+                    Navigator.of(sheetContext)
+                        .pop(_CalendarMoreAction.systemCalendar),
               ),
               ListTile(
                 leading: const Icon(Icons.timeline_outlined),
                 title: const Text('خط زمانی'),
                 subtitle: const Text('نمایش روند زمانی یک کار'),
-                onTap: () => Navigator.of(sheetContext)
-                    .pop(_CalendarMoreAction.timeline),
+                onTap: () =>
+                    Navigator.of(sheetContext)
+                        .pop(_CalendarMoreAction.timeline),
               ),
               ListTile(
                 leading: const Icon(Icons.warning_amber_outlined),
                 title: const Text('تداخل‌ها'),
                 subtitle: const Text('بررسی تداخل پیگیری‌های زمان‌دار'),
-                onTap: () => Navigator.of(sheetContext)
-                    .pop(_CalendarMoreAction.conflicts),
+                onTap: () =>
+                    Navigator.of(sheetContext)
+                        .pop(_CalendarMoreAction.conflicts),
               ),
             ],
           ),
@@ -676,6 +686,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
+            canMutateReminder: _canMutateReminder,
+            onCreateTaskForDate: widget.onCreateTaskForDate == null
+                ? null
+                : _createTaskForDate,
           ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(
@@ -688,11 +702,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 }
 
-enum _CalendarMoreAction {
-  systemCalendar,
-  timeline,
-  conflicts,
-}
+enum _CalendarMoreAction { systemCalendar, timeline, conflicts }
 
 class _CalendarConflictAdviceEntry {
   const _CalendarConflictAdviceEntry({
