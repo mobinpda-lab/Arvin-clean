@@ -23,6 +23,32 @@ Date: 2026-09-17
 
 Task, Follow Up, and Calendar Event are separate concepts and should not be mixed.
 
+## Quick Add Requirement
+
+A fast task capture flow should be available from all major entry points.
+
+Requirements:
+
+- Quick Add should open as a lightweight bottom sheet.
+- User can immediately type the task title and save.
+- Quick Add must not automatically assign date, time, reminder, or priority.
+- Optional metadata can be selected before saving.
+- A clear action should open the full task creation screen.
+- Quick Add and full task creation must share the same task creation logic.
+
+## Full Screen Task Entry Requirement
+
+A complete task creation screen should be available for detailed input.
+
+Requirements:
+
+- Full screen form for creating and editing tasks.
+- Title is the primary required field.
+- Date, time, reminder, repeat, project, labels, checklist, and notes are optional user choices.
+- Empty optional fields must remain empty.
+- The interface should follow the provided visual references for spacing, hierarchy, and usability.
+- Editing an existing task should use the same structure as creation.
+
 ## Goal
 
 Arvin should manage tasks first, then add scheduling, reminders, and calendar integration only when required by the user.
