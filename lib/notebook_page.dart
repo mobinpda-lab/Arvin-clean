@@ -923,7 +923,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (confirmed != true || !mounted) return;
 
     final converted = await widget.repository.convertNoteToTask(widget.noteId);
-    if (!mounted || converted == null) return;
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
