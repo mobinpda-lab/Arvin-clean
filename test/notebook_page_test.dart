@@ -1,6 +1,8 @@
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -329,6 +331,43 @@ void main() {
     expect(persisted?.title, 'یادداشت ویرایش‌شده');
     expect(persisted?.description, 'متن ذخیره‌شده خودکار');
     expect(persisted?.checklist, isEmpty);
+  });
+
+  testWidgets('project picker assigns and clears the same canonical note',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12));
+    await ProjectStore().save([
+      ProjectPlan(id: 'project-a', title: 'پروژه آروین'),
+      ProjectPlan(id: 'archived', title: 'پروژه بایگانی', isArchived: true),
+    ]);
+    await repository.createNote(id: 'project-note', title: 'یادداشت پروژه');
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-project-note')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-project-picker')), findsOneWidget);
+    expect(find.text('انتخاب پروژه'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-project-picker')));
+    await tester.pumpAndSettle();
+    expect(find.text('پروژه آروین'), findsOneWidget);
+    expect(find.text('پروژه بایگانی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-project-project-a')));
+    await tester.pumpAndSettle();
+
+    expect(await repository.projectIdForNote('project-note'), 'project-a');
+    expect((await repository.loadNote('project-note'))?.id, 'project-note');
+    expect(find.text('پروژه آروین'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-project-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-project-clear')));
+    await tester.pumpAndSettle();
+
+    expect(await repository.projectIdForNote('project-note'), isNull);
+    expect((await repository.loadNote('project-note'))?.id, 'project-note');
   });
 
   testWidgets('editor trash safely moves only the current canonical note', (tester) async {
