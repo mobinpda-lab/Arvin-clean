@@ -16,12 +16,14 @@ class QuickCaptureDialog extends StatefulWidget {
     this.idFactory,
     this.now,
     this.onCaptured,
+    this.onFullForm,
   });
 
   final QuickCaptureService service;
   final String Function()? idFactory;
   final DateTime Function()? now;
   final Future<void> Function(Task task)? onCaptured;
+  final Future<void> Function(Task draft)? onFullForm;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -77,6 +79,39 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     }
   }
 
+  Future<void> _openFullForm() async {
+    if (_saving) return;
+    final createdAt = widget.now?.call() ?? DateTime.now();
+    final draft = widget.service.capture(
+      _controller.text,
+      id: widget.idFactory?.call() ??
+          createdAt.microsecondsSinceEpoch.toString(),
+      createdAt: createdAt,
+    );
+    if (draft == null) {
+      setState(() => _error = 'یک متن کوتاه برای ادامه وارد کنید');
+      return;
+    }
+    final onFullForm = widget.onFullForm;
+    if (onFullForm == null) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await onFullForm(draft);
+      if (!mounted) return;
+      _controller.clear();
+      setState(() => _saving = false);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = 'باز کردن فرم کامل انجام نشد؛ دوباره تلاش کنید';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -102,6 +137,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           onPressed: _saving ? null : () => Navigator.of(context).pop(),
           child: const Text('بستن'),
         ),
+        if (widget.onFullForm != null)
+          TextButton(
+            key: const ValueKey('quick-capture-full-form'),
+            onPressed: _saving ? null : _openFullForm,
+            child: const Text('فرم کامل'),
+          ),
         FilledButton(
           key: const ValueKey('quick-capture-submit'),
           onPressed: _saving ? null : _submit,
