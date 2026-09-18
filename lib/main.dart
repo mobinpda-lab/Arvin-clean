@@ -599,34 +599,34 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final captured = await showDialog<Task>(
+    await showDialog<void>(
       context: context,
-      builder: (_) => const QuickCaptureDialog(),
-    );
-    if (captured == null) return;
+      builder: (_) => QuickCaptureDialog(
+        onCaptured: (captured) async {
+          await taskStore.mutate<void>((stored) {
+            if (stored.any((task) => task.id == captured.id)) {
+              throw StateError('Duplicate Task id: ${captured.id}');
+            }
+            stored.add(captured);
+          });
 
-    try {
-      await taskStore.mutate<void>((stored) {
-        if (stored.any((task) => task.id == captured.id)) {
-          throw StateError('Duplicate Task id: ${captured.id}');
-        }
-        stored.add(captured);
-      });
-      await _load();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
+          final refreshed = await taskStore.load();
+          if (!mounted) return;
+          setState(() {
+            tasks = List<Task>.of(refreshed);
+            loadFailure = null;
+            loading = false;
+          });
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text('«${captured.title}» با ثبت سریع اضافه شد'),
+              ),
+            );
+        },
+      ),
+    );
   }
 
   Future<void> _edit(Task old) async {
