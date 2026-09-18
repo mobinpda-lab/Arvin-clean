@@ -23,7 +23,7 @@ class QuickCaptureDialog extends StatefulWidget {
   final String Function()? idFactory;
   final DateTime Function()? now;
   final Future<void> Function(Task task)? onCaptured;
-  final Future<void> Function(Task draft)? onFullForm;
+  final Future<bool> Function(Task draft)? onFullForm;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -99,9 +99,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       _error = null;
     });
     try {
-      await onFullForm(draft);
+      final saved = await onFullForm(draft);
       if (!mounted) return;
-      _controller.clear();
+      if (saved) _controller.clear();
       setState(() => _saving = false);
     } catch (_) {
       if (!mounted) return;
