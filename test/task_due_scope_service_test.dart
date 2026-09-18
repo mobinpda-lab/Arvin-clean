@@ -93,4 +93,18 @@ void main() {
     expect(first.dueDate, DateTime(2026, 8, 29));
     expect(second.dueDate, DateTime(2026, 8, 30));
   });
+  test('Undated scope returns only active incomplete tasks without dueDate', () {
+    final undated = Task(id: 'undated', title: 'بدون زمان');
+    final dated = Task(id: 'dated', title: 'زمان‌دار', dueDate: now);
+    final completed = Task(id: 'completed', title: 'تمام‌شده')..completed = true;
+
+    final result = service.project(
+      [undated, dated, completed],
+      now: now,
+      scope: TaskDueScope.undated,
+    );
+
+    expect(result.map((task) => task.id), ['undated']);
+  });
+
 }
