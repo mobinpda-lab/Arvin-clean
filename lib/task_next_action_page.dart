@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/task_next_action_service.dart';
 import 'task_report_page.dart';
 
@@ -22,11 +23,13 @@ class TaskNextActionPage extends StatelessWidget {
         TaskNextActionReason.unscheduled => 'بدون زمان‌بندی',
       };
 
+  static const _dateFormatter = PersianDateFormatter();
+
   String _dateTime(DateTime value) {
-    final date =
-        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    final date = _dateFormatter.format(value, usePersianDate: true);
+    final time = _dateFormatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
     return '$date • $time';
   }
 
