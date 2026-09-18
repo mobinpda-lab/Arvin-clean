@@ -1,6 +1,6 @@
 import '../models/task.dart';
 
-enum TaskDueScope { today, future, overdue }
+enum TaskDueScope { today, future, overdue, undated }
 
 /// Pure projection for the owner-approved Today / Future / Overdue task scopes.
 ///
@@ -21,13 +21,14 @@ class TaskDueScopeService {
     return tasks.where((task) {
       if (task.archived || task.trashed || task.completed) return false;
       final due = task.dueDate;
-      if (due == null) return false;
+      if (due == null) return scope == TaskDueScope.undated;
       final dueDay = _day(due);
 
       return switch (scope) {
         TaskDueScope.today => dueDay == today,
         TaskDueScope.future => !dueDay.isBefore(tomorrow),
         TaskDueScope.overdue => dueDay.isBefore(today),
+        TaskDueScope.undated => false,
       };
     }).toList(growable: false);
   }
