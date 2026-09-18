@@ -1,3 +1,4 @@
+import 'package:arvin/models/task.dart';
 import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/task_store.dart';
