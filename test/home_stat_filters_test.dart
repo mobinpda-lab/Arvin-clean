@@ -79,6 +79,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Home keeps canonical controls reachable on a normal Android phone viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.byType(BottomNavigationBar), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('four-view selector changes grouping without mutating task storage',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
