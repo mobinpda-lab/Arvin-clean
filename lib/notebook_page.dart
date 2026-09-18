@@ -866,7 +866,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
             TextField(
@@ -898,18 +898,23 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             const SizedBox(height: 12),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: ActionChip(
+              child: TextButton.icon(
                 key: const ValueKey('notebook-category-picker'),
-                avatar: const Icon(Icons.folder_outlined, size: 18),
+                onPressed: _pickCategory,
+                icon: const Icon(Icons.menu_book_outlined, size: 18),
                 label: Text(
                   _category == null || _category!.trim().isEmpty
-                      ? 'انتخاب دسته'
+                      ? 'انتخاب دفتر'
                       : _category!,
                 ),
-                onPressed: _pickCategory,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  visualDensity: VisualDensity.compact,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 16, thickness: 0.5),
+            const SizedBox(height: 4),
             if (!_checklistMode)
               TextField(
                 key: const ValueKey('notebook-description'),
