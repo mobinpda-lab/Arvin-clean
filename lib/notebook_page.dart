@@ -881,7 +881,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     }
 
     final noteDate = _note?.updatedAt ?? _note?.createdAt;
-    return Scaffold(
+    return PopScope(
+      canPop: !_editing,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || !_editing) return;
+        await _handleBack();
+      },
+      child: Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -1075,6 +1081,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
           ],
         ],
         ),
+      ),
       ),
     );
   }
