@@ -694,6 +694,9 @@ void main() {
       id: 'convert-ui',
       title: 'یادداشت قابل تبدیل',
       category: 'کاری',
+    );
+    await repository.updateTags(
+      id: 'convert-ui',
       tags: const ['مهم'],
     );
 
@@ -708,7 +711,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await repository.loadNote('convert-ui'), isNull);
-    final tasks = await repository.taskStore.load();
+    final tasks = await TaskStore().load();
     final converted = tasks.singleWhere((task) => task.id == 'convert-ui');
     expect(converted.title, 'یادداشت قابل تبدیل');
     expect(converted.category, 'کاری');
