@@ -764,6 +764,31 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     });
   }
 
+  Future<void> _trashNote() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('انتقال به سطل زباله؟'),
+        content: const Text('یادداشت از دفتر حذف می‌شود و در سطل زباله باقی می‌ماند.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-editor-trash-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('انتقال'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await widget.repository.moveSelectedToTrash(<String>[widget.noteId]);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   void _addChecklistItem() {
     if (!_editing || !_checklistMode) return;
     final value = _checklistInput.text.trim();
@@ -853,6 +878,12 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         title: const SizedBox.shrink(),
         centerTitle: false,
         actions: [
+          IconButton(
+            key: const ValueKey('notebook-editor-trash'),
+            onPressed: _trashNote,
+            tooltip: 'سطل زباله',
+            icon: const Icon(Icons.delete_outline),
+          ),
           if (_editing)
             TextButton(
               key: const ValueKey('notebook-done'),
