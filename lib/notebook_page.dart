@@ -664,6 +664,14 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (mounted) setState(() => _editing = false);
   }
 
+  Future<void> _handleBack() async {
+    if (_editing) {
+      await _saveNow();
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future<String?> _promptNewCategory() async {
     var value = '';
     return showDialog<String>(
@@ -875,6 +883,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     final noteDate = _note?.updatedAt ?? _note?.createdAt;
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          key: const ValueKey('notebook-editor-back'),
+          onPressed: _handleBack,
+          tooltip: 'بازگشت',
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
         title: const SizedBox.shrink(),
         centerTitle: false,
         actions: [

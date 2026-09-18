@@ -217,7 +217,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-done')));
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -536,5 +536,33 @@ void main() {
     expect(find.byKey(const ValueKey('report-selected')), findsOneWidget);
   });
 
+
+  testWidgets('editor back persists pending edits before leaving', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12));
+    final note = await repository.createNote(id: 'safe-back', title: 'عنوان اولیه');
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-safe-back')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-edit')));
+    await tester.pump();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-title')),
+      'عنوان ذخیره‌شده',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      'متن ذخیره‌شده هنگام بازگشت',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
+    await tester.pumpAndSettle();
+
+    final persisted = await repository.loadNote(note.id);
+    expect(persisted?.title, 'عنوان ذخیره‌شده');
+    expect(persisted?.description, 'متن ذخیره‌شده هنگام بازگشت');
+    expect(find.text('دفترچه'), findsOneWidget);
+  });
 
 }
