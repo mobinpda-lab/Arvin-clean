@@ -605,6 +605,42 @@ class _HomePageState extends State<HomePage> {
     await showDialog<void>(
       context: context,
       builder: (_) => QuickCaptureDialog(
+        onFullForm: (draft) async {
+          final editorContext = await wave2ProductFastTrack.prepareEditor(
+            tasks: tasks,
+            task: draft,
+          );
+          if (!mounted) return;
+          String? selectedProjectId = editorContext.selectedProjectId;
+          final edited = await showDialog<Task>(
+            context: context,
+            builder: (_) => ArvinTaskEditorDialog(
+              task: draft,
+              projects: editorContext.projects,
+              selectedProjectId: editorContext.selectedProjectId,
+              onProjectChanged: (value) => selectedProjectId = value,
+              knownCategories: editorContext.knownCategories,
+            ),
+          );
+          if (edited == null) return;
+          await taskStore.mutate<void>((stored) {
+            if (stored.any((task) => task.id == edited.id)) {
+              throw StateError('Duplicate Task id: ${edited.id}');
+            }
+            stored.add(edited);
+          });
+          await wave2ProductFastTrack.persistProjectSelection(
+            taskId: edited.id,
+            projectId: selectedProjectId,
+          );
+          final refreshed = await taskStore.load();
+          if (!mounted) return;
+          setState(() {
+            tasks = List<Task>.of(refreshed);
+            loadFailure = null;
+            loading = false;
+          });
+        },
         onCaptured: (captured) async {
           await taskStore.mutate<void>((stored) {
             if (stored.any((task) => task.id == captured.id)) {
