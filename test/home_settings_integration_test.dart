@@ -44,6 +44,22 @@ void main() {
     expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
   });
 
+  testWidgets('Home keeps user-visible dates Jalali when legacy preference is off',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.usePersianDate': false,
+      'arvin.tasks':
+          '[{"id":"dated-off","title":"کار شمسی اجباری","followUpEnabled":true,"followUpDate":"2026-08-26T10:00:00.000","dueDate":"2026-08-26T12:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار شمسی اجباری'), findsOneWidget);
+    expect(find.textContaining('۱۴۰۵/۰۶/۰۴'), findsWidgets);
+    expect(find.textContaining('2026/08/26'), findsNothing);
+  });
+
   testWidgets('Persian date preference changes real Home follow-up rendering',
       (tester) async {
     SharedPreferences.setMockInitialValues({
