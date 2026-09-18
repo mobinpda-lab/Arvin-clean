@@ -687,4 +687,36 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-description')), findsNothing);
   });
 
+  testWidgets('editor converts note to task on same canonical identity',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 19, 0));
+    await repository.createNote(
+      id: 'convert-ui',
+      title: 'یادداشت قابل تبدیل',
+      category: 'کاری',
+      tags: const ['مهم'],
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-convert-ui')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-convert-to-task')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('notebook-convert-to-task')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-convert-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(await repository.loadNote('convert-ui'), isNull);
+    final tasks = await repository.taskStore.load();
+    final converted = tasks.singleWhere((task) => task.id == 'convert-ui');
+    expect(converted.title, 'یادداشت قابل تبدیل');
+    expect(converted.category, 'کاری');
+    expect(converted.tags, const ['مهم']);
+    expect(converted.followUpEnabled, isTrue);
+    expect(tasks.where((task) => task.id == 'convert-ui'), hasLength(1));
+    expect(find.text('دفترچه'), findsOneWidget);
+  });
+
+
 }
