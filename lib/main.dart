@@ -1761,24 +1761,61 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-              child: SegmentedButton<HomeGroupMode>(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
                 key: const ValueKey('home-four-view-selector'),
-                showSelectedIcon: false,
-                segments: HomeGroupMode.values
-                    .map(
-                      (mode) => ButtonSegment<HomeGroupMode>(
-                        value: mode,
-                        label: Text(_homeModeLabel(mode)),
+                children: HomeGroupMode.values.map((mode) {
+                  final selected = _homeGroupMode == mode;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: ValueKey('home-view-card-${mode.name}'),
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _selectHomeGroupMode(mode),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            constraints: const BoxConstraints(minHeight: 58),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? const Color(0xFFE9EAFF)
+                                  : const Color(0xFFFDFDFE),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: selected
+                                    ? const Color(0xFF4A4CAB)
+                                    : const Color(0xFFE5E7ED),
+                                width: selected ? 1.4 : 1,
+                              ),
+                            ),
+                            child: Text(
+                              _homeModeLabel(mode),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: selected
+                                    ? const Color(0xFF4A4CAB)
+                                    : const Color(0xFF606273),
+                                fontSize: 12,
+                                fontWeight: selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    )
-                    .toList(growable: false),
-                selected: <HomeGroupMode>{_homeGroupMode},
-                onSelectionChanged: (selection) {
-                  if (selection.isNotEmpty) {
-                    _selectHomeGroupMode(selection.first);
-                  }
-                },
+                    ),
+                  );
+                }).toList(growable: false),
               ),
             ),
             SizedBox(
