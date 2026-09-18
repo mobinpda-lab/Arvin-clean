@@ -56,4 +56,36 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getKeys(), {TaskStore.key});
   });
+  test('note converts to Task on the same canonical identity', () async {
+    var now = DateTime.utc(2026, 9, 19, 10);
+    final repository = CanonicalNotebookRepository(
+      store: TaskStore(),
+      now: () => now,
+    );
+    final note = await repository.createNote(
+      id: 'convert-me',
+      title: 'پیگیری قرارداد',
+      category: 'کاری',
+    );
+    await repository.updateTags(id: note.id, tags: const ['مهم', 'قرارداد']);
+    final createdAt = (await TaskStore().load()).single.createdAt;
+
+    now = DateTime.utc(2026, 9, 19, 11);
+    final converted = await repository.convertNoteToTask(note.id);
+    final all = await TaskStore().load();
+
+    expect(all, hasLength(1));
+    expect(converted.id, 'convert-me');
+    expect(all.single.id, 'convert-me');
+    expect(all.single.createdAt, createdAt);
+    expect(all.single.updatedAt, now);
+    expect(all.single.category, 'کاری');
+    expect(all.single.tags, ['مهم', 'قرارداد']);
+    expect(all.single.followUpEnabled, isTrue);
+    expect(all.single.followUps, isEmpty);
+    expect(all.single.dueDate, isNull);
+    expect(all.single.isSimpleNote, isFalse);
+    expect(await repository.loadNote('convert-me'), isNull);
+  });
+
 }
