@@ -893,6 +893,40 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     setState(() => _tags = List<String>.of(updated.tags));
   }
 
+  Future<void> _convertToTask() async {
+    if (_note == null) return;
+    if (_editing) {
+      await _saveNow();
+      if (!mounted) return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تبدیل به کار؟'),
+        content: const Text(
+          'این یادداشت با همان شناسه، پروژه، دسته و برچسب‌ها به کار تبدیل می‌شود.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-convert-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('تبدیل به کار'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await widget.repository.convertNoteToTask(widget.noteId);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future<void> _trashNote() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1020,6 +1054,12 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         title: const SizedBox.shrink(),
         centerTitle: false,
         actions: [
+          IconButton(
+            key: const ValueKey('notebook-convert-to-task'),
+            onPressed: _convertToTask,
+            tooltip: 'تبدیل به کار',
+            icon: const Icon(Icons.task_alt_outlined),
+          ),
           IconButton(
             key: const ValueKey('notebook-editor-trash'),
             onPressed: _trashNote,
