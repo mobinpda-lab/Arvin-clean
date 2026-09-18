@@ -5,19 +5,23 @@ import 'services/quick_capture_service.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
 ///
-/// This widget owns no persistence. Its caller remains responsible for saving
-/// the returned [Task] through Arvin's existing canonical Home write path.
+/// This widget owns no persistence. When [onCaptured] is supplied, every
+/// canonical [Task] is handed to the caller for persistence and the dialog
+/// remains open for the next entry. Without it, the legacy single-capture
+/// behavior is preserved and the task is returned through Navigator.pop.
 class QuickCaptureDialog extends StatefulWidget {
   const QuickCaptureDialog({
     super.key,
     this.service = const QuickCaptureService(),
     this.idFactory,
     this.now,
+    this.onCaptured,
   });
 
   final QuickCaptureService service;
   final String Function()? idFactory;
   final DateTime Function()? now;
+  final Future<void> Function(Task task)? onCaptured;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -26,6 +30,7 @@ class QuickCaptureDialog extends StatefulWidget {
 class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _controller = TextEditingController();
   String? _error;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -33,7 +38,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_saving) return;
     final createdAt = widget.now?.call() ?? DateTime.now();
     final task = widget.service.capture(
       _controller.text,
@@ -47,7 +53,28 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       return;
     }
 
-    Navigator.of(context).pop(task);
+    final onCaptured = widget.onCaptured;
+    if (onCaptured == null) {
+      Navigator.of(context).pop(task);
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await onCaptured(task);
+      if (!mounted) return;
+      _controller.clear();
+      setState(() => _saving = false);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = 'ثبت انجام نشد؛ دوباره تلاش کنید';
+      });
+    }
   }
 
   @override
@@ -59,6 +86,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         key: const ValueKey('quick-capture-input'),
         controller: _controller,
         autofocus: true,
+        enabled: !_saving,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
         decoration: InputDecoration(
@@ -71,13 +99,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       actions: [
         TextButton(
           key: const ValueKey('quick-capture-cancel'),
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('لغو'),
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          child: const Text('بستن'),
         ),
         FilledButton(
           key: const ValueKey('quick-capture-submit'),
-          onPressed: _submit,
-          child: const Text('ثبت'),
+          onPressed: _saving ? null : _submit,
+          child: Text(_saving ? 'در حال ثبت…' : 'ثبت'),
         ),
       ],
     );
