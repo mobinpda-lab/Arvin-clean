@@ -75,7 +75,10 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.text('درباره آروین'));
+    final about = find.text('درباره آروین');
+    await tester.ensureVisible(about);
+    await tester.pumpAndSettle();
+    await tester.tap(about);
     await tester.pumpAndSettle();
 
     expect(find.byType(AboutDialog), findsOneWidget);
