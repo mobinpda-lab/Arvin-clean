@@ -634,7 +634,7 @@ class _HomePageState extends State<HomePage> {
             projectId: selectedProjectId,
           );
           final refreshed = await taskStore.load();
-          if (!mounted) return;
+          if (!mounted) return false;
           setState(() {
             tasks = List<Task>.of(refreshed);
             loadFailure = null;
