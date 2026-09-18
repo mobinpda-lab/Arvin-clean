@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
+import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
@@ -1023,9 +1024,17 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     );
   }
 
+  static const _editorDateFormatter = PersianDateFormatter();
+
   static String _formatEditorDate(DateTime value) {
-    final local = value.toLocal();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${local.year}/${two(local.month)}/${two(local.day)}  ${two(local.hour)}:${two(local.minute)}';
+    final iranTime = value.toUtc().add(const Duration(hours: 3, minutes: 30));
+    final date = _editorDateFormatter.format(
+      iranTime,
+      usePersianDate: true,
+    );
+    final time = _editorDateFormatter.toPersianDigits(
+      '${iranTime.hour.toString().padLeft(2, '0')}:${iranTime.minute.toString().padLeft(2, '0')}',
+    );
+    return '$date  $time';
   }
 }
