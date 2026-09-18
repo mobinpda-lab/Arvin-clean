@@ -1617,6 +1617,28 @@ class _HomePageState extends State<HomePage> {
                               .toList(),
                         ),
                       ],
+                      if (task.dueDate != null) ...[
+                        const SizedBox(height: 7),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.schedule_rounded,
+                              size: 15,
+                              color: Color(0xFF80829C),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                style: const TextStyle(
+                                  color: Color(0xFF80829C),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (followUpDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
