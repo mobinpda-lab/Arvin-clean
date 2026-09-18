@@ -56,7 +56,9 @@ void main() {
 
     expect(find.text('زمان‌بندی پشتیبان‌گیری'), findsOneWidget);
     expect(find.text('پشتیبان‌گیری خودکار'), findsOneWidget);
-    expect(find.text('ذخیره تنظیمات'), findsOneWidget);\n    expect(find.text('۰۳:۰۰'), findsOneWidget);\n    expect(find.text('03:00'), findsNothing);
+    expect(find.text('ذخیره تنظیمات'), findsOneWidget);
+    expect(find.text('۰۳:۰۰'), findsOneWidget);
+    expect(find.text('03:00'), findsNothing);
   });
 
   testWidgets('saving an enabled schedule calls the scheduler', (tester) async {
