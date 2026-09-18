@@ -27,8 +27,9 @@ void main() {
     final unscheduled = tester.getTopLeft(find.text('کار بدون زمان')).dy;
     expect(overdue, lessThan(scheduled));
     expect(scheduled, lessThan(unscheduled));
-    expect(find.text('عقب‌افتاده • 2026/08/25 • 09:00'), findsOneWidget);
-    expect(find.text('زمان‌بندی‌شده • 2026/08/27 • 09:00'), findsOneWidget);
+    expect(find.text('عقب‌افتاده • ۱۴۰۵/۰۶/۰۳ • ۰۹:۰۰'), findsOneWidget);
+    expect(find.text('زمان‌بندی‌شده • ۱۴۰۵/۰۶/۰۵ • ۰۹:۰۰'), findsOneWidget);
+    expect(find.textContaining('2026/'), findsNothing);
     expect(find.text('بدون زمان‌بندی'), findsOneWidget);
   });
 
