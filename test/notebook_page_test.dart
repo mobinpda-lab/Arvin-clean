@@ -576,6 +576,7 @@ void main() {
     );
 
     await pumpNotebook(tester, repository);
+    await selectChecklistMode(tester);
     await tester.tap(
       find.byKey(const ValueKey('notebook-note-empty-checklist-reopen')),
     );
