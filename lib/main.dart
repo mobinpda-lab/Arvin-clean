@@ -1695,6 +1695,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: EdgeInsets.fromLTRB(12, compactHome ? 4 : 8, 12, compactHome ? 3 : 6),
               child: Row(
+                textDirection: TextDirection.ltr,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(

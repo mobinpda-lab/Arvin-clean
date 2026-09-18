@@ -46,6 +46,19 @@ void main() {
     expect(find.text('بدون برچسب'), findsOneWidget);
   });
 
+  testWidgets('Home keeps notification physically left and menu physically right in RTL',
+      (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final notificationCenter = tester.getCenter(
+      find.byKey(const ValueKey('home-notifications')),
+    );
+    final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
+
+    expect(notificationCenter.dx, lessThan(menuCenter.dx));
+  });
+
   testWidgets('Home keeps core controls reachable on a short Android viewport',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 1800);
