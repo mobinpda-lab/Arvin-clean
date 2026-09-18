@@ -147,7 +147,7 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
               leading: const Icon(Icons.schedule),
               title: const Text('زمان پشتیبان‌گیری'),
               subtitle: Text(
-                (_time ?? const TimeOfDay(hour: 3, minute: 0)).format(context),
+                _formatTime(_time ?? const TimeOfDay(hour: 3, minute: 0)),
               ),
               onTap: schedule.enabled ? _pickTime : null,
             ),
@@ -169,7 +169,7 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
     );
   }
 
-  String _formatDateTime(DateTime value) {
+  String _formatTime(TimeOfDay value) => _dateFormatter.toPersianDigits(\n        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',\n      );\n\n  String _formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);
     final time = _dateFormatter.toPersianDigits(
       '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
