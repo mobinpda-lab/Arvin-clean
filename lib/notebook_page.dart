@@ -626,7 +626,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.text = note.description;
     _checklist = List<String>.of(note.checklist);
     _category = note.category;
-    _checklistMode = _checklistMode || note.checklist.isNotEmpty;
+    _checklistMode = _checklistMode || note.isNotebookChecklist;
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);

@@ -1,3 +1,4 @@
+import 'package:arvin/models/task.dart';
 import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/task_store.dart';
@@ -563,6 +564,26 @@ void main() {
     expect(persisted?.title, 'عنوان ذخیره‌شده');
     expect(persisted?.description, 'متن ذخیره‌شده هنگام بازگشت');
     expect(find.text('دفترچه'), findsOneWidget);
+  });
+
+
+  testWidgets('empty checklist reopens in checklist mode', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 13));
+    await repository.createNote(
+      id: 'empty-checklist-reopen',
+      title: 'چک‌لیست خالی',
+      notebookKind: NotebookItemKind.checklist,
+    );
+
+    await pumpNotebook(tester, repository);
+    await selectChecklistMode(tester);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-note-empty-checklist-reopen')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-checklist-progress')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-description')), findsNothing);
   });
 
 }
