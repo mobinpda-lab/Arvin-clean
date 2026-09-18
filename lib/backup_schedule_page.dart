@@ -5,6 +5,7 @@ import 'backup_background_runner.dart';
 import 'backup_manager.dart';
 import 'backup_schedule.dart';
 import 'backup_scheduler_adapter.dart';
+import 'services/persian_date_formatter.dart';
 
 class BackupSchedulePage extends StatefulWidget {
   const BackupSchedulePage({
@@ -23,6 +24,7 @@ class BackupSchedulePage extends StatefulWidget {
 }
 
 class _BackupSchedulePageState extends State<BackupSchedulePage> {
+  static const _dateFormatter = PersianDateFormatter();
   BackupSchedule? _schedule;
   TimeOfDay? _time;
   bool _saving = false;
@@ -168,10 +170,10 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
   }
 
   String _formatDateTime(DateTime value) {
-    final date =
-        '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    final date = _dateFormatter.format(value, usePersianDate: true);
+    final time = _dateFormatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
     return '$date ساعت $time';
   }
 }
