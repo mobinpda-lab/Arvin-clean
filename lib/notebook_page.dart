@@ -605,6 +605,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   String? _category;
   String? _projectId;
   String? _projectTitle;
+  List<String> _tags = [];
   List<String> _checklist = [];
 
   @override
@@ -628,6 +629,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.text = note.description;
     _checklist = List<String>.of(note.checklist);
     _category = note.category;
+    _tags = List<String>.of(note.tags);
     final projectId = await widget.repository.projectIdForNote(note.id);
     final projects = await widget.repository.loadProjects();
     _projectId = projectId;
@@ -845,6 +847,52 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     });
   }
 
+  Future<void> _pickTags() async {
+    final controller = TextEditingController(text: _tags.join('، '));
+    final value = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('برچسب‌ها'),
+        content: TextField(
+          key: const ValueKey('notebook-tags-input'),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'مثلاً مهم، مشتری',
+          ),
+          onSubmitted: (text) => Navigator.of(dialogContext).pop(text),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const ValueKey('notebook-tags-save'),
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+            child: const Text('اعمال'),
+          ),
+        ],
+      ),
+    );
+    // Keep the short-lived controller alive until the closing dialog route is
+    // fully torn down; disposing immediately after showDialog resolves can race
+    // the reverse transition and rebuild the TextField with a disposed controller.
+    if (!mounted || value == null) return;
+
+    final tags = value
+        .split(RegExp(r'[,،]'))
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toList(growable: false);
+    final updated = await widget.repository.updateTags(
+      id: widget.noteId,
+      tags: tags,
+    );
+    if (!mounted) return;
+    setState(() => _tags = List<String>.of(updated.tags));
+  }
+
   Future<void> _trashNote() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1048,6 +1096,18 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   onPressed: _pickProject,
                   icon: const Icon(Icons.work_outline, size: 18),
                   label: Text(_projectTitle ?? 'انتخاب پروژه'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                TextButton.icon(
+                  key: const ValueKey('notebook-tags-picker'),
+                  onPressed: _pickTags,
+                  icon: const Icon(Icons.sell_outlined, size: 18),
+                  label: Text(
+                    _tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' '),
+                  ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     visualDensity: VisualDensity.compact,
