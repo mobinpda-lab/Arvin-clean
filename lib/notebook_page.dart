@@ -603,6 +603,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _saving = false;
   bool _checklistMode = false;
   String? _category;
+  String? _projectId;
+  String? _projectTitle;
   List<String> _checklist = [];
 
   @override
@@ -626,6 +628,15 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.text = note.description;
     _checklist = List<String>.of(note.checklist);
     _category = note.category;
+    final projectId = await widget.repository.projectIdForNote(note.id);
+    final projects = await widget.repository.loadProjects();
+    _projectId = projectId;
+    for (final project in projects) {
+      if (project.id == projectId) {
+        _projectTitle = project.title;
+        break;
+      }
+    }
     _checklistMode = _checklistMode || note.isNotebookChecklist;
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
@@ -769,6 +780,68 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     setState(() {
       _note = updated;
       _category = updated.category;
+    });
+  }
+
+  Future<void> _pickProject() async {
+    final projects = await widget.repository.loadProjects();
+    if (!mounted) return;
+    final activeProjects =
+        projects.where((project) => !project.isArchived).toList(growable: false);
+
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          children: [
+            Text(
+              'انتخاب پروژه',
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              key: const ValueKey('notebook-project-clear'),
+              leading: const Icon(Icons.work_off_outlined),
+              title: const Text('بدون پروژه'),
+              onTap: () => Navigator.of(sheetContext).pop(''),
+            ),
+            for (final project in activeProjects)
+              ListTile(
+                key: ValueKey('notebook-project-${project.id}'),
+                leading: const Icon(Icons.work_outline),
+                title: Text(project.title),
+                trailing: project.id == _projectId
+                    ? const Icon(Icons.check, color: Color(0xFF4A4CAB))
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(project.id),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || selected == null) return;
+
+    final nextProjectId = selected.isEmpty ? null : selected;
+    await widget.repository.updateProject(
+      id: widget.noteId,
+      projectId: nextProjectId,
+    );
+    if (!mounted) return;
+
+    String? nextTitle;
+    if (nextProjectId != null) {
+      for (final project in activeProjects) {
+        if (project.id == nextProjectId) {
+          nextTitle = project.title;
+          break;
+        }
+      }
+    }
+    setState(() {
+      _projectId = nextProjectId;
+      _projectTitle = nextTitle;
     });
   }
 
@@ -952,22 +1025,35 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                     ),
               ),
             const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                key: const ValueKey('notebook-category-picker'),
-                onPressed: _pickCategory,
-                icon: const Icon(Icons.menu_book_outlined, size: 18),
-                label: Text(
-                  _category == null || _category!.trim().isEmpty
-                      ? 'انتخاب دفتر'
-                      : _category!,
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                TextButton.icon(
+                  key: const ValueKey('notebook-category-picker'),
+                  onPressed: _pickCategory,
+                  icon: const Icon(Icons.menu_book_outlined, size: 18),
+                  label: Text(
+                    _category == null || _category!.trim().isEmpty
+                        ? 'انتخاب دفتر'
+                        : _category!,
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  visualDensity: VisualDensity.compact,
+                TextButton.icon(
+                  key: const ValueKey('notebook-project-picker'),
+                  onPressed: _pickProject,
+                  icon: const Icon(Icons.work_outline, size: 18),
+                  label: Text(_projectTitle ?? 'انتخاب پروژه'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
-              ),
+              ],
             ),
             const Divider(height: 16, thickness: 0.5),
             const SizedBox(height: 4),
