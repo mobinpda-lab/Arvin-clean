@@ -217,7 +217,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-done')));
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
