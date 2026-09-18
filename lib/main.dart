@@ -247,8 +247,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _startInteractiveGuide() async {
     if (!mounted || loading || _interactiveGuideRunning) return;
     _interactiveGuideRunning = true;
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
+    await Future<void>.delayed(Duration.zero);    if (!mounted) {
       _interactiveGuideRunning = false;
       return;
     }
@@ -497,8 +496,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String get _emptyVisibleLabel {
-    if (filter == 'سطل زباله') return 'سطل زباله خالی است';
+  String get _emptyVisibleLabel {    if (filter == 'سطل زباله') return 'سطل زباله خالی است';
     if (filter == 'بایگانی') return 'بایگانی خالی است';
     if (_categoryFilter != null) {
       return 'کاری در دسته «$_categoryFilter» وجود ندارد';
@@ -599,34 +597,34 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final captured = await showDialog<Task>(
+    await showDialog<void>(
       context: context,
-      builder: (_) => const QuickCaptureDialog(),
-    );
-    if (captured == null) return;
+      builder: (_) => QuickCaptureDialog(
+        onCaptured: (captured) async {
+          await taskStore.mutate<void>((stored) {
+            if (stored.any((task) => task.id == captured.id)) {
+              throw StateError('Duplicate Task id: ${captured.id}');
+            }
+            stored.add(captured);
+          });
 
-    try {
-      await taskStore.mutate<void>((stored) {
-        if (stored.any((task) => task.id == captured.id)) {
-          throw StateError('Duplicate Task id: ${captured.id}');
-        }
-        stored.add(captured);
-      });
-      await _load();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('«${captured.title}» با ثبت سریع اضافه شد')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ثبت سریع انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
+          final refreshed = await taskStore.load();
+          if (!mounted) return;
+          setState(() {
+            tasks = List<Task>.of(refreshed);
+            loadFailure = null;
+            loading = false;
+          });
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text('«${captured.title}» با ثبت سریع اضافه شد'),
+              ),
+            );
+        },
+      ),
+    );
   }
 
   Future<void> _edit(Task old) async {
@@ -747,8 +745,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _moveSelectedToCategory() async {
-    if (selected.isEmpty) return;
+  Future<void> _moveSelectedToCategory() async {    if (selected.isEmpty) return;
     var value = '';
     final approved = await showDialog<bool>(
       context: context,
@@ -997,8 +994,7 @@ class _HomePageState extends State<HomePage> {
         settings: appSettingsService.toPortableJson(settings),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(        SnackBar(
           content: Text(
             fileName == null
                 ? 'پشتیبان‌گیری انجام نشد'
@@ -1247,8 +1243,7 @@ class _HomePageState extends State<HomePage> {
         _selectListScope(TaskListScope.followUpEnabled);
         return;
       case HomeTaskFilterKind.withoutFollowUp:
-        _selectListScope(TaskListScope.simpleNotes);
-        return;
+        _selectListScope(TaskListScope.simpleNotes);        return;
       case HomeTaskFilterKind.completed:
         _selectHomeStat('انجام‌شده');
         return;
@@ -1497,8 +1492,7 @@ class _HomePageState extends State<HomePage> {
           onTap: selectionMode
               ? () => setState(() {
                   final next = taskBulkSelectionService.toggle(
-                    selected,
-                    task.id,
+                    selected,                    task.id,
                   );
                   selected
                     ..clear()
@@ -1748,170 +1742,3 @@ class _HomePageState extends State<HomePage> {
             Padding(
               key: _filtersGuideKey,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-              child: SegmentedButton<HomeGroupMode>(
-                key: const ValueKey('home-four-view-selector'),
-                showSelectedIcon: false,
-                segments: HomeGroupMode.values
-                    .map(
-                      (mode) => ButtonSegment<HomeGroupMode>(
-                        value: mode,
-                        label: Text(_homeModeLabel(mode)),
-                      ),
-                    )
-                    .toList(growable: false),
-                selected: <HomeGroupMode>{_homeGroupMode},
-                onSelectionChanged: (selection) {
-                  if (selection.isNotEmpty) {
-                    _selectHomeGroupMode(selection.first);
-                  }
-                },
-              ),
-            ),
-            SizedBox(
-              height: 48,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Text('مرتب‌سازی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<TaskListSort>(
-                      key: const ValueKey('home-sort-selector'),
-                      value: _listSort,
-                      items: TaskListSort.values
-                          .map(
-                            (sort) => DropdownMenuItem<TaskListSort>(
-                              value: sort,
-                              child: Text(_sortLabel(sort)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (sort) {
-                        if (sort != null) _setListSort(sort);
-                      },
-                    ),
-                    IconButton(
-                      key: const ValueKey('home-sort-direction'),
-                      tooltip: _sortDescending
-                          ? 'مرتب‌سازی صعودی'
-                          : 'مرتب‌سازی نزولی',
-                      onPressed: _toggleSortDirection,
-                      icon: Icon(
-                        _sortDescending
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                      ),
-                    ),
-                    if (filter != 'کل' ||
-                        _listScope != TaskListScope.all ||
-                        _dueScope != null ||
-                        _categoryFilter != null) ...[
-                      const SizedBox(width: 4),
-                      TextButton(
-                        key: const ValueKey('home-clear-task-filter'),
-                        onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('پاک کردن فیلتر'),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : loadFailure != null
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.storage_outlined, size: 40),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'داده‌های کارها قابل خواندن نیست',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton.icon(
-                              key: const ValueKey('home-storage-retry'),
-                              onPressed: () {
-                                setState(() => loading = true);
-                                _load();
-                              },
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('تلاش دوباره'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : _groupedTaskList(),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: selected.isEmpty && loadFailure == null
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: KeyedSubtree(
-                key: const ValueKey('home-canonical-add'),
-                child: KeyedSubtree(
-                  key: _newTaskGuideKey,
-                  child: ArvinHomePrimaryAddButton(onPressed: _add),
-                ),
-              ),
-            )
-          : null,
-      bottomNavigationBar: selected.isEmpty
-          ? ArvinPrimaryNavigation(
-              selected: ArvinPrimaryDestination.home,
-              onSelected: _onPrimaryDestinationSelected,
-            )
-          : TaskBulkSelectionBar(
-              selectedCount: selected.length,
-              allVisibleSelected: taskBulkSelectionService.allVisibleSelected(
-                selected,
-                visible,
-              ),
-              onToggleAll: _toggleAllVisibleSelection,
-              onClearSelection: _clearBulkSelection,
-              onArchive: _archiveSelected,
-              onTrash: _trashSelected,
-              onCategory: _moveSelectedToCategory,
-              onTags: _addTagsToSelected,
-              onShare: _openSelectedReport,
-            ),
-    );
-  }
-}
-
-enum _HomeMoreAction {
-  quickCapture,
-  myTasks,
-  today,
-  archive,
-  trash,
-  backup,
-  settings,
-  about,
-}
-
-/// Backward-compatible public entry retained for existing callers/tests.
-/// The live implementation is the Home-aligned Arvin task editor.
-class TaskDialog extends StatelessWidget {
-  const TaskDialog({super.key, this.task});
-
-  final Task? task;
-
-  @override
-  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
-}
