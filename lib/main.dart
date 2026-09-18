@@ -508,6 +508,9 @@ class _HomePageState extends State<HomePage> {
     if (_dueScope == TaskDueScope.overdue) {
       return 'کار عقب‌افتاده‌ای وجود ندارد';
     }
+    if (_dueScope == TaskDueScope.undated) {
+      return 'کار فاقد زمانی برای نمایش وجود ندارد';
+    }
     if (_listScope == TaskListScope.simpleNotes) {
       return 'کار بدون پیگیری برای نمایش وجود ندارد';
     }
@@ -1299,6 +1302,13 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.today),
               ),
               ListTile(
+                key: const ValueKey('home-more-undated'),
+                leading: const Icon(Icons.event_busy_outlined),
+                title: const Text('کارهای فاقد زمان'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
+              ),
+              ListTile(
                 leading: const Icon(Icons.archive_outlined),
                 title: const Text('بایگانی'),
                 onTap: () =>
@@ -1346,6 +1356,10 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
         _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.undated:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectDueScope(TaskDueScope.undated);
         return;
       case _HomeMoreAction.archive:
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -1898,6 +1912,7 @@ enum _HomeMoreAction {
   quickCapture,
   myTasks,
   today,
+  undated,
   archive,
   trash,
   backup,
