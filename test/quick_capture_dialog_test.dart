@@ -84,6 +84,50 @@ void main() {
     expect(find.text('ثبت سریع'), findsOneWidget);
   });
 
+  testWidgets('full form continues the same draft identity without quick save',
+      (tester) async {
+    final quickSaved = <Task>[];
+    Task? continued;
+    var nextId = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => QuickCaptureDialog(
+                    idFactory: () => 'quick-${++nextId}',
+                    now: () => DateTime(2026, 9, 19, 12),
+                    onCaptured: (task) async => quickSaved.add(task),
+                    onFullForm: (draft) async => continued = draft,
+                  ),
+                ),
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'ادامه در فرم #مهم');
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    await tester.pumpAndSettle();
+
+    expect(quickSaved, isEmpty);
+    expect(continued, isNotNull);
+    expect(continued!.id, 'quick-1');
+    expect(continued!.title, 'ادامه در فرم');
+    expect(continued!.tags, ['مهم']);
+    expect(find.text('ثبت سریع'), findsOneWidget);
+  });
+
   testWidgets('captures three tasks sequentially without closing the dialog',
       (tester) async {
     final captured = <Task>[];
