@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/recurrence.dart';
 import 'models/task.dart';
+import 'services/persian_date_formatter.dart';
 import 'services/task_recurrence_repository.dart';
 
 class TaskRecurrencePage extends StatefulWidget {
@@ -19,6 +20,7 @@ class TaskRecurrencePage extends StatefulWidget {
 }
 
 class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
+  static const _dateFormatter = PersianDateFormatter();
   final _interval = TextEditingController(text: '1');
   List<Task> _tasks = const [];
   String? _selectedTaskId;
@@ -147,7 +149,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   }
 
   String _date(DateTime value) =>
-      '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')}';
+      _dateFormatter.format(value, usePersianDate: true);
 
   @override
   Widget build(BuildContext context) {
