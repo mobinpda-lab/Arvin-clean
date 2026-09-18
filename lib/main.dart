@@ -1497,9 +1497,14 @@ class _HomePageState extends State<HomePage> {
           ? _swipeBackground(TaskSwipeAction.trash)
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
+        color: const Color(0xFFFDFDFE),
+        elevation: 1,
+        shadowColor: const Color(0x14000000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE5E7ED)),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onLongPress: () => setState(() {
