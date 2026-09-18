@@ -550,11 +550,15 @@ class _NotebookPageState extends State<NotebookPage> {
   static String _checklistPreviewLabel(String item) =>
       item.replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), '');
 
+  static const _listDateFormatter = PersianDateFormatter();
+
   static String _formatNotebookDate(DateTime? value) {
     if (value == null) return '';
-    final local = value.toLocal();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${local.year}/${two(local.month)}/${two(local.day)}';
+    final iranTime = value.toUtc().add(const Duration(hours: 3, minutes: 30));
+    return _listDateFormatter.format(
+      iranTime,
+      usePersianDate: true,
+    );
   }
 
   @override

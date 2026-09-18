@@ -255,6 +255,16 @@ void main() {
     expect(find.text('چک‌لیست — 1 از 1 انجام شده'), findsOneWidget);
   });
 
+  testWidgets('Notebook list renders Jalali date with Persian digits', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 12));
+    await repository.createNote(id: 'jalali-list-date', title: 'تاریخ شمسی');
+
+    await pumpNotebook(tester, repository);
+
+    expect(find.textContaining('۱۴۰۵'), findsOneWidget);
+    expect(find.textContaining('2026'), findsNothing);
+  });
+
   testWidgets('editor matches content-first reference surface', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 12));
     final note = await repository.createNote(
