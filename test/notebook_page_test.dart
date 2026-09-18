@@ -567,6 +567,39 @@ void main() {
   });
 
 
+  testWidgets('system back persists pending edits before leaving', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12, 30));
+    final note = await repository.createNote(
+      id: 'system-safe-back',
+      title: 'عنوان اولیه',
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-note-system-safe-back')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-edit')));
+    await tester.pump();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-title')),
+      'عنوان ذخیره‌شده با برگشت سیستم',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      'متن ذخیره‌شده با برگشت سیستم',
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    final persisted = await repository.loadNote(note.id);
+    expect(persisted?.title, 'عنوان ذخیره‌شده با برگشت سیستم');
+    expect(persisted?.description, 'متن ذخیره‌شده با برگشت سیستم');
+    expect(find.text('دفترچه'), findsOneWidget);
+  });
+
   testWidgets('empty checklist reopens in checklist mode', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 18, 13));
     await repository.createNote(
