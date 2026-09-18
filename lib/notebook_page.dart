@@ -63,6 +63,7 @@ class _NotebookPageState extends State<NotebookPage> {
   final TextEditingController _search = TextEditingController();
   _NotebookCreateMode _activeMode = _NotebookCreateMode.note;
   String _activeCategory = 'همه';
+  bool _showTrash = false;
 
   static const _referenceCategories = <String>['همه', 'شخصی', 'کاری', 'ایده‌ها'];
 
@@ -88,7 +89,9 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _reload() async {
-    final notes = await widget.repository.loadNotes();
+    final notes = _showTrash
+        ? await widget.repository.loadTrashedNotes()
+        : await widget.repository.loadNotes();
     if (!mounted) return;
     setState(() {
       _notes = notes;
@@ -364,6 +367,28 @@ class _NotebookPageState extends State<NotebookPage> {
         visibleNotes.every((note) => _selected.contains(note.id));
     return Scaffold(
       appBar: AppBar(
+        actions: _selectionMode
+            ? null
+            : [
+                IconButton(
+                  key: const ValueKey('notebook-trash-view'),
+                  tooltip: _showTrash ? 'بازگشت به دفترچه' : 'سطل زباله',
+                  icon: Icon(
+                    _showTrash
+                        ? Icons.menu_book_outlined
+                        : Icons.delete_outline,
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _showTrash = !_showTrash;
+                      _selected.clear();
+                      _selectionMode = false;
+                      _loading = true;
+                    });
+                    await _reload();
+                  },
+                ),
+              ],
         title: _selectionMode
             ? Text('${_selected.length} انتخاب')
             : const Column(
@@ -512,9 +537,25 @@ class _NotebookPageState extends State<NotebookPage> {
                                 selected: selected,
                                 onLongPress: () =>
                                     _toggleSelection(note.id),
-                                onTap: () => _selectionMode
-                                    ? _toggleSelection(note.id)
-                                    : _open(note),
+                                trailing: _showTrash
+                                    ? IconButton(
+                                        key: ValueKey(
+                                          'notebook-restore-${note.id}',
+                                        ),
+                                        tooltip: 'بازیابی',
+                                        icon: const Icon(Icons.restore),
+                                        onPressed: () async {
+                                          await widget.repository
+                                              .restoreNote(note.id);
+                                          await _reload();
+                                        },
+                                      )
+                                    : null,
+                                onTap: () => _showTrash
+                                    ? null
+                                    : _selectionMode
+                                        ? _toggleSelection(note.id)
+                                        : _open(note),
                               ),
                             );
                           },
@@ -534,7 +575,7 @@ class _NotebookPageState extends State<NotebookPage> {
               onShare: _openSelectedReport,
             )
           : null,
-      floatingActionButton: _selectionMode
+      floatingActionButton: _selectionMode || _showTrash
           ? null
           : FloatingActionButton(
               key: const ValueKey('notebook-create'),
