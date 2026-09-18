@@ -151,6 +151,30 @@ class CanonicalNotebookRepository {
     await _projectAssignmentService.assign(taskId: id, projectId: projectId);
   }
 
+  /// Replaces tags on the same canonical Notebook item. This is an editor
+  /// mutation only; it does not create a Notebook-owned taxonomy store.
+  Future<Task> updateTags({
+    required String id,
+    required Iterable<String> tags,
+  }) {
+    return _store.mutate<Task>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == id);
+      if (index < 0) throw StateError('Notebook task not found: $id');
+
+      final normalized = <String>[];
+      for (final raw in tags) {
+        final value = raw.trim();
+        if (value.isNotEmpty && !normalized.contains(value)) {
+          normalized.add(value);
+        }
+      }
+      final task = tasks[index];
+      task.tags = normalized;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
   Future<int> moveSelectedToTrash(Iterable<String> ids) {
     return _store.mutate<int>((tasks) => _bulk.moveToTrash(tasks, ids));
   }

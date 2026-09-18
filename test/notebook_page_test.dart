@@ -370,6 +370,35 @@ void main() {
     expect((await repository.loadNote('project-note'))?.id, 'project-note');
   });
 
+  testWidgets('editor tag picker replaces tags on the same canonical note',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 19, 0));
+    await repository.createNote(id: 'tag-note', title: 'یادداشت برچسب');
+    await repository.updateTags(id: 'tag-note', tags: const ['قدیمی']);
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-tag-note')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
+    expect(find.text('#قدیمی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-tags-input')),
+      'مهم، مشتری، مهم',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
+    await tester.pumpAndSettle();
+
+    final persisted = await repository.loadNote('tag-note');
+    expect(persisted?.id, 'tag-note');
+    expect(persisted?.tags, ['مهم', 'مشتری']);
+    expect(find.text('#مهم #مشتری'), findsOneWidget);
+    expect(await repository.loadNotes(), hasLength(1));
+  });
+
   testWidgets('editor trash safely moves only the current canonical note', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 28, 0));
     await repository.createNote(id: 'trash-target', title: 'حذف از ویرایشگر');
