@@ -565,4 +565,23 @@ void main() {
     expect(find.text('دفترچه'), findsOneWidget);
   });
 
+
+  testWidgets('empty checklist reopens in checklist mode', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 13));
+    await repository.createNote(
+      id: 'empty-checklist-reopen',
+      title: 'چک‌لیست خالی',
+      notebookKind: NotebookItemKind.checklist,
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-note-empty-checklist-reopen')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-checklist-progress')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-description')), findsNothing);
+  });
+
 }
