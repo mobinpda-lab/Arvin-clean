@@ -530,7 +530,7 @@ class _HomePageState extends State<HomePage> {
 
   String _date(DateTime date) => persianDateFormatter.format(
     date,
-    usePersianDate: widget.settings.usePersianDate,
+    usePersianDate: true,
   );
 
   String _time(DateTime date) => persianDateFormatter.toPersianDigits(
