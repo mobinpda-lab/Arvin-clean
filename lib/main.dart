@@ -1709,7 +1709,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     icon: const Icon(Icons.notifications_none_rounded),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       children: [
                         DecoratedBox(
@@ -1807,7 +1807,7 @@ class _HomePageState extends State<HomePage> {
                             duration: const Duration(milliseconds: 160),
                             constraints: BoxConstraints(minHeight: compactHome ? 50 : 58),
                             alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 4,
                               vertical: compactHome ? 7 : 10,
                             ),
