@@ -191,6 +191,34 @@ class CanonicalNotebookRepository {
     });
   }
 
+  Future<List<Task>> loadTrashedNotes() async {
+    final tasks = await _store.load();
+    final notes = tasks.where((task) => task.isSimpleNote && task.trashed).toList()
+      ..sort((a, b) {
+        final aTime = a.updatedAt ?? a.createdAt;
+        final bTime = b.updatedAt ?? b.createdAt;
+        if (aTime == null && bTime == null) return a.id.compareTo(b.id);
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+    return notes;
+  }
+
+  Future<Task> restoreNote(String id) {
+    return _store.mutate<Task>((tasks) {
+      final index = tasks.indexWhere(
+        (task) => task.id == id && task.isSimpleNote && task.trashed,
+      );
+      if (index < 0) throw StateError('Trashed Notebook task not found: $id');
+      final task = tasks[index];
+      task.trashed = false;
+      task.archived = false;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
   Future<int> moveSelectedToTrash(Iterable<String> ids) {
     return _store.mutate<int>((tasks) => _bulk.moveToTrash(tasks, ids));
   }
