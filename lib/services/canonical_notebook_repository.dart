@@ -175,6 +175,22 @@ class CanonicalNotebookRepository {
     });
   }
 
+  /// Converts the same canonical Notebook item into a Task by enabling Task
+  /// behavior on the existing identity. No copy or parallel store is created.
+  Future<Task> convertNoteToTask(String id) {
+    return _store.mutate<Task>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == id);
+      if (index < 0 || !tasks[index].isSimpleNote) {
+        throw StateError('Notebook task not found: $id');
+      }
+
+      final task = tasks[index];
+      task.followUpEnabled = true;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
   Future<int> moveSelectedToTrash(Iterable<String> ids) {
     return _store.mutate<int>((tasks) => _bulk.moveToTrash(tasks, ids));
   }
