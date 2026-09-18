@@ -330,6 +330,25 @@ void main() {
     expect(persisted?.checklist, isEmpty);
   });
 
+  testWidgets('editor trash safely moves only the current canonical note', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 28, 0));
+    await repository.createNote(id: 'trash-target', title: 'حذف از ویرایشگر');
+    await repository.createNote(id: 'trash-keep', title: 'باقی بماند');
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-trash-target')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-trash')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-trash-confirm')));
+    await tester.pumpAndSettle();
+
+    expect((await repository.loadNote('trash-target'))?.trashed, isTrue);
+    expect((await repository.loadNote('trash-keep'))?.trashed, isFalse);
+    expect((await repository.loadNotes()).map((note) => note.id), ['trash-keep']);
+  });
+
   testWidgets('category selection immediately moves the same canonical note',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 28, 0));
