@@ -14,13 +14,13 @@ void main() {
       RegExp(r'wave2ProductFastTrack\.prepareEditor\(')
           .allMatches(source)
           .length,
-      4,
+      5,
     );
     expect(
       RegExp(r'wave2ProductFastTrack\.persistProjectSelection\(')
           .allMatches(source)
           .length,
-      4,
+      5,
     );
     expect(source, contains('projects: editorContext.projects'));
     expect(source, contains('knownCategories: editorContext.knownCategories'));
