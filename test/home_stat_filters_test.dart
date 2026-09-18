@@ -46,6 +46,26 @@ void main() {
     expect(find.text('بدون برچسب'), findsOneWidget);
   });
 
+  testWidgets('Home keeps core controls reachable on a short Android viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1800);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('four-view selector changes grouping without mutating task storage',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());

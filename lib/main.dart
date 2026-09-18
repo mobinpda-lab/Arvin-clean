@@ -1686,13 +1686,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8FB),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+              padding: EdgeInsets.fromLTRB(12, compactHome ? 4 : 8, 12, compactHome ? 3 : 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1708,7 +1709,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     icon: const Icon(Icons.notifications_none_rounded),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       children: [
                         DecoratedBox(
@@ -1732,7 +1733,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 7),
+                        SizedBox(height: compactHome ? 4 : 7),
                         Text(
                           'مدیریت کارها و پیگیری آروین',
                           key: ValueKey('home-title-block'),
@@ -1756,7 +1757,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              padding: EdgeInsets.fromLTRB(16, compactHome ? 2 : 4, 16, compactHome ? 6 : 10),
               child: KeyedSubtree(
                 key: const ValueKey('home-canonical-search'),
                 child: TextField(
@@ -1788,7 +1789,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 8),
               child: Row(
                 key: const ValueKey('home-four-view-selector'),
                 children: HomeGroupMode.values.map((mode) {
@@ -1804,11 +1805,11 @@ class _HomePageState extends State<HomePage> {
                           onTap: () => _selectHomeGroupMode(mode),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 160),
-                            constraints: const BoxConstraints(minHeight: 58),
+                            constraints: BoxConstraints(minHeight: compactHome ? 50 : 58),
                             alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 4,
-                              vertical: 10,
+                              vertical: compactHome ? 7 : 10,
                             ),
                             decoration: BoxDecoration(
                               color: selected
@@ -1846,7 +1847,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(
-              height: 48,
+              height: compactHome ? 42 : 48,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
