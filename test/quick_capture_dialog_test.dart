@@ -103,7 +103,10 @@ void main() {
                     idFactory: () => 'quick-${++nextId}',
                     now: () => DateTime(2026, 9, 19, 12),
                     onCaptured: (task) async => quickSaved.add(task),
-                    onFullForm: (draft) async => continued = draft,
+                    onFullForm: (draft) async {
+                      continued = draft;
+                      return true;
+                    },
                   ),
                 ),
                 child: const Text('باز کردن'),
@@ -175,4 +178,44 @@ void main() {
       ['کار اول', 'کار دوم', 'کار سوم'],
     );
   });
+  testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => QuickCaptureDialog(
+                    idFactory: () => 'quick-cancel',
+                    now: () => DateTime(2026, 9, 19, 12),
+                    onCaptured: (_) async {},
+                    onFullForm: (_) async => false,
+                  ),
+                ),
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'متن باید بماند #مهم',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    await tester.pumpAndSettle();
+
+    final input = tester.widget<TextField>(
+      find.byKey(const ValueKey('quick-capture-input')),
+    );
+    expect(input.controller?.text, 'متن باید بماند #مهم');
+  });
+
 }

@@ -610,7 +610,7 @@ class _HomePageState extends State<HomePage> {
             tasks: tasks,
             task: draft,
           );
-          if (!mounted) return;
+          if (!mounted) return false;
           String? selectedProjectId = editorContext.selectedProjectId;
           final edited = await showDialog<Task>(
             context: context,
@@ -622,7 +622,7 @@ class _HomePageState extends State<HomePage> {
               knownCategories: editorContext.knownCategories,
             ),
           );
-          if (edited == null) return;
+          if (edited == null) return false;
           await taskStore.mutate<void>((stored) {
             if (stored.any((task) => task.id == edited.id)) {
               throw StateError('Duplicate Task id: ${edited.id}');
@@ -634,12 +634,13 @@ class _HomePageState extends State<HomePage> {
             projectId: selectedProjectId,
           );
           final refreshed = await taskStore.load();
-          if (!mounted) return;
+          if (!mounted) return false;
           setState(() {
             tasks = List<Task>.of(refreshed);
             loadFailure = null;
             loading = false;
           });
+          return true;
         },
         onCaptured: (captured) async {
           await taskStore.mutate<void>((stored) {
