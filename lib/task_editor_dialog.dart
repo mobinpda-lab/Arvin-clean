@@ -95,6 +95,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
+      labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+      floatingLabelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w700),
+      hintStyle: const TextStyle(color: Color(0xFF5F6072)),
       filled: true,
       fillColor: _fieldSurface,
       alignLabelWithHint: true,
@@ -591,6 +594,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   TextField(
                     key: const ValueKey('task-editor-title'),
                     controller: _titleController,
+                    style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+                    cursorColor: _brand,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
                     decoration: _fieldDecoration(
@@ -602,6 +607,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   TextField(
                     key: const ValueKey('task-editor-description'),
                     controller: _descriptionController,
+                    style: const TextStyle(color: Color(0xFF232433)),
+                    cursorColor: _brand,
                     minLines: 3,
                     maxLines: 5,
                     decoration: _fieldDecoration(
@@ -633,6 +640,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         child: TextField(
                           key: const ValueKey('task-editor-tag'),
                           controller: _tagController,
+                          style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+                          cursorColor: _brand,
                           onSubmitted: (_) => _addTag(),
                           decoration: _fieldDecoration(
                             label: 'برچسب',
