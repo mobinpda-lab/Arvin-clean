@@ -105,7 +105,18 @@ class Task {
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
 
-  bool get isSimpleNote => !followUpEnabled && followUps.isEmpty;
+  /// True only for an item explicitly created as a Notebook simple note.
+  /// Notebook membership is independent from follow-up state: adding a
+  /// FollowUp must not remove an existing note from the Notebook.
+  ///
+  /// The id-based fallback keeps legacy Notebook notes (created before
+  /// `notebookKind` was persisted) readable without classifying ordinary
+  /// Task ids as notes.
+  bool get isSimpleNote =>
+      notebookKind == NotebookItemKind.note ||
+      (notebookKind == null && id.startsWith('note-'));
+
+  bool get isNotebookItem => isSimpleNote || isNotebookChecklist;
 
   bool get isNotebookChecklist =>
       notebookKind == NotebookItemKind.checklist ||
