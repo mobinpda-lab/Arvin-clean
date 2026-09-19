@@ -12,6 +12,7 @@ import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
+import 'services/iran_clock.dart';
 import 'services/interactive_guide_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -379,6 +380,125 @@ class _HomePageState extends State<HomePage> {
     HomeGroupMode.categories => 'دسته‌ها',
     HomeGroupMode.labels => 'برچسب‌ها',
   };
+
+  int get _homeAllCount => tasks.where((task) => !task.archived && !task.trashed).length;
+
+  int get _homeActiveCount => tasks
+      .where(
+        (task) =>
+            !task.archived && !task.trashed && !task.completed,
+      )
+      .length;
+
+  int get _homeCompletedCount => tasks
+      .where(
+        (task) =>
+            !task.archived && !task.trashed && task.completed,
+      )
+      .length;
+
+  int get _homeOverdueCount {
+    final now = DateTime.now();
+    return tasks.where((task) {
+      final due = _homeFollowUpDate(task);
+      return !task.archived &&
+          !task.trashed &&
+          !task.completed &&
+          due != null &&
+          due.isBefore(now);
+    }).length;
+  }
+
+  bool _homeSummarySelected(String filterValue) {
+    if (filterValue == 'عقب‌افتاده') {
+      return _dueScope == TaskDueScope.overdue &&
+          filter == 'کل' &&
+          _listScope == TaskListScope.all &&
+          _categoryFilter == null;
+    }
+    return _dueScope == null &&
+        _listScope == TaskListScope.all &&
+        _categoryFilter == null &&
+        filter == filterValue;
+  }
+
+  Widget _homeSummaryCard({
+    required String keyName,
+    required String label,
+    required int count,
+    required IconData icon,
+    required String filterValue,
+    required Color accent,
+    required Color softAccent,
+  }) {
+    final selected = _homeSummarySelected(filterValue);
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: '$label، $count مورد',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            key: ValueKey('home-summary-$keyName'),
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _selectHomeStat(filterValue),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              constraints: const BoxConstraints(minHeight: 92),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 9),
+              decoration: BoxDecoration(
+                color: selected ? softAccent : const Color(0xFFFDFDFE),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected ? accent : const Color(0xFFE5E7ED),
+                  width: selected ? 1.4 : 1,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0D232433),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 21, color: accent),
+                  const SizedBox(height: 4),
+                  Text(
+                    _persianNumber(count),
+                    key: ValueKey('home-summary-count-$keyName'),
+                    style: TextStyle(
+                      color: const Color(0xFF232433),
+                      fontSize: 18,
+                      height: 1,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: selected ? accent : const Color(0xFF606273),
+                      fontSize: 11,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _persianNumber(int value) => persianDateFormatter.toPersianDigits('$value');
 
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
@@ -1803,61 +1923,72 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 8),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 10),
               child: Row(
-                key: const ValueKey('home-four-view-selector'),
-                children: HomeGroupMode.values.map((mode) {
-                  final selected = _homeGroupMode == mode;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          key: ValueKey('home-view-card-${mode.name}'),
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () => _selectHomeGroupMode(mode),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            constraints: BoxConstraints(minHeight: compactHome ? 50 : 58),
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: compactHome ? 7 : 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: selected
-                                  ? const Color(0xFFE9EAFF)
-                                  : const Color(0xFFFDFDFE),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: selected
-                                    ? const Color(0xFF4A4CAB)
-                                    : const Color(0xFFE5E7ED),
-                                width: selected ? 1.4 : 1,
-                              ),
-                            ),
-                            child: Text(
-                              _homeModeLabel(mode),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: selected
-                                    ? const Color(0xFF4A4CAB)
-                                    : const Color(0xFF606273),
-                                fontSize: 12,
-                                fontWeight: selected
-                                    ? FontWeight.w700
-                                    : FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
+                key: const ValueKey('home-four-summary-selector'),
+                children: [
+                  _homeSummaryCard(
+                    keyName: 'all',
+                    label: 'کل',
+                    count: _homeAllCount,
+                    icon: Icons.list_alt_rounded,
+                    filterValue: 'کل',
+                    accent: const Color(0xFF4A4CAB),
+                    softAccent: const Color(0xFFE9EAFF),
+                  ),
+                  const SizedBox(width: 6),
+                  _homeSummaryCard(
+                    keyName: 'active',
+                    label: 'فعال',
+                    count: _homeActiveCount,
+                    icon: Icons.play_circle_outline_rounded,
+                    filterValue: 'فعال',
+                    accent: const Color(0xFF2F80ED),
+                    softAccent: const Color(0xFFEAF4FF),
+                  ),
+                  const SizedBox(width: 6),
+                  _homeSummaryCard(
+                    keyName: 'completed',
+                    label: 'انجام‌شده',
+                    count: _homeCompletedCount,
+                    icon: Icons.check_circle_outline_rounded,
+                    filterValue: 'انجام‌شده',
+                    accent: const Color(0xFF409B51),
+                    softAccent: const Color(0xFFEAF7ED),
+                  ),
+                  const SizedBox(width: 6),
+                  _homeSummaryCard(
+                    keyName: 'overdue',
+                    label: 'عقب‌افتاده',
+                    count: _homeOverdueCount,
+                    icon: Icons.schedule_rounded,
+                    filterValue: 'عقب‌افتاده',
+                    accent: const Color(0xFFDB8B23),
+                    softAccent: const Color(0xFFFDF1E9),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 2 : 6),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'کارهای من',
+                      style: TextStyle(
+                        color: Color(0xFF232433),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  );
-                }).toList(growable: false),
+                  ),
+                  TextButton(
+                    key: const ValueKey('home-view-all'),
+                    onPressed: () => _selectHomeStat('کل'),
+                    child: const Text('مشاهده همه'),
+                  ),
+                ],
               ),
             ),
             SizedBox(
@@ -1867,6 +1998,24 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
+                    const Text('مرتب‌سازی:'),
+                    const SizedBox(width: 6),
+                    DropdownButton<HomeGroupMode>(
+                      key: const ValueKey('home-group-mode-selector'),
+                      value: _homeGroupMode,
+                      items: HomeGroupMode.values
+                          .map(
+                            (mode) => DropdownMenuItem<HomeGroupMode>(
+                              value: mode,
+                              child: Text(_homeModeLabel(mode)),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (mode) {
+                        if (mode != null) _selectHomeGroupMode(mode);
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     const Text('مرتب‌سازی:'),
                     const SizedBox(width: 6),
                     DropdownButton<TaskListSort>(
