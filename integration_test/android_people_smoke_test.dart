@@ -57,6 +57,9 @@ void main() {
     final navigation = tester.widget<NavigationBar>(moreBar);
     navigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-my-tasks')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('home-more-my-tasks')));
+    await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();
