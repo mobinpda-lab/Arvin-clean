@@ -537,30 +537,6 @@ class _HomePageState extends State<HomePage> {
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
   );
 
-  Future<void> _add() async {
-    final editorContext = await wave2ProductFastTrack.prepareEditor(
-      tasks: tasks,
-    );
-    if (!mounted) return;
-    String? selectedProjectId = editorContext.selectedProjectId;
-    final task = await showDialog<Task>(
-      context: context,
-      builder: (_) => ArvinTaskEditorDialog(
-        projects: editorContext.projects,
-        selectedProjectId: editorContext.selectedProjectId,
-        onProjectChanged: (value) => selectedProjectId = value,
-        knownCategories: editorContext.knownCategories,
-      ),
-    );
-    if (task == null) return;
-    setState(() => tasks.add(task));
-    await _save();
-    await wave2ProductFastTrack.persistProjectSelection(
-      taskId: task.id,
-      projectId: selectedProjectId,
-    );
-  }
-
   Future<Task?> _addForDate(DateTime date) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
