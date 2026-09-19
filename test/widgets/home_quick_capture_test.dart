@@ -32,17 +32,12 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
     await tester.enterText(
-      find.byKey(const ValueKey('task-editor-title')),
-      'تماس با علی',
+      find.byKey(const ValueKey('quick-capture-input')),
+      'تماس با علی #مهم',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('task-editor-tag')),
-      'مهم',
-    );
-    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-save')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
     expect(find.text('تماس با علی'), findsOneWidget);
