@@ -29,7 +29,7 @@ class CanonicalNotebookRepository {
   Future<List<Task>> loadNotes() async {
     final tasks = await _store.load();
     final notes = tasks
-        .where((task) => task.isSimpleNote && !task.trashed && !task.archived)
+        .where((task) => task.isNotebookItem && !task.trashed && !task.archived)
         .toList()
       ..sort((a, b) {
         final aTime = a.updatedAt ?? a.createdAt;
@@ -57,7 +57,7 @@ class CanonicalNotebookRepository {
   Future<Task?> loadNote(String id) async {
     final tasks = await _store.load();
     for (final task in tasks) {
-      if (task.id == id && task.isSimpleNote) return task;
+      if (task.id == id && task.isNotebookItem) return task;
     }
     return null;
   }
@@ -193,7 +193,7 @@ class CanonicalNotebookRepository {
 
   Future<List<Task>> loadTrashedNotes() async {
     final tasks = await _store.load();
-    final notes = tasks.where((task) => task.isSimpleNote && task.trashed).toList()
+    final notes = tasks.where((task) => task.isNotebookItem && task.trashed).toList()
       ..sort((a, b) {
         final aTime = a.updatedAt ?? a.createdAt;
         final bTime = b.updatedAt ?? b.createdAt;
@@ -208,7 +208,7 @@ class CanonicalNotebookRepository {
   Future<Task> restoreNote(String id) {
     return _store.mutate<Task>((tasks) {
       final index = tasks.indexWhere(
-        (task) => task.id == id && task.isSimpleNote && task.trashed,
+        (task) => task.id == id && task.isNotebookItem && task.trashed,
       );
       if (index < 0) throw StateError('Trashed Notebook task not found: $id');
       final task = tasks[index];
