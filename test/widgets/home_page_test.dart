@@ -140,7 +140,7 @@ void main() {
 
     expect(await confirmed, isTrue);
     expect(find.text('حذف آزمایشی'), findsNothing);
-    expect(find.text('سطل زباله خالی است'), findsNothing);
+    expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
   });
 
   testWidgets('drawer opens archive and restores archived task to active',
