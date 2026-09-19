@@ -2069,9 +2069,9 @@ class _HomePageState extends State<HomePage> {
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : loadFailure != null
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
+                  ? SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
