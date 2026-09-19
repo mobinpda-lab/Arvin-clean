@@ -3,6 +3,7 @@ import 'package:arvin/home/grouping/home_grouping_service.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   const service = HomeGroupingService();
@@ -27,7 +28,7 @@ void main() {
   }
 
   test('time projection uses due date day without today/future overlap', () {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final todayAt2300 = DateTime(now.year, now.month, now.day, 23);
     final tomorrow = DateTime(now.year, now.month, now.day + 1, 9);
     final yesterday = DateTime(now.year, now.month, now.day - 1, 9);
