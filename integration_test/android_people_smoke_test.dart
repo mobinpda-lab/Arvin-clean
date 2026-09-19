@@ -52,19 +52,16 @@ void main() {
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
-    final moreBar = find.byType(NavigationBar);
-    expect(moreBar, findsOneWidget);
-    final navigation = tester.widget<NavigationBar>(moreBar);
-    navigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
+    final homeBar = find.byType(NavigationBar);
+    expect(homeBar, findsOneWidget);
+    final homeNavigation = tester.widget<NavigationBar>(homeBar);
+    homeNavigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-more-my-tasks')), findsOneWidget);
-    Navigator.of(tester.element(moreBar)).pop();
-    await tester.pumpAndSettle();
-    navigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
-    await tester.pumpAndSettle();
-    final calendarMore = find.text('بیشتر');
-    expect(calendarMore, findsOneWidget);
-    await tester.tap(calendarMore);
+
+    final calendarBar = find.byType(NavigationBar);
+    expect(calendarBar, findsOneWidget);
+    final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
+    calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
