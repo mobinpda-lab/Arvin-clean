@@ -1832,7 +1832,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(12, compactHome ? 4 : 8, 12, compactHome ? 3 : 6),
+              padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 8, 12, compactHome ? 2 : 6),
               child: Row(
                 textDirection: TextDirection.ltr,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1897,7 +1897,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, compactHome ? 2 : 4, 16, compactHome ? 6 : 10),
+              padding: EdgeInsets.fromLTRB(16, compactHome ? 1 : 4, 16, compactHome ? 5 : 10),
               child: KeyedSubtree(
                 key: const ValueKey('home-canonical-search'),
                 child: TextField(
@@ -1929,7 +1929,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 10),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 10),
               child: Row(
                 key: const ValueKey('home-four-summary-selector'),
                 children: [
@@ -1976,7 +1976,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 2 : 6),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 1 : 6),
               child: Row(
                 children: [
                   const Expanded(
