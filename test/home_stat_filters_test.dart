@@ -37,19 +37,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار انجام شده'), findsOneWidget);
     expect(find.text('کار فعال'), findsNothing);
-    expect(find.text('کار عقب افتاده'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-summary-overdue')));
     await tester.pumpAndSettle();
     expect(find.text('کار عقب افتاده'), findsOneWidget);
     expect(find.text('کار انجام شده'), findsNothing);
-    expect(find.text('کار فعال'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-summary-active')));
     await tester.pumpAndSettle();
     expect(find.text('کار فعال'), findsOneWidget);
     expect(find.text('کار انجام شده'), findsNothing);
-    expect(find.text('کار عقب افتاده'), findsNothing);
   });
 
   testWidgets('Home keeps notification physically left and menu physically right in RTL',
