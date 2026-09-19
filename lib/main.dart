@@ -1983,7 +1983,7 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-canonical-add'),
                 child: KeyedSubtree(
                   key: _newTaskGuideKey,
-                  child: ArvinHomePrimaryAddButton(onPressed: _add),
+                  child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
                 ),
               ),
             )
