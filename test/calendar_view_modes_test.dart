@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   testWidgets('calendar enforces RTL and keeps weekly mode compact by default',
@@ -136,7 +137,7 @@ void main() {
   testWidgets('visible Today action selects today and refreshes selected list',
       (tester) async {
     final initial = DateTime(2026, 8, 12, 9, 30);
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10, 15);
 
     await tester.pumpWidget(
