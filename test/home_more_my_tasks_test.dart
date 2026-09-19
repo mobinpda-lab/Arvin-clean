@@ -54,11 +54,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('کارهای من'), findsNothing);
+    expect(find.text('کارهای من'), findsOneWidget);
 
     await openMyTasks(tester);
 
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-my-tasks-followup')), findsOneWidget);
