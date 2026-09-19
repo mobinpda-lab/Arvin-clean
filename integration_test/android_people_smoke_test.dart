@@ -58,7 +58,13 @@ void main() {
     navigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-more-my-tasks')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-more-my-tasks')));
+    Navigator.of(tester.element(moreBar)).pop();
+    await tester.pumpAndSettle();
+    navigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
+    await tester.pumpAndSettle();
+    final calendarMore = find.text('بیشتر');
+    expect(calendarMore, findsOneWidget);
+    await tester.tap(calendarMore);
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
