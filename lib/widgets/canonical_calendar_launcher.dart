@@ -191,6 +191,51 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     _replaceFollowUp(target, updated);
   }
 
+  Future<void> _openExternalReminder(CalendarReminder reminder) async {
+    if (!reminder.id.startsWith('external-calendar:')) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'رویداد تقویم دستگاه',
+                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(reminder.title),
+              const SizedBox(height: 8),
+              Text(reminder.isAllDay ? 'رویداد تمام‌روز' : 'زمان: ${_time(reminder.date)}'),
+              const SizedBox(height: 16),
+              const Text(
+                'این رویداد از تقویم گوشی خوانده شده و آروین آن را بدون تأیید شما تغییر نمی‌دهد.',
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                key: ValueKey('external-calendar-create-task-${reminder.id}'),
+                onPressed: widget.onCreateTaskForDate == null
+                    ? null
+                    : () async {
+                        Navigator.of(sheetContext).pop();
+                        await _createTaskForDate(reminder.date);
+                      },
+                icon: const Icon(Icons.add_task_outlined),
+                label: const Text('ساخت کار آروین در این تاریخ'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openTimeline(BuildContext context) async {
     if (_tasks.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -686,6 +731,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
+            onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: _canMutateReminder,
             onCreateTaskForDate: widget.onCreateTaskForDate == null
                 ? null
