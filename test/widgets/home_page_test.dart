@@ -190,7 +190,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار سطل'), findsOneWidget);
-    expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
+    expect(find.text('کاری برای نمایش وجود ندارد'), findsNothing);
+    expect(find.text('کارهای من'), findsOneWidget);
   });
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
