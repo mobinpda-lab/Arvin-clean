@@ -990,6 +990,12 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       task.trashed = false;
       task.archived = false;
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _categoryFilter = null;
+      selected.clear();
+      selectionMode = false;
     });
     await _save();
   }
