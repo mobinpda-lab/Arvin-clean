@@ -18,6 +18,7 @@ void main() {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<FollowUp> followUps = const [],
+    NotebookItemKind? notebookKind,
   }) =>
       Task(
         id: id,
