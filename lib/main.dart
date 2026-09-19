@@ -265,7 +265,7 @@ class _HomePageState extends State<HomePage> {
         HomeGuideTarget(
           key: _filtersGuideKey,
           title: 'فیلتر کارها',
-          description: 'کارت‌های وضعیت را لمس کنید یا از «بیشتر → کارهای من» برای فیلترهای کامل استفاده کنید.',
+          description: 'نمای کارها را بر اساس «زمان»، «پروژه‌ها»، «دسته‌ها» یا «برچسب‌ها» انتخاب کنید؛ فیلترهای تکمیلی از «بیشتر» در دسترس‌اند.',
           icon: Icons.filter_alt_outlined,
         ),
         HomeGuideTarget(
