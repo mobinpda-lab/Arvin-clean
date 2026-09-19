@@ -20,9 +20,11 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(
-      find.byKey(const ValueKey('task-editor-title')),
+      find.byKey(const ValueKey('quick-capture-input')),
       'کار تازه',
     );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-description')),
       'بعد از Load اضافه شد',
