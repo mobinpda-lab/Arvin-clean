@@ -38,6 +38,7 @@ class CalendarPage extends StatefulWidget {
     this.onSnoozeReminder,
     this.onEditReminder,
     this.onConvertReminderToTask,
+    this.onOpenExternalReminder,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.prayerStatusFor,
@@ -52,6 +53,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
 
   /// Generic Task/FollowUp actions are shown only for exact canonical targets.
   final bool Function(CalendarReminder reminder)? canMutateReminder;
@@ -843,6 +845,9 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ? widget.onEditReminder
                                 : null,
                             onConvertToTask: widget.onConvertReminderToTask,
+                            onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
+                                ? widget.onOpenExternalReminder
+                                : null,
                             prayerStatus: widget.prayerStatusFor?.call(
                               selectedReminders[index],
                             ),
@@ -894,6 +899,7 @@ class _ReminderCard extends StatefulWidget {
     this.onSnooze,
     this.onEdit,
     this.onConvertToTask,
+    this.onOpenExternal,
     this.prayerStatus,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
@@ -906,6 +912,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
   final PrayerCompletionStatus? prayerStatus;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
@@ -927,7 +934,8 @@ class _ReminderCardState extends State<_ReminderCard> {
           (widget.onComplete != null ||
               widget.onSnooze != null ||
               widget.onEdit != null ||
-              widget.onConvertToTask != null));
+              widget.onConvertToTask != null ||
+              widget.onOpenExternal != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
@@ -1007,6 +1015,13 @@ class _ReminderCardState extends State<_ReminderCard> {
                       avatar: const Icon(Icons.cancel_outlined, size: 18),
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
+                    ),
+                  if (!widget.isPrayer && widget.onOpenExternal != null)
+                    ActionChip(
+                      key: ValueKey('external-calendar-open-${item.id}'),
+                      avatar: const Icon(Icons.info_outline, size: 18),
+                      label: const Text('جزئیات رویداد'),
+                      onPressed: () => _run(widget.onOpenExternal),
                     ),
                   if (!widget.isPrayer &&
                       widget.onComplete != null &&
