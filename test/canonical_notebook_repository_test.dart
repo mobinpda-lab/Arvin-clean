@@ -52,7 +52,8 @@ void main() {
     expect(stored.id, note.id);
     expect(stored.title, 'لیست خرید');
     expect(stored.checklist, ['[ ] نان', '[ ] شیر', '[ ] میوه']);
-    expect(stored.isSimpleNote, isTrue);
+    expect(stored.isSimpleNote, isFalse);
+    expect(stored.isNotebookItem, isTrue);
 
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getKeys(), {TaskStore.key});
