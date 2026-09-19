@@ -82,7 +82,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final selected = widget.initialSelectedDay ?? DateTime.now();
     _selectedDay = DateTime(selected.year, selected.month, selected.day);
     final jalali = _dateFormatter.toJalali(_selectedDay);
-    _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1);
+    _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1));
   }
 
   String _date(DateTime date) {
@@ -118,8 +118,8 @@ class _CalendarPageState extends State<CalendarPage> {
   int _daysInJalaliMonth(int year, int month) {
     if (month <= 6) return 31;
     if (month <= 11) return 30;
-    final first = _dateFormatter.fromJalali(JalaliDate(year, 12, 1);
-    final next = _dateFormatter.fromJalali(JalaliDate(year + 1, 1, 1);
+    final first = _dateFormatter.fromJalali(JalaliDate(year, 12, 1));
+    final next = _dateFormatter.fromJalali(JalaliDate(year + 1, 1, 1));
     return next.difference(first).inDays;
   }
 
@@ -160,7 +160,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final jalali = _dateFormatter.toJalali(normalized);
     setState(() {
       _selectedDay = normalized;
-      _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1);
+      _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1));
     });
   }
 
@@ -176,7 +176,7 @@ class _CalendarPageState extends State<CalendarPage> {
       month -= 12;
       year++;
     }
-    final first = _dateFormatter.fromJalali(JalaliDate(year, month, 1);
+    final first = _dateFormatter.fromJalali(JalaliDate(year, month, 1));
     setState(() {
       _month = first;
       _selectedDay = first;
@@ -223,7 +223,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final today = DateTime(now.year, now.month, now.day);
     final jalali = _dateFormatter.toJalali(today);
     setState(() {
-      _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1);
+      _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1));
       _selectedDay = today;
     });
   }
@@ -238,7 +238,7 @@ class _CalendarPageState extends State<CalendarPage> {
       daysInMonth: _daysInJalaliMonth,
     );
     if (!mounted || selection == null) return;
-    _selectDay(_dateFormatter.fromJalali(JalaliDate(selection.year, selection.month, selection.day));
+    _selectDay(_dateFormatter.fromJalali(JalaliDate(selection.year, selection.month, selection.day)));
   }
 
   void _showDailyContent(DailyContentItem item) {
@@ -484,7 +484,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 return const SizedBox.shrink();
               }
               final day = index - leading + 1;
-              final date = _dateFormatter.fromJalali(JalaliDate(current.year, current.month, day);
+              final date = _dateFormatter.fromJalali(JalaliDate(current.year, current.month, day));
               final count = counts[day] ?? 0;
               final isSelected = _sameDay(date, _selectedDay);
               return Padding(
