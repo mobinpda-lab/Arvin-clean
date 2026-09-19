@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/iran_clock.dart';
 import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
@@ -79,7 +80,7 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    final selected = widget.initialSelectedDay ?? DateTime.now();
+    final selected = widget.initialSelectedDay ?? IranClock.now();
     _selectedDay = DateTime(selected.year, selected.month, selected.day);
     final jalali = _dateFormatter.toJalali(_selectedDay);
     _month = _dateFormatter.fromJalali(JalaliDate(jalali.year, jalali.month, 1));
@@ -221,7 +222,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _today() {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
     final jalali = _dateFormatter.toJalali(today);
     setState(() {
