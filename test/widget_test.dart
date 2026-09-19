@@ -90,9 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
   });
 }
