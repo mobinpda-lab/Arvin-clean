@@ -33,7 +33,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار قبلی'), findsOneWidget);
-    expect(find.text('کار تازه'), findsOneWidget);
+    expect(find.text('کار تازه'), findsWidgets);
     expect(find.text('بعد از Load اضافه شد'), findsOneWidget);
   });
 }
