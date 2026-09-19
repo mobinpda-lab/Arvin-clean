@@ -430,6 +430,7 @@ class _HomePageState extends State<HomePage> {
     required Color softAccent,
   }) {
     final selected = _homeSummarySelected(filterValue);
+    final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
         button: true,
@@ -443,8 +444,8 @@ class _HomePageState extends State<HomePage> {
             onTap: () => _selectHomeStat(filterValue),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              constraints: const BoxConstraints(minHeight: 92),
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 9),
+              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
+              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
               decoration: BoxDecoration(
                 color: selected ? softAccent : const Color(0xFFFDFDFE),
                 borderRadius: BorderRadius.circular(16),
@@ -1997,7 +1998,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(
-              height: compactHome ? 42 : 48,
+              height: compactHome ? 36 : 48,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
