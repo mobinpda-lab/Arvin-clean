@@ -2,6 +2,7 @@ import '../../models/goal_project.dart';
 import '../../models/task.dart';
 import 'home_group.dart';
 import 'home_group_mode.dart';
+import '../../services/iran_clock.dart';
 
 /// Creates Home projections from existing canonical application data.
 ///
@@ -31,7 +32,7 @@ class HomeGroupingService {
   }
 
   List<HomeGroup<Task>> _timeGroups(List<Task> tasks) {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
 
     DateTime dayOf(DateTime value) =>
