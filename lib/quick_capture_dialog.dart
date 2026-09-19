@@ -135,6 +135,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           errorText: _error,
           labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
           hintStyle: const TextStyle(color: Color(0xFF5F6072)),
+          floatingLabelBehavior: FloatingLabelBehavior.always,
           border: const OutlineInputBorder(),
         ),
       ),
