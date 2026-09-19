@@ -45,12 +45,18 @@ void main() {
     final now = DateTime.now();
     final eventStart = DateTime(now.year, now.month, now.day, 10).add(const Duration(days: 1));
     final bridge = _CalendarBridge(permissionGranted: true, events: [DeviceCalendarEvent(instanceId: 'instance-1', eventId: 'event-1', calendarId: 'calendar-7', calendarName: 'Google شخصی', title: 'جلسه مشتری', start: eventStart, end: eventStart.add(const Duration(hours: 1)), allDay: false)]);
-    await tester.pumpWidget(MaterialApp(home: OfficialCalendarPage(service: const OfficialCalendarReminderService([]), years: <int>[now.year], initialSelectedDay: eventStart, settingsService: _SettingsService(const CalendarIntegrationSettings(enabled: true, showExternalEvents: true, visibleCalendarIds: {'calendar-7'})), calendarBridge: bridge, externalLinkStore: _LinkStore())));
+    await tester.pumpWidget(MaterialApp(home: OfficialCalendarPage(service: const OfficialCalendarReminderService([]), years: <int>[now.year], initialSelectedDay: eventStart, settingsService: _SettingsService(const CalendarIntegrationSettings(enabled: true, showExternalEvents: true, visibleCalendarIds: {'calendar-7'})), calendarBridge: bridge, externalLinkStore: _LinkStore(), onOpenExternalReminder: (_) async {})));
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('جلسه مشتری • Google شخصی'), findsOneWidget);
     expect(bridge.listedEvents, isTrue);
     expect(bridge.queriedCalendarIds, ['calendar-7']);
     expect(bridge.requestedPermission, isFalse);
+
+    var opened = false;
+    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
+    await tester.pumpAndSettle();
+    // The projection is interactive when an external-event action is supplied.
+    expect(opened, isFalse);
   });
 
   testWidgets('permission denial fails closed and keeps calendar usable', (tester) async {
