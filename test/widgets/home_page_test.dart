@@ -140,7 +140,7 @@ void main() {
 
     expect(await confirmed, isTrue);
     expect(find.text('حذف آزمایشی'), findsNothing);
-    expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
+    expect(find.text('سطل زباله خالی است'), findsOneWidget);
   });
 
   testWidgets('drawer opens archive and restores archived task to active',
@@ -190,7 +190,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار سطل'), findsOneWidget);
-    expect(find.text('سطل زباله خالی است'), findsOneWidget);
+    expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
   });
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
