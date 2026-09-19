@@ -31,10 +31,11 @@ void main() {
         createdAt: createdAt,
         updatedAt: updatedAt,
         followUps: followUps,
+        notebookKind: notebookKind,
       );
 
   test('all notes and follow-up scopes reuse canonical items', () {
-    final note = task('note');
+    final note = task('note', notebookKind: NotebookItemKind.note);
     final tracked = task('tracked', followUpEnabled: true);
     final history = task(
       'history',
