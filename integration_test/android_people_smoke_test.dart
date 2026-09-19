@@ -51,9 +51,6 @@ void main() {
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
-    await tester.tap(find.text('تقویم'));
-    await tester.pumpAndSettle();
-
     await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
