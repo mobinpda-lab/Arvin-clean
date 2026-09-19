@@ -722,4 +722,44 @@ void main() {
   });
 
 
+  testWidgets('Notebook trash restores the same canonical note identity',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 19, 1));
+    await repository.createNote(
+      id: 'restore-note',
+      title: 'یادداشت بازیابی',
+      category: 'کاری',
+    );
+    await repository.updateTags(
+      id: 'restore-note',
+      tags: const ['مهم'],
+    );
+    await repository.moveSelectedToTrash(const ['restore-note']);
+
+    await pumpNotebook(tester, repository);
+    expect(find.text('یادداشت بازیابی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-trash-view')));
+    await tester.pumpAndSettle();
+    expect(find.text('یادداشت بازیابی'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-restore-restore-note')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('یادداشت بازیابی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-trash-view')));
+    await tester.pumpAndSettle();
+
+    final restored = await repository.loadNote('restore-note');
+    expect(restored?.id, 'restore-note');
+    expect(restored?.trashed, isFalse);
+    expect(restored?.category, 'کاری');
+    expect(restored?.tags, const ['مهم']);
+    expect(find.text('یادداشت بازیابی'), findsOneWidget);
+    expect(await repository.loadNotes(), hasLength(1));
+  });
+
+
 }
