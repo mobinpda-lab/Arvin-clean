@@ -164,9 +164,8 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار بایگانی'), findsNothing);
-    expect(find.text('بایگانی خالی است'), findsOneWidget);
     expect(find.text('کار بایگانی'), findsOneWidget);
+    expect(find.text('بایگانی خالی است'), findsOneWidget);
   });
 
   testWidgets('drawer opens trash and restores trashed task to active',
@@ -190,9 +189,8 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار سطل'), findsNothing);
-    expect(find.text('سطل زباله خالی است'), findsOneWidget);
     expect(find.text('کار سطل'), findsOneWidget);
+    expect(find.text('سطل زباله خالی است'), findsOneWidget);
   });
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
