@@ -116,18 +116,25 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       key: const ValueKey('quick-capture-dialog'),
-      title: const Text('ثبت سریع'),
+      title: const Text(
+        'ورود سریع',
+        style: TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800),
+      ),
       content: TextField(
         key: const ValueKey('quick-capture-input'),
         controller: _controller,
         autofocus: true,
         enabled: !_saving,
         textInputAction: TextInputAction.done,
+        style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+        cursorColor: const Color(0xFF4A4CAB),
         onSubmitted: (_) => _submit(),
         decoration: InputDecoration(
           labelText: 'کار و #برچسب‌ها',
           hintText: 'مثلاً تماس با علی #مشتری #فوری',
           errorText: _error,
+          labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+          hintStyle: const TextStyle(color: Color(0xFF5F6072)),
           border: const OutlineInputBorder(),
         ),
       ),
