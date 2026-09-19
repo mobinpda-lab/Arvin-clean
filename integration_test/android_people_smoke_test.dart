@@ -52,9 +52,12 @@ void main() {
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
     final moreDestination = find.text('بیشتر');
-    await tester.ensureVisible(moreDestination);
-    await tester.pumpAndSettle();
-    await tester.tap(moreDestination);
+    final moreNav = find.ancestor(
+      of: moreDestination,
+      matching: find.byType(NavigationDestination),
+    );
+    expect(moreNav, findsOneWidget);
+    await tester.tap(moreNav);
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
