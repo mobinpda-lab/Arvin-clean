@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   testWidgets('shows reminders for the selected day', (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final day = DateTime(now.year, now.month, now.day);
     await tester.pumpWidget(
       MaterialApp(
