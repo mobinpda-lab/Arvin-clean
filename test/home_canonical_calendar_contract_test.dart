@@ -7,7 +7,7 @@ import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 void main() {
   testWidgets('Home calendar route uses the canonical launcher', (tester) async {
     const stored =
-        '[{"id":"task-1","title":"کار نمونه","followUps":[{"id":"follow-1","date":"2026-08-26T09:00:00.000","note":"پیگیری نمونه","completed":false}]}]';
+        '[{"id":"task-1","title":"کار نمونه","followUps":[{"id":"follow-1","dateTime":"2026-08-26T09:00:00.000","note":"پیگیری نمونه","completed":false}]}]';
     SharedPreferences.setMockInitialValues(<String, Object>{
       'arvin.tasks': stored,
     });
