@@ -2003,7 +2003,7 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    const Text('مرتب‌سازی:'),
+                    const Text('گروه‌بندی:'),
                     const SizedBox(width: 6),
                     DropdownButton<HomeGroupMode>(
                       key: const ValueKey('home-group-mode-selector'),
