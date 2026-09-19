@@ -34,7 +34,9 @@
 ## معماری canonical و سازگاری
 
 - Simple Note یک رفتار از همان `Task / Unified Item` canonical است.
-- تشخیص فعلی با `Task.isSimpleNote` انجام می‌شود.
+- `Task.isSimpleNote` فقط هویت «یادداشت ساده»ی ایجادشده از مسیر Notebook را نشان می‌دهد؛ یک کار عادیِ بدون پیگیری به‌خودی‌خود یادداشت نیست.
+- هویت Notebook از وضعیت پیگیری مستقل است: اگر یک یادداشت بعداً پیگیری‌دار شود یا `followUps[]` بگیرد، همان یادداشت با همان شناسه در دفترچه باقی می‌ماند.
+- یک کار عادی وقتی بدون پیگیری است، نباید فقط به‌دلیل نداشتن FollowUp وارد دفترچه یادداشت شود.
 - persistence فقط از `TaskStore` و envelope موجود `arvin.tasks` استفاده می‌کند.
 - `CanonicalNotebookRepository` مرز فعلی Notebook است و عمداً هیچ کلید، دیتابیس یا مدل مستقلی ندارد.
 - این قرارداد، پیشنهاد تاریخی Storage مستقل `arvin.simple_notes` را صریحاً supersede می‌کند.
