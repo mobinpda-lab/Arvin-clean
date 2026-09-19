@@ -398,7 +398,7 @@ class _HomePageState extends State<HomePage> {
       .length;
 
   int get _homeOverdueCount {
-    final now = DateTime.now();
+    final now = IranClock.now();
     return tasks.where((task) {
       final due = _homeFollowUpDate(task);
       return !task.archived &&
