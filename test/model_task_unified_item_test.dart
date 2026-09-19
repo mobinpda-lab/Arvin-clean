@@ -2,11 +2,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  test('a task without follow-ups behaves as a simple note', () {
-    final task = Task(id: '1', title: 'یادداشت');
+  test('an ordinary task without follow-ups is not a Notebook note', () {
+    final task = Task(id: 'task-1', title: 'کار عادی');
+
+    expect(task.isSimpleNote, isFalse);
+    expect(task.isNotebookItem, isFalse);
+    expect(task.followUpEnabled, isFalse);
+  });
+
+  test('an explicit Notebook note remains a note after follow-up is enabled', () {
+    final task = Task(
+      id: 'note-1',
+      title: 'یادداشت پیگیری‌دار',
+      notebookKind: NotebookItemKind.note,
+      followUpEnabled: true,
+      followUps: [
+        FollowUp(
+          id: 'f1',
+          dateTime: DateTime(2026, 9, 19, 11),
+          note: 'پیگیری ثبت شد',
+        ),
+      ],
+    );
 
     expect(task.isSimpleNote, isTrue);
-    expect(task.followUpEnabled, isFalse);
+    expect(task.isNotebookItem, isTrue);
   });
 
   test('enabling follow-up keeps the same item and exposes follow-up state', () {
