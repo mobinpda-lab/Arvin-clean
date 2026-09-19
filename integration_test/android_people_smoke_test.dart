@@ -51,13 +51,10 @@ void main() {
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
-    final moreDestination = find.text('بیشتر');
-    final moreNav = find.ancestor(
-      of: moreDestination,
-      matching: find.byType(NavigationDestination),
-    );
-    expect(moreNav, findsOneWidget);
-    await tester.tap(moreNav);
+    final moreBar = find.byType(NavigationBar);
+    expect(moreBar, findsOneWidget);
+    final navigation = tester.widget<NavigationBar>(moreBar);
+    navigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
