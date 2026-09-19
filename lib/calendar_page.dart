@@ -199,10 +199,12 @@ class _CalendarPageState extends State<CalendarPage> {
         final nextYear = current.year + delta;
         final maxDay = _daysInJalaliMonth(nextYear, current.month);
         _selectDay(
-          _dateFormatter.fromJalali(JalaliDate(
-            nextYear,
-            current.month,
-            current.day > maxDay ? maxDay : current.day,
+          _dateFormatter.fromJalali(
+            JalaliDate(
+              nextYear,
+              current.month,
+              current.day > maxDay ? maxDay : current.day,
+            ),
           ),
         );
         return;
@@ -582,7 +584,9 @@ class _CalendarPageState extends State<CalendarPage> {
         return InkWell(
           key: ValueKey('calendar-year-month-$month'),
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _selectDay(_dateFormatter.fromJalali(JalaliDate(current.year, month, 1)),
+          onTap: () => _selectDay(
+            _dateFormatter.fromJalali(JalaliDate(current.year, month, 1)),
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: selected
