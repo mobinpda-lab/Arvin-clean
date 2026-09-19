@@ -81,7 +81,7 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
-    expect(find.text('برای بایگانی'), findsNothing);
-    expect(find.text('برای حذف'), findsNothing);
+    expect(find.text('برای بایگانی'), findsOneWidget);
+    expect(find.text('برای حذف'), findsOneWidget);
   });
 }

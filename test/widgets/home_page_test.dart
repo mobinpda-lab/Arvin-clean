@@ -16,12 +16,12 @@ void main() {
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-active')), findsNothing);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
+    expect(find.text('کارهای من'), findsOneWidget);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
@@ -164,13 +164,8 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار بایگانی'), findsNothing);
-    expect(find.text('بایگانی خالی است'), findsOneWidget);
-    await tester.tap(find.text('پروژه‌ها'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsOneWidget);
+    expect(find.text('بایگانی خالی است'), findsNothing);
   });
 
   testWidgets('drawer opens trash and restores trashed task to active',
@@ -194,13 +189,9 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'بازگردانی به فعال'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار سطل'), findsNothing);
-    expect(find.text('سطل زباله خالی است'), findsOneWidget);
-    await tester.tap(find.text('پروژه‌ها'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsOneWidget);
+    expect(find.text('کاری برای نمایش وجود ندارد'), findsNothing);
+    expect(find.text('کارهای من'), findsOneWidget);
   });
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',

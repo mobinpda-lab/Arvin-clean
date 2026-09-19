@@ -17,33 +17,36 @@ void main() {
     });
   });
 
-  testWidgets('Home exposes four canonical grouping modes without stat cards',
+  testWidgets('Home exposes four live summary cards and filters tasks',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-active')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-done')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-overdue')), findsNothing);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
 
+    expect(find.text('کار فعال'), findsOneWidget);
+    expect(find.text('کار انجام شده'), findsOneWidget);
     expect(find.text('کار عقب افتاده'), findsOneWidget);
     expect(find.text('کار بایگانی'), findsNothing);
 
-    await tester.tap(find.text('دسته‌ها'));
+    await tester.tap(find.byKey(const ValueKey('home-summary-completed')));
     await tester.pumpAndSettle();
-    expect(find.text('اداری'), findsOneWidget);
-    expect(find.text('شخصی'), findsOneWidget);
+    expect(find.text('کار انجام شده'), findsOneWidget);
+    expect(find.text('کار فعال'), findsNothing);
 
-    await tester.tap(find.text('برچسب‌ها'));
+    await tester.tap(find.byKey(const ValueKey('home-summary-overdue')));
     await tester.pumpAndSettle();
-    expect(find.text('مهم'), findsWidgets);
-    expect(find.text('بدون برچسب'), findsOneWidget);
+    expect(find.text('کار عقب افتاده'), findsOneWidget);
+    expect(find.text('کار انجام شده'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-summary-active')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار فعال'), findsOneWidget);
+    expect(find.text('کار انجام شده'), findsNothing);
   });
 
   testWidgets('Home keeps notification physically left and menu physically right in RTL',
@@ -72,7 +75,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
 
@@ -92,14 +95,14 @@ void main() {
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(find.byType(BottomNavigationBar), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('four-view selector changes grouping without mutating task storage',
+  testWidgets('grouping selector remains available without mutating task storage',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -107,11 +110,13 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته‌ها'));
+    await tester.tap(find.byKey(const ValueKey('home-group-mode-selector')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('برچسب‌ها'));
+    await tester.tap(find.text('دسته‌ها').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('زمان'));
+    await tester.tap(find.byKey(const ValueKey('home-group-mode-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('برچسب‌ها').last);
     await tester.pumpAndSettle();
 
     expect(prefs.getString('arvin.tasks'), before);

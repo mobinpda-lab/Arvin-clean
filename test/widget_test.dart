@@ -32,15 +32,12 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-view-selector')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stat-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-active')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-done')), findsNothing);
-    expect(find.byKey(const ValueKey('home-stat-overdue')), findsNothing);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
@@ -93,9 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
   });
 }
