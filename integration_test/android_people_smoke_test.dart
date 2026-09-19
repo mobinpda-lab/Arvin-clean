@@ -21,6 +21,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'تست افراد اندروید',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    await tester.pumpAndSettle();
+
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
@@ -32,6 +42,8 @@ void main() {
 
     await tester.enterText(titleField, 'تست افراد اندروید');
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(saveTask);
     await tester.pumpAndSettle();
     await tester.tap(saveTask);
