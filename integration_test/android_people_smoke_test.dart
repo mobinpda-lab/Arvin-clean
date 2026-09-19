@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -21,6 +22,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'تست افراد اندروید',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    await tester.pumpAndSettle();
+
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
@@ -32,6 +43,8 @@ void main() {
 
     await tester.enterText(titleField, 'تست افراد اندروید');
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(saveTask);
     await tester.pumpAndSettle();
     await tester.tap(saveTask);
@@ -39,10 +52,16 @@ void main() {
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
-    await tester.tap(find.text('تقویم'));
+    final homeBar = find.byType(NavigationBar);
+    expect(homeBar, findsOneWidget);
+    final homeNavigation = tester.widget<NavigationBar>(homeBar);
+    homeNavigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('بیشتر'));
+    final calendarBar = find.byType(NavigationBar);
+    expect(calendarBar, findsOneWidget);
+    final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
+    calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
