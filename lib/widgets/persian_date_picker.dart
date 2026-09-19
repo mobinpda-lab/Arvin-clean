@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/persian_date_formatter.dart';
+import '../services/iran_clock.dart';
 
 Future<DateTime?> showPersianDatePicker({
   required BuildContext context,
@@ -196,7 +197,7 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
         _calendar.fromJalali(JalaliDate(_visibleYear, _visibleMonth, 1));
     final firstOffset = (monthStart.weekday + 1) % 7;
     final daysInMonth = _calendar.monthLength(_visibleYear, _visibleMonth);
-    final today = _calendar.toJalali(DateTime.now());
+    final today = _calendar.toJalali(IranClock.now());
 
     final years = <DropdownMenuItem<int>>[
       for (var year = _firstJalali.year; year <= _lastJalali.year; year++)
