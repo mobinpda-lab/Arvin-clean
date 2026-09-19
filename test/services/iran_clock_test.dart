@@ -8,7 +8,7 @@ void main() {
     final iran = IranClock.now();
 
     expect(iran.isUtc, isTrue);
-    expect(iran.difference(now).inSeconds, inInclusiveRange(0, 1));
+    expect(iran.difference(now), IranClock.utcOffset);
     expect(IranClock.utcOffset, const Duration(hours: 3, minutes: 30));
   });
 }
