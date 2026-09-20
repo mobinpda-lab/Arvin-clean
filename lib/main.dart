@@ -638,8 +638,12 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    await showDialog<void>(
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: false,
+      backgroundColor: Colors.transparent,
       builder: (_) => QuickCaptureDialog(
         onFullForm: (draft) async {
           final editorContext = await wave2ProductFastTrack.prepareEditor(
