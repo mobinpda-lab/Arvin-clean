@@ -169,3 +169,10 @@ Calendar-facing complete/snooze behavior reported broken by the owner is tracked
 UI migration is incremental and must preserve existing working behavior while moving toward accepted canonical designs. Meaningful UI changes require appropriate widget/regression tests plus RTL and device/visual validation.
 
 A deferred user interaction is not considered delivered merely because its domain model, service, persistence, reusable page or help text exists. Recovery status is governed by #845 and Waves #846–#853 until final convergence closes the ledger.
+## Live owner-transfer checkpoint — 2026-09-20
+
+- The 2026-09-20 owner transfer report is binding for Home and Quick Capture acceptance.
+- Home acceptance remains **Partial** until the exact PR head produces a successful Build, Android Smoke, and a real Android Home screenshot compared with the owner's reference.
+- A successful analyzer run alone is not visual acceptance.
+- Quick Capture remains **Partial** until its optional project/category/tags/due/reminder/repeat controls, shared-selection retention, draft-protected exit, and same-draft full-form handoff are verified.
+- Cancel in the full Task editor is a zero-write action; the explicit close action retains unsaved-change protection.
