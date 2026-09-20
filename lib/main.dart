@@ -383,6 +383,8 @@ class _HomePageState extends State<HomePage> {
   Widget _homeModeCard({
     required HomeGroupMode mode,
     required IconData icon,
+    required Color iconColor,
+    required Color softColor,
   }) {
     final selected = _homeGroupMode == mode;
     final compactHome = MediaQuery.sizeOf(context).height < 700;
@@ -405,9 +407,7 @@ class _HomePageState extends State<HomePage> {
                 vertical: compactHome ? 7 : 9,
               ),
               decoration: BoxDecoration(
-                color: selected
-                    ? const Color(0xFFE9EAFF)
-                    : const Color(0xFFFDFDFE),
+                color: selected ? softColor : const Color(0xFFFDFDFE),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: selected
@@ -429,9 +429,7 @@ class _HomePageState extends State<HomePage> {
                   Icon(
                     icon,
                     size: compactHome ? 21 : 23,
-                    color: selected
-                        ? const Color(0xFF4A4CAB)
-                        : const Color(0xFF606273),
+                    color: iconColor,
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -1564,6 +1562,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String? _projectTitleForTask(Task task) {
+    for (final project in projects) {
+      if (project.itemIds.contains(task.id)) return project.title;
+    }
+    return null;
+  }
+
+  String _homeSecondaryText(Task task) {
+    final latest = task.lastFollowUp;
+    final value = latest?.note.trim() ?? task.description.trim();
+    return value.isEmpty ? 'بدون توضیح' : value;
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -1661,15 +1672,31 @@ class _HomePageState extends State<HomePage> {
                               : null,
                         ),
                       ),
-                      if (task.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                      const SizedBox(height: 4),
+                      Text(
+                        _homeSecondaryText(task),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF80829C),
+                          fontSize: 12,
+                        ),
+                      ),
+                      if (_projectTitleForTask(task) != null ||
+                          (task.category?.trim().isNotEmpty ?? false)) ...[
+                        const SizedBox(height: 5),
                         Text(
-                          task.description,
-                          maxLines: 2,
+                          [
+                            if (_projectTitleForTask(task) != null)
+                              _projectTitleForTask(task)!,
+                            if (task.category?.trim().isNotEmpty ?? false)
+                              task.category!.trim(),
+                          ].join(' • '),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF80829C),
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -1724,28 +1751,21 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (followUpDate != null) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.event_outlined,
-                              size: 15,
-                              color: late
-                                  ? const Color(0xFFDB8B23)
-                                  : const Color(0xFF80829C),
+                              size: 14,
+                              color: Color(0xFF80829C),
                             ),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
-                                style: TextStyle(
-                                  color: late
-                                      ? const Color(0xFFDB8B23)
-                                      : const Color(0xFF80829C),
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                                style: const TextStyle(
+                                  color: Color(0xFF80829C),
+                                  fontSize: 10,
                                 ),
                               ),
                             ),
@@ -1880,22 +1900,30 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   _homeModeCard(
                     mode: HomeGroupMode.time,
-                    icon: Icons.schedule_rounded,
+                    icon: Icons.calendar_month_rounded,
+                    iconColor: const Color(0xFFE58A2F),
+                    softColor: const Color(0xFFFFF0E2),
                   ),
                   const SizedBox(width: 8),
                   _homeModeCard(
                     mode: HomeGroupMode.projects,
                     icon: Icons.folder_outlined,
+                    iconColor: const Color(0xFF4C83D9),
+                    softColor: const Color(0xFFEAF2FF),
                   ),
                   const SizedBox(width: 8),
                   _homeModeCard(
                     mode: HomeGroupMode.categories,
-                    icon: Icons.category_outlined,
+                    icon: Icons.grid_view_rounded,
+                    iconColor: const Color(0xFF8A62C8),
+                    softColor: const Color(0xFFF1EAFF),
                   ),
                   const SizedBox(width: 8),
                   _homeModeCard(
                     mode: HomeGroupMode.labels,
                     icon: Icons.sell_outlined,
+                    iconColor: const Color(0xFF3AA6A0),
+                    softColor: const Color(0xFFE5F7F3),
                   ),
                 ],
               ),
