@@ -373,12 +373,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _homeModeLabel(HomeGroupMode mode) => switch (mode) {
-    HomeGroupMode.time => 'زمان',
-    HomeGroupMode.projects => 'پروژه‌ها',
-    HomeGroupMode.categories => 'دسته‌ها',
-    HomeGroupMode.labels => 'برچسب‌ها',
-  };
+;
 
   Widget _homeGroupingButton({
     required String keyName,
@@ -437,20 +432,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _persianNumber(int value) =>
-      persianDateFormatter.toPersianDigits('$value');
-
-  void _selectHomeGroupMode(HomeGroupMode mode) {
-    setState(() {
-      _homeGroupMode = mode;
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
-      selected.clear();
-      selectionMode = false;
-    });
-  }
 
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
@@ -581,12 +562,7 @@ class _HomePageState extends State<HomePage> {
     return 'کاری برای نمایش وجود ندارد';
   }
 
-  String _sortLabel(TaskListSort sort) => switch (sort) {
-    TaskListSort.date => 'تاریخ کار',
-    TaskListSort.latest => 'آخرین تغییر',
-    TaskListSort.lastFollowUp => 'آخرین پیگیری',
-    TaskListSort.title => 'عنوان',
-  };
+;
 
   String _date(DateTime date) => persianDateFormatter.format(
     date,
@@ -997,13 +973,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setListSort(TaskListSort sort) {
-    setState(() => _listSort = sort);
-  }
 
-  void _toggleSortDirection() {
-    setState(() => _sortDescending = !_sortDescending);
-  }
 
   Future<bool> _confirmDeleteForever(Task task) async {
     final approved = await showDialog<bool>(
