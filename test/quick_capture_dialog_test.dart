@@ -38,7 +38,7 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
 
     await tester.enterText(
       find.byType(TextField),
@@ -81,7 +81,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('یک متن کوتاه برای ثبت وارد کنید'), findsOneWidget);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('full form continues the same draft identity without quick save',
@@ -128,7 +128,7 @@ void main() {
     expect(continued!.id, 'quick-1');
     expect(continued!.title, 'ادامه در فرم');
     expect(continued!.tags, ['مهم']);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('captures three tasks sequentially without closing the dialog',
@@ -167,7 +167,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
       await tester.pumpAndSettle();
 
-      expect(find.text('ورود سریع'), findsOneWidget);
+      expect(find.text('ثبت سریع کار'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text(title), findsNothing);
     }
