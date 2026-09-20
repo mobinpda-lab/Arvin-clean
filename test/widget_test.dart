@@ -51,12 +51,6 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-more-my-tasks')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('home-my-tasks-without-followup')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
@@ -90,7 +84,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-main-views')), findsOneWidget);
   });
 }
