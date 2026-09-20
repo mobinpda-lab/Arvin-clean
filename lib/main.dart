@@ -1501,6 +1501,15 @@ class _HomePageState extends State<HomePage> {
 
     final action = _actionForSwipe(direction);
     switch (action) {
+      case TaskSwipeAction.complete:
+        if (task.completed) return false;
+        setState(() {
+          task.completed = true;
+          task.trashed = false;
+          task.archived = false;
+        });
+        await _save();
+        return true;
       case TaskSwipeAction.archive:
         if (task.archived) return false;
         setState(() {
@@ -1515,6 +1524,23 @@ class _HomePageState extends State<HomePage> {
           task.archived = false;
         });
         await _save();
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text('«${task.title}» به سطل زباله منتقل شد'),
+                action: SnackBarAction(
+                  label: 'بازگردانی',
+                  onPressed: () async {
+                    task.trashed = false;
+                    await _save();
+                    if (mounted) setState(() {});
+                  },
+                ),
+              ),
+            );
+        }
         return true;
       case TaskSwipeAction.moveToToday:
         await TaskMoveToTodayService(store: taskStore).move(task.id);
@@ -1535,12 +1561,14 @@ class _HomePageState extends State<HomePage> {
   Widget _swipeBackground(TaskSwipeAction action) {
     final colors = Theme.of(context).colorScheme;
     final icon = switch (action) {
+      TaskSwipeAction.complete => Icons.check_circle_outline,
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
+      TaskSwipeAction.complete => 'انجام‌شدن',
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
