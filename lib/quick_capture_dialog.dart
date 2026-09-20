@@ -154,10 +154,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         if (didPop) return;
         if (await _handleBack() && mounted) Navigator.of(context).pop();
       },
-      child: Material(
-        color: const Color(0xFFFDFDFE),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        child: SafeArea(
+      child: KeyedSubtree(
+        key: const ValueKey('quick-capture-sheet'),
+        child: Material(
+          color: const Color(0xFFFDFDFE),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: SafeArea(
           top: false,
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
