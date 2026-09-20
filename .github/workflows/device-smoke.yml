@@ -78,13 +78,27 @@ jobs:
               exit "$test_status"
             fi
             exit "$test_status"
+      - name: Run Home four-mode visual gate
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            flutter test integration_test/android_home_visual_gate_test.dart -d emulator-${EMULATOR_PORT}
       - name: Upload Android visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-android-visual-evidence
-          path: arvin-quick-capture-android.png
-          if-no-files-found: warn
+          name: arvin-home-four-mode-visual-evidence
+          path: |
+            arvin-home-time.png
+            arvin-home-projects.png
+            arvin-home-categories.png
+            arvin-home-labels.png
+          if-no-files-found: error
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
