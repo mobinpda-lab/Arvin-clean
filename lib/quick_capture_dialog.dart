@@ -117,8 +117,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (_saving) return false;
     if (_controller.text.trim().isEmpty) return true;
 
-    final navigator = Navigator.of(context);
-    final decision = await showDialog<String>(
+        final decision = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('ثبت سریع'),
@@ -153,7 +152,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        if (await _handleBack() && mounted) Navigator.of(context).pop();
+        final shouldClose = await _handleBack();
+        if (!mounted) return;
+        if (shouldClose) Navigator.of(context).pop();
       },
       child: KeyedSubtree(
         key: const ValueKey('quick-capture-sheet'),
