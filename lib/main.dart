@@ -172,8 +172,8 @@ class _HomePageState extends State<HomePage> {
   String query = '';
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
-  TaskListSort _listSort = TaskListSort.date;
-  bool _sortDescending = false;
+  final TaskListSort _listSort = TaskListSort.date;
+  final bool _sortDescending = false;
   TaskDueScope? _dueScope;
   String? _categoryFilter;
 
