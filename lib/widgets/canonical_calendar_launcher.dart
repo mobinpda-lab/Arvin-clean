@@ -658,6 +658,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               ),
               ListTile(
                 leading: const Icon(Icons.timeline_outlined),
+                key: const ValueKey('calendar-more-timeline'),
                 title: const Text('خط زمانی'),
                 subtitle: const Text('نمایش روند زمانی یک کار'),
                 onTap: () =>
