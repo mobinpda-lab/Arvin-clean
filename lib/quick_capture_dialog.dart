@@ -114,90 +114,168 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      key: const ValueKey('quick-capture-dialog'),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Directionality(
+      textDirection: TextDirection.rtl,
       child: Material(
-        color: const Color(0xFFFDFDFE),
-        borderRadius: BorderRadius.circular(24),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+        color: Colors.transparent,
+        child: Container(
+          key: const ValueKey('quick-capture-sheet'),
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(20, 10, 20, 20 + bottomInset),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFDFDFE),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Expanded(
-                    child: Text(
-                      'ورود سریع',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFD9DAE3),
+                        borderRadius: BorderRadius.all(Radius.circular(99)),
                       ),
                     ),
                   ),
-                  IconButton(
-                    key: const ValueKey('quick-capture-close'),
-                    onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: 'بستن',
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'ثبت سریع کار',
+                          style: TextStyle(
+                            color: Color(0xFF232433),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('quick-capture-close'),
+                        onPressed:
+                            _saving ? null : () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'بستن',
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'عنوان کار را وارد کنید؛ جزئیات بیشتر را می‌توانید در همان کار تکمیل کنید.',
-                style: TextStyle(
-                  color: Color(0xFF80829C),
-                  fontSize: 12,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-        key: const ValueKey('quick-capture-input'),
-        controller: _controller,
-        autofocus: true,
-        enabled: !_saving,
-        textInputAction: TextInputAction.done,
-        style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
-        cursorColor: const Color(0xFF4A4CAB),
-        onSubmitted: (_) => _submit(),
-        decoration: InputDecoration(
-          labelText: 'کار و #برچسب‌ها',
-          hintText: 'مثلاً تماس با علی #مشتری #فوری',
-          errorText: _error,
-          labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
-          hintStyle: const TextStyle(color: Color(0xFF5F6072)),
-          border: const UnderlineInputBorder(),
-        ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  if (widget.onFullForm != null)
-                    Expanded(
-                      child: OutlinedButton(
-                        key: const ValueKey('quick-capture-full-form'),
-                        onPressed: _saving ? null : _openFullForm,
-                        child: const Text('فرم کامل'),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'عنوان برای ثبت کافی است',
+                    style: TextStyle(
+                      color: Color(0xFF80829C),
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    key: const ValueKey('quick-capture-input'),
+                    controller: _controller,
+                    autofocus: true,
+                    enabled: !_saving,
+                    textInputAction: TextInputAction.done,
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(
+                      color: Color(0xFF232433),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    cursorColor: const Color(0xFF4A4CAB),
+                    onSubmitted: (_) => _submit(),
+                    decoration: InputDecoration(
+                      hintText: 'عنوان کار را وارد کنید',
+                      errorText: _error,
+                      filled: true,
+                      fillColor: const Color(0xFFF6F6FA),
+                      hintStyle: const TextStyle(color: Color(0xFF8B8C9E)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF4A4CAB),
+                          width: 1.3,
+                        ),
                       ),
                     ),
-                  if (widget.onFullForm != null) const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton(
-                      key: const ValueKey('quick-capture-submit'),
-                      onPressed: _saving ? null : _submit,
-                      child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
-                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _quickChip('امروز', Icons.today_rounded),
+                      _quickChip('فوری', Icons.bolt_rounded),
+                      _quickChip('پیگیری', Icons.sync_rounded),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      if (widget.onFullForm != null)
+                        Expanded(
+                          child: OutlinedButton(
+                            key: const ValueKey('quick-capture-full-form'),
+                            onPressed: _saving ? null : _openFullForm,
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text('فرم کامل'),
+                          ),
+                        ),
+                      if (widget.onFullForm != null) const SizedBox(width: 10),
+                      Expanded(
+                        child: FilledButton(
+                          key: const ValueKey('quick-capture-submit'),
+                          onPressed: _saving ? null : _submit,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _quickChip(String label, IconData icon) {
+    return ActionChip(
+      label: Text(label),
+      avatar: Icon(icon, size: 17),
+      onPressed: _saving ? null : () {},
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
       ),
     );
   }
