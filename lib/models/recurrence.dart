@@ -16,8 +16,7 @@ class RecurrenceRule {
     this.interval = 1,
     this.weekdays = const [],
     this.customUnit = RecurrenceCustomUnit.days,
-  })  : assert(interval > 0),
-        assert(weekdays.every((day) => day >= 1 && day <= 7));
+  });
 
   final RecurrenceFrequency frequency;
   final int interval;
@@ -45,7 +44,13 @@ class RecurrenceRule {
     final interval = (json['interval'] as num?)?.toInt() ?? 1;
     final rawWeekdays = json['weekdays'];
     final weekdays = rawWeekdays is List
-        ? rawWeekdays.whereType<num>().map((value) => value.toInt()).where((day) => day >= 1 && day <= 7).toSet().toList()..sort()
+        ? (rawWeekdays
+              .whereType<num>()
+              .map((value) => value.toInt())
+              .where((day) => day >= 1 && day <= 7)
+              .toSet()
+              .toList()
+            ..sort())
         : <int>[];
     final customUnitName = json['customUnit'] as String?;
     final customUnit = RecurrenceCustomUnit.values.firstWhere(
