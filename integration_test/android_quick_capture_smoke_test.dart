@@ -61,6 +61,15 @@ void main() {
         // Validate the same canonical Home surface that the user sees after
         // each successful save. Avoid reading SharedPreferences from the
         // integration-test isolate while the app isolate is writing it.
+        final homeList = find.byType(ListView);
+        if (homeList.evaluate().isNotEmpty) {
+          await tester.scrollUntilVisible(
+            find.text(title, skipOffstage: false),
+            300,
+            scrollable: homeList.last,
+          );
+          await tester.pumpAndSettle();
+        }
         expect(find.text(title), findsOneWidget);
       }
 
