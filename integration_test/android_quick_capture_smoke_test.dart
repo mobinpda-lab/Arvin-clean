@@ -60,6 +60,12 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
         expect(find.text('کار ثبت شد'), findsOneWidget);
+        final current = await reader.load();
+        expect(
+          current.map((task) => task.title),
+          contains(title),
+          reason: 'Quick Capture must persist "$title" before accepting the next sequential entry.',
+        );
       }
 
       final persisted = await reader.load();
