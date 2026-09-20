@@ -710,7 +710,7 @@ class _HomePageState extends State<HomePage> {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('«${captured.title}» با ثبت سریع اضافه شد'),
+                content: const Text('کار ثبت شد'),
               ),
             );
         },
