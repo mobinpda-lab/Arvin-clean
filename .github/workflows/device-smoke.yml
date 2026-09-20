@@ -68,10 +68,16 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            set -eu
+            set +e
             flutter test integration_test/android_home_smoke_test.dart integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+            test_status=$?
             adb -s emulator-${EMULATOR_PORT} exec-out screencap -p > "${GITHUB_WORKSPACE}/arvin-quick-capture-android.png"
-            test -s "${GITHUB_WORKSPACE}/arvin-quick-capture-android.png"
+            screenshot_status=$?
+            if [ "$screenshot_status" -ne 0 ] || [ ! -s "${GITHUB_WORKSPACE}/arvin-quick-capture-android.png" ]; then
+              echo "Android screenshot capture failed." >&2
+              exit "$test_status"
+            fi
+            exit "$test_status"
       - name: Upload Android visual evidence
         if: always()
         uses: actions/upload-artifact@v4
