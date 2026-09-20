@@ -1,0 +1,17 @@
+{
+  "manifest_version": 1,
+  "id": "org.mobinpda.joplin.persianshamsi",
+  "app_min_version": "3.7",
+  "version": "0.1.0",
+  "name": "Joplin Persian Shamsi",
+  "description": "Independent Persian RTL and Jalali support for Joplin. Does not modify note data.",
+  "author": "mobinpda-lab",
+  "homepage_url": "",
+  "repository_url": "https://github.com/mobinpda-lab/Arvin-clean/tree/research/joplin-persian-shamsi-isolated/research/joplin-persian-shamsi-isolated/plugin",
+  "platforms": ["desktop", "mobile"],
+  "keywords": ["persian", "rtl", "jalali", "shamsi"],
+  "categories": ["appearance"],
+  "screenshots": [],
+  "icons": {},
+  "promo_tile": {}
+}
