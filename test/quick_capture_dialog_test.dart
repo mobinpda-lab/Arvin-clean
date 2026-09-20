@@ -19,7 +19,7 @@ void main() {
               body: Center(
                 child: FilledButton(
                   onPressed: () async {
-                    captured = await showDialog<Task>(
+                    captured = await showModalBottomSheet<Task>(
                       context: context,
                       builder: (_) => QuickCaptureDialog(
                         idFactory: () => 'quick-1',
@@ -38,13 +38,13 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
 
     await tester.enterText(
       find.byType(TextField),
       'تماس با علی #مشتری #فوری',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.widgetWithText(FilledButton, 'ثبت کار'));
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
@@ -63,7 +63,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<Task>(
+                onPressed: () => showModalBottomSheet<Task>(
                   context: context,
                   builder: (_) => const QuickCaptureDialog(),
                 ),
@@ -77,11 +77,11 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.widgetWithText(FilledButton, 'ثبت کار'));
     await tester.pump();
 
     expect(find.text('یک متن کوتاه برای ثبت وارد کنید'), findsOneWidget);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('full form continues the same draft identity without quick save',
@@ -97,7 +97,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
@@ -128,7 +128,7 @@ void main() {
     expect(continued!.id, 'quick-1');
     expect(continued!.title, 'ادامه در فرم');
     expect(continued!.tags, ['مهم']);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('captures three tasks sequentially without closing the dialog',
@@ -143,7 +143,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
@@ -164,10 +164,10 @@ void main() {
 
     for (final title in ['کار اول', 'کار دوم', 'کار سوم']) {
       await tester.enterText(find.byType(TextField), title);
-      await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+      await tester.tap(find.widgetWithText(FilledButton, 'ثبت کار'));
       await tester.pumpAndSettle();
 
-      expect(find.text('ورود سریع'), findsOneWidget);
+      expect(find.text('ثبت سریع کار'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text(title), findsNothing);
     }
@@ -186,7 +186,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-cancel',
