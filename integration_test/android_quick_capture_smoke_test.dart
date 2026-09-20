@@ -59,7 +59,7 @@ void main() {
         await tester.tap(submit);
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
-        expect(find.text('کار ثبت شد'), findsNothing);
+        expect(find.text('کار ثبت شد'), findsOneWidget);
       }
 
       final persisted = await reader.load();
