@@ -114,13 +114,50 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return Dialog(
       key: const ValueKey('quick-capture-dialog'),
-      title: const Text(
-        'ورود سریع',
-        style: TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w800),
-      ),
-      content: TextField(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Material(
+        color: const Color(0xFFFDFDFE),
+        borderRadius: BorderRadius.circular(24),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'ورود سریع',
+                      style: TextStyle(
+                        color: Color(0xFF232433),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    key: const ValueKey('quick-capture-close'),
+                    onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'بستن',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'عنوان کار را وارد کنید؛ جزئیات بیشتر را می‌توانید در همان کار تکمیل کنید.',
+                style: TextStyle(
+                  color: Color(0xFF80829C),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
         key: const ValueKey('quick-capture-input'),
         controller: _controller,
         autofocus: true,
@@ -137,25 +174,31 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           hintStyle: const TextStyle(color: Color(0xFF5F6072)),
           border: const UnderlineInputBorder(),
         ),
-      ),
-      actions: [
-        TextButton(
-          key: const ValueKey('quick-capture-cancel'),
-          onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          child: const Text('بستن'),
-        ),
-        if (widget.onFullForm != null)
-          TextButton(
-            key: const ValueKey('quick-capture-full-form'),
-            onPressed: _saving ? null : _openFullForm,
-            child: const Text('فرم کامل'),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  if (widget.onFullForm != null)
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const ValueKey('quick-capture-full-form'),
+                        onPressed: _saving ? null : _openFullForm,
+                        child: const Text('فرم کامل'),
+                      ),
+                    ),
+                  if (widget.onFullForm != null) const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton(
+                      key: const ValueKey('quick-capture-submit'),
+                      onPressed: _saving ? null : _submit,
+                      child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        FilledButton(
-          key: const ValueKey('quick-capture-submit'),
-          onPressed: _saving ? null : _submit,
-          child: Text(_saving ? 'در حال ثبت…' : 'ثبت'),
         ),
-      ],
+      ),
     );
   }
 }
