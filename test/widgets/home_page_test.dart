@@ -16,12 +16,12 @@ void main() {
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-main-views')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-labels')), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
@@ -191,7 +191,7 @@ void main() {
 
     expect(find.text('کار سطل'), findsOneWidget);
     expect(find.text('کاری برای نمایش وجود ندارد'), findsNothing);
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
   });
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
