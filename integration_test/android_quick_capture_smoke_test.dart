@@ -98,11 +98,20 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      // Home renders the grouped task cards inside one ListView item per group;
-      // the task cards themselves are not lazy ListView children. Therefore
-      // direct visibility checks are stable after the app restart.
+      // Home reloads canonical storage asynchronously after the app restart.
+      // Poll the real Home tree briefly rather than asserting before the reload
+      // has completed. A missing task after the bounded wait remains a real
+      // persistence/rendering failure.
       for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
-        expect(find.text(title, skipOffstage: false), findsOneWidget);
+        var visible = false;
+        for (var attempt = 0; attempt < 50; attempt += 1) {
+          if (find.text(title, skipOffstage: false).evaluate().isNotEmpty) {
+            visible = true;
+            break;
+          }
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(visible, isTrue, reason: 'Home did not render persisted task: $title');
       }
       expect(find.text('پرونده موجود', skipOffstage: false), findsOneWidget);
 
