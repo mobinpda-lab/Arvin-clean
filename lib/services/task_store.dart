@@ -56,8 +56,10 @@ class TaskStore {
     // Quick Capture can be exercised through a separate Flutter engine during
     // Android integration tests, so a stale per-engine cache must not hide a
     // task written by another engine.
-    final preferences = _canonicalPreferences();
-    final raw = await preferences.getString(key);
+    final preferences = _canonicalPreferencesOrNull();
+    final raw = preferences != null
+        ? await preferences.getString(key)
+        : (await SharedPreferences.getInstance()).getString(key);
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -74,7 +76,7 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = _canonicalPreferences();
+    final preferences = _canonicalPreferencesOrNull();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
     // Validate the exact document before replacing the canonical value.
@@ -87,18 +89,40 @@ class TaskStore {
     // of updating a per-engine Dart cache. Verify by reading through the same
     // uncached API; this keeps sequential Quick Capture writes on one
     // canonical arvin.tasks path.
-    await preferences.setString(key, encoded);
-    final verified = await preferences.getString(key);
+    if (preferences != null) {
+      await preferences.setString(key, encoded);
+      final verified = await preferences.getString(key);
+      if (verified != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+      return;
+    }
+
+    final legacy = await SharedPreferences.getInstance();
+    await legacy.setString(key, encoded);
+    await legacy.reload();
+    final verified = legacy.getString(key);
     if (verified != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
   }
 
-  SharedPreferencesAsync _canonicalPreferences() {
-    return SharedPreferencesAsync(
-      options: const SharedPreferencesAsyncAndroidOptions(
-        backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
-      ),
-    );
+  SharedPreferencesAsync? _canonicalPreferencesOrNull() {
+    try {
+      return SharedPreferencesAsync(
+        options: const SharedPreferencesAsyncAndroidOptions(
+          backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
+        ),
+      );
+    } on StateError catch (error) {
+      if (error.message.contains(
+          'SharedPreferencesAsyncPlatform instance must be set')) {
+        // Widget tests do not register the platform implementation. Keep
+        // them on the legacy in-memory/plugin-backed path; Android production
+        // still uses the explicit SharedPreferences backend above.
+        return null;
+      }
+      rethrow;
+    }
   }
 }
