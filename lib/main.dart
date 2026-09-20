@@ -174,8 +174,6 @@ class _HomePageState extends State<HomePage> {
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
   String? _categoryFilter;
-  TaskListSort _listSort = TaskListSort.date;
-  bool _sortDescending = false;
 
   @override
   void initState() {
