@@ -56,7 +56,10 @@ void main() {
         await tester.enterText(input, title);
         await tester.tap(submit);
         await tester.pump(const Duration(milliseconds: 100));
-        expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('quick-capture-sheet')),
+          findsOneWidget,
+        );
         // Wait for the canonical persistence callback to finish before the
         // next sequential entry. This avoids a second tap racing the async
         // TaskStore mutation while the button is temporarily disabled.
@@ -69,9 +72,13 @@ void main() {
         }
         expect(find.text('ثبت کار'), findsOneWidget);
         expect(find.text('در حال ثبت…'), findsNothing);
-        expect(find.text(title), findsNothing);
-        await tester.pumpAndSettle();
 
+        final inputField = tester.widget<TextField>(input);
+        expect(inputField.controller?.text, isEmpty);
+        expect(inputField.autofocus, isTrue);
+        expect(FocusManager.instance.primaryFocus, isNotNull);
+
+        await tester.pumpAndSettle();
       }
 
       // Quick Capture intentionally remains open across sequential saves.
@@ -105,7 +112,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('quick-capture-sheet')),
+        findsOneWidget,
+      );
     },
   );
 }
