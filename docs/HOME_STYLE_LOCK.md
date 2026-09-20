@@ -10,16 +10,15 @@ This document is the canonical visual contract for the Arvin Home screen. Produc
 Top-to-bottom order:
 1. Safe-area / system status bar.
 2. Centered `بسم الله الرحمن الرحیم` in a subtle rounded, low-contrast capsule/surface.
-3. Centered product title directly below it: `مدیریت کارها و پیگیری آروین`.
+3. Centered product title: `مدیریت کارها و پیگیری آروین`.
 4. Notification bell on the physical left and hamburger/navigation menu on the physical right.
-5. Full-width rounded search field.
-6. Four equal summary cards in one row.
-7. `کارهای من` section heading with a compact secondary action such as `مشاهده همه` when useful.
-8. Rounded task cards with clear title, optional project/category metadata, due date/time and status chip.
-9. Purple primary floating add button in the lower-right area above bottom navigation.
-10. Persistent white bottom navigation in the approved minimal style.
+5. Full-width rounded search field: `جست‌وجو در کارها`.
+6. Four equal **operational grouping buttons**, fixed right-to-left: `زمان`, `پروژه‌ها`, `دسته‌ها`, `برچسب‌ها`.
+7. Grouped canonical Task cards.
+8. Compact circular `+` above the bottom navigation.
+9. Persistent white bottom navigation with five destinations: خانه، تقویم، دفترچه، اقدام بعدی، بیشتر.
 
-The Bismillah and app title are a single visual identity block. They must not collide with the status bar, be pushed into a generic AppBar title, or be reordered around utility icons.
+The four buttons are **not statistic cards** and must not show counters. The old `کل` / `فعال` / `انجام‌شده` / `عقب‌افتاده` summary-card row and visible `کارهای من` block are not part of the owner-approved Home contract.
 
 ## 2. Home header — locked
 
