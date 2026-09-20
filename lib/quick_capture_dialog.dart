@@ -45,8 +45,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (_saving) return;
+  Future<bool> _submit({bool closeAfterSave = false}) async {
+    if (_saving) return false;
     final createdAt = widget.now?.call() ?? DateTime.now();
     final taskId = widget.idFactory?.call() ?? _nextGeneratedId(createdAt);
     final task = widget.service.capture(
@@ -64,13 +64,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
     if (task == null) {
       setState(() => _error = 'یک متن کوتاه برای ثبت وارد کنید');
-      return;
+      return false;
     }
 
     final onCaptured = widget.onCaptured;
     if (onCaptured == null) {
       Navigator.of(context).pop(task);
-      return;
+      return true;
     }
 
     setState(() {
@@ -79,15 +79,54 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     });
     try {
       await onCaptured(task);
-      if (!mounted) return;
+      if (!mounted) return true;
       _controller.clear();
       setState(() => _saving = false);
+      if (closeAfterSave && mounted) Navigator.of(context).pop();
+      return true;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _saving = false;
         _error = 'ثبت انجام نشد؛ دوباره تلاش کنید';
       });
+      return false;
+    }
+  }
+
+  Future<void> _requestExit() async {
+    if (_saving) return;
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+      FocusScope.of(context).unfocus();
+      return;
+    }
+    if (_controller.text.trim().isEmpty) {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('خروج از ثبت سریع'),
+          content: const Text('متن واردشده هنوز ثبت نشده است.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, 'continue'), child: const Text('ادامه نوشتن')),
+            TextButton(onPressed: () => Navigator.pop(dialogContext, 'discard'), child: const Text('خروج بدون ثبت')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, 'save'), child: const Text('ثبت و خروج')),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case 'save':
+        await _submit(closeAfterSave: true);
+        break;
+      case 'discard':
+        Navigator.of(context).pop();
+        break;
     }
   }
 
@@ -127,8 +166,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return Directionality(
-      textDirection: TextDirection.rtl,
+    return PopScope<void>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _requestExit();
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
       child: Material(
         color: Colors.transparent,
         child: Container(
@@ -171,8 +215,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       ),
                       IconButton(
                         key: const ValueKey('quick-capture-close'),
-                        onPressed:
-                            _saving ? null : () => Navigator.of(context).pop(),
+                        onPressed: _saving ? null : _requestExit,
                         icon: const Icon(Icons.close_rounded),
                         tooltip: 'بستن',
                       ),
