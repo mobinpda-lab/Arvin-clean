@@ -88,6 +88,14 @@ void main() {
       expect(find.text('کار دوم'), findsOneWidget);
       expect(find.text('کار سوم'), findsOneWidget);
       expect(find.text('پرونده موجود'), findsOneWidget);
+
+      // Leave the canonical Quick Capture surface open so the Android smoke
+      // workflow can capture the real rendered state as an artifact.
+      await tester.tap(find.byKey(const ValueKey('home-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
     },
   );
 }
