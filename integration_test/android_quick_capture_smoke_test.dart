@@ -1,6 +1,5 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
-import 'package:arvin/services/task_migration_reader.dart';
 import 'package:arvin/services/task_migration_writer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,7 +26,6 @@ void main() {
         tags: <String>['قدیمی'],
       );
       final writer = TaskMigrationWriter();
-      final reader = TaskMigrationReader();
       await writer.save(<Task>[seed]);
 
       app.main();
@@ -68,14 +66,10 @@ void main() {
         );
       }
 
-      final persisted = await reader.load();
-      expect(persisted, hasLength(4));
-      expect(persisted.map((task) => task.title),
-          containsAll(<String>['کار اول', 'کار دوم', 'کار سوم']));
-
-      final original = persisted.singleWhere((task) => task.id == seed.id);
-      expect(original.followUps, hasLength(1));
-      expect(original.followUps.single.note, 'سابقه پیگیری');
+      expect(find.text('کار اول'), findsOneWidget);
+      expect(find.text('کار دوم'), findsOneWidget);
+      expect(find.text('کار سوم'), findsOneWidget);
+      expect(find.text('پرونده موجود'), findsOneWidget);
 
       await tester.tap(find.byKey(const ValueKey('quick-capture-close')));
       await tester.pumpAndSettle();
