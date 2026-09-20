@@ -61,12 +61,12 @@ void main() {
         // Validate the same canonical Home surface that the user sees after
         // each successful save. Avoid reading SharedPreferences from the
         // integration-test isolate while the app isolate is writing it.
-        final homeList = find.byType(ListView);
-        if (homeList.evaluate().isNotEmpty) {
+        final homeScrollable = find.byType(Scrollable);
+        if (homeScrollable.evaluate().isNotEmpty) {
           await tester.scrollUntilVisible(
             find.text(title, skipOffstage: false),
             300,
-            scrollable: homeList.last,
+            scrollable: homeScrollable.last,
           );
           await tester.pumpAndSettle();
         }
@@ -86,13 +86,13 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      final restartedHomeList = find.byType(ListView);
+      final restartedHomeScrollable = find.byType(Scrollable);
       for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
-        if (restartedHomeList.evaluate().isNotEmpty) {
+        if (restartedHomeScrollable.evaluate().isNotEmpty) {
           await tester.scrollUntilVisible(
             find.text(title, skipOffstage: false),
             300,
-            scrollable: restartedHomeList.last,
+            scrollable: restartedHomeScrollable.last,
           );
           await tester.pumpAndSettle();
         }
