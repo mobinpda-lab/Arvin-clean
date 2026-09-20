@@ -32,15 +32,18 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-grouping-buttons')), findsOneWidget);
+    for (final key in const [
+      'home-group-time',
+      'home-group-projects',
+      'home-group-categories',
+      'home-group-labels',
+    ]) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsNothing);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.text('مشاهده همه'), findsNothing);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
 
@@ -90,7 +93,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-grouping-buttons')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
   });
 }
