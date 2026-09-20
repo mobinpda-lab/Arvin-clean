@@ -63,9 +63,8 @@ void main() {
     final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
     calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
     await tester.pumpAndSettle();
-    final timelineAction = find.text('خط زمانی');
-    await tester.ensureVisible(timelineAction);
-    await tester.pumpAndSettle();
+    final timelineAction = find.byKey(const ValueKey('calendar-more-timeline'));
+    expect(timelineAction, findsOneWidget);
     await tester.tap(timelineAction);
     await tester.pumpAndSettle();
 
