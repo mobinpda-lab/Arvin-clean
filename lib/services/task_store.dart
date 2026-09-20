@@ -83,9 +83,21 @@ class TaskStore {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Could not persist canonical task storage');
+    // Android SharedPreferences may acknowledge an in-memory update before
+    // the platform-backed value is observable by a subsequent engine/read.
+    // Verify the exact canonical document and retry briefly if the platform
+    // has not exposed the write yet. This avoids rapid sequential Quick
+    // Capture saves being lost without introducing a second storage path.
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final saved = await preferences.setString(key, encoded);
+      if (!saved) {
+        throw StateError('Could not persist canonical task storage');
+      }
+      await preferences.reload();
+      if (preferences.getString(key) == encoded) return;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
     }
+
+    throw StateError('Canonical task storage write could not be verified');
   }
 }
