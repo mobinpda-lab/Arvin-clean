@@ -117,6 +117,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (_saving) return false;
     if (_controller.text.trim().isEmpty) return true;
 
+    final navigator = Navigator.of(context);
     final decision = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -162,97 +163,99 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              16 + MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 38,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD6D7E2),
-                      borderRadius: BorderRadius.circular(4),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                16 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD6D7E2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'ثبت سریع کار',
-                  key: ValueKey('quick-capture-title'),
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: Color(0xFF232433),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                  const SizedBox(height: 14),
+                  const Text(
+                    'ثبت سریع کار',
+                    key: ValueKey('quick-capture-title'),
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Color(0xFF232433),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  key: const ValueKey('quick-capture-input'),
-                  controller: _controller,
-                  autofocus: true,
-                  enabled: !_saving,
-                  textInputAction: TextInputAction.done,
-                  style: const TextStyle(
-                    color: Color(0xFF232433),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17,
-                  ),
-                  cursorColor: const Color(0xFF4A4CAB),
-                  onSubmitted: (_) => _submit(),
-                  decoration: InputDecoration(
-                    labelText: 'عنوان کار',
-                    hintText: 'مثلاً تماس با علی',
-                    errorText: _error,
-                    filled: true,
-                    fillColor: const Color(0xFFF8F8FB),
-                    labelStyle: const TextStyle(
+                  const SizedBox(height: 12),
+                  TextField(
+                    key: const ValueKey('quick-capture-input'),
+                    controller: _controller,
+                    autofocus: true,
+                    enabled: !_saving,
+                    textInputAction: TextInputAction.done,
+                    style: const TextStyle(
                       color: Color(0xFF232433),
                       fontWeight: FontWeight.w600,
+                      fontSize: 17,
                     ),
-                    hintStyle: const TextStyle(color: Color(0xFF80829C)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                    cursorColor: const Color(0xFF4A4CAB),
+                    onSubmitted: (_) => _submit(),
+                    decoration: InputDecoration(
+                      labelText: 'عنوان کار',
+                      hintText: 'مثلاً تماس با علی',
+                      errorText: _error,
+                      filled: true,
+                      fillColor: const Color(0xFFF8F8FB),
+                      labelStyle: const TextStyle(
+                        color: Color(0xFF232433),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      hintStyle: const TextStyle(color: Color(0xFF80829C)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (widget.onFullForm != null)
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (widget.onFullForm != null)
+                        OutlinedButton.icon(
+                          key: const ValueKey('quick-capture-full-form'),
+                          onPressed: _saving ? null : _openFullForm,
+                          icon: const Icon(Icons.tune_outlined, size: 18),
+                          label: const Text('جزئیات بیشتر'),
+                        ),
                       OutlinedButton.icon(
-                        key: const ValueKey('quick-capture-full-form'),
-                        onPressed: _saving ? null : _openFullForm,
-                        icon: const Icon(Icons.tune_outlined, size: 18),
-                        label: const Text('جزئیات بیشتر'),
+                        key: const ValueKey('quick-capture-tags-hint'),
+                        onPressed: _saving
+                            ? null
+                            : () => _controller.text += ' #',
+                        icon: const Icon(Icons.sell_outlined, size: 18),
+                        label: const Text('برچسب'),
                       ),
-                    OutlinedButton.icon(
-                      key: const ValueKey('quick-capture-tags-hint'),
-                      onPressed: _saving ? null : () => _controller.text += ' #',
-                      icon: const Icon(Icons.sell_outlined, size: 18),
-                      label: const Text('برچسب'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                FilledButton.icon(
-                  key: const ValueKey('quick-capture-submit'),
-                  onPressed: _saving ? null : _submit,
-                  icon: const Icon(Icons.check_rounded),
-                  label: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
-                ),
-              ],
-            ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    key: const ValueKey('quick-capture-submit'),
+                    onPressed: _saving ? null : _submit,
+                    icon: const Icon(Icons.check_rounded),
+                    label: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
