@@ -22,7 +22,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تست افراد اندروید',
