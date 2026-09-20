@@ -93,9 +93,13 @@ class TaskStore {
       if (!saved) {
         throw StateError('Could not persist canonical task storage');
       }
+      // The Android SharedPreferences platform bridge can expose a prior
+      // value for a short interval after setString completes. Give the
+      // platform write a small settling window before refreshing the cache.
+      await Future<void>.delayed(const Duration(milliseconds: 150));
       await preferences.reload();
       if (preferences.getString(key) == encoded) return;
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
     }
 
     throw StateError('Canonical task storage write could not be verified');
