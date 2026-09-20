@@ -28,6 +28,7 @@ void main() {
     expect(stored.description, 'نکات مهم جلسه');
     expect(stored.checklist, ['[x] دعوت اعضا', '[ ] آماده‌سازی گزارش']);
     expect(stored.isSimpleNote, isTrue);
+    expect(stored.isNotebookItem, isTrue);
     expect(stored.followUps, isEmpty);
 
     final preferences = await SharedPreferences.getInstance();
@@ -51,7 +52,8 @@ void main() {
     expect(stored.id, note.id);
     expect(stored.title, 'لیست خرید');
     expect(stored.checklist, ['[ ] نان', '[ ] شیر', '[ ] میوه']);
-    expect(stored.isSimpleNote, isTrue);
+    expect(stored.isSimpleNote, isFalse);
+    expect(stored.isNotebookItem, isTrue);
 
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getKeys(), {TaskStore.key});
@@ -84,8 +86,9 @@ void main() {
     expect(all.single.followUpEnabled, isTrue);
     expect(all.single.followUps, isEmpty);
     expect(all.single.dueDate, isNull);
-    expect(all.single.isSimpleNote, isFalse);
-    expect(await repository.loadNote('convert-me'), isNull);
+    expect(all.single.isSimpleNote, isTrue);
+    expect(all.single.isNotebookItem, isTrue);
+    expect(await repository.loadNote('convert-me'), isNotNull);
   });
 
 }

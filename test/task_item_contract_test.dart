@@ -3,12 +3,32 @@ import 'package:arvin/models/task.dart';
 
 void main() {
   group('unified Item contract', () {
-    test('a new item behaves as a simple note', () {
-      final task = Task(id: '1', title: 'یادداشت');
+    test('a new ordinary item is not a Notebook note', () {
+      final task = Task(id: 'task-1', title: 'کار');
 
-      expect(task.isSimpleNote, isTrue);
+      expect(task.isSimpleNote, isFalse);
+      expect(task.isNotebookItem, isFalse);
       expect(task.followUpEnabled, isFalse);
       expect(task.followUps, isEmpty);
+    });
+
+    test('an explicitly created Notebook note keeps Notebook identity with follow-up', () {
+      final task = Task(
+        id: 'note-1',
+        title: 'یادداشت',
+        notebookKind: NotebookItemKind.note,
+      );
+      task.followUpEnabled = true;
+      task.followUps = [
+        FollowUp(
+          id: 'f1',
+          dateTime: DateTime(2026, 8, 15, 10, 30),
+          note: 'پیگیری',
+        ),
+      ];
+
+      expect(task.isSimpleNote, isTrue);
+      expect(task.isNotebookItem, isTrue);
     });
 
     test('enabling follow-up changes the same item into a follow-up item', () {
