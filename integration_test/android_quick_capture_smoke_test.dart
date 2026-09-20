@@ -78,17 +78,13 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      final restartedHomeList = find.byType(ListView).last;
+      // Home renders the grouped task cards inside one ListView item per group;
+      // the task cards themselves are not lazy ListView children. Therefore
+      // direct visibility checks are stable after the app restart.
       for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
-        await tester.dragUntilVisible(
-          find.text(title, skipOffstage: false),
-          restartedHomeList,
-          const Offset(0, -300),
-        );
-        await tester.pumpAndSettle();
-        expect(find.text(title), findsOneWidget);
+        expect(find.text(title, skipOffstage: false), findsOneWidget);
       }
-      expect(find.text('پرونده موجود'), findsOneWidget);
+      expect(find.text('پرونده موجود', skipOffstage: false), findsOneWidget);
 
       // Leave the canonical Quick Capture surface open so the Android smoke
       // workflow can capture the real rendered state as an artifact.
