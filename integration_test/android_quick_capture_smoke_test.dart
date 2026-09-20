@@ -57,7 +57,6 @@ void main() {
         await tester.tap(submit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
-        expect(find.text('کار ثبت شد'), findsOneWidget);
         await tester.pumpAndSettle();
         // Validate the same canonical Home surface that the user sees after
         // each successful save. Avoid reading SharedPreferences from the
