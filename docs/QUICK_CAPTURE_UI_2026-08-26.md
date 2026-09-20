@@ -32,3 +32,19 @@ Advance roadmap feature #11 from the already-merged canonical parser into a real
 Keep PR #178 Draft until the completed Home-wired head passes exact-head `Arvin Build` and `Arvin Parallel Wave`. After merge, require post-merge main Build before promoting Quick Capture in the official scorecard.
 
 Refs #174, #92, #153.
+
+
+## Owner visual authority — final clarification (2026-09-20)
+
+The final visual authority for Quick Capture is the owner-supplied primary reference image.
+
+- Quick Capture is a large RTL Persian bottom sheet rising from the bottom, not a centered AlertDialog.
+- The sheet title is «ثبت سریع کار».
+- The primary field is prominent and the helper text is «عنوان برای ثبت کافی است».
+- The surface includes quick-choice chips/actions and the primary «ثبت کار» action.
+- «فرم کامل» is required and opens the normal full Task editor for the same canonical Task draft.
+- The secondary reference image is used only to confirm the existence/concept of «فرم کامل»; it is not the visual authority for the sheet.
+- No second Task model, repository, storage path, or duplicate Task identity may be introduced.
+- Final acceptance requires exact-head Build/Smoke and real APK visual comparison against the owner reference.
+
+This clarification supersedes any earlier wording in this document that described Quick Capture as a generic dialog.
