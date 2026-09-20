@@ -33,6 +33,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _controller = TextEditingController();
   String? _error;
   bool _saving = false;
+  DateTime? _dueDate;
+  DateTime? _reminderDate;
+  bool _followUp = false;
+  TaskPriority _priority = TaskPriority.none;
 
   @override
   void dispose() {
@@ -49,6 +53,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           createdAt.microsecondsSinceEpoch.toString(),
       createdAt: createdAt,
     );
+    if (task != null) {
+      task.dueDate = _dueDate;
+      task.reminderDate = _reminderDate;
+      task.followUpEnabled = _followUp;
+      task.followUpDate = _followUp ? (task.followUpDate ?? createdAt) : null;
+      task.priority = _priority;
+    }
 
     if (task == null) {
       setState(() => _error = 'یک متن کوتاه برای ثبت وارد کنید');
@@ -222,9 +233,24 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _quickChip('امروز', Icons.today_rounded),
-                      _quickChip('فوری', Icons.bolt_rounded),
-                      _quickChip('پیگیری', Icons.sync_rounded),
+                      _quickChip(
+                        'امروز',
+                        Icons.today_rounded,
+                        selected: _dueDate != null,
+                        onPressed: _setToday,
+                      ),
+                      _quickChip(
+                        'فوری',
+                        Icons.bolt_rounded,
+                        selected: _priority == TaskPriority.high,
+                        onPressed: _toggleUrgent,
+                      ),
+                      _quickChip(
+                        'پیگیری',
+                        Icons.sync_rounded,
+                        selected: _followUp,
+                        onPressed: _toggleFollowUp,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 18),
@@ -269,11 +295,44 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
   }
 
-  Widget _quickChip(String label, IconData icon) {
+  void _setToday() {
+    final now = widget.now?.call() ?? DateTime.now();
+    setState(() {
+      _dueDate = DateTime(now.year, now.month, now.day);
+      _error = null;
+    });
+  }
+
+  void _toggleUrgent() {
+    setState(() {
+      _priority = _priority == TaskPriority.high
+          ? TaskPriority.none
+          : TaskPriority.high;
+      _error = null;
+    });
+  }
+
+  void _toggleFollowUp() {
+    setState(() {
+      _followUp = !_followUp;
+      _error = null;
+    });
+  }
+
+  Widget _quickChip(
+    String label,
+    IconData icon, {
+    required VoidCallback onPressed,
+    bool selected = false,
+  }) {
     return ActionChip(
       label: Text(label),
       avatar: Icon(icon, size: 17),
-      onPressed: _saving ? null : () {},
+      onPressed: _saving ? null : onPressed,
+      backgroundColor: selected ? const Color(0xFFE9EAFF) : null,
+      side: BorderSide(
+        color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED),
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
