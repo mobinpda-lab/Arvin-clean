@@ -67,7 +67,18 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test integration_test/android_home_smoke_test.dart integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+          script: |
+            set -euo pipefail
+            flutter test integration_test/android_home_smoke_test.dart integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+            adb -s emulator-${EMULATOR_PORT} exec-out screencap -p > "${GITHUB_WORKSPACE}/arvin-quick-capture-android.png"
+            test -s "${GITHUB_WORKSPACE}/arvin-quick-capture-android.png"
+      - name: Upload Android visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-android-visual-evidence
+          path: arvin-quick-capture-android.png
+          if-no-files-found: warn
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
