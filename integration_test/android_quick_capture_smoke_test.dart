@@ -86,9 +86,18 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      expect(find.text('کار اول'), findsOneWidget);
-      expect(find.text('کار دوم'), findsOneWidget);
-      expect(find.text('کار سوم'), findsOneWidget);
+      final restartedHomeList = find.byType(ListView);
+      for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
+        if (restartedHomeList.evaluate().isNotEmpty) {
+          await tester.scrollUntilVisible(
+            find.text(title, skipOffstage: false),
+            300,
+            scrollable: restartedHomeList.last,
+          );
+          await tester.pumpAndSettle();
+        }
+        expect(find.text(title), findsOneWidget);
+      }
       expect(find.text('پرونده موجود'), findsOneWidget);
 
       // Leave the canonical Quick Capture surface open so the Android smoke
