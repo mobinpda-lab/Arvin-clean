@@ -58,18 +58,17 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
         await tester.pumpAndSettle();
+
         // Validate the same canonical Home surface that the user sees after
         // each successful save. Avoid reading SharedPreferences from the
         // integration-test isolate while the app isolate is writing it.
-        final homeScrollable = find.byType(Scrollable);
-        if (homeScrollable.evaluate().isNotEmpty) {
-          await tester.scrollUntilVisible(
-            find.text(title, skipOffstage: false),
-            300,
-            scrollable: homeScrollable.last,
-          );
-          await tester.pumpAndSettle();
-        }
+        final homeList = find.byType(ListView).last;
+        await tester.dragUntilVisible(
+          find.text(title, skipOffstage: false),
+          homeList,
+          const Offset(0, -300),
+        );
+        await tester.pumpAndSettle();
         expect(find.text(title), findsOneWidget);
       }
 
@@ -86,16 +85,14 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      final restartedHomeScrollable = find.byType(Scrollable);
+      final restartedHomeList = find.byType(ListView).last;
       for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
-        if (restartedHomeScrollable.evaluate().isNotEmpty) {
-          await tester.scrollUntilVisible(
-            find.text(title, skipOffstage: false),
-            300,
-            scrollable: restartedHomeScrollable.last,
-          );
-          await tester.pumpAndSettle();
-        }
+        await tester.dragUntilVisible(
+          find.text(title, skipOffstage: false),
+          restartedHomeList,
+          const Offset(0, -300),
+        );
+        await tester.pumpAndSettle();
         expect(find.text(title), findsOneWidget);
       }
       expect(find.text('پرونده موجود'), findsOneWidget);
