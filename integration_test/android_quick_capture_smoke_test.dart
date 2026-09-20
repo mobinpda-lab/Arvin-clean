@@ -62,6 +62,8 @@ void main() {
         // Validate the same canonical Home surface that the user sees after
         // each successful save. Avoid reading SharedPreferences from the
         // integration-test isolate while the app isolate is writing it.
+        // Use the concrete ListView Finder because scrollUntilVisible can
+        // incorrectly cast this finder to Scrollable in the integration tree.
         final homeList = find.byType(ListView).last;
         await tester.dragUntilVisible(
           find.text(title, skipOffstage: false),
