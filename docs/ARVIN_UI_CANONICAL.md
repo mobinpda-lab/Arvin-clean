@@ -63,6 +63,35 @@ AppShell / primary product surfaces include:
 - Help/onboarding is part of the product UI. It must not teach a superseded navigation, header action or creation flow.
 - Recovery work must reuse canonical storage/models/services and must not create a second architecture merely to satisfy a visual change.
 
+## Owner transfer contract — 2026-09-20
+
+This section records the owner's written transfer specification as a binding acceptance authority. When this section conflicts with older UI wording, this written owner specification wins.
+
+### Home
+- Header: centered low-contrast `بسم الله الرحمن الرحیم`, centered `مدیریت کارها و پیگیری آروین`, bell on physical left, menu on physical right, rounded `جست‌وجو در کارها`.
+- Remove the old summary cards `کل`, `فعال`, `انجام‌شده`, `عقب‌افتاده`. The time group `عقب‌افتاده` itself remains.
+- Directly below search, show four equal operational grouping buttons, fixed right-to-left order: `زمان`, `پروژه‌ها`, `دسته‌ها`, `برچسب‌ها`.
+- These four buttons are grouping controls, not statistic cards and contain no counters.
+- Required visual accents: time/orange-peach, projects/blue, categories/purple, labels/teal. Selected state uses outline/soft selected surface while preserving the icon's own accent.
+- Time grouping: overdue, today, future; future may expose tomorrow, this week and later. Undated work remains accessible.
+- Project/category/tag grouping must use real canonical data and must never duplicate stored Tasks merely because one Task appears in multiple groups.
+- Bottom navigation has five fixed destinations right-to-left: خانه، تقویم، دفترچه، اقدام بعدی، بیشتر. The compact + action sits above and outside task-card text.
+
+### Quick Task Entry
+- Quick Capture is a bottom panel/sheet rising from the bottom and positioned above the keyboard when the keyboard is open; it is not a centered generic AlertDialog.
+- RTL Persian title: `ثبت سریع کار`.
+- The title field receives focus automatically and `عنوان برای ثبت کافی است` is visible.
+- Quick controls include optional due date/time, project, category, tags, reminder and repeat. Due date, reminder and repeat open separate menus.
+- Primary actions: `ثبت کار` and `فرم کامل`.
+- Quick capture accepts title-only save and preserves canonical Task identity/storage.
+- Repeated capture does not close the sheet: after successful save, only title/description for the saved entry are cleared; shared selections remain; title regains focus and keyboard remains available.
+- Multiple taps must not create duplicates. Failed saves preserve text and selections.
+- Android back/close follows the owner's draft-protection rules: close an open submenu first, then keyboard, then leave an empty draft; a non-empty unsaved draft offers ثبت و خروج / خروج بدون ثبت / ادامه نوشتن.
+- `فرم کامل` transfers the same draft and selections into the normal full Task editor without a second Task or storage path.
+
+### Acceptance evidence
+For each implementation stage, the status must use only: `فقط مستند شده`, `کد نوشته شده`, `تست شده`, `روی اندروید تأیید شده`. A capability cannot be called complete without the corresponding evidence. Each stage requires exact-head commit/PR evidence, automated test evidence, and—where applicable—real Android screenshot evidence.
+
 ## Home Contract
 
 The owner-supplied Arvin dashboard reference remains the final Home visual direction. Microsoft To Do is only a secondary source of small UX inspiration and is **not** the Home structure/color authority.
