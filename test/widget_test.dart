@@ -32,15 +32,15 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-main-views')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-labels')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selector')), findsNothing);
+    expect(find.byKey(const ValueKey('home-sort-direction')), findsNothing);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
 
