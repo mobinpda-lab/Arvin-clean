@@ -933,7 +933,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       Expanded(
                         child: TextButton(
                           key: const ValueKey('task-editor-cancel'),
-                          onPressed: _requestClose,
+                          onPressed: () => Navigator.of(context).pop(),
                           style: TextButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
                             foregroundColor: _brand,
