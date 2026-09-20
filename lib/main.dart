@@ -457,86 +457,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _homeSummaryCard({
-    required String keyName,
-    required String label,
-    required int count,
-    required IconData icon,
-    required String filterValue,
-    required Color accent,
-    required Color softAccent,
-  }) {
-    final selected = _homeSummarySelected(filterValue);
-    final compactHome = MediaQuery.sizeOf(context).height < 700;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: '$label، $count مورد',
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            key: ValueKey('home-summary-$keyName'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(filterValue),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
-              decoration: BoxDecoration(
-                color: selected ? softAccent : const Color(0xFFFDFDFE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? accent : const Color(0xFFE5E7ED),
-                  width: selected ? 1.4 : 1,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0D232433),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 21, color: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    _persianNumber(count),
-                    key: ValueKey('home-summary-count-$keyName'),
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: selected ? accent : const Color(0xFF606273),
-                      fontSize: 11,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _persianNumber(int value) =>
-      persianDateFormatter.toPersianDigits('$value');
-
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
       _homeGroupMode = mode;
@@ -735,8 +655,11 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    await showDialog<void>(
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => QuickCaptureDialog(
         onFullForm: (draft) async {
           final editorContext = await wave2ProductFastTrack.prepareEditor(
