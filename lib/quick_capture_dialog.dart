@@ -336,6 +336,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           ),
         ),
       ),
+      ),
     );
   }
 
