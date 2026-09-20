@@ -57,6 +57,19 @@ void main() {
         await tester.tap(submit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
+        // Wait for the canonical persistence callback to finish before the
+        // next sequential entry. This avoids a second tap racing the async
+        // TaskStore mutation while the button is temporarily disabled.
+        for (var attempt = 0; attempt < 30; attempt += 1) {
+          await tester.pump(const Duration(milliseconds: 100));
+          if (find.text('ثبت کار').evaluate().isNotEmpty &&
+              find.text('در حال ثبت…').evaluate().isEmpty) {
+            break;
+          }
+        }
+        expect(find.text('ثبت کار'), findsOneWidget);
+        expect(find.text('در حال ثبت…'), findsNothing);
+        expect(find.text(title), findsNothing);
         await tester.pumpAndSettle();
 
       }
