@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,15 +8,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[
-'
-          '{"id":"time","title":"کار زمان‌دار","dueDate":"2030-01-01T08:00:00.000"},
-'
-          '{"id":"project","title":"کار پروژه","tags":["مهم"],"category":"توسعه"},
-'
-          '{"id":"multi","title":"کار چندبرچسبی","tags":["مهم","فوری"]}
-'
-          ']',
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 'time',
+          'title': 'کار زمان‌دار',
+          'dueDate': '2030-01-01T08:00:00.000',
+        },
+        {
+          'id': 'project',
+          'title': 'کار پروژه',
+          'tags': ['مهم'],
+          'category': 'توسعه',
+        },
+        {
+          'id': 'multi',
+          'title': 'کار چندبرچسبی',
+          'tags': ['مهم', 'فوری'],
+        },
+      ]),
     });
   });
 
