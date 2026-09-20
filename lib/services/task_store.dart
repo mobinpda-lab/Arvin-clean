@@ -74,7 +74,7 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = _asyncPreferencesOrNull();
+    final preferences = _canonicalPreferences();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
     // Validate the exact document before replacing the canonical value.
