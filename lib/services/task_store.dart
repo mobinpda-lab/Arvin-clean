@@ -55,9 +55,8 @@ class TaskStore {
     // Quick Capture can be exercised through a separate Flutter engine during
     // Android integration tests, so a stale per-engine cache must not hide a
     // task written by another engine.
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.reload();
-    final raw = preferences.getString(key);
+    final preferences = SharedPreferencesAsync();
+    final raw = await preferences.getString(key);
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -74,7 +73,7 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = await SharedPreferences.getInstance();
+    final preferences = SharedPreferencesAsync();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
     // Validate the exact document before replacing the canonical value.
@@ -83,25 +82,17 @@ class TaskStore {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    // Android SharedPreferences may acknowledge an in-memory update before
-    // the platform-backed value is observable by a subsequent engine/read.
-    // Verify the exact canonical document and retry briefly if the platform
-    // has not exposed the write yet. This avoids rapid sequential Quick
-    // Capture saves being lost without introducing a second storage path.
-    for (var attempt = 0; attempt < 3; attempt++) {
-      final saved = await preferences.setString(key, encoded);
-      if (!saved) {
-        throw StateError('Could not persist canonical task storage');
-      }
-      // The Android SharedPreferences platform bridge can expose a prior
-      // value for a short interval after setString completes. Give the
-      // platform write a small settling window before refreshing the cache.
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await preferences.reload();
-      if (preferences.getString(key) == encoded) return;
-      await Future<void>.delayed(const Duration(milliseconds: 150));
+    // The async API writes directly through the platform-backed store instead
+    // of updating a per-engine Dart cache. Verify by reading through the same
+    // uncached API; this keeps sequential Quick Capture writes on one
+    // canonical arvin.tasks path.
+    final saved = await preferences.setString(key, encoded);
+    if (!saved) {
+      throw StateError('Could not persist canonical task storage');
     }
-
-    throw StateError('Canonical task storage write could not be verified');
+    final verified = await preferences.getString(key);
+    if (verified != encoded) {
+      throw StateError('Canonical task storage write could not be verified');
+    }
   }
 }
