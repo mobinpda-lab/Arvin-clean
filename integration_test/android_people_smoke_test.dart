@@ -103,6 +103,8 @@ void main() {
       find.byKey(const ValueKey('people-name-input')),
       'علی رضایی اندروید',
     );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
 
