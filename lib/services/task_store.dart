@@ -86,10 +86,7 @@ class TaskStore {
     // of updating a per-engine Dart cache. Verify by reading through the same
     // uncached API; this keeps sequential Quick Capture writes on one
     // canonical arvin.tasks path.
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Could not persist canonical task storage');
-    }
+    await preferences.setString(key, encoded);
     final verified = await preferences.getString(key);
     if (verified != encoded) {
       throw StateError('Canonical task storage write could not be verified');
