@@ -107,9 +107,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('علی رضایی اندروید', skipOffstage: false));
-    await tester.pumpAndSettle();
 
+    // Reopen the canonical People page so the Android assertion validates
+    // persisted data through the real user path rather than relying on a
+    // potentially stale page subtree after the dialog closes.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('timeline-open-people')));
+    await tester.pumpAndSettle();
     expect(find.text('علی رضایی اندروید'), findsOneWidget);
 
     persisted = (await store.load())
