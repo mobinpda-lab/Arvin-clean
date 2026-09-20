@@ -18,6 +18,13 @@ class TaskMigrationReader {
 
   Future<List<Task>> load() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // The canonical task document can be written by another Flutter engine
+    // (for example an Android integration-test boundary). Refresh the local
+    // SharedPreferences cache before reading so callers observe the latest
+    // persisted canonical value instead of a stale in-memory snapshot.
+    await prefs.reload();
+
     return loadFrom(prefs);
   }
 
