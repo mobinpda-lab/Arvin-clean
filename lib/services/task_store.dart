@@ -51,8 +51,12 @@ class TaskStore {
   }
 
   Future<List<Task>> _loadUnlocked() async {
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(key);
+    // Use the uncached SharedPreferences API at the canonical storage
+    // boundary. Quick Capture can be exercised through a separate Flutter
+    // engine during Android integration tests, so a per-engine cache can
+    // otherwise expose an older task document after a successful write.
+    final preferences = SharedPreferencesAsync();
+    final raw = await preferences.getString(key);
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -69,7 +73,7 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = await SharedPreferences.getInstance();
+    final preferences = SharedPreferencesAsync();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
     // Validate the exact document before replacing the canonical value.
@@ -78,9 +82,6 @@ class TaskStore {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Could not persist canonical task storage');
-    }
+    await preferences.setString(key, encoded);
   }
 }
