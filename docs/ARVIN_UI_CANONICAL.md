@@ -1,5 +1,7 @@
 # Arvin Canonical UI Reference
 
+> **Newest owner authority:** `docs/ARVIN_FINAL_UI_AND_BEHAVIOR_CONTRACT.md` (2026-09-20). If any older contract, test expectation, screenshot description or UI wording conflicts with that document, the final contract wins while canonical data/storage and existing user information are preserved.
+
 ## Status
 Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
 
