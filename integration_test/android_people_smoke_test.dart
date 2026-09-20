@@ -107,6 +107,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('علی رضایی اندروید', skipOffstage: false));
+    await tester.pumpAndSettle();
 
     expect(find.text('علی رضایی اندروید'), findsOneWidget);
 
