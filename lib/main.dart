@@ -380,112 +380,52 @@ class _HomePageState extends State<HomePage> {
     HomeGroupMode.labels => 'برچسب‌ها',
   };
 
-  int get _homeAllCount =>
-      tasks.where((task) => !task.archived && !task.trashed).length;
-
-  int get _homeActiveCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && !task.completed,
-      )
-      .length;
-
-  int get _homeCompletedCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && task.completed,
-      )
-      .length;
-
-  int get _homeOverdueCount {
-    final now = DateTime.now();
-    return tasks.where((task) {
-      final due = _homeFollowUpDate(task);
-      return !task.archived &&
-          !task.trashed &&
-          !task.completed &&
-          due != null &&
-          due.isBefore(now);
-    }).length;
-  }
-
-  bool _homeSummarySelected(String filterValue) {
-    if (filterValue == 'عقب‌افتاده') {
-      return _dueScope == TaskDueScope.overdue &&
-          filter == 'کل' &&
-          _listScope == TaskListScope.all &&
-          _categoryFilter == null;
-    }
-    return _dueScope == null &&
-        _listScope == TaskListScope.all &&
-        _categoryFilter == null &&
-        filter == filterValue;
-  }
-
-  Widget _homeSummaryCard({
+  Widget _homeGroupingButton({
     required String keyName,
+    required HomeGroupMode mode,
     required String label,
-    required int count,
     required IconData icon,
-    required String filterValue,
-    required Color accent,
-    required Color softAccent,
+    required Color iconColor,
+    required Color softColor,
   }) {
-    final selected = _homeSummarySelected(filterValue);
-    final compactHome = MediaQuery.sizeOf(context).height < 700;
+    final selected = _homeGroupMode == mode;
     return Expanded(
       child: Semantics(
         button: true,
         selected: selected,
-        label: '$label، $count مورد',
+        label: label,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            key: ValueKey('home-summary-$keyName'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(filterValue),
+            key: ValueKey('home-group-$keyName'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => _selectHomeGroupMode(mode),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
+              duration: const Duration(milliseconds: 140),
+              height: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
               decoration: BoxDecoration(
-                color: selected ? softAccent : const Color(0xFFFDFDFE),
-                borderRadius: BorderRadius.circular(16),
+                color: selected ? softColor : const Color(0xFFFDFDFE),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: selected ? accent : const Color(0xFFE5E7ED),
-                  width: selected ? 1.4 : 1,
+                  color: selected ? const Color(0xFF4A4CAB) : const Color(0xFFE5E7ED),
+                  width: selected ? 1.5 : 1,
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0D232433),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 21, color: accent),
+                  Icon(icon, size: 21, color: iconColor),
                   const SizedBox(height: 4),
-                  Text(
-                    _persianNumber(count),
-                    key: ValueKey('home-summary-count-$keyName'),
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
                   Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: selected ? accent : const Color(0xFF606273),
+                      color: selected ? const Color(0xFF4A4CAB) : const Color(0xFF4A4CAB),
                       fontSize: 11,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                     ),
                   ),
                 ],
@@ -1621,6 +1561,10 @@ class _HomePageState extends State<HomePage> {
 
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
+    final latestFollowUp = task.lastFollowUp;
+    final secondaryText = latestFollowUp == null
+        ? task.description.trim()
+        : (latestFollowUp.note.trim().isEmpty ? 'پیگیری' : latestFollowUp.note.trim());
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     return Dismissible(
@@ -1716,11 +1660,11 @@ class _HomePageState extends State<HomePage> {
                               : null,
                         ),
                       ),
-                      if (task.description.isNotEmpty) ...[
+                      if (secondaryText.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          task.description,
-                          maxLines: 2,
+                          secondaryText,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF80829C),
@@ -1929,141 +1873,46 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               key: _filtersGuideKey,
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 10),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 10),
               child: Row(
-                key: const ValueKey('home-four-summary-selector'),
+                key: const ValueKey('home-grouping-buttons'),
                 children: [
-                  _homeSummaryCard(
-                    keyName: 'all',
-                    label: 'کل',
-                    count: _homeAllCount,
-                    icon: Icons.list_alt_rounded,
-                    filterValue: 'کل',
-                    accent: const Color(0xFF4A4CAB),
-                    softAccent: const Color(0xFFE9EAFF),
+                  _homeGroupingButton(
+                    keyName: 'time',
+                    mode: HomeGroupMode.time,
+                    label: 'زمان',
+                    icon: Icons.calendar_today_outlined,
+                    iconColor: const Color(0xFFE08A2E),
+                    softColor: const Color(0xFFFFF0E1),
                   ),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'active',
-                    label: 'فعال',
-                    count: _homeActiveCount,
-                    icon: Icons.play_circle_outline_rounded,
-                    filterValue: 'فعال',
-                    accent: const Color(0xFF2F80ED),
-                    softAccent: const Color(0xFFEAF4FF),
+                  _homeGroupingButton(
+                    keyName: 'projects',
+                    mode: HomeGroupMode.projects,
+                    label: 'پروژه‌ها',
+                    icon: Icons.folder_outlined,
+                    iconColor: const Color(0xFF3C82D6),
+                    softColor: const Color(0xFFE8F2FF),
                   ),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'completed',
-                    label: 'انجام‌شده',
-                    count: _homeCompletedCount,
-                    icon: Icons.check_circle_outline_rounded,
-                    filterValue: 'انجام‌شده',
-                    accent: const Color(0xFF409B51),
-                    softAccent: const Color(0xFFEAF7ED),
+                  _homeGroupingButton(
+                    keyName: 'categories',
+                    mode: HomeGroupMode.categories,
+                    label: 'دسته‌ها',
+                    icon: Icons.grid_view_rounded,
+                    iconColor: const Color(0xFF8064C9),
+                    softColor: const Color(0xFFF0E9FF),
                   ),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'overdue',
-                    label: 'عقب‌افتاده',
-                    count: _homeOverdueCount,
-                    icon: Icons.schedule_rounded,
-                    filterValue: 'عقب‌افتاده',
-                    accent: const Color(0xFFDB8B23),
-                    softAccent: const Color(0xFFFDF1E9),
+                  _homeGroupingButton(
+                    keyName: 'labels',
+                    mode: HomeGroupMode.labels,
+                    label: 'برچسب‌ها',
+                    icon: Icons.sell_outlined,
+                    iconColor: const Color(0xFF2B9B91),
+                    softColor: const Color(0xFFE4F7F3),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 1 : 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    key: const ValueKey('home-view-all'),
-                    onPressed: () => _selectHomeStat('کل'),
-                    child: const Text('مشاهده همه'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: compactHome ? 36 : 48,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Text('گروه‌بندی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<HomeGroupMode>(
-                      key: const ValueKey('home-group-mode-selector'),
-                      value: _homeGroupMode,
-                      items: HomeGroupMode.values
-                          .map(
-                            (mode) => DropdownMenuItem<HomeGroupMode>(
-                              value: mode,
-                              child: Text(_homeModeLabel(mode)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (mode) {
-                        if (mode != null) _selectHomeGroupMode(mode);
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('مرتب‌سازی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<TaskListSort>(
-                      key: const ValueKey('home-sort-selector'),
-                      value: _listSort,
-                      items: TaskListSort.values
-                          .map(
-                            (sort) => DropdownMenuItem<TaskListSort>(
-                              value: sort,
-                              child: Text(_sortLabel(sort)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (sort) {
-                        if (sort != null) _setListSort(sort);
-                      },
-                    ),
-                    IconButton(
-                      key: const ValueKey('home-sort-direction'),
-                      tooltip: _sortDescending
-                          ? 'مرتب‌سازی صعودی'
-                          : 'مرتب‌سازی نزولی',
-                      onPressed: _toggleSortDirection,
-                      icon: Icon(
-                        _sortDescending
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                      ),
-                    ),
-                    if (filter != 'کل' ||
-                        _listScope != TaskListScope.all ||
-                        _dueScope != null ||
-                        _categoryFilter != null) ...[
-                      const SizedBox(width: 4),
-                      TextButton(
-                        key: const ValueKey('home-clear-task-filter'),
-                        onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('پاک کردن فیلتر'),
-                      ),
-                    ],
-                  ],
-                ),
               ),
             ),
             Expanded(
