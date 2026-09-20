@@ -33,6 +33,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _controller = TextEditingController();
   String? _error;
   bool _saving = false;
+  int _generatedIdSequence = 0;
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _followUp = false;
@@ -47,10 +48,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   Future<void> _submit() async {
     if (_saving) return;
     final createdAt = widget.now?.call() ?? DateTime.now();
+    final taskId = widget.idFactory?.call() ?? _nextGeneratedId(createdAt);
     final task = widget.service.capture(
       _controller.text,
-      id: widget.idFactory?.call() ??
-          createdAt.microsecondsSinceEpoch.toString(),
+      id: taskId,
       createdAt: createdAt,
     );
     if (task != null) {
@@ -93,10 +94,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   Future<void> _openFullForm() async {
     if (_saving) return;
     final createdAt = widget.now?.call() ?? DateTime.now();
+    final taskId = widget.idFactory?.call() ?? _nextGeneratedId(createdAt);
     final draft = widget.service.capture(
       _controller.text,
-      id: widget.idFactory?.call() ??
-          createdAt.microsecondsSinceEpoch.toString(),
+      id: taskId,
       createdAt: createdAt,
     );
     if (draft == null) {
@@ -293,6 +294,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         ),
       ),
     );
+  }
+
+  String _nextGeneratedId(DateTime createdAt) {
+    _generatedIdSequence += 1;
+    return '${createdAt.microsecondsSinceEpoch}-$_generatedIdSequence';
   }
 
   void _setToday() {
