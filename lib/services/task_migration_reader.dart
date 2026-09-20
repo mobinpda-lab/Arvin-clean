@@ -17,19 +17,18 @@ class TaskMigrationReader {
   static const String legacyKey = 'arvin.tasks';
 
   Future<List<Task>> load() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // The canonical task document can be written by another Flutter engine
-    // (for example an Android integration-test boundary). Refresh the local
-    // SharedPreferences cache before reading so callers observe the latest
-    // persisted canonical value instead of a stale in-memory snapshot.
-    await prefs.reload();
-
-    return loadFrom(prefs);
+    // Read directly from the platform-backed API so integration tests and
+    // other Flutter engines cannot observe a stale SharedPreferences cache.
+    final prefs = SharedPreferencesAsync();
+    final raw = await prefs.getString(legacyKey);
+    return loadFromRaw(raw);
   }
 
   List<Task> loadFrom(SharedPreferences prefs) {
-    final raw = prefs.getString(legacyKey);
+    return loadFromRaw(prefs.getString(legacyKey));
+  }
+
+  List<Task> loadFromRaw(String? raw) {
     if (raw == null || raw.trim().isEmpty) return <Task>[];
     return List<Task>.of(adapter.decodeLegacyList(raw));
   }
