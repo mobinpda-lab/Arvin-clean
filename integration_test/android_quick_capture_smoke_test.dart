@@ -78,6 +78,15 @@ void main() {
         expect(inputField.autofocus, isTrue);
         expect(FocusManager.instance.primaryFocus, isNotNull);
 
+        // Verify the canonical storage after every sequential save on Android.
+        // This distinguishes a persistence race from a Home rendering problem.
+        final persisted = await TaskStore().load();
+        expect(
+          persisted.any((task) => task.title == title),
+          isTrue,
+          reason: 'Canonical TaskStore did not persist: $title',
+        );
+
         await tester.pumpAndSettle();
       }
 
