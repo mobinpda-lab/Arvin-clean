@@ -1,7 +1,9 @@
 # Arvin Canonical UI Reference
 
 ## Status
-Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
+Accepted product/UI reference.
+
+**آخرین مرجع اجرایی محصول:** `docs/ARVIN_FINAL_UI_AND_BEHAVIOR_CONTRACT.md` (۲۰۲۶-۰۹-۲۰). در تعارض مستقیم UI/رفتار، این سند مقدم است؛ معماری و داده‌های موجود باید حفظ شوند. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
 
 This file is the **index of binding UI contracts**, not a replacement for their detailed acceptance criteria. A generic Material implementation is not acceptable when a more specific owner-approved surface contract exists.
 
