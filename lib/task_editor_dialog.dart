@@ -252,7 +252,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
-    return a.frequency == b.frequency && a.interval == b.interval;
+    return a.frequency == b.frequency &&
+        a.interval == b.interval &&
+        listEquals(a.weekdays, b.weekdays) &&
+        a.customUnit == b.customUnit;
   }
 
   bool get _hasChanges {
@@ -389,13 +392,16 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     TaskPriority.high => 'زیاد',
   };
 
-  String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
-    RecurrenceFrequency.daily => 'روزانه',
-    RecurrenceFrequency.weekly => 'هفتگی',
-    RecurrenceFrequency.monthly => 'ماهانه',
-    RecurrenceFrequency.yearly => 'سالانه',
-    RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
-  };
+  String _recurrenceLabel(RecurrenceFrequency frequency) =>
+      switch (frequency) {
+        RecurrenceFrequency.daily => 'روزانه',
+        RecurrenceFrequency.weekly => 'هفتگی',
+        RecurrenceFrequency.weeklyDays => 'روزهای هفته',
+        RecurrenceFrequency.monthly => 'ماهانه',
+        RecurrenceFrequency.yearly => 'سالانه',
+        RecurrenceFrequency.custom => 'سفارشی',
+        RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
+      };
 
   Widget _dateTimeButton({
     required Key key,
@@ -745,6 +751,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 : RecurrenceRule(
                                     frequency: frequency,
                                     interval: _recurrence?.interval ?? 1,
+                                    weekdays: _recurrence?.weekdays ?? const [],
+                                    customUnit: _recurrence?.customUnit ??
+                                        RecurrenceCustomUnit.days,
                                   );
                           });
                         },
@@ -924,7 +933,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       Expanded(
                         child: TextButton(
                           key: const ValueKey('task-editor-cancel'),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: _requestClose,
                           style: TextButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
                             foregroundColor: _brand,
