@@ -2,99 +2,74 @@
 
 ## Primary Rule
 
-مرجع حاکم فرایند `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 است. GitHub تنها Source of Truth عملیاتی است؛ این فایل فقط checkpoint فشرده برای ادامه سریع است.
+مرجع حاکم محصول از ۲۰ شهریور ۱۴۰۵ به بعد، «گزارش انتقال کامل پروژه آروین» ارائه‌شده توسط مالک پروژه در گفت‌وگو است. این تصمیم باید در قراردادهای رسمی پروژه، کد، تست‌ها و پذیرش‌ها رعایت شود. GitHub تنها Source of Truth اجرایی است؛ این فایل checkpoint فشرده برای ادامه سریع است.
+
+## Owner Product Contract — 2026-09-20
+
+این قرارداد، در صورت تعارض با اسناد قدیمی‌تر، تصمیم جدید مالک است. خلاصه الزامات غیرقابل‌چشم‌پوشی:
+
+- محصول: آروین، Android/Flutter، کاملاً فارسی و RTL، محصول واقعی و قابل انتشار.
+- مرجع بصری مشترک: VazirHarf v34.003؛ رنگ اصلی #4A4CAB؛ پس‌زمینه #F8F8FB؛ سطح کارت #FDFDFE؛ مرز #E5E7ED؛ متن اصلی #232433؛ متن ثانویه #80829C؛ گوشه‌های ۱۴–۱۸px و لمس ۴۴–۴۸dp.
+- Home: کپسول «بسم الله الرحمن الرحیم»، عنوان «مدیریت کارها و پیگیری آروین»، جست‌وجو، و چهار گروه عملیاتی ثابت از راست به چپ: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها. کارت‌های آماری قدیمی حذف شوند؛ «عقب‌افتاده» فقط گروه زمانی باقی بماند.
+- زمان بر اساس تاریخ انجام واقعی گروه‌بندی شود؛ پیگیری/یادآوری جای موعد انجام را نگیرد؛ داده و شمارنده‌ها واقعی باشند.
+- پروژه، دسته و برچسب مستقل بمانند؛ نمایش یک کار در چند گروه نباید داده یا ذخیره‌سازی را تکثیر کند.
+- کارت کار: وضعیت واقعی، موعد، پروژه/دسته و پیش‌نمایش یک‌خطی؛ آخرین پیگیری در صورت وجود مقدم بر توضیحات است.
+- ناوبری پایین فقط پنج مقصد ثابت دارد: خانه، تقویم، دفترچه، اقدام بعدی، بیشتر.
+- Quick Capture یک پنل پایین است و ثبت پیاپی قطعی است: هر کار شناسه مستقل در ذخیره‌سازی اصلی، پنل باز، فقط عنوان/توضیحات همان کار پاک، فوکوس و صفحه‌کلید حفظ، انتخاب‌های مشترک حفظ، بدون ثبت تکراری.
+- خروج از Quick Capture: منوی فرعی ابتدا بسته شود؛ با صفحه‌کلید رفتار استاندارد Android؛ پیش‌نویس خالی → خانه؛ پیش‌نویس تغییرکرده → «ثبت و خروج»، «خروج بدون ثبت»، «ادامه نوشتن». «فرم کامل» همان پیش‌نویس را منتقل کند و مسیر ذخیره‌سازی موازی نسازد.
+- فرم کامل، پیگیری‌ها، دفترچه، چک‌لیست، تقویم، اقدام بعدی، بیشتر، تنظیمات، Swipe، پشتیبان‌گیری و داده‌ها فقط با قابلیت واقعی و مدل/سرویس canonical پروژه اجرا شوند.
+- مدل‌ها و ذخیره‌سازی اصلی Task، FollowUp، Project، Category، Tag، Notebook، TaskStore و مخازن مرتبط حفظ شوند. برای ظاهر جدید پایگاه داده یا مسیر ذخیره‌سازی موازی ساخته نشود.
+- مهاجرت داده باید ایمن، برگشت‌پذیر و تست‌شده باشد.
+- هر قابلیت فقط با یکی از این وضعیت‌ها گزارش شود: «فقط مستند شده / کد نوشته شده / تست شده / روی اندروید تأیید شده».
+- پذیرش نهایی بدون شواهد مجاز نیست: Build، analyze، تست‌های واحد/Widget/Integration، تست Android واقعی/شبیه‌ساز معتبر، اسکرین‌شات واقعی و در پذیرش نهایی ویدیوی جریان‌های اصلی باید قابل استناد باشند.
+- جریان‌های ویدیویی پذیرش نهایی: سه ثبت پیاپی، خروج با Back، ماندگاری پس از راه‌اندازی مجدد، چهار گروه‌بندی Home، افزودن پیگیری با حفظ تاریخچه، ایجاد/ذخیره/بازکردن یادداشت و چک‌لیست.
+- تصاویر مرجع، مرجع چیدمان و ظاهرند؛ داده‌های نمونه نباید ثابت شوند. متن و رفتار صریح مالک بر جزئیات تصادفی تصویر مقدم است.
+- مراحل توسعه: Home/گروه‌بندی → کارت/جست‌وجو/Swipe → Quick Capture/فرم کامل → جزئیات/پیگیری → دفترچه → تقویم/اقدام بعدی/بیشتر/تنظیمات → مهاجرت/تست/Android/تطبیق بصری. پس از هر مرحله commit مستقل و قابل بررسی.
+- قبل از هر تغییر: شاخه، PR، commit، Issue، workflow و کد canonical زنده بررسی شود. Merge فقط با exact-head evidence و سپس اعتبارسنجی main.
+- بدون مدرک، قابلیت تکمیل‌شده اعلام نشود.
 
 ## Start Here
 
 در هر گفتگوی جدید یا Trigger «ادامه آروین»:
 
 1. `main`، PRهای باز، Issueهای فعال، Head SHAها و workflowهای همان Head را تازه از GitHub بخوان.
-2. این Handoff و `docs/PROJECT_STATUS.md` و scorecardها را با GitHub تطبیق بده؛ GitHub مقدم است.
+2. این Handoff و مستندات وضعیت را با GitHub تطبیق بده؛ GitHub مقدم است.
 3. قبل از foundation/model/storage جدید، کد canonical موجود را بخوان.
 4. کوچک‌ترین Gap واقعی و مستقل را انتخاب کن؛ Laneهای غیرمسدود را موازی ادامه بده.
 5. Merge فقط با exact-head evidence؛ سپس `main` را دوباره Build + Device validate کن.
 
-## Live Checkpoint — 2026-08-27
+## Current Product Gate
 
-Snapshot مبنا:
+PR #1177 با head:
+`e7e55ea3107a3a89bc1ec83ca0eeb5139ba7facc`
 
-`bec99214534a8c9972f9e3145dde792cecf2f9e3`
+Build همین head:
+- Quality: موفق
+- Debug APK: موفق
+- Release APK: موفق
 
-این main نتیجه Merge PR #245 است.
+Device Smoke مربوط به همین head:
+- People: موفق
+- Home/Quick Capture: اجرای قبلی لغو شد و نتیجه پذیرش ندارد؛ باید دوباره اجرا و نتیجه واقعی ثبت شود.
+- اسکرین‌شات باید همراه اجرای موفق Smoke قابل استناد باشد.
 
-### Verified recent merges
-
-- #243 — deterministic `device/**` exact-ref Device Smoke lane
-- #242 — Persian Semantic Search v1 on existing `TaskSearchService`
-- #247 — Build matrix: shared quality + parallel release/debug APK jobs
-- #245 — canonical Privacy / Encryption boundary audit
-
-### Verified evidence
-
-- #242 head: Parallel #751 / Build #826 / Device #66 ✅
-- post-#242 main: Build #829 / Device #69 ✅
-- #247 head: Parallel #753 / Build #831 / Device #71 ✅
-- post-#247 main: Build #832 / Device #72 ✅
-- #245 head: Parallel #754 / Build #834 / Device #74 ✅
-- post-#245 main: Build #835 + Device Smoke were triggered after merge; re-read live status before claiming post-merge success.
-
-## Official Scores
-
-- Project A-H: **70.0%**
-- Extension: **25.0% overall**
-- Wave X1: **59.4%**
-
-No score may increase from unmerged work. Project gates remain capped at 70 until their physical-device/E2E acceptance gaps are actually closed.
-
-## Active Parallel Lanes
-
-### 1. Main health
-
-Close post-#245 Build #835 + Device Smoke on exact current main.
-
-### 2. Documentation — PR #227
-
-This PR has been rebuilt on the post-#245 main. It must validate the scorecards via Arvin Progress Score and pass the normal exact-head Fast Lane before merge. It credits only merged evidence.
-
-### 3. Security implementation — Issue #248
-
-Next narrow slice after audit acceptance:
-
-`canonical validated backup bytes → versioned authenticated encrypted envelope → SAF / Cloud`
-
-Restore:
-
-`SAF / Cloud → detect envelope → authenticate/decrypt → existing backup validation → restore candidate`
-
-Required:
-- legacy plaintext v1 read compatibility
-- authenticated corruption/tamper failure before mutation
-- recoverable cross-device key/passphrase design
-- same SAF/cloud byte path
-- no credential serialization
-
-Forbidden in this slice:
-- local `TaskStore` encryption migration
-- multi-device Sync implementation
-- second backup repository/database/path
-- hard-coded or device-only recovery assumption
+تا تکمیل این gate، PR نباید به‌عنوان پذیرش نهایی یا Merge نهایی اعلام شود.
 
 ## Product/Foundation Invariants
 
 - Persian RTL Flutter app.
 - Canonical foundation: `Task / Unified Item → Reminder → FollowUps[] → History`.
-- Home/Search/Today/Timeline/FollowUp/Calendar/Backup/Settings/Widget/PDF must converge on shared existing foundations.
-- Semantic Search remains deterministic/local v1; no required embeddings/network/index/database/search UI second path.
-- Backup SAF and cloud must continue sharing one canonical byte representation.
+- Home/Search/Today/Timeline/FollowUp/Calendar/Backup/Settings/Widget/PDF باید روی foundationهای موجود همگرا باشند.
+- هیچ مسیر ذخیره‌سازی یا دیتابیس موازی فقط برای ظاهر جدید ساخته نشود.
+- داده‌های قبلی، تاریخچه پیگیری، پروژه‌ها، دسته‌ها، برچسب‌ها، دفترچه، بایگانی، سطل زباله، تکرار، یادآوری و پشتیبان‌گیری حفظ شوند.
 
 ## Fast Lane Contract
 
-- Draft PR → Parallel Wave; heavy Build/Device skip.
+- Draft PR → Parallel Wave؛ heavy Build/Device skip.
 - Ready PR → Build + Device.
-- Build → one `quality` job then independent parallel `apk (release)` / `apk (debug)` matrix jobs.
-- `device/**` provides deterministic exact-ref smoke fallback for automation/API delivery.
-- Do not create exact-ref fallback runs when normal PR event evidence already arrived unless needed; avoid duplicate CI.
-- Exact-head SHA must be rechecked immediately before merge.
+- Build → quality سپس APK debug/release.
+- Exact-head SHA باید بلافاصله قبل از merge دوباره بررسی شود.
+- بعد از merge، main باید دوباره Build + Device validate شود.
 
 ## Continuation Trigger
 
