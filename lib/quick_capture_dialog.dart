@@ -160,8 +160,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           color: const Color(0xFFFDFDFE),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(
+            top: false,
+            child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               20,
               12,
@@ -252,6 +252,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   label: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                 ),
               ],
+            ),
             ),
           ),
         ),
