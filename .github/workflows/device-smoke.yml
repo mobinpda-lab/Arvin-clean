@@ -88,6 +88,13 @@ jobs:
           script: |
             set -euo pipefail
             flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_home_visual_gate_test.dart -d emulator-${EMULATOR_PORT}
+      - name: Verify Home visual evidence files
+        if: always()
+        run: |
+          set -euo pipefail
+          for f in arvin-home-time.png arvin-home-projects.png arvin-home-categories.png arvin-home-labels.png; do
+            test -s "$f"
+          done
       - name: Upload Android visual evidence
         if: always()
         uses: actions/upload-artifact@v4
