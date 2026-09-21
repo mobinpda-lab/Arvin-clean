@@ -138,6 +138,14 @@ class TaskStore {
     await _writeRaw(encoded);
     if (Platform.isAndroid) {
       _androidSnapshot = List<Task>.of(tasks);
+      // Re-read the native value after the write acknowledgement. This closes
+      // the Android backend hand-off window before the next mutation starts.
+      for (var attempt = 0; attempt < 5; attempt += 1) {
+        final persisted = await _readRaw();
+        if (persisted == encoded) return;
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      throw StateError('Canonical task storage write was not stable after verification');
     }
   }
 }
