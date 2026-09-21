@@ -66,7 +66,12 @@ class TaskStore {
     if (!saved) {
       throw StateError('Canonical task storage write could not be verified');
     }
-    await prefs.reload();
+
+    // Do not call reload() immediately after setString(). On Android,
+    // SharedPreferences.setString() updates the in-process cache and the
+    // native store asynchronously; an immediate reload can observe the
+    // previous disk value and roll the cache back. The write result plus the
+    // in-memory value are the correct acknowledgement for this API.
     if (prefs.getString(key) != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
