@@ -31,12 +31,14 @@ export const gregorianToJalali = (gy: number, gm: number, gd: number): [number, 
   return [jy, jm, jDayNo + 1];
 };
 
-const convertDateText = (text: string): string => text.replace(/((?:19|20)\\d{2})[-/]([01]?\\d)[-/]([0-3]?\\d)\\b/g, (full, ys, ms, ds) => {
+
+export const convertDateText = (text: string): string => text.replace(/((?:19|20)\\d{2})[-/]([01]?\\d)[-/]([0-3]?\\d)\\b/g, (full, ys, ms, ds) => {
   const y = Number(ys), m = Number(ms), d = Number(ds);
   if (m < 1 || m > 12 || d < 1 || d > 31) return full;
   const [jy, jm, jd] = gregorianToJalali(y, m, d);
   return toPersianDigits(jy + '/' + String(jm).padStart(2, '0') + '/' + String(jd).padStart(2, '0'));
 });
+
 
 export default function(_context: unknown) {
   return {
