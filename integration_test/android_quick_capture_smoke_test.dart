@@ -38,6 +38,35 @@ void main() {
         await tester.pumpAndSettle();
       }
 
+      // Keep Home and Quick Capture in the same Flutter engine. Running two
+      // integration-test entrypoints in one flutter test command still
+      // creates separate app/test processes, which can expose SharedPreferences
+      // cache boundaries. This combined smoke first proves the canonical Home
+      // path, then exercises sequential Quick Capture against the same engine.
+      expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+      expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey('quick-capture-input')),
+        'تست واقعی اندروید',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
+      final titleField = find.byKey(const ValueKey('task-editor-title'));
+      final descriptionField = find.byKey(const ValueKey('task-editor-description'));
+      await tester.enterText(titleField, 'تست واقعی اندروید');
+      await tester.enterText(descriptionField, 'ثبت از مسیر Home روی Emulator');
+      final homeSaveButton = find.byKey(const ValueKey('task-editor-save'));
+      await tester.ensureVisible(homeSaveButton);
+      await tester.tap(homeSaveButton);
+      await tester.pumpAndSettle();
+      expect(find.text('تست واقعی اندروید'), findsOneWidget);
+
       await tester.tap(find.byKey(const ValueKey('home-menu')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
