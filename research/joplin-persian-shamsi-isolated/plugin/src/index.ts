@@ -1,10 +1,11 @@
 import joplin from 'api';
 import { ContentScriptType, SettingItemType, ToolbarButtonLocation } from 'api/types';
 
-export const EDITOR_FONT_SETTING = 'editorFontFamily';
-export const EDITOR_FONT_COMMAND = 'joplin-persian-shamsi-set-editor-font';
-export const VAZIRHARF_FONT = '"VazirHarf", Tahoma, sans-serif';
-export const DEFAULT_EDITOR_FONT = 'default';
+import {
+  DEFAULT_EDITOR_FONT,
+  EDITOR_FONT_COMMAND,
+  EDITOR_FONT_SETTING,
+} from './editorFont';
 
 joplin.plugins.register({
   onStart: async function() {
