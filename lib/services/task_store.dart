@@ -10,11 +10,11 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  // Use the uncached SharedPreferences API for the canonical document.
-  // Quick Capture can write from the app isolate while integration tests
-  // inspect the same Android storage from another SharedPreferences instance;
-  // the async API avoids a stale per-instance cache.
-  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+  // Android production uses the uncached async API so another app/test
+  // instance cannot observe a stale per-instance cache. Pure Flutter tests
+  // do not register the async platform implementation, so they fall back to
+  // the legacy mockable API without changing the Android production path.
+  SharedPreferencesAsync? _asyncPreferences;
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -50,13 +50,46 @@ class TaskStore {
     return const [];
   }
 
-  Future<String?> _readRaw() => _preferences.getString(key);
+  SharedPreferencesAsync? _createAsyncPreferences() {
+    try {
+      return SharedPreferencesAsync();
+    } on StateError {
+      return null;
+    }
+  }
+
+  Future<String?> _readRaw() async {
+    final asyncPreferences =
+        _asyncPreferences ??= _createAsyncPreferences();
+    if (asyncPreferences != null) {
+      return asyncPreferences.getString(key);
+    }
+
+    final legacyPreferences = await SharedPreferences.getInstance();
+    await legacyPreferences.reload();
+    return legacyPreferences.getString(key);
+  }
 
   Future<void> _writeRaw(String encoded) async {
-    await _preferences.setString(key, encoded);
+    final asyncPreferences =
+        _asyncPreferences ??= _createAsyncPreferences();
+    if (asyncPreferences != null) {
+      await asyncPreferences.setString(key, encoded);
 
-    final acknowledged = await _preferences.getString(key);
-    if (acknowledged != encoded) {
+      final acknowledged = await asyncPreferences.getString(key);
+      if (acknowledged != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+      return;
+    }
+
+    final legacyPreferences = await SharedPreferences.getInstance();
+    final saved = await legacyPreferences.setString(key, encoded);
+    if (!saved) {
+      throw StateError('Canonical task storage write could not be verified');
+    }
+    await legacyPreferences.reload();
+    if (legacyPreferences.getString(key) != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
   }
