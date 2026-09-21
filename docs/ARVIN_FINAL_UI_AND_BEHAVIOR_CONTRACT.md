@@ -103,3 +103,87 @@ Final report includes branch, final SHA, PR link, changed files, exact change su
 11. Final debug/release build and PR delivery
 
 This is a completion contract, not a mock, proposal or disabled implementation.
+
+
+## 24. Architecture and storage migration contract
+The product architecture must evolve incrementally; a rewrite is forbidden.
+
+Target dependency direction:
+UI
+→ Application Services
+→ Repository Layer
+→ DAO Layer
+→ SQLite
+→ Drift ORM
+
+The current mainline implementation is still based on the canonical SharedPreferences-backed `TaskStore`/migration boundary. Therefore Drift is a **controlled migration target**, not a parallel database. During migration:
+- keep the existing canonical Task/FollowUp/Project/Category/Tag/Notebook semantics and IDs;
+- add Drift only as the replacement persistence layer through a repository/DAO boundary;
+- do not create a second permanent Task model, repository, database, or storage key;
+- migrate incrementally: introduce Drift → repository/DAO boundary → lossless migration → verify → switch canonical writes/reads → remove legacy persistence only after acceptance;
+- no data loss, ID changes, duplicate records, or silent field loss are permitted;
+- existing archive, trash, recurrence, reminder, checklist, category, tags, projects, notes and FollowUp history must survive;
+- any migration must have explicit backward-compatibility tests, record-count verification and restore validation;
+- if the live code has already completed a migration step, preserve it and continue from its exact verified state rather than repeating or replacing it.
+
+Required core tables/entities for the target relational model:
+- Tasks: id, title, description, status, priority, dueDate, reminder, recurrence, projectId, categoryId, createdAt, updatedAt;
+- FollowUps: id, taskId, text, createdAt/dateTime;
+- Projects: id, title, color;
+- Categories: id, title, icon, color;
+- Tags: id, title, color;
+- TaskTags: taskId, tagId.
+
+These fields are a target mapping, not permission to discard existing canonical fields. Any existing fields without a direct column in the simplified target list must remain represented losslessly.
+
+## 25. Migration and backup acceptance
+Migration service behavior:
+SharedPreferences/canonical legacy data → read → validate → insert into Drift/SQLite → verify counts and identities → activate the new canonical path.
+
+Acceptance:
+- no source record is deleted before successful verification;
+- IDs remain stable;
+- duplicates are rejected/detected;
+- previous backup remains restorable;
+- migration can be retried safely;
+- failure leaves the original usable;
+- Backup remains a product-level export/import service and is not coupled to one database implementation;
+- JSON backup/restore must preserve canonical data regardless of the underlying persistence engine.
+
+## 26. Development and GitHub execution contract
+Each implementation slice follows:
+Issue → branch → small change → commit → CI → PR → merge → post-merge main validation.
+
+No direct main development is allowed. Commits must be small, measurable and reversible. Before each slice, re-check the exact main SHA, open PRs, relevant Issue, branch head, changed files and latest Actions evidence. Never reuse an old green result as evidence for a newer commit.
+
+A five-minute development loop is the preferred operating rhythm:
+0–1 minute: branch/commit/errors;
+1–3: one isolated change;
+3–4: analyze/test;
+4–5: commit/report/evidence.
+
+Existing CI must be reused before creating a new workflow. Required quality commands at the final acceptance head remain those in section 21.
+
+## 27. Required per-stage report
+Every implementation stage must report:
+- branch;
+- commit SHA;
+- changed files;
+- reason for each change;
+- test results;
+- relevant GitHub Actions evidence;
+- Android screenshot/evidence when the stage is user-visible;
+- remaining problems and limitations;
+- capability status: مستندشده / پیاده‌سازی‌شده / دارای آزمون / تأییدشده روی Android / کامل.
+
+No capability may be reported as «کامل» until its code, tests, build and same-commit Android evidence are available.
+
+## 28. Final product priorities
+When trade-offs are required, preserve in this order:
+1. user data and recoverability;
+2. stability and correctness;
+3. canonical architecture and storage convergence;
+4. approved UX/UI;
+5. additional capabilities.
+
+This contract is intentionally cumulative: later sections clarify execution and storage details and do not remove any earlier UI, behavior, testing or evidence requirement.
