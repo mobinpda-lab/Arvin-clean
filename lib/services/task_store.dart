@@ -10,11 +10,11 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  // Android production uses the uncached async API so another app/test
-  // instance cannot observe a stale per-instance cache. Pure Flutter tests
-  // do not register the async platform implementation, so they fall back to
-  // the legacy mockable API without changing the Android production path.
-  SharedPreferencesAsync? _asyncPreferences;
+  // Android production uses one uncached async backend instance across all
+  // TaskStore objects. The async API itself does not keep a per-instance value
+  // cache, while sharing the backend instance makes the canonical persistence
+  // boundary explicit for sequential app/test instances.
+  static SharedPreferencesAsync? _asyncPreferences;
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -50,7 +50,7 @@ class TaskStore {
     return const [];
   }
 
-  SharedPreferencesAsync? _createAsyncPreferences() {
+  static SharedPreferencesAsync? _createAsyncPreferences() {
     try {
       return SharedPreferencesAsync();
     } on StateError {
