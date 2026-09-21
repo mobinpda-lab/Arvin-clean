@@ -37,8 +37,15 @@ research/
 
 - Issue: #1244
 - Branch: `research/joplin-persian-shamsi-isolated`
-- وضعیت فعلی: فقط رزرو فضای مستقل و ثبت قرارداد جداسازی.
+- وضعیت فعلی: پیاده‌سازی کنترل فونت و مسیر native ویرایشگر در حال اعتبارسنجی Build/Android است.
+- Issue فعال: #1255
 - هیچ کد Joplin هنوز وارد محصول Arvin نشده است.
+
+## کنترل فونت ویرایشگر
+
+بررسی API رسمی Joplin نشان داد که `CodeMirrorControl` دسترسی مستقیم به `CodeMirror 6 EditorView` و امکان ثبت/اجرای command و افزودن extension را می‌دهد، اما API رسمی افزونه نقطه‌ای برای افزودن مستقیم گزینه به **فهرست فونت داخلی Joplin** ارائه نمی‌کند. بنابراین این پروژه از مسیر رسمی افزونه استفاده می‌کند: یک تنظیم انتخابی با گزینه‌های `Joplin default` و `VazirHarf` و یک فرمان CodeMirror 6 که مستقیماً روی `CodeMirrorControl.editor` اعمال می‌شود. روی Android نیز `EditorToolbar` و `joplin.commands` از مسیر رسمی افزونه پشتیبانی می‌شوند.
+
+در نتیجه راه‌حل CSS-only حذف شده است؛ CSS فقط فایل فونت را معرفی می‌کند و تغییر واقعی `fontFamily` توسط افزونه CodeMirror 6 انجام می‌شود.
 
 ## مرجع فنی
 
