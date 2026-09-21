@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 import '../models/task.dart';
 import 'task_storage_lock.dart';
@@ -11,17 +10,15 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  // Use the uncached async API, but explicitly select Android's legacy
-  // SharedPreferences backend so it reads/writes the same native store as
-  // the existing migration writer. The default async backend is DataStore
-  // and would create a separate storage source for the canonical key.
-  static const SharedPreferencesAsyncAndroidOptions _androidOptions =
-      SharedPreferencesAsyncAndroidOptions(
-        backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
-      );
+  // Keep the canonical TaskStore on the same Android SharedPreferences
+  // backend used by the migration boundary and existing app data. Reload
+  // before every read so Android integration tests and multiple store
+  // instances observe the latest native value instead of a stale cache.
+  SharedPreferences? _preferences;
 
-  SharedPreferencesAsync? _asyncPreferences;
-  SharedPreferences? _legacyPreferences;
+  Future<SharedPreferences> _prefs() async {
+    return _preferences ??= await SharedPreferences.getInstance();
+  }
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -58,38 +55,20 @@ class TaskStore {
   }
 
   Future<String?> _readRaw() async {
-    try {
-      final asyncPrefs = _asyncPreferences ??= SharedPreferencesAsync(
-        options: _androidOptions,
-      );
-      return await asyncPrefs.getString(key);
-    } on StateError {
-      final legacy =
-          _legacyPreferences ??= await SharedPreferences.getInstance();
-      await legacy.reload();
-      return legacy.getString(key);
-    }
+    final prefs = await _prefs();
+    await prefs.reload();
+    return prefs.getString(key);
   }
 
   Future<void> _writeRaw(String encoded) async {
-    try {
-      final asyncPrefs = _asyncPreferences ??= SharedPreferencesAsync(
-        options: _androidOptions,
-      );
-      await asyncPrefs.setString(key, encoded);
-      final stored = await asyncPrefs.getString(key);
-      if (stored != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
-      return;
-    } on StateError {
-      final legacy =
-          _legacyPreferences ??= await SharedPreferences.getInstance();
-      await legacy.setString(key, encoded);
-      await legacy.reload();
-      if (legacy.getString(key) != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
+    final prefs = await _prefs();
+    final saved = await prefs.setString(key, encoded);
+    if (!saved) {
+      throw StateError('Canonical task storage write could not be verified');
+    }
+    await prefs.reload();
+    if (prefs.getString(key) != encoded) {
+      throw StateError('Canonical task storage write could not be verified');
     }
   }
 
