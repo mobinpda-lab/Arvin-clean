@@ -10,15 +10,11 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  // Keep the canonical TaskStore on the same Android SharedPreferences
-  // backend used by the migration boundary and existing app data. Reload
-  // before every read so Android integration tests and multiple store
-  // instances observe the latest native value instead of a stale cache.
-  SharedPreferences? _preferences;
-
-  Future<SharedPreferences> _prefs() async {
-    return _preferences ??= await SharedPreferences.getInstance();
-  }
+  // Use the uncached SharedPreferences API for the canonical document.
+  // Quick Capture can write from the app isolate while integration tests
+  // inspect the same Android storage from another SharedPreferences instance;
+  // the async API avoids a stale per-instance cache.
+  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -54,25 +50,16 @@ class TaskStore {
     return const [];
   }
 
-  Future<String?> _readRaw() async {
-    final prefs = await _prefs();
-    await prefs.reload();
-    return prefs.getString(key);
-  }
+  Future<String?> _readRaw() => _preferences.getString(key);
 
   Future<void> _writeRaw(String encoded) async {
-    final prefs = await _prefs();
-    final saved = await prefs.setString(key, encoded);
+    final saved = await _preferences.setString(key, encoded);
     if (!saved) {
       throw StateError('Canonical task storage write could not be verified');
     }
 
-    // Do not call reload() immediately after setString(). On Android,
-    // SharedPreferences.setString() updates the in-process cache and the
-    // native store asynchronously; an immediate reload can observe the
-    // previous disk value and roll the cache back. The write result plus the
-    // in-memory value are the correct acknowledgement for this API.
-    if (prefs.getString(key) != encoded) {
+    final acknowledged = await _preferences.getString(key);
+    if (acknowledged != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
   }
