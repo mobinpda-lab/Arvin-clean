@@ -1607,6 +1607,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _taskCard(Task task) {
     final dueDate = _homeDueDate(task);
+    final latestFollowUpDate = task.lastFollowUp?.dateTime;
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     return Dismissible(
@@ -1780,7 +1781,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
-                      if (followUpDate != null) ...[
+                      if (latestFollowUpDate != null) ...[
                         const SizedBox(height: 5),
                         Row(
                           children: [
@@ -1792,7 +1793,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
+                                'پیگیری: ${_date(latestFollowUpDate)} • ${_time(latestFollowUpDate)}',
                                 style: const TextStyle(
                                   color: Color(0xFF80829C),
                                   fontSize: 10,
