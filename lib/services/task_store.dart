@@ -14,7 +14,8 @@ class TaskStore {
   // Android engine instances on the same platform-backed source of truth.
   // The legacy API remains a test fallback because the current Flutter test
   // binding does not register SharedPreferencesAsyncPlatform automatically.
-  SharedPreferencesAsync? _preferences;
+  static final SharedPreferencesAsync _sharedPreferences =
+      SharedPreferencesAsync();
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -52,8 +53,7 @@ class TaskStore {
 
   Future<String?> _readRaw() async {
     try {
-      _preferences ??= SharedPreferencesAsync();
-      return await _preferences!.getString(key);
+      return await _sharedPreferences.getString(key);
     } on StateError catch (error) {
       if (!error.message.contains('SharedPreferencesAsyncPlatform instance')) {
         rethrow;
@@ -65,9 +65,8 @@ class TaskStore {
 
   Future<void> _writeRaw(String encoded) async {
     try {
-      _preferences ??= SharedPreferencesAsync();
-      await _preferences!.setString(key, encoded);
-      final verified = await _preferences!.getString(key);
+      await _sharedPreferences.setString(key, encoded);
+      final verified = await _sharedPreferences.getString(key);
       if (verified != encoded) {
         throw StateError('Canonical task storage write could not be verified');
       }
