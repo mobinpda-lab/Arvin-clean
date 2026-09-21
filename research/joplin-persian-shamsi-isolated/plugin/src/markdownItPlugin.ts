@@ -53,7 +53,14 @@ export default function(_context: unknown) {
           }
         };
         visit(state.tokens);
+        const open = new state.Token('html_block', '', 0);
+        open.content = '<div class="jps-note" dir="rtl" lang="fa">\\n';
+        const close = new state.Token('html_block', '', 0);
+        close.content = '</div>\\n';
+        state.tokens.unshift(open);
+        state.tokens.push(close);
       });
     },
+    assets: () => [{ name: './style.css' }],
   };
 };
