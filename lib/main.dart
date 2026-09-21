@@ -307,10 +307,9 @@ class _HomePageState extends State<HomePage> {
     return taskStore.save(List<Task>.of(tasks));
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
-
+  // Home time semantics are strictly based on the canonical Task due date.\n  // FollowUp/reminder timestamps must never redefine whether a Task is overdue.\n  DateTime? _homeDueDate(Task task) => task.dueDate;\n
   bool _overdue(Task task) {
-    final date = _homeFollowUpDate(task);
+    final date = _homeDueDate(task);
     return date != null && !task.completed && date.isBefore(DateTime.now());
   }
 
@@ -1607,7 +1606,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _taskCard(Task task) {
-    final followUpDate = _homeFollowUpDate(task);
+    final dueDate = _homeDueDate(task);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     return Dismissible(
