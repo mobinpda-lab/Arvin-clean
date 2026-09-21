@@ -1,5 +1,8 @@
 import joplin from 'api';
-import { ContentScriptType, SettingItemType, ToolbarButtonLocation } from 'api/types';
+import { ContentScriptType } from 'api/types';
+
+const SETTING_STRING_TYPE = 2;
+const EDITOR_TOOLBAR_LOCATION = 'editorToolbar';
 
 import {
   DEFAULT_EDITOR_FONT,
@@ -16,7 +19,7 @@ joplin.plugins.register({
 
     await joplin.settings.registerSetting(EDITOR_FONT_SETTING, {
       value: DEFAULT_EDITOR_FONT,
-      type: SettingItemType.String,
+      type: SETTING_STRING_TYPE,
       section: 'joplinPersianShamsi',
       isEnum: true,
       public: true,
@@ -54,7 +57,7 @@ joplin.plugins.register({
     await joplin.views.toolbarButtons.create(
       'joplinPersianShamsiFont',
       EDITOR_FONT_COMMAND,
-      ToolbarButtonLocation.EditorToolbar,
+      EDITOR_TOOLBAR_LOCATION,
     );
 
     await joplin.settings.onChange(async (event) => {
