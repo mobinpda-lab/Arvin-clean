@@ -11,6 +11,9 @@
   "license": "MIT",
   "keywords": ["joplin-plugin", "persian", "rtl", "jalali", "shamsi"],
   "files": ["publish"],
+  "dependencies": {
+    "vazirharf": "34.0.3"
+  },
   "devDependencies": {
     "@types/node": "^18.7.13",
     "chalk": "^4.1.0",
