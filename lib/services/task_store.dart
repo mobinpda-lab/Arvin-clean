@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 import '../models/task.dart';
 import 'task_storage_lock.dart';
@@ -49,9 +50,10 @@ class TaskStore {
       // SharedPreferencesAsync has no local cache and therefore always reads
       // the latest native value. This is important on Android where another
       // Flutter/plugin context may have written the same canonical key.
-      final preferences = SharedPreferencesAsync();
+      final preferences = _asyncPreferences();
       return await preferences.getString(key);
-    } on StateError {
+    } on StateError catch (error) {
+      if (!error.toString().contains('SharedPreferencesAsyncPlatform')) rethrow;
       // Flutter unit tests do not register the async platform by default.
       // Keep the test fallback isolated and refresh its legacy cache before
       // every read so setMockInitialValues() is respected between tests.
@@ -63,7 +65,7 @@ class TaskStore {
 
   Future<void> _writeRaw(String encoded) async {
     try {
-      final preferences = SharedPreferencesAsync();
+      final preferences = _asyncPreferences();
       await preferences.setString(key, encoded);
       final acknowledged = await preferences.getString(key);
       if (acknowledged != encoded) {
@@ -87,6 +89,13 @@ class TaskStore {
     if (preferences.getString(key) != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
+  }
+
+  SharedPreferencesAsync _asyncPreferences() {
+    const options = SharedPreferencesAsyncAndroidOptions(
+      backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
+    );
+    return SharedPreferencesAsync(options: options);
   }
 
   Future<List<Task>> _loadUnlocked() async {
