@@ -1,5 +1,6 @@
 name: Joplin Persian Shamsi Plugin
 # Dedicated build gate for the isolated Joplin plugin.
+# Trigger: build artifact proof.
 
 on:
   push:
