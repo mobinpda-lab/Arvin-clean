@@ -10,11 +10,12 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  // Android production uses one uncached async backend instance across all
-  // TaskStore objects. The async API itself does not keep a per-instance value
-  // cache, while sharing the backend instance makes the canonical persistence
-  // boundary explicit for sequential app/test instances.
-  static SharedPreferencesAsync? _asyncPreferences;
+  // One process-wide backend plus TaskStorageLock gives every TaskStore
+  // instance the same in-memory view. We deliberately do not call reload()
+  // between sequential writes: reloading a legacy SharedPreferences cache can
+  // observe an older disk snapshot while the previous awaited write is still
+  // being finalized on Android.
+  static SharedPreferences? _preferences;
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -50,46 +51,25 @@ class TaskStore {
     return const [];
   }
 
-  static SharedPreferencesAsync? _createAsyncPreferences() {
-    try {
-      return SharedPreferencesAsync();
-    } on StateError {
-      return null;
-    }
+  Future<SharedPreferences> _backend() async {
+    return _preferences ??= await SharedPreferences.getInstance();
   }
 
   Future<String?> _readRaw() async {
-    final asyncPreferences =
-        _asyncPreferences ??= _createAsyncPreferences();
-    if (asyncPreferences != null) {
-      return asyncPreferences.getString(key);
-    }
-
-    final legacyPreferences = await SharedPreferences.getInstance();
-    await legacyPreferences.reload();
-    return legacyPreferences.getString(key);
+    final preferences = await _backend();
+    return preferences.getString(key);
   }
 
   Future<void> _writeRaw(String encoded) async {
-    final asyncPreferences =
-        _asyncPreferences ??= _createAsyncPreferences();
-    if (asyncPreferences != null) {
-      await asyncPreferences.setString(key, encoded);
-
-      final acknowledged = await asyncPreferences.getString(key);
-      if (acknowledged != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
-      return;
-    }
-
-    final legacyPreferences = await SharedPreferences.getInstance();
-    final saved = await legacyPreferences.setString(key, encoded);
+    final preferences = await _backend();
+    final saved = await preferences.setString(key, encoded);
     if (!saved) {
       throw StateError('Canonical task storage write could not be verified');
     }
-    await legacyPreferences.reload();
-    if (legacyPreferences.getString(key) != encoded) {
+
+    // setString() is awaited and updates this process-wide singleton. Verify
+    // the same canonical backend without reloading an older disk snapshot.
+    if (preferences.getString(key) != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
   }
