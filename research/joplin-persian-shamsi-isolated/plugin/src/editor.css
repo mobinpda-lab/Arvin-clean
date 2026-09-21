@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "VazirHarf";
+  src: url("./fonts/Vazirharf[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* CodeMirror 6 — Joplin mobile/modern editor */
+.cm-editor,
+.cm-editor .cm-content,
+.cm-editor .cm-line {
+  font-family: "VazirHarf", Tahoma, sans-serif !important;
+}
+
+/* CodeMirror 5 compatibility */
+.CodeMirror,
+.CodeMirror pre,
+.CodeMirror-lines,
+.CodeMirror-line,
+.CodeMirror-line span {
+  font-family: "VazirHarf", Tahoma, sans-serif !important;
+}
