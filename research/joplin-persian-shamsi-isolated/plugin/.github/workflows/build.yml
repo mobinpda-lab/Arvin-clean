@@ -21,7 +21,7 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: research/joplin-persian-shamsi-isolated/plugin/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npm run dist
       - name: Verify JPL archive
         run: |
