@@ -53,10 +53,7 @@ class TaskStore {
   Future<String?> _readRaw() => _preferences.getString(key);
 
   Future<void> _writeRaw(String encoded) async {
-    final saved = await _preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Canonical task storage write could not be verified');
-    }
+    await _preferences.setString(key, encoded);
 
     final acknowledged = await _preferences.getString(key);
     if (acknowledged != encoded) {
