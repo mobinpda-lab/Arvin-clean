@@ -187,3 +187,24 @@ When trade-offs are required, preserve in this order:
 5. additional capabilities.
 
 This contract is intentionally cumulative: later sections clarify execution and storage details and do not remove any earlier UI, behavior, testing or evidence requirement.
+
+
+## 29. G1 storage implementation checkpoint — exact live evidence
+At the current implementation checkpoint, the canonical task persistence is still the existing SharedPreferences-backed `TaskStore` using the `arvin.tasks` key. No Drift dependency or Drift database is present in the current `pubspec.yaml`.
+
+Therefore the next storage slice must begin with an inventory and lossless mapping of the existing canonical `Task` JSON, not by inventing a reduced replacement model. The mapping must preserve all existing Task fields, including FollowUp history, checklist/notebook state, archive/trash state, recurrence, reminder and taxonomy relationships.
+
+The migration boundary already present in the repository (`TaskMigrationReader` / `TaskMigrationWriter`) is to be reused as the legacy compatibility boundary. It must not be bypassed by a second ad-hoc parser or storage path.
+
+The G1 acceptance gate is:
+1. capture a representative legacy dataset;
+2. decode it through the existing migration boundary;
+3. map every persisted field into Drift;
+4. write and read it back;
+5. compare stable IDs and field-level canonical JSON;
+6. verify FollowUp history and non-task notebook/checklist records;
+7. verify duplicate detection;
+8. verify backup/restore;
+9. only then switch the canonical repository write/read path.
+
+No old SharedPreferences data may be deleted during G1.
