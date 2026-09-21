@@ -60,6 +60,6 @@ export default function(_context: unknown) {
         return '<div class="jps-note" dir="rtl" lang="fa">' + html + '</div>';
       };
     },
-    assets: { css: ['./style.css'] },
+    assets: () => ({ css: ['./style.css'] }),
   };
 };
