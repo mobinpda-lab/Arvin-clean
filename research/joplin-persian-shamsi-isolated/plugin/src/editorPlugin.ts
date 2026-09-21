@@ -1,12 +1,11 @@
 import joplin from 'api';
-import { EditorView } from '@codemirror/view';
 
 import {
   DEFAULT_EDITOR_FONT,
   EDITOR_FONT_COMMAND,
   EDITOR_FONT_SETTING,
   VAZIRHARF_FONT,
-} from './index';
+} from './editorFont';
 
 function applyFont(editorView: any, font: string) {
   const fontFamily = font === 'vazirharf' ? VAZIRHARF_FONT : 'inherit';
