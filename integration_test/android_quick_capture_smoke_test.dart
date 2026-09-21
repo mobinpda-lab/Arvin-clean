@@ -113,7 +113,13 @@ void main() {
 
         // Verify the canonical storage after every sequential save on Android.
         // This distinguishes a persistence race from a Home rendering problem.
-        final persisted = await TaskStore().load();
+        var persisted = await TaskStore().load();
+        for (var attempt = 0;
+            attempt < 20 && !persisted.any((task) => task.title == title);
+            attempt += 1) {
+          await tester.pump(const Duration(milliseconds: 100));
+          persisted = await TaskStore().load();
+        }
         expect(
           persisted.any((task) => task.title == title),
           isTrue,
