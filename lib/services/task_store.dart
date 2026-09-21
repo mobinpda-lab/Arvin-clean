@@ -10,11 +10,11 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
-  /// The canonical task store uses SharedPreferencesAsync so every read and
-  /// write goes through the platform-backed store instead of a per-engine
-  /// in-memory cache. This is important for Android where integration tests,
-  /// background work and UI code can cross Flutter engine/cache boundaries.
-  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+  // SharedPreferencesAsync has no legacy in-memory cache and therefore keeps
+  // Android engine instances on the same platform-backed source of truth.
+  // The legacy API remains a test fallback because the current Flutter test
+  // binding does not register SharedPreferencesAsyncPlatform automatically.
+  SharedPreferencesAsync? _preferences;
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -56,8 +56,49 @@ class TaskStore {
     return const [];
   }
 
+  Future<String?> _readRaw() async {
+    try {
+      _preferences ??= SharedPreferencesAsync();
+      return await _preferences!.getString(key);
+    } on StateError catch (error) {
+      if (!error.message.contains('SharedPreferencesAsyncPlatform instance')) {
+        rethrow;
+      }
+      final legacy = await SharedPreferences.getInstance();
+      return legacy.getString(key);
+    }
+  }
+
+  Future<void> _writeRaw(String encoded) async {
+    try {
+      _preferences ??= SharedPreferencesAsync();
+      final saved = await _preferences!.setString(key, encoded);
+      if (!saved) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+
+      final verified = await _preferences!.getString(key);
+      if (verified != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+    } on StateError catch (error) {
+      if (!error.message.contains('SharedPreferencesAsyncPlatform instance')) {
+        rethrow;
+      }
+      final legacy = await SharedPreferences.getInstance();
+      final saved = await legacy.setString(key, encoded);
+      if (!saved) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+      await legacy.reload();
+      if (legacy.getString(key) != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+    }
+  }
+
   Future<List<Task>> _loadUnlocked() async {
-    final raw = await _preferences.getString(key);
+    final raw = await _readRaw();
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -76,19 +117,11 @@ class TaskStore {
   Future<void> _saveUnlocked(List<Task> tasks) async {
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
-    // Validate the exact document before replacing the canonical value.
     final decoded = jsonDecode(encoded);
     if (decoded is! List) {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    await _preferences.setString(key, encoded);
-
-    // Verify through the same platform-backed API rather than the current
-    // engine's cache. A failed read-back is a real persistence failure.
-    final verified = await _preferences.getString(key);
-    if (verified != encoded) {
-      throw StateError('Canonical task storage write could not be verified');
-    }
+    await _writeRaw(encoded);
   }
 }
