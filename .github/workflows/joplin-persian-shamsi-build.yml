@@ -1,0 +1,30 @@
+name: Joplin Persian Shamsi Plugin
+
+on:
+  push:
+    paths:
+      - 'research/joplin-persian-shamsi-isolated/plugin/**'
+      - '.github/workflows/joplin-persian-shamsi-build.yml'
+  pull_request:
+    paths:
+      - 'research/joplin-persian-shamsi-isolated/plugin/**'
+      - '.github/workflows/joplin-persian-shamsi-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: research/joplin-persian-shamsi-isolated/plugin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run dist
+      - name: Verify JPL archive
+        run: |
+          test -n "$(find publish -maxdepth 1 -name '*.jpl' -print -quit)"
+          unzip -l publish/*.jpl | grep -E 'manifest.json|fonts/Vazirharf\[wght\]\.ttf|markdownItPlugin.js|style.css|index.js'
+          unzip -p publish/*.jpl manifest.json | grep -F 'org.mobinpda.joplin.persianshamsi'
