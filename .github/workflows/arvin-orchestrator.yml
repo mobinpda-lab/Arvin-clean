@@ -59,7 +59,7 @@ jobs:
                 await github.rest.issues.addLabels({ owner, repo, issue_number: item.number, labels: ['arvin-auto'] });
               }
 
-              if (autoEligible) {
+              if (autoEligible && !labels.includes('factory:ready')) {
                 await github.rest.issues.addLabels({
                   owner, repo, issue_number: item.number, labels: ['factory:ready'],
                 });
@@ -88,5 +88,9 @@ jobs:
             const candidates = queued.filter(item => !item.pull_request &&
               (item.labels || []).some(l => l.name === 'arvin-auto'));
 
-            core.info(`Scheduled queue sweep found ${candidates.length} arvin-auto issue(s).`);
-            await Promise.all(candidates.map(item => routeIssue(item)));
+            const batchSize = 10;
+            const batch = candidates.slice(0, batchSize);
+            core.info(`Scheduled queue sweep found ${candidates.length} arvin-auto issue(s); processing ${batch.length} issue(s) this run.`);
+            for (const item of batch) {
+              await routeIssue(item);
+            }
