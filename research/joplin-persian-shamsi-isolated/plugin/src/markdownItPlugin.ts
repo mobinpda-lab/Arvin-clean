@@ -31,7 +31,7 @@ export const gregorianToJalali = (gy: number, gm: number, gd: number): [number, 
   return [jy, jm, jDayNo + 1];
 };
 
-const convertDateText = (text: string): string => text.replace(/\b(13|14|20)\d{2}[-/]([01]?\d)[-/]([0-3]?\d)\b/g, (full, ys, ms, ds) => {
+const convertDateText = (text: string): string => text.replace(/(19|20)\d{2}[-/]([01]?\d)[-/]([0-3]?\d)\b/g, (full, ys, ms, ds) => {
   const y = Number(ys), m = Number(ms), d = Number(ds);
   if (m < 1 || m > 12 || d < 1 || d > 31) return full;
   const [jy, jm, jd] = gregorianToJalali(y, m, d);
@@ -41,12 +41,20 @@ const convertDateText = (text: string): string => text.replace(/\b(13|14|20)\d{2
 export default function(_context: unknown) {
   return {
     plugin: (markdownIt: any) => {
-      const defaultRender = markdownIt.renderer.render;
-      markdownIt.renderer.render = function(tokens: any[], options: any, env: any) {
-        const html = defaultRender.call(this, tokens, options, env);
-        return html.replace(/<body([^>]*)>/i, '<body$1 dir="rtl" lang="fa">')
-          .replace(/(<body[^>]*>[\s\S]*?<\/body>)/i, (body: string) => convertDateText(body));
-      };
+      markdownIt.core.ruler.push('jps-jalali-display', (state: any) => {
+        const visit = (tokens: any[]) => {
+          for (const token of tokens) {
+            if (token.type === 'inline' && token.children) {
+              for (const child of token.children) {
+                if (child.type === 'text' && child.content) {
+                  child.content = convertDateText(child.content);
+                }
+              }
+            }
+          }
+        };
+        visit(state.tokens);
+      });
     },
     assets: { css: ['./style.css'] },
   };
