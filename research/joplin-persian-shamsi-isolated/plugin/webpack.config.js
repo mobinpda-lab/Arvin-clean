@@ -62,12 +62,18 @@ const pluginConfig = {
   entry: './src/index.ts',
   output: { filename: 'index.js', path: distDir },
   plugins: [new CopyPlugin({
-    patterns: [{
-      from: '**/*',
-      context: srcDir,
-      to: distDir,
-      globOptions: { ignore: ['**/*.ts', '**/*.tsx'] },
-    }],
+    patterns: [
+      {
+        from: '**/*',
+        context: srcDir,
+        to: distDir,
+        globOptions: { ignore: ['**/*.ts', '**/*.tsx'] },
+      },
+      {
+        from: 'node_modules/vazirharf/fonts/ttf/Vazirharf[wght].ttf',
+        to: 'fonts/Vazirharf[wght].ttf',
+      },
+    ],
   })],
 };
 const createArchiveConfig = {
@@ -103,8 +109,8 @@ function updateVersion() {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   pkg.version = increaseVersion(pkg.version);
   manifest.version = increaseVersion(manifest.version);
-  fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2) + '\\n');
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\\n');
+  fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2) + '\n');
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 }
 module.exports = env => {
   const name = env['joplin-plugin-config'];
