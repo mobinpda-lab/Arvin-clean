@@ -1,5 +1,10 @@
 # Arvin Canonical UI Reference
 
+## Latest final product contract — 2026-09-21
+
+The binding execution contract is `docs/ARVIN_FINAL_UI_AND_BEHAVIOR_CONTRACT.md`. The single execution ledger preventing duplicate work is `docs/ARVIN_FINAL_CONVERGENCE_EXECUTION_LEDGER_2026-09-21.md`. When older wording conflicts with the final contract, the final contract controls; existing architecture and user data must be preserved.
+
+
 ## Status
 Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
 
