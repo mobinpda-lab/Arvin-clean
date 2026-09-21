@@ -70,7 +70,6 @@ void main() {
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 
-
   test('concurrent canonical mutations preserve both changes', () async {
     final store = TaskStore();
     await store.save(<Task>[Task(id: 'task-1', title: 'Original')]);
@@ -87,6 +86,23 @@ void main() {
     final loaded = await store.load();
     expect(loaded.single.title, 'Renamed');
     expect(loaded.single.tags, <String>['important']);
+  });
+
+  test('sequential canonical mutations preserve the complete collection', () async {
+    final store = TaskStore();
+    await store.save(<Task>[Task(id: 'seed', title: 'Seed')]);
+
+    for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
+      await store.mutate<void>((tasks) {
+        tasks.add(Task(id: title, title: title));
+      });
+    }
+
+    final loaded = await TaskStore().load();
+    expect(
+      loaded.map((task) => task.title).toList(),
+      <String>['Seed', 'کار اول', 'کار دوم', 'کار سوم'],
+    );
   });
 
   test('TaskStore rejects malformed canonical document instead of empty fallback',
