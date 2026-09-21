@@ -1,0 +1,17 @@
+
+body[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  font-family: VazirHarf, "Vazir", Tahoma, sans-serif;
+}
+body[dir="rtl"] p,
+body[dir="rtl"] li,
+body[dir="rtl"] blockquote,
+body[dir="rtl"] table,
+body[dir="rtl"] th,
+body[dir="rtl"] td { font-family: inherit; }
+body[dir="rtl"] code,
+body[dir="rtl"] pre {
+  direction: ltr;
+  text-align: left;
+}
