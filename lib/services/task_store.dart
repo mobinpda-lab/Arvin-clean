@@ -14,8 +14,7 @@ class TaskStore {
   // Android engine instances on the same platform-backed source of truth.
   // The legacy API remains a test fallback because the current Flutter test
   // binding does not register SharedPreferencesAsyncPlatform automatically.
-  static final SharedPreferencesAsync _sharedPreferences =
-      SharedPreferencesAsync();
+  SharedPreferences? _legacyPreferences;
 
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
@@ -52,34 +51,17 @@ class TaskStore {
   }
 
   Future<String?> _readRaw() async {
-    try {
-      return await _sharedPreferences.getString(key);
-    } on StateError catch (error) {
-      if (!error.message.contains('SharedPreferencesAsyncPlatform instance')) {
-        rethrow;
-      }
-      final legacy = await SharedPreferences.getInstance();
-      return legacy.getString(key);
-    }
+    final legacy = _legacyPreferences ??= await SharedPreferences.getInstance();
+    await legacy.reload();
+    return legacy.getString(key);
   }
 
   Future<void> _writeRaw(String encoded) async {
-    try {
-      await _sharedPreferences.setString(key, encoded);
-      final verified = await _sharedPreferences.getString(key);
-      if (verified != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
-    } on StateError catch (error) {
-      if (!error.message.contains('SharedPreferencesAsyncPlatform instance')) {
-        rethrow;
-      }
-      final legacy = await SharedPreferences.getInstance();
-      await legacy.setString(key, encoded);
-      await legacy.reload();
-      if (legacy.getString(key) != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
+    final legacy = _legacyPreferences ??= await SharedPreferences.getInstance();
+    await legacy.setString(key, encoded);
+    await legacy.reload();
+    if (legacy.getString(key) != encoded) {
+      throw StateError('Canonical task storage write could not be verified');
     }
   }
 
