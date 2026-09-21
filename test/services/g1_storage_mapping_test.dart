@@ -1,3 +1,4 @@
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
