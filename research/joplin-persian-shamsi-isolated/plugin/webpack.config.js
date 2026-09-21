@@ -51,7 +51,7 @@ const baseConfig = {
   mode: 'production',
   target: 'node',
   stats: 'errors-only',
-  module: { rules: [{ test: /\\.tsx?$/, use: 'ts-loader', exclude: /node_modules/ }] },
+  module: { rules: [{ test: /\.tsx?$/, use: 'ts-loader', exclude: /node_modules/ }] },
   resolve: {
     alias: { api: path.resolve(__dirname, 'api') },
     extensions: ['.js', '.tsx', '.ts', '.json'],
