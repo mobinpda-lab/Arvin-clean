@@ -27,6 +27,17 @@ jobs:
       - run: npm run dist
       - name: Verify JPL archive
         run: |
-          test -n "$(find publish -maxdepth 1 -name '*.jpl' -print -quit)"
-          unzip -l publish/*.jpl | grep -E 'manifest.json|fonts/Vazirharf\[wght\]\.ttf|markdownItPlugin.js|style.css|index.js'
-          unzip -p publish/*.jpl manifest.json | grep -F 'org.mobinpda.joplin.persianshamsi'
+          archive="$(find publish -maxdepth 1 -name '*.jpl' -print -quit)"
+          test -n "$archive"
+          tar -tf "$archive" | grep -Fx 'manifest.json'
+          tar -tf "$archive" | grep -Fx 'index.js'
+          tar -tf "$archive" | grep -Fx 'markdownItPlugin.js'
+          tar -tf "$archive" | grep -Fx 'style.css'
+          tar -tf "$archive" | grep -Fx 'fonts/Vazirharf[wght].ttf'
+          tar -xOf "$archive" manifest.json | grep -F 'org.mobinpda.joplin.persianshamsi'
+      - name: Upload JPL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: joplin-persian-shamsi-jpl
+          path: research/joplin-persian-shamsi-isolated/plugin/publish/*.jpl
+          if-no-files-found: error
