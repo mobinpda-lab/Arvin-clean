@@ -54,12 +54,6 @@ export default function(_context: unknown) {
         };
         visit(state.tokens);
       });
-      const defaultRender = markdownIt.renderer.render;
-      markdownIt.renderer.render = function(tokens: any[], options: any, env: any) {
-        const html = defaultRender.call(this, tokens, options, env);
-        return '<div class="jps-note" dir="rtl" lang="fa">' + html + '</div>';
-      };
     },
-    assets: () => ({ css: ['./style.css'] }),
   };
 };
