@@ -10,6 +10,12 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
+  /// The canonical task store uses SharedPreferencesAsync so every read and
+  /// write goes through the platform-backed store instead of a per-engine
+  /// in-memory cache. This is important for Android where integration tests,
+  /// background work and UI code can cross Flutter engine/cache boundaries.
+  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
 
@@ -51,13 +57,7 @@ class TaskStore {
   }
 
   Future<List<Task>> _loadUnlocked() async {
-    // TaskMigrationWriter and TaskMigrationReader use the legacy Android
-    // SharedPreferences file for the canonical arvin.tasks key. Reload before
-    // every read so another Flutter engine cannot leave this engine's cache
-    // stale during Android integration tests.
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.reload();
-    final raw = preferences.getString(key);
+    final raw = await _preferences.getString(key);
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -74,7 +74,6 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = await SharedPreferences.getInstance();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
 
     // Validate the exact document before replacing the canonical value.
@@ -83,15 +82,11 @@ class TaskStore {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Canonical task storage write could not be verified');
-    }
+    await _preferences.setString(key, encoded);
 
-    // Reload from the platform store before verifying so the check is not
-    // satisfied by the current engine's in-memory cache.
-    await preferences.reload();
-    final verified = preferences.getString(key);
+    // Verify through the same platform-backed API rather than the current
+    // engine's cache. A failed read-back is a real persistence failure.
+    final verified = await _preferences.getString(key);
     if (verified != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
