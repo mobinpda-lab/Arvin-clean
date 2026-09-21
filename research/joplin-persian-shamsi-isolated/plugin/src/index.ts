@@ -3,12 +3,20 @@ import { ContentScriptType } from 'api/types';
 
 joplin.plugins.register({
   onStart: async function() {
-    const contentScriptId = 'joplin-persian-shamsi-markdown';
+    const rendererId = 'joplin-persian-shamsi-markdown';
     await joplin.contentScripts.register(
       ContentScriptType.MarkdownItPlugin,
-      contentScriptId,
+      rendererId,
       './markdownItPlugin.js',
     );
-    console.info('[Joplin Persian Shamsi] isolated renderer registered');
+
+    const editorId = 'joplin-persian-shamsi-editor';
+    await joplin.contentScripts.register(
+      ContentScriptType.CodeMirrorPlugin,
+      editorId,
+      './editorPlugin.js',
+    );
+
+    console.info('[Joplin Persian Shamsi] renderer and editor registered');
   },
 });
