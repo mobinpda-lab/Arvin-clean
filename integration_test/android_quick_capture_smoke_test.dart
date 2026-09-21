@@ -1,6 +1,5 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
-import 'package:arvin/services/task_migration_writer.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,8 +25,7 @@ void main() {
         ],
         tags: <String>['قدیمی'],
       );
-      final writer = TaskMigrationWriter();
-      await writer.save(<Task>[seed]);
+      await TaskStore().save(<Task>[seed]);
 
       app.main();
       await tester.pumpAndSettle();
