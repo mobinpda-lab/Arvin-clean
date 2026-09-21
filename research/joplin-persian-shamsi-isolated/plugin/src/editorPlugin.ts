@@ -1,29 +1,34 @@
+import joplin from 'api';
+
 const VAZIRHARF_FONT = '"VazirHarf", Tahoma, sans-serif';
 
 export default function(_context: { contentScriptId: string; postMessage: any }) {
   return {
     plugin: (codeMirrorWrapper: any) => {
-      // Joplin's CodeMirror 6 content script receives a CodeMirrorControl
-      // wrapper. The actual EditorView is in .editor.
+      // Use Joplin's own CodeMirror 6 instance and install a native CM6 theme.
+      // This avoids relying on DOM styles alone in the Android WebView.
       const editorView = codeMirrorWrapper?.editor;
-      const contentDOM = editorView?.contentDOM;
-      const editorDOM = editorView?.dom;
+      if (!editorView) return;
 
-      if (contentDOM?.style) {
-        contentDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
-      }
+      const { EditorView } = joplin.require('@codemirror/view');
 
-      if (editorDOM?.style) {
-        editorDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
-      }
+      editorView.dispatch({
+        effects: EditorView.theme({
+          '.cm-content': {
+            fontFamily: VAZIRHARF_FONT,
+          },
+          '.cm-line': {
+            fontFamily: VAZIRHARF_FONT,
+          },
+        }),
+      });
 
-      // Keep the editable surface correct if Joplin/CodeMirror recreates it.
-      if (contentDOM && typeof MutationObserver !== 'undefined') {
-        const observer = new MutationObserver(() => {
-          contentDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
-        });
-        observer.observe(contentDOM, { childList: true, subtree: true });
-      }
+      // Keep a direct DOM fallback for Android/WebView.
+      const contentDOM = editorView.contentDOM;
+      const editorDOM = editorView.dom;
+
+      contentDOM?.style?.setProperty('font-family', VAZIRHARF_FONT, 'important');
+      editorDOM?.style?.setProperty('font-family', VAZIRHARF_FONT, 'important');
     },
     assets: () => [{ name: './editor.css' }],
   };
