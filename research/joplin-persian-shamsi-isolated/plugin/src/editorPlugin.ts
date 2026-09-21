@@ -1,25 +1,30 @@
 const VAZIRHARF_FONT = '"VazirHarf", Tahoma, sans-serif';
 
-export default function(_context: unknown) {
+export default function(_context: { contentScriptId: string; postMessage: any }) {
   return {
-    plugin: (editor: any) => {
-      // CodeMirror 6 exposes the editable DOM through contentDOM.
-      // Apply the font directly so Android edit mode does not depend
-      // on CSS selector matching alone.
-      const contentDOM = editor?.contentDOM;
+    plugin: (codeMirrorWrapper: any) => {
+      // Joplin's CodeMirror 6 content script receives a CodeMirrorControl
+      // wrapper. The actual EditorView is in .editor.
+      const editorView = codeMirrorWrapper?.editor;
+      const contentDOM = editorView?.contentDOM;
+      const editorDOM = editorView?.dom;
 
       if (contentDOM?.style) {
-        contentDOM.style.fontFamily = VAZIRHARF_FONT;
+        contentDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
       }
 
-      // Keep the editor root aligned with the editable content.
-      const editorDOM = editor?.dom;
       if (editorDOM?.style) {
-        editorDOM.style.fontFamily = VAZIRHARF_FONT;
+        editorDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
+      }
+
+      // Keep the editable surface correct if Joplin/CodeMirror recreates it.
+      if (contentDOM && typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver(() => {
+          contentDOM.style.setProperty('font-family', VAZIRHARF_FONT, 'important');
+        });
+        observer.observe(contentDOM, { childList: true, subtree: true });
       }
     },
-    // Keep the CSS asset as a fallback for editor elements that are
-    // recreated by Joplin/CodeMirror.
     assets: () => [{ name: './editor.css' }],
   };
 };
