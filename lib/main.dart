@@ -39,7 +39,10 @@ import 'widgets/home_interactive_guide.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
+void main() {
+  TaskStore.resetProcessSnapshot();
+  runApp(const ArvinApp(enableFirstRunGuide: true));
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key, this.enableFirstRunGuide = false});
