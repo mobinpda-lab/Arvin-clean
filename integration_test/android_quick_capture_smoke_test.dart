@@ -67,9 +67,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('تست واقعی اندروید'), findsOneWidget);
 
-      await tester.tap(find.byKey(const ValueKey('home-menu')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
+      final quickCaptureClose = find.byKey(
+        const ValueKey('quick-capture-close'),
+      );
+      if (quickCaptureClose.evaluate().isNotEmpty) {
+        await tester.tap(quickCaptureClose);
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
@@ -156,9 +161,7 @@ void main() {
 
       // Leave the canonical Quick Capture surface open so the Android smoke
       // workflow can capture the real rendered state as an artifact.
-      await tester.tap(find.byKey(const ValueKey('home-menu')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
+      await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
       await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey('quick-capture-sheet')),
