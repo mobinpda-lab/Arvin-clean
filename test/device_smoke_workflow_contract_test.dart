@@ -20,7 +20,7 @@ void main() {
     expect(workflow, contains('timeout-minutes: 20'));
     expect(
       workflow,
-      contains('integration_test/android_home_smoke_test.dart'),
+      contains('integration_test/android_quick_capture_smoke_test.dart'),
     );
     expect(
       workflow,
