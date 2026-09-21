@@ -1,15 +1,26 @@
+@font-face {
+  font-family: "VazirHarf";
+  src: url("./fonts/Vazirharf[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
 
 .jps-note[dir="rtl"] {
   direction: rtl;
   text-align: right;
-  font-family: VazirHarf, "Vazir", Tahoma, sans-serif;
+  font-family: "VazirHarf", Tahoma, sans-serif;
 }
+
 .jps-note[dir="rtl"] p,
 .jps-note[dir="rtl"] li,
 .jps-note[dir="rtl"] blockquote,
 .jps-note[dir="rtl"] table,
 .jps-note[dir="rtl"] th,
-.jps-note[dir="rtl"] td { font-family: inherit; }
+.jps-note[dir="rtl"] td {
+  font-family: inherit;
+}
+
 .jps-note[dir="rtl"] code,
 .jps-note[dir="rtl"] pre {
   direction: ltr;
