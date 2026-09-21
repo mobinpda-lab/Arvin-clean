@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_migration_writer.dart';
@@ -5,9 +7,16 @@ import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  const canonicalAndroidOptions = SharedPreferencesAsyncAndroidOptions(
+    backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
+    originalSharedPreferencesOptions: AndroidSharedPreferencesStoreOptions(),
+  );
+  final canonicalPlatformStore = SharedPreferencesAsync(options: canonicalAndroidOptions);
 
   testWidgets(
     'Android Quick Capture supports sequential canonical task capture and persistence',
@@ -45,6 +54,27 @@ void main() {
       // path, then exercises sequential Quick Capture against the same engine.
       expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
       expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.text('کل'), findsNothing);
+    expect(find.text('فعال'), findsNothing);
+    expect(find.text('انجام‌شده'), findsNothing);
+    expect(find.text('عقب‌افتاده'), findsNothing);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsNothing);
+    expect(find.byKey(const ValueKey('home-main-view-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-main-view-labels')), findsOneWidget);
+
+    await binding.convertFlutterSurfaceToImage();
+    await binding.takeScreenshot('arvin-home-time');
+    for (final mode in <String>['projects', 'categories', 'labels']) {
+      await tester.tap(find.byKey(ValueKey('home-main-view-$mode')));
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('arvin-home-$mode');
+    }
+    await tester.tap(find.byKey(const ValueKey('home-main-view-time')));
+    await tester.pumpAndSettle();
+
       await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('quick-capture-sheet')), findsOneWidget);
@@ -113,13 +143,18 @@ void main() {
         expect(inputField.autofocus, isTrue);
         expect(FocusManager.instance.primaryFocus, isNotNull);
 
-        // Verify the canonical storage after every sequential save on Android.
-        // This distinguishes a persistence race from a Home rendering problem.
-        final persisted = await TaskStore().load();
+        // Read the same canonical Android SharedPreferences file without a
+        // Flutter-engine cache. This keeps the smoke test focused on real
+        // persistence rather than a per-engine cache boundary.
+        final raw = await canonicalPlatformStore.getString(TaskStore.key);
+        expect(raw, isNotNull, reason: 'Canonical task document is missing');
+        final decoded = jsonDecode(raw!) as List<dynamic>;
         expect(
-          persisted.any((task) => task.title == title),
+          decoded.any(
+            (item) => item is Map<String, dynamic> && item['title'] == title,
+          ),
           isTrue,
-          reason: 'Canonical TaskStore did not persist: $title',
+          reason: 'Canonical Android storage did not persist: $title',
         );
 
         await tester.pumpAndSettle();
@@ -158,6 +193,15 @@ void main() {
         expect(visible, isTrue, reason: 'Home did not render persisted task: $title');
       }
       expect(find.text('پرونده موجود', skipOffstage: false), findsOneWidget);
+      final persistedAfterRestart = await TaskStore().load();
+      expect(
+        persistedAfterRestart
+            .where((task) => ['کار اول', 'کار دوم', 'کار سوم'].contains(task.title))
+            .map((task) => task.title)
+            .toSet(),
+        {'کار اول', 'کار دوم', 'کار سوم'},
+      );
+
 
       // Leave the canonical Quick Capture surface open so the Android smoke
       // workflow can capture the real rendered state as an artifact.

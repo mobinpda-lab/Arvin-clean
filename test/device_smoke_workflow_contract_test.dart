@@ -22,10 +22,11 @@ void main() {
       workflow,
       contains('integration_test/android_quick_capture_smoke_test.dart'),
     );
-    expect(
-      workflow,
-      contains('integration_test/android_quick_capture_smoke_test.dart'),
-    );
+    expect(workflow, contains('arvin-home-time.png'));
+    expect(workflow, contains('arvin-home-projects.png'));
+    expect(workflow, contains('arvin-home-categories.png'));
+    expect(workflow, contains('arvin-home-labels.png'));
+    expect(workflow, isNot(contains('flutter drive --driver=test_driver/integration_test.dart')));
     expect(
       'flutter test'.allMatches(workflow.split('people-device-smoke:').first).length,
       1,
