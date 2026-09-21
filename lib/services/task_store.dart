@@ -22,9 +22,6 @@ class TaskStore {
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Executes one canonical read-modify-write operation under the shared
-  /// storage lock. Feature repositories should prefer this over separate
-  /// load()/save() calls when they mutate the task collection.
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
       final tasks = await _loadUnlocked();
@@ -37,10 +34,7 @@ class TaskStore {
   Future<void> addFollowUp(String taskId, FollowUp followUp) async {
     await mutate<void>((tasks) {
       final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) {
-        throw StateError('Task not found: $taskId');
-      }
-
+      if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
       task.followUpEnabled = true;
@@ -72,11 +66,7 @@ class TaskStore {
   Future<void> _writeRaw(String encoded) async {
     try {
       _preferences ??= SharedPreferencesAsync();
-      final saved = await _preferences!.setString(key, encoded);
-      if (!saved) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
-
+      await _preferences!.setString(key, encoded);
       final verified = await _preferences!.getString(key);
       if (verified != encoded) {
         throw StateError('Canonical task storage write could not be verified');
@@ -86,10 +76,7 @@ class TaskStore {
         rethrow;
       }
       final legacy = await SharedPreferences.getInstance();
-      final saved = await legacy.setString(key, encoded);
-      if (!saved) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
+      await legacy.setString(key, encoded);
       await legacy.reload();
       if (legacy.getString(key) != encoded) {
         throw StateError('Canonical task storage write could not be verified');
@@ -100,12 +87,10 @@ class TaskStore {
   Future<List<Task>> _loadUnlocked() async {
     final raw = await _readRaw();
     if (raw == null || raw.trim().isEmpty) return <Task>[];
-
     final decoded = jsonDecode(raw);
     if (decoded is! List) {
       throw const FormatException('Canonical task storage must contain a list');
     }
-
     return decoded.map((item) {
       if (item is! Map) {
         throw const FormatException('Canonical task entry must be an object');
@@ -116,12 +101,10 @@ class TaskStore {
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
-
     final decoded = jsonDecode(encoded);
     if (decoded is! List) {
       throw const FormatException('Refusing to persist invalid task document');
     }
-
     await _writeRaw(encoded);
   }
 }
