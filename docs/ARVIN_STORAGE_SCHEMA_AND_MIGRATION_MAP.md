@@ -285,3 +285,8 @@ Notes و Checklists جدول Task جدا ندارند مگر زمانی که د�
 این مرحله موفق است از نظر شناسایی ساختار کد، Storageهای فعلی و mapping اولیه lossless. قبل از G1-DRIFT فقط موارد بخش 16 باید در dataset/runtime acceptance بسته شوند؛ هیچ تغییر مسیر Storage در این Commit انجام نشده است.
 
 مرجع اجرا: `TaskMigrationReader` → `TaskMigrationAdapter` → `TaskMigrationWriter` → سپس G1-DRIFT.
+
+
+## 18. Exact-head validation checkpoint
+
+The mapping document was validated against the branch head after the G1 test addition. CI must validate this exact commit before G1-MAP is marked complete. No Drift schema or canonical TaskStore switch is permitted before that validation.
