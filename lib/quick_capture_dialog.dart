@@ -158,7 +158,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     try {
       final saved = await onFullForm(draft);
       if (!mounted) return;
-      if (saved) _controller.clear();
+      if (saved) {
+        _controller.clear();
+        setState(() => _saving = false);
+        Navigator.of(context).pop();
+        return;
+      }
       setState(() => _saving = false);
     } catch (_) {
       if (!mounted) return;
