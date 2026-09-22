@@ -7,7 +7,7 @@ import 'package:drift/drift.dart';
 /// not change TaskStore, read/write ownership, or the legacy SharedPreferences
 /// migration boundary.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 2;
+  static const int version = 3;
 
   static const List<String> _statements = <String>[
     '''
@@ -48,7 +48,10 @@ CREATE TABLE IF NOT EXISTS follow_ups (
     '''
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  color_value INTEGER NOT NULL DEFAULT 12462507,
+  is_archived INTEGER NOT NULL DEFAULT 0,
+  legacy_payload_json TEXT NULL
 )
 ''',
     '''
@@ -131,7 +134,27 @@ CREATE TABLE IF NOT EXISTS task_people (
         );
       }
 
-      await executor.runCustom('PRAGMA user_version = 2');
+      final projectColumns = await executor.runSelect(
+        "PRAGMA table_info('projects')",
+        const [],
+      );
+      if (!projectColumns.any((row) => row['name'] == 'color_value')) {
+        await executor.runCustom(
+          'ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 12462507',
+        );
+      }
+      if (!projectColumns.any((row) => row['name'] == 'is_archived')) {
+        await executor.runCustom(
+          'ALTER TABLE projects ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+      if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
+        await executor.runCustom(
+          'ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL',
+        );
+      }
+
+      await executor.runCustom('PRAGMA user_version = 3');
       await executor.runCustom('COMMIT');
     } catch (_) {
       try {
