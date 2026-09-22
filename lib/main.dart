@@ -521,7 +521,7 @@ class _HomePageState extends State<HomePage> {
           ),
           padding: EdgeInsets.symmetric(
             horizontal: 4,
-            vertical: MediaQuery.sizeOf(context).height < 700 ? 10 : 12,
+            vertical: 12,
           ),
         ),
         child: Text(
