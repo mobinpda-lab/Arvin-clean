@@ -108,7 +108,7 @@ void main() {
     expect(find.text('کار بدون پیگیری'), findsOneWidget);
     expect(find.text('کار امروز'), findsNothing);
     expect(find.text('کار تمام شده'), findsNothing);
-    expect(find.byKey(const ValueKey('home-clear-task-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-clear-task-filter')), findsNothing);
   });
 
   testWidgets('Today under My Tasks uses canonical dueDate projection',
