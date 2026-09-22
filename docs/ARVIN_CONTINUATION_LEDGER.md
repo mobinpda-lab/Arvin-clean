@@ -129,3 +129,15 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - The Android smoke failure on this run is therefore a compile gate, not yet a new Quick Capture persistence result.
 - Required next gate: fresh Analyze/Test/Android validation on the exact head after this checkpoint.
 - G1 remains blocked; no migration/backup/merge/G2 acceptance is claimed.
+
+## G1 Cycle F Checkpoint — 2026-09-22
+- Previous validation head: 9a24348f398443b68416d31c7461b45ca02c255f.
+- Build #2918 reached Analyze successfully, but Test failed with 641 passed / 128 failed.
+- The dominant failure is a host-test initialization error: `Bad state: The SharedPreferencesAsyncPlatform instance must be set`, raised when TaskStore is constructed by notebook and other unit/widget tests.
+- Android Device Smoke #1862 also failed. Canonical Home smoke passed, while Android Quick Capture still failed at sequential persistence: `Canonical TaskStore did not persist: کار دوم`.
+- Classification: G1 storage compatibility/persistence gate. The Android failure remains the product gate; the host-test failure is a regression introduced by making TaskStore instantiate SharedPreferencesAsync in non-Android test processes.
+- Targeted G1 fix: TaskStore now uses SharedPreferencesAsync with the explicit native Android SharedPreferences backend only on Android; non-Android test/host execution keeps the existing SharedPreferences path. The canonical key `arvin.tasks` and TaskStorageLock remain unchanged.
+- Code commit: 744082be0816f08b73b5a4405428ae63d3d26336.
+- No SQLite/Drift migration, second store, Home redesign, or unrelated feature work was introduced.
+- Required next gate: fresh Analyze/Test/Android validation on the exact post-fix head, followed by investigation of the remaining Android Quick Capture persistence failure if it reproduces.
+- G1 remains blocked; no migration/backup/merge/G2 acceptance is claimed.
