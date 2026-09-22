@@ -380,8 +380,6 @@ class _HomePageState extends State<HomePage> {
     HomeGroupMode.labels => 'برچسب‌ها',
   };
 
-  String _persianNumber(int value) =>
-      persianDateFormatter.toPersianDigits('$value');
 
   Widget _homeGroupingButton(HomeGroupMode mode, String label) {
     final selected = _homeGroupMode == mode;
