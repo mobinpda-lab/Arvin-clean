@@ -51,7 +51,7 @@ class TaskStore {
     backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
   );
 
-  final SharedPreferencesAsync _androidPreferences =
+  late final SharedPreferencesAsync _androidPreferences =
       SharedPreferencesAsync(options: _androidOptions);
 
   Future<String?> _readRaw() async {
