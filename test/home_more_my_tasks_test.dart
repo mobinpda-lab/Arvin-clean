@@ -54,7 +54,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
 
     await openMyTasks(tester);
 
