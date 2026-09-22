@@ -67,6 +67,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       return false;
     }
 
+    // ignore: avoid_print
+    print('G1 Quick Capture submit title=${task.title} id=${task.id}');
     final onCaptured = widget.onCaptured;
     if (onCaptured == null) {
       Navigator.of(context).pop(task);
@@ -78,7 +80,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       _error = null;
     });
     try {
+      // ignore: avoid_print
+      print('G1 Quick Capture before onCaptured title=${task.title} id=${task.id}');
       await onCaptured(task);
+      // ignore: avoid_print
+      print('G1 Quick Capture after onCaptured title=${task.title} id=${task.id}');
       if (!mounted) return true;
       _controller.clear();
       setState(() => _saving = false);
