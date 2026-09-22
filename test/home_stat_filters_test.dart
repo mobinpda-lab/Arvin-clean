@@ -17,36 +17,24 @@ void main() {
     });
   });
 
-  testWidgets('Home exposes four live summary cards and filters tasks',
+  testWidgets('Home exposes the four canonical grouping controls',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-labels')), findsOneWidget);
 
     expect(find.text('کار فعال'), findsOneWidget);
     expect(find.text('کار انجام شده'), findsOneWidget);
     expect(find.text('کار عقب افتاده'), findsOneWidget);
     expect(find.text('کار بایگانی'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('home-summary-completed')));
-    await tester.pumpAndSettle();
-    expect(find.text('کار انجام شده'), findsOneWidget);
-    expect(find.text('کار فعال'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('home-summary-overdue')));
-    await tester.pumpAndSettle();
-    expect(find.text('کار عقب افتاده'), findsOneWidget);
-    expect(find.text('کار انجام شده'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('home-summary-active')));
-    await tester.pumpAndSettle();
-    expect(find.text('کار فعال'), findsOneWidget);
-    expect(find.text('کار انجام شده'), findsNothing);
+    expect(find.byKey(const ValueKey('home-summary-active')), findsNothing);
+    expect(find.byKey(const ValueKey('home-summary-completed')), findsNothing);
+    expect(find.byKey(const ValueKey('home-summary-overdue')), findsNothing);
   });
 
   testWidgets('Home keeps notification physically left and menu physically right in RTL',
