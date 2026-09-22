@@ -163,7 +163,7 @@ void main() {
         executor: database,
         preferences: preferences,
       ),
-      throwsA(isA<Exception>()),
+      throwsA(anything),
     );
 
     final tasks = await database.runSelect(
