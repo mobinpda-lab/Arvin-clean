@@ -38,3 +38,5 @@ jobs:
           git add pubspec.lock
           git commit -m "chore(g1): sync pubspec.lock"
           git push
+
+# Triggered for the lock synchronization pass.
