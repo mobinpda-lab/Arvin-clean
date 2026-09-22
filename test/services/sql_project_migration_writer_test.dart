@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/services/sql_project_migration_writer.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 
 void main() {
   late NativeDatabase database;
@@ -30,6 +31,8 @@ void main() {
     ]);
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.projects', raw);
+
+    await G1DriftSchema.install(database);
 
     await database.runInsert(
       'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
