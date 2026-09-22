@@ -373,7 +373,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-;
+
+  void _selectHomeGroupMode(HomeGroupMode mode) {
+    setState(() {
+      _homeGroupMode = mode;
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _categoryFilter = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
 
   Widget _homeGroupingButton({
     required String keyName,
@@ -562,7 +573,6 @@ class _HomePageState extends State<HomePage> {
     return 'کاری برای نمایش وجود ندارد';
   }
 
-;
 
   String _date(DateTime date) => persianDateFormatter.format(
     date,
