@@ -102,8 +102,8 @@ void main() {
       '[{"id":"project-1","title":"فروش","itemIds":["missing-task"]}]',
     );
 
-    expect(
-      () async => const SqlProjectMigrationWriter().migrateFromPreferences(
+    await expectLater(
+      const SqlProjectMigrationWriter().migrateFromPreferences(
         executor: database,
         preferences: preferences,
       ),
