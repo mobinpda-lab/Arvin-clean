@@ -16,6 +16,7 @@ import java.util.TimeZone
 /** Native boundary for routing Android Widget task taps into Flutter. */
 class MainActivity : FlutterActivity() {
     private var widgetChannel: MethodChannel? = null
+    private var taskStorageChannel: MethodChannel? = null
     private var systemCalendarChannel: MethodChannel? = null
     private var pendingWidgetTaskId: String? = null
     private var pendingCalendarPermissionResult: MethodChannel.Result? = null
@@ -45,6 +46,41 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             SYSTEM_CALENDAR_CHANNEL,
         )
+        taskStorageChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            TASK_STORAGE_CHANNEL,
+        )
+        taskStorageChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                METHOD_READ_TASK_DOCUMENT -> {
+                    val preferences = getSharedPreferences(
+                        FLUTTER_SHARED_PREFERENCES_FILE,
+                        MODE_PRIVATE,
+                    )
+                    result.success(preferences.getString(FLUTTER_TASKS_KEY, null))
+                }
+                METHOD_WRITE_TASK_DOCUMENT -> {
+                    val encoded = call.argument<String>("value")
+                    if (encoded == null) {
+                        result.error(
+                            "invalid_task_document",
+                            "Canonical task document is missing",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    val saved = getSharedPreferences(
+                        FLUTTER_SHARED_PREFERENCES_FILE,
+                        MODE_PRIVATE,
+                    ).edit()
+                        .putString(FLUTTER_TASKS_KEY, encoded)
+                        .commit()
+                    result.success(saved)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         systemCalendarChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 METHOD_INSERT_SYSTEM_CALENDAR_EVENT -> {
