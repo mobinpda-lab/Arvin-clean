@@ -103,3 +103,18 @@ Final report includes branch, final SHA, PR link, changed files, exact change su
 11. Final debug/release build and PR delivery
 
 This is a completion contract, not a mock, proposal or disabled implementation.
+
+
+## 24. Product First and Continuity Lock
+The factory, NIRA and GitHub automation are delivery mechanisms. Arvin working software is the only final product objective. Factory health or workflow count never substitutes for product acceptance.
+
+The persistent recovery authority is the canonical operating package, final contract, execution ledger, latest checkpoint and exact-head. A new ChatGPT conversation, account or device resumes from that state rather than restarting the audit.
+
+## 25. Five-Minute Cycle
+Each cycle is one measurable delta or validation: 0–1 minute exact-head/error check; 1–3 minute small change; 3–4 minute targeted validation; 4–5 minute commit/checkpoint. Multiple cycles may serve one gate; the gate advances only after its acceptance condition is green.
+
+## 26. Legacy Home Migration Boundary
+Legacy Home is not migration data. Migration transfers durable user data and preserves IDs/history; it does not carry the old Home UI, selectors, projections or UI-only dependencies into the new architecture. Code/tests coupled to legacy Home are corrected in the relevant wave. No parallel storage is permitted.
+
+## 27. Product-First Priority
+When factory work and product work compete for execution capacity, product completion takes precedence. Factory changes are performed only to unblock, accelerate, validate, recover or safely deliver Arvin.
