@@ -35,6 +35,7 @@ class SqlTaskMigrationWriter {
     var inserted = 0;
     var skippedExisting = 0;
 
+    await executor.runCustom('BEGIN');
     try {
       for (final record in records) {
         final exists = await executor.runSelect(
