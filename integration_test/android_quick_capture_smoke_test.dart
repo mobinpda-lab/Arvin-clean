@@ -82,7 +82,10 @@ void main() {
         'کار سوم',
       ]) {
         await tester.enterText(input, title);
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pumpAndSettle();
         await tester.ensureVisible(submit);
+        await tester.pump();
         await tester.tap(submit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(
