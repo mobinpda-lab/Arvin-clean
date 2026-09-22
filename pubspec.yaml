@@ -4,7 +4,7 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -21,6 +21,8 @@ dependencies:
   share_plus: ^11.1.0
   adhan_dart: ^2.0.1
   cryptography: ^2.9.0
+  drift: ^2.32.1
+  drift_flutter: ^0.3.0
 
 dev_dependencies:
   flutter_test:
@@ -28,6 +30,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  drift_dev: ^2.32.1
+  build_runner: ^2.7.1
 
 flutter:
   uses-material-design: true
