@@ -54,7 +54,7 @@ void main() {
     expect(report.sqlProjectCount, 1);
 
     final project = (await database.runSelect(
-      'SELECT id, name FROM projects WHERE id = ?',
+      'SELECT id, name, color_value, is_archived, legacy_payload_json FROM projects WHERE id = ?',
       const ['project-1'],
     )).single;
     expect(project['name'], 'فروش');
