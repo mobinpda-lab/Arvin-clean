@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,13 +31,13 @@ class SqlTaskMigrationWriter {
     }
 
     final records = adapter.decodeLegacyRecords(raw);
-    final transaction = executor.beginTransaction();
+    // The executor is already opened by G1DriftSchema.install; use an explicit SQL transaction so every statement runs on that opened executor.
     var inserted = 0;
     var skippedExisting = 0;
 
     try {
       for (final record in records) {
-        final exists = await transaction.runSelect(
+        final exists = await executor.runSelect(
           'SELECT id FROM tasks WHERE id = ? LIMIT 1',
           <Object?>[record.task.id],
         );
@@ -45,13 +46,13 @@ class SqlTaskMigrationWriter {
           continue;
         }
 
-        await _insertTask(transaction, record);
+        await _insertTask(executor, record);
         inserted++;
       }
 
-      await transaction.send();
+      await executor.runCustom('COMMIT');
     } catch (_) {
-      await transaction.rollback();
+      await executor.runCustom('ROLLBACK');
       rethrow;
     }
 
