@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
@@ -50,19 +51,33 @@ class TaskStore {
     backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
   );
 
-  final SharedPreferencesAsync _preferences =
+  final SharedPreferencesAsync _androidPreferences =
       SharedPreferencesAsync(options: _androidOptions);
 
-  Future<String?> _readRaw() => _preferences.getString(key);
+  Future<String?> _readRaw() async {
+    if (Platform.isAndroid) {
+      return _androidPreferences.getString(key);
+    }
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getString(key);
+  }
 
   Future<void> _writeRaw(String encoded) async {
-    await _preferences.setString(key, encoded);
+    if (Platform.isAndroid) {
+      await _androidPreferences.setString(key, encoded);
+      final persisted = await _androidPreferences.getString(key);
+      if (persisted != encoded) {
+        throw StateError(
+          'Canonical task storage write could not be verified',
+        );
+      }
+      return;
+    }
 
-    final persisted = await _preferences.getString(key);
-    if (persisted != encoded) {
-      throw StateError(
-        'Canonical task storage write could not be verified',
-      );
+    final preferences = await SharedPreferences.getInstance();
+    final saved = await preferences.setString(key, encoded);
+    if (!saved) {
+      throw StateError('Could not persist canonical task storage');
     }
   }
 
