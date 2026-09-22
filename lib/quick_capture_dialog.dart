@@ -312,6 +312,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 autofocus: true,
                 enabled: !_saving,
                 textInputAction: TextInputAction.next,
+                onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
                   labelText: 'عنوان',
                   hintText: 'عنوان کار را وارد کنید',
