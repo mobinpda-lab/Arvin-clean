@@ -154,4 +154,20 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('documents that unknown legacy fields are not carried by Task JSON', () {
+    const raw = '''[
+      {
+        "id": "unknown-1",
+        "title": "فیلد ناشناخته",
+        "futureField": {"keep": true}
+      }
+    ]''';
+
+    final task = adapter.decodeLegacyList(raw).single;
+    final encoded = adapter.encodeUnifiedList([task]);
+
+    expect(encoded, contains('"id":"unknown-1"'));
+    expect(encoded, isNot(contains('futureField')));
+  });
 }
