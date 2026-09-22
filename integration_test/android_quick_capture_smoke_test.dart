@@ -114,6 +114,14 @@ void main() {
         // Verify the canonical storage after every sequential save on Android.
         // This distinguishes a persistence race from a Home rendering problem.
         final persisted = await TaskStore().load();
+        // Diagnostic evidence for the Android persistence gate: record the
+        // complete canonical collection at the exact point of verification.
+        // This does not change behavior or weaken the assertion.
+        // ignore: avoid_print
+        print(
+          'G1 Quick Capture canonical titles after $title: ' +
+              persisted.map((task) => '${task.title} [${task.id}]').join(' | '),
+        );
         expect(
           persisted.any((task) => task.title == title),
           isTrue,
