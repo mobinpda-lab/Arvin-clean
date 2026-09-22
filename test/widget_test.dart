@@ -38,8 +38,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-labels')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selector')), findsNothing);
+    expect(find.byKey(const ValueKey('home-sort-direction')), findsNothing);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
 
