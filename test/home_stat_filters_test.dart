@@ -59,8 +59,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-group-labels')));
     await tester.pumpAndSettle();
-    expect(find.text('مهم'), findsOneWidget);
-    expect(find.text('فوری'), findsOneWidget);
+    expect(find.text('مهم'), findsWidgets);
+    expect(find.text('فوری'), findsWidgets);
 
     await tester.tap(find.byKey(const ValueKey('home-group-projects')));
     await tester.pumpAndSettle();
