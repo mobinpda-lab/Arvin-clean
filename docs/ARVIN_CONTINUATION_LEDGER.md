@@ -104,3 +104,16 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - Code commit: fadf0b0d7c3b41e13f08bf305ec28a914a3b81a2
 - Required next gate: fresh GitHub Analyze/Test/Android validation on exact head fadf0b0d7c3b41e13f08bf305ec28a914a3b81a2.
 - G1 remains blocked until the exact-head Android Quick Capture persistence gate is green.
+
+
+## G1 Cycle D Checkpoint — 2026-09-22
+- Previous SHA: bcf42d1051882fd7024323dd233ea71d6338de82
+- Exact Android failure being addressed: sequential Quick Capture loses "کار دوم" when the canonical TaskStore is read from the Android smoke test boundary.
+- Diagnosis: TaskStore was still using the cached SharedPreferences API plus a process-local Android snapshot. That combination can expose different cached values across Flutter engine/isolate boundaries even when the native preference write succeeded.
+- Targeted G1 fix: TaskStore now removes the process-local Android snapshot entirely and uses SharedPreferencesAsync with the explicit native Android SharedPreferences backend against the existing arvin.tasks key. Every read goes directly to the platform store; every write is immediately read back and verified.
+- Existing TaskStorageLock remains the single in-process read-modify-write boundary.
+- No second store, database, Home migration, unrelated UI, or model rewrite was introduced.
+- Code commit: bcf42d1051882fd7024323dd233ea71d6338de82
+- External package documentation confirms SharedPreferencesAsync has no Dart-side cache and can use the Android SharedPreferences backend explicitly; this is the intended mechanism for avoiding stale cross-engine/isolate cache observations.
+- Required next gate: fresh Analyze/Test/Android Quick Capture validation on the exact final SHA after the ledger checkpoint.
+- G1 remains blocked until that exact-head Android persistence gate is green.
