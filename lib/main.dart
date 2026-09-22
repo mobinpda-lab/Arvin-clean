@@ -1762,7 +1762,7 @@ class _HomePageState extends State<HomePage> {
                               .toList(),
                         ),
                       ],
-                      if (task.dueDate != null) ...[
+                      if (dueDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
                           children: [
@@ -1774,7 +1774,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'موعد: ${_date(dueDate!)} • ${_time(dueDate!)}',
+                                'موعد: ${_date(dueDate)} • ${_time(dueDate)}',
                                 style: const TextStyle(
                                   color: Color(0xFF80829C),
                                   fontSize: 11,
