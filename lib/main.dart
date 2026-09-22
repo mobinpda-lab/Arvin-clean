@@ -39,7 +39,7 @@ import 'widgets/home_interactive_guide.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
+void main() => runApp(const ArvinApp(enableFirstRunGuide: false));
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key, this.enableFirstRunGuide = false});
@@ -420,79 +420,103 @@ class _HomePageState extends State<HomePage> {
         filter == filterValue;
   }
 
-  Widget _homeSummaryCard({
-    required String keyName,
+  Widget _homeGroupButton({
+    required HomeGroupMode mode,
     required String label,
-    required int count,
     required IconData icon,
-    required String filterValue,
     required Color accent,
     required Color softAccent,
   }) {
-    final selected = _homeSummarySelected(filterValue);
-    final compactHome = MediaQuery.sizeOf(context).height < 700;
+    final selectedMode = _homeGroupMode == mode;
     return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: '$label، $count مورد',
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            key: ValueKey('home-summary-$keyName'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(filterValue),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
-              decoration: BoxDecoration(
-                color: selected ? softAccent : const Color(0xFFFDFDFE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? accent : const Color(0xFFE5E7ED),
-                  width: selected ? 1.4 : 1,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('home-group-\${mode.name}'),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _selectHomeGroupMode(mode),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            constraints: const BoxConstraints(minHeight: 82),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+            decoration: BoxDecoration(
+              color: selectedMode ? softAccent : const Color(0xFFFDFDFE),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selectedMode ? accent : const Color(0xFFE5E7ED),
+                width: selectedMode ? 1.5 : 1,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0D232433),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0D232433),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 23, color: accent),
+                const SizedBox(height: 7),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: const Color(0xFF232433),
+                    fontSize: 11.5,
+                    fontWeight: selectedMode ? FontWeight.w800 : FontWeight.w700,
                   ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 21, color: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    _persianNumber(count),
-                    key: ValueKey('home-summary-count-$keyName'),
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: selected ? accent : const Color(0xFF606273),
-                      fontSize: 11,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _homeGroupSelector() {
+    return Padding(
+      key: _filtersGuideKey,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          _homeGroupButton(
+            mode: HomeGroupMode.time,
+            label: 'زمان',
+            icon: Icons.calendar_month_rounded,
+            accent: const Color(0xFFE39A4A),
+            softAccent: const Color(0xFFFFF0E3),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.projects,
+            label: 'پروژه‌ها',
+            icon: Icons.folder_rounded,
+            accent: const Color(0xFF4B8FE8),
+            softAccent: const Color(0xFFEAF3FF),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.categories,
+            label: 'دسته‌ها',
+            icon: Icons.grid_view_rounded,
+            accent: const Color(0xFF8C68D9),
+            softAccent: const Color(0xFFF2ECFF),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.labels,
+            label: 'برچسب‌ها',
+            icon: Icons.sell_rounded,
+            accent: const Color(0xFF38A89B),
+            softAccent: const Color(0xFFE8F8F5),
+          ),
+        ],
       ),
     );
   }
@@ -1619,6 +1643,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String? _latestFollowUpPreview(Task task) {
+    final followUp = task.lastFollowUp;
+    if (followUp == null) return null;
+    final note = followUp.note.trim();
+    final result = (followUp.result ?? '').trim();
+    if (result.isNotEmpty) return result;
+    if (note.isNotEmpty) return note;
+    return 'پیگیری ثبت‌شده';
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -1716,11 +1750,12 @@ class _HomePageState extends State<HomePage> {
                               : null,
                         ),
                       ),
-                      if (task.description.isNotEmpty) ...[
+                      final preview = _latestFollowUpPreview(task);
+                      if (preview != null || task.description.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          task.description,
-                          maxLines: 2,
+                          preview ?? task.description,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF80829C),
@@ -1927,145 +1962,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Padding(
-              key: _filtersGuideKey,
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 10),
-              child: Row(
-                key: const ValueKey('home-four-summary-selector'),
-                children: [
-                  _homeSummaryCard(
-                    keyName: 'all',
-                    label: 'کل',
-                    count: _homeAllCount,
-                    icon: Icons.list_alt_rounded,
-                    filterValue: 'کل',
-                    accent: const Color(0xFF4A4CAB),
-                    softAccent: const Color(0xFFE9EAFF),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'active',
-                    label: 'فعال',
-                    count: _homeActiveCount,
-                    icon: Icons.play_circle_outline_rounded,
-                    filterValue: 'فعال',
-                    accent: const Color(0xFF2F80ED),
-                    softAccent: const Color(0xFFEAF4FF),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'completed',
-                    label: 'انجام‌شده',
-                    count: _homeCompletedCount,
-                    icon: Icons.check_circle_outline_rounded,
-                    filterValue: 'انجام‌شده',
-                    accent: const Color(0xFF409B51),
-                    softAccent: const Color(0xFFEAF7ED),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'overdue',
-                    label: 'عقب‌افتاده',
-                    count: _homeOverdueCount,
-                    icon: Icons.schedule_rounded,
-                    filterValue: 'عقب‌افتاده',
-                    accent: const Color(0xFFDB8B23),
-                    softAccent: const Color(0xFFFDF1E9),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 1 : 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    key: const ValueKey('home-view-all'),
-                    onPressed: () => _selectHomeStat('کل'),
-                    child: const Text('مشاهده همه'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: compactHome ? 36 : 48,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Text('گروه‌بندی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<HomeGroupMode>(
-                      key: const ValueKey('home-group-mode-selector'),
-                      value: _homeGroupMode,
-                      items: HomeGroupMode.values
-                          .map(
-                            (mode) => DropdownMenuItem<HomeGroupMode>(
-                              value: mode,
-                              child: Text(_homeModeLabel(mode)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (mode) {
-                        if (mode != null) _selectHomeGroupMode(mode);
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('مرتب‌سازی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<TaskListSort>(
-                      key: const ValueKey('home-sort-selector'),
-                      value: _listSort,
-                      items: TaskListSort.values
-                          .map(
-                            (sort) => DropdownMenuItem<TaskListSort>(
-                              value: sort,
-                              child: Text(_sortLabel(sort)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (sort) {
-                        if (sort != null) _setListSort(sort);
-                      },
-                    ),
-                    IconButton(
-                      key: const ValueKey('home-sort-direction'),
-                      tooltip: _sortDescending
-                          ? 'مرتب‌سازی صعودی'
-                          : 'مرتب‌سازی نزولی',
-                      onPressed: _toggleSortDirection,
-                      icon: Icon(
-                        _sortDescending
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                      ),
-                    ),
-                    if (filter != 'کل' ||
-                        _listScope != TaskListScope.all ||
-                        _dueScope != null ||
-                        _categoryFilter != null) ...[
-                      const SizedBox(width: 4),
-                      TextButton(
-                        key: const ValueKey('home-clear-task-filter'),
-                        onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('پاک کردن فیلتر'),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            _homeGroupSelector(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
