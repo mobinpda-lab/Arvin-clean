@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 import '../models/task.dart';
 import 'task_storage_lock.dart';
@@ -55,40 +54,15 @@ class TaskStore {
   }
 
   Future<String?> _readRaw() async {
-    try {
-      // SharedPreferencesAsync has no local cache and therefore always reads
-      // the latest native value. This is important on Android where another
-      // Flutter/plugin context may have written the same canonical key.
-      final preferences = _asyncPreferences();
-      return await preferences.getString(key);
-    } on StateError catch (error) {
-      if (!error.toString().contains('SharedPreferencesAsyncPlatform')) rethrow;
-      // Flutter unit tests do not register the async platform by default.
-      // Keep the test fallback isolated and refresh its legacy cache before
-      // every read so setMockInitialValues() is respected between tests.
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.reload();
-      return preferences.getString(key);
-    }
+    // The canonical key is still the legacy SharedPreferences-backed store
+    // during incremental migration. Reload before every read so another
+    // engine/context cannot leave this process with a stale cached value.
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.reload();
+    return preferences.getString(key);
   }
 
   Future<void> _writeRaw(String encoded) async {
-    try {
-      final preferences = _asyncPreferences();
-      await preferences.setString(key, encoded);
-      final acknowledged = await preferences.getString(key);
-      if (acknowledged != encoded) {
-        throw StateError('Canonical task storage write could not be verified');
-      }
-      return;
-    } on StateError catch (error) {
-      // Only platform-registration failures should reach this fallback.
-      // Storage verification failures must remain real failures.
-      if (!error.toString().contains('SharedPreferencesAsyncPlatform')) {
-        rethrow;
-      }
-    }
-
     final preferences = await SharedPreferences.getInstance();
     final saved = await preferences.setString(key, encoded);
     if (!saved) {
@@ -98,13 +72,6 @@ class TaskStore {
     if (preferences.getString(key) != encoded) {
       throw StateError('Canonical task storage write could not be verified');
     }
-  }
-
-  SharedPreferencesAsync _asyncPreferences() {
-    const options = SharedPreferencesAsyncAndroidOptions(
-      backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
-    );
-    return SharedPreferencesAsync(options: options);
   }
 
   Future<List<Task>> _loadUnlocked() async {
@@ -145,7 +112,9 @@ class TaskStore {
         if (persisted == encoded) return;
         await Future<void>.delayed(const Duration(milliseconds: 50));
       }
-      throw StateError('Canonical task storage write was not stable after verification');
+      throw StateError(
+        'Canonical task storage write was not stable after verification',
+      );
     }
   }
 }
