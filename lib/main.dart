@@ -722,24 +722,33 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    await showDialog<void>(
+    final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
+    if (!mounted) return;
+    String? selectedProjectId = editorContext.selectedProjectId;
+
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      showDragHandle: false,
+      useSafeArea: true,
       builder: (_) => QuickCaptureDialog(
+        projects: editorContext.projects,
+        initialProjectId: selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
-          final editorContext = await wave2ProductFastTrack.prepareEditor(
+          final editedContext = await wave2ProductFastTrack.prepareEditor(
             tasks: tasks,
             task: draft,
           );
           if (!mounted) return false;
-          String? selectedProjectId = editorContext.selectedProjectId;
           final edited = await showDialog<Task>(
             context: context,
             builder: (_) => ArvinTaskEditorDialog(
               task: draft,
-              projects: editorContext.projects,
-              selectedProjectId: editorContext.selectedProjectId,
+              projects: editedContext.projects,
+              selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
-              knownCategories: editorContext.knownCategories,
+              knownCategories: editedContext.knownCategories,
             ),
           );
           if (edited == null) return false;
@@ -769,6 +778,10 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(captured);
           });
+          await wave2ProductFastTrack.persistProjectSelection(
+            taskId: captured.id,
+            projectId: selectedProjectId,
+          );
 
           final refreshed = await taskStore.load();
           if (!mounted) return;
@@ -780,9 +793,7 @@ class _HomePageState extends State<HomePage> {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Text('«${captured.title}» با ثبت سریع اضافه شد'),
-              ),
+              SnackBar(content: Text('«${captured.title}» ثبت شد')),
             );
         },
       ),
@@ -1657,6 +1668,7 @@ class _HomePageState extends State<HomePage> {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final preview = _latestFollowUpPreview(task);
     return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -1750,7 +1762,6 @@ class _HomePageState extends State<HomePage> {
                               : null,
                         ),
                       ),
-                      final preview = _latestFollowUpPreview(task);
                       if (preview != null || task.description.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
