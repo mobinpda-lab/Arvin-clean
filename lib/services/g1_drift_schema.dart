@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS follow_ups (
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
-  color_value INTEGER NOT NULL DEFAULT 12462507,
+  color_value INTEGER NOT NULL DEFAULT 4283059371,
   is_archived INTEGER NOT NULL DEFAULT 0,
   legacy_payload_json TEXT NULL
 )
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS task_people (
       );
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
         await executor.runCustom(
-          'ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 12462507',
+          'ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371',
         );
       }
       if (!projectColumns.any((row) => row['name'] == 'is_archived')) {
