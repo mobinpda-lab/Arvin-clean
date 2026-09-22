@@ -128,7 +128,7 @@ void main() {
     expect(continued!.id, 'quick-1');
     expect(continued!.title, 'ادامه در فرم');
     expect(continued!.tags, ['مهم']);
-    expect(find.text('ثبت سریع کار'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsNothing);
   });
 
   testWidgets('captures three tasks sequentially without closing the dialog',
