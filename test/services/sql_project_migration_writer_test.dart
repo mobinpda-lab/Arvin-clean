@@ -24,8 +24,9 @@ void main() {
       {
         'id': 'project-1',
         'title': 'فروش',
-        'colorValue': 0xFF4A4CAB,
-        'isArchived': false,
+        'colorValue': 0xFF123456,
+        'isArchived': true,
+        'futureField': {'keep': true},
         'itemIds': ['task-1', 'task-2'],
       },
     ]);
@@ -57,6 +58,10 @@ void main() {
       const ['project-1'],
     )).single;
     expect(project['name'], 'فروش');
+    expect(project['color_value'], 0xFF123456);
+    expect(project['is_archived'], 1);
+    final envelope = jsonDecode(project['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope['futureField'], {'keep': true});
 
     final memberships = await database.runSelect(
       'SELECT task_id, ordinal FROM project_items WHERE project_id = ? ORDER BY ordinal',
