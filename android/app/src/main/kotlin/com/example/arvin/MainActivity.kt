@@ -513,6 +513,11 @@ class MainActivity : FlutterActivity() {
         const val EXTRA_TASK_ID = "arvin_task_id"
         const val METHOD_CONSUME_TASK_ID = "consumeWidgetTaskId"
         const val METHOD_TASK_SELECTED = "widgetTaskSelected"
+        const val TASK_STORAGE_CHANNEL = "arvin/canonical_task_storage"
+        const val METHOD_READ_TASK_DOCUMENT = "readTaskDocument"
+        const val METHOD_WRITE_TASK_DOCUMENT = "writeTaskDocument"
+        const val FLUTTER_SHARED_PREFERENCES_FILE = "FlutterSharedPreferences"
+        const val FLUTTER_TASKS_KEY = "flutter.arvin.tasks"
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
         const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
