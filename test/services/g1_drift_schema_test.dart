@@ -32,6 +32,19 @@ void main() {
       contains('legacy_payload_json'),
     );
 
+    final projectColumns = await database.runSelect(
+      "PRAGMA table_info('projects')",
+      const [],
+    );
+    expect(
+      projectColumns.map((row) => row['name']),
+      containsAll(<String>[
+        'color_value',
+        'is_archived',
+        'legacy_payload_json',
+      ]),
+    );
+
     expect(
       tables.map((row) => row['name']),
       containsAll(<String>[
