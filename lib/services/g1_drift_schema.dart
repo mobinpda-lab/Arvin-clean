@@ -7,7 +7,7 @@ import 'package:drift/drift.dart';
 /// not change TaskStore, read/write ownership, or the legacy SharedPreferences
 /// migration boundary.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 1;
+  static const int version = 2;
 
   static const List<String> _statements = <String>[
     '''
@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   archived INTEGER NOT NULL,
   trashed INTEGER NOT NULL,
   completed INTEGER NOT NULL,
-  recurrence_json TEXT NULL
+  recurrence_json TEXT NULL,
+  legacy_payload_json TEXT NULL
 )
 ''',
     '''
@@ -116,6 +117,21 @@ CREATE TABLE IF NOT EXISTS task_people (
       for (final statement in _statements) {
         await executor.runCustom(statement);
       }
+
+      final taskColumns = await executor.runSelect(
+        "PRAGMA table_info('tasks')",
+        const [],
+      );
+      final hasLegacyPayload = taskColumns.any(
+        (row) => row['name'] == 'legacy_payload_json',
+      );
+      if (!hasLegacyPayload) {
+        await executor.runCustom(
+          'ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL',
+        );
+      }
+
+      await executor.runCustom('PRAGMA user_version = 2');
       await executor.runCustom('COMMIT');
     } catch (_) {
       try {
