@@ -275,3 +275,25 @@ Legacy Home، selectorها، فیلترهای قدیمی، projectionهای سا
 مهاجرت به SQLite + Drift فقط پس از اثبات lossless بودن مسیر مجاز است. SharedPreferences قدیمی تا پایان اثبات و امکان rollback نباید overwrite/delete شود. IDها باید حفظ شوند، duplicate ممنوع است، Backup قبلی باید قابل Restore بماند و round-trip داده باید آزموده شود.
 
 در وضعیت فعلی، Issue #1340 یک Gate باز است: `TaskMigrationAdapter` هنوز برای کلیدهای ناشناخته JSON تضمین lossless ندارد و قبل از تصمیم/آزمون round-trip نباید cutover واقعی TaskStore انجام شود.
+
+
+## قانون اجرایی جدید — SQL محور اصلی فعلی
+
+از ۱۴۰۵/۰۶/۳۱، SQL/SQLite + Drift فقط یک مرحله مستنداتی نیست و یکی از محورهای اصلی اجرای فعلی تکمیل آروین است.
+
+### برنامه مرجع ادامه پروژه
+1. حسابرسی زنده GitHub، شاخه/PR/SHA/Actions و وضعیت واقعی کد.
+2. تثبیت پایه Drift و Schema بدون ساخت Model/Storage موازی.
+3. رفع کامل گیت Lossless Migration؛ حفظ شناسه، Task، FollowUp و تاریخچه، Project، Category، Tag، Checklist، Note، Archive و Trash و هر داده‌ای که در مرز مهاجرت وجود دارد.
+4. مهاجرت واقعی SharedPreferences/JSON به SQLite، با اعتبارسنجی، شمارش، روابط، جلوگیری از duplicate، idempotency و rollback.
+5. اجرای round-trip و Backup/Restore و اثبات عدم از دست رفتن داده.
+6. انتقال کنترل‌شده Repository/TaskStore به SQL به‌عنوان مسیر اصلی ذخیره‌سازی.
+7. اجرای Analyze، Test، Debug APK و Release APK روی همان SHA و سپس شواهد Android.
+8. تکمیل و تأیید Home نهایی، Quick Capture، FollowUp، Notebook، Calendar، Next Action، More، Settings و Swipe با داده واقعی و بدون مسیر موازی.
+9. فقط پس از عبور همه گیت‌ها، اعلام Release-Ready؛ هیچ مرحله‌ای با «ساخت Schema» یا «سبز شدن CI قدیمی» کامل محسوب نمی‌شود.
+
+### مرز قطعی Legacy Home
+Home قدیمی، home-group-mode-selector، فیلترها/کنترل‌های قدیمی، projectionهای سازگاری، تست‌های صرفاً UI قدیمی و فایل‌های صرفاً UI/Widget داده مهاجرتی نیستند و نباید به SQL منتقل شوند. Migration فقط داده واقعی کاربر را منتقل می‌کند.
+
+### معیار ادامه بین گفتگوها
+هر ادامه آروین باید این قانون و برنامه را حفظ کند و از آخرین وضعیت واقعی GitHub شروع کند؛ هیچ وضعیت قدیمی، گزارش قبلی یا حافظه گفتگو جای حسابرسی زنده را نمی‌گیرد.
