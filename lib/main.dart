@@ -307,7 +307,10 @@ class _HomePageState extends State<HomePage> {
     return taskStore.save(List<Task>.of(tasks));
   }
 
-  // Home time semantics are strictly based on the canonical Task due date.\n  // FollowUp/reminder timestamps must never redefine whether a Task is overdue.\n  DateTime? _homeDueDate(Task task) => task.dueDate;\n
+  // Home time semantics are strictly based on the canonical Task due date.
+  // FollowUp/reminder timestamps must never redefine whether a Task is overdue.
+  DateTime? _homeDueDate(Task task) => task.dueDate;
+
   bool _overdue(Task task) {
     final date = _homeDueDate(task);
     return date != null && !task.completed && date.isBefore(DateTime.now());
@@ -1771,7 +1774,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                'موعد: ${_date(dueDate!)} • ${_time(dueDate!)}',
                                 style: const TextStyle(
                                   color: Color(0xFF80829C),
                                   fontSize: 11,
