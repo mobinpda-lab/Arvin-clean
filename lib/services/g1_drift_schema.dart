@@ -6,7 +6,7 @@ import 'package:drift/drift.dart';
 /// generated table classes. It creates only the persistence schema; it does
 /// not change TaskStore, read/write ownership, or the legacy SharedPreferences
 /// migration boundary.
-class G1DriftSchema {
+class G1DriftSchema implements QueryExecutorUser {
   static const int version = 1;
 
   static const List<String> _statements = <String>[
@@ -91,10 +91,25 @@ CREATE TABLE IF NOT EXISTS task_people (
 ''',
   ];
 
+  @override
+  int get schemaVersion => version;
+
+  @override
+  Future<void> beforeOpen(
+    QueryExecutor executor,
+    OpeningDetails details,
+  ) async {
+    // Schema installation is deliberately explicit and remains outside
+    // Drift's generated database migration hooks.
+  }
+
   /// Installs the schema atomically and is safe to call again.
   ///
+  /// Opening the executor first is required by Drift's QueryExecutor contract.
   /// No existing legacy storage is read, written, deleted, or renamed here.
   static Future<void> install(QueryExecutor executor) async {
+    final schema = G1DriftSchema();
+    await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
     await executor.runCustom('BEGIN');
     try {
