@@ -107,7 +107,7 @@ void main() {
         // ignore: avoid_print
         print(
           'G1 Quick Capture canonical titles after $title: '
-          ${persisted.map((task) => '${task.title} [${task.id}]').join(' | ')},
+          '${persisted.map((task) => '${task.title} [${task.id}]').join(' | ')}',
         );
         expect(
           persisted.any((task) => task.title == title),
