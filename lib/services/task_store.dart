@@ -51,12 +51,15 @@ class TaskStore {
     backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
   );
 
-  static late final SharedPreferencesAsync _androidPreferences =
-      SharedPreferencesAsync(options: _androidOptions);
+  static SharedPreferencesAsync? _androidPreferences;
+
+  static SharedPreferencesAsync get _androidPreferencesInstance =>
+      _androidPreferences ??=
+          SharedPreferencesAsync(options: _androidOptions);
 
   Future<String?> _readRaw() async {
     if (Platform.isAndroid) {
-      return _androidPreferences.getString(key);
+      return _androidPreferencesInstance.getString(key);
     }
     final preferences = await SharedPreferences.getInstance();
     return preferences.getString(key);
@@ -64,8 +67,8 @@ class TaskStore {
 
   Future<void> _writeRaw(String encoded) async {
     if (Platform.isAndroid) {
-      await _androidPreferences.setString(key, encoded);
-      final persisted = await _androidPreferences.getString(key);
+      await _androidPreferencesInstance.setString(key, encoded);
+      final persisted = await _androidPreferencesInstance.getString(key);
       if (persisted != encoded) {
         throw StateError(
           'Canonical task storage write could not be verified',
