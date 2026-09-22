@@ -36,11 +36,6 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Keep Home and Quick Capture in the same Flutter engine. Running two
-      // integration-test entrypoints in one flutter test command still
-      // creates separate app/test processes, which can expose SharedPreferences
-      // cache boundaries. This combined smoke first proves the canonical Home
-      // path, then exercises sequential Quick Capture against the same engine.
       expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
       expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
@@ -93,9 +88,6 @@ void main() {
           find.byKey(const ValueKey('quick-capture-sheet')),
           findsOneWidget,
         );
-        // Wait for the canonical persistence callback to finish before the
-        // next sequential entry. This avoids a second tap racing the async
-        // TaskStore mutation while the button is temporarily disabled.
         for (var attempt = 0; attempt < 30; attempt += 1) {
           await tester.pump(const Duration(milliseconds: 100));
           if (find.text('ثبت کار').evaluate().isNotEmpty &&
@@ -111,16 +103,11 @@ void main() {
         expect(inputField.autofocus, isTrue);
         expect(FocusManager.instance.primaryFocus, isNotNull);
 
-        // Verify the canonical storage after every sequential save on Android.
-        // This distinguishes a persistence race from a Home rendering problem.
         final persisted = await TaskStore().load();
-        // Diagnostic evidence for the Android persistence gate: record the
-        // complete canonical collection at the exact point of verification.
-        // This does not change behavior or weaken the assertion.
         // ignore: avoid_print
         print(
-          'G1 Quick Capture canonical titles after $title: ' +
-              persisted.map((task) => '${task.title} [${task.id}]').join(' | '),
+          'G1 Quick Capture canonical titles after $title: '
+          '\${persisted.map((task) => '\${task.title} [\${task.id}]').join(' | ')}',
         );
         expect(
           persisted.any((task) => task.title == title),
@@ -131,11 +118,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Quick Capture intentionally remains open across sequential saves.
-      // Validate saved tasks after closing the modal, because the modal
-      // correctly blocks pointer interaction with the Home list.
       await tester.tap(find.byKey(const ValueKey('quick-capture-close')));
-
       await tester.pumpAndSettle();
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -148,10 +131,6 @@ void main() {
         await tester.tap(skipGuideAfterReload);
         await tester.pumpAndSettle();
       }
-      // Home reloads canonical storage asynchronously after the app restart.
-      // Poll the real Home tree briefly rather than asserting before the reload
-      // has completed. A missing task after the bounded wait remains a real
-      // persistence/rendering failure.
       for (final title in <String>['کار اول', 'کار دوم', 'کار سوم']) {
         var visible = false;
         for (var attempt = 0; attempt < 50; attempt += 1) {
@@ -165,8 +144,6 @@ void main() {
       }
       expect(find.text('پرونده موجود', skipOffstage: false), findsOneWidget);
 
-      // Leave the canonical Quick Capture surface open so the Android smoke
-      // workflow can capture the real rendered state as an artifact.
       await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
       await tester.pumpAndSettle();
       expect(
