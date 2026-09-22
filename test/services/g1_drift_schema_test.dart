@@ -70,8 +70,8 @@ void main() {
       "VALUES ('fu-1', 'task-1', '2026-09-22T10:00:00Z', 'اول', 0, 0)",
     );
 
-    expect(
-      () => database.runCustom(
+    await expectLater(
+      database.runCustom(
         "INSERT INTO follow_ups "
         "(id, task_id, date_time, note, completed, ordinal) "
         "VALUES ('fu-2', 'task-1', '2026-09-22T11:00:00Z', 'تکراری', 0, 0)",
@@ -89,8 +89,8 @@ void main() {
   test('foreign-key references prevent orphan relationship rows', () async {
     await G1DriftSchema.install(database);
 
-    expect(
-      () => database.runCustom(
+    await expectLater(
+      database.runCustom(
         "INSERT INTO follow_ups "
         "(id, task_id, date_time, note, completed, ordinal) "
         "VALUES ('fu-orphan', 'missing', '2026-09-22T10:00:00Z', '', 0, 0)",
