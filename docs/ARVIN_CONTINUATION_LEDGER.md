@@ -117,3 +117,15 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - External package documentation confirms SharedPreferencesAsync has no Dart-side cache and can use the Android SharedPreferences backend explicitly; this is the intended mechanism for avoiding stale cross-engine/isolate cache observations.
 - Required next gate: fresh Analyze/Test/Android Quick Capture validation on the exact final SHA after the ledger checkpoint.
 - G1 remains blocked until that exact-head Android persistence gate is green.
+
+
+## G1 Cycle E Checkpoint — 2026-09-22
+- Previous validation head: 23db433a9330026ade0f94adedcfaf925ee0dad2.
+- Build #2913 failed before tests because the new TaskStore implementation used the SharedPreferencesAsync options API incorrectly.
+- Exact compile errors: `TaskStore.resetProcessSnapshot` no longer exists in `lib/main.dart`; `SharedPreferencesAsync.getString/setString` do not accept an `options` named parameter in the locked dependency version.
+- Root cause: the intended SharedPreferencesAsync configuration belongs on the `SharedPreferencesAsync` constructor, not individual calls; the obsolete process-snapshot reset call remained after removing the snapshot.
+- Targeted G1 correction: configure one `SharedPreferencesAsync(options: _androidOptions)` instance, call `getString/setString` without per-call options, and remove the obsolete reset call.
+- Code commits: d9e2aefd1ff912a52a3f7adcaffc0560d17c917c and 707a65f0fe34bd033ee6b5ea14c36fa192079b48.
+- The Android smoke failure on this run is therefore a compile gate, not yet a new Quick Capture persistence result.
+- Required next gate: fresh Analyze/Test/Android validation on the exact head after this checkpoint.
+- G1 remains blocked; no migration/backup/merge/G2 acceptance is claimed.
