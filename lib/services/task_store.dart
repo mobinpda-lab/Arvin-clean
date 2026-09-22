@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 import '../models/task.dart';
 import 'task_storage_lock.dart';
@@ -46,20 +46,12 @@ class TaskStore {
     return const [];
   }
 
-  static const SharedPreferencesAsyncAndroidOptions _androidOptions =
-      SharedPreferencesAsyncAndroidOptions(
-    backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
-  );
-
-  static SharedPreferencesAsync? _androidPreferences;
-
-  static SharedPreferencesAsync get _androidPreferencesInstance =>
-      _androidPreferences ??=
-          SharedPreferencesAsync(options: _androidOptions);
+  static const MethodChannel _androidTaskStorageChannel =
+      MethodChannel('arvin/canonical_task_storage');
 
   Future<String?> _readRaw() async {
     if (Platform.isAndroid) {
-      return _androidPreferencesInstance.getString(key);
+      return _androidTaskStorageChannel.invokeMethod<String>('readTaskDocument');
     }
     final preferences = await SharedPreferences.getInstance();
     return preferences.getString(key);
@@ -67,8 +59,17 @@ class TaskStore {
 
   Future<void> _writeRaw(String encoded) async {
     if (Platform.isAndroid) {
-      await _androidPreferencesInstance.setString(key, encoded);
-      final persisted = await _androidPreferencesInstance.getString(key);
+      final saved = await _androidTaskStorageChannel.invokeMethod<bool>(
+        'writeTaskDocument',
+        <String, Object?>{'value': encoded},
+      );
+      if (saved != true) {
+        throw StateError('Could not persist canonical task storage');
+      }
+      final persisted =
+          await _androidTaskStorageChannel.invokeMethod<String>(
+        'readTaskDocument',
+      );
       if (persisted != encoded) {
         throw StateError(
           'Canonical task storage write could not be verified',
