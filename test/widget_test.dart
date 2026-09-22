@@ -32,12 +32,11 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-labels')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
@@ -90,7 +89,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-labels')), findsOneWidget);
   });
 }
