@@ -152,9 +152,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        final navigator = Navigator.of(context);
         final shouldClose = await _handleBack();
         if (!mounted) return;
-        if (shouldClose) Navigator.of(context).pop();
+        if (shouldClose && navigator.mounted) navigator.pop();
       },
       child: KeyedSubtree(
         key: const ValueKey('quick-capture-sheet'),
