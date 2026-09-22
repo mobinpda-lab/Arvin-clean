@@ -155,19 +155,22 @@ void main() {
     );
   });
 
-  test('documents that unknown legacy fields are not carried by Task JSON', () {
+  test('retains unknown legacy fields in the migration envelope', () {
     const raw = '''[
       {
         "id": "unknown-1",
         "title": "فیلد ناشناخته",
-        "futureField": {"keep": true}
+        "futureField": {"keep": true},
+        "futureScalar": "preserve-me"
       }
     ]''';
 
-    final task = adapter.decodeLegacyList(raw).single;
-    final encoded = adapter.encodeUnifiedList([task]);
+    final record = adapter.decodeLegacyRecords(raw).single;
 
-    expect(encoded, contains('"id":"unknown-1"'));
-    expect(encoded, isNot(contains('futureField')));
+    expect(record.task.id, 'unknown-1');
+    expect(record.sourceJson['futureField'], <String, dynamic>{'keep': true});
+    expect(record.sourceJson['futureScalar'], 'preserve-me');
+    expect(record.sourceJsonEncoded, contains('"futureField":{"keep":true}'));
+    expect(record.sourceJsonEncoded, contains('"futureScalar":"preserve-me"'));
   });
 }
