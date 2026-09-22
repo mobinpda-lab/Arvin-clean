@@ -39,7 +39,8 @@ class TaskMigrationAdapter {
     );
   }
 
-  Task fromLegacyJson(Map<String, dynamic> json) => recordFromLegacyJson(json).task;
+  Task fromLegacyJson(Map<String, dynamic> json) =>
+      recordFromLegacyJson(json).task;
 
   List<TaskMigrationRecord> decodeLegacyRecords(String raw) {
     final decoded = jsonDecode(raw);
@@ -47,7 +48,7 @@ class TaskMigrationAdapter {
       throw const FormatException('Expected a task list');
     }
 
-    final tasks = <Task>[];
+    final tasks = <TaskMigrationRecord>[];
     final ids = <String>{};
 
     for (var index = 0; index < decoded.length; index++) {
