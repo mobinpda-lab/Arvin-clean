@@ -80,3 +80,15 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - No migration, Home redesign, parallel storage, or unrelated change was introduced by this fix.
 - Required next gate: GitHub Analyze on exact new head 6f108cb95facb2e27eb37bc7b3505cb0851b93ad.
 - G1 remains in progress; Test/Migration/Backup/Build acceptance and merge remain blocked until the required gates pass on the same final SHA.
+
+
+## G1 Cycle B Checkpoint — 2026-09-22
+- Previous SHA: 86a474b3f8d6a801f42080d2d1b6ad585c146d93
+- Test 1 failure: legacy arvin.tasks FollowUp date was loaded into Task.followUpDate but Home card read only task.lastFollowUp, so no FollowUp history meant no displayed date.
+- Test 2 failure: same compatibility gap; legacy followUpDate was preserved in Task but not used by Home follow-up rendering.
+- Root cause: Home card used task.lastFollowUp?.dateTime instead of the canonical compatibility projection task.legacyHomeFollowUpDate.
+- Classification: durable legacy user FollowUp date; not Home UI-only data. No legacy Home storage was migrated.
+- G1-only fix: lib/main.dart now uses Task.legacyHomeFollowUpDate for Home follow-up display, preserving legacy followUpDate when followUps[] is empty and canonical history when present.
+- Commit: ab41d1e6252c9c0f540ba61e516c7dacc6bf6431
+- Analyze/Test on new SHA: pending GitHub Actions.
+- G1 remains in progress; no migration/backup/build/G2/merge work started.
