@@ -388,3 +388,24 @@ v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
 v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
+
+
+## 24. Product First — Final Objective Lock
+**Factory is the means; Arvin is the product.** The success criterion is usable, validated, Release-Ready Arvin, not a factory that merely runs successfully.
+
+Factory/NIRA/automation work is subordinate to product delivery. When capacity is limited, product gates have priority. Factory changes are justified only when they unblock, accelerate, validate, recover or safely deliver Arvin.
+
+### Immutable Continuity Rule
+GitHub is persistent execution memory. New conversations, accounts, sessions or devices resume from the latest valid checkpoint and exact-head. Full audit from zero is prohibited unless GitHub evidence shows the checkpoint is missing, invalid or technically obsolete.
+
+### Five-Minute Cycle Rule
+0–1 exact-head/error check → 1–3 one small delta → 3–4 targeted validation → 4–5 commit/checkpoint. Larger work is split into measurable checkpoints; the cycle never bypasses a gate.
+
+### Locked Product Sequence
+G0 Baseline → G1 Storage/Migration → G2 Home → G3 Quick Capture → G4 Keyboard/Back → G5 FollowUp → G6 Swipe → G7 Notebook → G8 Calendar → G9 More/Settings → G10 Verification → G11 Android Evidence → G12 Finalize.
+
+### Legacy Home Migration Boundary
+Legacy Home is not user data and must not be migrated. Only durable user data and stable required contracts migrate. Legacy Home selectors/projections/fixtures/UI dependencies are removed or adapted in the corresponding waves. User data, IDs, history, archive and trash remain protected.
+
+### Change-of-Route Lock
+No change of sequence or restart is valid without exact conflict with the checkpoint, concrete technical/acceptance reason, GitHub record and new checkpoint/SHA. Otherwise the locked sequence continues.
