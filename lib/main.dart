@@ -1610,7 +1610,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _taskCard(Task task) {
     final dueDate = _homeDueDate(task);
-    final latestFollowUpDate = task.lastFollowUp?.dateTime;
+    final latestFollowUpDate = task.legacyHomeFollowUpDate;
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     return Dismissible(
