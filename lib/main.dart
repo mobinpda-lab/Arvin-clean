@@ -380,123 +380,6 @@ class _HomePageState extends State<HomePage> {
     HomeGroupMode.labels => 'برچسب‌ها',
   };
 
-  int get _homeAllCount =>
-      tasks.where((task) => !task.archived && !task.trashed).length;
-
-  int get _homeActiveCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && !task.completed,
-      )
-      .length;
-
-  int get _homeCompletedCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && task.completed,
-      )
-      .length;
-
-  int get _homeOverdueCount {
-    final now = DateTime.now();
-    return tasks.where((task) {
-      final due = _homeFollowUpDate(task);
-      return !task.archived &&
-          !task.trashed &&
-          !task.completed &&
-          due != null &&
-          due.isBefore(now);
-    }).length;
-  }
-
-  bool _homeSummarySelected(String filterValue) {
-    if (filterValue == 'عقب‌افتاده') {
-      return _dueScope == TaskDueScope.overdue &&
-          filter == 'کل' &&
-          _listScope == TaskListScope.all &&
-          _categoryFilter == null;
-    }
-    return _dueScope == null &&
-        _listScope == TaskListScope.all &&
-        _categoryFilter == null &&
-        filter == filterValue;
-  }
-
-  Widget _homeSummaryCard({
-    required String keyName,
-    required String label,
-    required int count,
-    required IconData icon,
-    required String filterValue,
-    required Color accent,
-    required Color softAccent,
-  }) {
-    final selected = _homeSummarySelected(filterValue);
-    final compactHome = MediaQuery.sizeOf(context).height < 700;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: '$label، $count مورد',
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            key: ValueKey('home-summary-$keyName'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(filterValue),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
-              decoration: BoxDecoration(
-                color: selected ? softAccent : const Color(0xFFFDFDFE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? accent : const Color(0xFFE5E7ED),
-                  width: selected ? 1.4 : 1,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0D232433),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 21, color: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    _persianNumber(count),
-                    key: ValueKey('home-summary-count-$keyName'),
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: selected ? accent : const Color(0xFF606273),
-                      fontSize: 11,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   String _persianNumber(int value) =>
       persianDateFormatter.toPersianDigits('$value');
 
@@ -678,13 +561,6 @@ class _HomePageState extends State<HomePage> {
     if (filter == 'انجام‌شده') return 'کار انجام‌شده‌ای وجود ندارد';
     return 'کاری برای نمایش وجود ندارد';
   }
-
-  String _sortLabel(TaskListSort sort) => switch (sort) {
-    TaskListSort.date => 'تاریخ کار',
-    TaskListSort.latest => 'آخرین تغییر',
-    TaskListSort.lastFollowUp => 'آخرین پیگیری',
-    TaskListSort.title => 'عنوان',
-  };
 
   String _date(DateTime date) => persianDateFormatter.format(
     date,
@@ -1091,13 +967,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setListSort(TaskListSort sort) {
-    setState(() => _listSort = sort);
-  }
-
-  void _toggleSortDirection() {
-    setState(() => _sortDescending = !_sortDescending);
-  }
 
   Future<bool> _confirmDeleteForever(Task task) async {
     final approved = await showDialog<bool>(
