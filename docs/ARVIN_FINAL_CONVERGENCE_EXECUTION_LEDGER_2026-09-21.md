@@ -218,3 +218,26 @@ G0 Baseline → G1 Storage/Migration → G2 Home → G3 Quick Capture → G4 Key
 - Result: Product-First policy, continuity lock, five-minute execution rule and Legacy-Home migration boundary registered in GitHub; autonomous queue policy aligned.
 - Next exact action: continue G1 on PR #1271; validate exact-head, finish storage/migration mapping, ensure Legacy Home is not part of migration, run targeted tests/CI, then checkpoint before G2.
 - Product status: **not complete**. Documentation policy registration is not a product acceptance claim.
+
+
+## Live GitHub Checkpoint — 2026-09-22
+- Active product PR: #1271 — Arvin Final Integration — G1 Storage/Migration Validation
+- Implementation branch: `feature/arvin-final-integration-20260921`
+- Exact implementation head: `b86b6238cea74a2bab78c088b7ccea8b04541d62`
+- PR base main: `25c2ecf7e935ac7a75cfa0d386e1e5eb1d342d47`
+- PR: OPEN, non-draft, mergeable=true; not merged.
+
+### Exact-head CI
+- **Arvin Build #2887: FAILURE** — quality job failed at Analyze; Test skipped; APK matrix skipped.
+- **Arvin Device Smoke #1845: FAILURE** — canonical Home smoke failed on Android emulator; visual gate/evidence steps did not pass.
+- **Arvin Parallel Wave #2153: SKIPPED.**
+- **ARVIN Orchestrator PR Wakeup #852: SUCCESS.**
+- **ARVIN Orchestrator #1601: SUCCESS.**
+- **ARVIN Production Loop #4446: SUCCESS**, but workflow success does not override product acceptance gates.
+
+### Gate decision
+**G1 is NOT accepted. Merge is NOT authorized. G2 must not start.**
+Immediate next actions: diagnose/fix Analyze failure on the implementation branch; rerun exact-head quality; then diagnose/fix exact-head Android Smoke failure and rerun device evidence. Only after all required G1 gates are green may G1 close.
+
+### Continuity
+This is the live execution checkpoint. A new ChatGPT conversation/account/session must resume from this exact implementation head and these red gates; it must not restart the project audit or use an older SHA as current.
