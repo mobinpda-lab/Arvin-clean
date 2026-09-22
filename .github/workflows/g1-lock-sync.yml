@@ -26,6 +26,8 @@ jobs:
           cache: true
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Restore Flutter metadata
+        run: git checkout -- analysis_options.yaml
       - name: Ensure only lockfile changed
         run: |
           set -euo pipefail
