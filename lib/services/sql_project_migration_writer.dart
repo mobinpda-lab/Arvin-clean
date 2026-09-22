@@ -29,16 +29,26 @@ class SqlProjectMigrationWriter {
     }
 
     final decoded = jsonDecode(raw);
-    final projects = codec.decodeList(decoded);
+    if (decoded is! List) {
+      throw const FormatException('Projects must be a JSON list');
+    }
+    final projects = <({dynamic project, Map<String, dynamic> source})>[];
+    for (final item in decoded) {
+      if (item is! Map) {
+        throw const FormatException('Project must be a JSON object');
+      }
+      final source = Map<String, dynamic>.from(item);
+      projects.add((project: codec.decode(source), source: source));
+    }
     var inserted = 0;
     var skippedExisting = 0;
 
     await executor.runCustom('BEGIN');
     try {
-      for (final project in projects) {
+      for (final entry in projects) {
         final exists = await executor.runSelect(
           'SELECT id FROM projects WHERE id = ? LIMIT 1',
-          <Object?>[project.id],
+          <Object?>[entry.project.id],
         );
         if (exists.isNotEmpty) {
           skippedExisting++;
@@ -46,16 +56,23 @@ class SqlProjectMigrationWriter {
         }
 
         await executor.runInsert(
-          '''INSERT INTO projects (id, name)
-             VALUES (?, ?)''',
-          <Object?>[project.id, project.title],
+          '''INSERT INTO projects (
+               id, name, color_value, is_archived, legacy_payload_json
+             ) VALUES (?, ?, ?, ?, ?)''',
+          <Object?>[
+            entry.project.id,
+            entry.project.title,
+            entry.project.colorValue,
+            entry.project.isArchived ? 1 : 0,
+            jsonEncode(entry.source),
+          ],
         );
 
-        for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
+        for (var ordinal = 0; ordinal < entry.project.itemIds.length; ordinal++) {
           await executor.runInsert(
             '''INSERT INTO project_items (project_id, task_id, ordinal)
                VALUES (?, ?, ?)''',
-            <Object?>[project.id, project.itemIds[ordinal], ordinal],
+            <Object?>[entry.project.id, entry.project.itemIds[ordinal], ordinal],
           );
         }
         inserted++;
