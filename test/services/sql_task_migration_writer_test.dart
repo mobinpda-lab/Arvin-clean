@@ -158,8 +158,8 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.tasks', raw);
 
-    expect(
-      () => const SqlTaskMigrationWriter().migrateFromPreferences(
+    await expectLater(
+      const SqlTaskMigrationWriter().migrateFromPreferences(
         executor: database,
         preferences: preferences,
       ),
