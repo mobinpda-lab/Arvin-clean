@@ -20,8 +20,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-projects')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-summary-overdue')), findsNothing);
+    expect(find.text('کارهای من'), findsNothing);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
