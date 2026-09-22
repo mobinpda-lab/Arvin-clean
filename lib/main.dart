@@ -40,7 +40,6 @@ import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
 void main() {
-  TaskStore.resetProcessSnapshot();
   runApp(const ArvinApp(enableFirstRunGuide: true));
 }
 
