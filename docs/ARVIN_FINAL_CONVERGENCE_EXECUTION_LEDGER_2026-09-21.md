@@ -210,3 +210,11 @@ G0 Baseline → G1 Storage/Migration → G2 Home → G3 Quick Capture → G4 Key
 
 ## Product Completion Gate
 کامل فقط با Requirement → Code → Targeted Test → CI → Debug/Release Build → Android Evidence → Documentation → exact-head مجاز است. موفقیت قدیمی برای SHA جدید معتبر نیست.
+
+
+## Checkpoint — Product First Lock 2026-09-22
+- Current SHA: `47fb48567e32d7f960b39d11144b9da6f860fdfd`
+- Gate: G1 Storage/Migration Validation
+- Result: Product-First policy, continuity lock, five-minute execution rule and Legacy-Home migration boundary registered in GitHub; autonomous queue policy aligned.
+- Next exact action: continue G1 on PR #1271; validate exact-head, finish storage/migration mapping, ensure Legacy Home is not part of migration, run targeted tests/CI, then checkpoint before G2.
+- Product status: **not complete**. Documentation policy registration is not a product acceptance claim.
