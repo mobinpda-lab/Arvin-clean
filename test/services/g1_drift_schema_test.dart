@@ -23,6 +23,15 @@ void main() {
       const [],
     );
 
+    final taskColumns = await database.runSelect(
+      "PRAGMA table_info('tasks')",
+      const [],
+    );
+    expect(
+      taskColumns.map((row) => row['name']),
+      contains('legacy_payload_json'),
+    );
+
     expect(
       tables.map((row) => row['name']),
       containsAll(<String>[
