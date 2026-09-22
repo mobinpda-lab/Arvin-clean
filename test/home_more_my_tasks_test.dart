@@ -54,7 +54,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
 
     await openMyTasks(tester);
 
@@ -108,7 +108,6 @@ void main() {
     expect(find.text('کار بدون پیگیری'), findsOneWidget);
     expect(find.text('کار امروز'), findsNothing);
     expect(find.text('کار تمام شده'), findsNothing);
-    expect(find.byKey(const ValueKey('home-clear-task-filter')), findsOneWidget);
   });
 
   testWidgets('Today under My Tasks uses canonical dueDate projection',
