@@ -38,13 +38,13 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
 
     await tester.enterText(
-      find.byType(TextField),
+      find.byKey(const ValueKey('quick-capture-input')),
       'تماس با علی #مشتری #فوری',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.widgetWithText(FilledButton, 'ثبت کار'));
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
@@ -80,8 +80,8 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
     await tester.pump();
 
-    expect(find.text('یک متن کوتاه برای ثبت وارد کنید'), findsOneWidget);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('عنوان برای ثبت کافی است'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('full form continues the same draft identity without quick save',
@@ -119,7 +119,7 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'ادامه در فرم #مهم');
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'ادامه در فرم #مهم');
     await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
     await tester.pumpAndSettle();
 
@@ -163,7 +163,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in ['کار اول', 'کار دوم', 'کار سوم']) {
-      await tester.enterText(find.byType(TextField), title);
+      await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), title);
       await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
       await tester.pumpAndSettle();
 
