@@ -6,7 +6,6 @@ import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -58,12 +57,9 @@ class MainActivity : FlutterActivity() {
                         FLUTTER_SHARED_PREFERENCES_FILE,
                         MODE_PRIVATE,
                     )
-                    val value = preferences.getString(FLUTTER_TASKS_KEY, null)
-                    Log.d(
-                        TASK_STORAGE_LOG_TAG,
-                        "readTaskDocument length=${value?.length ?: 0} hash=${value?.hashCode()}",
+                    result.success(
+                        preferences.getString(FLUTTER_TASKS_KEY, null),
                     )
-                    result.success(value)
                 }
                 METHOD_WRITE_TASK_DOCUMENT -> {
                     val encoded = call.argument<String>("value")
@@ -79,19 +75,9 @@ class MainActivity : FlutterActivity() {
                         FLUTTER_SHARED_PREFERENCES_FILE,
                         MODE_PRIVATE,
                     )
-                    val before = preferences.getString(FLUTTER_TASKS_KEY, null)
                     val saved = preferences.edit()
                         .putString(FLUTTER_TASKS_KEY, encoded)
                         .commit()
-                    val after = preferences.getString(FLUTTER_TASKS_KEY, null)
-                    Log.d(
-                        TASK_STORAGE_LOG_TAG,
-                        "writeTaskDocument beforeLength=${before?.length ?: 0} " +
-                            "beforeHash=${before?.hashCode()} encodedLength=${encoded.length} " +
-                            "encodedHash=${encoded.hashCode()} saved=$saved " +
-                            "afterLength=${after?.length ?: 0} afterHash=${after?.hashCode()} " +
-                            "matches=${after == encoded}",
-                    )
                     result.success(saved)
                 }
                 else -> result.notImplemented()
@@ -535,7 +521,6 @@ class MainActivity : FlutterActivity() {
         const val METHOD_WRITE_TASK_DOCUMENT = "writeTaskDocument"
         const val FLUTTER_SHARED_PREFERENCES_FILE = "FlutterSharedPreferences"
         const val FLUTTER_TASKS_KEY = "flutter.arvin.tasks"
-        const val TASK_STORAGE_LOG_TAG = "ArvinTaskStorage"
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
         const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
