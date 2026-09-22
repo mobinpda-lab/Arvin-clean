@@ -177,3 +177,36 @@
 - Result
 - Next exact action
 
+
+
+## Product First — قاعده غیرقابل انحراف (Issue #1295)
+
+**کارخانه وسیله است؛ آروین محصول نهایی است.**
+هدف نهایی این مسیر فقط تحویل آروین قابل استفاده و Release-Ready است. سلامت کارخانه آروین، NIRA و Workflowها فقط زمانی ارزش دارد که مستقیماً به تولید، تکمیل، آزمایش و تحویل آروین کمک کند.
+
+- کار کارخانه‌ای نباید هدف مستقل شود یا جای کار محصول را بگیرد.
+- اگر مشکل کارخانه مانع محصول است، فقط به اندازه لازم برای رفع مانع اصلاح و سپس فوراً به محصول برگردیم.
+- معیار پیشرفت، قابلیت واقعی آروین، آزمون، Build و شواهد Android است؛ تعداد Workflow/Issue/PR معیار تکمیل نیست.
+- GitHub مرجع ماندگار مسیر است. تغییر گفتگو، نشست، دستگاه یا حساب ChatGPT نباید باعث شروع ممیزی از صفر شود.
+- بازیابی اجباری: Canonical Operating Package → Final Contract → Execution Ledger → آخرین Checkpoint → exact-head → نزدیک‌ترین G ناقص.
+- ممیزی کامل از صفر فقط در صورت نبود/بی‌اعتباری checkpoint یا تغییر واقعی فنی مجاز است.
+
+## Five-Minute Production Cycle
+- دقیقه ۰–۱: exact-head، گیت فعال و خطای واقعی.
+- دقیقه ۱–۳: فقط یک تغییر کوچک یا یک اعتبارسنجی مشخص.
+- دقیقه ۳–۴: آزمون هدفمند/Analyze مربوط به همان تغییر.
+- دقیقه ۴–۵: Commit، SHA، نتیجه و Next Action در GitHub.
+اگر کار بزرگ‌تر است به checkpointهای کوچک تقسیم می‌شود؛ چرخه ۵ دقیقه‌ای برای نمایش حرکت یا دورزدن گیت نیست.
+
+## NIRA / Factory Rule
+NIRA و کارخانه آروین موتور اجرای همین مسیرند: Issue → Agent → تحلیل → تغییر کوچک → Test → Commit → CI → PR → Evidence → Integration. کارهای مستقل موازی، و تغییرات مشترک با مالکیت روشن و بدون هم‌پوشانی اجرا می‌شوند.
+
+## Migration Boundary — عدم انتقال Home قدیمی
+Home قدیمی داده قابل مهاجرت نیست و نباید به معماری جدید منتقل شود. فقط داده واقعی و پایدار کاربر مهاجرت می‌شود. وابستگی‌های کد، projection، selector و testهای صرفاً وابسته به Home قدیمی همزمان در موج مربوط اصلاح می‌شوند. Task/FollowUp/Project/Category/Tag/Notebook/Checklist/Archive/Trash، شناسه‌ها و تاریخچه حفظ می‌شوند؛ داده تکراری و Storage موازی ممنوع است.
+
+## Immutable Product Sequence
+G0 Baseline → G1 Storage/Migration → G2 Home → G3 Quick Capture → G4 Keyboard/Back → G5 FollowUp → G6 Swipe → G7 Notebook → G8 Calendar → G9 More/Settings → G10 Verification → G11 Android Evidence → G12 Finalize.
+بدون دلیل فنی/شکست پذیرش ثبت‌شده در GitHub، ترتیب تغییر نمی‌کند. شکست یک گیت یعنی اصلاح همان گیت، نه شروع دوباره پروژه.
+
+## Product Completion Gate
+کامل فقط با Requirement → Code → Targeted Test → CI → Debug/Release Build → Android Evidence → Documentation → exact-head مجاز است. موفقیت قدیمی برای SHA جدید معتبر نیست.
