@@ -81,6 +81,10 @@ void main() {
         'کار دوم',
         'کار سوم',
       ]) {
+        // Re-acquire the input hit target before every repeated entry. Android
+        // can restore focus to the sheet after the previous async save.
+        await tester.tap(input);
+        await tester.pump();
         await tester.enterText(input, title);
         FocusManager.instance.primaryFocus?.unfocus();
         await tester.pumpAndSettle();
