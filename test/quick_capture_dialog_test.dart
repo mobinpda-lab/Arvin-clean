@@ -19,8 +19,9 @@ void main() {
               body: Center(
                 child: FilledButton(
                   onPressed: () async {
-                    captured = await showDialog<Task>(
+                    captured = await showModalBottomSheet<Task>( 
                       context: context,
+                      isScrollControlled: true,
                       builder: (_) => QuickCaptureDialog(
                         idFactory: () => 'quick-1',
                         now: () => fixedNow,
@@ -41,10 +42,10 @@ void main() {
     expect(find.text('ثبت سریع کار'), findsOneWidget);
 
     await tester.enterText(
-      find.byType(TextField),
+      find.byKey(const ValueKey('quick-capture-input')),
       'تماس با علی #مشتری #فوری',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
@@ -63,7 +64,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<Task>(
+                onPressed: () => showModalBottomSheet<Task>( 
                   context: context,
                   builder: (_) => const QuickCaptureDialog(),
                 ),
@@ -77,7 +78,7 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pump();
 
     expect(find.text('یک متن کوتاه برای ثبت وارد کنید'), findsOneWidget);
@@ -97,9 +98,10 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>( 
                   context: context,
-                  builder: (_) => QuickCaptureDialog(
+                  isScrollControlled: true,
+                      builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
                     now: () => DateTime(2026, 9, 19, 12),
                     onCaptured: (task) async => quickSaved.add(task),
@@ -119,7 +121,7 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'ادامه در فرم #مهم');
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'ادامه در فرم #مهم');
     await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
     await tester.pumpAndSettle();
 
@@ -143,9 +145,10 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>( 
                   context: context,
-                  builder: (_) => QuickCaptureDialog(
+                  isScrollControlled: true,
+                      builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
                     now: () => DateTime(2026, 9, 17, 12),
                     onCaptured: (task) async => captured.add(task),
@@ -163,12 +166,12 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in ['کار اول', 'کار دوم', 'کار سوم']) {
-      await tester.enterText(find.byType(TextField), title);
-      await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+      await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), title);
+      await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
       await tester.pumpAndSettle();
 
       expect(find.text('ثبت سریع کار'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-input')), findsOneWidget);
       expect(find.text(title), findsNothing);
     }
 
@@ -186,9 +189,10 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>( 
                   context: context,
-                  builder: (_) => QuickCaptureDialog(
+                  isScrollControlled: true,
+                      builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-cancel',
                     now: () => DateTime(2026, 9, 19, 12),
                     onCaptured: (_) async {},
