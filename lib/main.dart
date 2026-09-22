@@ -500,6 +500,44 @@ class _HomePageState extends State<HomePage> {
   String _persianNumber(int value) =>
       persianDateFormatter.toPersianDigits('$value');
 
+  Widget _homeGroupingButton(HomeGroupMode mode, String label) {
+    final selected = _homeGroupMode == mode;
+    return Expanded(
+      child: OutlinedButton(
+        key: ValueKey('home-group-${mode.name}'),
+        onPressed: () => _selectHomeGroupMode(mode),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: selected
+              ? const Color(0xFFE9EAFF)
+              : const Color(0xFFFDFDFE),
+          foregroundColor: const Color(0xFF4A4CAB),
+          side: BorderSide(
+            color: selected
+                ? const Color(0xFF4A4CAB)
+                : const Color(0xFFE5E7ED),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 4,
+            vertical: compactHome ? 10 : 12,
+          ),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: compactHome ? 11 : 12,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
       _homeGroupMode = mode;
@@ -1931,138 +1969,29 @@ class _HomePageState extends State<HomePage> {
               key: _filtersGuideKey,
               padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 10),
               child: Row(
-                key: const ValueKey('home-four-summary-selector'),
+                key: const ValueKey('home-four-grouping-selector'),
                 children: [
-                  _homeSummaryCard(
-                    keyName: 'all',
-                    label: 'کل',
-                    count: _homeAllCount,
-                    icon: Icons.list_alt_rounded,
-                    filterValue: 'کل',
-                    accent: const Color(0xFF4A4CAB),
-                    softAccent: const Color(0xFFE9EAFF),
-                  ),
+                  _homeGroupingButton(HomeGroupMode.time, 'زمان'),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'active',
-                    label: 'فعال',
-                    count: _homeActiveCount,
-                    icon: Icons.play_circle_outline_rounded,
-                    filterValue: 'فعال',
-                    accent: const Color(0xFF2F80ED),
-                    softAccent: const Color(0xFFEAF4FF),
-                  ),
+                  _homeGroupingButton(HomeGroupMode.projects, 'پروژه‌ها'),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'completed',
-                    label: 'انجام‌شده',
-                    count: _homeCompletedCount,
-                    icon: Icons.check_circle_outline_rounded,
-                    filterValue: 'انجام‌شده',
-                    accent: const Color(0xFF409B51),
-                    softAccent: const Color(0xFFEAF7ED),
-                  ),
+                  _homeGroupingButton(HomeGroupMode.categories, 'دسته‌ها'),
                   const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'overdue',
-                    label: 'عقب‌افتاده',
-                    count: _homeOverdueCount,
-                    icon: Icons.schedule_rounded,
-                    filterValue: 'عقب‌افتاده',
-                    accent: const Color(0xFFDB8B23),
-                    softAccent: const Color(0xFFFDF1E9),
-                  ),
+                  _homeGroupingButton(HomeGroupMode.labels, 'برچسب‌ها'),
                 ],
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 1 : 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 2 : 6),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _homeModeLabel(_homeGroupMode),
+                  style: const TextStyle(
+                    color: Color(0xFF232433),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                   ),
-                  TextButton(
-                    key: const ValueKey('home-view-all'),
-                    onPressed: () => _selectHomeStat('کل'),
-                    child: const Text('مشاهده همه'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: compactHome ? 36 : 48,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Text('گروه‌بندی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<HomeGroupMode>(
-                      key: const ValueKey('home-group-mode-selector'),
-                      value: _homeGroupMode,
-                      items: HomeGroupMode.values
-                          .map(
-                            (mode) => DropdownMenuItem<HomeGroupMode>(
-                              value: mode,
-                              child: Text(_homeModeLabel(mode)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (mode) {
-                        if (mode != null) _selectHomeGroupMode(mode);
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('مرتب‌سازی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<TaskListSort>(
-                      key: const ValueKey('home-sort-selector'),
-                      value: _listSort,
-                      items: TaskListSort.values
-                          .map(
-                            (sort) => DropdownMenuItem<TaskListSort>(
-                              value: sort,
-                              child: Text(_sortLabel(sort)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (sort) {
-                        if (sort != null) _setListSort(sort);
-                      },
-                    ),
-                    IconButton(
-                      key: const ValueKey('home-sort-direction'),
-                      tooltip: _sortDescending
-                          ? 'مرتب‌سازی صعودی'
-                          : 'مرتب‌سازی نزولی',
-                      onPressed: _toggleSortDirection,
-                      icon: Icon(
-                        _sortDescending
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                      ),
-                    ),
-                    if (filter != 'کل' ||
-                        _listScope != TaskListScope.all ||
-                        _dueScope != null ||
-                        _categoryFilter != null) ...[
-                      const SizedBox(width: 4),
-                      TextButton(
-                        key: const ValueKey('home-clear-task-filter'),
-                        onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('پاک کردن فیلتر'),
-                      ),
-                    ],
-                  ],
                 ),
               ),
             ),
