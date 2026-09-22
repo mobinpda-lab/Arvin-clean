@@ -20,7 +20,7 @@ env:
 
 jobs:
   quality:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    # Draft PRs are valid product work and must receive real quality/build evidence.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
