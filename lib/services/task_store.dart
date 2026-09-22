@@ -45,36 +45,20 @@ class TaskStore {
     return const [];
   }
 
-  // The canonical task document remains on the existing arvin.tasks key.
-  // Use SharedPreferencesAsync without a Dart-side cache, while explicitly
-  // selecting the native Android SharedPreferences backend. This keeps the
-  // incremental migration compatible with the existing key and prevents
-  // separate Flutter engines/isolate caches from observing stale snapshots.
   static const SharedPreferencesAsyncAndroidOptions _androidOptions =
       SharedPreferencesAsyncAndroidOptions(
     backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
   );
 
-  Future<String?> _readRaw() async {
-    final preferences = SharedPreferencesAsync();
-    return preferences.getString(
-      key,
-      options: _androidOptions,
-    );
-  }
+  final SharedPreferencesAsync _preferences =
+      SharedPreferencesAsync(options: _androidOptions);
+
+  Future<String?> _readRaw() => _preferences.getString(key);
 
   Future<void> _writeRaw(String encoded) async {
-    final preferences = SharedPreferencesAsync();
-    await preferences.setString(
-      key,
-      encoded,
-      options: _androidOptions,
-    );
+    await _preferences.setString(key, encoded);
 
-    final persisted = await preferences.getString(
-      key,
-      options: _androidOptions,
-    );
+    final persisted = await _preferences.getString(key);
     if (persisted != encoded) {
       throw StateError(
         'Canonical task storage write could not be verified',
