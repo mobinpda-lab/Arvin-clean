@@ -81,7 +81,6 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - Required next gate: GitHub Analyze on exact new head 6f108cb95facb2e27eb37bc7b3505cb0851b93ad.
 - G1 remains in progress; Test/Migration/Backup/Build acceptance and merge remain blocked until the required gates pass on the same final SHA.
 
-
 ## G1 Cycle B Checkpoint — 2026-09-22
 - Previous SHA: 86a474b3f8d6a801f42080d2d1b6ad585c146d93
 - Test 1 failure: legacy arvin.tasks FollowUp date was loaded into Task.followUpDate but Home card read only task.lastFollowUp, so no FollowUp history meant no displayed date.
@@ -92,3 +91,16 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - Commit: ab41d1e6252c9c0f540ba61e516c7dacc6bf6431
 - Analyze/Test on new SHA: pending GitHub Actions.
 - G1 remains in progress; no migration/backup/build/G2/merge work started.
+
+## G1 Cycle C Checkpoint — 2026-09-22
+- Previous SHA: 397cc7602df92f4bf1bc8bd20ab702b9ff4810b7
+- Exact Android gate failure: Device Smoke #1855 failed in integration_test/android_quick_capture_smoke_test.dart.
+- Home canonical smoke passed on Android; People smoke also passed.
+- Failure: after sequential Quick Capture, "کار دوم" was not observed in TaskStore.
+- Classification: G1 canonical storage/persistence gate, not a Home redesign issue.
+- Investigation found the current TaskStore read/write path had introduced SharedPreferencesAsync/Android-backend handling on the same legacy arvin.tasks key, while the application is still in incremental migration.
+- Targeted G1 fix: TaskStore now uses the existing SharedPreferences-backed canonical key with reload-before-read and write/reload verification; the process-local Android snapshot and storage lock remain in place.
+- No second store, database, Home migration, or unrelated UI change was introduced.
+- Code commit: fadf0b0d7c3b41e13f08bf305ec28a914a3b81a2
+- Required next gate: fresh GitHub Analyze/Test/Android validation on exact head fadf0b0d7c3b41e13f08bf305ec28a914a3b81a2.
+- G1 remains blocked until the exact-head Android Quick Capture persistence gate is green.
