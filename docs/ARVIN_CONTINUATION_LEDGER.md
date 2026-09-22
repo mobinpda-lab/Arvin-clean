@@ -67,3 +67,16 @@ Before release:
 
 ## Rule
 Do not report a feature as completed without a GitHub artifact (commit/PR/test/build/evidence).
+
+## G1 Checkpoint — 2026-09-22
+- PR: #1271
+- Branch: feature/arvin-final-integration-20260921
+- Previous head: 25f6baa18afe1af536352d26ce9783b67bc39ff8
+- Previous Build: Arvin Build #2898 failed at Analyze.
+- Exact Analyze finding: lib/main.dart:1777:76 unnecessary_non_null_assertion on dueDate!.
+- Root cause: local dueDate is nullable and the surrounding condition checked task.dueDate instead of the promoted local.
+- G1-only fix committed: 6f108cb95facb2e27eb37bc7b3505cb0851b93ad
+- Fix: condition now checks dueDate != null and date/time formatting uses dueDate without redundant null assertions.
+- No migration, Home redesign, parallel storage, or unrelated change was introduced by this fix.
+- Required next gate: GitHub Analyze on exact new head 6f108cb95facb2e27eb37bc7b3505cb0851b93ad.
+- G1 remains in progress; Test/Migration/Backup/Build acceptance and merge remain blocked until the required gates pass on the same final SHA.
