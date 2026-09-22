@@ -82,6 +82,7 @@ void main() {
         'کار سوم',
       ]) {
         await tester.enterText(input, title);
+        await tester.ensureVisible(submit);
         await tester.tap(submit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(
