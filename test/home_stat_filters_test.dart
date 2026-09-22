@@ -22,8 +22,8 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
@@ -75,8 +75,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
 
     expect(tester.takeException(), isNull);
@@ -95,8 +95,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-four-grouping-selector')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(find.byType(BottomNavigationBar), findsNothing);
     expect(tester.takeException(), isNull);
@@ -110,11 +110,11 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.byKey(const ValueKey('home-group-mode-selector')));
+    await tester.tap(find.byKey(const ValueKey('home-group-projects')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('دسته‌ها').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-group-mode-selector')));
+    await tester.tap(find.byKey(const ValueKey('home-group-projects')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب‌ها').last);
     await tester.pumpAndSettle();
