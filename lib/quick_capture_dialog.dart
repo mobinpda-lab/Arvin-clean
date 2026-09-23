@@ -239,7 +239,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   Future<void> _pickProject() async {
-    if (widget.projects.isEmpty) return;
     final selected = await showModalBottomSheet<String?>(
       context: context,
       showDragHandle: true,
@@ -248,6 +247,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           shrinkWrap: true,
           children: [
             const ListTile(title: Text('پروژه')),
+            if (widget.projects.isEmpty)
+              const ListTile(
+                leading: Icon(Icons.info_outline),
+                title: Text('هنوز پروژه‌ای ثبت نشده است'),
+              ),
             ListTile(
               title: const Text('بدون پروژه'),
               trailing: _projectId == null ? const Icon(Icons.check) : null,
