@@ -623,6 +623,36 @@ class _HomePageState extends State<HomePage> {
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
   );
 
+  Future<Task?> _addFromCalendarEvent(CalendarReminder reminder) async {
+    final editorContext = await wave2ProductFastTrack.prepareEditor(
+      tasks: tasks,
+    );
+    if (!mounted) return null;
+    String? selectedProjectId = editorContext.selectedProjectId;
+    final rawTitle = reminder.title.split(' • ').first.trim();
+    final task = await showDialog<Task>(
+      context: context,
+      builder: (_) => ArvinTaskEditorDialog(
+        initialTitle: rawTitle,
+        initialDescription: reminder.description,
+        initialDueDate: reminder.date,
+        projects: editorContext.projects,
+        selectedProjectId: editorContext.selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
+        knownCategories: editorContext.knownCategories,
+      ),
+    );
+    if (task == null) return null;
+    setState(() => tasks.add(task));
+    await _save();
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: task.id,
+      projectId: selectedProjectId,
+    );
+    await _load();
+    return task;
+  }
+
   Future<Task?> _addForDate(DateTime date) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -1234,6 +1264,7 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => CanonicalCalendarLauncher(
           tasks: _searchSource,
           onCreateTaskForDate: _addForDate,
+          onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
         ),
       ),
     );
@@ -1292,6 +1323,7 @@ class _HomePageState extends State<HomePage> {
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
               onCreateTaskForDate: _addForDate,
+              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
             ),
           ),
         );
