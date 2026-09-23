@@ -210,6 +210,8 @@ class _NotebookPageState extends State<NotebookPage> {
               key: const ValueKey('notebook-bulk-category-new'),
               label: 'گزینه جدید',
               newOption: true,
+
+              selected: false,
               onTap: () => Navigator.of(sheetContext).pop('__new_category__'),
             ),
           ],
@@ -290,6 +292,8 @@ class _NotebookPageState extends State<NotebookPage> {
                   key: const ValueKey('notebook-bulk-tag-new'),
                   label: 'گزینه جدید',
                   newOption: true,
+
+                  selected: false,
                   onTap: () async {
                     var value = '';
                     final tag = await showDialog<String>(
@@ -867,6 +871,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               key: const ValueKey('notebook-category-new'),
               label: 'گزینه جدید',
               newOption: true,
+
+              selected: false,
               onTap: () => Navigator.of(sheetContext).pop(_newCategoryToken),
             ),
           ],
@@ -953,6 +959,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               key: const ValueKey('notebook-project-new'),
               label: 'گزینه جدید',
               newOption: true,
+
+              selected: false,
               onTap: () => Navigator.of(sheetContext).pop('__new_project__'),
             ),
           ],
@@ -1055,6 +1063,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   key: const ValueKey('notebook-tag-new'),
                   label: 'گزینه جدید',
                   newOption: true,
+
+                  selected: false,
                   onTap: () async {
                     final tag = await _promptNewTag();
                     if (!mounted || tag == null || tag.trim().isEmpty) return;
