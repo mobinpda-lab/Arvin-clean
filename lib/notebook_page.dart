@@ -220,7 +220,7 @@ class _NotebookPageState extends State<NotebookPage> {
     );
     if (!mounted || selected == null) return;
 
-    var category = selected!;
+    String? category = selected;
     if (selected == '__new_category__') {
       var value = '';
       category = await showDialog<String>(
@@ -243,7 +243,9 @@ class _NotebookPageState extends State<NotebookPage> {
       if (!mounted || category == null || category.trim().isEmpty) return;
     }
 
-    final changed = await widget.repository.moveSelectedToCategory(_selected, category);
+    final finalCategory = category;
+    if (finalCategory == null || finalCategory.trim().isEmpty) return;
+    final changed = await widget.repository.moveSelectedToCategory(_selected, finalCategory);
     if (!mounted) return;
     _clearSelection();
     await _reload();
