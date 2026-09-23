@@ -1,16 +1,24 @@
+import 'package:drift/native.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late NativeDatabase database;
+
   setUp(() {
+    database = NativeDatabase.memory();
     SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await database.close();
   });
 
   test('Notebook persists through canonical TaskStore only', () async {
     final repository = CanonicalNotebookRepository(
-      store: TaskStore(),
+      store: TaskStore(executor: database),
       now: () => DateTime.utc(2026, 8, 26, 10),
     );
 
@@ -22,7 +30,7 @@ void main() {
       checklist: const ['[x] دعوت اعضا', '[ ] آماده‌سازی گزارش'],
     );
 
-    final stored = (await TaskStore().load()).single;
+    final stored = (await TaskStore(executor: database).load()).single;
     expect(stored.id, 'note-1');
     expect(stored.title, 'جلسه فردا');
     expect(stored.description, 'نکات مهم جلسه');
