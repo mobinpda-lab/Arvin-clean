@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/goal_project.dart';
+import 'arvin_radio_box.dart';
 
 /// Visual selector for first-class Projects.
 ///
@@ -43,28 +44,59 @@ class ProjectSelectorField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 7,
+          runSpacing: 7,
           children: [
-            _ProjectOption(
+            ArvinRadioBox(
               key: const ValueKey('project-selector-unassigned'),
-              title: 'بدون پروژه',
-              color: const Color(0xFFB7B7C5),
+              label: 'بدون پروژه',
+              accent: const Color(0xFF8A8B9C),
               selected: selectedProjectId == null,
+              icon: Icons.folder_off_outlined,
               onTap: () => onChanged(null),
             ),
             ...visibleProjects.map(
-              (project) => _ProjectOption(
+              (project) => ArvinRadioBox(
                 key: ValueKey('project-selector-${project.id}'),
-                title: project.isArchived
+                label: project.isArchived
                     ? '${project.title} (بایگانی‌شده)'
                     : project.title,
-                color: project.isArchived
+                accent: project.isArchived
                     ? const Color(0xFF9E9E9E)
                     : Color(project.colorValue),
                 selected: selectedProjectId == project.id,
+                icon: Icons.folder_outlined,
                 onTap: () => onChanged(project.id),
               ),
+            ),
+            ArvinRadioBox(
+              key: const ValueKey('project-selector-new'),
+              label: 'گزینه جدید',
+              newOption: true,
+              accent: const Color(0xFF4A4CAB),
+              onTap: () async {
+                final controller = TextEditingController();
+                final title = await showDialog<String>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('پروژه جدید'),
+                    content: TextField(
+                      controller: controller,
+                      autofocus: true,
+                      decoration: const InputDecoration(hintText: 'نام پروژه را وارد کنید'),
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
+                      FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('ثبت')),
+                    ],
+                  ),
+                );
+                controller.dispose();
+                if (!context.mounted || title == null || title.isEmpty) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('پروژه جدید را از بخش پروژه‌ها ثبت کنید؛ سپس این انتخابگر را دوباره باز کنید.')),
+                );
+              },
             ),
           ],
         ),
