@@ -97,6 +97,7 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
             ArvinRadioBox(
               key: const ValueKey('task-category-new'),
               label: 'گزینه جدید',
+              selected: false,
               newOption: true,
               onTap: () async {
                 final controller = TextEditingController();
