@@ -96,8 +96,9 @@ class ProjectSelectorField extends StatelessWidget {
                 );
                 controller.dispose();
                 if (!context.mounted || title == null || title.isEmpty) return;
-                if (onCreateProject == null) return;
-                final id = await onCreateProject(title);
+                final createProject = onCreateProject;
+                if (createProject == null) return;
+                final id = await createProject(title);
                 if (!context.mounted || id == null) return;
                 onChanged(id);
               },
