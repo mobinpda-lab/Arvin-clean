@@ -327,7 +327,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 10),
                     Row(children: [
                       IconButton(tooltip: 'ماه قبل', onPressed: canGoBack ? () => changeMonth(-1) : null, icon: const Icon(Icons.chevron_right)),
-                      Expanded(child: Center(child: Text(formatter.monthName(month) + ' ' + formatter.toPersianDigits(year.toString()), style: const TextStyle(fontWeight: FontWeight.w700)))),
+                      Expanded(child: Center(child: Text(\${formatter.monthName(month)} \${formatter.toPersianDigits(year.toString())}, style: const TextStyle(fontWeight: FontWeight.w700)))),
                       IconButton(tooltip: 'ماه بعد', onPressed: () => changeMonth(1), icon: const Icon(Icons.chevron_left)),
                     ]),
                     const Row(children: [
