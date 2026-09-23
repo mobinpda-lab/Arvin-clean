@@ -661,7 +661,6 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
-        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         onFullForm: (draft) async {
           final editedContext = await wave2ProductFastTrack.prepareEditor(
             tasks: tasks,
