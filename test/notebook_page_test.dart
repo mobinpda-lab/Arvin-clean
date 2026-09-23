@@ -494,8 +494,10 @@ void main() {
   testWidgets('bulk tag assignment preserves same Notebook ids and unrelated data',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 13));
-    await repository.createNote(id: 'bulk-tag-1', title: 'اول', tags: const ['مهم', 'فوری']);
-    await repository.createNote(id: 'bulk-tag-2', title: 'دوم', tags: const ['مهم', 'فوری']);
+    await repository.createNote(id: 'bulk-tag-1', title: 'اول');
+    await repository.createNote(id: 'bulk-tag-2', title: 'دوم');
+    await repository.updateTags(id: 'bulk-tag-1', tags: const ['مهم', 'فوری']);
+    await repository.updateTags(id: 'bulk-tag-2', tags: const ['مهم', 'فوری']);
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-tag-1')));
