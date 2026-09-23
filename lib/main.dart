@@ -1836,7 +1836,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 4, 12, compactHome ? 2 : 4),
+              padding: EdgeInsets.fromLTRB(
+                12,
+                compactHome ? 2 : 4,
+                12,
+                compactHome ? 2 : 4,
+              ),
               child: Row(
                 textDirection: TextDirection.ltr,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1844,3 +1849,184 @@ class _HomePageState extends State<HomePage> {
                   IconButton(
                     key: const ValueKey('home-notifications'),
                     tooltip: 'اعلان‌ها',
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'),
+                      ),
+                    ),
+                    icon: const Icon(Icons.notifications_none_rounded),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE9EAFF),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            child: Text(
+                              'بسم الله الرحمن الرحیم',
+                              key: ValueKey('home-bismillah'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF80829C),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: compactHome ? 4 : 7),
+                        const Text(
+                          'مدیریت کارها و پیگیری آروین',
+                          key: ValueKey('home-title-block'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF232433),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    key: const ValueKey('home-menu'),
+                    tooltip: 'منو',
+                    onPressed: _openPrimaryMore,
+                    icon: const Icon(Icons.menu_rounded),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                compactHome ? 1 : 4,
+                16,
+                compactHome ? 5 : 10,
+              ),
+              child: TextField(
+                key: const ValueKey('home-canonical-search'),
+                onChanged: (value) => setState(() => query = value),
+                decoration: InputDecoration(
+                  hintText: 'جست‌وجو در کارها',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  filled: true,
+                  fillColor: const Color(0xFFFDFDFE),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF4A4CAB),
+                      width: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            _homeGroupSelector(),
+            _homeFilterBar(),
+            Expanded(
+              child: loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : loadFailure != null
+                      ? SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.storage_outlined, size: 40),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'داده‌های کارها قابل خواندن نیست',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  key: const ValueKey('home-storage-retry'),
+                                  onPressed: () {
+                                    setState(() => loading = true);
+                                    _load();
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('تلاش دوباره'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : _groupedTaskList(),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: selected.isEmpty && loadFailure == null
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: KeyedSubtree(
+                key: const ValueKey('home-canonical-add'),
+                child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+              ),
+            )
+          : null,
+      bottomNavigationBar: selected.isEmpty
+          ? ArvinPrimaryNavigation(
+              selected: ArvinPrimaryDestination.home,
+              onSelected: _onPrimaryDestinationSelected,
+            )
+          : TaskBulkSelectionBar(
+              selectedCount: selected.length,
+              allVisibleSelected: taskBulkSelectionService.allVisibleSelected(
+                selected,
+                visible,
+              ),
+              onToggleAll: _toggleAllVisibleSelection,
+              onClearSelection: _clearBulkSelection,
+              onArchive: _archiveSelected,
+              onTrash: _trashSelected,
+              onCategory: _moveSelectedToCategory,
+              onTags: _addTagsToSelected,
+              onShare: _openSelectedReport,
+            ),
+    );
+  }
+}
+
+enum _HomeMoreAction {
+  quickCapture,
+  myTasks,
+  today,
+  undated,
+  archive,
+  trash,
+  backup,
+  settings,
+  taxonomy,
+  about,
+}
+
+/// Backward-compatible public entry retained for existing callers/tests.
+class TaskDialog extends StatelessWidget {
+  const TaskDialog({super.key, this.task});
+
+  final Task? task;
+
+  @override
+  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
+}
