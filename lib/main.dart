@@ -510,7 +510,7 @@ class _HomePageState extends State<HomePage> {
                       Icon(_collapsedGroups.contains(group.id) ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 20, color: const Color(0xFF80829C)),
                       const SizedBox(width: 4),
                       Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
-                      Text(group.items.length.toString(), style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
+                      Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
                       if (projectGroup) ...[
                         const SizedBox(width: 4),
                         IconButton(key: ValueKey('home-project-add-'+group.id), tooltip: 'افزودن کار به '+group.title, visualDensity: VisualDensity.compact, onPressed: () => _addToProject(group.id), icon: const Icon(Icons.add_circle_outline, size: 20)),
