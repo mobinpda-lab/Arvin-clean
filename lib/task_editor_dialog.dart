@@ -54,6 +54,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _tagController;
+  late final FocusNode _tagFocusNode;
   DateTime? _followUpDateTime;
   DateTime? _dueDateTime;
   DateTime? _reminderDateTime;
@@ -77,6 +78,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       text: task?.description ?? widget.initialDescription ?? '',
     );
     _tagController = TextEditingController();
+    _tagFocusNode = FocusNode();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _reminderDateTime = task?.reminderDate;
@@ -97,6 +99,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
+    _tagFocusNode.dispose();
     super.dispose();
   }
 
@@ -649,6 +652,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         child: TextField(
                           key: const ValueKey('task-editor-tag'),
                           controller: _tagController,
+                          focusNode: _tagFocusNode,
                           style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
                           cursorColor: _brand,
                           onSubmitted: (_) => _addTag(),
@@ -712,7 +716,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     newOption: true,
                     accent: const Color(0xFF38A89B),
                     selected: false,
-                    onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
+                    onTap: () {
+                      _tagController.clear();
+                      FocusScope.of(context).requestFocus(_tagFocusNode);
+                    },
                   ),
                   if (_tags.isNotEmpty) ...[
                     const SizedBox(height: 10),
