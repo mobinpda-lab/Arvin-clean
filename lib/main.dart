@@ -245,7 +245,14 @@ class _HomePageState extends State<HomePage> {
     return taskStore.save(List<Task>.of(tasks));
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
+  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
+
+  String? _projectTitleForTask(Task task) {
+    for (final project in projects) {
+      if (project.itemIds.contains(task.id)) return project.title.trim();
+    }
+    return null;
+  }
 
   bool _overdue(Task task) {
     final date = task.dueDate;
