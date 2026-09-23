@@ -76,9 +76,7 @@ void main() {
     await tester.pumpAndSettle();
     await openMore(tester);
     final about = find.text('درباره آروین');
-    await tester.ensureVisible(about);
-    await tester.pumpAndSettle();
-    await tester.tap(about);
+    await tester.tap(about, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.byType(AboutDialog), findsOneWidget);
