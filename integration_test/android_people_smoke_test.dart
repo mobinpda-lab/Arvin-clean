@@ -35,7 +35,7 @@ void main() {
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
-    final saveTask = find.byKey(const ValueKey('task-editor-save'));
+    final saveTask = find.byKey(const ValueKey('task-editor-header-save'));
 
     expect(titleField, findsOneWidget);
     expect(descriptionField, findsOneWidget);
