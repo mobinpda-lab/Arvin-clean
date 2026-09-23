@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 import '../models/task.dart';
 import 'task_storage_lock.dart';
@@ -10,15 +11,23 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
+  // SharedPreferencesAsync avoids a per-engine cached view, while the
+  // explicit Android backend keeps the canonical key on the existing
+  // SharedPreferences store instead of creating a second DataStore.
+  static const SharedPreferencesAsyncAndroidOptions _androidOptions =
+      SharedPreferencesAsyncAndroidOptions(
+        backend: SharedPreferencesAndroidBackendLibrary.SharedPreferences,
+      );
+
+  SharedPreferencesAsync? _asyncPreferences;
+  SharedPreferences? _legacyPreferences;
+
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
 
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Executes one canonical read-modify-write operation under the shared
-  /// storage lock. Feature repositories should prefer this over separate
-  /// load()/save() calls when they mutate the task collection.
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
       final tasks = await _loadUnlocked();
@@ -50,9 +59,43 @@ class TaskStore {
     return const [];
   }
 
+  Future<String?> _readRaw() async {
+    try {
+      final asyncPrefs = _asyncPreferences ??= SharedPreferencesAsync(
+        options: _androidOptions,
+      );
+      return await asyncPrefs.getString(key);
+    } on StateError {
+      final legacy =
+          _legacyPreferences ??= await SharedPreferences.getInstance();
+      await legacy.reload();
+      return legacy.getString(key);
+    }
+  }
+
+  Future<void> _writeRaw(String encoded) async {
+    try {
+      final asyncPrefs = _asyncPreferences ??= SharedPreferencesAsync(
+        options: _androidOptions,
+      );
+      await asyncPrefs.setString(key, encoded);
+      final stored = await asyncPrefs.getString(key);
+      if (stored != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+    } on StateError {
+      final legacy =
+          _legacyPreferences ??= await SharedPreferences.getInstance();
+      await legacy.setString(key, encoded);
+      await legacy.reload();
+      if (legacy.getString(key) != encoded) {
+        throw StateError('Canonical task storage write could not be verified');
+      }
+    }
+  }
+
   Future<List<Task>> _loadUnlocked() async {
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(key);
+    final raw = await _readRaw();
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -69,18 +112,12 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = await SharedPreferences.getInstance();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
-
-    // Validate the exact document before replacing the canonical value.
     final decoded = jsonDecode(encoded);
     if (decoded is! List) {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Could not persist canonical task storage');
-    }
+    await _writeRaw(encoded);
   }
 }

@@ -70,7 +70,6 @@ void main() {
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 
-
   test('concurrent canonical mutations preserve both changes', () async {
     final store = TaskStore();
     await store.save(<Task>[Task(id: 'task-1', title: 'Original')]);
@@ -87,6 +86,20 @@ void main() {
     final loaded = await store.load();
     expect(loaded.single.title, 'Renamed');
     expect(loaded.single.tags, <String>['important']);
+  });
+
+  test('a fresh TaskStore instance sees the canonical write', () async {
+    final writer = TaskStore();
+    await writer.save(<Task>[
+      Task(id: 'fresh-read-1', title: 'Persisted task'),
+    ]);
+
+    final reader = TaskStore();
+    final loaded = await reader.load();
+
+    expect(loaded, hasLength(1));
+    expect(loaded.single.id, 'fresh-read-1');
+    expect(loaded.single.title, 'Persisted task');
   });
 
   test('TaskStore rejects malformed canonical document instead of empty fallback',
