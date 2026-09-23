@@ -416,6 +416,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               Row(
                 children: [
                   Expanded(
+                    child: TextButton(
+                      key: const ValueKey('quick-capture-cancel'),
+                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                      child: const Text('لغو'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: OutlinedButton(
                       key: const ValueKey('quick-capture-full-form'),
                       onPressed: _saving ? null : _openFullForm,
