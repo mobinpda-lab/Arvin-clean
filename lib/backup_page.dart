@@ -309,11 +309,13 @@ class _BackupPageState extends State<BackupPage> {
           await restoredSchedule.save();
         }
       }
-      if (mounted) _message(
-        candidate.settings == null
-            ? 'اطلاعات با موفقیت بازیابی شد'
-            : 'اطلاعات و تنظیمات با موفقیت بازیابی شد',
-      );
+      if (mounted) {
+        _message(
+          candidate.settings == null
+              ? 'اطلاعات با موفقیت بازیابی شد'
+              : 'اطلاعات و تنظیمات با موفقیت بازیابی شد',
+        );
+      }
     } catch (_) {
       if (mounted) {
         _message(
