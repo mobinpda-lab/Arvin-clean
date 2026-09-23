@@ -454,8 +454,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: projectId,
         onProjectChanged: (value) => selectedProjectId = value,
-        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
-        knownCategories: editorContext.knownCategories,
+                knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
       ),
     );
