@@ -37,7 +37,7 @@ class TaskStore {
   Future<void> addFollowUp(String taskId, FollowUp followUp) async {
     await mutate<void>((tasks) {
       final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) throw StateError('Task not found: ' + taskId);
+      if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
       task.followUpEnabled = true;
@@ -91,10 +91,7 @@ class TaskStore {
     final sqlCount = (rows.single['count'] as num).toInt();
     if (sqlCount != source.length) {
       throw StateError(
-        'SQL migration count mismatch: legacy=' +
-            source.length.toString() +
-            ', sql=' +
-            sqlCount.toString(),
+        'SQL migration count mismatch: legacy=${source.length}, sql=$sqlCount',
       );
     }
   }
@@ -315,5 +312,5 @@ class TaskStore {
   }
 
   static String _tagId(String value) =>
-      'legacy-tag-' + base64UrlEncode(utf8.encode(value)).replaceAll('=', '');
+      'legacy-tag-${base64UrlEncode(utf8.encode(value)).replaceAll('=', '')}';
 }
