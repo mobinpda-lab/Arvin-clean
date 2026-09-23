@@ -557,14 +557,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final editing = widget.task != null;
     final followUp = _followUpDateTime;
     final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
-    final hasExistingDetails =
-        widget.task != null &&
-        (_dueDateTime != null ||
-            _reminderDateTime != null ||
-            _recurrence != null ||
-            _priority != TaskPriority.none ||
-            _completed);
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -655,8 +647,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       onChanged: (value) =>
                           setState(() => _selectedProjectId = value),
                       onCreateProject: widget.onCreateProject,
-                    ),
-                  ],
+                  ),
                   const SizedBox(height: 14),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -961,10 +952,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   ),
                   const SizedBox(height: 8),
                 ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ),
+          ),
+        ),
+      ],
             ),
           ),
         ),
