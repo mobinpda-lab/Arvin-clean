@@ -1721,6 +1721,23 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
+                      if (_projectTitleForTask(task) != null) ...[
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            const Icon(Icons.folder_outlined, size: 15, color: Color(0xFF4B8FE8)),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _projectTitleForTask(task)!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Color(0xFF4B8FE8), fontSize: 11, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
                         const SizedBox(height: 5),
                         Wrap(
