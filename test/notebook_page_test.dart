@@ -386,8 +386,6 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-tag-قدیمی')));
-    await tester.tap(find.byKey(const ValueKey('notebook-tag-مهم')));
-    await tester.tap(find.byKey(const ValueKey('notebook-tag-مشتری')));
     await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
     await tester.pumpAndSettle();
 
