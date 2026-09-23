@@ -110,6 +110,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-date')));
     await tester.tap(find.byKey(const ValueKey('task-editor-date')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
@@ -155,6 +156,7 @@ void main() {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
 
@@ -204,6 +206,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
     expect(find.text('سوابق پیگیری قبلی حفظ می‌شوند.'), findsOneWidget);
