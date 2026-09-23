@@ -1439,13 +1439,6 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext)
                         .pop(_HomeMoreAction.quickCapture),
               ),
-              ListTile(
-                key: const ValueKey('home-more-my-tasks'),
-                leading: const Icon(Icons.task_alt_outlined),
-                title: const Text('کارهای من'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
-              ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.today_outlined),
