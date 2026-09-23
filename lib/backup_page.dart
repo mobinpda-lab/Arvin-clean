@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'backup_manager.dart';
+import 'services/app_settings_service.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -22,6 +23,7 @@ class BackupPage extends StatefulWidget {
 
 class _BackupPageState extends State<BackupPage> {
   late final ArvinBackupManager manager;
+  final AppSettingsService settingsService = AppSettingsService();
   String? directory;
   bool busy = false;
   bool encryptBackup = false;
@@ -219,8 +221,10 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => busy = true);
     try {
       final tasks = await widget.loadTasks();
+      final settings = await settingsService.load();
       final fileName = await manager.backupTasks(
         tasks,
+        settings: settingsService.toPortableJson(settings),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -244,14 +248,14 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
-  Future<bool> _confirmRestore(int taskCount) async {
+  Future<bool> _confirmRestore(int taskCount, {required bool hasSettings}) async {
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تأیید بازیابی'),
         content: Text(
-          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود. این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
+          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود${hasSettings ? ' و تنظیمات موجود در همان فایل نیز برمی‌گردد' : ''}. این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
         ),
         actions: [
           TextButton(
@@ -273,17 +277,27 @@ class _BackupPageState extends State<BackupPage> {
   Future<void> _restore({String? passphrase}) async {
     setState(() => busy = true);
     try {
-      final document = await manager.restoreBackup(passphrase: passphrase);
-      if (document == null) return;
-      final tasks = (document['tasks'] as List<dynamic>)
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
+      final candidate = await manager.restoreCanonicalBackup(
+        passphrase: passphrase,
+      );
+      if (candidate == null) return;
       if (!mounted) return;
-      final confirmed = await _confirmRestore(tasks.length);
+      final confirmed = await _confirmRestore(
+        candidate.tasks.length,
+        hasSettings: candidate.settings != null,
+      );
       if (!confirmed || !mounted) return;
-      await widget.replaceTasks(tasks);
-      if (mounted) _message('اطلاعات با موفقیت بازیابی شد');
+      await widget.replaceTasks(
+        candidate.tasks.map((task) => task.toJson()).toList(growable: false),
+      );
+      if (candidate.settings != null) {
+        await settingsService.restorePortableJson(candidate.settings!);
+      }
+      if (mounted) _message(
+        candidate.settings == null
+            ? 'اطلاعات با موفقیت بازیابی شد'
+            : 'اطلاعات و تنظیمات با موفقیت بازیابی شد',
+      );
     } catch (_) {
       if (mounted) {
         _message(
