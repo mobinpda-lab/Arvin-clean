@@ -12,7 +12,7 @@ void main() {
     expect(source, contains('settings: appSettingsService.toPortableJson('));
     expect(source, contains('backupManager.restoreCanonicalBackup()'));
     expect(source, contains('await taskStore.save(List<Task>.of(list));'));
-    expect(source, contains('appSettingsService.saveSettings(restoredSettings)'));
+    expect(source, contains('appSettingsService.restorePortableJson(candidate.settings!)'));
 
     expect(
       source,
