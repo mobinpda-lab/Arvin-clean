@@ -24,7 +24,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
   });
 
-  testWidgets('HomePage exposes the canonical workflow controls', (tester) async {
+  testWidgets('Home exposes the canonical workflow controls', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -32,31 +32,20 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-active')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-completed')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-summary-overdue')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-scope-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-sort-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-sort-direction')), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'دفترچه'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'اقدام بعدی'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'بیشتر'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-more-my-tasks')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-more-my-tasks')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-my-tasks-all')), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('home-my-tasks-without-followup')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
@@ -90,7 +79,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-four-summary-selector')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-mode-selector')), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
   });
 }
