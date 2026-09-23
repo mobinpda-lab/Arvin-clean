@@ -38,10 +38,13 @@ void main() {
     }
 
     Future<void> openQuickCapture() async {
-      await tester.tap(find.byKey(const ValueKey('home-menu')));
+      final homeMenu = find.byKey(const ValueKey('home-menu'));
+      await tester.ensureVisible(homeMenu);
+      await tester.tap(homeMenu);
       await tester.pumpAndSettle();
       final quick = find.byKey(const ValueKey('home-more-quick-capture'));
       expect(quick, findsOneWidget);
+      await tester.ensureVisible(quick);
       await tester.tap(quick);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
@@ -52,7 +55,9 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'این مورد نباید ذخیره شود #لغو',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-cancel')));
+    final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
+    await tester.ensureVisible(cancel);
+    await tester.tap(cancel);
     await tester.pumpAndSettle();
 
     final afterCancel = await reader.load();
