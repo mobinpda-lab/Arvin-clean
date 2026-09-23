@@ -9,6 +9,8 @@ import 'home/grouping/home_group.dart';
 import 'home/grouping/home_group_mode.dart';
 import 'home/grouping/home_grouping_service.dart';
 import 'notebook_page.dart';
+import 'projects_launcher.dart';
+import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
@@ -337,51 +339,13 @@ class _HomePageState extends State<HomePage> {
   }) {
     final selectedMode = _homeGroupMode == mode;
     return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          key: ValueKey('home-group-\${mode.name}'),
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _selectHomeGroupMode(mode),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            constraints: const BoxConstraints(minHeight: 82),
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-            decoration: BoxDecoration(
-              color: selectedMode ? softAccent : const Color(0xFFFDFDFE),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: selectedMode ? accent : const Color(0xFFE5E7ED),
-                width: selectedMode ? 1.5 : 1,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0D232433),
-                  blurRadius: 10,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 23, color: accent),
-                const SizedBox(height: 7),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: const Color(0xFF232433),
-                    fontSize: 11.5,
-                    fontWeight: selectedMode ? FontWeight.w800 : FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: ArvinRadioBox(
+        key: ValueKey('home-group-${mode.name}'),
+        label: label,
+        icon: icon,
+        accent: accent,
+        selected: selectedMode,
+        onTap: () => _selectHomeGroupMode(mode),
       ),
     );
   }
@@ -447,7 +411,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeFilterBar() {
     final chips = <Widget>[];
-    void addChip(String label, bool selected, VoidCallback onSelected) => chips.add(ChoiceChip(label: Text(label), selected: selected, onSelected: (_) => onSelected(), labelStyle: TextStyle(fontSize: 11.5, fontWeight: selected ? FontWeight.w800 : FontWeight.w600)));
+    void addChip(String label, bool selected, VoidCallback onSelected, {IconData? icon, Color accent = const Color(0xFF4A4CAB), bool newOption = false}) => chips.add(ArvinRadioBox(label: label, selected: selected, onTap: onSelected, icon: icon, accent: accent, newOption: newOption));
     if (_homeGroupMode == HomeGroupMode.time) {
       addChip('همه', _dueScope == null, () => setState(() => _dueScope = null));
       addChip('عقب‌افتاده', _dueScope == TaskDueScope.overdue, () => setState(() => _dueScope = TaskDueScope.overdue));
@@ -455,17 +419,20 @@ class _HomePageState extends State<HomePage> {
       addChip('آینده', _dueScope == TaskDueScope.future, () => setState(() => _dueScope = TaskDueScope.future));
       addChip('بدون موعد', _dueScope == TaskDueScope.undated, () => setState(() => _dueScope = TaskDueScope.undated));
     } else if (_homeGroupMode == HomeGroupMode.projects) {
-      addChip('همه پروژه‌ها', _projectFilter == null, () => setState(() => _projectFilter = null));
-      for (final project in projects.where((item) => !item.isArchived)) addChip(project.title, _projectFilter == project.id, () => setState(() => _projectFilter = project.id));
-      addChip('بدون پروژه', _projectFilter == '__no_project__', () => setState(() => _projectFilter = '__no_project__'));
+      addChip('همه پروژه‌ها', _projectFilter == null, () => setState(() => _projectFilter = null), icon: Icons.folder_outlined, accent: const Color(0xFF4B8FE8));
+      for (final project in projects.where((item) => !item.isArchived)) addChip(project.title, _projectFilter == project.id, () => setState(() => _projectFilter = project.id), icon: Icons.folder_outlined, accent: Color(project.colorValue));
+      addChip('بدون پروژه', _projectFilter == '__no_project__', () => setState(() => _projectFilter = '__no_project__'), icon: Icons.folder_off_outlined, accent: const Color(0xFF8A8B9C));
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProjectsLauncher())), newOption: true));
     } else if (_homeGroupMode == HomeGroupMode.categories) {
-      addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null));
-      for (final category in _homeCategories) addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category));
+      addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null), icon: Icons.grid_view_rounded, accent: const Color(0xFF8C68D9));
+      for (final category in _homeCategories) addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
     } else {
-      addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null));
-      for (final tag in _homeTags) addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag));
+      addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      for (final tag in _homeTags) addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF38A89B)));
     }
-    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: SizedBox(height: 40, child: ListView.separated(scrollDirection: Axis.horizontal, reverse: true, itemCount: chips.length, separatorBuilder: (_, __) => const SizedBox(width: 6), itemBuilder: (_, index) => chips[index])));
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Wrap(textDirection: TextDirection.rtl, spacing: 6, runSpacing: 6, children: chips));
   }
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
