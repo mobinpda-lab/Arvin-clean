@@ -68,6 +68,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onOpenExternalReminder,
     super.canMutateReminder,
     super.onCreateTaskForDate,
+    super.onCreateTaskFromCalendarEvent,
     super.settingsService,
     super.calendarBridge,
     super.externalLinkStore,
