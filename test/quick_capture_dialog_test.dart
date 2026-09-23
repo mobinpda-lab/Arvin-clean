@@ -77,7 +77,7 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pump();
 
     expect(find.text('عنوان برای ثبت کافی است'), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
     expect(continued!.id, 'quick-1');
     expect(continued!.title, 'ادامه در فرم');
     expect(continued!.tags, ['مهم']);
-    expect(find.text('ورود سریع'), findsOneWidget);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
   testWidgets('captures three tasks sequentially without closing the dialog',
@@ -164,10 +164,10 @@ void main() {
 
     for (final title in ['کار اول', 'کار دوم', 'کار سوم']) {
       await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), title);
-      await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
+      await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
       await tester.pumpAndSettle();
 
-      expect(find.text('ورود سریع'), findsOneWidget);
+      expect(find.text('ثبت سریع کار'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text(title), findsNothing);
     }
