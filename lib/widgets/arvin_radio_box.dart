@@ -20,8 +20,9 @@ class ArvinRadioBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = selected ? accent : const Color(0xFFE1E2EA);
-    final background = selected ? accent.withValues(alpha: 0.10) : const Color(0xFFFDFDFE);
+    final border = selected ? accent : const Color(0xFFE5E7ED);
+    final background =
+        selected ? accent.withValues(alpha: 0.10) : const Color(0xFFFDFDFE);
     return Semantics(
       button: true,
       selected: selected,
@@ -43,7 +44,9 @@ class ArvinRadioBox extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  newOption ? Icons.add_circle_outline_rounded : (icon ?? Icons.radio_button_checked_rounded),
+                  newOption
+                      ? Icons.add_circle_outline_rounded
+                      : (icon ?? Icons.radio_button_checked_rounded),
                   size: 18,
                   color: selected ? accent : const Color(0xFF7D7F95),
                 ),
@@ -55,7 +58,8 @@ class ArvinRadioBox extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight:
+                          selected ? FontWeight.w800 : FontWeight.w600,
                       color: const Color(0xFF232433),
                     ),
                   ),
