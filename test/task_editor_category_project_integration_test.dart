@@ -98,7 +98,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-category-clear')));
+    await tester.tap(find.byKey(const ValueKey('task-category-none')));
     await tester.pump();
     await save(tester);
 
