@@ -107,11 +107,14 @@ Repository reality always overrides conversation memory.
 
 ## Live Conversation Checkpoint — 2026-09-23
 
+> آخرین ممیزی زنده: PR #1373 باز و قابل ادغام است؛ Head واقعی این شاخه `2c6b6923df8bc105a3f044a5468c7b5ede52a56c` است. برای این Head هنوز هیچ Workflow Run/Combined Status از GitHub برنگشته؛ بنابراین Analyze/Test/Build سبز اعلام نمی‌شود. مسیر بعدی: فعال‌کردن اجرای CI از طریق همین PR و سپس رفع هر خطای واقعی قبل از merge.
+
 این بخش برای انتقال کار بین گفتگوها و حساب‌های ChatGPT ثبت شده است. در صورت تغییر صفحه گفتگو، نباید وضعیت کار از حافظه گفتگو حدس زده شود؛ GitHub باید دوباره خوانده شود.
 
 ### Active product branch
 - Branch: `fix/final-ui-home-quick-entry-20260923`
-- آخرین تغییر ثبت‌شده: `67df2fc6e95f74bc45525530ad3808e639d78199`
+- آخرین تغییر ثبت‌شده در کد: `67df2fc6e95f74bc45525530ad3808e639d78199`
+- آخرین Head شاخه/PR: `2c6b6923df8bc105a3f044a5468c7b5ede52a56c`
 - تغییر قبلی مرتبط: `5b78bff1d619c85e017ff9a4e9e85018a26d4454`
 - Task Detail dashboard: `c3e82af6d16463bc4a6bdda1874164e1a859af1f`
 
