@@ -44,7 +44,9 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'تماس با علی #مشتری #فوری',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'ثبت کار'));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
@@ -77,7 +79,9 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pump();
 
     expect(find.text('عنوان برای ثبت کافی است'), findsOneWidget);
@@ -164,11 +168,13 @@ void main() {
 
     for (final title in ['کار اول', 'کار دوم', 'کار سوم']) {
       await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), title);
-      await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+      final submit = find.byKey(const ValueKey('quick-capture-submit'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
       await tester.pumpAndSettle();
 
       expect(find.text('ثبت سریع کار'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-input')), findsOneWidget);
       expect(find.text(title), findsNothing);
     }
 
