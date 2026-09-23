@@ -32,6 +32,7 @@ import 'task_detail_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
+import 'task_taxonomy_management_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
@@ -1365,6 +1366,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openTaxonomyManagement() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const TaskTaxonomyManagementPage(),
+      ),
+    );
+    if (mounted) await _load();
+  }
+
   void _showAbout() {
     showAboutDialog(
       context: context,
@@ -1469,6 +1480,14 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
+                key: const ValueKey('home-more-taxonomy'),
+                leading: const Icon(Icons.category_outlined),
+                title: const Text('دسته‌ها و برچسب‌ها'),
+                subtitle: const Text('مدیریت دسته‌ها و برچسب‌های کارها'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_HomeMoreAction.taxonomy),
+              ),
+              ListTile(
                 leading: const Icon(Icons.settings_outlined),
                 title: const Text('تنظیمات'),
                 onTap: () =>
@@ -1515,6 +1534,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.taxonomy:
+        await _openTaxonomyManagement();
         return;
       case _HomeMoreAction.about:
         _showAbout();
@@ -2026,6 +2048,7 @@ enum _HomeMoreAction {
   trash,
   backup,
   settings,
+  taxonomy,
   about,
 }
 
