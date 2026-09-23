@@ -10,7 +10,6 @@ import 'home/grouping/home_group.dart';
 import 'home/grouping/home_group_mode.dart';
 import 'home/grouping/home_grouping_service.dart';
 import 'notebook_page.dart';
-import 'projects_launcher.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
@@ -414,8 +413,6 @@ class _HomePageState extends State<HomePage> {
       selectionMode = false;
     });
   }
-
-  List<String> get _homeTags => tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
 
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
