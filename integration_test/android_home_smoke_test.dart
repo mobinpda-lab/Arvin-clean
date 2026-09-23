@@ -1,4 +1,5 @@
 import 'package:arvin/main.dart' as app;
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -73,7 +74,9 @@ void main() {
     await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('تست واقعی اندروید'), findsOneWidget);
-    expect(find.text('ثبت از مسیر Home روی Emulator'), findsOneWidget);
+    final persisted = await TaskStore().load();
+    final created = persisted.where((task) => task.title == 'تست واقعی اندروید');
+    expect(created, hasLength(1));
+    expect(created.single.description, 'ثبت از مسیر Home روی Emulator');
   });
 }
