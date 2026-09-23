@@ -7,6 +7,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/project_selector_field.dart';
+import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_category_field.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
@@ -20,6 +21,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.selectedProjectId,
     this.onProjectChanged,
     this.knownCategories = const [],
+    this.knownTags = const [],
   });
 
   final Task? task;
@@ -36,6 +38,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
+  final List<String> knownTags;
 
   @override
   State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
@@ -650,7 +653,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           cursorColor: _brand,
                           onSubmitted: (_) => _addTag(),
                           decoration: _fieldDecoration(
-                            label: 'برچسب',
+                            label: 'برچسب جدید',
                             hint: 'مثلاً مشتری، جلسه، مهم',
                           ),
                         ),
@@ -667,14 +670,49 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             backgroundColor: _softBrand,
                             foregroundColor: _brand,
                             elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           ),
                           child: const Icon(Icons.add),
                         ),
                       ),
                     ],
+                  ),
+                  if (widget.knownTags.isNotEmpty) ...[
+                    const SizedBox(height: 9),
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      children: widget.knownTags
+                          .map((tag) => tag.trim())
+                          .where((tag) => tag.isNotEmpty)
+                          .toSet()
+                          .map(
+                            (tag) => ArvinRadioBox(
+                              key: ValueKey('task-editor-known-tag-$tag'),
+                              label: tag,
+                              selected: _tags.contains(tag),
+                              icon: Icons.sell_outlined,
+                              accent: const Color(0xFF38A89B),
+                              onTap: () => setState(() {
+                                if (_tags.contains(tag)) {
+                                  _tags.remove(tag);
+                                } else {
+                                  _tags.add(tag);
+                                }
+                              }),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 7),
+                  ArvinRadioBox(
+                    key: const ValueKey('task-editor-new-tag'),
+                    label: 'گزینه جدید',
+                    newOption: true,
+                    accent: const Color(0xFF38A89B),
+                    selected: false,
+                    onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
                   ),
                   if (_tags.isNotEmpty) ...[
                     const SizedBox(height: 10),
