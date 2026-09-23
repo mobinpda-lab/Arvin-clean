@@ -18,6 +18,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
+    this.onComplete,
     this.now,
   });
 
@@ -26,8 +27,6 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
   final Future<Task?> Function(Task task)? onComplete;
-
-  /// Optional fixed clock for deterministic UI tests. Production uses device time.
   final DateTime? now;
 
   @override
@@ -36,6 +35,10 @@ class TaskDetailPage extends StatefulWidget {
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _brand = Color(0xFF4A4CAB);
+  static const _waiting = Color(0xFFD97706);
+  static const _done = Color(0xFF2E8B57);
+  static const _danger = Color(0xFFC94B4B);
+  static const _muted = Color(0xFF80829C);
   static const _formatter = PersianDateFormatter();
   static const _elapsedFormatter = FollowUpElapsedFormatter();
   static const _waitingService = WaitingForResponseService();
@@ -48,8 +51,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _task = widget.task;
   }
 
-  String _date(DateTime value) =>
-      _formatter.format(value, usePersianDate: true);
+  String _date(DateTime value) => _formatter.format(value, usePersianDate: true);
 
   String _time(DateTime value) => _formatter.toPersianDigits(
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
@@ -60,15 +62,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   String _statusLabel() {
     if (_task.completed) return 'انجام شده';
     final latest = _task.lastFollowUp;
-    if (latest != null && _waitingService.isWaitingResult(latest.result)) return 'در انتظار پاسخ';
+    if (latest != null && _waitingService.isWaitingResult(latest.result)) {
+      return 'در انتظار پاسخ';
+    }
     return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
   }
 
   Color _statusColor() {
-    if (_task.completed) return const Color(0xFF2E8B57);
+    if (_task.completed) return _done;
     final latest = _task.lastFollowUp;
-    if (latest != null && _waitingService.isWaitingResult(latest.result)) return const Color(0xFFD97706);
-    return _brand;
+    if (latest != null && _waitingService.isWaitingResult(latest.result)) {
+      return _waiting;
+    }
+    return _task.priority == TaskPriority.high ? _danger : _brand;
   }
 
   String? _resultLabel(FollowUp followUp) {
@@ -86,28 +92,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _openReport() async {
-    if (!mounted) return;
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => TaskReportPage(tasks: [_task]),
-      ),
+      MaterialPageRoute<void>(builder: (_) => TaskReportPage(tasks: [_task])),
     );
   }
 
   Future<void> _addFollowUp() async {
     final add = widget.onAddFollowUp;
     if (add == null) return;
-
     final followUp = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(
-        builder: (_) => const FollowUpEntryPage(),
-      ),
+      MaterialPageRoute<FollowUp>(builder: (_) => const FollowUpEntryPage()),
     );
     if (!mounted || followUp == null) return;
-
     final updated = await add(_task, followUp);
-    if (!mounted) return;
-    setState(() => _task = updated);
+    if (mounted) setState(() => _task = updated);
   }
 
   Future<void> _editFollowUp(FollowUp existing) async {
@@ -120,20 +118,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     try {
       final handler = widget.onEditFollowUp;
-      late final FollowUp persisted;
-      if (handler != null) {
-        persisted = await handler(_task, updated);
-      } else {
-        final writer = FollowUpWriteCoordinator(
-          repository: const FollowUpRepository(),
-          scheduler: AndroidAutomaticFollowUpScheduler(),
-          reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
-        );
-        await writer.update(_task.id, updated);
-        persisted = updated;
-      }
+      final persisted = handler != null
+          ? await handler(_task, updated)
+          : await _persistFollowUpUpdate(updated);
       if (!mounted) return;
-
       final index = _task.followUps.indexWhere((item) => item.id == persisted.id);
       if (index < 0) return;
       setState(() {
@@ -146,124 +134,280 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ویرایش پیگیری انجام نشد؛ دوباره تلاش کنید')),
-        );
+        ..showSnackBar(const SnackBar(content: Text('ویرایش پیگیری انجام نشد؛ دوباره تلاش کنید')));
     }
   }
 
-  Widget _infoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    Key? key,
-  }) {
+  Future<FollowUp> _persistFollowUpUpdate(FollowUp updated) async {
+    final writer = FollowUpWriteCoordinator(
+      repository: const FollowUpRepository(),
+      scheduler: AndroidAutomaticFollowUpScheduler(),
+      reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
+    );
+    await writer.update(_task.id, updated);
+    return updated;
+  }
+
+  Widget _badge(String label, Color color, {IconData? icon}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: .20)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[Icon(icon, size: 14, color: color), const SizedBox(width: 4)],
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+
+  Widget _card({required Widget child, Key? key}) {
     return Container(
       key: key,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F7FF),
+        color: const Color(0xFFFDFDFE),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8E6F7)),
+        border: Border.all(color: const Color(0xFFE6E7EE)),
       ),
-      child: Row(
+      child: child,
+    );
+  }
+
+  Widget _sectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 19, color: _brand),
+        const SizedBox(width: 7),
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+      ],
+    );
+  }
+
+  Widget _summaryCard() {
+    final statusColor = _statusColor();
+    return _card(
+      key: const ValueKey('task-detail-summary-card'),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEDEBFF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: _brand, size: 21),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  _task.title,
+                  key: const ValueKey('task-detail-title'),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, height: 1.25),
+                ),
+              ),
+              _badge(_statusLabel(), statusColor, icon: _task.completed ? Icons.check_circle_outline : Icons.track_changes_outlined),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Color(0xFF77778A),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+          if (_task.description.trim().isNotEmpty) ...[
+            const SizedBox(height: 9),
+            Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
+          ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              if (_task.category?.trim().isNotEmpty == true)
+                _badge(_task.category!.trim(), const Color(0xFF8C68D9), icon: Icons.folder_outlined),
+              if (_task.priority != TaskPriority.none)
+                _badge(
+                  switch (_task.priority) {
+                    TaskPriority.high => 'اهمیت زیاد',
+                    TaskPriority.medium => 'اهمیت متوسط',
+                    TaskPriority.low => 'اهمیت کم',
+                    TaskPriority.none => '',
+                  },
+                  _task.priority == TaskPriority.high ? _danger : _waiting,
+                  icon: Icons.flag_outlined,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Color(0xFF242438),
-                    fontWeight: FontWeight.w700,
-                  ),
+              if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
+              for (final tag in _task.tags.take(4))
+                _badge('#${tag.trim()}', const Color(0xFF38A89B), icon: Icons.sell_outlined),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.schedule_outlined, size: 18, color: _muted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _task.dueDate == null ? 'بدون موعد انجام' : _dateTime(_task.dueDate!),
+                  key: const ValueKey('task-detail-due-date'),
+                  style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
-              ],
-            ),
+              ),
+              if (_task.reminderDate != null)
+                const Icon(Icons.notifications_none_outlined, size: 18, color: _muted),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _followUpCard(
-    FollowUp followUp, {
-    required FollowUp? previous,
-  }) {
-    final result = _resultLabel(followUp);
-    return Card(
-      key: ValueKey('task-detail-followup-${followUp.id}'),
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 2),
-              child: Icon(Icons.circle, color: _brand, size: 11),
+  Widget _latestCard(FollowUp? latest, DateTime now) {
+    return _card(
+      key: const ValueKey('task-detail-latest-followup'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('آخرین پیگیری', Icons.bolt_outlined),
+          const SizedBox(height: 10),
+          if (latest == null)
+            const Text('هنوز پیگیری ثبت نشده است', style: TextStyle(color: _muted))
+          else ...[
+            Text(
+              latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    followUp.note.trim().isEmpty
-                        ? 'پیگیری'
-                        : followUp.note.trim(),
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+            const SizedBox(height: 5),
+            Text(_dateTime(latest.dateTime), style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '● ${_elapsedFormatter.since(latest.dateTime, now: now)}',
+                    key: const ValueKey('task-detail-latest-followup-elapsed'),
+                    style: const TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 12),
                   ),
-                  const SizedBox(height: 3),
-                  Text(_dateTime(followUp.dateTime)),
-                  if (result != null) ...[
-                    const SizedBox(height: 5),
-                    Text(result),
-                  ],
-                  if (previous != null) ...[
-                    const SizedBox(height: 7),
-                    Text(
-                      'فاصله از پیگیری قبلی: ${_elapsedFormatter.interval(followUp.dateTime, previous.dateTime)}',
-                      key: ValueKey('task-detail-followup-interval-${followUp.id}'),
-                      style: const TextStyle(
-                        color: Color(0xFF66667A),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            IconButton(
-              key: ValueKey('task-detail-edit-followup-${followUp.id}'),
-              onPressed: () => _editFollowUp(followUp),
-              tooltip: 'ویرایش پیگیری',
-              icon: const Icon(Icons.edit_outlined, size: 19),
+                ),
+                if (_resultLabel(latest) != null) _badge(_resultLabel(latest)!, _waitingService.isWaitingResult(latest.result) ? _waiting : _brand),
+                IconButton(
+                  key: ValueKey('task-detail-edit-followup-${latest.id}'),
+                  onPressed: () => _editFollowUp(latest),
+                  tooltip: 'ویرایش پیگیری',
+                  icon: const Icon(Icons.edit_outlined, size: 19),
+                ),
+              ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _timeline(List<FollowUp> history) {
+    if (history.isEmpty) return const SizedBox.shrink();
+    return _card(
+      key: const ValueKey('task-detail-timeline'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('مسیر پیگیری', Icons.timeline_outlined),
+          const SizedBox(height: 12),
+          for (var index = 0; index < history.length; index++)
+            _timelineItem(
+              history[index],
+              previous: index + 1 < history.length ? history[index + 1] : null,
+              isLast: index == history.length - 1,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timelineItem(FollowUp followUp, {required FollowUp? previous, required bool isLast}) {
+    final result = _resultLabel(followUp);
+    final color = _waitingService.isWaitingResult(followUp.result) ? _waiting : _brand;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          child: Column(
+            children: [
+              Container(
+                width: 11,
+                height: 11,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              if (!isLast)
+                Container(width: 2, height: 65, color: color.withValues(alpha: .18)),
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            key: ValueKey('task-detail-followup-${followUp.id}'),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  followUp.note.trim().isEmpty ? 'پیگیری' : followUp.note.trim(),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 3),
+                Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
+                if (result != null) ...[
+                  const SizedBox(height: 5),
+                  Text(result, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+                ],
+                if (previous != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'فاصله از پیگیری قبلی: ${_elapsedFormatter.interval(followUp.dateTime, previous.dateTime)}',
+                      key: ValueKey('task-detail-followup-interval-${followUp.id}'),
+                      style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                IconButton(
+                  key: ValueKey('task-detail-edit-followup-${followUp.id}'),
+                  onPressed: () => _editFollowUp(followUp),
+                  tooltip: 'ویرایش پیگیری',
+                  icon: const Icon(Icons.edit_outlined, size: 17),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _nextAction(FollowUp? latest) {
+    final next = latest?.nextFollowUp;
+    if (next == null) return const SizedBox.shrink();
+    return _card(
+      key: const ValueKey('task-detail-next-action'),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: _brand.withValues(alpha: .10), borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.next_plan_outlined, color: _brand),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('اقدام بعدی', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 3),
+                Text(_dateTime(next), style: const TextStyle(fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -273,7 +417,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final latest = _task.lastFollowUp;
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final current = widget.now ?? DateTime.now();
+    final now = widget.now ?? DateTime.now();
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -282,22 +426,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         appBar: AppBar(
           title: Text(_task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
           actions: [
+            IconButton(
+              key: const ValueKey('task-detail-edit'),
+              tooltip: 'ویرایش',
+              onPressed: widget.onEdit == null ? null : _edit,
+              icon: const Icon(Icons.edit_outlined),
+            ),
             PopupMenuButton<String>(
               key: const ValueKey('task-detail-more'),
               tooltip: 'بیشتر',
               onSelected: (value) {
-                if (value == 'edit') _edit();
                 if (value == 'report') _openReport();
               },
               itemBuilder: (_) => const [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.edit_outlined),
-                    title: Text('ویرایش'),
-                  ),
-                ),
                 PopupMenuItem(
                   value: 'report',
                   child: ListTile(
@@ -314,155 +455,61 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             children: [
-              if (_task.followUpEnabled) Expanded(child: FilledButton.icon(key: const ValueKey('task-detail-add-followup'), onPressed: widget.onAddFollowUp == null ? null : _addFollowUp, icon: const Icon(Icons.add), label: const Text('افزودن پیگیری'))),
-              if (_task.followUpEnabled) const SizedBox(width: 10),
-              Expanded(child: OutlinedButton.icon(key: const ValueKey('task-detail-complete'), onPressed: widget.onComplete == null ? null : () async { final updated = await widget.onComplete!(_task); if (!mounted || updated == null) return; setState(() => _task = updated); }, icon: Icon(_task.completed ? Icons.check_circle : Icons.check_circle_outline), label: Text(_task.completed ? 'انجام شده' : 'انجام کار'))),
+              if (_task.followUpEnabled && !(_task.completed))
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const ValueKey('task-detail-add-followup'),
+                    onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
+                    icon: const Icon(Icons.add),
+                    label: const Text('افزودن پیگیری'),
+                  ),
+                ),
+              if (_task.followUpEnabled && !_task.completed) const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('task-detail-complete'),
+                  onPressed: widget.onComplete == null || _task.completed
+                      ? null
+                      : () async {
+                          final updated = await widget.onComplete!(_task);
+                          if (!mounted || updated == null) return;
+                          setState(() => _task = updated);
+                        },
+                  icon: Icon(_task.completed ? Icons.check_circle : Icons.check_circle_outline),
+                  label: Text(_task.completed ? 'انجام شده' : 'انجام کار'),
+                ),
+              ),
             ],
           ),
         ),
-        floatingActionButton: null,
-
-            ? FloatingActionButton.extended(
-                key: const ValueKey('task-detail-add-followup'),
-                onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
-                backgroundColor: _brand,
-                foregroundColor: Colors.white,
-                icon: const Icon(Icons.add),
-                label: const Text('افزودن پیگیری'),
-              )
-            : null,
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 96),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
           children: [
-            Text(
-              _task.title,
-              key: const ValueKey('task-detail-title'),
-              style: const TextStyle(
-                color: Color(0xFF242438),
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            if (_task.description.trim().isNotEmpty) ...[
+            _summaryCard(),
+            const SizedBox(height: 10),
+            _latestCard(latest, now),
+            if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text(
-                _task.description,
-                key: const ValueKey('task-detail-description'),
-                style: const TextStyle(height: 1.7),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Container(
-              key: const ValueKey('task-detail-status-card'),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: _statusColor().withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: _statusColor().withValues(alpha: 0.22)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.track_changes_rounded, color: _statusColor()),
-                  const SizedBox(width: 10),
-                  const Text('وضعیت', style: TextStyle(color: Color(0xFF77778A), fontSize: 12, fontWeight: FontWeight.w700)),
-                  const Spacer(),
-                  Text(_statusLabel(), style: TextStyle(color: _statusColor(), fontWeight: FontWeight.w800)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            _infoCard(
-              key: const ValueKey('task-detail-due-date'),
-              icon: Icons.event_available_outlined,
-              label: 'زمان انجام',
-              value: _task.dueDate == null
-                  ? 'بدون موعد'
-                  : _dateTime(_task.dueDate!),
-            ),
-            if (_task.reminderDate != null) ...[
-              const SizedBox(height: 10),
-              _infoCard(
-                key: const ValueKey('task-detail-reminder-date'),
-                icon: Icons.notifications_none_outlined,
-                label: 'یادآور',
-                value: _dateTime(_task.reminderDate!),
-              ),
-            ],
-            if (_task.followUpEnabled || history.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              _infoCard(
-                key: const ValueKey('task-detail-latest-followup'),
-                icon: Icons.history_outlined,
-                label: 'آخرین پیگیری',
-                value: latest == null
-                    ? 'هنوز پیگیری ثبت نشده است'
-                    : _dateTime(latest.dateTime),
-              ),
-              if (latest != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  '● ${_elapsedFormatter.since(latest.dateTime, now: current)}',
-                  key: const ValueKey('task-detail-latest-followup-elapsed'),
-                  style: const TextStyle(
-                    color: _brand,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ],
-            if (_task.category?.trim().isNotEmpty == true) ...[
-              const SizedBox(height: 10),
-              _infoCard(
-                icon: Icons.folder_outlined,
-                label: 'دسته‌بندی',
-                value: _task.category!.trim(),
-              ),
+              _timeline(history),
             ],
             if (latest?.nextFollowUp != null) ...[
               const SizedBox(height: 10),
-              _infoCard(
-                key: const ValueKey('task-detail-next-action'),
-                icon: Icons.next_plan_outlined,
-                label: 'اقدام بعدی',
-                value: _dateTime(latest!.nextFollowUp!),
-              ),
+              _nextAction(latest),
             ],
-            if (_task.tags.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              const Text(
-                'برچسب‌ها',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _task.tags.map((tag) => Chip(label: Text(tag))).toList(),
-              ),
-            ],
-            if (history.isNotEmpty) ...[
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'تاریخچه پیگیری‌ها',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
-                    ),
-                  ),
-                  Text(
-                    _formatter.toPersianDigits(history.length.toString()),
-                    style: const TextStyle(color: Color(0xFF77778A)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              for (var index = 0; index < history.length; index++)
-                _followUpCard(
-                  history[index],
-                  previous:
-                      index + 1 < history.length ? history[index + 1] : null,
+            if (_task.reminderDate != null) ...[
+              const SizedBox(height: 10),
+              _card(
+                key: const ValueKey('task-detail-reminder-date'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.notifications_none_outlined, color: _muted),
+                    const SizedBox(width: 9),
+                    const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
+                    const Spacer(),
+                    Text(_dateTime(_task.reminderDate!), style: const TextStyle(fontWeight: FontWeight.w800)),
+                  ],
                 ),
+              ),
             ],
           ],
         ),
