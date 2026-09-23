@@ -26,6 +26,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.menu_rounded));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-task-filters')), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'تنظیمات'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(ListTile, 'تنظیمات'));
