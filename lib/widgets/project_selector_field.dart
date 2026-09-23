@@ -17,12 +17,14 @@ class ProjectSelectorField extends StatelessWidget {
     required this.selectedProjectId,
     required this.onChanged,
     this.label = 'پروژه',
+    this.onCreateProject,
   });
 
   final List<ProjectPlan> projects;
   final String? selectedProjectId;
   final ValueChanged<String?> onChanged;
   final String label;
+  final Future<String?> Function(String title)? onCreateProject;
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +95,10 @@ class ProjectSelectorField extends StatelessWidget {
                 );
                 controller.dispose();
                 if (!context.mounted || title == null || title.isEmpty) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('پروژه جدید را از بخش پروژه‌ها ثبت کنید؛ سپس این انتخابگر را دوباره باز کنید.')),
-                );
+                if (onCreateProject == null) return;
+                final id = await onCreateProject(title);
+                if (!context.mounted || id == null) return;
+                onChanged(id);
               },
             ),
           ],
