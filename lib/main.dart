@@ -515,7 +515,13 @@ class _HomePageState extends State<HomePage> {
                       Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
                       if (projectGroup) ...[
                         const SizedBox(width: 4),
-                        IconButton(key: ValueKey('home-project-add-'+group.id), tooltip: 'افزودن کار به '+group.title, visualDensity: VisualDensity.compact, onPressed: () => _addToProject(group.id), icon: const Icon(Icons.add_circle_outline, size: 20)),
+                        IconButton(
+                          key: ValueKey('home-project-add-${group.id}'),
+                          tooltip: 'افزودن کار به ${group.title}',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _addToProject(group.id),
+                          icon: const Icon(Icons.add_circle_outline, size: 20),
+                        ),
                       ],
                     ],
                   ),
