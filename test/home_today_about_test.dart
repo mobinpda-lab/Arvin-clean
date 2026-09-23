@@ -76,7 +76,12 @@ void main() {
     await tester.pumpAndSettle();
     await openMore(tester);
     final about = find.text('درباره آروین');
-    await tester.tap(about, warnIfMissed: false);
+    if (about.evaluate().isEmpty) {
+      final scrollable = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(about, 240, scrollable: scrollable);
+    }
+    await tester.ensureVisible(about);
+    await tester.tap(about);
     await tester.pumpAndSettle();
 
     expect(find.byType(AboutDialog), findsOneWidget);
