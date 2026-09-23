@@ -391,8 +391,8 @@ void main() {
 
     final persisted = await repository.loadNote('tag-note');
     expect(persisted?.id, 'tag-note');
-    expect(persisted?.tags, ['مهم', 'مشتری']);
-    expect(find.text('#مهم #مشتری'), findsOneWidget);
+    expect(persisted?.tags, ['مشتری', 'مهم']);
+    expect(find.text('#مشتری #مهم'), findsOneWidget);
     expect(await repository.loadNotes(), hasLength(1));
   });
 
