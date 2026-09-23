@@ -67,13 +67,12 @@ void main() {
     );
 
     final json = service.toPortableJson(source);
-    expect(json, {
-      'themeMode': 'dark',
-      'usePersianDate': true,
-      'swipeRightAction': 'archive',
-      'swipeLeftAction': 'trash',
-      'fontFamily': 'VazirHarf',
-    });
+    expect(json['themeMode'], 'dark');
+    expect(json['usePersianDate'], isTrue);
+    expect(json['swipeRightAction'], 'archive');
+    expect(json['swipeLeftAction'], 'trash');
+    expect(json['fontFamily'], 'VazirHarf');
+    expect(json['calendarIntegration'], isA<Map<String, dynamic>>());
 
     final decoded = service.decodePortableJson(json);
     expect(decoded.themeMode, ThemeMode.dark);
