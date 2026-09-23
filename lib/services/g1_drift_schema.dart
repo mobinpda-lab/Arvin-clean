@@ -6,7 +6,7 @@ import 'package:drift/drift.dart';
 /// generated table classes. It creates only the persistence schema; it does
 /// not change TaskStore, read/write ownership, or the legacy SharedPreferences
 /// migration boundary.
-class G1DriftSchema {
+class G1DriftSchema implements QueryExecutorUser {
   static const int version = 3;
 
   static const List<String> _statements = <String>[
@@ -95,8 +95,10 @@ CREATE TABLE IF NOT EXISTS task_people (
 ''',
   ];
 
+  @override
   int get schemaVersion => version;
 
+  @override
   Future<void> beforeOpen(
     QueryExecutor executor,
     OpeningDetails details,
