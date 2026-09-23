@@ -276,7 +276,8 @@ class _HomePageState extends State<HomePage> {
           final assigned = projects.expand((item) => item.itemIds).toSet();
           scoped = scoped.where((task) => !assigned.contains(task.id));
         } else {
-          final project = projects.where((item) => item.id == projectId).firstOrNull;
+          final matchingProjects = projects.where((item) => item.id == projectId).toList(growable: false);
+          final project = matchingProjects.isEmpty ? null : matchingProjects.first;
           if (project != null) {
             final ids = project.itemIds.toSet();
             scoped = scoped.where((task) => ids.contains(task.id));
@@ -520,7 +521,7 @@ class _HomePageState extends State<HomePage> {
               InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () => setState(() {
-                  if (_collapsedGroups.contains(group.id)) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id);
+                  if (_collapsedGroups.contains(group.id)) { _collapsedGroups.remove(group.id); } else { _collapsedGroups.add(group.id); }
                 }),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -530,7 +531,14 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(width: 4),
                       Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
                       Text(group.items.length.toString(), style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
-              const SizedBox(height: 6),
+                      if (projectGroup) ...[
+                        const SizedBox(width: 4),
+                        IconButton(key: ValueKey('home-project-add-'+group.id), tooltip: 'افزودن کار به '+group.title, visualDensity: VisualDensity.compact, onPressed: () => _addToProject(group.id), icon: const Icon(Icons.add_circle_outline, size: 20)),
+                      ],
+                    ],
+                  ),
+                ),
+              ),              const SizedBox(height: 6),
               if (_collapsedGroups.contains(group.id))
                 const SizedBox.shrink()
               else
