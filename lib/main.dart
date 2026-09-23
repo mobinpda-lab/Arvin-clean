@@ -142,6 +142,7 @@ class _HomePageState extends State<HomePage> {
       const TaskListScopeService();
   final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
+  final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
