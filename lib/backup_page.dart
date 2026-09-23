@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 
@@ -206,6 +207,15 @@ class _BackupPageState extends State<BackupPage> {
     );
   }
 
+  Future<Map<String, dynamic>> _portableBackupSettings() async {
+    final settings = await settingsService.load();
+    final schedule = await BackupSchedule.load();
+    return <String, dynamic>{
+      ...settingsService.toPortableJson(settings),
+      'backupSchedule': schedule.toPortableJson(),
+    };
+  }
+
   Future<void> _backup() async {
     if (directory == null || directory!.isEmpty) {
       _message('ابتدا پوشه پشتیبان را انتخاب کنید');
@@ -221,10 +231,9 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => busy = true);
     try {
       final tasks = await widget.loadTasks();
-      final settings = await settingsService.load();
       final fileName = await manager.backupTasks(
         tasks,
-        settings: settingsService.toPortableJson(settings),
+        settings: await _portableBackupSettings(),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -292,6 +301,13 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (candidate.settings != null) {
         await settingsService.restorePortableJson(candidate.settings!);
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule is Map) {
+          final restoredSchedule = BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+          await restoredSchedule.save();
+        }
       }
       if (mounted) _message(
         candidate.settings == null
