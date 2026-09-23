@@ -68,10 +68,14 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار دسته‌بندی‌شده',
     );
+    await tester.tap(find.byKey(const ValueKey('task-category-new')));
+    await tester.pumpAndSettle();
     await tester.enterText(
-      find.byKey(const ValueKey('task-category-input')),
+      find.byKey(const ValueKey('task-category-new-input')),
       '  مشتری ویژه  ',
     );
+    await tester.tap(find.text('ثبت').last);
+    await tester.pumpAndSettle();
     await save(tester);
 
     expect(result, isNotNull);
