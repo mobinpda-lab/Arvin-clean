@@ -38,6 +38,7 @@ class CalendarPage extends StatefulWidget {
     this.onEditReminder,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
+    this.onCreateTaskFromCalendarEvent,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.prayerStatusFor,
@@ -825,6 +826,7 @@ class _ReminderCard extends StatefulWidget {
     this.onEdit,
     this.onConvertToTask,
     this.onOpenExternal,
+    this.onCreateTaskFromCalendarEvent,
     this.prayerStatus,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
@@ -861,7 +863,8 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onSnooze != null ||
               widget.onEdit != null ||
               widget.onConvertToTask != null ||
-              widget.onOpenExternal != null));
+              widget.onOpenExternal != null ||
+              widget.onCreateTaskFromCalendarEvent != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
