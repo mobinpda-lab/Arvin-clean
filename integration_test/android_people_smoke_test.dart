@@ -106,11 +106,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('علی رضایی اندروید'), findsOneWidget);
-
     persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+    expect(
+      find.byKey(ValueKey('people-row-${persisted.people.single.id}')),
+      findsOneWidget,
+    );
+
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
     await tester.tap(find.byTooltip('حذف ارتباط'));
