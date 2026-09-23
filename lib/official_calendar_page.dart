@@ -26,6 +26,7 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onEditReminder,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
+    this.onCreateTaskFromCalendarEvent,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.settingsService,
@@ -43,6 +44,7 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final bool Function(CalendarReminder reminder)? canMutateReminder;
   final Future<void> Function(DateTime date)? onCreateTaskForDate;
   final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
