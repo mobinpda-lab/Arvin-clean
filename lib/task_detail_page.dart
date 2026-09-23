@@ -313,13 +313,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               history[index],
               previous: index + 1 < history.length ? history[index + 1] : null,
               isLast: index == history.length - 1,
+              isLatest: index == 0,
             ),
         ],
       ),
     );
   }
 
-  Widget _timelineItem(FollowUp followUp, {required FollowUp? previous, required bool isLast}) {
+  Widget _timelineItem(FollowUp followUp, {required FollowUp? previous, required bool isLast, required bool isLatest}) {
     final result = _resultLabel(followUp);
     final color = _waitingService.isWaitingResult(followUp.result) ? _waiting : _brand;
     return Row(
@@ -354,7 +355,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
                 const SizedBox(height: 3),
                 Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
-                if (result != null && followUp.id != historyLatestId) ...[
+                if (result != null && !isLatest) ...[
                   const SizedBox(height: 5),
                   Text(result, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)),
                 ],
@@ -424,7 +425,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
         appBar: AppBar(
-          title: Text(_task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: const Text('جزئیات کار'),
           actions: [
             IconButton(
               key: const ValueKey('task-detail-edit'),
@@ -442,6 +443,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 PopupMenuItem(
                   value: 'report',
                   child: ListTile(
+                    key: ValueKey('task-detail-report'),
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.picture_as_pdf_outlined),
                     title: Text('PDF، چاپ و اشتراک‌گذاری'),
