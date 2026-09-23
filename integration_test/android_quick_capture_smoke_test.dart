@@ -72,7 +72,6 @@ void main() {
       'تماس با علی #مشتری #فوری',
     );
     final submit = find.byKey(const ValueKey('quick-capture-submit'));
-    tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester.ensureVisible(submit);
     await tester.pumpAndSettle();
