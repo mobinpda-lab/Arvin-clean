@@ -74,6 +74,7 @@ class ProjectSelectorField extends StatelessWidget {
             ArvinRadioBox(
               key: const ValueKey('project-selector-new'),
               label: 'گزینه جدید',
+              selected: false,
               newOption: true,
               accent: const Color(0xFF4A4CAB),
               onTap: () async {
