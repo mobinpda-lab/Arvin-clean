@@ -26,6 +26,7 @@ void main() {
         'fontFamily',
         'swipeRightAction',
         'swipeLeftAction',
+        'calendarIntegration',
       },
     );
     expect(
@@ -60,6 +61,19 @@ void main() {
       'usePersianDate': false,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
+      'calendarIntegration': {
+        'enabled': false,
+        'showExternalEvents': false,
+        'syncArvinToDevice': false,
+        'visibleCalendarIds': <String>[],
+        'syncDueDates': true,
+        'syncTaskReminders': true,
+        'syncFollowUps': true,
+        'syncFollowUpReminders': true,
+        'syncRecurrence': false,
+        'autoSync': false,
+        'deleteLinkedEventWithTask': false,
+      },
     });
     expect(text.toLowerCase(), isNot(contains('accesstoken')));
     expect(text.toLowerCase(), isNot(contains('access_token')));
