@@ -497,11 +497,25 @@ class _NotebookPageState extends State<NotebookPage> {
                     key: const ValueKey('notebook-search'),
                     controller: _search,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'جستجو در دفترچه',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF80829C)),
+                      filled: true,
+                      fillColor: const Color(0xFFFDFDFE),
                       isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFF4A4CAB), width: 1.5),
+                      ),
                     ),
                   ),
                 ),
@@ -517,6 +531,15 @@ class _NotebookPageState extends State<NotebookPage> {
                             key: ValueKey('notebook-filter-$category'),
                             label: Text(category),
                             selected: _activeCategory == category,
+                            backgroundColor: const Color(0xFFFDFDFE),
+                            selectedColor: const Color(0xFFE9EAFF),
+                            side: const BorderSide(color: Color(0xFFE5E7ED)),
+                            checkmarkColor: const Color(0xFF4A4CAB),
+                            labelStyle: TextStyle(
+                              color: _activeCategory == category
+                                  ? const Color(0xFF4A4CAB)
+                                  : const Color(0xFF232433),
+                            ),
                             onSelected: (_) =>
                                 setState(() => _activeCategory = category),
                           ),
@@ -528,6 +551,21 @@ class _NotebookPageState extends State<NotebookPage> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: SegmentedButton<_NotebookCreateMode>(
                     key: const ValueKey('notebook-mode-switch'),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.resolveWith(
+                        (states) => states.contains(WidgetState.selected)
+                            ? const Color(0xFFE9EAFF)
+                            : const Color(0xFFFDFDFE),
+                      ),
+                      foregroundColor: WidgetStateProperty.resolveWith(
+                        (states) => states.contains(WidgetState.selected)
+                            ? const Color(0xFF4A4CAB)
+                            : const Color(0xFF232433),
+                      ),
+                      side: const WidgetStatePropertyAll(
+                        BorderSide(color: Color(0xFFE5E7ED)),
+                      ),
+                    ),
                     segments: const [
                       ButtonSegment(
                         value: _NotebookCreateMode.note,
