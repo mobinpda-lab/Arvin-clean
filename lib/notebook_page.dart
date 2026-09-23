@@ -1239,7 +1239,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             key: const ValueKey('notebook-checklist-edit-save'),
             onPressed: () =>
                 Navigator.of(dialogContext).pop(editedLabel.trim()),
-            child: const Text('ذخیره'),
+            child: const Text('ذخیره', style: TextStyle(color: Color(0xFF4A4CAB), fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -1286,7 +1286,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
           key: const ValueKey('notebook-editor-back'),
           onPressed: _handleBack,
           tooltip: 'بازگشت',
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF232433)),
         ),
         title: const SizedBox.shrink(),
         centerTitle: false,
@@ -1295,13 +1295,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             key: const ValueKey('notebook-convert-to-task'),
             onPressed: _convertToTask,
             tooltip: 'تبدیل به کار',
-            icon: const Icon(Icons.task_alt_outlined),
+            icon: const Icon(Icons.task_alt_outlined, color: Color(0xFF4A4CAB)),
           ),
           IconButton(
             key: const ValueKey('notebook-editor-trash'),
             onPressed: _trashNote,
             tooltip: 'سطل زباله',
-            icon: const Icon(Icons.delete_outline),
+            icon: const Icon(Icons.delete_outline, color: Color(0xFF80829C)),
           ),
           if (_editing)
             TextButton(
@@ -1314,7 +1314,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               key: const ValueKey('notebook-edit'),
               onPressed: () => setState(() => _editing = true),
               tooltip: 'ویرایش',
-              icon: const Icon(Icons.edit_outlined),
+              icon: const Icon(Icons.edit_outlined, color: Color(0xFF4A4CAB)),
             ),
         ],
       ),
@@ -1393,7 +1393,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 ),
               ],
             ),
-            const Divider(height: 16, thickness: 0.5),
+            const Divider(height: 16, thickness: 0.5, color: Color(0xFFE5E7ED)),
             const SizedBox(height: 4),
             if (!_checklistMode)
               TextField(
