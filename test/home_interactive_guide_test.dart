@@ -6,7 +6,7 @@ void main() {
 
   testWidgets('first-run guide remains disabled', (tester) async {
     await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('1/3'), findsNothing);
     expect(find.text('جست‌وجو'), findsNothing);
