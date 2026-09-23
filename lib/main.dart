@@ -754,6 +754,16 @@ class _HomePageState extends State<HomePage> {
     return task;
   }
 
+  Future<Task?> _completeFromDetail(Task task) async {
+    task.completed = true;
+    task.updatedAt = DateTime.now();
+    await taskStore.save(List<Task>.of(tasks));
+    final refreshed = await taskStore.load();
+    if (!mounted) return task;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
     await taskStore.addFollowUp(task.id, followUp);
     try {
@@ -777,6 +787,7 @@ class _HomePageState extends State<HomePage> {
           task: task,
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
+          onComplete: _completeFromDetail,
         ),
       ),
     );
