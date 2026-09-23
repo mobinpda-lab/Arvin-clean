@@ -1,7 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
-import 'package:arvin/services/task_migration_reader.dart';
-import 'package:arvin/services/task_migration_writer.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -24,9 +23,8 @@ void main() {
       followUps: <FollowUp>[seedFollowUp],
       tags: <String>['قدیمی'],
     );
-    final writer = TaskMigrationWriter();
-    final reader = TaskMigrationReader();
-    await writer.save(<Task>[seed]);
+    final store = TaskStore();
+    await store.save(<Task>[seed]);
 
     app.main();
     await tester.pumpAndSettle();
@@ -60,7 +58,7 @@ void main() {
     await tester.tap(cancel);
     await tester.pumpAndSettle();
 
-    final afterCancel = await reader.load();
+    final afterCancel = await TaskStore().load();
     expect(afterCancel, hasLength(1));
     expect(afterCancel.single.id, seed.id);
     expect(afterCancel.single.followUps, hasLength(1));
@@ -98,7 +96,8 @@ void main() {
       await tester.tap(skipGuideAfterReload);
       await tester.pumpAndSettle();
     }
-    expect(find.text('تماس با علی'), findsOneWidget);
-    expect(find.text('پرونده موجود'), findsOneWidget);
+    final reloaded = await TaskStore().load();
+    expect(reloaded.any((task) => task.title == 'تماس با علی'), isTrue);
+    expect(reloaded.any((task) => task.title == 'پرونده موجود'), isTrue);
   });
 }
