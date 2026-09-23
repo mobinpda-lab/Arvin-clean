@@ -57,6 +57,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _tagController;
   late final FocusNode _tagFocusNode;
+  late final FocusNode _titleFocusNode;
   DateTime? _followUpDateTime;
   DateTime? _dueDateTime;
   DateTime? _reminderDateTime;
@@ -81,6 +82,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
     _tagController = TextEditingController();
     _tagFocusNode = FocusNode();
+    _titleFocusNode = FocusNode();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _reminderDateTime = task?.reminderDate;
@@ -102,6 +104,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _descriptionController.dispose();
     _tagController.dispose();
     _tagFocusNode.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -567,47 +570,56 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) _requestClose();
       },
-      child: Dialog(
+      child: Dialog.fullscreen(
         key: const ValueKey('arvin-task-editor-dialog'),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-        backgroundColor: Colors.transparent,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 430),
+        backgroundColor: const Color(0xFFF8F8FB),
+        child: SafeArea(
           child: Material(
-            color: const Color(0xFFFDFDFF),
-            elevation: 10,
-            shadowColor: Colors.black26,
-            borderRadius: BorderRadius.circular(28),
-            clipBehavior: Clip.antiAlias,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+            color: const Color(0xFFF8F8FB),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFDFDFE),
+                    border: Border(bottom: BorderSide(color: _border)),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('task-editor-close'),
+                        tooltip: 'بستن',
+                        onPressed: _requestClose,
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                      const Expanded(
+                        child: Center(
+                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        key: const ValueKey('task-editor-header-save'),
+                        onPressed: _save,
+                        icon: const Icon(Icons.check_rounded, size: 18),
+                        label: const Text('ذخیره'),
+                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          editing ? 'ویرایش کار' : 'کار جدید',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF242438),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'بستن',
-                        onPressed: _requestClose,
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 2),
                   TextField(
                     key: const ValueKey('task-editor-title'),
                     controller: _titleController,
+                    focusNode: _titleFocusNode,
+                    autofocus: !editing,
                     style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
                     cursorColor: _brand,
                     textInputAction: TextInputAction.done,
@@ -636,10 +648,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     knownCategories: widget.knownCategories,
                     onChanged: (value) => setState(() => _category = value),
                   ),
-                  if (widget.projects.isNotEmpty ||
-                      _selectedProjectId != null) ...[
-                    const SizedBox(height: 16),
-                    ProjectSelectorField(
+                  const SizedBox(height: 16),
+                  ProjectSelectorField(
                       projects: widget.projects,
                       selectedProjectId: _selectedProjectId,
                       onChanged: (value) =>
@@ -746,7 +756,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   const SizedBox(height: 14),
                   ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
-                    initiallyExpanded: hasExistingDetails,
+                    initiallyExpanded: true,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                     childrenPadding: const EdgeInsets.only(bottom: 8),
                     title: const Text(
@@ -949,47 +959,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: FilledButton(
-                          key: const ValueKey('task-editor-save'),
-                          onPressed: _save,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _brand,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(52),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(17),
-                            ),
-                          ),
-                          child: const Text(
-                            'ذخیره',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextButton(
-                          key: const ValueKey('task-editor-cancel'),
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            foregroundColor: _brand,
-                          ),
-                          child: const Text('لغو'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 8),
                 ],
-              ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
