@@ -44,7 +44,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 }
 
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
-  late final List<Task> _tasks;
+  late List<Task> _tasks;
 
   FollowUpWriteCoordinator get _followUpWriter => FollowUpWriteCoordinator(
     repository: const FollowUpRepository(),
@@ -116,6 +116,14 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   void initState() {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
+  }
+
+  @override
+  void didUpdateWidget(covariant CanonicalCalendarLauncher oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.tasks, widget.tasks)) {
+      _tasks = List<Task>.of(widget.tasks);
+    }
   }
 
   void _replaceFollowUp(FollowUpCalendarTarget target, FollowUp updated) {
