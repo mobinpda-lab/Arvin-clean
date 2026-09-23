@@ -7,7 +7,7 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
 
     expect(source, contains('backupManager.backupCanonicalTasks('));
-    expect(source, contains('settings: appSettingsService.toPortableJson(settings)'));
+    expect(source, contains('settings: _portableBackupSettings()'));
     expect(source, contains('backupManager.restoreCanonicalBackup()'));
     expect(source, contains('appSettingsService.decodePortableJson(candidate.settings!)'));
     expect(source, contains('appSettingsService.saveSettings(restoredSettings)'));
