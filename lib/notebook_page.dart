@@ -941,6 +941,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             Text('انتخاب پروژه', style: Theme.of(sheetContext).textTheme.titleMedium),
             const SizedBox(height: 10),
             ArvinRadioBox(
+              key: const ValueKey('notebook-project-clear'),
               label: 'بدون پروژه',
               selected: _projectId == null,
               icon: Icons.work_off_outlined,
