@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_radio_box.dart';
+
 /// Reusable editor field for Arvin's canonical Task.category.
 ///
 /// Category stays independent from Tags and Projects. This widget owns no
@@ -47,11 +49,6 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
     super.dispose();
   }
 
-  void _apply(String raw) {
-    final value = raw.trim();
-    widget.onChanged(value.isEmpty ? null : value);
-  }
-
   void _clear() {
     _controller.clear();
     widget.onChanged(null);
@@ -69,63 +66,59 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          key: const ValueKey('task-category-input'),
-          controller: _controller,
-          textInputAction: TextInputAction.done,
-          onSubmitted: _apply,
-          decoration: InputDecoration(
-            labelText: widget.label,
-            hintText: 'مثلاً اداری، شخصی، مشتری',
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_controller.text.trim().isNotEmpty)
-                  IconButton(
-                    key: const ValueKey('task-category-clear'),
-                    tooltip: 'حذف دسته‌بندی',
-                    onPressed: () {
-                      setState(_clear);
-                    },
-                    icon: const Icon(Icons.close),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            ArvinRadioBox(
+              key: const ValueKey('task-category-none'),
+              label: 'بدون دسته',
+              selected: widget.value == null || widget.value!.trim().isEmpty,
+              icon: Icons.remove_circle_outline,
+              onTap: _clear,
+            ),
+            ...categories.map(
+              (category) => ArvinRadioBox(
+                key: ValueKey('task-category-option-$category'),
+                label: category,
+                selected: widget.value?.trim() == category,
+                icon: Icons.folder_outlined,
+                onTap: () {
+                  setState(() => _controller.text = category);
+                  widget.onChanged(category);
+                },
+              ),
+            ),
+            ArvinRadioBox(
+              key: const ValueKey('task-category-new'),
+              label: 'گزینه جدید',
+              selected: false,
+              newOption: true,
+              onTap: () async {
+                var value = '';
+                final result = await showDialog<String>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('دسته جدید'),
+                    content: TextField(
+                      key: const ValueKey('task-category-new-input'),
+                      autofocus: true,
+                      onChanged: (next) => value = next,
+                      decoration: const InputDecoration(hintText: 'نام دسته را وارد کنید'),
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
+                      FilledButton(onPressed: () => Navigator.pop(dialogContext, value.trim()), child: const Text('ثبت')),
+                    ],
                   ),
-                IconButton(
-                  key: const ValueKey('task-category-apply'),
-                  tooltip: 'ثبت دسته‌بندی',
-                  onPressed: () => _apply(_controller.text),
-                  icon: const Icon(Icons.check),
-                ),
-              ],
+                );
+                if (result == null || result.isEmpty) return;
+                setState(() => _controller.text = result);
+                widget.onChanged(result);
+              },
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          onChanged: (raw) {
-            setState(() {});
-            _apply(raw);
-          },
+          ],
         ),
-        if (categories.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: categories
-                .map(
-                  (category) => ActionChip(
-                    key: ValueKey('task-category-option-$category'),
-                    label: Text(category),
-                    avatar: const Icon(Icons.folder_outlined, size: 17),
-                    onPressed: () {
-                      setState(() => _controller.text = category);
-                      widget.onChanged(category);
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-        ],
       ],
     );
   }

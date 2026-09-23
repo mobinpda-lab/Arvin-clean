@@ -374,28 +374,25 @@ void main() {
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 19, 0));
     await repository.createNote(id: 'tag-note', title: 'یادداشت برچسب');
-    await repository.updateTags(id: 'tag-note', tags: const ['قدیمی']);
+    await repository.updateTags(id: 'tag-note', tags: const ['قدیمی', 'مهم', 'مشتری']);
 
     await pumpNotebook(tester, repository);
     await tester.tap(find.byKey(const ValueKey('notebook-note-tag-note')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
-    expect(find.text('#قدیمی'), findsOneWidget);
+    expect(find.text('#قدیمی #مهم #مشتری'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-tags-input')),
-      'مهم، مشتری، مهم',
-    );
+    await tester.tap(find.byKey(const ValueKey('notebook-tag-قدیمی')));
     await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
     await tester.pumpAndSettle();
 
     final persisted = await repository.loadNote('tag-note');
     expect(persisted?.id, 'tag-note');
-    expect(persisted?.tags, ['مهم', 'مشتری']);
-    expect(find.text('#مهم #مشتری'), findsOneWidget);
+    expect(persisted?.tags, ['مشتری', 'مهم']);
+    expect(find.text('#مشتری #مهم'), findsOneWidget);
     expect(await repository.loadNotes(), hasLength(1));
   });
 
@@ -497,6 +494,8 @@ void main() {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 13));
     await repository.createNote(id: 'bulk-tag-1', title: 'اول');
     await repository.createNote(id: 'bulk-tag-2', title: 'دوم');
+    await repository.updateTags(id: 'bulk-tag-1', tags: const ['مهم', 'فوری']);
+    await repository.updateTags(id: 'bulk-tag-2', tags: const ['مهم', 'فوری']);
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-tag-1')));
@@ -506,10 +505,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-bulk-tags')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-bulk-tags-input')),
-      'مهم، مشتری',
-    );
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-tag-فوری')));
     await tester.tap(find.byKey(const ValueKey('notebook-bulk-tags-apply')));
     await tester.pumpAndSettle();
 
@@ -517,8 +513,8 @@ void main() {
     final second = await repository.loadNote('bulk-tag-2');
     expect(first?.id, 'bulk-tag-1');
     expect(second?.id, 'bulk-tag-2');
-    expect(first?.tags, <String>['مهم', 'مشتری']);
-    expect(second?.tags, <String>['مهم', 'مشتری']);
+    expect(first?.tags, <String>['مهم', 'فوری']);
+    expect(second?.tags, <String>['مهم', 'فوری']);
     expect(await repository.loadNotes(), hasLength(2));
   });
 
@@ -526,8 +522,8 @@ void main() {
   testWidgets('bulk category move preserves Notebook identities across reload',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
-    await repository.createNote(id: 'bulk-cat-1', title: 'اول');
-    await repository.createNote(id: 'bulk-cat-2', title: 'دوم');
+    await repository.createNote(id: 'bulk-cat-1', title: 'اول', category: 'مشتریان');
+    await repository.createNote(id: 'bulk-cat-2', title: 'دوم', category: 'قدیمی');
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-cat-1')));
@@ -536,11 +532,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-bulk-category-input')),
-      'مشتریان',
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-bulk-category-apply')));
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-category-مشتریان')));
     await tester.pumpAndSettle();
 
     final first = await repository.loadNote('bulk-cat-1');

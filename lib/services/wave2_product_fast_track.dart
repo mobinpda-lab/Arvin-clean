@@ -1,4 +1,6 @@
 import '../models/task.dart';
+import '../models/goal_project.dart';
+import 'project_store.dart';
 import 'home_task_editor_context_service.dart';
 import 'task_project_assignment_service.dart';
 
@@ -16,6 +18,19 @@ class Wave2ProductFastTrack {
 
   final HomeTaskEditorContextService contextService;
   final TaskProjectAssignmentService assignmentService;
+
+  Future<String> createProject(String title) async {
+    final cleanTitle = title.trim();
+    if (cleanTitle.isEmpty) throw ArgumentError.value(title, 'title');
+    final store = ProjectStore();
+    final projects = await store.load();
+    final project = ProjectPlan(
+      id: 'project_${DateTime.now().microsecondsSinceEpoch}',
+      title: cleanTitle,
+    );
+    await store.save([...projects, project]);
+    return project.id;
+  }
 
   Future<HomeTaskEditorContext> prepareEditor({
     required Iterable<Task> tasks,

@@ -51,6 +51,32 @@ class BackupSchedule {
     return next;
   }
 
+  Map<String, dynamic> toPortableJson() => <String, dynamic>{
+        'enabled': enabled,
+        'hour': hour,
+        'minute': minute,
+      };
+
+  static BackupSchedule decodePortableJson(Map<String, dynamic> json) {
+    final enabled = json['enabled'];
+    final hour = json['hour'];
+    final minute = json['minute'];
+    if (enabled != null && enabled is! bool) {
+      throw const FormatException('Arvin backup schedule enabled setting is invalid');
+    }
+    if (hour != null && hour is! int) {
+      throw const FormatException('Arvin backup schedule hour setting is invalid');
+    }
+    if (minute != null && minute is! int) {
+      throw const FormatException('Arvin backup schedule minute setting is invalid');
+    }
+    return BackupSchedule(
+      enabled: enabled as bool? ?? false,
+      hour: _validHour(hour as int? ?? defaultHour),
+      minute: _validMinute(minute as int? ?? defaultMinute),
+    );
+  }
+
   Future<void> save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(enabledKey, enabled);

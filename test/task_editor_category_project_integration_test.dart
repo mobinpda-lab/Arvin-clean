@@ -52,7 +52,7 @@ void main() {
   }
 
   Future<void> save(WidgetTester tester) async {
-    final finder = find.byKey(const ValueKey('task-editor-save'));
+    final finder = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(finder);
     await tester.pumpAndSettle();
     await tester.tap(finder);
@@ -68,10 +68,14 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار دسته‌بندی‌شده',
     );
+    await tester.tap(find.byKey(const ValueKey('task-category-new')));
+    await tester.pumpAndSettle();
     await tester.enterText(
-      find.byKey(const ValueKey('task-category-input')),
+      find.byKey(const ValueKey('task-category-new-input')),
       '  مشتری ویژه  ',
     );
+    await tester.tap(find.text('ثبت').last);
+    await tester.pumpAndSettle();
     await save(tester);
 
     expect(result, isNotNull);
@@ -94,7 +98,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-category-clear')));
+    await tester.tap(find.byKey(const ValueKey('task-category-none')));
     await tester.pump();
     await save(tester);
 

@@ -74,7 +74,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
 
-    final save = find.byKey(const ValueKey('task-editor-save'));
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.tap(save);
     await tester.pumpAndSettle();
@@ -107,7 +107,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(priority, findsOneWidget);
 
-    final save = find.byKey(const ValueKey('task-editor-save'));
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.pumpAndSettle();
     expect(save, findsOneWidget);
@@ -131,7 +131,7 @@ void main() {
     expect(find.text('پیش‌نویس حفظ شود'), findsOneWidget);
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
 
-    final save = find.byKey(const ValueKey('task-editor-save'));
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.tap(save);
     await tester.pumpAndSettle();

@@ -21,24 +21,14 @@ void main() {
       ),
     );
 
-    expect(find.text('دسته‌بندی'), findsOneWidget);
     expect(find.text('اداری'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
-    expect(find.byType(InputChip), findsNothing);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('task-category-input')),
-      '  مشتری  ',
-    );
-    await tester.tap(find.byKey(const ValueKey('task-category-apply')));
-    await tester.pump();
-    expect(value, 'مشتری');
 
     await tester.tap(find.byKey(const ValueKey('task-category-option-اداری')));
     await tester.pump();
     expect(value, 'اداری');
 
-    await tester.tap(find.byKey(const ValueKey('task-category-clear')));
+    await tester.tap(find.byKey(const ValueKey('task-category-none')));
     await tester.pump();
     expect(value, isNull);
   });

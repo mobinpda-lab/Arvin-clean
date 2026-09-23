@@ -77,12 +77,14 @@ void main() {
     });
 
     expect(restored.themeMode, ThemeMode.dark);
-    expect(restored.calendarIntegration.enabled, isTrue);
-    expect(restored.calendarIntegration.showExternalEvents, isTrue);
-    expect(restored.calendarIntegration.targetCalendarId, 'device-calendar-7');
-    expect(
-      service.toPortableJson(restored).containsKey('calendarIntegration'),
-      isFalse,
-    );
+    expect(restored.calendarIntegration.enabled, isFalse);
+    expect(restored.calendarIntegration.showExternalEvents, isFalse);
+    expect(restored.calendarIntegration.targetCalendarId, isNull);
+    final portable = service.toPortableJson(restored);
+    expect(portable['calendarIntegration'], isA<Map<String, dynamic>>());
+    final portableCalendar = portable['calendarIntegration'] as Map<String, dynamic>;
+    expect(portableCalendar['enabled'], isFalse);
+    expect(portableCalendar['showExternalEvents'], isFalse);
+    expect(portableCalendar['targetCalendarId'], isNull);
   });
 }

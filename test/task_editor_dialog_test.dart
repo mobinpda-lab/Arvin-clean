@@ -65,7 +65,7 @@ void main() {
     expect(find.text('مشتری'), findsOneWidget);
 
     final save = tester.widget<FilledButton>(
-      find.byKey(const ValueKey('task-editor-save')),
+      find.byKey(const ValueKey('task-editor-header-save')),
     );
     expect(save.style?.backgroundColor?.resolve({}), const Color(0xFF4A4CAB));
   });
@@ -86,7 +86,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -110,6 +110,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-date')));
     await tester.tap(find.byKey(const ValueKey('task-editor-date')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
@@ -122,7 +123,7 @@ void main() {
     expect(find.text('۱۰:۳۰'), findsOneWidget);
     expect(find.text('۱۴۰۵/۰۶/۰۶'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -142,7 +143,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار بدون پیگیری',
     );
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -155,6 +156,7 @@ void main() {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
 
@@ -165,7 +167,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار پیگیری‌دار جدید',
     );
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -204,11 +206,12 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
     expect(find.text('سوابق پیگیری قبلی حفظ می‌شوند.'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -254,7 +257,9 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'نباید ذخیره شود',
     );
-    await tester.tap(find.byKey(const ValueKey('task-editor-cancel')));
+    await tester.tap(find.byTooltip('بستن'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-exit-discard')));
     await tester.pumpAndSettle();
 
     expect(result, isNull);

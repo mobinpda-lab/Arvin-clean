@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_schedule.dart';
+import 'calendar_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
 import 'home/grouping/home_group_mode.dart';
 import 'home/grouping/home_grouping_service.dart';
 import 'notebook_page.dart';
+import 'projects_launcher.dart';
+import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
-import 'services/interactive_guide_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
@@ -31,20 +34,18 @@ import 'task_detail_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
+import 'task_taxonomy_management_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
-import 'widgets/home_interactive_guide.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-void main() => runApp(const ArvinApp(enableFirstRunGuide: true));
+void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key, this.enableFirstRunGuide = false});
-
-  final bool enableFirstRunGuide;
+  const ArvinApp({super.key});
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -98,7 +99,6 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
-          enableFirstRunGuide: widget.enableFirstRunGuide,
         ),
       ),
     );
@@ -133,8 +133,6 @@ class _HomePageState extends State<HomePage> {
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
-  final InteractiveGuideService interactiveGuideService =
-      InteractiveGuideService();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
   final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
@@ -142,8 +140,7 @@ class _HomePageState extends State<HomePage> {
       const TaskListScopeService();
   final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
-  final PersianDateFormatter persianDateFormatter =
-      const PersianDateFormatter();
+  final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
@@ -152,14 +149,6 @@ class _HomePageState extends State<HomePage> {
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
 
-  final GlobalKey _searchGuideKey = GlobalKey(debugLabel: 'home-guide-search');
-  final GlobalKey _filtersGuideKey = GlobalKey(
-    debugLabel: 'home-guide-filters',
-  );
-  final GlobalKey _newTaskGuideKey = GlobalKey(
-    debugLabel: 'home-guide-new-task',
-  );
-
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
   HomeGroupMode _homeGroupMode = HomeGroupMode.time;
@@ -167,15 +156,16 @@ class _HomePageState extends State<HomePage> {
   bool loading = true;
   Object? loadFailure;
   bool selectionMode = false;
-  bool _firstRunGuideChecked = false;
-  bool _interactiveGuideRunning = false;
   String query = '';
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
   String? _categoryFilter;
-  TaskListSort _listSort = TaskListSort.date;
-  bool _sortDescending = false;
+  String? _projectFilter;
+  String? _tagFilter;
+  final Set<String> _collapsedGroups = <String>{};
+  final TaskListSort _listSort = TaskListSort.date;
+  final bool _sortDescending = false;
 
   @override
   void initState() {
@@ -231,54 +221,6 @@ class _HomePageState extends State<HomePage> {
         loading = false;
       });
     }
-    await _maybeShowFirstRunGuide();
-  }
-
-  Future<void> _maybeShowFirstRunGuide() async {
-    if (!widget.enableFirstRunGuide || _firstRunGuideChecked) return;
-    _firstRunGuideChecked = true;
-    final shouldShow = await interactiveGuideService.shouldShow();
-    if (!mounted || !shouldShow) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _startInteractiveGuide();
-    });
-  }
-
-  Future<void> _startInteractiveGuide() async {
-    if (!mounted || loading || _interactiveGuideRunning) return;
-    _interactiveGuideRunning = true;
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      _interactiveGuideRunning = false;
-      return;
-    }
-
-    final finished = await showHomeInteractiveGuide(
-      context: context,
-      targets: [
-        HomeGuideTarget(
-          key: _searchGuideKey,
-          title: 'جست‌وجو',
-          description: 'بخشی از عنوان، توضیح یا برچسب را بنویسید تا آروین کار موردنظر را سریع پیدا کند.',
-          icon: Icons.search,
-        ),
-        HomeGuideTarget(
-          key: _filtersGuideKey,
-          title: 'فیلتر کارها',
-          description: 'نمای کارها را بر اساس «زمان»، «پروژه‌ها»، «دسته‌ها» یا «برچسب‌ها» انتخاب کنید؛ فیلترهای تکمیلی از «بیشتر» در دسترس‌اند.',
-          icon: Icons.filter_alt_outlined,
-        ),
-        HomeGuideTarget(
-          key: _newTaskGuideKey,
-          title: 'ساخت کار جدید',
-          description: 'برای ثبت یک کار کامل با عنوان، توضیحات، برچسب، تاریخ و ساعت پیگیری از این دکمه استفاده کنید.',
-          icon: Icons.add_circle_outline,
-        ),
-      ],
-    );
-
-    if (finished) await interactiveGuideService.markSeen();
-    _interactiveGuideRunning = false;
   }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
@@ -304,10 +246,17 @@ class _HomePageState extends State<HomePage> {
     return taskStore.save(List<Task>.of(tasks));
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
+  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
+
+  String? _projectTitleForTask(Task task) {
+    for (final project in projects) {
+      if (project.itemIds.contains(task.id)) return project.title.trim();
+    }
+    return null;
+  }
 
   bool _overdue(Task task) {
-    final date = _homeFollowUpDate(task);
+    final date = task.dueDate;
     return date != null && !task.completed && date.isBefore(DateTime.now());
   }
 
@@ -331,6 +280,22 @@ class _HomePageState extends State<HomePage> {
       if (category != null) {
         scoped = scoped.where((task) => task.category?.trim() == category);
       }
+      final projectId = _projectFilter;
+      if (projectId != null) {
+        if (projectId == '__no_project__') {
+          final assigned = projects.expand((item) => item.itemIds).toSet();
+          scoped = scoped.where((task) => !assigned.contains(task.id));
+        } else {
+          final matchingProjects = projects.where((item) => item.id == projectId).toList(growable: false);
+          final project = matchingProjects.isEmpty ? null : matchingProjects.first;
+          if (project != null) {
+            final ids = project.itemIds.toSet();
+            scoped = scoped.where((task) => ids.contains(task.id));
+          }
+        }
+      }
+      final tag = _tagFilter;
+      if (tag != null) scoped = scoped.where((task) => task.tags.map((value) => value.trim()).contains(tag));
     }
 
     final result = scoped
@@ -373,132 +338,67 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _homeModeLabel(HomeGroupMode mode) => switch (mode) {
-    HomeGroupMode.time => 'زمان',
-    HomeGroupMode.projects => 'پروژه‌ها',
-    HomeGroupMode.categories => 'دسته‌ها',
-    HomeGroupMode.labels => 'برچسب‌ها',
-  };
-
-  int get _homeAllCount =>
-      tasks.where((task) => !task.archived && !task.trashed).length;
-
-  int get _homeActiveCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && !task.completed,
-      )
-      .length;
-
-  int get _homeCompletedCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && task.completed,
-      )
-      .length;
-
-  int get _homeOverdueCount {
-    final now = DateTime.now();
-    return tasks.where((task) {
-      final due = _homeFollowUpDate(task);
-      return !task.archived &&
-          !task.trashed &&
-          !task.completed &&
-          due != null &&
-          due.isBefore(now);
-    }).length;
-  }
-
-  bool _homeSummarySelected(String filterValue) {
-    if (filterValue == 'عقب‌افتاده') {
-      return _dueScope == TaskDueScope.overdue &&
-          filter == 'کل' &&
-          _listScope == TaskListScope.all &&
-          _categoryFilter == null;
-    }
-    return _dueScope == null &&
-        _listScope == TaskListScope.all &&
-        _categoryFilter == null &&
-        filter == filterValue;
-  }
-
-  Widget _homeSummaryCard({
-    required String keyName,
+  Widget _homeGroupButton({
+    required HomeGroupMode mode,
     required String label,
-    required int count,
     required IconData icon,
-    required String filterValue,
     required Color accent,
     required Color softAccent,
   }) {
-    final selected = _homeSummarySelected(filterValue);
-    final compactHome = MediaQuery.sizeOf(context).height < 700;
+    final selectedMode = _homeGroupMode == mode;
     return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: '$label، $count مورد',
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            key: ValueKey('home-summary-$keyName'),
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _selectHomeStat(filterValue),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              constraints: BoxConstraints(minHeight: compactHome ? 72 : 92),
-              padding: EdgeInsets.symmetric(horizontal: 5, vertical: compactHome ? 6 : 9),
-              decoration: BoxDecoration(
-                color: selected ? softAccent : const Color(0xFFFDFDFE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? accent : const Color(0xFFE5E7ED),
-                  width: selected ? 1.4 : 1,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0D232433),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 21, color: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    _persianNumber(count),
-                    key: ValueKey('home-summary-count-$keyName'),
-                    style: const TextStyle(
-                      color: Color(0xFF232433),
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: selected ? accent : const Color(0xFF606273),
-                      fontSize: 11,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      child: ArvinRadioBox(
+        key: ValueKey('home-group-${mode.name}'),
+        label: label,
+        icon: icon,
+        accent: accent,
+        selected: selectedMode,
+        onTap: () => _selectHomeGroupMode(mode),
       ),
     );
   }
 
-  String _persianNumber(int value) =>
-      persianDateFormatter.toPersianDigits('$value');
+  Widget _homeGroupSelector() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          _homeGroupButton(
+            mode: HomeGroupMode.time,
+            label: 'زمان',
+            icon: Icons.calendar_month_rounded,
+            accent: const Color(0xFFE39A4A),
+            softAccent: const Color(0xFFFFF0E3),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.projects,
+            label: 'پروژه‌ها',
+            icon: Icons.folder_rounded,
+            accent: const Color(0xFF4B8FE8),
+            softAccent: const Color(0xFFEAF3FF),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.categories,
+            label: 'دسته‌ها',
+            icon: Icons.grid_view_rounded,
+            accent: const Color(0xFF8C68D9),
+            softAccent: const Color(0xFFF2ECFF),
+          ),
+          const SizedBox(width: 7),
+          _homeGroupButton(
+            mode: HomeGroupMode.labels,
+            label: 'برچسب‌ها',
+            icon: Icons.sell_rounded,
+            accent: const Color(0xFF38A89B),
+            softAccent: const Color(0xFFE8F8F5),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
@@ -507,11 +407,47 @@ class _HomePageState extends State<HomePage> {
       _listScope = TaskListScope.all;
       _dueScope = null;
       _categoryFilter = null;
+      _projectFilter = null;
+      _tagFilter = null;
+      _collapsedGroups.clear();
       selected.clear();
       selectionMode = false;
     });
   }
 
+  List<String> get _homeTags => tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+
+  Widget _homeFilterBar() {
+    final chips = <Widget>[];
+    void addChip(String label, bool selected, VoidCallback onSelected, {IconData? icon, Color accent = const Color(0xFF4A4CAB), bool newOption = false}) => chips.add(ArvinRadioBox(label: label, selected: selected, onTap: onSelected, icon: icon, accent: accent, newOption: newOption));
+    if (_homeGroupMode == HomeGroupMode.time) {
+      addChip('همه', _dueScope == null, () => setState(() => _dueScope = null));
+      addChip('عقب‌افتاده', _dueScope == TaskDueScope.overdue, () => setState(() => _dueScope = TaskDueScope.overdue));
+      addChip('امروز', _dueScope == TaskDueScope.today, () => setState(() => _dueScope = TaskDueScope.today));
+      addChip('آینده', _dueScope == TaskDueScope.future, () => setState(() => _dueScope = TaskDueScope.future));
+      addChip('بدون موعد', _dueScope == TaskDueScope.undated, () => setState(() => _dueScope = TaskDueScope.undated));
+    } else if (_homeGroupMode == HomeGroupMode.projects) {
+      addChip('همه پروژه‌ها', _projectFilter == null, () => setState(() => _projectFilter = null), icon: Icons.folder_outlined, accent: const Color(0xFF4B8FE8));
+      for (final project in projects.where((item) => !item.isArchived)) {
+        addChip(project.title, _projectFilter == project.id, () => setState(() => _projectFilter = project.id), icon: Icons.folder_outlined, accent: Color(project.colorValue));
+      }
+      addChip('بدون پروژه', _projectFilter == '__no_project__', () => setState(() => _projectFilter = '__no_project__'), icon: Icons.folder_off_outlined, accent: const Color(0xFF8A8B9C));
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProjectsLauncher())), newOption: true));
+    } else if (_homeGroupMode == HomeGroupMode.categories) {
+      addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null), icon: Icons.grid_view_rounded, accent: const Color(0xFF8C68D9));
+      for (final category in _homeCategories) {
+        addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
+      }
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
+    } else {
+      addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      for (final tag in _homeTags) {
+        addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      }
+      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF38A89B)));
+    }
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Wrap(textDirection: TextDirection.rtl, spacing: 6, runSpacing: 6, children: chips));
+  }
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -524,7 +460,8 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: projectId,
         onProjectChanged: (value) => selectedProjectId = value,
-        knownCategories: editorContext.knownCategories,
+                knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (task == null) return;
@@ -563,38 +500,36 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      group.title,
-                      style: const TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => setState(() {
+                  if (_collapsedGroups.contains(group.id)) { _collapsedGroups.remove(group.id); } else { _collapsedGroups.add(group.id); }
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(_collapsedGroups.contains(group.id) ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 20, color: const Color(0xFF80829C)),
+                      const SizedBox(width: 4),
+                      Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
+                      Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
+                      if (projectGroup) ...[
+                        const SizedBox(width: 4),
+                        IconButton(
+                          key: ValueKey('home-project-add-${group.id}'),
+                          tooltip: 'افزودن کار به ${group.title}',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _addToProject(group.id),
+                          icon: const Icon(Icons.add_circle_outline, size: 20),
+                        ),
+                      ],
+                    ],
                   ),
-                  Text(
-                    group.items.length.toString(),
-                    style: const TextStyle(
-                      color: Color(0xFF80829C),
-                      fontSize: 12,
-                    ),
-                  ),
-                  if (projectGroup) ...[
-                    const SizedBox(width: 4),
-                    IconButton(
-                      key: ValueKey('home-project-add-${group.id}'),
-                      tooltip: 'افزودن کار به ${group.title}',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _addToProject(group.id),
-                      icon: const Icon(Icons.add_circle_outline, size: 20),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 6),
+                ),
+              ),              const SizedBox(height: 6),
+              if (_collapsedGroups.contains(group.id))
+                const SizedBox.shrink()
+              else
               if (group.items.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -641,13 +576,6 @@ class _HomePageState extends State<HomePage> {
     return 'کاری برای نمایش وجود ندارد';
   }
 
-  String _sortLabel(TaskListSort sort) => switch (sort) {
-    TaskListSort.date => 'تاریخ کار',
-    TaskListSort.latest => 'آخرین تغییر',
-    TaskListSort.lastFollowUp => 'آخرین پیگیری',
-    TaskListSort.title => 'عنوان',
-  };
-
   String _date(DateTime date) => persianDateFormatter.format(
     date,
     usePersianDate: true,
@@ -656,6 +584,38 @@ class _HomePageState extends State<HomePage> {
   String _time(DateTime date) => persianDateFormatter.toPersianDigits(
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
   );
+
+  Future<Task?> _addFromCalendarEvent(CalendarReminder reminder) async {
+    final editorContext = await wave2ProductFastTrack.prepareEditor(
+      tasks: tasks,
+    );
+    if (!mounted) return null;
+    String? selectedProjectId = editorContext.selectedProjectId;
+    final rawTitle = reminder.title.split(' • ').first.trim();
+    final task = await showDialog<Task>(
+      context: context,
+      builder: (_) => ArvinTaskEditorDialog(
+        initialTitle: rawTitle,
+        initialDescription: reminder.description,
+        initialDueDate: reminder.date,
+        projects: editorContext.projects,
+        selectedProjectId: editorContext.selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
+      ),
+    );
+    if (task == null) return null;
+    setState(() => tasks.add(task));
+    await _save();
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: task.id,
+      projectId: selectedProjectId,
+    );
+    await _load();
+    return task;
+  }
 
   Future<Task?> _addForDate(DateTime date) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
@@ -670,7 +630,9 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (task == null) return null;
@@ -698,24 +660,34 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    await showDialog<void>(
+    final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
+    if (!mounted) return;
+    String? selectedProjectId = editorContext.selectedProjectId;
+
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      showDragHandle: false,
+      useSafeArea: true,
       builder: (_) => QuickCaptureDialog(
+        projects: editorContext.projects,
+        initialProjectId: selectedProjectId,
+        onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
-          final editorContext = await wave2ProductFastTrack.prepareEditor(
+          final editedContext = await wave2ProductFastTrack.prepareEditor(
             tasks: tasks,
             task: draft,
           );
           if (!mounted) return false;
-          String? selectedProjectId = editorContext.selectedProjectId;
           final edited = await showDialog<Task>(
             context: context,
             builder: (_) => ArvinTaskEditorDialog(
               task: draft,
-              projects: editorContext.projects,
-              selectedProjectId: editorContext.selectedProjectId,
+              projects: editedContext.projects,
+              selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
-              knownCategories: editorContext.knownCategories,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+              knownCategories: editedContext.knownCategories,
             ),
           );
           if (edited == null) return false;
@@ -745,6 +717,10 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(captured);
           });
+          await wave2ProductFastTrack.persistProjectSelection(
+            taskId: captured.id,
+            projectId: selectedProjectId,
+          );
 
           final refreshed = await taskStore.load();
           if (!mounted) return;
@@ -756,9 +732,7 @@ class _HomePageState extends State<HomePage> {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Text('«${captured.title}» با ثبت سریع اضافه شد'),
-              ),
+              SnackBar(content: Text('«${captured.title}» ثبت شد')),
             );
         },
       ),
@@ -779,7 +753,9 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (edited == null) return;
@@ -794,6 +770,16 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     return task;
+  }
+
+  Future<Task?> _completeFromDetail(Task task) async {
+    task.completed = true;
+    task.updatedAt = DateTime.now();
+    await taskStore.save(List<Task>.of(tasks));
+    final refreshed = await taskStore.load();
+    if (!mounted) return task;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
   }
 
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
@@ -819,6 +805,7 @@ class _HomePageState extends State<HomePage> {
           task: task,
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
+          onComplete: _completeFromDetail,
         ),
       ),
     );
@@ -1053,14 +1040,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setListSort(TaskListSort sort) {
-    setState(() => _listSort = sort);
-  }
-
-  void _toggleSortDirection() {
-    setState(() => _sortDescending = !_sortDescending);
-  }
-
   Future<bool> _confirmDeleteForever(Task task) async {
     final approved = await showDialog<bool>(
       context: context,
@@ -1116,6 +1095,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<Map<String, dynamic>> _portableBackupSettings() async {
+    final settings = await appSettingsService.load();
+    final schedule = await BackupSchedule.load();
+    return <String, dynamic>{
+      ...appSettingsService.toPortableJson(settings),
+      'backupSchedule': schedule.toPortableJson(),
+    };
+  }
+
   Future<void> _backupToFolder() async {
     try {
       var directory = await backupManager.getDirectory();
@@ -1133,10 +1121,9 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      final settings = await appSettingsService.load();
       final fileName = await backupManager.backupCanonicalTasks(
         _searchSource,
-        settings: appSettingsService.toPortableJson(settings),
+        settings: await _portableBackupSettings(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1166,10 +1153,9 @@ class _HomePageState extends State<HomePage> {
       final restoredSettings = candidate.settings == null
           ? null
           : appSettingsService.decodePortableJson(candidate.settings!);
-      final currentSettings = await appSettingsService.load();
       final emergencyBackup = await backupManager.backupCanonicalTasks(
         _searchSource,
-        settings: appSettingsService.toPortableJson(currentSettings),
+        settings: await _portableBackupSettings(),
       );
 
       if (!mounted) return;
@@ -1198,8 +1184,16 @@ class _HomePageState extends State<HomePage> {
 
       await taskStore.save(List<Task>.of(list));
       if (restoredSettings != null) {
-        await appSettingsService.saveSettings(restoredSettings);
-        if (mounted) widget.onSettingsChanged?.call(restoredSettings);
+        await appSettingsService.restorePortableJson(candidate.settings!);
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule is Map) {
+          final restoredSchedule = BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+          await restoredSchedule.save();
+        }
+        final appliedSettings = await appSettingsService.load();
+        if (mounted) widget.onSettingsChanged?.call(appliedSettings);
       }
       await _load();
       if (mounted) {
@@ -1265,6 +1259,7 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => CanonicalCalendarLauncher(
           tasks: _searchSource,
           onCreateTaskForDate: _addForDate,
+          onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
         ),
       ),
     );
@@ -1323,6 +1318,7 @@ class _HomePageState extends State<HomePage> {
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
               onCreateTaskForDate: _addForDate,
+              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
             ),
           ),
         );
@@ -1354,13 +1350,19 @@ class _HomePageState extends State<HomePage> {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
           },
-          onStartInteractiveGuide: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-            Future<void>.delayed(Duration.zero, _startInteractiveGuide);
-          },
         ),
       ),
     );
+  }
+
+  Future<void> _openTaxonomyManagement() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const TaskTaxonomyManagementPage(),
+      ),
+    );
+    if (mounted) await _load();
   }
 
   void _showAbout() {
@@ -1426,13 +1428,6 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext)
                         .pop(_HomeMoreAction.quickCapture),
               ),
-              ListTile(
-                key: const ValueKey('home-more-my-tasks'),
-                leading: const Icon(Icons.task_alt_outlined),
-                title: const Text('کارهای من'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
-              ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.today_outlined),
@@ -1465,6 +1460,14 @@ class _HomePageState extends State<HomePage> {
                 title: const Text('پشتیبان‌گیری'),
                 onTap: () =>
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
+              ),
+              ListTile(
+                key: const ValueKey('home-more-taxonomy'),
+                leading: const Icon(Icons.category_outlined),
+                title: const Text('دسته‌ها و برچسب‌ها'),
+                subtitle: const Text('مدیریت دسته‌ها و برچسب‌های کارها'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_HomeMoreAction.taxonomy),
               ),
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
@@ -1513,6 +1516,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.taxonomy:
+        await _openTaxonomyManagement();
         return;
       case _HomeMoreAction.about:
         _showAbout();
@@ -1619,10 +1625,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String? _latestFollowUpPreview(Task task) {
+    final followUp = task.lastFollowUp;
+    if (followUp == null) return null;
+    final note = followUp.note.trim();
+    final result = (followUp.result ?? '').trim();
+    if (result.isNotEmpty) return result;
+    if (note.isNotEmpty) return note;
+    return 'پیگیری ثبت‌شده';
+  }
+
+  Widget _homeBadge(String label, Color background, Color foreground) => Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(9)), child: Text(label, style: TextStyle(color: foreground, fontSize: 9.5, fontWeight: FontWeight.w700)));
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final preview = _latestFollowUpPreview(task);
     return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -1665,7 +1684,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1716,11 +1735,11 @@ class _HomePageState extends State<HomePage> {
                               : null,
                         ),
                       ),
-                      if (task.description.isNotEmpty) ...[
+                      if (preview != null || task.description.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          task.description,
-                          maxLines: 2,
+                          preview ?? task.description,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF80829C),
@@ -1728,36 +1747,47 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (task.tags.isNotEmpty) ...[
-                        const SizedBox(height: 6),
+                      if (_projectTitleForTask(task) != null) ...[
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            const Icon(Icons.folder_outlined, size: 15, color: Color(0xFF4B8FE8)),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _projectTitleForTask(task)!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Color(0xFF4B8FE8), fontSize: 11, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
+                        const SizedBox(height: 5),
                         Wrap(
                           spacing: 4,
-                          runSpacing: 4,
-                          children: task.tags
-                              .map(
-                                (tag) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9EAFF),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: const TextStyle(
-                                      color: Color(0xFF4A4CAB),
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          runSpacing: 3,
+                          children: [
+                            if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
+                            if (task.priority != TaskPriority.none) _homeBadge(
+                              switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' },
+                              const Color(0xFFFFF0E3),
+                              const Color(0xFFDB8B23),
+                            ),
+                            if (task.category?.trim().isNotEmpty == true) _homeBadge(
+                              task.category!.trim(),
+                              const Color(0xFFF2ECFF),
+                              const Color(0xFF8C68D9),
+                            ),
+                            for (final tag in task.tags.take(3))
+                              _homeBadge('#${tag.trim()}', const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
+                          ],
                         ),
                       ],
                       if (task.dueDate != null) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
                             const Icon(
@@ -1832,7 +1862,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 8, 12, compactHome ? 2 : 6),
+              padding: EdgeInsets.fromLTRB(
+                12,
+                compactHome ? 2 : 4,
+                12,
+                compactHome ? 2 : 4,
+              ),
               child: Row(
                 textDirection: TextDirection.ltr,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1842,9 +1877,7 @@ class _HomePageState extends State<HomePage> {
                     tooltip: 'اعلان‌ها',
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند',
-                        ),
+                        content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'),
                       ),
                     ),
                     icon: const Icon(Icons.notifications_none_rounded),
@@ -1854,14 +1887,11 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         DecoratedBox(
                           decoration: BoxDecoration(
-                            color: Color(0xFFF0F0F6),
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                            color: const Color(0xFFE9EAFF),
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             child: Text(
                               'بسم الله الرحمن الرحیم',
                               key: ValueKey('home-bismillah'),
@@ -1874,7 +1904,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         SizedBox(height: compactHome ? 4 : 7),
-                        Text(
+                        const Text(
                           'مدیریت کارها و پیگیری آروین',
                           key: ValueKey('home-title-block'),
                           textAlign: TextAlign.center,
@@ -1897,212 +1927,77 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, compactHome ? 1 : 4, 16, compactHome ? 5 : 10),
-              child: KeyedSubtree(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                compactHome ? 1 : 4,
+                16,
+                compactHome ? 5 : 10,
+              ),
+              child: TextField(
                 key: const ValueKey('home-canonical-search'),
-                child: TextField(
-                  key: _searchGuideKey,
-                  onChanged: (value) => setState(() => query = value),
-                  decoration: InputDecoration(
-                    hintText: 'جست‌وجو در کارها',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    filled: true,
-                    fillColor: const Color(0xFFFDFDFE),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF4A4CAB),
-                        width: 1.4,
-                      ),
+                onChanged: (value) => setState(() => query = value),
+                decoration: InputDecoration(
+                  hintText: 'جست‌وجو در کارها',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  filled: true,
+                  fillColor: const Color(0xFFFDFDFE),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF4A4CAB),
+                      width: 1.4,
                     ),
                   ),
                 ),
               ),
             ),
-            Padding(
-              key: _filtersGuideKey,
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 4 : 10),
-              child: Row(
-                key: const ValueKey('home-four-summary-selector'),
-                children: [
-                  _homeSummaryCard(
-                    keyName: 'all',
-                    label: 'کل',
-                    count: _homeAllCount,
-                    icon: Icons.list_alt_rounded,
-                    filterValue: 'کل',
-                    accent: const Color(0xFF4A4CAB),
-                    softAccent: const Color(0xFFE9EAFF),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'active',
-                    label: 'فعال',
-                    count: _homeActiveCount,
-                    icon: Icons.play_circle_outline_rounded,
-                    filterValue: 'فعال',
-                    accent: const Color(0xFF2F80ED),
-                    softAccent: const Color(0xFFEAF4FF),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'completed',
-                    label: 'انجام‌شده',
-                    count: _homeCompletedCount,
-                    icon: Icons.check_circle_outline_rounded,
-                    filterValue: 'انجام‌شده',
-                    accent: const Color(0xFF409B51),
-                    softAccent: const Color(0xFFEAF7ED),
-                  ),
-                  const SizedBox(width: 6),
-                  _homeSummaryCard(
-                    keyName: 'overdue',
-                    label: 'عقب‌افتاده',
-                    count: _homeOverdueCount,
-                    icon: Icons.schedule_rounded,
-                    filterValue: 'عقب‌افتاده',
-                    accent: const Color(0xFFDB8B23),
-                    softAccent: const Color(0xFFFDF1E9),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 1 : 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'کارهای من',
-                      style: TextStyle(
-                        color: Color(0xFF232433),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    key: const ValueKey('home-view-all'),
-                    onPressed: () => _selectHomeStat('کل'),
-                    child: const Text('مشاهده همه'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: compactHome ? 36 : 48,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Text('گروه‌بندی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<HomeGroupMode>(
-                      key: const ValueKey('home-group-mode-selector'),
-                      value: _homeGroupMode,
-                      items: HomeGroupMode.values
-                          .map(
-                            (mode) => DropdownMenuItem<HomeGroupMode>(
-                              value: mode,
-                              child: Text(_homeModeLabel(mode)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (mode) {
-                        if (mode != null) _selectHomeGroupMode(mode);
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('مرتب‌سازی:'),
-                    const SizedBox(width: 6),
-                    DropdownButton<TaskListSort>(
-                      key: const ValueKey('home-sort-selector'),
-                      value: _listSort,
-                      items: TaskListSort.values
-                          .map(
-                            (sort) => DropdownMenuItem<TaskListSort>(
-                              value: sort,
-                              child: Text(_sortLabel(sort)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (sort) {
-                        if (sort != null) _setListSort(sort);
-                      },
-                    ),
-                    IconButton(
-                      key: const ValueKey('home-sort-direction'),
-                      tooltip: _sortDescending
-                          ? 'مرتب‌سازی صعودی'
-                          : 'مرتب‌سازی نزولی',
-                      onPressed: _toggleSortDirection,
-                      icon: Icon(
-                        _sortDescending
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
-                      ),
-                    ),
-                    if (filter != 'کل' ||
-                        _listScope != TaskListScope.all ||
-                        _dueScope != null ||
-                        _categoryFilter != null) ...[
-                      const SizedBox(width: 4),
-                      TextButton(
-                        key: const ValueKey('home-clear-task-filter'),
-                        onPressed: () => _selectHomeStat('کل'),
-                        child: const Text('پاک کردن فیلتر'),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            _homeGroupSelector(),
+            _homeFilterBar(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : loadFailure != null
-                  ? SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.storage_outlined, size: 40),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'داده‌های کارها قابل خواندن نیست',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                      ? SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.storage_outlined, size: 40),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'داده‌های کارها قابل خواندن نیست',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  key: const ValueKey('home-storage-retry'),
+                                  onPressed: () {
+                                    setState(() => loading = true);
+                                    _load();
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('تلاش دوباره'),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton.icon(
-                              key: const ValueKey('home-storage-retry'),
-                              onPressed: () {
-                                setState(() => loading = true);
-                                _load();
-                              },
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('تلاش دوباره'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : _groupedTaskList(),
+                          ),
+                        )
+                      : _groupedTaskList(),
             ),
           ],
         ),
@@ -2112,10 +2007,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(bottom: 2),
               child: KeyedSubtree(
                 key: const ValueKey('home-canonical-add'),
-                child: KeyedSubtree(
-                  key: _newTaskGuideKey,
-                  child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
-                ),
+                child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
               ),
             )
           : null,
@@ -2151,11 +2043,11 @@ enum _HomeMoreAction {
   trash,
   backup,
   settings,
+  taxonomy,
   about,
 }
 
 /// Backward-compatible public entry retained for existing callers/tests.
-/// The live implementation is the Home-aligned Arvin task editor.
 class TaskDialog extends StatelessWidget {
   const TaskDialog({super.key, this.task});
 

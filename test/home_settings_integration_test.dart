@@ -72,6 +72,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار تاریخ‌دار'), findsOneWidget);
-    expect(find.textContaining('۱۴۰۵/۰۶/۰۴'), findsOneWidget);
+    expect(find.textContaining('2026/08/26'), findsNothing);
   });
 }

@@ -13,12 +13,16 @@ class CalendarReminder {
     required this.date,
     this.completed = false,
     this.isAllDay = false,
+    this.description,
+    this.end,
   });
   final String id;
   final String title;
   final DateTime date;
   final bool completed;
   final bool isAllDay;
+  final String? description;
+  final DateTime? end;
 }
 
 enum _CalendarViewMode { day, week, month, year }
@@ -34,6 +38,7 @@ class CalendarPage extends StatefulWidget {
     this.onEditReminder,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
+    this.onCreateTaskFromCalendarEvent,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.prayerStatusFor,
@@ -49,6 +54,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
 
   /// Generic Task/FollowUp actions are shown only for exact canonical targets.
   final bool Function(CalendarReminder reminder)? canMutateReminder;
@@ -765,6 +771,9 @@ class _CalendarPageState extends State<CalendarPage> {
                             onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
                                 ? widget.onOpenExternalReminder
                                 : null,
+                            onCreateTaskFromCalendarEvent: selectedReminders[index].id.startsWith('external-calendar:')
+                                ? widget.onCreateTaskFromCalendarEvent
+                                : null,
                             prayerStatus: widget.prayerStatusFor?.call(
                               selectedReminders[index],
                             ),
@@ -817,6 +826,7 @@ class _ReminderCard extends StatefulWidget {
     this.onEdit,
     this.onConvertToTask,
     this.onOpenExternal,
+    this.onCreateTaskFromCalendarEvent,
     this.prayerStatus,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
@@ -830,6 +840,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final PrayerCompletionStatus? prayerStatus;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
@@ -852,7 +863,8 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onSnooze != null ||
               widget.onEdit != null ||
               widget.onConvertToTask != null ||
-              widget.onOpenExternal != null));
+              widget.onOpenExternal != null ||
+              widget.onCreateTaskFromCalendarEvent != null));
 
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
@@ -933,12 +945,12 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (!widget.isPrayer && widget.onOpenExternal != null)
+                  if (!widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
-                      key: ValueKey('external-calendar-open-${item.id}'),
-                      avatar: const Icon(Icons.info_outline, size: 18),
-                      label: const Text('جزئیات رویداد'),
-                      onPressed: () => _run(widget.onOpenExternal),
+                      key: ValueKey('external-calendar-create-task-${item.id}'),
+                      avatar: const Icon(Icons.add_task_outlined, size: 18),
+                      label: const Text('ثبت در آروین'),
+                      onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
                     ),
                   if (!widget.isPrayer &&
                       widget.onComplete != null &&

@@ -86,7 +86,31 @@ class _PrayerCompletionReportPageState extends State<PrayerCompletionReportPage>
       const SizedBox(height: 12), Text('${_date(summary.startDay)} تا ${_date(summary.endDay)}', textAlign: TextAlign.center), const SizedBox(height: 8),
       Row(children: [_summaryCard(key: const ValueKey('prayer-report-completed'), label: 'ادا شد', value: summary.completedCount, icon: Icons.check_circle_outline), const SizedBox(width: 8), _summaryCard(key: const ValueKey('prayer-report-missed'), label: 'قضا شد', value: summary.notCompletedCount, icon: Icons.history_toggle_off_outlined)]),
       const SizedBox(height: 18), Text('نمازهای قضا شده', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 8),
-      if (summary.missed.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('نماز قضاشده‌ای در این بازه ثبت نشده است', textAlign: TextAlign.center))) else for (final record in summary.missed) Card(child: ListTile(leading: const Icon(Icons.history_toggle_off_outlined), title: Text(_prayerLabel(record.prayerId)), subtitle: Text(_date(record.localDay)), trailing: const Text('قضا شد'))),
+      if (summary.missed.isEmpty)
+        const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('نماز قضاشده‌ای در این بازه ثبت نشده است', textAlign: TextAlign.center)))
+      else
+        for (final record in summary.missed)
+          Card(
+            key: ValueKey('prayer-report-item-${record.identity}'),
+            child: ListTile(
+              leading: const Icon(Icons.history_toggle_off_outlined),
+              title: Text(_prayerLabel(record.prayerId)),
+              subtitle: Text(_date(record.localDay)),
+              trailing: OutlinedButton.icon(
+                key: ValueKey('prayer-report-change-${record.identity}'),
+                onPressed: () async {
+                  await widget.store.setStatus(
+                    day: record.localDay,
+                    prayerId: record.prayerId,
+                    status: PrayerCompletionStatus.completed,
+                  );
+                  if (mounted) _reload();
+                },
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: const Text('تغییر به ادا شد'),
+              ),
+            ),
+          ),
     ]);
   })));
 }

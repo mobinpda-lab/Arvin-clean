@@ -9,10 +9,12 @@ void main() {
     expect(source, contains("import 'services/task_store.dart';"));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
     expect(source, contains('backupManager.backupCanonicalTasks('));
-    expect(source, contains('settings: appSettingsService.toPortableJson('));
+    expect(source, contains("'backupSchedule': schedule.toPortableJson()"));
+    expect(source, contains('settings: await _portableBackupSettings()'));
+    expect(source, contains('BackupSchedule.decodePortableJson('));
     expect(source, contains('backupManager.restoreCanonicalBackup()'));
     expect(source, contains('await taskStore.save(List<Task>.of(list));'));
-    expect(source, contains('appSettingsService.saveSettings(restoredSettings)'));
+    expect(source, contains('appSettingsService.restorePortableJson(candidate.settings!)'));
 
     expect(
       source,

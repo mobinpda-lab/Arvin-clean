@@ -37,6 +37,10 @@ void main() {
     expect(result.single.id, 'external-calendar:device-calendar:instance-1');
     expect(result.single.title, 'جلسه بیرونی • تقویم شخصی');
     expect(result.single.date, DateTime(2026, 9, 14, 10));
+    expect(result.single.date.hour, 10);
+    expect(result.single.date.minute, 0);
+    expect(result.single.end, DateTime(2026, 9, 14, 11));
+    expect(result.single.description, isNull);
     expect(result.single.completed, isFalse);
   });
 

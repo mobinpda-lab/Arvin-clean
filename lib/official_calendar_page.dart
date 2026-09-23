@@ -26,6 +26,7 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onEditReminder,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
+    this.onCreateTaskFromCalendarEvent,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.settingsService,
@@ -43,6 +44,7 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final bool Function(CalendarReminder reminder)? canMutateReminder;
   final Future<void> Function(DateTime date)? onCreateTaskForDate;
   final AppSettingsService? settingsService;
@@ -66,6 +68,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onOpenExternalReminder,
     super.canMutateReminder,
     super.onCreateTaskForDate,
+    super.onCreateTaskFromCalendarEvent,
     super.settingsService,
     super.calendarBridge,
     super.externalLinkStore,
@@ -210,6 +213,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               onOpenExternalReminder: widget.onOpenExternalReminder,
               canMutateReminder: widget.canMutateReminder,
               onCreateTaskForDate: widget.onCreateTaskForDate,
+              onCreateTaskFromCalendarEvent: widget.onCreateTaskFromCalendarEvent,
               prayerStatusFor: _prayerStatus,
               onPrayerCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
               onPrayerNotCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.notCompleted),

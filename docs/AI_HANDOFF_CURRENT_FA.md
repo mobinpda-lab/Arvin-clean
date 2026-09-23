@@ -103,3 +103,49 @@ Forbidden in this slice:
 `Fresh GitHub audit → reconcile stale docs → continue independent lanes in parallel → avoid duplicate foundations → validate exact head → merge safe work → post-merge validate → next real vertical slice → document → short nontechnical report`
 
 Repository reality always overrides conversation memory.
+
+
+## Live Conversation Checkpoint — 2026-09-23
+
+> آخرین ممیزی زنده: PR #1373 باز و قابل ادغام است؛ Head واقعی این شاخه `2c6b6923df8bc105a3f044a5468c7b5ede52a56c` است. برای این Head هنوز هیچ Workflow Run/Combined Status از GitHub برنگشته؛ بنابراین Analyze/Test/Build سبز اعلام نمی‌شود. مسیر بعدی: فعال‌کردن اجرای CI از طریق همین PR و سپس رفع هر خطای واقعی قبل از merge.
+
+این بخش برای انتقال کار بین گفتگوها و حساب‌های ChatGPT ثبت شده است. در صورت تغییر صفحه گفتگو، نباید وضعیت کار از حافظه گفتگو حدس زده شود؛ GitHub باید دوباره خوانده شود.
+
+### Active product branch
+- Branch: `fix/final-ui-home-quick-entry-20260923`
+- آخرین تغییر ثبت‌شده در کد: `67df2fc6e95f74bc45525530ad3808e639d78199`
+- آخرین Head شاخه/PR: `2c6b6923df8bc105a3f044a5468c7b5ede52a56c`
+- تغییر قبلی مرتبط: `5b78bff1d619c85e017ff9a4e9e85018a26d4454`
+- Task Detail dashboard: `c3e82af6d16463bc4a6bdda1874164e1a859af1f`
+
+### Current authoritative UI/product requirements
+- Home باید داشبورد حرفه‌ای مدیریت چرخه زندگی کار باشد، نه فهرست ساده.
+- Home: عنوان «مدیریت کارها و پیگیری آروین»، اعلان در سمت فیزیکی چپ، منو در سمت فیزیکی راست، جست‌وجو، و دقیقاً چهار گروه اصلی: زمان / پروژه‌ها / دسته‌ها / برچسب‌ها.
+- گروه‌ها باید باز و بسته شوند و فیلترهای مرتبط داشته باشند.
+- کارت کار باید تا حد امکان خلاصه کامل مدیریت کار را نشان دهد: عنوان، پروژه، دسته، برچسب، اهمیت، وضعیت، آخرین FollowUp و موعد.
+- آخرین FollowUp باید از `Task.followUps[]` و `lastFollowUp` canonical بیاید؛ تاریخ legacy نباید به‌عنوان تاریخ واقعی پیگیری نمایش داده شود.
+- Task Detail باید یک داشبورد مسیر پیگیری باشد: خلاصه، وضعیت، آخرین پیگیری، Timeline، فاصله بین پیگیری‌ها، اقدام بعدی، یادآوری و دو اقدام روشن «افزودن پیگیری» و «انجام کار».
+- Task Editor باید Full Screen و lifecycle-oriented باشد؛ هدر ثابت، عنوان در ابتدا، توضیحات مستقل، پروژه/دسته/برچسب، موعد/یادآوری/تکرار/اهمیت، سپس پیگیری، چک‌لیست و قابلیت‌های موجود.
+- فونت نهایی: VazirHarf v34.003. رنگ‌های نهایی و RTL مطابق قرارداد محصول.
+- هیچ Storage/Model/Repository موازی برای Project، FollowUp یا Search ساخته نشود.
+- داده‌های کاربر نباید حذف یا مهاجرت مخرب شوند.
+
+### Current real implementation
+- Home کارت‌ها اکنون پروژه را از ارتباط canonical `ProjectPlan.itemIds` نشان می‌دهد.
+- Home تاریخ پیگیری نمایش‌داده‌شده را از `task.lastFollowUp?.dateTime` می‌گیرد.
+- Task Detail dashboard در commit `c3e82af6` پیاده شده و باید با Build/Test واقعی اعتبارسنجی شود.
+- مسیر افزودن پیگیری و انجام کار به TaskStore canonical متصل است.
+
+### Remaining acceptance gates
+1. بررسی compile/analyze/test روی Head فعلی.
+2. Build واقعی APK.
+3. Device/UI evidence برای Home، Quick Entry، Task Editor و Task Detail.
+4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار گروه Home.
+5. فقط پس از exact-head evidence، PR/merge و سپس post-merge validation.
+6. هر تغییر بعدی باید در همین handoff ثبت شود تا ادامه کار به گفتگو وابسته نباشد.
+
+### Continuation rule
+هر بار کار با «ادامه آروین» شروع شد:
+`GitHub live audit → read this handoff → verify current branch/head → inspect open PR/workflows → continue from first unfinished acceptance gate → perform real GitHub work → validate → update this handoff → short report`.
+
+این فایل یک حافظه مستقل از ChatGPT است؛ گفتگو یا حساب جدید نباید مبنای وضعیت پروژه باشد.

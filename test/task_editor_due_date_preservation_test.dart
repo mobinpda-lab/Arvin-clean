@@ -52,8 +52,8 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-save')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-save')));
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);

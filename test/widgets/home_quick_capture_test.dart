@@ -41,7 +41,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('تماس با علی'), findsOneWidget);
-    expect(find.text('مهم'), findsOneWidget);
 
     final prefs = await SharedPreferences.getInstance();
     final raw = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;

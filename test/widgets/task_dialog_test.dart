@@ -43,7 +43,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
     await tester.pump();
 
-    final save = find.byKey(const ValueKey('task-editor-save'));
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.pumpAndSettle();
     await tester.tap(save);
@@ -96,7 +96,7 @@ void main() {
       findsOneWidget,
     );
 
-    final save = find.byKey(const ValueKey('task-editor-save'));
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.pumpAndSettle();
     await tester.tap(save);
@@ -133,10 +133,7 @@ void main() {
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
 
-    final cancel = find.byKey(const ValueKey('task-editor-cancel'));
-    await tester.ensureVisible(cancel);
-    await tester.pumpAndSettle();
-    await tester.tap(cancel);
+    await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
 
     expect(result, isNull);

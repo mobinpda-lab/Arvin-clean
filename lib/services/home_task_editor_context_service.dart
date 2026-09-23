@@ -7,11 +7,13 @@ class HomeTaskEditorContext {
     required this.projects,
     required this.selectedProjectId,
     required this.knownCategories,
+    required this.knownTags,
   });
 
   final List<ProjectPlan> projects;
   final String? selectedProjectId;
   final List<String> knownCategories;
+  final List<String> knownTags;
 }
 
 /// Thin Home-facing adapter for preparing the canonical Task editor inputs.
@@ -35,6 +37,14 @@ class HomeTaskEditorContextService {
         ? null
         : await assignmentService.projectIdForTask(task.id);
 
+    final tags = tasks
+        .expand((item) => item.tags)
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
     final categories = tasks
         .map((item) => item.category?.trim())
         .whereType<String>()
@@ -47,6 +57,7 @@ class HomeTaskEditorContextService {
       projects: List<ProjectPlan>.unmodifiable(projects),
       selectedProjectId: selectedProjectId,
       knownCategories: List<String>.unmodifiable(categories),
+      knownTags: List<String>.unmodifiable(tags),
     );
   }
 }
