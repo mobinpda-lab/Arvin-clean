@@ -441,7 +441,9 @@ class _HomePageState extends State<HomePage> {
       chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
     } else {
       addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
-      for (final tag in _homeTags) addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      for (final tag in _homeTags) {
+        addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
+      }
       chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF38A89B)));
     }
     return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Wrap(textDirection: TextDirection.rtl, spacing: 6, runSpacing: 6, children: chips));
