@@ -241,12 +241,28 @@ class AppSettingsService {
 
   Map<String, dynamic> toPortableJson(AppSettings settings) {
     final family = _normalizeFontFamily(settings.fontFamily);
+    final calendar = settings.calendarIntegration;
     return <String, dynamic>{
       'themeMode': settings.themeMode.name,
       'usePersianDate': settings.usePersianDate,
       'swipeRightAction': settings.swipeRightAction.name,
       'swipeLeftAction': settings.swipeLeftAction.name,
       if (family != null) 'fontFamily': family,
+      'calendarIntegration': <String, dynamic>{
+        'enabled': calendar.enabled,
+        'showExternalEvents': calendar.showExternalEvents,
+        'syncArvinToDevice': calendar.syncArvinToDevice,
+        'visibleCalendarIds': calendar.visibleCalendarIds.toList()..sort(),
+        if (calendar.targetCalendarId != null)
+          'targetCalendarId': calendar.targetCalendarId,
+        'syncDueDates': calendar.syncDueDates,
+        'syncTaskReminders': calendar.syncTaskReminders,
+        'syncFollowUps': calendar.syncFollowUps,
+        'syncFollowUpReminders': calendar.syncFollowUpReminders,
+        'syncRecurrence': calendar.syncRecurrence,
+        'autoSync': calendar.autoSync,
+        'deleteLinkedEventWithTask': calendar.deleteLinkedEventWithTask,
+      },
     };
   }
 
@@ -256,6 +272,7 @@ class AppSettingsService {
     final rawFontFamily = json['fontFamily'];
     final rawSwipeRight = json['swipeRightAction'];
     final rawSwipeLeft = json['swipeLeftAction'];
+    final rawCalendar = json['calendarIntegration'];
 
     if (rawThemeMode != null && rawThemeMode is! String) {
       throw const FormatException('Arvin backup theme setting is invalid');
@@ -271,6 +288,40 @@ class AppSettingsService {
     }
     if (rawSwipeLeft != null && rawSwipeLeft is! String) {
       throw const FormatException('Arvin backup left-swipe setting is invalid');
+    }
+    if (rawCalendar != null && rawCalendar is! Map) {
+      throw const FormatException('Arvin backup calendar settings are invalid');
+    }
+
+    final calendarMap = rawCalendar is Map
+        ? Map<String, dynamic>.from(rawCalendar)
+        : const <String, dynamic>{};
+    final visibleIdsRaw = calendarMap['visibleCalendarIds'];
+    if (visibleIdsRaw != null &&
+        (visibleIdsRaw is! List ||
+            visibleIdsRaw.any((item) => item is! String))) {
+      throw const FormatException('Arvin backup calendar ids are invalid');
+    }
+    for (final key in <String>[
+      'enabled',
+      'showExternalEvents',
+      'syncArvinToDevice',
+      'syncDueDates',
+      'syncTaskReminders',
+      'syncFollowUps',
+      'syncFollowUpReminders',
+      'syncRecurrence',
+      'autoSync',
+      'deleteLinkedEventWithTask',
+    ]) {
+      final value = calendarMap[key];
+      if (value != null && value is! bool) {
+        throw FormatException('Arvin backup calendar setting is invalid: $key');
+      }
+    }
+    final targetCalendarId = calendarMap['targetCalendarId'];
+    if (targetCalendarId != null && targetCalendarId is! String) {
+      throw const FormatException('Arvin backup target calendar is invalid');
     }
 
     ThemeMode themeMode = ThemeMode.system;
@@ -296,6 +347,26 @@ class AppSettingsService {
         fallback: TaskSwipeAction.archive,
         side: 'left',
       ),
+      calendarIntegration: CalendarIntegrationSettings(
+        enabled: calendarMap['enabled'] as bool? ?? false,
+        showExternalEvents: calendarMap['showExternalEvents'] as bool? ?? false,
+        syncArvinToDevice: calendarMap['syncArvinToDevice'] as bool? ?? false,
+        visibleCalendarIds: (visibleIdsRaw is List ? visibleIdsRaw : const <dynamic>[])
+            .whereType<String>()
+            .map((id) => id.trim())
+            .where((id) => id.isNotEmpty)
+            .toSet(),
+        targetCalendarId: _normalizeCalendarId(targetCalendarId as String?),
+        syncDueDates: calendarMap['syncDueDates'] as bool? ?? true,
+        syncTaskReminders: calendarMap['syncTaskReminders'] as bool? ?? true,
+        syncFollowUps: calendarMap['syncFollowUps'] as bool? ?? true,
+        syncFollowUpReminders:
+            calendarMap['syncFollowUpReminders'] as bool? ?? true,
+        syncRecurrence: calendarMap['syncRecurrence'] as bool? ?? false,
+        autoSync: calendarMap['autoSync'] as bool? ?? false,
+        deleteLinkedEventWithTask:
+            calendarMap['deleteLinkedEventWithTask'] as bool? ?? false,
+      ),
     );
   }
 
@@ -315,11 +386,9 @@ class AppSettingsService {
   }
 
   Future<AppSettings> restorePortableJson(Map<String, dynamic> json) async {
-    final current = await load();
-    final restored = decodePortableJson(json).copyWith(
-      calendarIntegration: current.calendarIntegration,
-    );
+    final restored = decodePortableJson(json);
     await saveSettings(restored);
+    await saveCalendarIntegrationSettings(restored.calendarIntegration);
     return restored;
   }
 
