@@ -369,7 +369,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeGroupSelector() {
     return Padding(
-      key: _filtersGuideKey,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       child: Row(
         textDirection: TextDirection.rtl,
@@ -1292,10 +1291,6 @@ class _HomePageState extends State<HomePage> {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
           },
-          onStartInteractiveGuide: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-            Future<void>.delayed(Duration.zero, _startInteractiveGuide);
-          },
         ),
       ),
     );
@@ -1864,8 +1859,7 @@ class _HomePageState extends State<HomePage> {
               child: KeyedSubtree(
                 key: const ValueKey('home-canonical-search'),
                 child: TextField(
-                  key: _searchGuideKey,
-                  onChanged: (value) => setState(() => query = value),
+                          onChanged: (value) => setState(() => query = value),
                   decoration: InputDecoration(
                     hintText: 'جست‌وجو در کارها',
                     prefixIcon: const Icon(Icons.search_rounded),
@@ -1938,7 +1932,6 @@ class _HomePageState extends State<HomePage> {
               child: KeyedSubtree(
                 key: const ValueKey('home-canonical-add'),
                 child: KeyedSubtree(
-                  key: _newTaskGuideKey,
                   child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
                 ),
               ),
