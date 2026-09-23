@@ -1,13 +1,22 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'task_store.dart';
+import '../models/task.dart';
+
 class BackupService {
+  BackupService({TaskStore? taskStore}) : _taskStore = taskStore ?? TaskStore();
+
+  final TaskStore _taskStore;
   Future<String> exportJson() async {
     final p = await SharedPreferences.getInstance();
     final data = <String, dynamic>{};
+    final tasks = await _taskStore.load();
     for (final k in p.getKeys()) {
       final v = p.get(k);
-      if (v is String || v is bool || v is int || v is double || v is List<String>) {
+      if (k == TaskStore.key) {
+        data[k] = tasks.map((task) => task.toJson()).toList();
+      } else if (v is String || v is bool || v is int || v is double || v is List<String>) {
         data[k] = v;
       }
     }
@@ -25,7 +34,17 @@ class BackupService {
       throw const FormatException('Invalid Arvin backup');
     }
     final p = await SharedPreferences.getInstance();
-    for (final e in (root['data'] as Map).entries) {
+    final data = Map<String, dynamic>.from(root['data'] as Map);
+    final taskPayload = data.remove(TaskStore.key);
+    if (taskPayload is List) {
+      await _taskStore.save(
+        taskPayload
+            .whereType<Map>()
+            .map((item) => Task.fromJson(Map<String, dynamic>.from(item)))
+            .toList(),
+      );
+    }
+    for (final e in data.entries) {
       final v = e.value;
       if (v is String) {
         await p.setString(e.key, v);
