@@ -8,12 +8,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[
-        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},
-        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},
-        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},
-        {"id":"archived","title":"کار بایگانی","archived":true}
-      ]',
+      'arvin.tasks': '[\n        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},\n        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},\n        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n        {"id":"archived","title":"کار بایگانی","archived":true}\n      ]',
     });
   });
 
