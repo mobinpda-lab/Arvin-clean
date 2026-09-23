@@ -447,6 +447,7 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: projectId,
         onProjectChanged: (value) => selectedProjectId = value,
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (task == null) return;
@@ -581,6 +582,7 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (task == null) return null;
@@ -608,6 +610,7 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (task == null) return null;
@@ -728,6 +731,7 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
       ),
     );
     if (edited == null) return;
