@@ -6,7 +6,7 @@ class G1DriftSchema implements QueryExecutorUser {
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
-  id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
+  id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL, description TEXT NOT NULL,
   created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL,
   follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL,
   notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL,
@@ -55,6 +55,9 @@ class G1DriftSchema implements QueryExecutorUser {
         await executor.runCustom(statement);
       }
       final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+      if (!taskColumns.any((row) => row['name'] == 'storage_ordinal')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN storage_ordinal INTEGER NOT NULL DEFAULT 0');
+      }
       if (!taskColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
       }
