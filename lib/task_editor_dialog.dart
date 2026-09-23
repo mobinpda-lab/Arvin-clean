@@ -955,11 +955,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               ),
             ),
           ),
-        ),
-      ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
