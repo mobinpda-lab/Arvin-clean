@@ -1727,48 +1727,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: [
-                            if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
-                            if (task.priority != TaskPriority.none) _homeBadge(
-                              switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' },
-                              const Color(0xFFFFF0E3), const Color(0xFFDB8B23),
-                            ),
-                            if (task.category?.trim().isNotEmpty == true) _homeBadge(task.category!.trim(), const Color(0xFFF2ECFF), const Color(0xFF8C68D9)),
-                            for (final tag in task.tags.take(3)) _homeBadge('#'+tag.trim(), const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
-                          ],
-                        ),
-                      ],
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: task.tags
-                              .map(
-                                (tag) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9EAFF),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: const TextStyle(
-                                      color: Color(0xFF4A4CAB),
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ],
                       if (task.dueDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
@@ -1845,7 +1803,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 8, 12, compactHome ? 2 : 6),
+              padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 4, 12, compactHome ? 2 : 4),
               child: Row(
                 textDirection: TextDirection.ltr,
                 crossAxisAlignment: CrossAxisAlignment.start,
