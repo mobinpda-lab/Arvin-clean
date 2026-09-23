@@ -1727,7 +1727,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
-                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
                         const SizedBox(height: 5),
                         Wrap(
                           spacing: 4,
