@@ -381,7 +381,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
-    expect(find.text('#قدیمی'), findsOneWidget);
+    expect(find.text('#قدیمی #مهم #مشتری'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
