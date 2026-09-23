@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
+import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
+import 'services/project_store.dart';
 
 enum _NotebookCreateMode { note, checklist }
 
@@ -758,63 +761,52 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   Future<void> _pickCategory() async {
     final categories = await widget.repository.loadCategories();
     if (!mounted) return;
-
     final selected = await showModalBottomSheet<String>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           children: [
-            Text(
-              'انتخاب دسته',
-              style: Theme.of(sheetContext).textTheme.titleMedium,
+            Text('انتخاب دسته', style: Theme.of(sheetContext).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            ArvinRadioBox(
+              label: 'بدون دسته',
+              selected: _category == null || _category!.trim().isEmpty,
+              icon: Icons.folder_off_outlined,
+              onTap: () => Navigator.of(sheetContext).pop(_clearCategoryToken),
             ),
             const SizedBox(height: 8),
-            ListTile(
-              key: const ValueKey('notebook-category-clear'),
-              leading: const Icon(Icons.folder_off_outlined),
-              title: const Text('بدون دسته'),
-              onTap: () =>
-                  Navigator.of(sheetContext).pop(_clearCategoryToken),
-            ),
-            for (final category in categories)
-              ListTile(
+            for (final category in categories) ...[
+              ArvinRadioBox(
                 key: ValueKey('notebook-category-$category'),
-                leading: const Icon(Icons.folder_outlined),
-                title: Text(category),
-                trailing: category == _category
-                    ? const Icon(Icons.check, color: Color(0xFF4A4CAB))
-                    : null,
+                label: category,
+                selected: category == _category,
+                icon: Icons.folder_outlined,
                 onTap: () => Navigator.of(sheetContext).pop(category),
               ),
-            ListTile(
+              const SizedBox(height: 8),
+            ],
+            ArvinRadioBox(
               key: const ValueKey('notebook-category-new'),
-              leading: const Icon(Icons.create_new_folder_outlined),
-              title: const Text('دسته جدید'),
-              onTap: () =>
-                  Navigator.of(sheetContext).pop(_newCategoryToken),
+              label: 'گزینه جدید',
+              newOption: true,
+              onTap: () => Navigator.of(sheetContext).pop(_newCategoryToken),
             ),
           ],
         ),
       ),
     );
     if (!mounted || selected == null) return;
-
     String? nextCategory;
     if (selected == _newCategoryToken) {
       nextCategory = await _promptNewCategory();
-      if (!mounted ||
-          nextCategory == null ||
-          nextCategory.trim().isEmpty) {
-        return;
-      }
+      if (!mounted || nextCategory == null || nextCategory.trim().isEmpty) return;
     } else if (selected == _clearCategoryToken) {
       nextCategory = null;
     } else {
       nextCategory = selected;
     }
-
     final updated = await widget.repository.updateCategory(
       id: widget.noteId,
       category: nextCategory,
@@ -826,55 +818,89 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     });
   }
 
+  Future<String?> _promptNewProject() async {
+    var value = '';
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('پروژه جدید'),
+        content: TextField(
+          key: const ValueKey('notebook-project-new-input'),
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'نام پروژه'),
+          onChanged: (next) => value = next,
+          onSubmitted: (next) => Navigator.of(dialogContext).pop(next.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('انصراف')),
+          FilledButton(
+            key: const ValueKey('notebook-project-new-save'),
+            onPressed: () => Navigator.of(dialogContext).pop(value.trim()),
+            child: const Text('ثبت'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickProject() async {
     final projects = await widget.repository.loadProjects();
     if (!mounted) return;
-    final activeProjects =
-        projects.where((project) => !project.isArchived).toList(growable: false);
-
+    final activeProjects = projects.where((project) => !project.isArchived).toList(growable: false);
     final selected = await showModalBottomSheet<String?>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           children: [
-            Text(
-              'انتخاب پروژه',
-              style: Theme.of(sheetContext).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              key: const ValueKey('notebook-project-clear'),
-              leading: const Icon(Icons.work_off_outlined),
-              title: const Text('بدون پروژه'),
+            Text('انتخاب پروژه', style: Theme.of(sheetContext).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            ArvinRadioBox(
+              label: 'بدون پروژه',
+              selected: _projectId == null,
+              icon: Icons.work_off_outlined,
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
-            for (final project in activeProjects)
-              ListTile(
+            const SizedBox(height: 8),
+            for (final project in activeProjects) ...[
+              ArvinRadioBox(
                 key: ValueKey('notebook-project-${project.id}'),
-                leading: const Icon(Icons.work_outline),
-                title: Text(project.title),
-                trailing: project.id == _projectId
-                    ? const Icon(Icons.check, color: Color(0xFF4A4CAB))
-                    : null,
+                label: project.title,
+                selected: project.id == _projectId,
+                icon: Icons.work_outline,
                 onTap: () => Navigator.of(sheetContext).pop(project.id),
               ),
+              const SizedBox(height: 8),
+            ],
+            ArvinRadioBox(
+              key: const ValueKey('notebook-project-new'),
+              label: 'گزینه جدید',
+              newOption: true,
+              onTap: () => Navigator.of(sheetContext).pop('__new_project__'),
+            ),
           ],
         ),
       ),
     );
     if (!mounted || selected == null) return;
 
-    final nextProjectId = selected.isEmpty ? null : selected;
-    await widget.repository.updateProject(
-      id: widget.noteId,
-      projectId: nextProjectId,
-    );
-    if (!mounted) return;
-
+    String? nextProjectId;
     String? nextTitle;
-    if (nextProjectId != null) {
+    if (selected == '__new_project__') {
+      final title = await _promptNewProject();
+      if (!mounted || title == null || title.trim().isEmpty) return;
+      final store = ProjectStore();
+      final existing = await store.load();
+      final project = ProjectPlan(
+        id: 'project_${DateTime.now().microsecondsSinceEpoch}',
+        title: title.trim(),
+      );
+      await store.save(<ProjectPlan>[...existing, project]);
+      nextProjectId = project.id;
+      nextTitle = project.title;
+    } else {
+      nextProjectId = selected.isEmpty ? null : selected;
       for (final project in activeProjects) {
         if (project.id == nextProjectId) {
           nextTitle = project.title;
@@ -882,54 +908,97 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         }
       }
     }
+    await widget.repository.updateProject(id: widget.noteId, projectId: nextProjectId);
+    if (!mounted) return;
     setState(() {
       _projectId = nextProjectId;
       _projectTitle = nextTitle;
     });
   }
 
-  Future<void> _pickTags() async {
-    final controller = TextEditingController(text: _tags.join('، '));
-    final value = await showDialog<String>(
+  Future<String?> _promptNewTag() async {
+    var value = '';
+    return showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('برچسب‌ها'),
+        title: const Text('برچسب جدید'),
         content: TextField(
-          key: const ValueKey('notebook-tags-input'),
-          controller: controller,
+          key: const ValueKey('notebook-tag-new-input'),
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'مثلاً مهم، مشتری',
-          ),
-          onSubmitted: (text) => Navigator.of(dialogContext).pop(text),
+          decoration: const InputDecoration(labelText: 'نام برچسب'),
+          onChanged: (next) => value = next,
+          onSubmitted: (next) => Navigator.of(dialogContext).pop(next.trim()),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('انصراف'),
-          ),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('انصراف')),
           FilledButton(
-            key: const ValueKey('notebook-tags-save'),
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-            child: const Text('اعمال'),
+            key: const ValueKey('notebook-tag-new-save'),
+            onPressed: () => Navigator.of(dialogContext).pop(value.trim()),
+            child: const Text('ثبت'),
           ),
         ],
       ),
     );
-    // Keep the short-lived controller alive until the closing dialog route is
-    // fully torn down; disposing immediately after showDialog resolves can race
-    // the reverse transition and rebuild the TextField with a disposed controller.
-    if (!mounted || value == null) return;
+  }
 
-    final tags = value
-        .split(RegExp(r'[,،]'))
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toList(growable: false);
-    final updated = await widget.repository.updateTags(
-      id: widget.noteId,
-      tags: tags,
+  Future<void> _pickTags() async {
+    final notes = await widget.repository.loadNotes();
+    if (!mounted) return;
+    final knownTags = <String>{
+      for (final note in notes)
+        for (final tag in note.tags)
+          if (tag.trim().isNotEmpty) tag.trim(),
+    }.toList()..sort();
+
+    final selected = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final working = <String>{..._tags};
+        return StatefulBuilder(
+          builder: (context, setSheetState) => SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              children: [
+                Text('انتخاب برچسب', style: Theme.of(sheetContext).textTheme.titleMedium),
+                const SizedBox(height: 10),
+                for (final tag in knownTags) ...[
+                  ArvinRadioBox(
+                    key: ValueKey('notebook-tag-$tag'),
+                    label: tag,
+                    selected: working.contains(tag),
+                    icon: Icons.sell_outlined,
+                    onTap: () => setSheetState(() {
+                      if (!working.add(tag)) working.remove(tag);
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                ArvinRadioBox(
+                  key: const ValueKey('notebook-tag-new'),
+                  label: 'گزینه جدید',
+                  newOption: true,
+                  onTap: () async {
+                    final tag = await _promptNewTag();
+                    if (!mounted || tag == null || tag.trim().isEmpty) return;
+                    setSheetState(() => working.add(tag.trim()));
+                  },
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  key: const ValueKey('notebook-tags-save'),
+                  onPressed: () => Navigator.of(sheetContext).pop(working.toList()..sort()),
+                  child: const Text('اعمال'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+    if (!mounted || selected == null) return;
+    final updated = await widget.repository.updateTags(id: widget.noteId, tags: selected);
     if (!mounted) return;
     setState(() => _tags = List<String>.of(updated.tags));
   }
