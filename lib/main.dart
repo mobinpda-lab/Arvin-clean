@@ -246,7 +246,7 @@ class _HomePageState extends State<HomePage> {
   DateTime? _homeFollowUpDate(Task task) => task.legacyHomeFollowUpDate;
 
   bool _overdue(Task task) {
-    final date = _homeFollowUpDate(task);
+    final date = task.dueDate;
     return date != null && !task.completed && date.isBefore(DateTime.now());
   }
 
@@ -1726,16 +1726,22 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (task.priority != TaskPriority.none || task.category != null || task.tags.isNotEmpty || task.completed) ...[
+                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
                         const SizedBox(height: 6),
-                        Wrap(spacing: 4, runSpacing: 4, children: [
-                          if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
-                          if (task.priority != TaskPriority.none) _homeBadge(switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' }, const Color(0xFFFFF0E3), const Color(0xFFDB8B23)),
-                          if (task.category?.trim().isNotEmpty == true) _homeBadge(task.category!.trim(), const Color(0xFFF2ECFF), const Color(0xFF8C68D9)),
-                          for (final tag in task.tags.take(3)) _homeBadge('#'+tag.trim(), const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
-                        ]),
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: [
+                            if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
+                            if (task.priority != TaskPriority.none) _homeBadge(
+                              switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' },
+                              const Color(0xFFFFF0E3), const Color(0xFFDB8B23),
+                            ),
+                            if (task.category?.trim().isNotEmpty == true) _homeBadge(task.category!.trim(), const Color(0xFFF2ECFF), const Color(0xFF8C68D9)),
+                            for (final tag in task.tags.take(3)) _homeBadge('#'+tag.trim(), const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
+                          ],
+                        ),
                       ],
-                      if (task.tags.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Wrap(
                           spacing: 4,
