@@ -244,7 +244,7 @@ class _NotebookPageState extends State<NotebookPage> {
     }
 
     final finalCategory = category;
-    if (finalCategory == null || finalCategory.trim().isEmpty) return;
+    if (finalCategory.trim().isEmpty) return;
     final changed = await widget.repository.moveSelectedToCategory(_selected, finalCategory);
     if (!mounted) return;
     _clearSelection();
