@@ -76,7 +76,7 @@ void main() {
     await tester.tap(submit);
     await tester.pumpAndSettle();
 
-    final persisted = await reader.load();
+    final persisted = await TaskStore().load();
     expect(persisted, hasLength(2));
     final original = persisted.singleWhere((task) => task.id == seed.id);
     final captured = persisted.singleWhere((task) => task.id != seed.id);
