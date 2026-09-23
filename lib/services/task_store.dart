@@ -10,15 +10,14 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
 
+  SharedPreferences? _preferences;
+
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
 
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Executes one canonical read-modify-write operation under the shared
-  /// storage lock. Feature repositories should prefer this over separate
-  /// load()/save() calls when they mutate the task collection.
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
       final tasks = await _loadUnlocked();
@@ -50,9 +49,28 @@ class TaskStore {
     return const [];
   }
 
+  Future<SharedPreferences> _prefs() async {
+    final preferences = _preferences ??= await SharedPreferences.getInstance();
+    await preferences.reload();
+    return preferences;
+  }
+
+  Future<String?> _readRaw() async {
+    final preferences = await _prefs();
+    return preferences.getString(key);
+  }
+
+  Future<void> _writeRaw(String encoded) async {
+    final preferences = await _prefs();
+    final saved = await preferences.setString(key, encoded);
+    await preferences.reload();
+    if (!saved || preferences.getString(key) != encoded) {
+      throw StateError('Canonical task storage write could not be verified');
+    }
+  }
+
   Future<List<Task>> _loadUnlocked() async {
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(key);
+    final raw = await _readRaw();
     if (raw == null || raw.trim().isEmpty) return <Task>[];
 
     final decoded = jsonDecode(raw);
@@ -69,18 +87,12 @@ class TaskStore {
   }
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
-    final preferences = await SharedPreferences.getInstance();
     final encoded = jsonEncode(tasks.map((task) => task.toJson()).toList());
-
-    // Validate the exact document before replacing the canonical value.
     final decoded = jsonDecode(encoded);
     if (decoded is! List) {
       throw const FormatException('Refusing to persist invalid task document');
     }
 
-    final saved = await preferences.setString(key, encoded);
-    if (!saved) {
-      throw StateError('Could not persist canonical task storage');
-    }
+    await _writeRaw(encoded);
   }
 }
