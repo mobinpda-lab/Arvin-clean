@@ -71,7 +71,10 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'تماس با علی #مشتری #فوری',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.pumpAndSettle();
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
     final persisted = await reader.load();
