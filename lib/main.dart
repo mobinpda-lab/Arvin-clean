@@ -142,8 +142,6 @@ class _HomePageState extends State<HomePage> {
       const TaskListScopeService();
   final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
-  final PersianDateFormatter persianDateFormatter =
-      const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
   final WidgetTaskSelectionService widgetTaskSelectionService =
       WidgetTaskSelectionService();
@@ -373,53 +371,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _homeModeLabel(HomeGroupMode mode) => switch (mode) {
-    HomeGroupMode.time => 'زمان',
-    HomeGroupMode.projects => 'پروژه‌ها',
-    HomeGroupMode.categories => 'دسته‌ها',
-    HomeGroupMode.labels => 'برچسب‌ها',
-  };
-
-  int get _homeAllCount =>
-      tasks.where((task) => !task.archived && !task.trashed).length;
-
-  int get _homeActiveCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && !task.completed,
-      )
-      .length;
-
-  int get _homeCompletedCount => tasks
-      .where(
-        (task) => !task.archived && !task.trashed && task.completed,
-      )
-      .length;
-
-  int get _homeOverdueCount {
-    final now = DateTime.now();
-    return tasks.where((task) {
-      final due = _homeFollowUpDate(task);
-      return !task.archived &&
-          !task.trashed &&
-          !task.completed &&
-          due != null &&
-          due.isBefore(now);
-    }).length;
-  }
-
-  bool _homeSummarySelected(String filterValue) {
-    if (filterValue == 'عقب‌افتاده') {
-      return _dueScope == TaskDueScope.overdue &&
-          filter == 'کل' &&
-          _listScope == TaskListScope.all &&
-          _categoryFilter == null;
-    }
-    return _dueScope == null &&
-        _listScope == TaskListScope.all &&
-        _categoryFilter == null &&
-        filter == filterValue;
-  }
-
   Widget _homeGroupButton({
     required HomeGroupMode mode,
     required String label,
@@ -520,9 +471,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  String _persianNumber(int value) =>
-      persianDateFormatter.toPersianDigits('$value');
 
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
