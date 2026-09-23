@@ -614,13 +614,6 @@ class _HomePageState extends State<HomePage> {
     return 'کاری برای نمایش وجود ندارد';
   }
 
-  String _sortLabel(TaskListSort sort) => switch (sort) {
-    TaskListSort.date => 'تاریخ کار',
-    TaskListSort.latest => 'آخرین تغییر',
-    TaskListSort.lastFollowUp => 'آخرین پیگیری',
-    TaskListSort.title => 'عنوان',
-  };
-
   String _date(DateTime date) => persianDateFormatter.format(
     date,
     usePersianDate: true,
@@ -1035,14 +1028,6 @@ class _HomePageState extends State<HomePage> {
       selected.clear();
       selectionMode = false;
     });
-  }
-
-  void _setListSort(TaskListSort sort) {
-    setState(() => _listSort = sort);
-  }
-
-  void _toggleSortDirection() {
-    setState(() => _sortDescending = !_sortDescending);
   }
 
   Future<bool> _confirmDeleteForever(Task task) async {
