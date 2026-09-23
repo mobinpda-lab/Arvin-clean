@@ -838,6 +838,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final PrayerCompletionStatus? prayerStatus;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
@@ -947,6 +948,13 @@ class _ReminderCardState extends State<_ReminderCard> {
                       avatar: const Icon(Icons.info_outline, size: 18),
                       label: const Text('جزئیات رویداد'),
                       onPressed: () => _run(widget.onOpenExternal),
+                    ),
+                  if (!widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
+                    ActionChip(
+                      key: ValueKey('external-calendar-create-task-${item.id}'),
+                      avatar: const Icon(Icons.add_task_outlined, size: 18),
+                      label: const Text('ثبت در آروین'),
+                      onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
                     ),
                   if (!widget.isPrayer &&
                       widget.onComplete != null &&
