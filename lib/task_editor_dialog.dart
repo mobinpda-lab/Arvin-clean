@@ -14,6 +14,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     super.key,
     this.task,
     this.initialDueDate,
+    this.initialTitle,
+    this.initialDescription,
     this.projects = const [],
     this.selectedProjectId,
     this.onProjectChanged,
@@ -22,6 +24,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 
   final Task? task;
   final DateTime? initialDueDate;
+  final String? initialTitle;
+  final String? initialDescription;
 
   /// First-class Projects remain independent from Task category and tags.
   /// The editor owns no Project persistence; callers persist the selected id
@@ -63,9 +67,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   void initState() {
     super.initState();
     final task = widget.task;
-    _titleController = TextEditingController(text: task?.title ?? '');
+    _titleController = TextEditingController(
+      text: task?.title ?? widget.initialTitle ?? '',
+    );
     _descriptionController = TextEditingController(
-      text: task?.description ?? '',
+      text: task?.description ?? widget.initialDescription ?? '',
     );
     _tagController = TextEditingController();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
