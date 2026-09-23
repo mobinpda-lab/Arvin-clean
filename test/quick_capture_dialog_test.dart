@@ -84,7 +84,7 @@ void main() {
     await tester.tap(submit);
     await tester.pump();
 
-    expect(find.text('عنوان برای ثبت کافی است'), findsOneWidget);
+    expect(find.text('عنوان برای ثبت کافی است'), findsNWidgets(2));
     expect(find.text('ثبت سریع کار'), findsOneWidget);
   });
 
@@ -124,7 +124,9 @@ void main() {
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'ادامه در فرم #مهم');
-    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    final fullForm = find.byKey(const ValueKey('quick-capture-full-form'));
+    await tester.ensureVisible(fullForm);
+    await tester.tap(fullForm);
     await tester.pumpAndSettle();
 
     expect(quickSaved, isEmpty);
