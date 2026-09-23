@@ -48,12 +48,16 @@ class ArvinRadioBox extends StatelessWidget {
                   color: selected ? accent : const Color(0xFF7D7F95),
                 ),
                 const SizedBox(width: 7),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                    color: const Color(0xFF232433),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: const Color(0xFF232433),
+                    ),
                   ),
                 ),
               ],
