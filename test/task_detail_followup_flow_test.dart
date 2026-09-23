@@ -102,7 +102,7 @@ void main() {
     );
 
     await tester.tap(
-      find.byKey(const ValueKey('task-detail-edit-followup-edit-f1')),
+      find.byKey(const ValueKey('task-detail-latest-edit-followup-edit-f1')),
     );
     await tester.pumpAndSettle();
 
