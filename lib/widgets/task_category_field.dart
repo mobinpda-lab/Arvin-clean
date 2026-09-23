@@ -95,27 +95,26 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
               selected: false,
               newOption: true,
               onTap: () async {
-                final controller = TextEditingController();
-                final value = await showDialog<String>(
+                var value = '';
+                final result = await showDialog<String>(
                   context: context,
                   builder: (dialogContext) => AlertDialog(
                     title: const Text('دسته جدید'),
                     content: TextField(
                       key: const ValueKey('task-category-new-input'),
-                      controller: controller,
                       autofocus: true,
+                      onChanged: (next) => value = next,
                       decoration: const InputDecoration(hintText: 'نام دسته را وارد کنید'),
                     ),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-                      FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('ثبت')),
+                      FilledButton(onPressed: () => Navigator.pop(dialogContext, value.trim()), child: const Text('ثبت')),
                     ],
                   ),
                 );
-                controller.dispose();
-                if (value == null || value.isEmpty) return;
-                setState(() => _controller.text = value);
-                widget.onChanged(value);
+                if (result == null || result.isEmpty) return;
+                setState(() => _controller.text = result);
+                widget.onChanged(result);
               },
             ),
           ],
