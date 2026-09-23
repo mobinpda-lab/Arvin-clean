@@ -1774,7 +1774,7 @@ class _HomePageState extends State<HomePage> {
                               const Color(0xFF8C68D9),
                             ),
                             for (final tag in task.tags.take(3))
-                              _homeBadge('#'+tag.trim(), const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
+                              _homeBadge('#${tag.trim()}', const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
                           ],
                         ),
                       ],
