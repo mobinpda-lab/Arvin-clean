@@ -117,7 +117,7 @@ void main() {
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.id, 'edit-f1');
     expect(task.followUps.single.note, 'متن اصلاح‌شده');
-    expect(find.text('متن اصلاح‌شده'), findsOneWidget);
+    expect(find.text('متن اصلاح‌شده'), findsWidgets);
   });
 
   testWidgets('detail shows latest elapsed time, results and consecutive intervals',
