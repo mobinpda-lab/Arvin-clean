@@ -211,7 +211,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
           if (_task.description.trim().isNotEmpty) ...[
             const SizedBox(height: 9),
-            Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
+            Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF80829C), height: 1.55)),
           ],
           const SizedBox(height: 12),
           Wrap(
