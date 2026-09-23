@@ -49,11 +49,6 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
     super.dispose();
   }
 
-  void _apply(String raw) {
-    final value = raw.trim();
-    widget.onChanged(value.isEmpty ? null : value);
-  }
-
   void _clear() {
     _controller.clear();
     widget.onChanged(null);
