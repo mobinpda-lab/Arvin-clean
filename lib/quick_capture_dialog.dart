@@ -368,7 +368,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     label: _dateLabel(_dueDate),
                     selected: _dueDate != null,
                     icon: Icons.calendar_today_outlined,
-                    onTap: _saving ? () {} : _pickDue,
+                    onTap: _saving ? () {} : () { _pickDue(); },
                   ),
                   ArvinRadioBox(
                     label: _projectId == null
@@ -379,7 +379,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ).title,
                     selected: _projectId != null,
                     icon: Icons.work_outline,
-                    onTap: _saving ? _pickProject : _pickProject,
+                    onTap: _saving ? () {} : () { _pickProject(); },
                   ),
                   ActionChip(
                     avatar: const Icon(Icons.sell_outlined, size: 18),
@@ -421,13 +421,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
                     selected: _reminderDate != null,
                     icon: Icons.notifications_none_outlined,
-                    onTap: _saving ? () {} : _pickReminder,
+                    onTap: _saving ? () {} : () { _pickReminder(); },
                   ),
                   ArvinRadioBox(
                     label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
                     selected: _recurrence != null,
                     icon: Icons.repeat_rounded,
-                    onTap: _saving ? () {} : _pickRecurrence,
+                    onTap: _saving ? () {} : () { _pickRecurrence(); },
                   ),
                 ],
               ),
