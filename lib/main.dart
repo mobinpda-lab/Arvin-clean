@@ -1166,8 +1166,9 @@ class _HomePageState extends State<HomePage> {
 
       await taskStore.save(List<Task>.of(list));
       if (restoredSettings != null) {
-        await appSettingsService.saveSettings(restoredSettings);
-        if (mounted) widget.onSettingsChanged?.call(restoredSettings);
+        await appSettingsService.restorePortableJson(candidate.settings!);
+        final appliedSettings = await appSettingsService.load();
+        if (mounted) widget.onSettingsChanged?.call(appliedSettings);
       }
       await _load();
       if (mounted) {
