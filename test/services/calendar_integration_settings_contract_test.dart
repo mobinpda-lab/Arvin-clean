@@ -80,9 +80,11 @@ void main() {
     expect(restored.calendarIntegration.enabled, isTrue);
     expect(restored.calendarIntegration.showExternalEvents, isTrue);
     expect(restored.calendarIntegration.targetCalendarId, 'device-calendar-7');
-    expect(
-      service.toPortableJson(restored).containsKey('calendarIntegration'),
-      isFalse,
-    );
+    final portable = service.toPortableJson(restored);
+    expect(portable['calendarIntegration'], isA<Map<String, dynamic>>());
+    final portableCalendar = portable['calendarIntegration'] as Map<String, dynamic>;
+    expect(portableCalendar['enabled'], isTrue);
+    expect(portableCalendar['showExternalEvents'], isTrue);
+    expect(portableCalendar['targetCalendarId'], 'device-calendar-7');
   });
 }
