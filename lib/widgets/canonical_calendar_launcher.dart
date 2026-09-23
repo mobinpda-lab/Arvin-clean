@@ -28,6 +28,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
     this.rescheduleApplyService,
     this.onCreateTaskForDate,
+    this.onCreateTaskFromCalendarEvent,
   });
 
   final List<Task> tasks;
