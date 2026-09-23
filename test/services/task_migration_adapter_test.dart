@@ -154,4 +154,23 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('retains unknown legacy fields in the migration envelope', () {
+    const raw = '''[
+      {
+        "id": "unknown-1",
+        "title": "فیلد ناشناخته",
+        "futureField": {"keep": true},
+        "futureScalar": "preserve-me"
+      }
+    ]''';
+
+    final record = adapter.decodeLegacyRecords(raw).single;
+
+    expect(record.task.id, 'unknown-1');
+    expect(record.sourceJson['futureField'], <String, dynamic>{'keep': true});
+    expect(record.sourceJson['futureScalar'], 'preserve-me');
+    expect(record.sourceJsonEncoded, contains('"futureField":{"keep":true}'));
+    expect(record.sourceJsonEncoded, contains('"futureScalar":"preserve-me"'));
+  });
 }
