@@ -205,6 +205,7 @@ class TaskStore {
 
       for (var ordinal = 0; ordinal < tasks.length; ordinal++) {
         final task = tasks[ordinal];
+        final envelope = await _canonicalEnvelope(executor, task);
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
@@ -229,7 +230,7 @@ class TaskStore {
             task.trashed ? 1 : 0,
             task.completed ? 1 : 0,
             task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
-            jsonEncode(task.toJson()),
+            jsonEncode(envelope),
           ],
         );
         await _writeRelations(executor, task);
@@ -241,6 +242,35 @@ class TaskStore {
       } catch (_) {}
       rethrow;
     }
+  }
+
+  Future<Map<String, dynamic>> _canonicalEnvelope(
+    QueryExecutor executor,
+    Task task,
+  ) async {
+    final knownKeys = <String>{
+      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+      'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
+      'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
+      'completed', 'followUps', 'recurrence', 'people',
+    };
+    final rows = await executor.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ? LIMIT 1',
+      <Object?>[task.id],
+    );
+    final preserved = <String, dynamic>{};
+    if (rows.isNotEmpty && rows.single['legacy_payload_json'] is String) {
+      final decoded = jsonDecode(rows.single['legacy_payload_json'] as String);
+      if (decoded is Map) {
+        final previous = Map<String, dynamic>.from(decoded);
+        for (final entry in previous.entries) {
+          if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
+        }
+      }
+    }
+    final canonical = Map<String, dynamic>.from(task.toJson());
+    preserved.addAll(canonical);
+    return preserved;
   }
 
   Future<void> _writeRelations(QueryExecutor executor, Task task) async {
