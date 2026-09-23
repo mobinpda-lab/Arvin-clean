@@ -18,7 +18,7 @@ void main() {
     expect(Theme.of(homeContext).brightness, Brightness.dark);
   });
 
-  testWidgets('Home drawer opens canonical Settings page', (tester) async {
+  testWidgets('Home More opens canonical Settings page', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const ArvinApp());
@@ -27,9 +27,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.menu_rounded));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-more-task-filters')), findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'تنظیمات'), findsOneWidget);
+    expect(find.text('تنظیمات'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(ListTile, 'تنظیمات'));
+    await tester.tap(find.text('تنظیمات'));
     await tester.pumpAndSettle();
 
     expect(find.text('تنظیمات'), findsOneWidget);
