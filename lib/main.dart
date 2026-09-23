@@ -1430,6 +1430,13 @@ class _HomePageState extends State<HomePage> {
               ),
               const Divider(),
               ListTile(
+                key: const ValueKey('home-more-task-filters'),
+                leading: const Icon(Icons.filter_list_outlined),
+                title: const Text('فیلتر کارها'),
+                subtitle: const Text('امروز، پیگیری، وضعیت و دسته‌ها'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
+              ),
+              ListTile(
                 leading: const Icon(Icons.today_outlined),
                 title: const Text('امروز'),
                 onTap: () =>
@@ -1960,7 +1967,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
-            _homeFilterBar(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
