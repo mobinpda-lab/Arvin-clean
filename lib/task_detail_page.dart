@@ -286,7 +286,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
                 if (_resultLabel(latest) != null) _badge(_resultLabel(latest)!, _waitingService.isWaitingResult(latest.result) ? _waiting : _brand),
                 IconButton(
-                  key: ValueKey('task-detail-edit-followup-${latest.id}'),
+                  key: ValueKey('task-detail-latest-edit-followup-${latest.id}'),
                   onPressed: () => _editFollowUp(latest),
                   tooltip: 'ویرایش پیگیری',
                   icon: const Icon(Icons.edit_outlined, size: 19),
@@ -354,7 +354,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
                 const SizedBox(height: 3),
                 Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
-                if (result != null) ...[
+                if (result != null && followUp.id != historyLatestId) ...[
                   const SizedBox(height: 5),
                   Text(result, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)),
                 ],
