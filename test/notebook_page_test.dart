@@ -374,7 +374,7 @@ void main() {
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 19, 0));
     await repository.createNote(id: 'tag-note', title: 'یادداشت برچسب');
-    await repository.updateTags(id: 'tag-note', tags: const ['قدیمی']);
+    await repository.updateTags(id: 'tag-note', tags: const ['قدیمی', 'مهم', 'مشتری']);
 
     await pumpNotebook(tester, repository);
     await tester.tap(find.byKey(const ValueKey('notebook-note-tag-note')));
@@ -386,6 +386,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-tag-قدیمی')));
+    await tester.tap(find.byKey(const ValueKey('notebook-tag-مهم')));
+    await tester.tap(find.byKey(const ValueKey('notebook-tag-مشتری')));
     await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
     await tester.pumpAndSettle();
 
@@ -492,8 +494,8 @@ void main() {
   testWidgets('bulk tag assignment preserves same Notebook ids and unrelated data',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 13));
-    await repository.createNote(id: 'bulk-tag-1', title: 'اول');
-    await repository.createNote(id: 'bulk-tag-2', title: 'دوم');
+    await repository.createNote(id: 'bulk-tag-1', title: 'اول', tags: const ['مهم', 'فوری']);
+    await repository.createNote(id: 'bulk-tag-2', title: 'دوم', tags: const ['مهم', 'فوری']);
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-tag-1')));
@@ -503,16 +505,16 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-bulk-tags')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('برچسب‌ها').last);
-    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-tag-فوری')));
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-tags-apply')));
     await tester.pumpAndSettle();
 
     final first = await repository.loadNote('bulk-tag-1');
     final second = await repository.loadNote('bulk-tag-2');
     expect(first?.id, 'bulk-tag-1');
     expect(second?.id, 'bulk-tag-2');
-    expect(first?.tags, <String>['مهم']);
-    expect(second?.tags, <String>['مهم']);
+    expect(first?.tags, <String>['مهم', 'فوری']);
+    expect(second?.tags, <String>['مهم', 'فوری']);
     expect(await repository.loadNotes(), hasLength(2));
   });
 
@@ -520,8 +522,8 @@ void main() {
   testWidgets('bulk category move preserves Notebook identities across reload',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
-    await repository.createNote(id: 'bulk-cat-1', title: 'اول');
-    await repository.createNote(id: 'bulk-cat-2', title: 'دوم');
+    await repository.createNote(id: 'bulk-cat-1', title: 'اول', category: 'مشتریان');
+    await repository.createNote(id: 'bulk-cat-2', title: 'دوم', category: 'مشتریان');
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-cat-1')));
@@ -530,8 +532,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-bulk-category')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('دسته').last);
-    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-bulk-category-مشتریان')));
     await tester.pumpAndSettle();
 
     final first = await repository.loadNote('bulk-cat-1');
