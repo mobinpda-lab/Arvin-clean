@@ -20,6 +20,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.projects = const [],
     this.selectedProjectId,
     this.onProjectChanged,
+    this.onCreateProject,
     this.knownCategories = const [],
     this.knownTags = const [],
   });
@@ -35,6 +36,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   final List<ProjectPlan> projects;
   final String? selectedProjectId;
   final ValueChanged<String?>? onProjectChanged;
+  final Future<String?> Function(String title)? onCreateProject;
 
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
@@ -642,6 +644,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       selectedProjectId: _selectedProjectId,
                       onChanged: (value) =>
                           setState(() => _selectedProjectId = value),
+                      onCreateProject: widget.onCreateProject,
                     ),
                   ],
                   const SizedBox(height: 14),
