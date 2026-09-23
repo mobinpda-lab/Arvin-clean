@@ -47,7 +47,6 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final bool Function(CalendarReminder reminder)? canMutateReminder;
   final Future<void> Function(DateTime date)? onCreateTaskForDate;
-  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final AppSettingsService? settingsService;
   final SystemCalendarBridge? calendarBridge;
   final ExternalCalendarLinkStore? externalLinkStore;
