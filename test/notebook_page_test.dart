@@ -523,7 +523,7 @@ void main() {
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
     await repository.createNote(id: 'bulk-cat-1', title: 'اول', category: 'مشتریان');
-    await repository.createNote(id: 'bulk-cat-2', title: 'دوم', category: 'مشتریان');
+    await repository.createNote(id: 'bulk-cat-2', title: 'دوم', category: 'قدیمی');
 
     await pumpNotebook(tester, repository);
     await tester.longPress(find.byKey(const ValueKey('notebook-note-bulk-cat-1')));
