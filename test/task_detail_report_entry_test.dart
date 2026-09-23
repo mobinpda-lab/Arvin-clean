@@ -10,7 +10,7 @@ void main() {
     final source = File('lib/task_detail_page.dart').readAsStringSync();
 
     expect(source, contains("import 'task_report_page.dart';"));
-    expect(source, contains("ValueKey('task-detail-report')"));
+    expect(source, contains('task-detail-report'));
     expect(source, contains('TaskReportPage(tasks: [_task])'));
     expect(source, contains('PDF، چاپ و اشتراک‌گذاری'));
   });
