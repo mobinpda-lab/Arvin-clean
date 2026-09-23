@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
@@ -1084,6 +1085,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<Map<String, dynamic>> _portableBackupSettings() async {
+    final settings = await appSettingsService.load();
+    final schedule = await BackupSchedule.load();
+    return <String, dynamic>{
+      ...appSettingsService.toPortableJson(settings),
+      'backupSchedule': schedule.toPortableJson(),
+    };
+  }
+
   Future<void> _backupToFolder() async {
     try {
       var directory = await backupManager.getDirectory();
@@ -1101,10 +1111,9 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      final settings = await appSettingsService.load();
       final fileName = await backupManager.backupCanonicalTasks(
         _searchSource,
-        settings: appSettingsService.toPortableJson(settings),
+        settings: await _portableBackupSettings(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1134,10 +1143,9 @@ class _HomePageState extends State<HomePage> {
       final restoredSettings = candidate.settings == null
           ? null
           : appSettingsService.decodePortableJson(candidate.settings!);
-      final currentSettings = await appSettingsService.load();
       final emergencyBackup = await backupManager.backupCanonicalTasks(
         _searchSource,
-        settings: appSettingsService.toPortableJson(currentSettings),
+        settings: await _portableBackupSettings(),
       );
 
       if (!mounted) return;
@@ -1167,6 +1175,13 @@ class _HomePageState extends State<HomePage> {
       await taskStore.save(List<Task>.of(list));
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule is Map) {
+          final restoredSchedule = BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+          await restoredSchedule.save();
+        }
         final appliedSettings = await appSettingsService.load();
         if (mounted) widget.onSettingsChanged?.call(appliedSettings);
       }
