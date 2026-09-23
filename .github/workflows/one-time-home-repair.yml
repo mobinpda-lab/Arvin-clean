@@ -1,0 +1,53 @@
+name: one-time-home-repair
+
+on:
+  push:
+    branches:
+      - fix/final-ui-home-quick-entry-20260923
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.head_commit.message != 'chore(home): repair malformed card block and compact header'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/final-ui-home-quick-entry-20260923
+          fetch-depth: 0
+      - name: Repair Home
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path("lib/main.dart")
+          s = p.read_text()
+          marker = "                      if (task.dueDate != null) ...["
+          start = s.find("                        const SizedBox(height: 6),\n                        Wrap(", s.find("if (task.priority != TaskPriority.none"))
+          end = s.find(marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit("duplicate tag block not found")
+          block = s[start:end]
+          if "children: task.tags" in block:
+              s = s[:start] + s[end:]
+          s = s.replace(
+              "padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 8, 12, compactHome ? 2 : 6),",
+              "padding: EdgeInsets.fromLTRB(12, compactHome ? 2 : 4, 12, compactHome ? 2 : 4),",
+              1,
+          )
+          p.write_text(s)
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/main.dart
+          git diff --cached --quiet || git commit -m "chore(home): repair malformed card block and compact header"
+          git push origin HEAD:fix/final-ui-home-quick-entry-20260923
+      - name: Remove one-time workflow
+        if: success()
+        run: |
+          git rm .github/workflows/one-time-home-repair.yml
+          git commit -m "chore(ci): remove one-time home repair workflow"
+          git push origin HEAD:fix/final-ui-home-quick-entry-20260923
