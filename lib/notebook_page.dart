@@ -1329,6 +1329,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               readOnly: !_editing,
               maxLines: null,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: const Color(0xFF232433),
                     fontWeight: FontWeight.w700,
                   ),
               decoration: const InputDecoration(
