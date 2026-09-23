@@ -5,6 +5,7 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
+import 'widgets/arvin_radio_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
 ///
@@ -243,27 +244,36 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const ListTile(title: Text('پروژه')),
-            if (widget.projects.isEmpty)
-              const ListTile(
-                leading: Icon(Icons.info_outline),
-                title: Text('هنوز پروژه‌ای ثبت نشده است'),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              const SizedBox(
+                width: double.infinity,
+                child: Text('پروژه', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               ),
-            ListTile(
-              title: const Text('بدون پروژه'),
-              trailing: _projectId == null ? const Icon(Icons.check) : null,
-              onTap: () => Navigator.pop(sheetContext, ''),
-            ),
-            for (final project in widget.projects.where((p) => !p.isArchived))
-              ListTile(
-                title: Text(project.title),
-                trailing: _projectId == project.id ? const Icon(Icons.check) : null,
-                onTap: () => Navigator.pop(sheetContext, project.id),
+              ArvinRadioBox(
+                label: 'بدون پروژه',
+                selected: _projectId == null,
+                icon: Icons.work_off_outlined,
+                onTap: () => Navigator.pop(sheetContext, ''),
               ),
-          ],
+              for (final project in widget.projects.where((p) => !p.isArchived))
+                ArvinRadioBox(
+                  label: project.title,
+                  selected: _projectId == project.id,
+                  icon: Icons.work_outline,
+                  onTap: () => Navigator.pop(sheetContext, project.id),
+                ),
+              if (widget.projects.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('هنوز پروژه‌ای ثبت نشده است'),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -354,17 +364,22 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ActionChip(
-                    avatar: const Icon(Icons.calendar_today_outlined, size: 18),
-                    label: Text(_dateLabel(_dueDate)),
-                    onPressed: _saving ? null : _pickDue,
+                  ArvinRadioBox(
+                    label: _dateLabel(_dueDate),
+                    selected: _dueDate != null,
+                    icon: Icons.calendar_today_outlined,
+                    onTap: _saving ? () {} : _pickDue,
                   ),
-                  ActionChip(
-                    avatar: const Icon(Icons.work_outline, size: 18),
-                    label: Text(_projectId == null
+                  ArvinRadioBox(
+                    label: _projectId == null
                         ? 'پروژه'
-                        : widget.projects.firstWhere((p) => p.id == _projectId, orElse: () => ProjectPlan(id: '', title: 'پروژه')).title),
-                    onPressed: _saving ? null : _pickProject,
+                        : widget.projects.firstWhere(
+                            (p) => p.id == _projectId,
+                            orElse: () => ProjectPlan(id: '', title: 'پروژه'),
+                          ).title,
+                    selected: _projectId != null,
+                    icon: Icons.work_outline,
+                    onTap: _saving ? _pickProject : _pickProject,
                   ),
                   ActionChip(
                     avatar: const Icon(Icons.sell_outlined, size: 18),
@@ -402,15 +417,17 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       if (value != null && mounted) setState(() {});
                     },
                   ),
-                  ActionChip(
-                    avatar: const Icon(Icons.notifications_none_outlined, size: 18),
-                    label: Text(_reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد'),
-                    onPressed: _saving ? null : _pickReminder,
+                  ArvinRadioBox(
+                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
+                    selected: _reminderDate != null,
+                    icon: Icons.notifications_none_outlined,
+                    onTap: _saving ? () {} : _pickReminder,
                   ),
-                  ActionChip(
-                    avatar: const Icon(Icons.repeat_rounded, size: 18),
-                    label: Text(_recurrence == null ? 'تکرار' : 'تکرار تنظیم شد'),
-                    onPressed: _saving ? null : _pickRecurrence,
+                  ArvinRadioBox(
+                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
+                    selected: _recurrence != null,
+                    icon: Icons.repeat_rounded,
+                    onTap: _saving ? () {} : _pickRecurrence,
                   ),
                 ],
               ),
