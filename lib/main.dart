@@ -435,7 +435,9 @@ class _HomePageState extends State<HomePage> {
       chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProjectsLauncher())), newOption: true));
     } else if (_homeGroupMode == HomeGroupMode.categories) {
       addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null), icon: Icons.grid_view_rounded, accent: const Color(0xFF8C68D9));
-      for (final category in _homeCategories) addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
+      for (final category in _homeCategories) {
+        addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
+      }
       chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
     } else {
       addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
