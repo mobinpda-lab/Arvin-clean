@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
+  final Future<Task?> Function(Task task)? onComplete;
 
   /// Optional fixed clock for deterministic UI tests. Production uses device time.
   final DateTime? now;
@@ -309,7 +310,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
           ],
         ),
-        floatingActionButton: _task.followUpEnabled
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Row(
+            children: [
+              if (_task.followUpEnabled) Expanded(child: FilledButton.icon(key: const ValueKey('task-detail-add-followup'), onPressed: widget.onAddFollowUp == null ? null : _addFollowUp, icon: const Icon(Icons.add), label: const Text('افزودن پیگیری'))),
+              if (_task.followUpEnabled) const SizedBox(width: 10),
+              Expanded(child: OutlinedButton.icon(key: const ValueKey('task-detail-complete'), onPressed: widget.onComplete == null ? null : () async { final updated = await widget.onComplete!(_task); if (!mounted || updated == null) return; setState(() => _task = updated); }, icon: Icon(_task.completed ? Icons.check_circle : Icons.check_circle_outline), label: Text(_task.completed ? 'انجام شده' : 'انجام کار'))),
+            ],
+          ),
+        ),
+        floatingActionButton: null,
+
             ? FloatingActionButton.extended(
                 key: const ValueKey('task-detail-add-followup'),
                 onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
