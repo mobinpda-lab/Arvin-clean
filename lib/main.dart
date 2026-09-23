@@ -446,6 +446,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: projectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
       ),
@@ -581,6 +582,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
       ),
@@ -609,6 +611,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
       ),
@@ -651,6 +654,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         onFullForm: (draft) async {
           final editedContext = await wave2ProductFastTrack.prepareEditor(
             tasks: tasks,
@@ -664,6 +668,7 @@ class _HomePageState extends State<HomePage> {
               projects: editedContext.projects,
               selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
               knownCategories: editedContext.knownCategories,
             ),
           );
@@ -730,6 +735,7 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
+        onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
       ),
