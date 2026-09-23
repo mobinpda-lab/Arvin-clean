@@ -276,6 +276,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: const ValueKey('quick-capture-dialog'),
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return SafeArea(
       child: Padding(
