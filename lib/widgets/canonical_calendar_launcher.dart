@@ -35,6 +35,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final CalendarReschedulingAdvisor reschedulingAdvisor;
   final CalendarRescheduleApplyService? rescheduleApplyService;
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
+  final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -191,6 +192,12 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     _replaceFollowUp(target, updated);
   }
 
+  Future<void> _createTaskFromCalendarEvent(CalendarReminder reminder) async {
+    final task = await widget.onCreateTaskFromCalendarEvent?.call(reminder);
+    if (task == null || !mounted || _tasks.any((item) => item.id == task.id)) return;
+    setState(() => _tasks.add(task));
+  }
+
   Future<void> _openExternalReminder(CalendarReminder reminder) async {
     if (!reminder.id.startsWith('external-calendar:')) return;
     await showModalBottomSheet<void>(
@@ -217,17 +224,21 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               const Text(
                 'این رویداد از تقویم گوشی خوانده شده و آروین آن را بدون تأیید شما تغییر نمی‌دهد.',
               ),
+              if (reminder.description?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 8),
+                Text(reminder.description!.trim()),
+              ],
               const SizedBox(height: 16),
               FilledButton.icon(
                 key: ValueKey('external-calendar-create-task-${reminder.id}'),
-                onPressed: widget.onCreateTaskForDate == null
+                onPressed: widget.onCreateTaskFromCalendarEvent == null
                     ? null
                     : () async {
                         Navigator.of(sheetContext).pop();
-                        await _createTaskForDate(reminder.date);
+                        await _createTaskFromCalendarEvent(reminder);
                       },
                 icon: const Icon(Icons.add_task_outlined),
-                label: const Text('ساخت کار آروین در این تاریخ'),
+                label: const Text('ثبت در آروین'),
               ),
             ],
           ),
@@ -736,6 +747,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCreateTaskForDate: widget.onCreateTaskForDate == null
                 ? null
                 : _createTaskForDate,
+            onCreateTaskFromCalendarEvent: widget.onCreateTaskFromCalendarEvent == null
+                ? null
+                : _createTaskFromCalendarEvent,
           ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(
