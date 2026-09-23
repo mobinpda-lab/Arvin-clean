@@ -92,6 +92,7 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
       );
       if (!mounted) return;
       setState(() => task = updated);
+      await _load();
     } on ArgumentError {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
