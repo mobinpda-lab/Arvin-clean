@@ -135,8 +135,6 @@ void main() {
 
     await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-editor-exit-discard')));
-    await tester.pumpAndSettle();
 
     expect(result, isNull);
   });
