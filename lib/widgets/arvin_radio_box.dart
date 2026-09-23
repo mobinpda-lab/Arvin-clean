@@ -48,7 +48,7 @@ class ArvinRadioBox extends StatelessWidget {
                       ? Icons.add_circle_outline_rounded
                       : (icon ?? Icons.radio_button_checked_rounded),
                   size: 18,
-                  color: selected ? accent : const Color(0xFF7D7F95),
+                  color: selected ? accent : const Color(0xFF80829C),
                 ),
                 const SizedBox(width: 7),
                 Flexible(
