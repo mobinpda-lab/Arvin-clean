@@ -13,12 +13,16 @@ class CalendarReminder {
     required this.date,
     this.completed = false,
     this.isAllDay = false,
+    this.description,
+    this.end,
   });
   final String id;
   final String title;
   final DateTime date;
   final bool completed;
   final bool isAllDay;
+  final String? description;
+  final DateTime? end;
 }
 
 enum _CalendarViewMode { day, week, month, year }
@@ -49,6 +53,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
+  final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
 
   /// Generic Task/FollowUp actions are shown only for exact canonical targets.
   final bool Function(CalendarReminder reminder)? canMutateReminder;
@@ -764,6 +769,9 @@ class _CalendarPageState extends State<CalendarPage> {
                             onConvertToTask: widget.onConvertReminderToTask,
                             onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
                                 ? widget.onOpenExternalReminder
+                                : null,
+                            onCreateTaskFromCalendarEvent: selectedReminders[index].id.startsWith('external-calendar:')
+                                ? widget.onCreateTaskFromCalendarEvent
                                 : null,
                             prayerStatus: widget.prayerStatusFor?.call(
                               selectedReminders[index],
