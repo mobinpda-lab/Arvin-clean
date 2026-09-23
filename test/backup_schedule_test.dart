@@ -16,6 +16,28 @@ void main() {
       expect(next, DateTime(2026, 8, 13, 3, 4));
     });
 
+
+    test('round-trips the portable schedule settings', () {
+      const schedule = BackupSchedule(enabled: true, hour: 22, minute: 45);
+      final restored = BackupSchedule.decodePortableJson(
+        schedule.toPortableJson(),
+      );
+      expect(restored.enabled, isTrue);
+      expect(restored.hour, 22);
+      expect(restored.minute, 45);
+    });
+
+    test('rejects invalid portable schedule settings', () {
+      expect(
+        () => BackupSchedule.decodePortableJson(<String, dynamic>{
+          'enabled': 'yes',
+          'hour': 22,
+          'minute': 45,
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('uses safe defaults for a disabled schedule', () {
       final schedule = BackupSchedule.disabled();
       expect(schedule.enabled, isFalse);
