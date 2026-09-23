@@ -945,13 +945,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (!widget.isPrayer && widget.onOpenExternal != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-open-${item.id}'),
-                      avatar: const Icon(Icons.info_outline, size: 18),
-                      label: const Text('جزئیات رویداد'),
-                      onPressed: () => _run(widget.onOpenExternal),
-                    ),
                   if (!widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
                       key: ValueKey('external-calendar-create-task-${item.id}'),
