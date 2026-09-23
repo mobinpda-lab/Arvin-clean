@@ -52,7 +52,7 @@ void main() {
   }
 
   Future<void> save(WidgetTester tester) async {
-    final finder = find.byKey(const ValueKey('task-editor-save'));
+    final finder = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(finder);
     await tester.pumpAndSettle();
     await tester.tap(finder);
