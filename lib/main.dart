@@ -13,7 +13,6 @@ import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_today_projection.dart';
-import 'services/interactive_guide_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
@@ -37,16 +36,13 @@ import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
-import 'widgets/home_interactive_guide.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-void main() => runApp(const ArvinApp(enableFirstRunGuide: false));
+void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key, this.enableFirstRunGuide = false});
-
-  final bool enableFirstRunGuide;
+  const ArvinApp({super.key});
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -100,7 +96,6 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
-          enableFirstRunGuide: widget.enableFirstRunGuide,
         ),
       ),
     );
@@ -135,8 +130,6 @@ class _HomePageState extends State<HomePage> {
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
-  final InteractiveGuideService interactiveGuideService =
-      InteractiveGuideService();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
   final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
@@ -153,14 +146,6 @@ class _HomePageState extends State<HomePage> {
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
 
-  final GlobalKey _searchGuideKey = GlobalKey(debugLabel: 'home-guide-search');
-  final GlobalKey _filtersGuideKey = GlobalKey(
-    debugLabel: 'home-guide-filters',
-  );
-  final GlobalKey _newTaskGuideKey = GlobalKey(
-    debugLabel: 'home-guide-new-task',
-  );
-
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
   HomeGroupMode _homeGroupMode = HomeGroupMode.time;
@@ -168,8 +153,6 @@ class _HomePageState extends State<HomePage> {
   bool loading = true;
   Object? loadFailure;
   bool selectionMode = false;
-  bool _firstRunGuideChecked = false;
-  bool _interactiveGuideRunning = false;
   String query = '';
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
@@ -232,54 +215,6 @@ class _HomePageState extends State<HomePage> {
         loading = false;
       });
     }
-    await _maybeShowFirstRunGuide();
-  }
-
-  Future<void> _maybeShowFirstRunGuide() async {
-    if (!widget.enableFirstRunGuide || _firstRunGuideChecked) return;
-    _firstRunGuideChecked = true;
-    final shouldShow = await interactiveGuideService.shouldShow();
-    if (!mounted || !shouldShow) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _startInteractiveGuide();
-    });
-  }
-
-  Future<void> _startInteractiveGuide() async {
-    if (!mounted || loading || _interactiveGuideRunning) return;
-    _interactiveGuideRunning = true;
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      _interactiveGuideRunning = false;
-      return;
-    }
-
-    final finished = await showHomeInteractiveGuide(
-      context: context,
-      targets: [
-        HomeGuideTarget(
-          key: _searchGuideKey,
-          title: 'جست‌وجو',
-          description: 'بخشی از عنوان، توضیح یا برچسب را بنویسید تا آروین کار موردنظر را سریع پیدا کند.',
-          icon: Icons.search,
-        ),
-        HomeGuideTarget(
-          key: _filtersGuideKey,
-          title: 'فیلتر کارها',
-          description: 'نمای کارها را بر اساس «زمان»، «پروژه‌ها»، «دسته‌ها» یا «برچسب‌ها» انتخاب کنید؛ فیلترهای تکمیلی از «بیشتر» در دسترس‌اند.',
-          icon: Icons.filter_alt_outlined,
-        ),
-        HomeGuideTarget(
-          key: _newTaskGuideKey,
-          title: 'ساخت کار جدید',
-          description: 'برای ثبت یک کار کامل با عنوان، توضیحات، برچسب، تاریخ و ساعت پیگیری از این دکمه استفاده کنید.',
-          icon: Icons.add_circle_outline,
-        ),
-      ],
-    );
-
-    if (finished) await interactiveGuideService.markSeen();
-    _interactiveGuideRunning = false;
   }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
