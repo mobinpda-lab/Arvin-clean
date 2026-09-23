@@ -19,7 +19,7 @@ void main() {
               body: Center(
                 child: FilledButton(
                   onPressed: () async {
-                    captured = await showDialog<Task>(
+                    captured = await showModalBottomSheet<Task>(
                       context: context,
                       builder: (_) => QuickCaptureDialog(
                         idFactory: () => 'quick-1',
@@ -63,7 +63,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<Task>(
+                onPressed: () => showModalBottomSheet<Task>(
                   context: context,
                   builder: (_) => const QuickCaptureDialog(),
                 ),
@@ -97,7 +97,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
@@ -143,7 +143,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-${++nextId}',
@@ -186,7 +186,7 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () => showDialog<void>(
+                onPressed: () => showModalBottomSheet<void>(
                   context: context,
                   builder: (_) => QuickCaptureDialog(
                     idFactory: () => 'quick-cancel',
