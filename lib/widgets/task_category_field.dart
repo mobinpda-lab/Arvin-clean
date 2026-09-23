@@ -101,6 +101,7 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
                   builder: (dialogContext) => AlertDialog(
                     title: const Text('دسته جدید'),
                     content: TextField(
+                      key: const ValueKey('task-category-new-input'),
                       controller: controller,
                       autofocus: true,
                       decoration: const InputDecoration(hintText: 'نام دسته را وارد کنید'),
