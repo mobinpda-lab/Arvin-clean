@@ -56,6 +56,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   String _dateTime(DateTime value) => '${_date(value)} • ${_time(value)}';
 
+  String _statusLabel() {
+    if (_task.completed) return 'انجام شده';
+    final latest = _task.lastFollowUp;
+    if (latest != null && _waitingService.isWaitingResult(latest.result)) return 'در انتظار پاسخ';
+    return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
+  }
+
+  Color _statusColor() {
+    if (_task.completed) return const Color(0xFF2E8B57);
+    final latest = _task.lastFollowUp;
+    if (latest != null && _waitingService.isWaitingResult(latest.result)) return const Color(0xFFD97706);
+    return _brand;
+  }
+
   String? _resultLabel(FollowUp followUp) {
     if (_waitingService.isWaitingResult(followUp.result)) return 'منتظر پاسخ';
     final value = followUp.result?.trim();
@@ -265,32 +279,44 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
         appBar: AppBar(
-          title: const Text('جزئیات کار'),
+          title: Text(_task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
           actions: [
-            IconButton(
-              key: const ValueKey('task-detail-report'),
-              onPressed: _openReport,
-              tooltip: 'PDF، چاپ و اشتراک‌گذاری',
-              icon: const Icon(Icons.picture_as_pdf_outlined),
+            PopupMenuButton<String>(
+              key: const ValueKey('task-detail-more'),
+              tooltip: 'بیشتر',
+              onSelected: (value) {
+                if (value == 'edit') _edit();
+                if (value == 'report') _openReport();
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('ویرایش'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'report',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.picture_as_pdf_outlined),
+                    title: Text('PDF، چاپ و اشتراک‌گذاری'),
+                  ),
+                ),
+              ],
             ),
-            TextButton.icon(
-              key: const ValueKey('task-detail-edit'),
-              onPressed: widget.onEdit == null ? null : _edit,
-              icon: const Icon(Icons.edit_outlined, size: 19),
-              label: const Text('ویرایش'),
-            ),
-            const SizedBox(width: 6),
           ],
         ),
         floatingActionButton: _task.followUpEnabled
-            ? FloatingActionButton.small(
+            ? FloatingActionButton.extended(
                 key: const ValueKey('task-detail-add-followup'),
                 onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
                 backgroundColor: _brand,
                 foregroundColor: Colors.white,
-                shape: const CircleBorder(),
-                tooltip: 'ثبت پیگیری',
-                child: const Icon(Icons.add),
+                icon: const Icon(Icons.add),
+                label: const Text('افزودن پیگیری'),
               )
             : null,
         body: ListView(
@@ -313,11 +339,30 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 style: const TextStyle(height: 1.7),
               ),
             ],
+            const SizedBox(height: 14),
+            Container(
+              key: const ValueKey('task-detail-status-card'),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _statusColor().withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _statusColor().withValues(alpha: 0.22)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.track_changes_rounded, color: _statusColor()),
+                  const SizedBox(width: 10),
+                  const Text('وضعیت', style: TextStyle(color: Color(0xFF77778A), fontSize: 12, fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  Text(_statusLabel(), style: TextStyle(color: _statusColor(), fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
             const SizedBox(height: 18),
             _infoCard(
               key: const ValueKey('task-detail-due-date'),
               icon: Icons.event_available_outlined,
-              label: 'موعد کار',
+              label: 'زمان انجام',
               value: _task.dueDate == null
                   ? 'بدون موعد'
                   : _dateTime(_task.dueDate!),
@@ -359,6 +404,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 icon: Icons.folder_outlined,
                 label: 'دسته‌بندی',
                 value: _task.category!.trim(),
+              ),
+            ],
+            if (latest?.nextFollowUp != null) ...[
+              const SizedBox(height: 10),
+              _infoCard(
+                key: const ValueKey('task-detail-next-action'),
+                icon: Icons.next_plan_outlined,
+                label: 'اقدام بعدی',
+                value: _dateTime(latest!.nextFollowUp!),
               ),
             ],
             if (_task.tags.isNotEmpty) ...[
