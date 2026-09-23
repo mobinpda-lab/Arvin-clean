@@ -45,6 +45,8 @@ class ExternalCalendarEventProjection {
           title: '$title • $source',
           date: event.start,
           isAllDay: event.allDay,
+          description: event.description,
+          end: event.end,
         ),
       );
     }
