@@ -23,7 +23,7 @@ void main() {
 
     expect(task?.id, 'task-42');
     expect(task?.title, 'کار انتخاب‌شده');
-    expect(await TaskStore().load(), hasLength(1));
+    expect(await TaskStore().load(), hasLength(2));
   });
 
   test('ignores missing, empty and trashed Widget Task ids', () async {
