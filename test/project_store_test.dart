@@ -41,7 +41,7 @@ void main() {
     expect(await store.load(), isEmpty);
   });
 
-  test('legacy project json inherits codec defaults', () async {
+  test('legacy project json migrates into SQL and stays canonical', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       ProjectStore.key: '[{"id":"legacy","title":"قدیمی"}]',
     });
@@ -50,5 +50,11 @@ void main() {
 
     expect(restored.single.id, 'legacy');
     expect(restored.single.itemIds, isEmpty);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      ProjectStore.key: '[{"id":"legacy","title":"تغییر قدیمی"}]',
+    });
+    final fresh = await ProjectStore().load();
+    expect(fresh.single.title, 'قدیمی');
   });
 }
