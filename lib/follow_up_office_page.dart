@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
@@ -9,6 +6,7 @@ import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/automatic_follow_up_service.dart';
+import 'services/task_store.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
@@ -56,64 +54,37 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storeKey);
-    final canonicalTasks = <Task>[];
+    final canonicalTasks = await TaskStore().load();
     final tasks = <_TaskOption>[];
     final rows = <_FollowUpRow>[];
-    if (raw != null && raw.isNotEmpty) {
-      try {
-        final data = jsonDecode(raw) as List<dynamic>;
-        for (final item in data) {
-          final task = Map<String, dynamic>.from(item as Map);
-          final id = task['id'] as String? ?? '';
-          final title = task['title'] as String? ?? '';
-          if (id.isNotEmpty) {
-            tasks.add(_TaskOption(
-              id: id,
-              title: title.trim().isEmpty ? 'بدون عنوان' : title,
-            ));
-            try {
-              canonicalTasks.add(Task.fromJson(task));
-            } catch (_) {
-              // Keep the existing tolerant office load behavior for malformed
-              // legacy rows while excluding them from automatic projections.
-            }
-          }
-          final history = task['followUps'];
-          if (history is List && history.isNotEmpty) {
-            for (final entry in history) {
-              try {
-                final followUp = FollowUp.fromJson(
-                  Map<String, dynamic>.from(entry as Map),
-                );
-                rows.add(_FollowUpRow(
-                  taskId: id,
-                  taskTitle: title,
-                  followUp: followUp,
-                ));
-              } catch (_) {
-                continue;
-              }
-            }
-          } else {
-            final legacy = DateTime.tryParse(
-              task['followUpDate'] as String? ?? '',
-            );
-            if (legacy != null) {
-              rows.add(_FollowUpRow(
-                taskId: id,
-                taskTitle: title,
-                followUp: FollowUp(
-                  id: legacy.microsecondsSinceEpoch.toString(),
-                  dateTime: legacy,
-                  note: 'پیگیری قدیمی مهاجرت‌شده',
-                ),
-              ));
-            }
-          }
+    for (final task in canonicalTasks) {
+      final id = task.id;
+      if (id.isNotEmpty) {
+        tasks.add(_TaskOption(
+          id: id,
+          title: task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
+        ));
+      }
+      if (task.followUps.isNotEmpty) {
+        for (final followUp in task.followUps) {
+          rows.add(_FollowUpRow(
+            taskId: id,
+            taskTitle: task.title,
+            followUp: followUp,
+          ));
         }
-      } catch (_) {}
+      } else if (task.followUpDate != null) {
+        final legacy = task.followUpDate!;
+        rows.add(_FollowUpRow(
+          taskId: id,
+          taskTitle: task.title,
+          followUp: FollowUp(
+            id: legacy.microsecondsSinceEpoch.toString(),
+            dateTime: legacy,
+            note: 'پیگیری قدیمی مهاجرت‌شده',
+          ),
+        ));
+      }
     }
     rows.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     if (!mounted) return;
