@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
@@ -35,16 +37,33 @@ class _RuntimeBackupService extends ArvinBackupService {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('canonical SQL TaskStore backup/restore runtime smoke',
+  testWidgets('canonical SQL migration and backup/restore runtime smoke',
       (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       ArvinBackupManager.directoryKey: 'content://arvin-runtime-smoke',
+      TaskStore.key: jsonEncode(<Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'legacy-runtime',
+          'title': 'کار مهاجرتی',
+          'description': 'داده قدیمی',
+          'tags': <String>['مهم'],
+          'category': 'فروش',
+          'followUps': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 'fu-runtime',
+              'dateTime': '2026-09-20T10:00:00.000Z',
+              'note': 'پیگیری قدیمی',
+              'completed': true,
+            },
+          ],
+        },
+      ]),
     });
 
     final store = TaskStore();
-    await store.save(<Task>[
-      Task(id: 'runtime-original', title: 'کار اولیه'),
-    ]);
+    final migrated = await store.load();
+    expect(migrated.single.id, 'legacy-runtime');
+    expect(migrated.single.followUps.single.id, 'fu-runtime');
 
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -74,7 +93,18 @@ void main() {
       'type': ArvinBackupService.backupType,
       'formatVersion': ArvinBackupService.backupFormatVersion,
       'tasks': <Map<String, dynamic>>[
-        Task(id: 'runtime-restored', title: 'بازیابی واقعی').toJson(),
+        Task(
+          id: 'legacy-runtime',
+          title: 'بازیابی‌شده',
+          followUps: [
+            FollowUp(
+              id: 'fu-runtime',
+              dateTime: DateTime(2026, 9, 20, 10),
+              note: 'پیگیری بازیابی',
+              completed: true,
+            ),
+          ],
+        ).toJson(),
       ],
     };
 
@@ -83,15 +113,13 @@ void main() {
     expect(find.text('تأیید بازیابی'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-    // The page intentionally keeps a CircularProgressIndicator visible while
-    // the canonical store write completes, so settling the entire widget tree
-    // can wait forever on that animation. Advance the test clock instead and
-    // verify the persisted result directly from the canonical store.
     await tester.pump(const Duration(seconds: 1));
 
     final restored = await store.load();
-    expect(restored.map((task) => task.id), <String>['runtime-restored']);
-    expect(restored.single.title, 'بازیابی واقعی');
+    expect(restored.single.id, 'legacy-runtime');
+    expect(restored.single.title, 'بازیابی‌شده');
+    expect(restored.single.followUps.single.id, 'fu-runtime');
+    expect(restored.single.followUps.single.note, 'پیگیری بازیابی');
 
     await store.save(const <Task>[]);
   });
