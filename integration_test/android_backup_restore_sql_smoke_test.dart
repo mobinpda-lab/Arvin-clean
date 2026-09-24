@@ -64,6 +64,21 @@ void main() {
     final migrated = await store.load();
     expect(migrated.single.id, 'legacy-runtime');
     expect(migrated.single.followUps.single.id, 'fu-runtime');
+    expect(migrated.single.tags, <String>['مهم']);
+    expect(migrated.single.category, 'فروش');
+
+    // Complete the canonical cycle before backup: mutate through SQL, then
+    // read from a fresh TaskStore instance to prove restart-like persistence.
+    migrated.single.title = 'کار مهاجرتی ویرایش‌شده';
+    migrated.single.checklist = <String>['مرحله ذخیره'];
+    await store.save(migrated);
+    final freshStore = TaskStore();
+    final afterSave = await freshStore.load();
+    expect(afterSave.single.id, 'legacy-runtime');
+    expect(afterSave.single.title, 'کار مهاجرتی ویرایش‌شده');
+    expect(afterSave.single.tags, <String>['مهم']);
+    expect(afterSave.single.category, 'فروش');
+    expect(afterSave.single.checklist, <String>['مرحله ذخیره']);
 
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -73,7 +88,7 @@ void main() {
         home: BackupPage(
           manager: manager,
           loadTasks: () async =>
-              (await store.load()).map((task) => task.toJson()).toList(),
+              (await freshStore.load()).map((task) => task.toJson()).toList(),
           replaceTasks: (rawTasks) async {
             await store.save(
               rawTasks.map((raw) => Task.fromJson(raw)).toList(growable: false),
@@ -115,7 +130,7 @@ void main() {
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
     await tester.pump(const Duration(seconds: 1));
 
-    final restored = await store.load();
+    final restored = await TaskStore().load();
     expect(restored.single.id, 'legacy-runtime');
     expect(restored.single.title, 'بازیابی‌شده');
     expect(restored.single.followUps.single.id, 'fu-runtime');
