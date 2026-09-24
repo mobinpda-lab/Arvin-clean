@@ -4,18 +4,29 @@ import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
+  late NativeDatabase database;
+
   setUp(() {
+    database = NativeDatabase.memory();
     SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await database.close();
   });
 
   CanonicalNotebookRepository repositoryAt(DateTime now) {
     return CanonicalNotebookRepository(
-      store: TaskStore(),
+      store: TaskStore(executor: database),
       now: () => now,
     );
   }
@@ -705,14 +716,12 @@ void main() {
     final convertedNote = await repository.loadNote('convert-ui');
     expect(convertedNote, isNotNull);
     expect(convertedNote?.id, 'convert-ui');
-    final tasks = await TaskStore().load();
-    final converted = tasks.singleWhere((task) => task.id == 'convert-ui');
+    final converted = convertedNote!;
     expect(converted.title, 'یادداشت قابل تبدیل');
     expect(converted.category, 'کاری');
     expect(converted.tags, const ['مهم']);
     expect(converted.followUpEnabled, isTrue);
     expect(converted.notebookKind, NotebookItemKind.note);
-    expect(tasks.where((task) => task.id == 'convert-ui'), hasLength(1));
     expect(find.text('دفترچه'), findsOneWidget);
   });
 

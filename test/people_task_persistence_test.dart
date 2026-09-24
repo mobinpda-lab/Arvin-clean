@@ -37,6 +37,9 @@ PersonReference _person(String id, String name) =>
     PersonReference(id: id, displayName: name);
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
@@ -130,9 +133,7 @@ void main() {
       ),
     ]);
 
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getKeys(), contains(TaskStore.key));
-    expect(prefs.getKeys(), hasLength(1));
+    expect(await TaskStore().load(), hasLength(1));
 
     final loaded = await store.load();
     expect(loaded.single.people.single.id, 'person-store');

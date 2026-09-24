@@ -11,7 +11,8 @@ import 'package:arvin/task_timeline_page.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 

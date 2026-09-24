@@ -6,10 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
   });
-
   test('critical capture to follow-up path survives canonical persistence', () async {
     final createdAt = DateTime.utc(2026, 8, 26, 8, 30);
     final reminderAt = DateTime.utc(2026, 8, 27, 9);
@@ -56,11 +56,9 @@ void main() {
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);
 
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(TaskStore.key);
-    expect(raw, isNotNull);
-    expect(raw, contains('release-followup-1'));
-    expect(raw, contains('"recurrence"'));
-    expect(raw, contains('"reminderDate"'));
+    final persisted = (await TaskStore().load()).single;
+    expect(persisted.followUps.single.id, 'release-followup-1');
+    expect(persisted.recurrence, isNotNull);
+    expect(persisted.reminderDate, reminderAt);
   });
 }

@@ -7,6 +7,7 @@ import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/task_store.dart';
 
 class _RecordingScheduler implements AutomaticFollowUpSchedulerAdapter {
   int rescheduleCalls = 0;
@@ -21,6 +22,9 @@ class _RecordingScheduler implements AutomaticFollowUpSchedulerAdapter {
 }
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   testWidgets('real FollowUp office add write requests alarm rescheduling',
       (tester) async {
     SharedPreferences.setMockInitialValues({

@@ -3,10 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/task_store.dart';
 
 import 'package:arvin/main.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   testWidgets('Home primary add persists canonical task and preserves history',
       (tester) async {
     SharedPreferences.setMockInitialValues({
@@ -42,8 +46,7 @@ void main() {
 
     expect(find.text('تماس با علی'), findsOneWidget);
 
-    final prefs = await SharedPreferences.getInstance();
-    final raw = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final raw = (await TaskStore().load()).map((task) => task.toJson()).toList();
     expect(raw, hasLength(2));
     final existing = Map<String, dynamic>.from(
       raw.firstWhere((item) => (item as Map)['id'] == 'existing') as Map,

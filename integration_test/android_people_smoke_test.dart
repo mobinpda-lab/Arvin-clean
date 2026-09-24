@@ -106,11 +106,18 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('علی رضایی اندروید'), findsOneWidget);
-
     persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+    final personRow =
+        find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
+    for (var attempt = 0; attempt < 20 && personRow.evaluate().isEmpty; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(personRow, findsOneWidget);
+    await tester.ensureVisible(personRow);
+    await tester.pumpAndSettle();
+
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
     await tester.tap(find.byTooltip('حذف ارتباط'));
