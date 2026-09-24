@@ -1122,7 +1122,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       final fileName = await backupManager.backupCanonicalTasks(
-        _searchSource,
+        await taskStore.load(),
         settings: await _portableBackupSettings(),
       );
       if (!mounted) return;
@@ -1154,7 +1154,7 @@ class _HomePageState extends State<HomePage> {
           ? null
           : appSettingsService.decodePortableJson(candidate.settings!);
       final emergencyBackup = await backupManager.backupCanonicalTasks(
-        _searchSource,
+        await taskStore.load(),
         settings: await _portableBackupSettings(),
       );
 
