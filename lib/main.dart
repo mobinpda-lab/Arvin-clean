@@ -247,7 +247,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
-
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
       if (project.itemIds.contains(task.id)) return project.title.trim();
@@ -417,37 +416,6 @@ class _HomePageState extends State<HomePage> {
 
   List<String> get _homeTags => tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
 
-  Widget _homeFilterBar() {
-    final chips = <Widget>[];
-    void addChip(String label, bool selected, VoidCallback onSelected, {IconData? icon, Color accent = const Color(0xFF4A4CAB), bool newOption = false}) => chips.add(ArvinRadioBox(label: label, selected: selected, onTap: onSelected, icon: icon, accent: accent, newOption: newOption));
-    if (_homeGroupMode == HomeGroupMode.time) {
-      addChip('همه', _dueScope == null, () => setState(() => _dueScope = null));
-      addChip('عقب‌افتاده', _dueScope == TaskDueScope.overdue, () => setState(() => _dueScope = TaskDueScope.overdue));
-      addChip('امروز', _dueScope == TaskDueScope.today, () => setState(() => _dueScope = TaskDueScope.today));
-      addChip('آینده', _dueScope == TaskDueScope.future, () => setState(() => _dueScope = TaskDueScope.future));
-      addChip('بدون موعد', _dueScope == TaskDueScope.undated, () => setState(() => _dueScope = TaskDueScope.undated));
-    } else if (_homeGroupMode == HomeGroupMode.projects) {
-      addChip('همه پروژه‌ها', _projectFilter == null, () => setState(() => _projectFilter = null), icon: Icons.folder_outlined, accent: const Color(0xFF4B8FE8));
-      for (final project in projects.where((item) => !item.isArchived)) {
-        addChip(project.title, _projectFilter == project.id, () => setState(() => _projectFilter = project.id), icon: Icons.folder_outlined, accent: Color(project.colorValue));
-      }
-      addChip('بدون پروژه', _projectFilter == '__no_project__', () => setState(() => _projectFilter = '__no_project__'), icon: Icons.folder_off_outlined, accent: const Color(0xFF8A8B9C));
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProjectsLauncher())), newOption: true));
-    } else if (_homeGroupMode == HomeGroupMode.categories) {
-      addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null), icon: Icons.grid_view_rounded, accent: const Color(0xFF8C68D9));
-      for (final category in _homeCategories) {
-        addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
-      }
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
-    } else {
-      addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
-      for (final tag in _homeTags) {
-        addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
-      }
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF38A89B)));
-    }
-    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Wrap(textDirection: TextDirection.rtl, spacing: 6, runSpacing: 6, children: chips));
-  }
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -497,8 +465,7 @@ class _HomePageState extends State<HomePage> {
             projects.any((project) => project.id == group.id);
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Column(            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               InkWell(
                 borderRadius: BorderRadius.circular(12),
@@ -747,8 +714,7 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     String? selectedProjectId = editorContext.selectedProjectId;
     final edited = await showDialog<Task>(
-      context: context,
-      builder: (_) => ArvinTaskEditorDialog(
+      context: context,      builder: (_) => ArvinTaskEditorDialog(
         task: old,
         projects: editorContext.projects,
         selectedProjectId: editorContext.selectedProjectId,
@@ -997,8 +963,7 @@ class _HomePageState extends State<HomePage> {
         _dueScope = TaskDueScope.today;
       } else if (nextFilter == 'عقب‌افتاده') {
         filter = 'کل';
-        _dueScope = TaskDueScope.overdue;
-      } else {
+        _dueScope = TaskDueScope.overdue;      } else {
         filter = nextFilter;
         _dueScope = null;
       }
@@ -1247,8 +1212,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ],
-        ),
-      ),
+        ),      ),
     );
   }
 
@@ -1497,8 +1461,7 @@ class _HomePageState extends State<HomePage> {
     if (action == null || !mounted) return;
     switch (action) {
       case _HomeMoreAction.quickCapture:
-        await _quickCapture();
-        return;
+        await _quickCapture();        return;
       case _HomeMoreAction.myTasks:
         await _openMyTasks();
         return;
@@ -1747,8 +1710,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           preview ?? task.description,
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          overflow: TextOverflow.ellipsis,                          style: const TextStyle(
                             color: Color(0xFF80829C),
                             fontSize: 12,
                           ),
@@ -1998,67 +1960,3 @@ class _HomePageState extends State<HomePage> {
                                   },
                                   icon: const Icon(Icons.refresh),
                                   label: const Text('تلاش دوباره'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : _groupedTaskList(),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: selected.isEmpty && loadFailure == null
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: KeyedSubtree(
-                key: const ValueKey('home-canonical-add'),
-                child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
-              ),
-            )
-          : null,
-      bottomNavigationBar: selected.isEmpty
-          ? ArvinPrimaryNavigation(
-              selected: ArvinPrimaryDestination.home,
-              onSelected: _onPrimaryDestinationSelected,
-            )
-          : TaskBulkSelectionBar(
-              selectedCount: selected.length,
-              allVisibleSelected: taskBulkSelectionService.allVisibleSelected(
-                selected,
-                visible,
-              ),
-              onToggleAll: _toggleAllVisibleSelection,
-              onClearSelection: _clearBulkSelection,
-              onArchive: _archiveSelected,
-              onTrash: _trashSelected,
-              onCategory: _moveSelectedToCategory,
-              onTags: _addTagsToSelected,
-              onShare: _openSelectedReport,
-            ),
-    );
-  }
-}
-
-enum _HomeMoreAction {
-  quickCapture,
-  myTasks,
-  today,
-  undated,
-  archive,
-  trash,
-  backup,
-  settings,
-  taxonomy,
-  about,
-}
-
-/// Backward-compatible public entry retained for existing callers/tests.
-class TaskDialog extends StatelessWidget {
-  const TaskDialog({super.key, this.task});
-
-  final Task? task;
-
-  @override
-  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
-}
