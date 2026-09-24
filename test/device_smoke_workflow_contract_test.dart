@@ -17,7 +17,7 @@ void main() {
       contains('reactivecircus/android-emulator-runner@v2'),
     );
     expect(workflow, contains('people-device-smoke:'));
-    expect(workflow, contains('timeout-minutes: 20'));
+    expect(workflow, contains('timeout-minutes: 30'));
     expect(
       workflow,
       contains('integration_test/android_home_smoke_test.dart'),
@@ -28,8 +28,8 @@ void main() {
     );
     expect(
       'flutter test'.allMatches(workflow.split('people-device-smoke:').first).length,
-      1,
-      reason: 'Home and Quick Capture must share one Flutter/DDS session',
+      3,
+      reason: 'Home, Quick Capture, and Backup/Restore each use an isolated Flutter/DDS session',
     );
     expect(
       workflow,
