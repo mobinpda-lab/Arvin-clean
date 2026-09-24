@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/task_store.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/follow_up_office_page.dart';
@@ -10,6 +11,9 @@ import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/follow_up.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   Future<void> tapVisible(WidgetTester tester, String label) async {
     final finder = find.text(label);
     await tester.ensureVisible(finder);
@@ -54,8 +58,7 @@ void main() {
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final tasks = (await TaskStore().load()).map((task) => task.toJson()).toList();
     final task = Map<String, dynamic>.from(tasks.single as Map);
     final followUps = task['followUps'] as List<dynamic>;
     final saved = Map<String, dynamic>.from(followUps.single as Map);
@@ -98,8 +101,7 @@ void main() {
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final tasks = (await TaskStore().load()).map((task) => task.toJson()).toList();
     final task = Map<String, dynamic>.from(tasks.single as Map);
     final followUps = task['followUps'] as List<dynamic>;
     final saved = Map<String, dynamic>.from(followUps.single as Map);
@@ -145,8 +147,7 @@ void main() {
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final tasks = (await TaskStore().load()).map((task) => task.toJson()).toList();
     final first = Map<String, dynamic>.from(tasks[0] as Map);
     final second = Map<String, dynamic>.from(tasks[1] as Map);
     final firstFollowUps = first['followUps'] as List<dynamic>;
@@ -356,8 +357,7 @@ void main() {
     await tapVisible(tester, 'ذخیره تغییرات');
     await tester.pumpAndSettle();
 
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final tasks = (await TaskStore().load()).map((task) => task.toJson()).toList();
     final task = Map<String, dynamic>.from(tasks.single as Map);
     final followUps = task['followUps'] as List<dynamic>;
     final saved = Map<String, dynamic>.from(followUps.single as Map);
@@ -402,8 +402,7 @@ void main() {
       findsOneWidget,
     );
 
-    final prefs = await SharedPreferences.getInstance();
-    final tasks = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final tasks = (await TaskStore().load()).map((task) => task.toJson()).toList();
     final task = Map<String, dynamic>.from(tasks.single as Map);
 
     expect(task['followUps'], isEmpty);

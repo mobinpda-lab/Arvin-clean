@@ -8,6 +8,7 @@ import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +32,11 @@ Future<void> _openMoreMenu(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
+
+
   testWidgets('launcher accepts canonical follow-ups without parallel storage',
       (tester) async {
     final task = Task(

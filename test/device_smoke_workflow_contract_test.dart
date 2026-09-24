@@ -8,34 +8,20 @@ void main() {
         File('.github/workflows/device-smoke.yml').readAsStringSync();
 
     expect(workflow, contains('name: Arvin Device Smoke'));
-    expect(
-      workflow,
-      contains("github.event.pull_request.draft == false"),
-    );
-    expect(
-      workflow,
-      contains('reactivecircus/android-emulator-runner@v2'),
-    );
+    expect(workflow, contains("github.event.pull_request.draft == false"));
+    expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('people-device-smoke:'));
     expect(workflow, contains('timeout-minutes: 20'));
-    expect(
-      workflow,
-      contains('integration_test/android_home_smoke_test.dart'),
-    );
-    expect(
-      workflow,
-      contains('integration_test/android_quick_capture_smoke_test.dart'),
-    );
+    expect(workflow, contains('integration_test/android_home_smoke_test.dart'));
+    expect(workflow, contains('integration_test/android_quick_capture_smoke_test.dart'));
     expect(
       'flutter test'.allMatches(workflow.split('people-device-smoke:').first).length,
-      1,
-      reason: 'Home and Quick Capture must share one Flutter/DDS session',
+      2,
+      reason: 'Home and Quick Capture must run in separate Flutter/DDS sessions',
     );
     expect(
       workflow,
-      contains(
-        'flutter test integration_test/android_people_smoke_test.dart -d emulator-',
-      ),
+      contains('flutter test integration_test/android_people_smoke_test.dart -d emulator-'),
     );
   });
 }

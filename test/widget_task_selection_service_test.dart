@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
@@ -20,9 +23,7 @@ void main() {
 
     expect(task?.id, 'task-42');
     expect(task?.title, 'کار انتخاب‌شده');
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getKeys(), contains(TaskStore.key));
-    expect(preferences.getKeys(), hasLength(1));
+    expect(await TaskStore().load(), hasLength(2));
   });
 
   test('ignores missing, empty and trashed Widget Task ids', () async {

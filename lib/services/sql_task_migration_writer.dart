@@ -36,7 +36,8 @@ class SqlTaskMigrationWriter {
 
     await executor.runCustom('BEGIN');
     try {
-      for (final record in records) {
+      for (var storageOrdinal = 0; storageOrdinal < records.length; storageOrdinal++) {
+        final record = records[storageOrdinal];
         final exists = await executor.runSelect(
           'SELECT id FROM tasks WHERE id = ? LIMIT 1',
           <Object?>[record.task.id],
@@ -46,7 +47,7 @@ class SqlTaskMigrationWriter {
           continue;
         }
 
-        await _insertTask(executor, record);
+        await _insertTask(executor, record, storageOrdinal);
         inserted++;
       }
 
@@ -72,18 +73,20 @@ class SqlTaskMigrationWriter {
   Future<void> _insertTask(
     QueryExecutor executor,
     TaskMigrationRecord record,
+    int storageOrdinal,
   ) async {
     final task = record.task;
 
     await executor.runInsert(
       '''INSERT INTO tasks (
-        id, title, description, created_at, updated_at, due_date,
+        id, storage_ordinal, title, description, created_at, updated_at, due_date,
         follow_up_enabled, follow_up_date, category, notebook_kind,
         reminder_date, priority, archived, trashed, completed,
         recurrence_json, legacy_payload_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id,
+        storageOrdinal,
         task.title,
         task.description,
         task.createdAt?.toIso8601String(),
