@@ -78,6 +78,16 @@ jobs:
           disable-animations: true
           script: flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
 
+      # Exact-head runtime gate for canonical SQL persistence.
+      - name: Run canonical SQL persistence smoke on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: flutter test integration_test/android_sql_persistence_smoke_test.dart -d emulator-${EMULATOR_PORT}
+
       # Exact-head runtime gate for canonical SQL backup/restore.
       - name: Run canonical Backup/Restore SQL smoke on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
