@@ -16,8 +16,8 @@ void main() {
     expect(workflow, contains('integration_test/android_quick_capture_smoke_test.dart'));
     expect(
       'flutter test'.allMatches(workflow.split('people-device-smoke:').first).length,
-      2,
-      reason: 'Home and Quick Capture must run in separate Flutter/DDS sessions',
+      3,
+      reason: 'Home, Quick Capture, and Backup/Restore must run in separate Flutter/DDS sessions',
     );
     expect(
       workflow,
