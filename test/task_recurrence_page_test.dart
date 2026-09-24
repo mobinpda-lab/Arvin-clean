@@ -9,6 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
+
+
   testWidgets('UI enables recurrence and persists interval on canonical Task', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
