@@ -76,8 +76,7 @@ class TaskStore {
     // isolated so they cannot contend on the production `arvin` database or
     // leak data/migration markers between test zones.
     if (Platform.environment['FLUTTER_TEST'] == 'true') {
-      const testKey = #arvinTestDatabase;
-      return _testDatabases[_testDatabaseKey] ??= NativeDatabase.memory();
+            return _testDatabases[_testDatabaseKey] ??= NativeDatabase.memory();
     }
 
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
