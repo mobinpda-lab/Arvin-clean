@@ -17,16 +17,15 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
-  static final Map<Object, QueryExecutor> _testDatabases = <Object, QueryExecutor>{};
+  static QueryExecutor? _testDatabase;
 
   /// Clears only the in-memory SQL executor cache used by Flutter tests.
   /// Production databases are never touched.
   static Future<void> resetTestDatabase() async {
     if (Platform.environment['FLUTTER_TEST'] != 'true') return;
-    for (final executor in _testDatabases.values) {
-      await executor.close();
-    }
-    _testDatabases.clear();
+    final executor = _testDatabase;
+    _testDatabase = null;
+    if (executor != null) await executor.close();
   }
 
   final QueryExecutor? _injectedExecutor;
@@ -71,11 +70,11 @@ class TaskStore {
     final injected = _injectedExecutor;
     if (injected != null) return injected;
 
-    // Each Flutter test runs in its own Zone. Keep SQL state isolated per
-    // test while still sharing one in-memory database across the TaskStore
-    // instances created inside that test.
+    // Flutter tests run sequentially in this process. Use one in-memory
+    // executor per test so every TaskStore instance in the test sees the same
+    // SQL state, regardless of async callback Zone changes.
     if (Platform.environment['FLUTTER_TEST'] == 'true') {
-      return _testDatabases[Zone.current] ??= NativeDatabase.memory();
+      return _testDatabase ??= NativeDatabase.memory();
     }
 
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
