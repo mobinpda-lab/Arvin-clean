@@ -109,10 +109,12 @@ void main() {
     persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
-    expect(
-      find.byKey(ValueKey('people-row-${persisted.people.single.id}')),
-      findsOneWidget,
-    );
+    final personRow =
+        find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(personRow);
+    await tester.pumpAndSettle();
+    expect(personRow, findsOneWidget);
 
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
