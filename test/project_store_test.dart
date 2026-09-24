@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() async {
     await ProjectStore.resetTestDatabase();
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
@@ -49,6 +50,20 @@ void main() {
 
     await store.clear();
     expect(await store.load(), isEmpty);
+  });
+
+  test('legacy project membership migrates after canonical task migration', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      TaskStore.key: '[{"id":"legacy-task","title":"کار قدیمی"}]',
+      ProjectStore.key: '[{"id":"legacy-project","title":"پروژه قدیمی","itemIds":["legacy-task"]}]',
+    });
+
+    final projects = await ProjectStore().load();
+    final tasks = await TaskStore().load();
+
+    expect(tasks.map((task) => task.id), contains('legacy-task'));
+    expect(projects.single.id, 'legacy-project');
+    expect(projects.single.itemIds, ['legacy-task']);
   });
 
   test('legacy project json migrates into SQL and stays canonical', () async {
