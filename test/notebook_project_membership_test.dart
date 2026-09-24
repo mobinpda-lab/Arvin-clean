@@ -60,7 +60,7 @@ void main() {
     expect(projects.every((project) => project.itemIds.isEmpty), isTrue);
     expect(await repository.projectIdForNote(note.id), isNull);
 
-    final storedNote = (await TaskStore().load()).single;
+    final storedNote = (await TaskStore(executor: database).load()).single;
     expect(storedNote.id, 'note-project');
     expect(storedNote.title, 'یادداشت پروژه');
     expect(storedNote.toJson().containsKey('projectId'), isFalse);
@@ -72,7 +72,7 @@ void main() {
   });
 
   test('Notebook project membership survives editor UI removal', () async {
-    final projectStore = ProjectStore();
+    final projectStore = ProjectStore(executor: database);
     await projectStore.save([
       ProjectPlan(id: 'active-project', title: 'پروژه فعال'),
       ProjectPlan(
