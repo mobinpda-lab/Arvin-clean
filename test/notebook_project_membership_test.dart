@@ -97,14 +97,14 @@ void main() {
     expect(stored?.id, 'ui-project-note');
     expect(stored?.title, 'یادداشت من');
 
-    final taskStoreRecord = (await TaskStore().load()).single;
+    final taskStoreRecord = (await TaskStore(executor: database).load()).single;
     expect(taskStoreRecord.id, 'ui-project-note');
     expect(taskStoreRecord.toJson().containsKey('projectId'), isFalse);
   });
 
   test('archived Project membership remains canonical without editor selector',
       () async {
-    final projectStore = ProjectStore();
+    final projectStore = ProjectStore(executor: database);
     await projectStore.save([
       ProjectPlan(
         id: 'archived-project',
