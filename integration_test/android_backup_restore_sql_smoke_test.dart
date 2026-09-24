@@ -79,7 +79,7 @@ void main() {
     };
 
     await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.text('تأیید بازیابی'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
