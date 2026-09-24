@@ -6,12 +6,12 @@ class UserGuidePage extends StatelessWidget {
   static const _sections = <_GuideSection>[
     _GuideSection(
       icon: Icons.add_circle_outline,
-      title: 'ساخت کار جدید',
+      title: 'ساخت کار',
       summary:
           'یک عنوان بنویسید، در صورت نیاز توضیح، برچسب و تاریخ پیگیری اضافه کنید و ذخیره را بزنید.',
       steps: <String>[
-        'در صفحه اصلی روی «کار جدید» بزنید.',
-        'عنوان کار را بنویسید؛ توضیحات و برچسب اختیاری هستند.',
+        'از «ثبت سریع» برای ثبت فوری استفاده کنید؛ برای جزئیات بیشتر، همان کار را بعداً باز کنید و ویرایش کنید.',
+        'عنوان کار را بنویسید؛ جزئیات تکمیلی در مسیر ویرایش همان کار قابل ثبت است.',
         'اگر لازم است دوباره سراغ کار بروید، تاریخ پیگیری تعیین کنید.',
         'روی «ذخیره» بزنید.',
       ],
@@ -44,7 +44,7 @@ class UserGuidePage extends StatelessWidget {
           'با جست‌وجو کارهای قدیمی را پیدا کنید و از «امروز» کارهای مربوط به روز جاری را ببینید.',
       steps: <String>[
         'برای پیدا کردن کار، بخشی از عنوان، توضیح یا برچسب را در جست‌وجو بنویسید.',
-        'از منوی برنامه «امروز» را انتخاب کنید تا کارهای مربوط به امروز نمایش داده شوند.',
+        'از مسیر فعلی برنامه وارد «امروز» شوید تا کارهای مربوط به امروز نمایش داده شوند.',
       ],
     ),
     _GuideSection(
@@ -53,7 +53,7 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'پیگیری‌ها را روی تقویم ببینید و از همان بخش به دفترچه، اقدام بعدی و خط زمانی دسترسی داشته باشید.',
       steps: <String>[
-        'از منوی برنامه وارد «تقویم» شوید.',
+        'از نوار اصلی وارد «تقویم» شوید.',
         'روزهای دارای پیگیری را بررسی کنید.',
         'در صورت نیاز از دکمه‌های «دفترچه»، «اقدام بعدی» یا «خط زمانی» استفاده کنید.',
       ],
@@ -76,8 +76,8 @@ class UserGuidePage extends StatelessWidget {
           'قبل از تعویض یا ریست گوشی، از اطلاعات آروین نسخه پشتیبان بگیرید.',
       steps: <String>[
         'ابتدا پوشه پشتیبان را انتخاب کنید.',
-        'گزینه «ایجاد Backup» را بزنید.',
-        'برای برگرداندن اطلاعات، «Restore از فایل» را انتخاب کنید و پیام تأیید را با دقت بخوانید.',
+        'گزینه «ایجاد پشتیبان» را بزنید.',
+        'برای برگرداندن اطلاعات، «بازیابی از فایل» را انتخاب کنید و پیام تأیید را با دقت بخوانید.',
       ],
     ),
     _GuideSection(
@@ -230,7 +230,7 @@ class _HomeVisualGuide extends StatelessWidget {
                                 style: TextStyle(fontSize: 8),
                               ),
                               Text(
-                                'مدیریت کارها وپیگیری آروین',
+                                'مدیریت کارها و پیگیری آروین',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -242,8 +242,6 @@ class _HomeVisualGuide extends StatelessWidget {
                           const _NumberBadge(number: 2),
                           const SizedBox(width: 2),
                           const Icon(Icons.bolt_outlined, size: 18),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.backup_outlined, size: 18),
                         ],
                       ),
                     ),
@@ -421,7 +419,7 @@ class _HomeVisualGuide extends StatelessWidget {
             const _VisualLegend(
               number: 2,
               title: 'ثبت سریع و پشتیبان',
-              text: 'صاعقه برای ثبت سریع است و آیکون پشتیبان برای Backup/Restore.',
+              text: 'ثبت سریع برای ورود فوری است؛ پشتیبان‌گیری و بازیابی از بخش مربوط به پشتیبان انجام می‌شود.',
             ),
             const _VisualLegend(
               number: 3,
@@ -431,12 +429,12 @@ class _HomeVisualGuide extends StatelessWidget {
             const _VisualLegend(
               number: 4,
               title: 'فیلترها',
-              text: 'بین کارهای فعال، بایگانی و سطل زباله جابه‌جا شوید.',
+              text: 'فیلترها و دسته‌بندی‌های کار از مسیر «بیشتر» در دسترس هستند.',
             ),
             const _VisualLegend(
               number: 5,
               title: 'خلاصه وضعیت',
-              text: 'تعداد کل، فعال، انجام‌شده و عقب‌افتاده را یک‌جا ببینید.',
+              text: 'صفحه اصلی وضعیت و کارهای مرتبط را طبق قرارداد فعلی آروین نمایش می‌دهد.',
             ),
             const _VisualLegend(
               number: 6,
@@ -446,7 +444,7 @@ class _HomeVisualGuide extends StatelessWidget {
             const _VisualLegend(
               number: 7,
               title: 'کار جدید',
-              text: 'برای ساخت یک کار کامل با عنوان، توضیح، برچسب و تاریخ پیگیری.',
+              text: 'برای شروع یک کار جدید؛ جزئیات تکمیلی را بعداً در همان کار ویرایش کنید.',
             ),
           ],
         ),
@@ -597,7 +595,7 @@ class _QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = <(IconData, String)>[
-      (Icons.add, '«کار جدید» را بزنید'),
+      (Icons.add, '«ثبت سریع» را بزنید'),
       (Icons.edit_outlined, 'عنوان کار را بنویسید'),
       (Icons.event_outlined, 'اگر لازم است تاریخ پیگیری بگذارید'),
       (Icons.save_outlined, 'ذخیره کنید'),
