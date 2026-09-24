@@ -111,10 +111,12 @@ void main() {
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
     final personRow =
         find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
-    await tester.pump(const Duration(milliseconds: 300));
+    for (var attempt = 0; attempt < 20 && personRow.evaluate().isEmpty; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(personRow, findsOneWidget);
     await tester.ensureVisible(personRow);
     await tester.pumpAndSettle();
-    expect(personRow, findsOneWidget);
 
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
