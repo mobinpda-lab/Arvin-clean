@@ -11,7 +11,7 @@ void main() {
     expect(workflow, contains("github.event.pull_request.draft == false"));
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('people-device-smoke:'));
-    expect(workflow, contains('timeout-minutes: 20'));
+    expect(workflow, contains('timeout-minutes: 30'));
     expect(workflow, contains('integration_test/android_home_smoke_test.dart'));
     expect(workflow, contains('integration_test/android_quick_capture_smoke_test.dart'));
     expect(
