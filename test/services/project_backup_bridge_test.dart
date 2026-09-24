@@ -5,7 +5,6 @@ import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/native.dart';
 
 class _RecordingBackupManager extends ArvinBackupManager {
@@ -30,7 +29,6 @@ void main() {
 
   setUp(() {
     database = NativeDatabase.memory();
-    SharedPreferences.setMockInitialValues({});
   });
 
   tearDown(() async => database.close());
@@ -57,7 +55,7 @@ void main() {
   });
 
   test('restore writes candidate Projects through canonical ProjectStore', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
     final bridge = ProjectBackupBridge(projectStore: store);
     final candidate = (
       tasks: <Task>[],
