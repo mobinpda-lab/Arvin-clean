@@ -2,7 +2,7 @@ name: Arvin Parallel Wave
 
 on:
   push:
-    branches: ['wave/**', 'ci/**', 'feature/**']
+    branches: ['wave/**', 'ci/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
