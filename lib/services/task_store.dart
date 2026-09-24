@@ -98,13 +98,22 @@ class TaskStore {
       throw const FormatException('Canonical task storage must contain a list');
     }
     final rows = await executor.runSelect(
-      'SELECT COUNT(*) AS count FROM tasks',
+      'SELECT id FROM tasks ORDER BY storage_ordinal, id',
       const [],
     );
-    final sqlCount = (rows.single['count'] as num).toInt();
-    if (sqlCount != source.length) {
+    final sqlIds = rows.map((row) => row['id'] as String).toList(growable: false);
+    final sourceIds = <String>[];
+    for (final item in source) {
+      if (item is! Map || item['id'] is! String) {
+        throw const FormatException('Legacy task entry must contain a string id');
+      }
+      sourceIds.add(item['id'] as String);
+    }
+    if (sqlIds.length != sourceIds.length ||
+        !List<String>.from(sqlIds).toSet().containsAll(sourceIds) ||
+        !List<String>.from(sourceIds).toSet().containsAll(sqlIds)) {
       throw StateError(
-        'SQL migration count mismatch: legacy=${source.length}, sql=$sqlCount',
+        'SQL migration identity mismatch: legacy=${sourceIds.length}, sql=${sqlIds.length}',
       );
     }
   }
