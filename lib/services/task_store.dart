@@ -72,11 +72,11 @@ class TaskStore {
     final injected = _injectedExecutor;
     if (injected != null) return injected;
 
-    // Flutter test suites run in parallel processes. Keep their SQL stores
-    // isolated so they cannot contend on the production `arvin` database or
-    // leak data/migration markers between test zones.
+    // Each Flutter test runs in its own Zone. Keep SQL state isolated per
+    // test while still sharing one in-memory database across the TaskStore
+    // instances created inside that test.
     if (Platform.environment['FLUTTER_TEST'] == 'true') {
-            return _testDatabases[_testDatabaseKey] ??= NativeDatabase.memory();
+      return _testDatabases[Zone.current] ??= NativeDatabase.memory();
     }
 
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
