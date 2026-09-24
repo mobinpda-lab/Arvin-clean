@@ -4,6 +4,7 @@ import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +28,9 @@ void main() {
   CanonicalNotebookRepository repositoryAt(DateTime now) {
     return CanonicalNotebookRepository(
       store: TaskStore(executor: database),
+      projectAssignmentService: TaskProjectAssignmentService(
+        store: ProjectStore(executor: database),
+      ),
       now: () => now,
     );
   }
