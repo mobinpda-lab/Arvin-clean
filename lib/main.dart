@@ -7,7 +7,6 @@ import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
-import 'services/home_today_projection.dart';
 import 'services/interactive_guide_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -131,7 +130,6 @@ class _HomePageState extends State<HomePage> {
   final InteractiveGuideService interactiveGuideService =
       InteractiveGuideService();
   final HomeSearchProjection homeSearchProjection = const HomeSearchProjection();
-  final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
   final TaskListScopeService taskListScopeService = const TaskListScopeService();
   final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
