@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/goal_project.dart';
 import 'g1_drift_schema.dart';
 import 'project_plan_codec.dart';
+import 'task_store.dart';
 
 /// Canonical local persistence for Arvin Projects.
 ///
@@ -46,6 +47,10 @@ class ProjectStore {
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
+    // Tasks own the referenced identity. Migrate/initialize them first so
+    // legacy Project memberships can satisfy the SQL foreign key without
+    // losing any membership during the one-way cutover.
+    await TaskStore(executor: executor).load();
     final marker = await executor.runSelect(
       "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_projects_migrated'",
       const [],
