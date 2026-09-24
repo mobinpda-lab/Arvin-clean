@@ -36,7 +36,10 @@ void main() {
   });
 
   test('null Project keeps Task valid and unassigned', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([
+      Task(id: 'task-1', title: 'کار'),
+    ]);
     await store.save([
       ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-1']),
     ]);
