@@ -3,7 +3,6 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/quick_capture_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() async {
@@ -59,11 +58,9 @@ void main() {
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);
 
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(TaskStore.key);
-    expect(raw, isNotNull);
-    expect(raw, contains('release-followup-1'));
-    expect(raw, contains('"recurrence"'));
-    expect(raw, contains('"reminderDate"'));
+    final persisted = (await TaskStore().load()).single;
+    expect(persisted.followUps.single.id, 'release-followup-1');
+    expect(persisted.recurrence, isNotNull);
+    expect(persisted.reminderDate, reminderAt);
   });
 }
