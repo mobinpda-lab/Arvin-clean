@@ -68,6 +68,7 @@ jobs:
           target: default
           disable-animations: true
           script: flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+
       - name: Run canonical Quick Capture smoke on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -76,6 +77,7 @@ jobs:
           target: default
           disable-animations: true
           script: flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+
       # Exact-head runtime gate for canonical SQL backup/restore.
       - name: Run canonical Backup/Restore SQL smoke on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
