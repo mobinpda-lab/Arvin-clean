@@ -42,7 +42,7 @@ void main() {
     expect(stored.isNotebookItem, isTrue);
     expect(stored.followUps, isEmpty);
 
-    expect(await TaskStore().load(), hasLength(1));
+    expect(await TaskStore(executor: database).load(), hasLength(1));
   });
 
   test('preset starter checklist is created in the same canonical Task', () async {
