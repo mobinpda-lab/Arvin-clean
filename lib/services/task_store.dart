@@ -17,7 +17,7 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
-  static final Map<Zone, QueryExecutor> _testDatabases = <Zone, QueryExecutor>{};
+  static final Map<Object, QueryExecutor> _testDatabases = <Object, QueryExecutor>{};
 
   final QueryExecutor? _injectedExecutor;
 
@@ -65,7 +65,8 @@ class TaskStore {
     // isolated so they cannot contend on the production `arvin` database or
     // leak data/migration markers between test zones.
     if (Platform.environment['FLUTTER_TEST'] == 'true') {
-      return _testDatabases[Zone.current] ??= NativeDatabase.memory();
+      final testKey = Zone.current[#test.invoker] ?? Zone.current;
+      return _testDatabases[testKey] ??= NativeDatabase.memory();
     }
 
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
