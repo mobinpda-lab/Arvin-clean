@@ -8,10 +8,6 @@ void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
   });
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-  });
-
   test('critical capture to follow-up path survives canonical persistence', () async {
     final createdAt = DateTime.utc(2026, 8, 26, 8, 30);
     final reminderAt = DateTime.utc(2026, 8, 27, 9);
