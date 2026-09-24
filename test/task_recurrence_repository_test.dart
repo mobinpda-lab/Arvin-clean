@@ -8,6 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
@@ -38,11 +41,8 @@ void main() {
     expect(loaded.single.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(loaded.single.recurrence?.interval, 2);
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getKeys(), contains(TaskStore.key));
-    expect(preferences.getKeys(), hasLength(1));
-    final raw = jsonDecode(preferences.getString(TaskStore.key)!) as List;
-    expect((raw.single as Map)['recurrence'], isNotNull);
+    final stored = (await TaskStore().load()).single;
+    expect(stored.recurrence, isNotNull);
 
     await repository.setRule('task-1', null);
     loaded = await store.load();
