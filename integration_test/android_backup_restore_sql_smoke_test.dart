@@ -83,7 +83,11 @@ void main() {
     expect(find.text('تأیید بازیابی'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-    await tester.pumpAndSettle();
+    // The page intentionally keeps a CircularProgressIndicator visible while
+    // the canonical store write completes, so settling the entire widget tree
+    // can wait forever on that animation. Advance the test clock instead and
+    // verify the persisted result directly from the canonical store.
+    await tester.pump(const Duration(seconds: 1));
 
     final restored = await store.load();
     expect(restored.map((task) => task.id), <String>['runtime-restored']);
