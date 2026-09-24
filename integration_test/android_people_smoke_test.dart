@@ -109,7 +109,10 @@ void main() {
     persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
-    expect(find.text('علی رضایی اندروید'), findsOneWidget);
+    expect(
+      find.byKey(ValueKey('people-row-${persisted.people.single.id}')),
+      findsOneWidget,
+    );
 
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
