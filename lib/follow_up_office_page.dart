@@ -26,7 +26,6 @@ class FollowUpOfficePage extends StatefulWidget {
 }
 
 class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
-  static const _storeKey = 'arvin.tasks';
   static const _waitingService = WaitingForResponseService();
   static const _automaticService = AutomaticFollowUpService();
   static const _dateFormatter = PersianDateFormatter();
