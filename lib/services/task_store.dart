@@ -19,6 +19,16 @@ class TaskStore {
   static DatabaseConnection? _sharedDatabase;
   static final Map<Object, QueryExecutor> _testDatabases = <Object, QueryExecutor>{};
 
+  /// Clears only the in-memory SQL executor cache used by Flutter tests.
+  /// Production databases are never touched.
+  static Future<void> resetTestDatabase() async {
+    if (Platform.environment['FLUTTER_TEST'] != 'true') return;
+    for (final executor in _testDatabases.values) {
+      await executor.close();
+    }
+    _testDatabases.clear();
+  }
+
   final QueryExecutor? _injectedExecutor;
 
   TaskStore({QueryExecutor? executor}) : _injectedExecutor = executor;
