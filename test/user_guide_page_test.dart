@@ -22,7 +22,7 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('ساخت کار جدید'), findsOneWidget);
+    expect(find.text('ساخت کار'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('ثبت سریع'),
