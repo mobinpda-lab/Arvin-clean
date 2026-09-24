@@ -21,6 +21,7 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
   Task? task;
   bool loading = true;
   String? errorMessage;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -29,16 +30,17 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     try {
       final value = await widget.service.loadRequiredTask(widget.taskId);
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         task = value;
         loading = false;
         errorMessage = null;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         loading = false;
         errorMessage = 'اطلاعات افراد این کار در دسترس نیست';
@@ -92,7 +94,6 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
       );
       if (!mounted) return;
       setState(() => task = updated);
-      await _load();
     } on ArgumentError {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
