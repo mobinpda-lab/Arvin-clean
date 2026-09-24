@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
   late NativeDatabase database;
 
   setUp(() {
@@ -39,9 +42,7 @@ void main() {
     expect(stored.isNotebookItem, isTrue);
     expect(stored.followUps, isEmpty);
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.containsKey(TaskStore.key), isTrue);
-    expect(preferences.getKeys(), {TaskStore.key});
+    expect(await TaskStore().load(), hasLength(1));
   });
 
   test('preset starter checklist is created in the same canonical Task', () async {
@@ -63,8 +64,7 @@ void main() {
     expect(stored.isSimpleNote, isFalse);
     expect(stored.isNotebookItem, isTrue);
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getKeys(), {TaskStore.key});
+    expect(await TaskStore().load(), hasLength(1));
   });
   test('note converts to Task on the same canonical identity', () async {
     var now = DateTime.utc(2026, 9, 19, 10);
