@@ -49,6 +49,8 @@ class G1DriftSchema implements QueryExecutorUser {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
+    await executor.runCustom('PRAGMA busy_timeout = 5000');
+    await executor.runCustom('PRAGMA synchronous = NORMAL');
     await executor.runCustom('BEGIN');
     try {
       for (final statement in _statements) {
