@@ -3,10 +3,12 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/quick_capture_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
   });
   test('critical capture to follow-up path survives canonical persistence', () async {
     final createdAt = DateTime.utc(2026, 8, 26, 8, 30);
