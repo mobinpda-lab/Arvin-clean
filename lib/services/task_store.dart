@@ -18,6 +18,7 @@ class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
   static final Map<Object, QueryExecutor> _testDatabases = <Object, QueryExecutor>{};
+  static final Object _testDatabaseKey = Object();
 
   /// Clears only the in-memory SQL executor cache used by Flutter tests.
   /// Production databases are never touched.
@@ -75,8 +76,8 @@ class TaskStore {
     // isolated so they cannot contend on the production `arvin` database or
     // leak data/migration markers between test zones.
     if (Platform.environment['FLUTTER_TEST'] == 'true') {
-      final testKey = Zone.current[#test.invoker] ?? Zone.current;
-      return _testDatabases[testKey] ??= NativeDatabase.memory();
+      const testKey = #arvinTestDatabase;
+      return _testDatabases[_testDatabaseKey] ??= NativeDatabase.memory();
     }
 
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
