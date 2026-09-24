@@ -52,7 +52,10 @@ void main() {
   });
 
   test('unknown Project fails before changing stored membership', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([
+      Task(id: 'task-1', title: 'کار'),
+    ]);
     await store.save([
       ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-1']),
     ]);
