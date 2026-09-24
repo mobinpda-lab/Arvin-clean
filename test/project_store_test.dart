@@ -1,6 +1,8 @@
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/models/task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -10,6 +12,11 @@ void main() {
   });
 
   test('saves and restores canonical project identity color and membership', () async {
+    final taskStore = TaskStore();
+    await taskStore.save([
+      Task(id: 'task-1', title: 'یک'),
+      Task(id: 'task-2', title: 'دو'),
+    ]);
     final store = ProjectStore();
     final projects = [
       ProjectPlan(
