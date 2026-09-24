@@ -347,7 +347,7 @@ void main() {
   testWidgets('project picker assigns and clears the same canonical note',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12));
-    await ProjectStore().save([
+    await ProjectStore(executor: database).save([
       ProjectPlan(id: 'project-a', title: 'پروژه آروین'),
       ProjectPlan(id: 'archived', title: 'پروژه بایگانی', isArchived: true),
     ]);
