@@ -49,7 +49,7 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
-    expect(find.text('۱۴۰۵/۰۶/۰۸ ۱۴:۳۰'), findsOneWidget);
+    expect(find.text('۱۴۰۵/۰۶/۰۸ • ۱۴:۳۰'), findsOneWidget);
     expect(find.textContaining('2026'), findsNothing);
   });
 
