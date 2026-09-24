@@ -23,7 +23,6 @@ void main() {
 
     expect(task?.id, 'task-42');
     expect(task?.title, 'کار انتخاب‌شده');
-    final preferences = await SharedPreferences.getInstance();
     expect(await TaskStore().load(), hasLength(1));
   });
 
