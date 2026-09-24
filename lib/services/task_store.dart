@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +16,7 @@ typedef TaskMutation<T> = T Function(List<Task> tasks);
 class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
+  static final Map<Zone, QueryExecutor> _testDatabases = <Zone, QueryExecutor>{};
 
   final QueryExecutor? _injectedExecutor;
 
@@ -56,6 +59,14 @@ class TaskStore {
   QueryExecutor get _database {
     final injected = _injectedExecutor;
     if (injected != null) return injected;
+
+    // Flutter test suites run in parallel processes. Keep their SQL stores
+    // isolated so they cannot contend on the production `arvin` database or
+    // leak data/migration markers between test zones.
+    if (Platform.environment['FLUTTER_TEST'] == 'true') {
+      return _testDatabases[Zone.current] ??= NativeDatabase.memory();
+    }
+
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
