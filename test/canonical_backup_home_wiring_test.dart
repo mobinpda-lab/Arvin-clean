@@ -9,7 +9,7 @@ void main() {
     expect(source, contains("import 'services/task_store.dart';"));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
     expect(source, contains('backupManager.backupCanonicalTasks('));
-    expect(source, contains("backupManager.backupCanonicalTasks(\n        await taskStore.load(),"));
+    expect(source, contains("backupManager.backupCanonicalTasks(\n        await taskStore.load(),\n      );"));
     expect(source, isNot(contains('backupManager.backupCanonicalTasks(\n        _searchSource,'));
     expect(source, contains("'backupSchedule': schedule.toPortableJson()"));
     expect(source, contains('settings: await _portableBackupSettings()'));
