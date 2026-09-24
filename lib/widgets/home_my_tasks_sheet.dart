@@ -44,7 +44,7 @@ Future<HomeTaskFilterSelection?> showHomeMyTasksSheet({
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 4, 16, 10),
               child: Text(
-                'کارهای من',
+                'فیلتر کارها',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
               ),
             ),
