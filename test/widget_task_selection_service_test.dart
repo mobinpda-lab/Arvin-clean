@@ -24,8 +24,7 @@ void main() {
     expect(task?.id, 'task-42');
     expect(task?.title, 'کار انتخاب‌شده');
     final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getKeys(), contains(TaskStore.key));
-    expect(preferences.getKeys(), hasLength(1));
+    expect(await TaskStore().load(), hasLength(1));
   });
 
   test('ignores missing, empty and trashed Widget Task ids', () async {
