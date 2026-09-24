@@ -22,7 +22,7 @@ jobs:
   device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -67,7 +67,23 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test integration_test/android_home_smoke_test.dart integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+          script: flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
+      - name: Run canonical Quick Capture smoke on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
+      - name: Run canonical Backup/Restore SQL smoke on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: flutter test integration_test/android_backup_restore_sql_smoke_test.dart -d emulator-${EMULATOR_PORT}
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
