@@ -60,8 +60,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Full-form editing returns to the Quick Capture sheet; close that
-    // intentional sheet before exercising the primary navigation.
-    await tester.pageBack();
+    // intentional sheet through its visible cancel action before navigation.
+    await tester.tap(find.byKey(const ValueKey('quick-capture-cancel')));
     await tester.pumpAndSettle();
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
