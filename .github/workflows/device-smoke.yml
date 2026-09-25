@@ -22,6 +22,7 @@ jobs:
   # All canonical Android scenarios are independent. Keep them in one matrix so
   # GitHub can schedule them concurrently while max-parallel protects emulator stability.
   device-smoke:
+    name: device-smoke (${{ matrix.scenario }})
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -42,7 +43,6 @@ jobs:
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
           - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
-      # GitHub supplies the matrix suffix to this job automatically.
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -95,4 +95,3 @@ jobs:
           target: default
           disable-animations: true
           script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-
