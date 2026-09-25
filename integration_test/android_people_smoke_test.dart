@@ -59,6 +59,11 @@ void main() {
     await tester.tap(saveTask);
     await tester.pumpAndSettle();
 
+    // Full-form editing returns to the Quick Capture sheet; close that
+    // intentional sheet before exercising the primary navigation.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
