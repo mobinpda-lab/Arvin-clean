@@ -223,6 +223,14 @@ class TaskStore {
 
     await executor.runCustom('BEGIN');
     try {
+      // Project membership is canonical SQL data owned by ProjectStore, but
+      // project_items references tasks. Preserve those relationship rows while
+      // this legacy-compatible TaskStore rewrite replaces the task rows.
+      final projectItems = await executor.runSelect(
+        'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
+        const [],
+      );
+      await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM tags');
       await executor.runCustom('DELETE FROM task_people');
@@ -262,6 +270,15 @@ class TaskStore {
         );
         await _writeRelations(executor, task);
       }
+      for (final row in projectItems) {
+        await executor.runInsert(
+          '''INSERT INTO project_items (project_id, task_id, ordinal)
+             VALUES (?, ?, ?)''',
+          <Object?>[row['project_id'], row['task_id'], row['ordinal']],
+        );
+      }
+
+
       await executor.runCustom('COMMIT');
     } catch (_) {
       try {
