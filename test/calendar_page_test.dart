@@ -195,6 +195,9 @@ void main() {
 
     expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
 
+    await tester.tap(find.text('ماهانه'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();
     expect(find.text('۱۴۰۵/۰۷'), findsOneWidget);
