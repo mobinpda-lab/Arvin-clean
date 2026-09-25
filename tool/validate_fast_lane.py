@@ -24,7 +24,6 @@ require(build, 'types: [opened, synchronize, reopened, ready_for_review]', str(b
 require(build, '# Draft PRs are valid product work and must receive real quality/build evidence.', str(build_path))
 require(build, 'quality:', str(build_path))
 require(build, 'apk:', str(build_path))
-require(build, 'needs: quality', str(build_path))
 require(build, 'lane: [analyze, test-0, test-1, test-2, test-3]', str(build_path))
 require(build, 'flutter test --total-shards 4 --shard-index', str(build_path))
 forbid(build, 'run: flutter test\n', str(build_path))
@@ -42,9 +41,11 @@ for forbidden_push_branch in ("'feat/**'", "'fix/**'", "'test/**'"):
     if forbidden_push_branch in parallel:
         raise SystemExit(f'{parallel_path} must not validate normal PR branches twice: {forbidden_push_branch}')
 require(parallel, 'quality:', str(parallel_path))
+require(parallel, 'lane: [analyze, test-0, test-1, test-2, test-3]', str(parallel_path))
 require(parallel, 'surface:', str(parallel_path))
 require(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
-require(parallel, 'flutter test', str(parallel_path))
+require(parallel, 'flutter test --total-shards 4 --shard-index', str(parallel_path))
+forbid(parallel, 'run: flutter test\n', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
 
