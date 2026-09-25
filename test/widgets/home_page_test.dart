@@ -234,6 +234,9 @@ void main() {
     await tester.pumpWidget(
       HomePage(
         settings: const AppSettings(
+          themeMode: ThemeMode.light,
+          usePersianDate: true,
+          fontFamily: null,
           swipeRightAction: TaskSwipeAction.archive,
           swipeLeftAction: TaskSwipeAction.trash,
         ),
@@ -255,7 +258,7 @@ void main() {
 
     cards = find.byType(Dismissible);
     expect(cards, findsOneWidget);
-    final remaining = tester.widget<Dismissible>(cards.single);
+    final remaining = tester.widget<Dismissible>(cards.first);
     expect(
       await remaining.confirmDismiss!(DismissDirection.startToEnd),
       isTrue,
@@ -280,6 +283,9 @@ void main() {
     await tester.pumpWidget(
       HomePage(
         settings: const AppSettings(
+          themeMode: ThemeMode.light,
+          usePersianDate: true,
+          fontFamily: null,
           swipeRightAction: TaskSwipeAction.moveToToday,
           swipeLeftAction: TaskSwipeAction.none,
         ),
