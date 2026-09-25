@@ -17,6 +17,18 @@ class TaskProjectAssignmentService {
 
   Future<List<ProjectPlan>> loadProjects() => store.load();
 
+  Future<ProjectPlan> createProject({required String title, String? id}) async {
+    final current = await store.load();
+    final createdAt = DateTime.now().microsecondsSinceEpoch;
+    final project = ProjectPlan(
+      id: id ?? 'project_$createdAt',
+      title: title.trim(),
+    );
+    final next = lifecycle.add(current, project);
+    await store.save(next);
+    return project;
+  }
+
   Future<String?> projectIdForTask(String taskId) async {
     final projects = await store.load();
     for (final project in projects) {
