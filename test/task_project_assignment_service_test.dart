@@ -51,6 +51,20 @@ void main() {
     expect(await service.projectIdForTask('task-1'), isNull);
   });
 
+  test('createProject persists through the canonical ProjectStore boundary', () async {
+    final store = ProjectStore(executor: database);
+    final service = TaskProjectAssignmentService(store: store);
+
+    final created = await service.createProject(
+      id: 'project-created',
+      title: 'پروژه جدید',
+    );
+
+    expect(created.id, 'project-created');
+    expect(created.title, 'پروژه جدید');
+    expect((await store.load()).single.id, 'project-created');
+  });
+
   test('unknown Project fails before changing stored membership', () async {
     final store = ProjectStore(executor: database);
     await TaskStore(executor: database).save([

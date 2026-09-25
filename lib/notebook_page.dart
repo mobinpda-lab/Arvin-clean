@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
-import 'services/project_store.dart';
 
 enum _NotebookCreateMode { note, checklist }
 
@@ -977,13 +975,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (selected == '__new_project__') {
       final title = await _promptNewProject();
       if (!mounted || title == null || title.trim().isEmpty) return;
-      final store = ProjectStore();
-      final existing = await store.load();
-      final project = ProjectPlan(
-        id: 'project_${DateTime.now().microsecondsSinceEpoch}',
-        title: title.trim(),
-      );
-      await store.save(<ProjectPlan>[...existing, project]);
+      final project = await widget.repository.createProject(title: title.trim());
       nextProjectId = project.id;
       nextTitle = project.title;
     } else {

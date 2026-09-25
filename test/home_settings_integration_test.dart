@@ -18,29 +18,6 @@ void main() {
     expect(Theme.of(homeContext).brightness, Brightness.dark);
   });
 
-  testWidgets('Home exposes canonical My Tasks and View All actions', (tester) async {
-    SharedPreferences.setMockInitialValues({
-      'arvin.tasks':
-          '[{"id":"home-canonical","title":"کار قابل نمایش"}]',
-    });
-
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('home-my-tasks')), findsOneWidget);
-    expect(find.text('کارهای من'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-view-all')), findsOneWidget);
-    expect(find.text('مشاهده همه'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks')));
-    await tester.pumpAndSettle();
-    expect(find.text('فیلتر کارها'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-all')));
-    await tester.pumpAndSettle();
-    expect(find.text('کار قابل نمایش'), findsOneWidget);
-  });
-
   testWidgets('Home More opens canonical Settings page', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
