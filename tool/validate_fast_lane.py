@@ -19,7 +19,7 @@ build = build_path.read_text(encoding='utf-8')
 parallel = parallel_path.read_text(encoding='utf-8')
 device = device_path.read_text(encoding='utf-8')
 
-require(build, "branches: [main, master, 'gate/**', 'feature/**']", str(build_path))
+require(build, "branches: [main, master, 'gate/**', 'feature/**', 'g1/**']", str(build_path))
 require(build, 'types: [opened, synchronize, reopened, ready_for_review]', str(build_path))
 require(build, '# Draft PRs are valid product work and must receive real quality/build evidence.', str(build_path))
 require(build, 'quality:', str(build_path))
