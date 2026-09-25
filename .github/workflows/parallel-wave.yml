@@ -52,7 +52,6 @@ jobs:
           git diff --exit-code -- pubspec.lock
       - run: flutter analyze --no-fatal-infos
 
-
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
     runs-on: ubuntu-latest
@@ -87,11 +86,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      strategy:
-        fail-fast: false
-        max-parallel: 6
-        matrix:
-          area: [followup, calendar, backup, typography, guide, release]
+      max-parallel: 6
+      matrix:
+        area: [followup, calendar, backup, typography, guide, release]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
