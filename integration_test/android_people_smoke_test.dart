@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,11 +89,18 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    final timelinePage = find.byType(TaskTimelinePage);
+    // The timeline route may mount after the dialog/navigation transition on a
+    // slower Android emulator. Wait for the canonical destination itself first,
+    // then wait for its People action. Both waits are bounded to 10 seconds.
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (timelinePage.evaluate().isNotEmpty) break;
+    }
+    expect(timelinePage, findsOneWidget);
+
     final peopleAction =
         find.byKey(const ValueKey('timeline-open-people'));
-    // Android emulators can take a few seconds to mount the newly pushed route.
-    // Poll the canonical action with a bounded 10-second window instead of assuming
-    // that pumpAndSettle immediately observes the destination page.
     for (var attempt = 0; attempt < 100; attempt++) {
       await tester.pump(const Duration(milliseconds: 100));
       if (peopleAction.evaluate().isNotEmpty) break;
