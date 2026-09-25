@@ -179,6 +179,38 @@ void main() {
     expect(find.text('۱۴۰۶/۰۶'), findsOneWidget);
   });
 
+
+  testWidgets('calendar Today and period controls navigate the canonical selected day',
+      (tester) async {
+    final initial = DateTime(2026, 9, 15, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: initial,
+          reminders: const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+
+    await tester.tap(find.text('ماهانه'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('۱۴۰۵/۰۷'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
+    await tester.pumpAndSettle();
+    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('calendar-today')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
+  });
+
   testWidgets('expands reminder actions and routes applicable callbacks',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
