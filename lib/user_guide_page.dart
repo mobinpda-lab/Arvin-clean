@@ -6,14 +6,14 @@ class UserGuidePage extends StatelessWidget {
   static const _sections = <_GuideSection>[
     _GuideSection(
       icon: Icons.add_circle_outline,
-      title: 'ساخت کار جدید',
+      title: 'ساخت کار',
       summary:
-          'یک عنوان بنویسید، در صورت نیاز توضیح، برچسب و تاریخ پیگیری اضافه کنید و ذخیره را بزنید.',
+          'یک کار را از مسیر افزودن سریع ثبت کنید؛ در صورت نیاز بعداً جزئیات آن را کامل کنید.',
       steps: <String>[
-        'در صفحه اصلی روی دکمه «+» بزنید.',
-        'عنوان کار را بنویسید؛ توضیحات و برچسب اختیاری هستند.',
-        'اگر لازم است دوباره سراغ کار بروید، تاریخ پیگیری تعیین کنید.',
-        'روی «ذخیره» بزنید.',
+        'در صفحه اصلی روی دکمه «+» بزنید و ثبت سریع را باز کنید.',
+        'عنوان کار را بنویسید؛ فقط عنوان هم برای ذخیره کافی است.',
+        'اگر برای اجرای کار موعد لازم است، تاریخ کار را در ویرایش کامل تعیین کنید.',
+        'ثبت را انجام دهید؛ برای جزئیات بیشتر می‌توانید ویرایش کامل را باز کنید.',
       ],
     ),
     _GuideSection(
@@ -22,7 +22,7 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'برای زمانی که عجله دارید و فقط می‌خواهید یک کار یا فکر را سریع ثبت کنید.',
       steps: <String>[
-        'برای ثبت سریع، دکمه افزودن سریع «+» را بزنید.',
+        'برای ثبت سریع، دکمه «+» را بزنید و ثبت سریع را باز کنید.',
         'متن کار را وارد کنید.',
         'ثبت را انجام دهید؛ بعداً می‌توانید جزئیات آن را ویرایش کنید.',
       ],
@@ -31,10 +31,10 @@ class UserGuidePage extends StatelessWidget {
       icon: Icons.check_circle_outline,
       title: 'انجام‌شده و عقب‌افتاده',
       summary:
-          'دایره کنار کار برای انجام‌شده کردن است؛ کارِ تاریخ‌گذشته و انجام‌نشده با هشدار مشخص می‌شود.',
+          'وضعیت کار را از کارت مدیریت کنید؛ موعد کار با تاریخ همان کار سنجیده می‌شود.',
       steps: <String>[
         'وقتی کار تمام شد، روی دایره کنار آن بزنید.',
-        'اگر تاریخ پیگیری گذشته باشد و کار هنوز انجام نشده باشد، آروین آن را عقب‌افتاده نشان می‌دهد.',
+        'اگر موعد کار گذشته باشد و انجام نشده باشد، آروین آن را در محدوده عقب‌افتاده نشان می‌دهد.',
       ],
     ),
     _GuideSection(
@@ -51,11 +51,11 @@ class UserGuidePage extends StatelessWidget {
       icon: Icons.calendar_month_outlined,
       title: 'تقویم و پیگیری‌ها',
       summary:
-          'پیگیری‌ها را روی تقویم ببینید و از همان بخش به دفترچه، اقدام بعدی و خط زمانی دسترسی داشته باشید.',
+          'موارد زمان‌بندی‌شده را در تقویم ببینید؛ دفترچه و اقدام بعدی مسیرهای مستقل نوار پایین هستند.',
       steps: <String>[
         'از نوار پایین وارد «تقویم» شوید.',
         'روزهای دارای پیگیری را بررسی کنید.',
-        'در صورت نیاز از دکمه‌های «دفترچه»، «اقدام بعدی» یا «اقدام بعدی» استفاده کنید.',
+        'برای دفترچه یا اقدام بعدی، از نوار پایین برنامه وارد بخش مربوط شوید.',
       ],
     ),
     _GuideSection(
@@ -86,7 +86,7 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'ظاهر روشن، تیره یا مطابق سیستم و همچنین نمایش تاریخ فارسی را از تنظیمات انتخاب کنید.',
       steps: <String>[
-        'از منو وارد «تنظیمات» شوید.',
+        'از نوار پایین وارد «بیشتر» شوید و «تنظیمات» را باز کنید.',
         'حالت نمایش دلخواه را انتخاب کنید.',
         'در صورت تمایل «نمایش تاریخ فارسی» را فعال کنید.',
       ],
@@ -196,7 +196,7 @@ class _HomeVisualGuide extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'این تصویر ساده‌شده، همان بخش‌های مهم صفحه اصلی را نشان می‌دهد. شماره‌ها را با توضیح پایین تصویر تطبیق دهید.',
+              'این تصویر ساده‌شده، مسیرهای اصلی صفحه خانه را نشان می‌دهد. شماره‌ها را با توضیح پایین تصویر تطبیق دهید.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -243,7 +243,6 @@ class _HomeVisualGuide extends StatelessWidget {
                           const SizedBox(width: 2),
                           const Icon(Icons.bolt_outlined, size: 18),
                           const SizedBox(width: 6),
-                          const Icon(Icons.backup_outlined, size: 18),
                         ],
                       ),
                     ),
@@ -347,7 +346,7 @@ class _HomeVisualGuide extends StatelessWidget {
                                 Icon(Icons.add, size: 17),
                                 SizedBox(width: 4),
                                 Text(
-                                  'کار جدید',
+                                  'افزودن سریع',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -375,13 +374,13 @@ class _HomeVisualGuide extends StatelessWidget {
             const SizedBox(height: 8),
             const _VisualLegend(
               number: 1,
-              title: 'منوی اصلی',
-              text: 'امروز، تقویم، بایگانی، سطل زباله و تنظیمات از اینجا باز می‌شوند.',
+              title: 'بیشتر و مسیرهای برنامه',
+              text: 'مسیرهای فرعی مانند تنظیمات، پشتیبان‌گیری و مدیریت دسته‌ها و برچسب‌ها از «بیشتر» در دسترس‌اند.',
             ),
             const _VisualLegend(
               number: 2,
-              title: 'ثبت سریع و پشتیبان',
-              text: 'صاعقه برای ثبت سریع است و آیکون پشتیبان برای پشتیبان‌گیری/Restore.',
+              title: 'ثبت سریع',
+              text: 'ثبت سریع از همین مسیر شروع می‌شود؛ پشتیبان‌گیری از بخش «بیشتر» در دسترس است.',
             ),
             const _VisualLegend(
               number: 3,
@@ -390,13 +389,13 @@ class _HomeVisualGuide extends StatelessWidget {
             ),
             const _VisualLegend(
               number: 4,
-              title: 'فیلترها',
-              text: 'بین کارهای فعال، بایگانی و سطل زباله جابه‌جا شوید.',
+              title: 'گروه‌بندی خانه',
+              text: 'کارها را بر اساس زمان، پروژه‌ها، دسته‌ها یا برچسب‌ها گروه‌بندی کنید.',
             ),
             const _VisualLegend(
               number: 5,
-              title: 'خلاصه وضعیت',
-              text: 'تعداد کل، فعال، انجام‌شده و عقب‌افتاده را یک‌جا ببینید.',
+              title: 'گروه‌بندی‌های ثابت',
+              text: 'چهار مسیر ثابت خانه: زمان، پروژه‌ها، دسته‌ها و برچسب‌ها؛ بدون شمارنده.',
             ),
             const _VisualLegend(
               number: 6,
@@ -405,8 +404,8 @@ class _HomeVisualGuide extends StatelessWidget {
             ),
             const _VisualLegend(
               number: 7,
-              title: 'کار جدید',
-              text: 'برای ساخت یک کار کامل با عنوان، توضیح، برچسب و تاریخ پیگیری.',
+              title: 'افزودن سریع',
+              text: 'برای ثبت سریع کار؛ جزئیات تکمیلی را بعداً در ویرایش کامل تنظیم کنید.',
             ),
           ],
         ),
@@ -561,7 +560,7 @@ class _QuickStartCard extends StatelessWidget {
       (Icons.edit_outlined, 'عنوان کار را بنویسید'),
       (Icons.event_outlined, 'اگر لازم است تاریخ پیگیری بگذارید'),
       (Icons.save_outlined, 'ذخیره کنید'),
-      (Icons.today_outlined, 'هر روز بخش «امروز» را ببینید'),
+      (Icons.today_outlined, 'در صورت نیاز، از مسیر زمان/امروز کارهای امروز را ببینید'),
       (Icons.check_circle_outline, 'بعد از انجام، کار را تیک بزنید'),
       (Icons.backup_outlined, 'هر چند وقت یک‌بار پشتیبان بگیرید'),
     ];
