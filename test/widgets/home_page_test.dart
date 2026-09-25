@@ -221,4 +221,93 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('arvin.tasks'), corrupt);
   });
+
+  testWidgets('RTL swipe directions honor independently configured archive and trash actions',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"right-task","title":"بایگانی راست"},{"id":"left-task","title":"سطل چپ"}]',
+    });
+
+    await tester.pumpWidget(
+      HomePage(
+        settings: const AppSettings(
+          swipeRightAction: TaskSwipeAction.archive,
+          swipeLeftAction: TaskSwipeAction.trash,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var cards = find.byType(Dismissible);
+    expect(cards, findsNWidgets(2));
+    final first = tester.widget<Dismissible>(cards.at(0));
+    final second = tester.widget<Dismissible>(cards.at(1));
+
+    expect(
+      await first.confirmDismiss!(DismissDirection.endToStart),
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('بایگانی راست'), findsNothing);
+
+    cards = find.byType(Dismissible);
+    expect(cards, findsOneWidget);
+    final remaining = tester.widget<Dismissible>(cards.single);
+    expect(
+      await remaining.confirmDismiss!(DismissDirection.startToEnd),
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('سطل چپ'), findsNothing);
+
+    final stored = await TaskStore().load();
+    expect(stored.singleWhere((task) => task.id == 'right-task').archived, isTrue);
+    expect(stored.singleWhere((task) => task.id == 'left-task').trashed, isTrue);
+    // Keep the second widget read above to ensure both cards were real Dismissibles.
+    expect(second.key, isNotNull);
+  });
+
+  testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-24T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
+    });
+
+    await tester.pumpWidget(
+      HomePage(
+        settings: const AppSettings(
+          swipeRightAction: TaskSwipeAction.moveToToday,
+          swipeLeftAction: TaskSwipeAction.none,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var cards = find.byType(Dismissible);
+    expect(cards, findsNWidgets(2));
+    final moveCard = tester.widget<Dismissible>(cards.at(0));
+    expect(
+      await moveCard.confirmDismiss!(DismissDirection.endToStart),
+      isFalse,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('انتقال امروز'), findsOneWidget);
+
+    final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
+    expect(moved.dueDate?.year, 2026);
+    expect(moved.dueDate?.month, 9);
+    expect(moved.dueDate?.day, 25);
+
+    cards = find.byType(Dismissible);
+    final noneCard = tester.widget<Dismissible>(cards.last);
+    expect(
+      await noneCard.confirmDismiss!(DismissDirection.startToEnd),
+      isFalse,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('بدون عمل'), findsOneWidget);
+  });
+
 }
