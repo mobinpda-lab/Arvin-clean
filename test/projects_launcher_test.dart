@@ -5,9 +5,14 @@ import 'package:arvin/services/project_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late NativeDatabase database;
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
 
   setUp(() {
     database = NativeDatabase.memory();
