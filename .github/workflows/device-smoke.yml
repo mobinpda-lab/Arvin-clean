@@ -23,6 +23,11 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [home, quick-capture, sql-persistence, sql-migration, backup-restore]
+    name: device-smoke (${{ matrix.scenario }})
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -32,8 +37,6 @@ jobs:
           git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
           git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -60,53 +63,22 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run canonical Home smoke on Android emulator
+      - name: Run selected canonical smoke on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT}
-
-      - name: Run canonical Quick Capture smoke on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          target: default
-          disable-animations: true
-          script: flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT}
-
-      # Exact-head runtime gate for canonical SQL persistence.
-      - name: Run canonical SQL persistence smoke on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          target: default
-          disable-animations: true
-          script: flutter test integration_test/android_sql_persistence_smoke_test.dart -d emulator-${EMULATOR_PORT}
-
-      # Exact-head runtime gate for upgrade migration into canonical SQL.
-      - name: Run canonical SQL upgrade migration smoke on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          target: default
-          disable-animations: true
-          script: flutter test integration_test/android_upgrade_migration_smoke_test.dart -d emulator-${EMULATOR_PORT}
-
-      # Exact-head runtime gate for canonical SQL backup/restore.
-      - name: Run canonical Backup/Restore SQL smoke on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          target: default
-          disable-animations: true
-          script: flutter test integration_test/android_backup_restore_sql_smoke_test.dart -d emulator-${EMULATOR_PORT}
+          script: |
+            case "${{ matrix.scenario }}" in
+              home) flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
+              quick-capture) flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
+              sql-persistence) flutter test integration_test/android_sql_persistence_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
+              sql-migration) flutter test integration_test/android_upgrade_migration_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
+              backup-restore) flutter test integration_test/android_backup_restore_sql_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
+              *) echo "Unknown scenario: ${{ matrix.scenario }}" >&2; exit 1 ;;
+            esac
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
