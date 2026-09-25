@@ -308,7 +308,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
