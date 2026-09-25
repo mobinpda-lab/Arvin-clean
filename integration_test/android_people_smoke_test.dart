@@ -74,8 +74,7 @@ void main() {
     final calendarBar = find.byType(NavigationBar);
     expect(calendarBar, findsOneWidget);
     await tester.tap(find.text('بیشتر'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();
