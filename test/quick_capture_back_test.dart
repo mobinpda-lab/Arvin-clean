@@ -19,11 +19,18 @@ void main() {
     await tester.showKeyboard(input);
     await tester.pump();
 
-    expect(FocusManager.instance.primaryFocus, isNotNull);
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).focusNode.hasFocus,
+      isTrue,
+    );
+
     await tester.binding.handlePopRoute();
     await tester.pump();
 
     expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
-    expect(FocusManager.instance.primaryFocus, isNull);
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).focusNode.hasFocus,
+      isFalse,
+    );
   });
 }
