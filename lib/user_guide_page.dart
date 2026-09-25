@@ -114,7 +114,7 @@ class UserGuidePage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle(context, 'مسیر پشتیبان‌گیری'),
             const SizedBox(height: 8),
-            const _پشتیبان‌گیریVisualGuide(),
+            const _BackupVisualGuide(),
             const SizedBox(height: 20),
             _sectionTitle(context, 'شروع سریع در ۳۰ ثانیه'),
             const SizedBox(height: 8),
@@ -502,8 +502,8 @@ class _TaskVisualGuide extends StatelessWidget {
   }
 }
 
-class _پشتیبان‌گیریVisualGuide extends StatelessWidget {
-  const _پشتیبان‌گیریVisualGuide();
+class _BackupVisualGuide extends StatelessWidget {
+  const _BackupVisualGuide();
 
   @override
   Widget build(BuildContext context) {
@@ -515,7 +515,7 @@ class _پشتیبان‌گیریVisualGuide extends StatelessWidget {
             const Row(
               children: [
                 Expanded(
-                  child: _پشتیبان‌گیریStep(
+                  child: _BackupStep(
                     number: 1,
                     icon: Icons.folder_outlined,
                     text: 'انتخاب پوشه',
@@ -523,7 +523,7 @@ class _پشتیبان‌گیریVisualGuide extends StatelessWidget {
                 ),
                 Icon(Icons.arrow_back_rounded),
                 Expanded(
-                  child: _پشتیبان‌گیریStep(
+                  child: _BackupStep(
                     number: 2,
                     icon: Icons.backup_outlined,
                     text: 'ایجاد پشتیبان‌گیری',
@@ -531,7 +531,7 @@ class _پشتیبان‌گیریVisualGuide extends StatelessWidget {
                 ),
                 Icon(Icons.arrow_back_rounded),
                 Expanded(
-                  child: _پشتیبان‌گیریStep(
+                  child: _BackupStep(
                     number: 3,
                     icon: Icons.check_circle_outline,
                     text: 'نگهداری فایل',
@@ -823,8 +823,8 @@ class _ActionHint extends StatelessWidget {
   }
 }
 
-class _پشتیبان‌گیریStep extends StatelessWidget {
-  const _پشتیبان‌گیریStep({
+class _BackupStep extends StatelessWidget {
+  const _BackupStep({
     required this.number,
     required this.icon,
     required this.text,
