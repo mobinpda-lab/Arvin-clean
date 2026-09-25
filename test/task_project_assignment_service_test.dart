@@ -2,15 +2,22 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/native.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
+  late NativeDatabase database;
+
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    database = NativeDatabase.memory();
   });
 
+  tearDown(() async => database.close());
+
   test('assign moves Task membership and persists it canonically', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([Task(id: 'task-1', title: 'کار')]);
     await store.save([
       ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-1']),
       ProjectPlan(id: 'b', title: 'ب'),
@@ -27,7 +34,10 @@ void main() {
   });
 
   test('null Project keeps Task valid and unassigned', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([
+      Task(id: 'task-1', title: 'کار'),
+    ]);
     await store.save([
       ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-1']),
     ]);
@@ -40,7 +50,10 @@ void main() {
   });
 
   test('unknown Project fails before changing stored membership', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([
+      Task(id: 'task-1', title: 'کار'),
+    ]);
     await store.save([
       ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-1']),
     ]);
