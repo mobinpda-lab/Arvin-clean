@@ -15,7 +15,6 @@ import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/home_search_projection.dart';
-import 'services/home_today_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
@@ -135,7 +134,6 @@ class _HomePageState extends State<HomePage> {
   final AppSettingsService appSettingsService = AppSettingsService();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
-  final HomeTodayProjection homeTodayProjection = const HomeTodayProjection();
   final TaskListScopeService taskListScopeService =
       const TaskListScopeService();
   final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
