@@ -1,3 +1,4 @@
+// G1 current-main validation checkpoint: this test must run against the live main base before merge.
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
