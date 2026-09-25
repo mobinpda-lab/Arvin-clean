@@ -700,49 +700,6 @@ class _NumberBadge extends StatelessWidget {
   }
 }
 
-class _MiniChip extends StatelessWidget {
-  const _MiniChip({required this.text, this.selected = false});
-
-  final String text;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: selected ? colors.secondaryContainer : colors.surfaceContainer,
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 9)),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.text, required this.value});
-
-  final String text;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-          ),
-          Text(text, style: const TextStyle(fontSize: 7)),
-        ],
-      ),
-    );
-  }
-}
-
 class _VisualLegend extends StatelessWidget {
   const _VisualLegend({
     required this.number,
