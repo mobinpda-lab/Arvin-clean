@@ -49,12 +49,13 @@ forbid(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
 
-require(device, "branches: [main, master, 'device/**', 'feature/**']", str(device_path))
+require(device, "branches: [main, master, 'device/**', 'feature/**', 'g*/**', 'ci/**']", str(device_path))
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
 require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
 require(device, 'integration_test/android_home_smoke_test.dart', str(device_path))
-require(device, 'max-parallel:', str(device_path))
+require(device, 'integration_test/android_people_smoke_test.dart', str(device_path))
+require(device, 'max-parallel: 4', str(device_path))
 forbidden_device_parallel = 'max-parallel: 1'
 forbid(device, forbidden_device_parallel, str(device_path))
 
