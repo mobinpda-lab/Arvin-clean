@@ -37,7 +37,7 @@ void main() {
       expect(captured.single.title, 'کار اول');
       expect(captured.single.dueDate, isNull);
       expect(captured.single.reminderDate, isNull);
-      expect(captured.single.priority, TaskPriority.normal);
+      expect(captured.single.priority, TaskPriority.none);
 
       await tester.enterText(input, 'کار دوم');
       await tester.tap(submit);
