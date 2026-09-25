@@ -26,7 +26,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [home, quick-capture, sql-persistence, sql-migration, backup-restore]
+        scenario:
+          - name: home
+            test_file: integration_test/android_home_smoke_test.dart
+          - name: quick-capture
+            test_file: integration_test/android_quick_capture_smoke_test.dart
+          - name: sql-persistence
+            test_file: integration_test/android_sql_persistence_smoke_test.dart
+          - name: sql-migration
+            test_file: integration_test/android_upgrade_migration_smoke_test.dart
+          - name: backup-restore
+            test_file: integration_test/android_backup_restore_sql_smoke_test.dart
+      max-parallel: 2
     name: device-smoke (${{ matrix.scenario }})
     steps:
       - uses: actions/checkout@v4
@@ -70,15 +81,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: |
-            case "${{ matrix.scenario }}" in
-              home) flutter test integration_test/android_home_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
-              quick-capture) flutter test integration_test/android_quick_capture_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
-              sql-persistence) flutter test integration_test/android_sql_persistence_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
-              sql-migration) flutter test integration_test/android_upgrade_migration_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
-              backup-restore) flutter test integration_test/android_backup_restore_sql_smoke_test.dart -d emulator-${EMULATOR_PORT} ;;
-              *) echo "Unknown scenario: ${{ matrix.scenario }}" >&2; exit 1 ;;
-            esac
+          script: flutter test ${{ matrix.scenario.test_file }} -d emulator-${EMULATOR_PORT}
 
   people-device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
