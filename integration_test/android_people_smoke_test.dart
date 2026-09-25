@@ -1,7 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_timeline_page.dart';
-import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -64,15 +63,14 @@ void main() {
 
     final homeBar = find.byType(NavigationBar);
     expect(homeBar, findsOneWidget);
-    final homeNavigation = tester.widget<NavigationBar>(homeBar);
-    homeNavigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
+    await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
     final calendarBar = find.byType(NavigationBar);
     expect(calendarBar, findsOneWidget);
-    final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
-    calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
-    await tester.pumpAndSettle();
+    await tester.tap(find.text('بیشتر'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();
