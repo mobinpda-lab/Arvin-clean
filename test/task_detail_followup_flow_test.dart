@@ -31,6 +31,28 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-add-followup')), findsNothing);
   });
 
+  testWidgets('Task detail renders due date as Jalali with Persian digits',
+      (tester) async {
+    final task = Task(
+      id: 'jalali-detail',
+      title: 'نمایش تاریخ',
+      dueDate: DateTime(2026, 8, 30, 14, 30),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onEdit: (value) async => value,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
+    expect(find.text('۱۴۰۵/۰۶/۰۸ • ۱۴:۳۰'), findsOneWidget);
+    expect(find.textContaining('2026'), findsNothing);
+  });
+
   testWidgets('follow-up Task round add opens entry and appends canonical history',
       (tester) async {
     final task = Task(
