@@ -59,10 +59,16 @@ void main() {
     await tester.tap(saveTask);
     await tester.pumpAndSettle();
 
-    // Full-form editing returns to the Quick Capture sheet; close that
-    // intentional sheet through its visible cancel action before navigation.
-    await tester.tap(find.byKey(const ValueKey('quick-capture-cancel')));
-    await tester.pumpAndSettle();
+    // Full-form editing returns to the Quick Capture sheet. Close every
+    // remaining visible capture sheet before exercising real navigation.
+    final quickCapture = find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
+      final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
+      if (cancel.evaluate().isEmpty) break;
+      await tester.tap(cancel);
+      await tester.pumpAndSettle();
+    }
+    expect(quickCapture, findsNothing);
 
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
