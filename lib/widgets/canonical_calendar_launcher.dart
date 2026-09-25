@@ -27,7 +27,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.projection = const FollowUpCalendarProjection(),
     this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
     this.rescheduleApplyService,
-    this.onRefreshTasks,
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
   });
@@ -36,9 +35,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final FollowUpCalendarProjection projection;
   final CalendarReschedulingAdvisor reschedulingAdvisor;
   final CalendarRescheduleApplyService? rescheduleApplyService;
-  /// Reloads canonical Tasks before timeline access so the launcher never
-  /// relies on a stale snapshot after another route writes to SQL.
-  final Future<List<Task>> Function()? onRefreshTasks;
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
 
@@ -261,11 +257,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 
   Future<void> _openTimeline(BuildContext context) async {
-    final refreshed = await widget.onRefreshTasks?.call();
-    if (refreshed != null && mounted) {
-      setState(() => _tasks = List<Task>.of(refreshed));
-    }
-    if (!context.mounted) return;
     if (_tasks.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
