@@ -30,9 +30,18 @@ void main() {
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
-    await tester.pumpAndSettle();
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.byKey(const ValueKey('arvin-task-editor-dialog')).evaluate().isNotEmpty) {
+        break;
+      }
+    }
 
     final titleField = find.byKey(const ValueKey('task-editor-title'));
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (titleField.evaluate().isNotEmpty) break;
+    }
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
     final saveTask = find.byKey(const ValueKey('task-editor-header-save'));
