@@ -10,7 +10,7 @@ void main() {
     expect(workflow, contains('name: Arvin Device Smoke'));
     expect(workflow, contains("github.event.pull_request.draft == false"));
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    expect(workflow, contains('max-parallel: 3'));
+    expect(workflow, contains('max-parallel: 6'));
     expect(workflow, contains('timeout-minutes: 30'));
     expect(workflow, contains('integration_test/android_home_smoke_test.dart'));
     expect(
