@@ -36,6 +36,17 @@ void main() {
     expect(parallel.split(draftOnly).length - 1, 2);
     expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
     expect(parallel, contains('cancel-in-progress: true'));
-    expect(parallel, contains('Arvin Build + Device Smoke'));
+    expect(
+      parallel,
+      contains(
+        'Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate',
+      ),
+    );
+    expect(
+      parallel,
+      contains(
+        'Arvin Device Smoke owns real Android integration evidence for Ready PRs',
+      ),
+    );
   });
 }
