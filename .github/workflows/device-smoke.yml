@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       # Keep all six scenarios covered while bounding concurrent emulator pressure.
-      max-parallel: 3
+      max-parallel: 4
       matrix:
         include:
           - scenario: home
