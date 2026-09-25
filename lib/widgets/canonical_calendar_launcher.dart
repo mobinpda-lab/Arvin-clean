@@ -265,6 +265,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     if (refreshed != null && mounted) {
       setState(() => _tasks = List<Task>.of(refreshed));
     }
+    if (!context.mounted) return;
     if (_tasks.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
