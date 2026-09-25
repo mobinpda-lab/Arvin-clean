@@ -4,15 +4,27 @@ import 'package:arvin/services/project_plan_codec.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late NativeDatabase database;
+
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
+  setUp(() {
+    database = NativeDatabase.memory();
+  });
+
+  tearDown(() async => database.close());
+
   testWidgets('loads persisted Projects and saves lifecycle changes', (tester) async {
-    final store = ProjectStore(codec: const ProjectPlanCodec());
+    final store = ProjectStore(
+      codec: const ProjectPlanCodec(),
+      executor: database,
+    );
     await store.save([
       ProjectPlan(
         id: 'existing',
@@ -38,6 +50,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final restored = await store.load();
-    expect(restored.map((project) => project.title), containsAll(['پروژه موجود', 'پروژه جدید']));
+    expect(
+      restored.map((project) => project.title),
+      containsAll(['پروژه موجود', 'پروژه جدید']),
+    );
   });
 }

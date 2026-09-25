@@ -73,7 +73,12 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
-      await executor.runCustom('PRAGMA user_version = 4');
+      // Do not write PRAGMA user_version here. The canonical migration marker
+      // is arvin_storage_meta, and this install path can be reached by more
+      // than one SQLite connection (for example app + Android smoke tooling).
+      // A user_version write acquires a database-wide lock and can fail even
+      // though the schema itself is already installed. Schema DDL above is
+      // idempotent and the marker remains the canonical cutover boundary.
       await executor.runCustom('COMMIT');
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}

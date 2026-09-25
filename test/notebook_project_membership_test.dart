@@ -4,19 +4,25 @@ import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late NativeDatabase database;
+
   setUp(() {
+    database = NativeDatabase.memory();
     SharedPreferences.setMockInitialValues({});
   });
+
+  tearDown(() async => database.close());
 
   CanonicalNotebookRepository repositoryWithProjects(
     ProjectStore projectStore, {
     DateTime? now,
   }) {
     return CanonicalNotebookRepository(
-      store: TaskStore(),
+      store: TaskStore(executor: database),
       projectAssignmentService: TaskProjectAssignmentService(store: projectStore),
       now: () => now ?? DateTime.utc(2026, 9, 12, 12),
     );
@@ -24,7 +30,7 @@ void main() {
 
   test('Notebook reuses canonical Project membership for the same Note id',
       () async {
-    final projectStore = ProjectStore();
+    final projectStore = ProjectStore(executor: database);
     await projectStore.save([
       ProjectPlan(id: 'project-a', title: 'الف'),
       ProjectPlan(id: 'project-b', title: 'ب'),
@@ -54,7 +60,7 @@ void main() {
     expect(projects.every((project) => project.itemIds.isEmpty), isTrue);
     expect(await repository.projectIdForNote(note.id), isNull);
 
-    final storedNote = (await TaskStore().load()).single;
+    final storedNote = (await TaskStore(executor: database).load()).single;
     expect(storedNote.id, 'note-project');
     expect(storedNote.title, 'یادداشت پروژه');
     expect(storedNote.toJson().containsKey('projectId'), isFalse);
@@ -66,7 +72,7 @@ void main() {
   });
 
   test('Notebook project membership survives editor UI removal', () async {
-    final projectStore = ProjectStore();
+    final projectStore = ProjectStore(executor: database);
     await projectStore.save([
       ProjectPlan(id: 'active-project', title: 'پروژه فعال'),
       ProjectPlan(
@@ -91,14 +97,14 @@ void main() {
     expect(stored?.id, 'ui-project-note');
     expect(stored?.title, 'یادداشت من');
 
-    final taskStoreRecord = (await TaskStore().load()).single;
+    final taskStoreRecord = (await TaskStore(executor: database).load()).single;
     expect(taskStoreRecord.id, 'ui-project-note');
     expect(taskStoreRecord.toJson().containsKey('projectId'), isFalse);
   });
 
   test('archived Project membership remains canonical without editor selector',
       () async {
-    final projectStore = ProjectStore();
+    final projectStore = ProjectStore(executor: database);
     await projectStore.save([
       ProjectPlan(
         id: 'archived-project',

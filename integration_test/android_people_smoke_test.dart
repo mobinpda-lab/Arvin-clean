@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,9 +31,18 @@ void main() {
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
-    await tester.pumpAndSettle();
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.byKey(const ValueKey('arvin-task-editor-dialog')).evaluate().isNotEmpty) {
+        break;
+      }
+    }
 
     final titleField = find.byKey(const ValueKey('task-editor-title'));
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (titleField.evaluate().isNotEmpty) break;
+    }
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
     final saveTask = find.byKey(const ValueKey('task-editor-header-save'));
@@ -69,14 +79,34 @@ void main() {
     await tester.tap(timelineAction);
     await tester.pumpAndSettle();
 
-    final timelineChooser = find.text('انتخاب کار برای خط زمانی');
+    final timelineChooser = find.byType(SimpleDialog);
     if (timelineChooser.evaluate().isNotEmpty) {
-      await tester.tap(find.text('تست افراد اندروید').last);
+      final selectedTask = find.descendant(
+        of: timelineChooser,
+        matching: find.text('تست افراد اندروید'),
+      );
+      await tester.tap(selectedTask);
       await tester.pumpAndSettle();
     }
 
-    expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('timeline-open-people')));
+    final timelinePage = find.byType(TaskTimelinePage);
+    // The timeline route may mount after the dialog/navigation transition on a
+    // slower Android emulator. Wait for the canonical destination itself first,
+    // then wait for its People action. Both waits are bounded to 10 seconds.
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (timelinePage.evaluate().isNotEmpty) break;
+    }
+    expect(timelinePage, findsOneWidget);
+
+    final peopleAction =
+        find.byKey(const ValueKey('timeline-open-people'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (peopleAction.evaluate().isNotEmpty) break;
+    }
+    expect(peopleAction, findsOneWidget);
+    await tester.tap(peopleAction);
     await tester.pumpAndSettle();
 
     expect(find.text('افراد مرتبط'), findsOneWidget);

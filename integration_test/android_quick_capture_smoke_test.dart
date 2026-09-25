@@ -35,17 +35,29 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    Future<void> waitForFinder(Finder finder, {int attempts = 100}) async {
+      for (var attempt = 0; attempt < attempts; attempt++) {
+        if (finder.evaluate().isNotEmpty) return;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
     Future<void> openQuickCapture() async {
       final homeMenu = find.byKey(const ValueKey('home-menu'));
       await tester.ensureVisible(homeMenu);
       await tester.tap(homeMenu);
       await tester.pumpAndSettle();
+
       final quick = find.byKey(const ValueKey('home-more-quick-capture'));
+      await waitForFinder(quick);
       expect(quick, findsOneWidget);
       await tester.ensureVisible(quick);
       await tester.tap(quick);
+
+      final dialog = find.byKey(const ValueKey('quick-capture-dialog'));
+      await waitForFinder(dialog);
+      expect(dialog, findsOneWidget);
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
     }
 
     await openQuickCapture();

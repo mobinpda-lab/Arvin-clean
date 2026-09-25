@@ -25,6 +25,15 @@ class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
   }
 }
 
+
+Future<void> _pumpRouteTransition(WidgetTester tester) async {
+  // Calendar keeps an active ticker, so pumpAndSettle can wait forever.
+  // Advance the bounded route animation without relying on global settling.
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 Future<void> _openMoreMenu(WidgetTester tester) async {
   await tester.tap(find.text('بیشتر'));
   await tester.pump();
@@ -249,10 +258,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await tester.tap(find.text('اقدام بعدی'));
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     expect(find.byType(TaskNextActionPage), findsOneWidget);
     expect(find.text('تماس فوری'), findsOneWidget);
@@ -278,11 +287,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: [task])),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsOneWidget);
@@ -299,15 +308,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('انتخاب کار برای خط زمانی'), findsOneWidget);
     await tester.tap(find.text('کار دوم'));
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('ایجاد کار'), findsOneWidget);
@@ -318,7 +327,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(home: CanonicalCalendarLauncher(tasks: [])),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));

@@ -1218,6 +1218,10 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openPrimaryCalendar() async {
     if (!mounted) return;
+    // Re-read canonical SQL before opening calendar/timeline so navigation never
+    // depends on a stale in-memory Home snapshot after a write/migration.
+    await _load();
+    if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => CanonicalCalendarLauncher(

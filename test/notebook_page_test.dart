@@ -4,6 +4,7 @@ import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,13 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     await TaskStore.resetTestDatabase();
   });
   late NativeDatabase database;
 
   setUp(() {
     database = NativeDatabase.memory();
-    SharedPreferences.setMockInitialValues({});
   });
 
   tearDown(() async {
@@ -27,6 +28,9 @@ void main() {
   CanonicalNotebookRepository repositoryAt(DateTime now) {
     return CanonicalNotebookRepository(
       store: TaskStore(executor: database),
+      projectAssignmentService: TaskProjectAssignmentService(
+        store: ProjectStore(executor: database),
+      ),
       now: () => now,
     );
   }
@@ -364,7 +368,7 @@ void main() {
   testWidgets('project picker assigns and clears the same canonical note',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12));
-    await ProjectStore().save([
+    await ProjectStore(executor: database).save([
       ProjectPlan(id: 'project-a', title: 'پروژه آروین'),
       ProjectPlan(id: 'archived', title: 'پروژه بایگانی', isArchived: true),
     ]);
