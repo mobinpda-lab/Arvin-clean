@@ -163,18 +163,15 @@ void main() {
     'Official Calendar release acceptance keeps Iranian occasions on the canonical CalendarPage',
     (tester) async {
       final selectedDay = DateTime(2026, 3, 21);
+      final officialHoliday = OfficialCalendarReminder(
+        id: 'ir-holiday-1405-01-01',
+        title: 'نوروز',
+        date: DateTime(2026, 3, 21),
+        kind: OfficialReminderKind.iranianHoliday,
+      );
       final service = OfficialCalendarReminderService(
         <OfficialCalendarReminderSource>[
-          _FakeOfficialSource(
-            <OfficialCalendarReminder>[
-              OfficialCalendarReminder(
-                id: 'ir-holiday-1405-01-01',
-                title: 'نوروز',
-                date: DateTime(2026, 3, 21),
-                kind: OfficialReminderKind.iranianHoliday,
-              ),
-            ],
-          ),
+          _FakeOfficialSource(<OfficialCalendarReminder>[officialHoliday]),
         ],
       );
 
