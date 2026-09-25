@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   setUp(() {
@@ -220,5 +222,117 @@ void main() {
     );
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('arvin.tasks'), corrupt);
+  });
+
+  testWidgets('RTL swipe directions honor independently configured archive and trash actions',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"right-task","title":"بایگانی راست"},{"id":"left-task","title":"سطل چپ"}]',
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            settings: AppSettings(
+              themeMode: ThemeMode.light,
+              usePersianDate: true,
+              fontFamily: null,
+              swipeRightAction: TaskSwipeAction.archive,
+              swipeLeftAction: TaskSwipeAction.trash,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cards = find.byType(Dismissible);
+    expect(cards, findsNWidgets(2));
+
+    final rightCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('right-task')),
+    );
+    final leftCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('left-task')),
+    );
+
+    expect(
+      await rightCard.confirmDismiss!(DismissDirection.endToStart),
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('بایگانی راست'), findsNothing);
+
+    final remaining = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('left-task')),
+    );
+    expect(
+      await remaining.confirmDismiss!(DismissDirection.startToEnd),
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('سطل چپ'), findsNothing);
+
+    final stored = await TaskStore().load();
+    expect(stored.singleWhere((task) => task.id == 'right-task').archived, isTrue);
+    expect(stored.singleWhere((task) => task.id == 'left-task').trashed, isTrue);
+    expect(leftCard, isA<Dismissible>());
+  });
+
+  testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-26T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            settings: AppSettings(
+              themeMode: ThemeMode.light,
+              usePersianDate: true,
+              fontFamily: null,
+              swipeRightAction: TaskSwipeAction.moveToToday,
+              swipeLeftAction: TaskSwipeAction.none,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cards = find.byType(Dismissible);
+    expect(cards, findsNWidgets(2));
+
+    final moveCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('move')),
+    );
+    expect(
+      await moveCard.confirmDismiss!(DismissDirection.endToStart),
+      isFalse,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('انتقال امروز'), findsOneWidget);
+
+    final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
+    expect(moved.dueDate?.year, 2026);
+    expect(moved.dueDate?.month, 9);
+    expect(moved.dueDate?.day, 25);
+
+    final noneCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('none')),
+    );
+    expect(
+      await noneCard.confirmDismiss!(DismissDirection.startToEnd),
+      isFalse,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('بدون عمل'), findsOneWidget);
   });
 }
