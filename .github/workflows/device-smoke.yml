@@ -2,7 +2,7 @@ name: Arvin Device Smoke
 
 on:
   push:
-    branches: [main, master, 'device/**', 'feature/**', 'g1/**']
+    branches: [main, master, 'device/**', 'feature/**', 'g*/**']
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -19,12 +19,15 @@ env:
   FLUTTER_VERSION: '3.47.0'
 
 jobs:
+  # All canonical Android scenarios are independent. Keep them in one matrix so
+  # GitHub can schedule them concurrently while max-parallel protects emulator stability.
   device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
         scenario:
           - name: home
@@ -37,9 +40,10 @@ jobs:
             test_file: integration_test/android_upgrade_migration_smoke_test.dart
           - name: backup-restore
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
-      max-parallel: 2
-    name: device-smoke (${{ matrix.scenario }})
-    steps:
+          - name: people
+            test_file: integration_test/android_people_smoke_test.dart
+      name: device-smoke (${{ matrix.scenario.name }})
+    steps:    steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
         run: |
@@ -70,10 +74,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: arvin-gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
+          key: arvin-gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle.properties','android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
           restore-keys: |
             arvin-gradle-${{ runner.os }}-
-
       - name: Resolve locked dependencies
         run: |
           set -euo pipefail
