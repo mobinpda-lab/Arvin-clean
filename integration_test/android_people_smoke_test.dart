@@ -84,8 +84,14 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('timeline-open-people')));
+    final peopleAction =
+        find.byKey(const ValueKey('timeline-open-people'));
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (peopleAction.evaluate().isNotEmpty) break;
+    }
+    expect(peopleAction, findsOneWidget);
+    await tester.tap(peopleAction);
     await tester.pumpAndSettle();
 
     expect(find.text('افراد مرتبط'), findsOneWidget);
