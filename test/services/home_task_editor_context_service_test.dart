@@ -4,6 +4,7 @@ import 'package:arvin/services/home_task_editor_context_service.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/native.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -11,6 +12,7 @@ void main() {
   late NativeDatabase database;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = NativeDatabase.memory();
   });
 
