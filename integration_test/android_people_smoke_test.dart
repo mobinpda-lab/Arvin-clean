@@ -134,6 +134,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('people-remove-confirm')));
     await tester.pumpAndSettle();
 
+    for (var attempt = 0;
+        attempt < 20 &&
+            find.byKey(const ValueKey('people-empty')).evaluate().isEmpty;
+        attempt++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
     expect(find.byKey(const ValueKey('people-empty')), findsOneWidget);
     persisted = (await store.load())
         .singleWhere((task) => task.title == 'تست افراد اندروید');
