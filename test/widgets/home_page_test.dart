@@ -251,11 +251,15 @@ void main() {
 
     var cards = find.byType(Dismissible);
     expect(cards, findsNWidgets(2));
-    final first = tester.widget<Dismissible>(cards.at(0));
-    final second = tester.widget<Dismissible>(cards.at(1));
+    final rightCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('right-task')),
+    );
+    final leftCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('left-task')),
+    );
 
     expect(
-      await first.confirmDismiss!(DismissDirection.endToStart),
+      await rightCard.confirmDismiss!(DismissDirection.endToStart),
       isTrue,
     );
     await tester.pumpAndSettle();
@@ -263,7 +267,9 @@ void main() {
 
     cards = find.byType(Dismissible);
     expect(cards, findsOneWidget);
-    final remaining = tester.widget<Dismissible>(cards.first);
+    final remaining = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('left-task')),
+    );
     expect(
       await remaining.confirmDismiss!(DismissDirection.startToEnd),
       isTrue,
@@ -274,8 +280,8 @@ void main() {
     final stored = await TaskStore().load();
     expect(stored.singleWhere((task) => task.id == 'right-task').archived, isTrue);
     expect(stored.singleWhere((task) => task.id == 'left-task').trashed, isTrue);
-    // Keep the second widget read above to ensure both cards were real Dismissibles.
-    expect(second, isA<Dismissible>());
+    // Both cards were resolved by their canonical task IDs, not visual order.
+    expect(leftCard, isA<Dismissible>());
   });
 
   testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
@@ -305,7 +311,9 @@ void main() {
 
     var cards = find.byType(Dismissible);
     expect(cards, findsNWidgets(2));
-    final moveCard = tester.widget<Dismissible>(cards.at(0));
+    final moveCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('move')),
+    );
     expect(
       await moveCard.confirmDismiss!(DismissDirection.endToStart),
       isFalse,
@@ -319,7 +327,9 @@ void main() {
     expect(moved.dueDate?.day, 25);
 
     cards = find.byType(Dismissible);
-    final noneCard = tester.widget<Dismissible>(cards.last);
+    final noneCard = tester.widget<Dismissible>(
+      find.byKey(const ValueKey('none')),
+    );
     expect(
       await noneCard.confirmDismiss!(DismissDirection.startToEnd),
       isFalse,
