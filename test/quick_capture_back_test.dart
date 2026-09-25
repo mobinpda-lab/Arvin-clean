@@ -16,7 +16,7 @@ void main() {
     final input = find.byKey(const ValueKey('quick-capture-input'));
     expect(input, findsOneWidget);
 
-    await tester.tap(input);
+    await tester.showKeyboard(input);
     await tester.pump();
 
     expect(FocusManager.instance.primaryFocus, isNotNull);
