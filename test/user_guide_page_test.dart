@@ -18,11 +18,11 @@ void main() {
     expect(find.text('شروع سریع در ۳۰ ثانیه'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('ساخت کار جدید'),
+      find.text('ساخت کار'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('ساخت کار جدید'), findsOneWidget);
+    expect(find.text('ساخت کار'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('ثبت سریع'),
