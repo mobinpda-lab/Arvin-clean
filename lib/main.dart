@@ -413,39 +413,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  List<String> get _homeTags => tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
-
-  Widget _homeFilterBar() {
-    final chips = <Widget>[];
-    void addChip(String label, bool selected, VoidCallback onSelected, {IconData? icon, Color accent = const Color(0xFF4A4CAB), bool newOption = false}) => chips.add(ArvinRadioBox(label: label, selected: selected, onTap: onSelected, icon: icon, accent: accent, newOption: newOption));
-    if (_homeGroupMode == HomeGroupMode.time) {
-      addChip('همه', _dueScope == null, () => setState(() => _dueScope = null));
-      addChip('عقب‌افتاده', _dueScope == TaskDueScope.overdue, () => setState(() => _dueScope = TaskDueScope.overdue));
-      addChip('امروز', _dueScope == TaskDueScope.today, () => setState(() => _dueScope = TaskDueScope.today));
-      addChip('آینده', _dueScope == TaskDueScope.future, () => setState(() => _dueScope = TaskDueScope.future));
-      addChip('بدون موعد', _dueScope == TaskDueScope.undated, () => setState(() => _dueScope = TaskDueScope.undated));
-    } else if (_homeGroupMode == HomeGroupMode.projects) {
-      addChip('همه پروژه‌ها', _projectFilter == null, () => setState(() => _projectFilter = null), icon: Icons.folder_outlined, accent: const Color(0xFF4B8FE8));
-      for (final project in projects.where((item) => !item.isArchived)) {
-        addChip(project.title, _projectFilter == project.id, () => setState(() => _projectFilter = project.id), icon: Icons.folder_outlined, accent: Color(project.colorValue));
-      }
-      addChip('بدون پروژه', _projectFilter == '__no_project__', () => setState(() => _projectFilter = '__no_project__'), icon: Icons.folder_off_outlined, accent: const Color(0xFF8A8B9C));
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProjectsLauncher())), newOption: true));
-    } else if (_homeGroupMode == HomeGroupMode.categories) {
-      addChip('همه دسته‌ها', _categoryFilter == null, () => setState(() => _categoryFilter = null), icon: Icons.grid_view_rounded, accent: const Color(0xFF8C68D9));
-      for (final category in _homeCategories) {
-        addChip(category, _categoryFilter == category, () => setState(() => _categoryFilter = category), icon: Icons.folder_outlined, accent: const Color(0xFF8C68D9));
-      }
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF8C68D9)));
-    } else {
-      addChip('همه برچسب‌ها', _tagFilter == null, () => setState(() => _tagFilter = null), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
-      for (final tag in _homeTags) {
-        addChip(tag, _tagFilter == tag, () => setState(() => _tagFilter = tag), icon: Icons.sell_outlined, accent: const Color(0xFF38A89B));
-      }
-      chips.add(ArvinRadioBox(label: 'گزینه جدید', selected: false, onTap: _openTaxonomyManagement, newOption: true, accent: const Color(0xFF38A89B)));
-    }
-    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Wrap(textDirection: TextDirection.rtl, spacing: 6, runSpacing: 6, children: chips));
-  }
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -1428,6 +1395,13 @@ class _HomePageState extends State<HomePage> {
               ),
               const Divider(),
               ListTile(
+                key: const ValueKey('home-more-task-filters'),
+                leading: const Icon(Icons.filter_list_outlined),
+                title: const Text('فیلتر کارها'),
+                subtitle: const Text('امروز، پیگیری، وضعیت و دسته‌ها'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
+              ),
+              ListTile(
                 leading: const Icon(Icons.today_outlined),
                 title: const Text('امروز'),
                 onTap: () =>
@@ -1958,7 +1932,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
-            _homeFilterBar(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
