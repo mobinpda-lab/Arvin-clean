@@ -81,8 +81,8 @@ jobs:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || '3') }}
         run: flutter test --total-shards 4 --shard-index $SHARD_INDEX
 
+  # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
-    needs: quality
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
