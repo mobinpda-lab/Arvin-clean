@@ -58,8 +58,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        area: [followup, calendar, backup, typography, guide, release]
+      strategy:
+        fail-fast: false
+        max-parallel: 6
+        matrix:
+          area: [followup, calendar, backup, typography, guide, release]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
