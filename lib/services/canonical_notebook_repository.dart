@@ -131,6 +131,11 @@ class CanonicalNotebookRepository {
   Future<List<ProjectPlan>> loadProjects() =>
       _projectAssignmentService.loadProjects();
 
+  /// Creates a first-class Project through the existing Project persistence boundary.
+  /// Notebook owns no Project storage and does not write ProjectStore directly.
+  Future<ProjectPlan> createProject({required String title, String? id}) =>
+      _projectAssignmentService.createProject(title: title, id: id);
+
   /// Resolves Project membership for the same canonical Note/Checklist id.
   /// If the item is no longer a Notebook item, fail closed rather than keeping
   /// or fabricating an orphan membership.
