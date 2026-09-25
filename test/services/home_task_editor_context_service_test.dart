@@ -4,7 +4,6 @@ import 'package:arvin/services/home_task_editor_context_service.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/native.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -13,7 +12,6 @@ void main() {
 
   setUp(() {
     database = NativeDatabase.memory();
-    SharedPreferences.setMockInitialValues({});
   });
 
   tearDown(() async => database.close());
@@ -49,7 +47,7 @@ void main() {
   });
 
   test('new Task context stays unassigned', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
     await store.save([ProjectPlan(id: 'p1', title: 'پروژه')]);
     final service = HomeTaskEditorContextService(
       assignmentService: TaskProjectAssignmentService(store: store),
