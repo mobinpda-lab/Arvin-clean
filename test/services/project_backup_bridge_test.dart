@@ -3,8 +3,9 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/native.dart';
 
 class _RecordingBackupManager extends ArvinBackupManager {
   List<ProjectPlan>? capturedProjects;
@@ -24,12 +25,17 @@ class _RecordingBackupManager extends ArvinBackupManager {
 }
 
 void main() {
+  late NativeDatabase database;
+
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    database = NativeDatabase.memory();
   });
 
+  tearDown(() async => database.close());
+
   test('backup always includes Projects from canonical ProjectStore', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
+    await TaskStore(executor: database).save([Task(id: 't1', title: 'کار')]);
     await store.save([
       ProjectPlan(id: 'p1', title: 'پروژه', itemIds: ['t1']),
     ]);
@@ -49,7 +55,7 @@ void main() {
   });
 
   test('restore writes candidate Projects through canonical ProjectStore', () async {
-    final store = ProjectStore();
+    final store = ProjectStore(executor: database);
     final bridge = ProjectBackupBridge(projectStore: store);
     final candidate = (
       tasks: <Task>[],
