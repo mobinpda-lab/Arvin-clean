@@ -43,6 +43,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   String? _error;
+  bool _backHandling = false;
   bool _saving = false;
   DateTime? _dueDate;
   DateTime? _reminderDate;
@@ -56,6 +57,23 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   void initState() {
     super.initState();
     _projectId = widget.initialProjectId;
+  }
+
+  Future<void> _handleBack() async {
+    if (_backHandling || !mounted) return;
+    _backHandling = true;
+    try {
+      final primaryFocus = FocusManager.instance.primaryFocus;
+      if (primaryFocus != null) {
+        primaryFocus.unfocus();
+        return;
+      }
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    } finally {
+      _backHandling = false;
+    }
   }
 
   @override
@@ -375,9 +393,15 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyedSubtree(
-      key: const ValueKey('quick-capture-dialog'),
-      child: _buildContent(context),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _handleBack();
+      },
+      child: KeyedSubtree(
+        key: const ValueKey('quick-capture-dialog'),
+        child: _buildContent(context),
+      ),
     );
   }
 
