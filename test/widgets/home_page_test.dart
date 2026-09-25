@@ -232,15 +232,17 @@ void main() {
     });
 
     await tester.pumpWidget(
-      const Directionality(
-        textDirection: TextDirection.rtl,
-        child: HomePage(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
           settings: AppSettings(
           themeMode: ThemeMode.light,
           usePersianDate: true,
           fontFamily: null,
           swipeRightAction: TaskSwipeAction.archive,
           swipeLeftAction: TaskSwipeAction.trash,
+          ),
           ),
         ),
       ),
@@ -284,15 +286,17 @@ void main() {
     });
 
     await tester.pumpWidget(
-      const Directionality(
-        textDirection: TextDirection.rtl,
-        child: HomePage(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
           settings: AppSettings(
             themeMode: ThemeMode.light,
             usePersianDate: true,
             fontFamily: null,
             swipeRightAction: TaskSwipeAction.moveToToday,
             swipeLeftAction: TaskSwipeAction.none,
+          ),
           ),
         ),
       ),
