@@ -10,7 +10,7 @@ void main() {
     expect(workflow, contains('name: Arvin Device Smoke'));
     expect(workflow, contains("github.event.pull_request.draft == false"));
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    expect(workflow, contains('people-device-smoke:'));
+    expect(workflow, contains('max-parallel: 3'));
     expect(workflow, contains('timeout-minutes: 30'));
     expect(workflow, contains('integration_test/android_home_smoke_test.dart'));
     expect(
@@ -21,15 +21,10 @@ void main() {
       RegExp(r'test_file: integration_test/[^\\s]+').allMatches(
         workflow.split('people-device-smoke:').first,
       ).length,
-      5,
+      6,
       reason:
-          'Home, Quick Capture, SQL persistence, Upgrade Migration, and Backup/Restore must run as separate matrix smoke scenarios',
+          'Home, Quick Capture, SQL persistence, Upgrade Migration, Backup/Restore, and People must run as separate matrix smoke scenarios',
     );
-    expect(
-      workflow,
-      contains(
-        'flutter test integration_test/android_people_smoke_test.dart -d emulator-',
-      ),
-    );
+    expect(workflow, contains('integration_test/android_people_smoke_test.dart'));
   });
 }
