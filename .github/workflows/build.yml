@@ -21,7 +21,13 @@ env:
 jobs:
   quality:
     # Draft PRs are valid product work and must receive real quality/build evidence.
+    # Test execution is sharded across independent runners to reduce wall-clock time
+    # without reducing coverage: every test shard is required by the quality gate.
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [analyze, test-0, test-1, test-2, test-3]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -55,6 +61,7 @@ jobs:
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
       - name: Android V2 audit
+        if: matrix.lane == 'analyze'
         run: |
           set -euo pipefail
           test -f android/app/src/main/kotlin/com/example/arvin/MainActivity.kt
@@ -66,9 +73,13 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
       - name: Analyze
+        if: matrix.lane == 'analyze'
         run: flutter analyze
       - name: Test
-        run: flutter test
+        if: startsWith(matrix.lane, 'test-')
+        env:
+          SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || '3') }}
+        run: flutter test --total-shards 4 --shard-index $SHARD_INDEX
 
   apk:
     needs: quality
