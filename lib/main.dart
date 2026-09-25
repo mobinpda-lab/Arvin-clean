@@ -1216,11 +1216,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<List<Task>> _refreshCanonicalTasksForCalendar() async {
-    await _load();
-    return List<Task>.of(_searchSource);
-  }
-
   Future<void> _openPrimaryCalendar() async {
     if (!mounted) return;
     // Re-read canonical SQL before opening calendar/timeline so navigation never
@@ -1231,7 +1226,6 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => CanonicalCalendarLauncher(
           tasks: _searchSource,
-          onRefreshTasks: _refreshCanonicalTasksForCalendar,
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
         ),
