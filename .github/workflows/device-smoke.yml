@@ -42,7 +42,7 @@ jobs:
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
           - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
-      name: device-smoke (${{ matrix.scenario }})
+      # GitHub supplies the matrix suffix to this job automatically.
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
