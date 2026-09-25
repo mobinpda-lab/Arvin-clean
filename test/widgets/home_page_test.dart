@@ -280,7 +280,7 @@ void main() {
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-24T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
+          '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-26T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
     });
 
     await tester.pumpWidget(
