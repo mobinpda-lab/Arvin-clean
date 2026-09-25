@@ -10,7 +10,7 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'یک عنوان بنویسید، در صورت نیاز توضیح، برچسب و تاریخ پیگیری اضافه کنید و ذخیره را بزنید.',
       steps: <String>[
-        'در صفحه اصلی روی «کار جدید» بزنید.',
+        'در صفحه اصلی روی دکمه «+» بزنید.',
         'عنوان کار را بنویسید؛ توضیحات و برچسب اختیاری هستند.',
         'اگر لازم است دوباره سراغ کار بروید، تاریخ پیگیری تعیین کنید.',
         'روی «ذخیره» بزنید.',
@@ -22,7 +22,7 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'برای زمانی که عجله دارید و فقط می‌خواهید یک کار یا فکر را سریع ثبت کنید.',
       steps: <String>[
-        'بالای صفحه روی علامت صاعقه بزنید.',
+        'برای ثبت سریع، دکمه افزودن سریع «+» را بزنید.',
         'متن کار را وارد کنید.',
         'ثبت را انجام دهید؛ بعداً می‌توانید جزئیات آن را ویرایش کنید.',
       ],
@@ -44,7 +44,7 @@ class UserGuidePage extends StatelessWidget {
           'با جست‌وجو کارهای قدیمی را پیدا کنید و از «امروز» کارهای مربوط به روز جاری را ببینید.',
       steps: <String>[
         'برای پیدا کردن کار، بخشی از عنوان، توضیح یا برچسب را در جست‌وجو بنویسید.',
-        'از منوی برنامه «امروز» را انتخاب کنید تا کارهای مربوط به امروز نمایش داده شوند.',
+        'از منوی «بیشتر»، بخش «امروز» را انتخاب کنید تا کارهای مربوط به امروز نمایش داده شوند.',
       ],
     ),
     _GuideSection(
@@ -53,9 +53,9 @@ class UserGuidePage extends StatelessWidget {
       summary:
           'پیگیری‌ها را روی تقویم ببینید و از همان بخش به دفترچه، اقدام بعدی و خط زمانی دسترسی داشته باشید.',
       steps: <String>[
-        'از منوی برنامه وارد «تقویم» شوید.',
+        'از نوار پایین وارد «تقویم» شوید.',
         'روزهای دارای پیگیری را بررسی کنید.',
-        'در صورت نیاز از دکمه‌های «دفترچه»، «اقدام بعدی» یا «خط زمانی» استفاده کنید.',
+        'در صورت نیاز از دکمه‌های «دفترچه»، «اقدام بعدی» یا «اقدام بعدی» استفاده کنید.',
       ],
     ),
     _GuideSection(
@@ -76,8 +76,8 @@ class UserGuidePage extends StatelessWidget {
           'قبل از تعویض یا ریست گوشی، از اطلاعات آروین نسخه پشتیبان بگیرید.',
       steps: <String>[
         'ابتدا پوشه پشتیبان را انتخاب کنید.',
-        'گزینه «ایجاد Backup» را بزنید.',
-        'برای برگرداندن اطلاعات، «Restore از فایل» را انتخاب کنید و پیام تأیید را با دقت بخوانید.',
+        'گزینه «ایجاد پشتیبان‌گیری» را بزنید.',
+        'برای برگرداندن اطلاعات، «بازیابی از فایل» را انتخاب کنید و پیام تأیید را با دقت بخوانید.',
       ],
     ),
     _GuideSection(
@@ -230,7 +230,7 @@ class _HomeVisualGuide extends StatelessWidget {
                                 style: TextStyle(fontSize: 8),
                               ),
                               Text(
-                                'مدیریت کارها وپیگیری آروین',
+                                'مدیریت کارها و پیگیری آروین',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -280,51 +280,11 @@ class _HomeVisualGuide extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        children: [
-                          const _NumberBadge(number: 4),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Wrap(
-                              spacing: 4,
-                              runSpacing: 4,
-                              children: const [
-                                _MiniChip(text: 'فعال', selected: true),
-                                _MiniChip(text: 'بایگانی'),
-                                _MiniChip(text: 'سطل زباله'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        children: [
-                          const _NumberBadge(number: 5),
-                          const SizedBox(width: 8),
-                          const Expanded(child: _MiniStat(text: 'کل', value: '12')),
-                          const Expanded(child: _MiniStat(text: 'فعال', value: '5')),
-                          const Expanded(
-                            child: _MiniStat(text: 'انجام‌شده', value: '6'),
-                          ),
-                          const Expanded(
-                            child: _MiniStat(text: 'عقب‌افتاده', value: '1'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
                       padding: const EdgeInsets.all(10),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _NumberBadge(number: 6),
+                          const _NumberBadge(number: 4),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Container(
@@ -370,7 +330,7 @@ class _HomeVisualGuide extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const _NumberBadge(number: 7),
+                          const _NumberBadge(number: 5),
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -421,7 +381,7 @@ class _HomeVisualGuide extends StatelessWidget {
             const _VisualLegend(
               number: 2,
               title: 'ثبت سریع و پشتیبان',
-              text: 'صاعقه برای ثبت سریع است و آیکون پشتیبان برای Backup/Restore.',
+              text: 'صاعقه برای ثبت سریع است و آیکون پشتیبان برای پشتیبان‌گیری/Restore.',
             ),
             const _VisualLegend(
               number: 3,
@@ -566,7 +526,7 @@ class _BackupVisualGuide extends StatelessWidget {
                   child: _BackupStep(
                     number: 2,
                     icon: Icons.backup_outlined,
-                    text: 'ایجاد Backup',
+                    text: 'ایجاد پشتیبان‌گیری',
                   ),
                 ),
                 Icon(Icons.arrow_back_rounded),
@@ -581,7 +541,7 @@ class _BackupVisualGuide extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'برای بازیابی، مسیر برعکس نیست؛ کافی است «Restore از فایل» را بزنید، فایل را انتخاب کنید و پیام تأیید را بخوانید. آروین قبل از جایگزینی اطلاعات، از داده فعلی یک پشتیبان اضطراری می‌سازد.',
+              'برای بازیابی، مسیر برعکس نیست؛ کافی است «بازیابی از فایل» را بزنید، فایل را انتخاب کنید و پیام تأیید را بخوانید. آروین قبل از جایگزینی اطلاعات، از داده فعلی یک پشتیبان اضطراری می‌سازد.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -597,7 +557,7 @@ class _QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = <(IconData, String)>[
-      (Icons.add, '«کار جدید» را بزنید'),
+      (Icons.add, '«+ افزودن سریع» را بزنید'),
       (Icons.edit_outlined, 'عنوان کار را بنویسید'),
       (Icons.event_outlined, 'اگر لازم است تاریخ پیگیری بگذارید'),
       (Icons.save_outlined, 'ذخیره کنید'),
@@ -735,49 +695,6 @@ class _NumberBadge extends StatelessWidget {
           fontSize: 10,
           fontWeight: FontWeight.w800,
         ),
-      ),
-    );
-  }
-}
-
-class _MiniChip extends StatelessWidget {
-  const _MiniChip({required this.text, this.selected = false});
-
-  final String text;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: selected ? colors.secondaryContainer : colors.surfaceContainer,
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 9)),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.text, required this.value});
-
-  final String text;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-          ),
-          Text(text, style: const TextStyle(fontSize: 7)),
-        ],
       ),
     );
   }
