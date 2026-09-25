@@ -48,7 +48,7 @@ void main() {
       expect(captured[1].title, 'کار دوم');
       expect(captured[1].dueDate, isNull);
       expect(captured[1].reminderDate, isNull);
-      expect(captured[1].priority, TaskPriority.normal);
+      expect(captured[1].priority, TaskPriority.none);
     },
   );
 }
