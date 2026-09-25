@@ -163,7 +163,7 @@ void main() {
     'Official Calendar release acceptance keeps Iranian occasions on the canonical CalendarPage',
     (tester) async {
       final selectedDay = DateTime(2026, 3, 21);
-      const service = OfficialCalendarReminderService(
+      final service = OfficialCalendarReminderService(
         <OfficialCalendarReminderSource>[
           _FakeOfficialSource(
             <OfficialCalendarReminder>[
