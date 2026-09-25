@@ -77,6 +77,36 @@ void main() {
     expect(find.text('تداخل‌ها'), findsNothing);
   });
 
+  testWidgets('timeline refreshes canonical tasks before opening People',
+      (tester) async {
+    final initial = Task(
+      id: 'initial-task',
+      title: 'کار اولیه',
+    );
+    final refreshed = Task(
+      id: 'refreshed-task',
+      title: 'کار تازه',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: <Task>[initial],
+          onRefreshTasks: () async => <Task>[refreshed],
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await _openMoreMenu(tester);
+    await tester.tap(find.text('خط زمانی'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(TaskTimelinePage), findsOneWidget);
+    expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
+  });
+
   testWidgets('real calendar conflict button shows safe replacement suggestions',
       (tester) async {
     final when = DateTime(2026, 8, 27, 9);
