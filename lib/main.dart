@@ -10,7 +10,6 @@ import 'home/grouping/home_group.dart';
 import 'home/grouping/home_group_mode.dart';
 import 'home/grouping/home_grouping_service.dart';
 import 'notebook_page.dart';
-import 'projects_launcher.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
@@ -1932,7 +1931,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
-            _homeFilterBar(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
