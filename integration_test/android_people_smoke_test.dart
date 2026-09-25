@@ -1,7 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_timeline_page.dart';
-import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -60,18 +59,27 @@ void main() {
     await tester.tap(saveTask);
     await tester.pumpAndSettle();
 
+    // Full-form editing returns to the Quick Capture sheet. Close every
+    // remaining visible capture sheet before exercising real navigation.
+    final quickCapture = find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
+      final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
+      if (cancel.evaluate().isEmpty) break;
+      await tester.tap(cancel);
+      await tester.pumpAndSettle();
+    }
+    expect(quickCapture, findsNothing);
+
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
     expect(homeBar, findsOneWidget);
-    final homeNavigation = tester.widget<NavigationBar>(homeBar);
-    homeNavigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
+    await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
     final calendarBar = find.byType(NavigationBar);
     expect(calendarBar, findsOneWidget);
-    final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
-    calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
+    await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
