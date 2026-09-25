@@ -29,20 +29,20 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        scenario:
-          - name: home
+        include:
+          - scenario: home
             test_file: integration_test/android_home_smoke_test.dart
-          - name: quick-capture
+          - scenario: quick-capture
             test_file: integration_test/android_quick_capture_smoke_test.dart
-          - name: sql-persistence
+          - scenario: sql-persistence
             test_file: integration_test/android_sql_persistence_smoke_test.dart
-          - name: sql-migration
+          - scenario: sql-migration
             test_file: integration_test/android_upgrade_migration_smoke_test.dart
-          - name: backup-restore
+          - scenario: backup-restore
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
-          - name: people
+          - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
-      name: device-smoke (${{ matrix.scenario.name }})
+      name: device-smoke (${{ matrix.scenario }})
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -94,5 +94,5 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test ${{ matrix.scenario.test_file }} -d emulator-${EMULATOR_PORT}
+          script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
 
