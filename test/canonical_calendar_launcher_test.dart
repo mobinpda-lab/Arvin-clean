@@ -249,10 +249,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await tester.tap(find.text('اقدام بعدی'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(TaskNextActionPage), findsOneWidget);
     expect(find.text('تماس فوری'), findsOneWidget);
@@ -278,11 +278,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CanonicalCalendarLauncher(tasks: [task])),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsOneWidget);
@@ -303,11 +303,11 @@ void main() {
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('انتخاب کار برای خط زمانی'), findsOneWidget);
     await tester.tap(find.text('کار دوم'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.text('ایجاد کار'), findsOneWidget);
@@ -318,7 +318,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(home: CanonicalCalendarLauncher(tasks: [])),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await _openMoreMenu(tester);
     await tester.tap(find.text('خط زمانی'));
