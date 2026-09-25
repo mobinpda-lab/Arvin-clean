@@ -270,7 +270,7 @@ void main() {
     expect(stored.singleWhere((task) => task.id == 'right-task').archived, isTrue);
     expect(stored.singleWhere((task) => task.id == 'left-task').trashed, isTrue);
     // Keep the second widget read above to ensure both cards were real Dismissibles.
-    expect(second.key, isNotNull);
+    expect(second, isA<Dismissible>());
   });
 
   testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
