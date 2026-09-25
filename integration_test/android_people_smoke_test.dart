@@ -78,9 +78,13 @@ void main() {
     await tester.tap(timelineAction);
     await tester.pumpAndSettle();
 
-    final timelineChooser = find.text('انتخاب کار برای خط زمانی');
+    final timelineChooser = find.byType(SimpleDialog);
     if (timelineChooser.evaluate().isNotEmpty) {
-      await tester.tap(find.text('تست افراد اندروید').last);
+      final selectedTask = find.descendant(
+        of: timelineChooser,
+        matching: find.text('تست افراد اندروید'),
+      );
+      await tester.tap(selectedTask);
       await tester.pumpAndSettle();
     }
 
