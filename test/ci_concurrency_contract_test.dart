@@ -36,6 +36,6 @@ void main() {
     expect(parallel.split(draftOnly).length - 1, 2);
     expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
     expect(parallel, contains('cancel-in-progress: true'));
-    expect(parallel, contains('Arvin Build + Device Smoke'));
+    expect(parallel, contains('max-parallel: 6'));
   });
 }
