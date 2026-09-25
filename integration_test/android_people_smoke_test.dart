@@ -86,7 +86,10 @@ void main() {
 
     final peopleAction =
         find.byKey(const ValueKey('timeline-open-people'));
-    for (var attempt = 0; attempt < 30; attempt++) {
+    // Android emulators can take a few seconds to mount the newly pushed route.
+    // Poll the canonical action with a bounded 10-second window instead of assuming
+    // that pumpAndSettle immediately observes the destination page.
+    for (var attempt = 0; attempt < 100; attempt++) {
       await tester.pump(const Duration(milliseconds: 100));
       if (peopleAction.evaluate().isNotEmpty) break;
     }
