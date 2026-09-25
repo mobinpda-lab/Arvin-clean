@@ -20,14 +20,17 @@ env:
 
 jobs:
   # All canonical Android scenarios are independent. Keep them in one matrix so
-  # GitHub can schedule them concurrently while max-parallel protects emulator stability.
+  # GitHub can schedule them concurrently. Each scenario gets its own hosted
+  # runner/emulator, so max-parallel can use the repository's available runner
+  # concurrency without reducing product coverage.
   device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 6
       matrix:
         include:
           - scenario: home
@@ -42,7 +45,6 @@ jobs:
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
           - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
-      # GitHub supplies the matrix suffix to this job automatically.
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -84,7 +86,7 @@ jobs:
           git diff --exit-code -- pubspec.lock
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm4all"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Run selected canonical smoke on Android emulator
@@ -95,4 +97,3 @@ jobs:
           target: default
           disable-animations: true
           script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-
