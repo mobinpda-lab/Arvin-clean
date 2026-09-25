@@ -64,15 +64,14 @@ void main() {
 
     final homeBar = find.byType(NavigationBar);
     expect(homeBar, findsOneWidget);
-    final homeNavigation = tester.widget<NavigationBar>(homeBar);
-    homeNavigation.onDestinationSelected!(ArvinPrimaryDestination.calendar.index);
+    await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
     final calendarBar = find.byType(NavigationBar);
     expect(calendarBar, findsOneWidget);
-    final calendarNavigation = tester.widget<NavigationBar>(calendarBar);
-    calendarNavigation.onDestinationSelected!(ArvinPrimaryDestination.more.index);
-    await tester.pumpAndSettle();
+    await tester.tap(find.text('بیشتر'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     final timelineAction = find.text('خط زمانی');
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();
