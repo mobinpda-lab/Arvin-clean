@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'models/goal_project.dart';
@@ -17,6 +18,7 @@ import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
+import 'services/task_store.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
@@ -1323,6 +1325,21 @@ class _HomePageState extends State<HomePage> {
           onOpenBackup: () {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
+          },
+          onOpenBackupSchedule: () {
+            Navigator.of(context).pop();
+            Future<void>.delayed(
+              Duration.zero,
+              () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => BackupSchedulePage(
+                    loadTasks: () async => (await TaskStore().load())
+                        .map((task) => task.toJson())
+                        .toList(growable: false),
+                  ),
+                ),
+              ),
+            );
           },
         ),
       ),
