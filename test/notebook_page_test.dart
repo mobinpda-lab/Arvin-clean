@@ -855,6 +855,7 @@ void main() {
       'متن جدید',
     );
     await tester.pumpAndSettle();
+    await tester.tap(descriptionFinder);
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
     await tester.pump();
