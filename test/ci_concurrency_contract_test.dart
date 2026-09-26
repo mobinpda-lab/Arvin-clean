@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Build and Device cancel superseded non-PR runs by ref', () {
+  test('Build and Device validate main pushes and PRs without duplicate branch pushes', () {
     final build = File('.github/workflows/build.yml').readAsStringSync();
     final device = File('.github/workflows/device-smoke.yml').readAsStringSync();
 
@@ -15,6 +15,8 @@ void main() {
       device,
       contains(r'github.event.pull_request.number || github.ref_name'),
     );
+    expect(build, contains('branches: [main, master]'));
+    expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
     expect(device, contains('cancel-in-progress: true'));
     expect(
