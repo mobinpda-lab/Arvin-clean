@@ -1292,7 +1292,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               icon: const Icon(Icons.redo_outlined),
             ),
             TextButton(
-            TextButton(
               key: const ValueKey('notebook-done'),
               onPressed: _finishEditing,
               child: const Text('ذخیره'),
