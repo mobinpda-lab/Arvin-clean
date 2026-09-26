@@ -60,13 +60,15 @@ void main() {
     expect(settings, contains("title: 'راهنمای پشتیبان‌گیری'"));
   });
 
-  test('parallel wave has an independent guide surface', () {
+  test('guide coverage stays in the canonical Build test matrix', () {
     final workflow =
         File('.github/workflows/parallel-wave.yml').readAsStringSync();
+    final build = File('.github/workflows/build.yml').readAsStringSync();
 
-    expect(workflow, contains('typography, guide, release'));
-    expect(workflow, contains('guide)'));
-    expect(workflow, contains("-iname '*guide*test.dart'"));
-    expect(workflow, contains("-iname '*help*test.dart'"));
+    expect(workflow, contains('Arvin Build owns Analyze + all sharded tests + Debug/Release APK'));
+    expect(workflow, isNot(contains('surface:')));
+    expect(workflow, isNot(contains('typography, guide, release')));
+    expect(build, contains('total-shards: 6'));
+    expect(build, contains('flutter test'));
   });
 }
