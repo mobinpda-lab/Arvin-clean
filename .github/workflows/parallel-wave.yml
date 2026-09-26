@@ -10,11 +10,11 @@ on:
 permissions:
   contents: read
 
-# Fast Lane: wave/** and ci/** automation branches receive push validation.
-# Draft PRs receive one canonical contract check plus independent surface tests.
-# Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate,
-# while Arvin Device Smoke owns real Android integration evidence for Ready PRs.
-# This workflow must not duplicate the full quality matrix.
+# Fast Lane: CI automation branches receive the lightweight contract gate.
+# Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate.
+# Arvin Device Smoke owns real Android integration evidence for Ready PRs.
+# Do not duplicate product tests here: duplicate execution only increases queue time
+# and runner consumption without increasing product coverage.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -31,70 +31,3 @@ jobs:
       - name: Validate Fast Lane workflow contract
         run: python3 tool/validate_fast_lane.py
 
-  surface:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == true
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        area: [followup, calendar, backup, typography, guide, release]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fetch pinned VazirHarf
-        run: |
-          set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-      - name: Resolve locked dependencies
-        run: |
-          set -euo pipefail
-          test -s pubspec.lock
-          flutter pub get --enforce-lockfile
-          git diff --exit-code -- pubspec.lock
-      - name: Validate ${{ matrix.area }} surface independently
-        shell: bash
-        env:
-          ARVIN_SURFACE: ${{ matrix.area }}
-        run: |
-          case "$ARVIN_SURFACE" in
-            calendar)
-              tests=$(find test -type f -name '*calendar*test.dart' -print)
-              ;;
-            followup)
-              tests=$(find test -type f \( -iname '*followup*test.dart' -o -iname '*follow_up*test.dart' \) -print)
-              ;;
-            backup)
-              tests=$(find test -type f -iname '*backup*test.dart' -print)
-              ;;
-            typography)
-              tests=$(find test -type f \( -iname '*font*test.dart' -o -iname '*typograph*test.dart' -o -iname '*setting*test.dart' \) -print)
-              ;;
-            guide)
-              tests=$(find test -type f \( -iname '*guide*test.dart' -o -iname '*help*test.dart' \) -print)
-              ;;
-            release)
-              tests=$(find test -type f \( -iname '*release*test.dart' -o -iname '*critical_path*test.dart' \) -print)
-              ;;
-            *)
-              echo "Unknown surface: $ARVIN_SURFACE"
-              exit 1
-              ;;
-          esac
-          if [ -n "$tests" ]; then
-            echo "$tests"
-            for test_file in $tests; do
-              flutter test "$test_file"
-            done
-          else
-            echo "No dedicated ${ARVIN_SURFACE} tests found; running core smoke test only."
-            flutter test test/task_store_test.dart
-          fi
