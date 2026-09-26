@@ -102,6 +102,40 @@ void main() {
     expect(tags.map((row) => row['name']), ['مهم', 'مشتری']);
   });
 
+  test('successful migration leaves the legacy JSON byte-for-byte unchanged', () async {
+    const raw = '[{"id":"preserve-1","title":"قدیمی","followUps":[{"id":"history-1","dateTime":"2026-09-21T10:00:00Z","note":"تاریخچه"}]}]';
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', raw);
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    expect(preferences.getString('arvin.tasks'), raw);
+  });
+
+  test('failed migration leaves the complete legacy document unchanged', () async {
+    const raw = '[{"id":"task-a","title":"اول","followUps":[{"id":"same-follow-up","dateTime":"2026-09-21T10:00:00Z"}]},{"id":"task-b","title":"دوم","followUps":[{"id":"same-follow-up","dateTime":"2026-09-21T11:00:00Z"}]}]';
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', raw);
+
+    await expectLater(
+      const SqlTaskMigrationWriter().migrateFromPreferences(
+        executor: database,
+        preferences: preferences,
+      ),
+      throwsA(anything),
+    );
+
+    expect(preferences.getString('arvin.tasks'), raw);
+    final tasks = await database.runSelect(
+      'SELECT COUNT(*) AS count FROM tasks',
+      const [],
+    );
+    expect(tasks.single['count'], 0);
+  });
+
   test('re-running the same migration is idempotent', () async {
     final raw = '[{"id":"same-1","title":"یک بار"}]';
     final preferences = await SharedPreferences.getInstance();
