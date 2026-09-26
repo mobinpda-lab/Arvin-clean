@@ -42,8 +42,8 @@ for forbidden_push_branch in ("'feat/**'", "'fix/**'", "'test/**'"):
     if forbidden_push_branch in parallel:
         raise SystemExit(f'{parallel_path} must not validate normal PR branches twice: {forbidden_push_branch}')
 require(parallel, 'contract:', str(parallel_path))
-require(parallel, 'surface:', str(parallel_path))
-require(parallel, 'flutter test', str(parallel_path))
+forbid(parallel, 'surface:', str(parallel_path))
+forbid(parallel, 'flutter test', str(parallel_path))
 forbid(parallel, 'jobs:\n  quality:', str(parallel_path))
 forbid(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
