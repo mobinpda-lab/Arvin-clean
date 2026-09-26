@@ -850,7 +850,7 @@ void main() {
         find.byKey(const ValueKey('notebook-description'));
     await tester.tap(descriptionFinder);
     await tester.showKeyboard(descriptionFinder);
-    await tester.testTextInput.updateEditingValue(
+    tester.testTextInput.updateEditingValue(
       const TextEditingValue(
         text: 'متن جدید',
         selection: TextSelection.collapsed(offset: 8),
