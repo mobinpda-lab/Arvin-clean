@@ -6,7 +6,6 @@ import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
 import 'theme/app_fonts.dart';
 import 'task_taxonomy_management_page.dart';
-import 'user_guide_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -59,7 +58,6 @@ class _SettingsPageState extends State<SettingsPage> {
   String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.none => 'بدون عمل' };
   IconData _swipeActionIcon(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => Icons.archive_outlined, TaskSwipeAction.trash => Icons.delete_outline, TaskSwipeAction.moveToToday => Icons.today_outlined, TaskSwipeAction.none => Icons.block };
   List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() => TaskSwipeAction.values.map((action) => DropdownMenuItem<TaskSwipeAction>(value: action, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(_swipeActionIcon(action), size: 20), const SizedBox(width: 8), Text(_swipeActionLabel(action))]))).toList();
-  Future<void> _openUserGuide() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const UserGuidePage())); }
   Future<void> _openBackupSchedule() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => BackupSchedulePage())); }
   Future<void> _openCalendarIntegrationSettings() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => CalendarIntegrationSettingsPage(service: widget.service))); await _load(); }
   Future<void> _openProjectsManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const ProjectsLauncher())); }
@@ -78,8 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const SizedBox(height: 20), const Text('تقویم و همگام‌سازی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
-      const SizedBox(height: 20), const Text('عمومی و پشتیبان‌گیری', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.menu_book_outlined), title: const Text('راهنمای استفاده'), subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'), trailing: const Icon(Icons.chevron_left), onTap: _openUserGuide),
-      if (widget.onStartInteractiveGuide != null) ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.slideshow_outlined), title: const Text('راهنمای تعاملی صفحه اصلی'), subtitle: const Text('دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند'), trailing: const Icon(Icons.play_arrow_rounded), onTap: widget.onStartInteractiveGuide),
+      const SizedBox(height: 20), const Text('عمومی و پشتیبان‌گیری', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined), title: const Text('زمان‌بندی پشتیبان‌گیری'), subtitle: const Text('روزانه، هفتگی یا ماهانه'), trailing: const Icon(Icons.chevron_left), onTap: widget.onOpenBackupSchedule ?? _openBackupSchedule),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.backup_outlined), title: const Text('پشتیبان‌گیری و بازیابی'), subtitle: const Text('استفاده از مسیر موجود Backup/Restore آروین'), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(key: const ValueKey('backup-context-help'), tooltip: 'راهنمای پشتیبان‌گیری', onPressed: _showBackupHelp, icon: const Icon(Icons.help_outline)), const Icon(Icons.chevron_left)]), onTap: widget.onOpenBackup),
     ])));
