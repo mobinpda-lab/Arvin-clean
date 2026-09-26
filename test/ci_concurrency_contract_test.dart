@@ -16,6 +16,8 @@ void main() {
       contains(r'github.event.pull_request.number || github.ref_name'),
     );
     expect(build, contains('branches: [main, master]'));
+    expect(build, contains('types: [opened, synchronize, reopened]'));
+    expect(build, isNot(contains('ready_for_review')));
     expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
     expect(device, contains('cancel-in-progress: true'));
