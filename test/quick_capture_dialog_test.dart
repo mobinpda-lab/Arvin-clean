@@ -186,6 +186,41 @@ void main() {
       ['کار اول', 'کار دوم', 'کار سوم'],
     );
   });
+  testWidgets('canonical capture keeps title-only path and optional choices',
+      (tester) async {
+    final captured = <Task>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'canonical-1',
+              now: () => DateTime(2026, 9, 26, 12),
+              onCaptured: (task) async => captured.add(task),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('یادآور'), findsOneWidget);
+    expect(find.text('تکرار'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار فقط با عنوان',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured.single.title, 'کار فقط با عنوان');
+  });
+
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
