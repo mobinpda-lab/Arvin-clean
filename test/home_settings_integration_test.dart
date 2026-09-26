@@ -64,7 +64,7 @@ void main() {
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
-    expect(find.text('حرکت کارت‌ها'), findsOneWidget);
+    expect(find.text('کارها و حرکت کارت‌ها'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('پشتیبان‌گیری و بازیابی'),
