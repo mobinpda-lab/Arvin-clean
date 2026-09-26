@@ -219,11 +219,11 @@ jobs:
                 continue;
               }
 
+              // Fast, Build and Android Smoke are independent gates. Do not make
+              // the heavy lanes wait behind Fast; their workflow triggers/runs may
+              // progress concurrently. Promotion still requires every exact-head gate.
               if (item.draft) {
                 let fast = await latestFastRun(headSha);
-                if (directWake && fast?.status !== 'completed') {
-                  fast = await waitForFast(item, headSha);
-                }
                 if (await fastGreenForCurrentMain(fast, item, headSha)) {
                   core.info(`#${item.number}: Fast green on current main; marking ready.`);
                   await github.graphql(`
@@ -235,8 +235,7 @@ jobs:
                   `, { id: item.node_id });
                 } else {
                   await reportFailure(fast);
-                  core.info(`#${item.number}: draft waiting for current-main Fast gate.`);
-                  continue;
+                  core.info(`#${item.number}: draft remains draft until exact-head Fast is green; heavy gates continue independently.`);
                 }
               }
 
