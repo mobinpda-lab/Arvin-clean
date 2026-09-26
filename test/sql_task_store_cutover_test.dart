@@ -72,6 +72,28 @@ void main() {
     expect(fromSql.single.title, 'تماس با مشتری');
   });
 
+  test('SQL save preserves unknown legacy payload fields for an existing task', () async {
+    final preferences = await SharedPreferences.getInstance();
+    const legacy = '[{"id":"preserve-save-1","title":"قدیمی","futureField":{"keep":true,"version":7}}]';
+    await preferences.setString(TaskStore.key, legacy);
+
+    final store = TaskStore(executor: database);
+    final loaded = await store.load();
+    expect(loaded.single.id, 'preserve-save-1');
+
+    loaded.single.title = 'به‌روزشده';
+    await store.save(loaded);
+
+    final rows = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const ['preserve-save-1'],
+    );
+    final envelope =
+        jsonDecode(rows.single['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope['title'], 'به‌روزشده');
+    expect(envelope['futureField'], {'keep': true, 'version': 7});
+  });
+
   test('SQL save preserves identity, order, relations and survives a fresh store', () async {
     final first = Task(
       id: 'task-1',
