@@ -211,4 +211,71 @@ void main() {
     expect(tasks.single['count'], 0);
     expect(followUps.single['count'], 0);
   });
+
+
+  test('round-trips canonical task JSON, IDs, order, and follow-up history through TaskStore', () async {
+    final source = <Map<String, dynamic>>[
+      {
+        'id': 'roundtrip-1',
+        'title': 'اول',
+        'description': 'شرح اول',
+        'createdAt': '2026-09-20T10:00:00.000Z',
+        'dueDate': '2026-09-22T10:00:00.000Z',
+        'followUpEnabled': true,
+        'followUps': [
+          {
+            'id': 'history-1',
+            'dateTime': '2026-09-21T10:00:00.000Z',
+            'note': 'پیگیری اول',
+            'result': 'منتظر پاسخ',
+            'completed': false,
+          },
+          {
+            'id': 'history-2',
+            'dateTime': '2026-09-22T10:00:00.000Z',
+            'note': 'پیگیری دوم',
+            'result': 'پاسخ دریافت شد',
+            'completed': true,
+          },
+        ],
+        'tags': ['مهم', 'مشتری'],
+        'category': 'فروش',
+        'checklist': ['مرحله ۱', 'مرحله ۲'],
+        'archived': false,
+        'trashed': false,
+        'completed': false,
+      },
+      {
+        'id': 'roundtrip-2',
+        'title': 'دوم',
+        'description': 'شرح دوم',
+        'followUps': [],
+        'tags': ['بعدی'],
+        'completed': true,
+      },
+    ];
+    final raw = jsonEncode(source);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', raw);
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    final loaded = await TaskStore(executor: database).load();
+    expect(loaded.map((task) => task.id), ['roundtrip-1', 'roundtrip-2']);
+    expect(loaded.map((task) => task.toJson()), [
+      Task.fromJson(source[0]).toJson(),
+      Task.fromJson(source[1]).toJson(),
+    ]);
+    expect(loaded.first.followUps.map((item) => item.id), [
+      'history-1',
+      'history-2',
+    ]);
+    expect(loaded.first.followUps.map((item) => item.note), [
+      'پیگیری اول',
+      'پیگیری دوم',
+    ]);
+  });
 }
