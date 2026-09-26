@@ -59,6 +59,9 @@ void main() {
     expect(find.text('ذخیره تنظیمات'), findsOneWidget);
     expect(find.text('۰۳:۰۰'), findsOneWidget);
     expect(find.text('03:00'), findsNothing);
+    expect(find.text('روزانه'), findsOneWidget);
+    expect(find.text('هفتگی'), findsNothing);
+    expect(find.text('ماهانه'), findsNothing);
   });
 
   testWidgets('saving an enabled schedule calls the scheduler', (tester) async {
@@ -99,3 +102,6 @@ void main() {
     expect(scheduler.cancelled, isTrue);
   });
 }
+
+
+void _scheduleFrequencyAssertions() {}
