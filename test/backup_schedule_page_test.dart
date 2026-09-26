@@ -60,6 +60,7 @@ void main() {
     expect(find.text('۰۳:۰۰'), findsOneWidget);
     expect(find.text('03:00'), findsNothing);
     expect(find.text('روزانه'), findsOneWidget);
+    expect(find.text('روزانه'), findsOneWidget);
     expect(find.text('هفتگی'), findsNothing);
     expect(find.text('ماهانه'), findsNothing);
   });
@@ -105,3 +106,35 @@ void main() {
 
 
 void _scheduleFrequencyAssertions() {}
+
+
+  test('backup schedule advances according to frequency', () {
+    final now = DateTime(2026, 9, 26, 4);
+    expect(
+      const BackupSchedule(
+        enabled: true,
+        hour: 3,
+        minute: 0,
+        frequency: BackupFrequency.daily,
+      ).nextRun(now),
+      DateTime(2026, 9, 27, 3),
+    );
+    expect(
+      const BackupSchedule(
+        enabled: true,
+        hour: 3,
+        minute: 0,
+        frequency: BackupFrequency.weekly,
+      ).nextRun(now),
+      DateTime(2026, 10, 3, 3),
+    );
+    expect(
+      const BackupSchedule(
+        enabled: true,
+        hour: 3,
+        minute: 0,
+        frequency: BackupFrequency.monthly,
+      ).nextRun(now),
+      DateTime(2026, 10, 26, 3),
+    );
+  });
