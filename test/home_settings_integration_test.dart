@@ -18,7 +18,7 @@ void main() {
     expect(Theme.of(homeContext).brightness, Brightness.dark);
   });
 
-  testWidgets('Home exposes canonical My Tasks and View All actions', (tester) async {
+  testWidgets('Home keeps legacy task actions out of the primary surface', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"home-canonical","title":"کار قابل نمایش"}]',
@@ -27,17 +27,10 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-my-tasks')), findsOneWidget);
-    expect(find.text('کارهای من'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-view-all')), findsOneWidget);
-    expect(find.text('مشاهده همه'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks')));
-    await tester.pumpAndSettle();
-    expect(find.text('فیلتر کارها'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-all')));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-my-tasks')), findsNothing);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.byKey(const ValueKey('home-view-all')), findsNothing);
+    expect(find.text('مشاهده همه'), findsNothing);
     expect(find.text('کار قابل نمایش'), findsOneWidget);
   });
 
