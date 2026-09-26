@@ -1369,21 +1369,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showAllTasks() {
-    if (!mounted) return;
-    setState(() {
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
-      _projectFilter = null;
-      _tagFilter = null;
-      _collapsedGroups.clear();
-      selected.clear();
-      selectionMode = false;
-    });
-  }
-
   Future<void> _openMyTasks() async {
     final selection = await showHomeMyTasksSheet(
       context: context,
@@ -1955,7 +1940,7 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-canonical-search'),
                 onChanged: (value) => setState(() => query = value),
                 decoration: InputDecoration(
-                  hintText: 'جست‌وجو در کارها',
+                  hintText: 'جستجو در کارها',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: const Color(0xFFFDFDFE),
@@ -1975,35 +1960,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                compactHome ? 0 : 2,
-                16,
-                compactHome ? 4 : 8,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('home-my-tasks'),
-                      onPressed: _openMyTasks,
-                      icon: const Icon(Icons.checklist_rtl_outlined),
-                      label: const Text('کارهای من'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextButton.icon(
-                      key: const ValueKey('home-view-all'),
-                      onPressed: _showAllTasks,
-                      icon: const Icon(Icons.list_alt_rounded),
-                      label: const Text('مشاهده همه'),
-                    ),
-                  ),
-                ],
               ),
             ),
             _homeGroupSelector(),
