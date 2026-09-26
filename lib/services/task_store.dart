@@ -230,6 +230,24 @@ class TaskStore {
         'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
         const [],
       );
+      // Keep unknown legacy fields when an existing SQL Task is rewritten.
+      // Read them before deleting the task rows; otherwise _canonicalEnvelope
+      // cannot recover the previous envelope after the DELETE.
+      final legacyPayloads = <String, Map<String, dynamic>>{};
+      final existingTasks = await executor.runSelect(
+        'SELECT id, legacy_payload_json FROM tasks',
+        const [],
+      );
+      for (final row in existingTasks) {
+        final raw = row['legacy_payload_json'];
+        if (row['id'] is String && raw is String && raw.trim().isNotEmpty) {
+          final decoded = jsonDecode(raw);
+          if (decoded is Map) {
+            legacyPayloads[row['id'] as String] =
+                Map<String, dynamic>.from(decoded);
+          }
+        }
+      }
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM tags');
@@ -240,7 +258,10 @@ class TaskStore {
 
       for (var ordinal = 0; ordinal < tasks.length; ordinal++) {
         final task = tasks[ordinal];
-        final envelope = await _canonicalEnvelope(executor, task);
+        final envelope = _canonicalEnvelope(
+          task,
+          previousPayload: legacyPayloads[task.id],
+        );
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
@@ -288,28 +309,21 @@ class TaskStore {
     }
   }
 
-  Future<Map<String, dynamic>> _canonicalEnvelope(
-    QueryExecutor executor,
-    Task task,
-  ) async {
+  Map<String, dynamic> _canonicalEnvelope(
+    Task task, {
+    Map<String, dynamic>? previousPayload,
+  }) {
     final knownKeys = <String>{
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
       'completed', 'followUps', 'recurrence', 'people',
     };
-    final rows = await executor.runSelect(
-      'SELECT legacy_payload_json FROM tasks WHERE id = ? LIMIT 1',
-      <Object?>[task.id],
-    );
     final preserved = <String, dynamic>{};
-    if (rows.isNotEmpty && rows.single['legacy_payload_json'] is String) {
-      final decoded = jsonDecode(rows.single['legacy_payload_json'] as String);
-      if (decoded is Map) {
-        final previous = Map<String, dynamic>.from(decoded);
-        for (final entry in previous.entries) {
-          if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
-        }
+    final previous = previousPayload;
+    if (previous != null) {
+      for (final entry in previous.entries) {
+        if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
       }
     }
     final canonical = Map<String, dynamic>.from(task.toJson());
