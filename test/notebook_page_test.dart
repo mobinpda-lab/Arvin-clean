@@ -850,7 +850,7 @@ void main() {
     await tester.showKeyboard(descriptionFinder);
     await tester.pump();
 
-    await tester.testTextInput.updateEditingValue(
+    tester.testTextInput.updateEditingValue(
       const TextEditingValue(
         text: 'متن جدید',
         selection: TextSelection.collapsed(offset: 8),
