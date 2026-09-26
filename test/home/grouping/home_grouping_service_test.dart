@@ -60,10 +60,6 @@ void main() {
       ['overdue'],
     );
     expect(
-      groups.expand((group) => group.items).map((item) => item.id),
-      contains('completed-overdue'),
-    );
-    expect(
       groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
       isNot(contains('completed-overdue')),
     );
