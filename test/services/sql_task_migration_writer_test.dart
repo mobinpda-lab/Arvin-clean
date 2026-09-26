@@ -4,7 +4,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/sql_task_migration_writer.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   late NativeDatabase database;
