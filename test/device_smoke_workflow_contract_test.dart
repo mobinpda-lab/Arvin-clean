@@ -10,7 +10,7 @@ void main() {
     expect(workflow, contains('name: Arvin Device Smoke'));
     expect(workflow, contains("github.event.pull_request.draft == false"));
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    expect(workflow, contains('max-parallel: 4'));
+    expect(workflow, contains('max-parallel: 6'));
     expect(workflow, contains('timeout-minutes: 30'));
 
     final matrixScenarios = RegExp(
