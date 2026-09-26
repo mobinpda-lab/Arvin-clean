@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('guarded AI worker merge closes its canonical source issue', () {
+  test('guarded AI worker closes narrow source issues but not Recovery Wave parents', () {
     final worker =
         File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
 
-    expect(worker, contains('PR_BODY="Automated bounded Code Worker implementation'));
-    expect(worker, contains('Closes #\$ARVIN_ISSUE_NUMBER'));
+    expect(worker, contains('ISSUE_BODY=$(gh issue view'));
+    expect(worker, contains('arvin-recovery-wave:'));
+    expect(worker, contains('arvin-recovery-wave-source'));
+    expect(worker, contains('Closes #\\$ARVIN_ISSUE_NUMBER'));
+    expect(worker, contains('Refs #\\$ARVIN_ISSUE_NUMBER'));
     expect(
       worker,
       contains('gh pr edit "\$PR_NUMBER" --repo "\$GITHUB_REPOSITORY" --body "\$PR_BODY" --add-label arvin-auto'),
