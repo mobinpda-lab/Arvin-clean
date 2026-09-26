@@ -20,7 +20,7 @@ parallel = parallel_path.read_text(encoding='utf-8')
 device = device_path.read_text(encoding='utf-8')
 
 require(build, "branches: [main, master]", str(build_path))
-require(build, 'types: [opened, synchronize, reopened, ready_for_review]', str(build_path))
+require(build, 'types: [opened, synchronize, reopened]', str(build_path))
 require(build, '# Draft PRs are valid product work and must receive real quality/build evidence.', str(build_path))
 require(build, 'quality:', str(build_path))
 require(build, 'apk:', str(build_path))
