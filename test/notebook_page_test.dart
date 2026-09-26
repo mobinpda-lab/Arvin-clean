@@ -846,11 +846,17 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-editor-undo')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-editor-redo')), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-description')));
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-description')),
-      'متن جدید',
+    final descriptionFinder =
+        find.byKey(const ValueKey('notebook-description'));
+    await tester.tap(descriptionFinder);
+    await tester.showKeyboard(descriptionFinder);
+    await tester.testTextInput.updateEditingValue(
+      const TextEditingValue(
+        text: 'متن جدید',
+        selection: TextSelection.collapsed(offset: 8),
+      ),
     );
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
     await tester.pump();
     expect(
