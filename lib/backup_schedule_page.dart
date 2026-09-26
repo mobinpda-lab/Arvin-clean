@@ -142,6 +142,27 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
               },
             ),
             const SizedBox(height: 12),
+            DropdownButtonFormField<BackupFrequency>(
+              key: const ValueKey('backup-frequency'),
+              initialValue: schedule.frequency,
+              decoration: const InputDecoration(
+                labelText: 'تکرار پشتیبان‌گیری',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: BackupFrequency.daily, child: Text('روزانه')),
+                DropdownMenuItem(value: BackupFrequency.weekly, child: Text('هفتگی')),
+                DropdownMenuItem(value: BackupFrequency.monthly, child: Text('ماهانه')),
+              ],
+              onChanged: schedule.enabled
+                  ? (value) {
+                      if (value != null) {
+                        setState(() => _schedule = schedule.copyWith(frequency: value));
+                      }
+                    }
+                  : null,
+            ),
+            const SizedBox(height: 12),
             ListTile(
               enabled: schedule.enabled,
               leading: const Icon(Icons.schedule),
