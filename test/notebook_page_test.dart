@@ -820,4 +820,53 @@ void main() {
   });
 
 
+
+  testWidgets('editor exposes undo and redo for the focused text field',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 26, 9));
+    await repository.createNote(
+      id: 'editor-undo-redo',
+      title: 'عنوان اولیه',
+    );
+    await repository.updateNote(
+      id: 'editor-undo-redo',
+      title: 'عنوان اولیه',
+      description: 'متن اولیه',
+      checklist: const [],
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-note-editor-undo-redo')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-edit')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-editor-undo')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-editor-redo')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      'متن جدید',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(
+        find.byKey(const ValueKey('notebook-description')),
+      ).controller!.text,
+      'متن اولیه',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-redo')));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(
+        find.byKey(const ValueKey('notebook-description')),
+      ).controller!.text,
+      'متن جدید',
+    );
+  });
+
 }
