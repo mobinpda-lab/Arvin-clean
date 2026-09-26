@@ -321,9 +321,10 @@ void main() {
     expect(find.text('انتقال امروز'), findsOneWidget);
 
     final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
-    expect(moved.dueDate?.year, 2026);
-    expect(moved.dueDate?.month, 9);
-    expect(moved.dueDate?.day, 25);
+    final today = DateTime.now();
+    expect(moved.dueDate?.year, today.year);
+    expect(moved.dueDate?.month, today.month);
+    expect(moved.dueDate?.day, today.day);
 
     final noneCard = tester.widget<Dismissible>(
       find.byKey(const ValueKey('none')),
