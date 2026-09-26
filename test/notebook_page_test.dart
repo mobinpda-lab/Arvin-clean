@@ -630,6 +630,39 @@ void main() {
   });
 
 
+
+  testWidgets('Notebook editor keeps content first with immediate taxonomy and delete actions',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 26, 8));
+    final note = await repository.createNote(
+      id: 'editor-layout',
+      title: 'یادداشت محتوایی',
+      category: 'شخصی',
+    );
+    await repository.updateNote(
+      id: note.id,
+      title: note.title,
+      description: 'متن اصلی یادداشت',
+      checklist: const [],
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-note-editor-layout')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-description')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-project-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-editor-trash')), findsOneWidget);
+
+    final description = tester.widget<TextField>(
+      find.byKey(const ValueKey('notebook-description')),
+    );
+    expect(description.minLines, greaterThanOrEqualTo(12));
+  });
+
   testWidgets('editor back persists pending edits before leaving', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 18, 12));
     final note = await repository.createNote(id: 'safe-back', title: 'عنوان اولیه');
