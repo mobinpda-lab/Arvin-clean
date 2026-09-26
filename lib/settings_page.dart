@@ -9,12 +9,11 @@ import 'user_guide_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
-  static void _noop() {}
-  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule = _noop, this.onStartInteractiveGuide});
+  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule, this.onStartInteractiveGuide});
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
-  final VoidCallback onOpenBackupSchedule;
+  final VoidCallback? onOpenBackupSchedule;
   final VoidCallback? onStartInteractiveGuide;
   @override State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -56,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const Divider(height: 24), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
       const Divider(height: 24), ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.menu_book_outlined), title: const Text('راهنمای استفاده'), subtitle: const Text('آموزش ساده و مرحله‌به‌مرحله کار با آروین'), trailing: const Icon(Icons.chevron_left), onTap: _openUserGuide),
       if (widget.onStartInteractiveGuide != null) ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.slideshow_outlined), title: const Text('راهنمای تعاملی صفحه اصلی'), subtitle: const Text('دکمه‌های مهم را روی خود صفحه اصلی یکی‌یکی معرفی می‌کند'), trailing: const Icon(Icons.play_arrow_rounded), onTap: widget.onStartInteractiveGuide),
-      ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined), title: const Text('زمان‌بندی پشتیبان‌گیری'), subtitle: const Text('روزانه، هفتگی یا ماهانه'), trailing: const Icon(Icons.chevron_left), onTap: widget.onOpenBackupSchedule),
+      ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined), title: const Text('زمان‌بندی پشتیبان‌گیری'), subtitle: const Text('روزانه، هفتگی یا ماهانه'), trailing: const Icon(Icons.chevron_left), onTap: widget.onOpenBackupSchedule ?? _openBackupSchedule),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.backup_outlined), title: const Text('پشتیبان‌گیری و بازیابی'), subtitle: const Text('استفاده از مسیر موجود Backup/Restore آروین'), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(key: const ValueKey('backup-context-help'), tooltip: 'راهنمای پشتیبان‌گیری', onPressed: _showBackupHelp, icon: const Icon(Icons.help_outline)), const Icon(Icons.chevron_left)]), onTap: widget.onOpenBackup),
     ])));
   }
