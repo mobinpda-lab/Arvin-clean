@@ -8,8 +8,10 @@ void main() {
         File('.github/workflows/device-smoke.yml').readAsStringSync();
 
     expect(workflow, contains('name: Arvin Device Smoke'));
-    expect(workflow, contains('Run it for draft PRs too'));
-    expect(workflow, isNot(contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false")));
+    expect(
+      workflow,
+      contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false"),
+    );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('max-parallel: 6'));
