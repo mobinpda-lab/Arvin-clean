@@ -21,6 +21,7 @@ void main() {
     expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
     expect(device, contains('cancel-in-progress: true'));
+    expect(device, contains('max-parallel: 6'));
     expect(
       build,
       isNot(contains(r'github.event.pull_request.number || github.run_id')),
