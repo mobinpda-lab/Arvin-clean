@@ -188,6 +188,12 @@ class _HomeVisualGuide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    const modes = <String>[
+      'زمان',
+      'پروژه‌ها',
+      'دسته‌ها',
+      'برچسب‌ها',
+    ];
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -196,7 +202,7 @@ class _HomeVisualGuide extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'این تصویر ساده‌شده، مسیرهای اصلی صفحه خانه را نشان می‌دهد. شماره‌ها را با توضیح پایین تصویر تطبیق دهید.',
+              'این تصویر ساده‌شده، قرارداد فعلی صفحه خانه آروین را نشان می‌دهد.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -210,18 +216,11 @@ class _HomeVisualGuide extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
-                      ),
-                      color: colors.surfaceContainerHigh,
-                      child: Row(
+                    SizedBox(
+                      height: 66,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          const _NumberBadge(number: 1),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.menu, size: 20),
-                          const Spacer(),
                           const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -229,6 +228,7 @@ class _HomeVisualGuide extends StatelessWidget {
                                 'بسم الله الرحمن الرحیم',
                                 style: TextStyle(fontSize: 8),
                               ),
+                              SizedBox(height: 3),
                               Text(
                                 'مدیریت کارها و پیگیری آروین',
                                 style: TextStyle(
@@ -238,174 +238,113 @@ class _HomeVisualGuide extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const Spacer(),
-                          const _NumberBadge(number: 2),
-                          const SizedBox(width: 2),
-                          const Icon(Icons.bolt_outlined, size: 18),
-                          const SizedBox(width: 6),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
-                      child: Row(
-                        children: [
-                          const _NumberBadge(number: 3),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              height: 38,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: colors.outlineVariant,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.search, size: 17),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'جست‌وجو',
-                                    style: TextStyle(fontSize: 11),
-                                  ),
-                                ],
-                              ),
+                          Positioned(
+                            left: 10,
+                            child: Icon(
+                              Icons.notifications_none_outlined,
+                              size: 20,
+                              semanticLabel: 'اعلان',
+                            ),
+                          ),
+                          Positioned(
+                            right: 10,
+                            child: Icon(
+                              Icons.menu,
+                              size: 20,
+                              semanticLabel: 'منو',
                             ),
                           ),
                         ],
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+                      child: Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: colors.outlineVariant),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.search, size: 17),
+                            SizedBox(width: 6),
+                            Text(
+                              'جستجو در کارها',
+                              style: TextStyle(fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
-                          const _NumberBadge(number: 4),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
+                          for (final mode in modes)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 7,
+                              ),
                               decoration: BoxDecoration(
+                                color: colors.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
-                                color: colors.surfaceContainer,
                               ),
-                              child: const Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(Icons.radio_button_unchecked, size: 19),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'تماس با مشتری',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(
-                                          'پیگیری: ۱۴۰۵/۰۶/۰۵',
-                                          style: TextStyle(fontSize: 9),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                mode,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const _NumberBadge(number: 5),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 9,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.primaryContainer,
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.add, size: 17),
-                                SizedBox(width: 4),
-                                Text(
-                                  'افزودن سریع',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: colors.primaryContainer,
+                            shape: BoxShape.circle,
                           ),
-                        ],
+                          child: const Icon(Icons.add, size: 20),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.keyboard_double_arrow_down_rounded),
-                SizedBox(width: 6),
-                Text('توضیح شماره‌ها'),
-              ],
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             const _VisualLegend(
               number: 1,
-              title: 'بیشتر و مسیرهای برنامه',
-              text: 'مسیرهای فرعی مانند تنظیمات، پشتیبان‌گیری و مدیریت دسته‌ها و برچسب‌ها از «بیشتر» در دسترس‌اند.',
+              title: 'سربرگ خانه',
+              text: 'نام آروین در مرکز است؛ اعلان در سمت فیزیکی چپ و منو در سمت فیزیکی راست قرار دارد.',
             ),
             const _VisualLegend(
               number: 2,
-              title: 'ثبت سریع',
-              text: 'ثبت سریع از همین مسیر شروع می‌شود؛ پشتیبان‌گیری از بخش «بیشتر» در دسترس است.',
+              title: 'جست‌وجو',
+              text: 'جست‌وجوی اصلی خانه با عنوان «جستجو در کارها» در دسترس است.',
             ),
             const _VisualLegend(
               number: 3,
-              title: 'جست‌وجو',
-              text: 'عنوان، توضیح، برچسب و اطلاعات پیگیری را پیدا می‌کند.',
+              title: 'چهار گروه ثابت',
+              text: 'فقط چهار گروه زمان، پروژه‌ها، دسته‌ها و برچسب‌ها نمایش داده می‌شوند و شمارنده ندارند.',
             ),
             const _VisualLegend(
               number: 4,
-              title: 'گروه‌بندی خانه',
-              text: 'کارها را بر اساس زمان، پروژه‌ها، دسته‌ها یا برچسب‌ها گروه‌بندی کنید.',
-            ),
-            const _VisualLegend(
-              number: 5,
-              title: 'گروه‌بندی‌های ثابت',
-              text: 'چهار مسیر ثابت خانه: زمان، پروژه‌ها، دسته‌ها و برچسب‌ها؛ بدون شمارنده.',
-            ),
-            const _VisualLegend(
-              number: 6,
-              title: 'کارت کار',
-              text: 'روی کارت بزنید تا ویرایش شود؛ دایره کنار آن وضعیت انجام را تغییر می‌دهد.',
-            ),
-            const _VisualLegend(
-              number: 7,
-              title: 'افزودن سریع',
-              text: 'برای ثبت سریع کار؛ جزئیات تکمیلی را بعداً در ویرایش کامل تنظیم کنید.',
+              title: 'ثبت سریع',
+              text: 'دکمه «+» به شکل فشرده برای ثبت سریع کار استفاده می‌شود.',
             ),
           ],
         ),
