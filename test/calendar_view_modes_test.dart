@@ -40,6 +40,7 @@ void main() {
     expect(find.text('روزانه'), findsOneWidget);
     expect(find.text('هفتگی'), findsOneWidget);
     expect(find.text('ماهانه'), findsOneWidget);
+    expect(find.text('سالانه'), findsNothing);
 
     // Weekly is the binding compact default so the selected-day list gets room.
     expect(find.byKey(const ValueKey('calendar-week-view')), findsOneWidget);
