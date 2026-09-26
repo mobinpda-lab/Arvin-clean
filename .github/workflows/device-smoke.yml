@@ -30,8 +30,8 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # Keep all six scenarios covered while bounding concurrent emulator pressure.
-      max-parallel: 4
+      # Run all six independent scenarios concurrently when repository runner capacity permits; coverage is unchanged.
+      max-parallel: 6
       matrix:
         include:
           - scenario: home
