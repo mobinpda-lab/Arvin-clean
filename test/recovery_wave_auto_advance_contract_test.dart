@@ -7,7 +7,7 @@ void main() {
     final worker =
         File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
 
-    expect(worker, contains('ISSUE_BODY=$(gh issue view'));
+    expect(worker, contains('ISSUE_BODY=\$(gh issue view'));
     expect(worker, contains('arvin-recovery-wave:'));
     expect(worker, contains('arvin-recovery-wave-source'));
     expect(worker, contains('Closes #\$ARVIN_ISSUE_NUMBER'));
