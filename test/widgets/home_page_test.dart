@@ -22,7 +22,9 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('کارهای من'), findsOneWidget);
+    expect(find.text('جستجو در کارها'), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.text('مشاهده همه'), findsNothing);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
