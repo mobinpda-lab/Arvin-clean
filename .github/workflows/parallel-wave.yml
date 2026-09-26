@@ -10,11 +10,11 @@ on:
 permissions:
   contents: read
 
-# Fast Lane: wave/** and ci/** automation branches receive push validation.
-# Draft PRs receive one canonical contract check plus independent surface tests.
-# Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate,
-# while Arvin Device Smoke owns real Android integration evidence for Ready PRs.
-# This workflow must not duplicate the full quality matrix.
+# Fast Lane: CI automation branches receive the lightweight contract gate.
+# Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate.
+# Arvin Device Smoke owns real Android integration evidence for Ready PRs.
+# Do not duplicate product tests here: duplicate execution only increases queue time
+# and runner consumption without increasing product coverage.
 concurrency:
   group: arvin-parallel-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
