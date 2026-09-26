@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_official_reminders.dart';
 import 'package:arvin/calendar_page.dart';
-import 'package:arvin/official_calendar_page.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
@@ -160,13 +159,13 @@ void main() {
   );
 
   testWidgets(
-    'Official Calendar release acceptance keeps Iranian occasions on the canonical CalendarPage',
+    'Official Calendar release acceptance maps Iranian occasions into the canonical CalendarPage',
     (tester) async {
       final selectedDay = DateTime(2026, 3, 21);
       final officialHoliday = OfficialCalendarReminder(
         id: 'ir-holiday-1405-01-01',
         title: 'نوروز',
-        date: DateTime(2026, 3, 21),
+        date: selectedDay,
         kind: OfficialReminderKind.iranianHoliday,
       );
       final service = OfficialCalendarReminderService(
@@ -175,15 +174,19 @@ void main() {
         ],
       );
 
+      final officialReminders = await service.load(year: 2026);
+      expect(officialReminders, hasLength(1));
+      expect(officialReminders.single.title, 'نوروز');
+      expect(officialReminders.single.isAllDay, isTrue);
+
       await tester.pumpWidget(
         MaterialApp(
           home: Directionality(
             textDirection: TextDirection.rtl,
-            child: OfficialCalendarPage(
-              service: service,
-              years: const <int>[2026],
+            child: CalendarPage(
               initialSelectedDay: selectedDay,
               reminders: <CalendarReminder>[
+                ...officialReminders,
                 CalendarReminder(
                   id: 'task',
                   title: 'کار واقعی',
@@ -194,11 +197,7 @@ void main() {
           ),
         ),
       );
-
-      for (var attempt = 0; attempt < 30; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('نوروز').evaluate().isNotEmpty) break;
-      }
+      await tester.pumpAndSettle();
 
       expect(find.text('نوروز'), findsOneWidget);
       expect(find.text('کار واقعی'), findsOneWidget);
