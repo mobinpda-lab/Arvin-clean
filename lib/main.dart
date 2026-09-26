@@ -1369,21 +1369,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showAllTasks() {
-    if (!mounted) return;
-    setState(() {
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
-      _projectFilter = null;
-      _tagFilter = null;
-      _collapsedGroups.clear();
-      selected.clear();
-      selectionMode = false;
-    });
-  }
-
   Future<void> _openMyTasks() async {
     final selection = await showHomeMyTasksSheet(
       context: context,
