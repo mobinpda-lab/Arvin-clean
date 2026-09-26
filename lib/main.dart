@@ -1335,14 +1335,15 @@ class _HomePageState extends State<HomePage> {
               () {
                 if (!mounted) return;
                 Navigator.of(context).push<void>(
-                MaterialPageRoute<void>(
-                  builder: (_) => BackupSchedulePage(
-                    loadTasks: () async => (await TaskStore().load())
-                        .map((task) => task.toJson())
-                        .toList(growable: false),
+                  MaterialPageRoute<void>(
+                    builder: (_) => BackupSchedulePage(
+                      loadTasks: () async => (await TaskStore().load())
+                          .map((task) => task.toJson())
+                          .toList(growable: false),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         ),
