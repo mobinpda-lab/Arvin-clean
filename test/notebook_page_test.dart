@@ -850,12 +850,11 @@ void main() {
         find.byKey(const ValueKey('notebook-description'));
     await tester.tap(descriptionFinder);
     await tester.showKeyboard(descriptionFinder);
-    tester.testTextInput.updateEditingValue(
-      const TextEditingValue(
-        text: 'متن جدید',
-        selection: TextSelection.collapsed(offset: 8),
-      ),
+    await tester.enterText(
+      descriptionFinder,
+      'متن جدید',
     );
+    await tester.pumpAndSettle();
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
     await tester.pump();
