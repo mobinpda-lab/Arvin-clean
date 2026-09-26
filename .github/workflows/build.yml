@@ -20,7 +20,7 @@ env:
 
 jobs:
   quality:
-    # Draft PRs are valid product work and receive the full quality/build gate on open/synchronize/reopen. Ready-for-review must not duplicate the same gate; Device Smoke owns the Ready transition.
+    # Draft PRs are valid product work and must receive real quality/build evidence.
     # Test execution is sharded across independent runners to reduce wall-clock time
     # without reducing coverage: every test shard is required by the quality gate.
     runs-on: ubuntu-latest
