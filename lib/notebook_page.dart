@@ -739,10 +739,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   List<String> _tags = [];
   List<String> _checklist = [];
 
-  UndoHistoryController get _activeUndoController =>
-      _lastEditedController == _title
-          ? _titleUndo
-          : _descriptionUndo;
+  UndoHistoryController get _activeUndoController {
+    if (_titleFocus.hasFocus) return _titleUndo;
+    if (_descriptionFocus.hasFocus) return _descriptionUndo;
+    return _lastEditedController == _title ? _titleUndo : _descriptionUndo;
+  }
 
   void _undoCurrentField() {
     final controller = _activeUndoController;
@@ -1416,6 +1417,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               TextField(
                 key: const ValueKey('notebook-description'),
                 controller: _description,
+                focusNode: _descriptionFocus,
+                undoController: _descriptionUndo,
                 readOnly: !_editing,
                 minLines: 2,
                 maxLines: null,
