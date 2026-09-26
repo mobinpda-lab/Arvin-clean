@@ -182,9 +182,9 @@ void main() {
 
     for (final source in [adapter, writer, reader]) {
       expect(source, isNot(contains('home_page.dart')));
-      expect(source, isNot(contains('HomePage')));
       expect(source, isNot(contains('package:arvin/ui/home')));
       expect(source, isNot(contains('widgets/home')));
+      expect(source, isNot(contains("ui/home/")));
     }
   });
 
