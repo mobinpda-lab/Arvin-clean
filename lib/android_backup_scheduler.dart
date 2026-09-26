@@ -6,10 +6,14 @@ import 'backup_scheduler_adapter.dart';
 
 const int backupAlarmId = 41001;
 
-/// Entry point invoked by Android AlarmManager.
 @pragma('vm:entry-point')
 Future<void> arvinBackupAlarmCallback() async {
-  await BackupBackgroundRunner().run();
+  final runner = const BackupBackgroundRunner();
+  await runner.run();
+  final schedule = await BackupSchedule.load();
+  if (schedule.enabled) {
+    await AndroidBackupScheduler().schedule(schedule);
+  }
 }
 
 class AndroidBackupScheduler implements BackupSchedulerAdapter {
@@ -28,9 +32,7 @@ class AndroidBackupScheduler implements BackupSchedulerAdapter {
   Future<void> schedule(BackupSchedule schedule) async {
     await _ensureInitialized();
     await AndroidAlarmManager.cancel(backupAlarmId);
-
     if (!schedule.enabled) return;
-
     await AndroidAlarmManager.oneShotAt(
       schedule.nextRun(),
       backupAlarmId,

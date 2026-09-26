@@ -2,27 +2,32 @@ import 'dart:convert';
 
 import 'backup_notification_service.dart';
 import 'backup_service.dart';
+import 'services/app_settings_service.dart';
+import 'services/project_plan_codec.dart';
+import 'services/project_store.dart';
 import 'services/task_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Runs the scheduled backup without depending on Flutter UI state.
 class BackupBackgroundRunner {
   const BackupBackgroundRunner({
     ArvinBackupService? backupService,
     BackupNotificationSink? notificationSink,
     TaskStore? taskStore,
+    ProjectStore? projectStore,
+    AppSettingsService? settingsService,
   })  : _backupService = backupService,
         _notificationSink = notificationSink,
-        _taskStore = taskStore;
+        _taskStore = taskStore,
+        _projectStore = projectStore,
+        _settingsService = settingsService;
 
   final ArvinBackupService? _backupService;
   final BackupNotificationSink? _notificationSink;
   final TaskStore? _taskStore;
+  final ProjectStore? _projectStore;
+  final AppSettingsService? _settingsService;
 
   static const String directoryUriKey = 'arvin.backup.directoryUri';
-
-  // Kept for backward compatibility with existing scheduled-backup settings.
-  // The runner no longer uses this snapshot when creating a backup.
   static const String payloadKey = 'arvin.backup.payload';
 
   static Future<void> saveConfiguration({
@@ -40,44 +45,32 @@ class BackupBackgroundRunner {
     await prefs.remove(payloadKey);
   }
 
-  Future<BackupNotificationSink> _notifications() async {
-    return _notificationSink ?? BackupNotificationService();
-  }
+  Future<BackupNotificationSink> _notifications() async =>
+      _notificationSink ?? BackupNotificationService();
 
   Future<void> _notifyFailure(String message) async {
     try {
-      final notifications = await _notifications();
-      await notifications.showFailure(message);
-    } catch (_) {
-      // A notification failure must never turn a completed backup into a failure.
-    }
+      await (await _notifications()).showFailure(message);
+    } catch (_) {}
   }
 
   Future<bool> run() async {
     final prefs = await SharedPreferences.getInstance();
     final directoryUri = prefs.getString(directoryUriKey);
-
-    if (directoryUri == null || directoryUri.isEmpty) {
-      return false;
-    }
+    if (directoryUri == null || directoryUri.isEmpty) return false;
 
     try {
-      final tasks = await (_taskStore ?? TaskStore()).load();
+      final taskStore = _taskStore ?? TaskStore();
+      final projectStore = _projectStore ?? ProjectStore();
+      final settingsService = _settingsService ?? AppSettingsService();
+      final tasks = await taskStore.load();
+      final projects = await projectStore.load();
+      final settings = await settingsService.load();
+      final codec = const ProjectPlanCodec();
       final payload = <String, dynamic>{
-        'tasks': tasks
-            .map(
-              (task) => <String, dynamic>{
-                'id': task.id,
-                'title': task.title,
-                'description': task.description,
-                'followUpDate': task.followUpDate?.toIso8601String(),
-                'tags': task.tags,
-                'archived': task.archived,
-                'trashed': task.trashed,
-                'completed': task.completed,
-              },
-            )
-            .toList(),
+        'tasks': tasks.map((task) => task.toJson()).toList(growable: false),
+        'projects': projects.map(codec.encode).toList(growable: false),
+        'settings': settingsService.toPortableJson(settings),
       };
 
       final service = _backupService ?? ArvinBackupService();
@@ -89,11 +82,8 @@ class BackupBackgroundRunner {
       );
 
       try {
-        final notifications = await _notifications();
-        await notifications.showSuccess(fileName);
-      } catch (_) {
-        // The backup itself succeeded; notification delivery is best effort.
-      }
+        await (await _notifications()).showSuccess(fileName);
+      } catch (_) {}
       return true;
     } catch (error) {
       await _notifyFailure('پشتیبان‌گیری انجام نشد: $error');

@@ -23,6 +23,7 @@ void main() {
           service: service,
           onSettingsChanged: (value) => changed = value,
           onOpenBackup: () => backupOpened = true,
+          onOpenBackupSchedule: () {},
         ),
       ),
     );

@@ -137,8 +137,12 @@ class ArvinBackupService {
 
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
     final rawSettings = payload['settings'];
+    final rawProjects = payload['projects'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
+    }
+    if (rawProjects != null && rawProjects is! List) {
+      throw const FormatException('Arvin backup projects are invalid');
     }
 
     final document = <String, dynamic>{
@@ -148,6 +152,8 @@ class ArvinBackupService {
       'tasks': payload['tasks'] ?? const <dynamic>[],
       if (rawSettings is Map)
         'settings': Map<String, dynamic>.from(rawSettings),
+      if (rawProjects is List)
+        'projects': List<dynamic>.from(rawProjects),
     };
 
     return Uint8List.fromList(
@@ -177,6 +183,13 @@ class ArvinBackupService {
     }
     if (rawSettings is Map) {
       document['settings'] = Map<String, dynamic>.from(rawSettings);
+    }
+    final rawProjects = document['projects'];
+    if (rawProjects != null && rawProjects is! List) {
+      throw const FormatException('Arvin backup projects are invalid');
+    }
+    if (rawProjects is List) {
+      document['projects'] = List<dynamic>.from(rawProjects);
     }
 
     return document;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'models/goal_project.dart';
@@ -1088,6 +1089,7 @@ class _HomePageState extends State<HomePage> {
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
+        projects: await ProjectStore().load(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1120,6 +1122,7 @@ class _HomePageState extends State<HomePage> {
       final emergencyBackup = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
+        projects: await ProjectStore().load(),
       );
 
       if (!mounted) return;
@@ -1147,6 +1150,7 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       await taskStore.save(List<Task>.of(list));
+      await ProjectStore().save(candidate.projects);
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
@@ -1323,6 +1327,24 @@ class _HomePageState extends State<HomePage> {
           onOpenBackup: () {
             Navigator.of(context).pop();
             Future<void>.delayed(Duration.zero, _backupMenu);
+          },
+          onOpenBackupSchedule: () {
+            Navigator.of(context).pop();
+            Future<void>.delayed(
+              Duration.zero,
+              () {
+                if (!mounted) return;
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => BackupSchedulePage(
+                      loadTasks: () async => (await TaskStore().load())
+                          .map((task) => task.toJson())
+                          .toList(growable: false),
+                    ),
+                  ),
+                );
+              },
+            );
           },
         ),
       ),

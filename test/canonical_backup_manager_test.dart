@@ -2,6 +2,7 @@ import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -101,6 +102,17 @@ void main() {
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
   });
 
+  test('canonical backup carries projects in the same document', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final project = ProjectPlan(id: 'project-1', title: 'پروژه اصلی', itemIds: const ['task-full']);
+
+    await manager.backupCanonicalTasks([_completeTask()], projects: [project]);
+
+    expect(service.writtenPayload?['projects'], isNotEmpty);
+    expect((service.writtenPayload?['projects'] as List).single['id'], 'project-1');
+  });
+
   test('canonical backup carries settings in the same document', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -179,7 +191,7 @@ void main() {
     expect(service.readPassphrase, passphrase);
   });
 
-  test('canonical restore candidate returns tasks and optional settings together', () async {
+  test('canonical restore candidate returns tasks, settings and projects together', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
         'type': ArvinBackupService.backupType,
@@ -189,6 +201,15 @@ void main() {
           'themeMode': 'light',
           'usePersianDate': true,
         },
+        'projects': <Map<String, dynamic>>[
+          {
+            'id': 'project-1',
+            'title': 'پروژه اصلی',
+            'colorValue': 0xFF4A4CAB,
+            'isArchived': false,
+            'itemIds': <String>['task-full'],
+          },
+        ],
       };
     final manager = ArvinBackupManager(service: service);
 
@@ -196,6 +217,8 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.tasks.single.id, 'task-full');
+    expect(candidate.projects.single.id, 'project-1');
+    expect(candidate.projects.single.itemIds, ['task-full']);
     expect(candidate.settings, {
       'themeMode': 'light',
       'usePersianDate': true,
