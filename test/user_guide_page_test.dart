@@ -44,5 +44,20 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('تنظیمات'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('جستجو در کارها'),
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('جستجو در کارها'), findsOneWidget);
+    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.text('کار جدید'), findsNothing);
+    expect(find.text('افزودن سریع'), findsNothing);
   });
 }
