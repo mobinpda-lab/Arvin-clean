@@ -38,7 +38,7 @@ void main() {
     const draftOnly =
         "github.event_name != 'pull_request' || github.event.pull_request.draft == true";
 
-    expect(parallel.split(draftOnly).length - 1, 2);
+    expect(parallel.split(draftOnly).length - 1, 1);
     expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
     expect(parallel, contains('cancel-in-progress: true'));
     expect(
