@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [analyze, test-0, test-1, test-2, test-3]
+        lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned VazirHarf
@@ -87,8 +87,8 @@ jobs:
       - name: Test
         if: startsWith(matrix.lane, 'test-')
         env:
-          SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || '3') }}
-        run: flutter test --total-shards 4 --shard-index $SHARD_INDEX
+          SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
+        run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
