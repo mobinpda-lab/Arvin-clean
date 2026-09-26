@@ -32,19 +32,19 @@ void main() {
     );
   });
 
-  test('Parallel Wave runs Fast for Draft PRs and skips duplicate Ready work', () {
+  test('Parallel Wave keeps only the lightweight contract gate', () {
     final parallel =
         File('.github/workflows/parallel-wave.yml').readAsStringSync();
     const draftOnly =
         "github.event_name != 'pull_request' || github.event.pull_request.draft == true";
 
-    expect(parallel.split(draftOnly).length - 1, 2);
+    expect(parallel.split(draftOnly).length - 1, 1);
     expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
     expect(parallel, contains('cancel-in-progress: true'));
     expect(
       parallel,
       contains(
-        'Arvin Build owns the complete Analyze + sharded Test + Debug/Release APK gate',
+        'Arvin Build owns Analyze + all sharded tests + Debug/Release APK',
       ),
     );
     expect(
@@ -53,5 +53,8 @@ void main() {
         'Arvin Device Smoke owns real Android integration evidence for Ready PRs',
       ),
     );
+    expect(parallel, contains('contract:'));
+    expect(parallel, isNot(contains('surface:')));
+    expect(parallel, isNot(contains('flutter test')));
   });
 }
