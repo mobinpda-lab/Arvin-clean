@@ -28,6 +28,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('راهنمای استفاده'), findsNothing);
+    expect(find.text('راهنمای تعاملی صفحه اصلی'), findsNothing);
 
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
