@@ -1940,7 +1940,7 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-canonical-search'),
                 onChanged: (value) => setState(() => query = value),
                 decoration: InputDecoration(
-                  hintText: 'جست‌وجو در کارها',
+                  hintText: 'جستجو در کارها',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: const Color(0xFFFDFDFE),
