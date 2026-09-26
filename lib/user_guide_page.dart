@@ -188,12 +188,7 @@ class _HomeVisualGuide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    const modes = <String>[
-      'زمان',
-      'پروژه‌ها',
-      'دسته‌ها',
-      'برچسب‌ها',
-    ];
+    const modes = <String>['زمان', 'پروژه‌ها', 'دسته‌ها', 'برچسب‌ها'];
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -210,7 +205,6 @@ class _HomeVisualGuide extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(color: colors.outlineVariant),
                 borderRadius: BorderRadius.circular(22),
-                color: colors.surfaceContainerLowest,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(22),
@@ -224,36 +218,14 @@ class _HomeVisualGuide extends StatelessWidget {
                           const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'بسم الله الرحمن الرحیم',
-                                style: TextStyle(fontSize: 8),
-                              ),
+                              Text('بسم الله الرحمن الرحیم', style: TextStyle(fontSize: 8)),
                               SizedBox(height: 3),
-                              Text(
-                                'مدیریت کارها و پیگیری آروین',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                              Text('مدیریت کارها و پیگیری آروین',
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                             ],
                           ),
-                          Positioned(
-                            left: 10,
-                            child: Icon(
-                              Icons.notifications_none_outlined,
-                              size: 20,
-                              semanticLabel: 'اعلان',
-                            ),
-                          ),
-                          Positioned(
-                            right: 10,
-                            child: Icon(
-                              Icons.menu,
-                              size: 20,
-                              semanticLabel: 'منو',
-                            ),
-                          ),
+                          const Positioned(left: 10, child: Icon(Icons.notifications_none_outlined, size: 20)),
+                          const Positioned(right: 10, child: Icon(Icons.menu, size: 20)),
                         ],
                       ),
                     ),
@@ -270,10 +242,7 @@ class _HomeVisualGuide extends StatelessWidget {
                           children: [
                             Icon(Icons.search, size: 17),
                             SizedBox(width: 6),
-                            Text(
-                              'جستجو در کارها',
-                              style: TextStyle(fontSize: 11),
-                            ),
+                            Text('جستجو در کارها', style: TextStyle(fontSize: 11)),
                           ],
                         ),
                       ),
@@ -287,21 +256,12 @@ class _HomeVisualGuide extends StatelessWidget {
                         children: [
                           for (final mode in modes)
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 9,
-                                vertical: 7,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
                               decoration: BoxDecoration(
                                 color: colors.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(
-                                mode,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                              child: Text(mode, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
                             ),
                         ],
                       ),
@@ -313,10 +273,7 @@ class _HomeVisualGuide extends StatelessWidget {
                         child: Container(
                           width: 40,
                           height: 40,
-                          decoration: BoxDecoration(
-                            color: colors.primaryContainer,
-                            shape: BoxShape.circle,
-                          ),
+                          decoration: BoxDecoration(color: colors.primaryContainer, shape: BoxShape.circle),
                           child: const Icon(Icons.add, size: 20),
                         ),
                       ),
@@ -344,7 +301,7 @@ class _HomeVisualGuide extends StatelessWidget {
             const _VisualLegend(
               number: 4,
               title: 'ثبت سریع',
-              text: 'دکمه «+» به شکل فشرده برای ثبت سریع کار استفاده می‌شود.',
+              text: 'دکمه + برای ثبت سریع کار استفاده می‌شود.',
             ),
           ],
         ),
