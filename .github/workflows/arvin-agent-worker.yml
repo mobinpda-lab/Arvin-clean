@@ -69,9 +69,6 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          # GitHub's bash wrapper starts with errexit enabled. Disable it only
-          # around the provider process so exit code 75 can be classified and
-          # the lease-release handler can run.
           set +e
           python3 .github/arvin/agent-runtime.py
           rc=$?
@@ -91,7 +88,7 @@ jobs:
           set -euo pipefail
           gh issue edit "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label factory:leased --remove-label factory:in-progress || true
           gh issue edit "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label factory:blocked
-          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-provider-pressure -->\\nAI provider returned HTTP 429. No product failure is claimed; worker lease was released and the issue entered the canonical retryable factory cooldown. The autonomous queue will recover it after the bounded cooldown; deterministic/non-AI lanes may continue."
+          gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "<!-- arvin-provider-pressure -->\\nAI provider returned HTTP 429. No product failure is claimed; worker lease was released and the issue entered the canonical retryable factory cooldown; deterministic/non-AI lanes may continue."
 
       - name: Final project validation
         if: steps.generate.outputs.provider_pressure != 'true'
@@ -139,7 +136,13 @@ jobs:
           set -euo pipefail
           BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
           EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
-          PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\n\nCloses #$ARVIN_ISSUE_NUMBER"
+          ISSUE_BODY=$(gh issue view "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""')
+          if grep -q "<!-- arvin-recovery-wave:" <<<"$ISSUE_BODY"; then
+            # Recovery Wave parents are acceptance containers, not narrow worker tasks.
+            PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\\n\\nRefs #$ARVIN_ISSUE_NUMBER\\n<!-- arvin-recovery-wave-source -->"
+          else
+            PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\\n\\nCloses #$ARVIN_ISSUE_NUMBER"
+          fi
           if [ -n "$EXISTING" ]; then
             PR_NUMBER="$EXISTING"
             echo "PR #$PR_NUMBER already exists; branch updated."
@@ -152,11 +155,9 @@ jobs:
               --body "$PR_BODY")
             PR_NUMBER="${PR_URL##*/}"
           fi
-          # Keep reused worker PRs tied to their canonical source issue as well.
-          # GitHub closes the issue only after the guarded PR is actually merged.
           gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$PR_BODY" --add-label arvin-auto
           gh issue comment "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --body "<!-- arvin-worker-output -->\nAI Code Worker produced/updated PR #$PR_NUMBER from exact leased main $ARVIN_EXPECTED_MAIN_SHA. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
+            --body "<!-- arvin-worker-output -->\\nAI Code Worker produced/updated PR #$PR_NUMBER from exact leased main $ARVIN_EXPECTED_MAIN_SHA. Promotion is delegated to the canonical Production Orchestrator; no direct merge is attempted by the worker."
 
           gh workflow run parallel-wave.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
           gh workflow run production-orchestrator.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr_number="$PR_NUMBER"
