@@ -847,29 +847,23 @@ void main() {
 
     final descriptionFinder =
         find.byKey(const ValueKey('notebook-description'));
-    await tester.showKeyboard(descriptionFinder);
+    await tester.tap(descriptionFinder);
     await tester.pump();
 
-    tester.testTextInput.updateEditingValue(
-      const TextEditingValue(
-        text: 'متن جدید',
-        selection: TextSelection.collapsed(offset: 8),
-      ),
+    final descriptionController =
+        tester.widget<TextField>(descriptionFinder).controller!;
+    descriptionController.value = const TextEditingValue(
+      text: 'متن جدید',
+      selection: TextSelection.collapsed(offset: 8),
     );
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
     await tester.pump();
-    expect(
-      tester.widget<TextField>(descriptionFinder).controller!.text,
-      'متن اولیه',
-    );
+    expect(descriptionController.text, 'متن اولیه');
 
     await tester.tap(find.byKey(const ValueKey('notebook-editor-redo')));
     await tester.pump();
-    expect(
-      tester.widget<TextField>(descriptionFinder).controller!.text,
-      'متن جدید',
-    );
+    expect(descriptionController.text, 'متن جدید');
   });
 }
