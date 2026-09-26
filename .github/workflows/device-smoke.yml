@@ -23,10 +23,9 @@ jobs:
   # GitHub can schedule them concurrently. Each scenario gets its own hosted
   # runner/emulator, so max-parallel can use the repository's available runner
   # concurrency without reducing product coverage.
+  # Explicit fast-lane contract required by repository validation.
   device-smoke:
-    # Android Smoke is an independent product gate. Run it for draft PRs too so
-    # Analyze/Test/Build/Android evidence can progress concurrently; merge remains
-    # guarded by the exact-head gates and the Production Orchestrator.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
