@@ -718,6 +718,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
 
   final _title = TextEditingController();
   final _description = TextEditingController();
+  final _titleFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
+  final _titleUndo = UndoHistoryController();
+  final _descriptionUndo = UndoHistoryController();
+  late final VoidCallback _titleChangedListener;
+  late final VoidCallback _descriptionChangedListener;
+  TextEditingController? _lastEditedController;
   final _checklistInput = TextEditingController();
   final _checklistFocus = FocusNode();
   Timer? _autosaveTimer;
@@ -732,10 +739,31 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   List<String> _tags = [];
   List<String> _checklist = [];
 
+  UndoHistoryController get _activeUndoController {
+    if (_titleFocus.hasFocus) return _titleUndo;
+    if (_descriptionFocus.hasFocus) return _descriptionUndo;
+    return _lastEditedController == _title ? _titleUndo : _descriptionUndo;
+  }
+
+  void _undoCurrentField() {
+    final controller = _activeUndoController;
+    if (controller.value.canUndo) controller.undo();
+  }
+
+  void _redoCurrentField() {
+    final controller = _activeUndoController;
+    if (controller.value.canRedo) controller.redo();
+  }
+
   @override
   void initState() {
     super.initState();
     _editing = widget.startEditing;
+    _lastEditedController = _title;
+    _titleChangedListener = () => _lastEditedController = _title;
+    _descriptionChangedListener = () => _lastEditedController = _description;
+    _title.addListener(_titleChangedListener);
+    _description.addListener(_descriptionChangedListener);
     _checklistMode = widget.focusChecklistOnOpen;
     _load();
   }
@@ -1213,10 +1241,16 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   @override
   void dispose() {
     _autosaveTimer?.cancel();
+    _title.removeListener(_titleChangedListener);
+    _description.removeListener(_descriptionChangedListener);
     _title.dispose();
     _description.dispose();
     _checklistInput.dispose();
     _checklistFocus.dispose();
+    _titleFocus.dispose();
+    _descriptionFocus.dispose();
+    _titleUndo.dispose();
+    _descriptionUndo.dispose();
     super.dispose();
   }
 
@@ -1257,13 +1291,25 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             tooltip: 'سطل زباله',
             icon: const Icon(Icons.delete_outline),
           ),
-          if (_editing)
+          if (_editing) ...[
+            IconButton(
+              key: const ValueKey('notebook-editor-undo'),
+              onPressed: _undoCurrentField,
+              tooltip: 'واگرد',
+              icon: const Icon(Icons.undo_outlined),
+            ),
+            IconButton(
+              key: const ValueKey('notebook-editor-redo'),
+              onPressed: _redoCurrentField,
+              tooltip: 'بازانجام',
+              icon: const Icon(Icons.redo_outlined),
+            ),
             TextButton(
               key: const ValueKey('notebook-done'),
               onPressed: _finishEditing,
               child: const Text('ذخیره'),
-            )
-          else
+            ),
+          ] else
             IconButton(
               key: const ValueKey('notebook-edit'),
               onPressed: () => setState(() => _editing = true),
@@ -1280,6 +1326,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             TextField(
               key: const ValueKey('notebook-title'),
               controller: _title,
+              focusNode: _titleFocus,
+              undoController: _titleUndo,
               readOnly: !_editing,
               maxLines: null,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -1352,6 +1400,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               TextField(
                 key: const ValueKey('notebook-description'),
                 controller: _description,
+                focusNode: _descriptionFocus,
+                undoController: _descriptionUndo,
                 readOnly: !_editing,
                 minLines: 12,
                 maxLines: null,
@@ -1367,6 +1417,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               TextField(
                 key: const ValueKey('notebook-description'),
                 controller: _description,
+                focusNode: _descriptionFocus,
+                undoController: _descriptionUndo,
                 readOnly: !_editing,
                 minLines: 2,
                 maxLines: null,
