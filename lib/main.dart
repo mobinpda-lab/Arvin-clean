@@ -1332,7 +1332,9 @@ class _HomePageState extends State<HomePage> {
             Navigator.of(context).pop();
             Future<void>.delayed(
               Duration.zero,
-              () => Navigator.of(context).push<void>(
+              () {
+                if (!mounted) return;
+                Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   builder: (_) => BackupSchedulePage(
                     loadTasks: () async => (await TaskStore().load())
