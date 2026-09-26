@@ -27,7 +27,7 @@ require(build, 'apk:', str(build_path))
 forbid(build, 'needs: quality', str(build_path))
 require(build, 'lane: [analyze, test-0, test-1, test-2, test-3]', str(build_path))
 require(build, 'flutter test --total-shards 4 --shard-index', str(build_path))
-forbid(build, 'run: flutter test\n', str(build_path))
+forbid(build, 'run: flutter test\\n', str(build_path))
 require(build, 'variant: [release, debug]', str(build_path))
 require(build, '- name: Android V2 audit', str(build_path))
 require(build, '- name: Build APK', str(build_path))
@@ -53,9 +53,16 @@ require(device, "branches: [main, master]", str(device_path))
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
 require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
-require(device, 'integration_test/android_home_smoke_test.dart', str(device_path))
-require(device, 'integration_test/android_people_smoke_test.dart', str(device_path))
-require(device, 'max-parallel: 4', str(device_path))
+for scenario in [
+    'home',
+    'quick-capture',
+    'sql-persistence',
+    'sql-migration',
+    'backup-restore',
+    'people',
+]:
+    require(device, f'scenario: {scenario}', str(device_path))
+require(device, 'max-parallel: 6', str(device_path))
 forbidden_device_parallel = 'max-parallel: 1'
 forbid(device, forbidden_device_parallel, str(device_path))
 
