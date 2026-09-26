@@ -634,12 +634,16 @@ void main() {
   testWidgets('Notebook editor keeps content first with immediate taxonomy and delete actions',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 26, 8));
-    await repository.createNote(
+    final note = await repository.createNote(
       id: 'editor-layout',
       title: 'یادداشت محتوایی',
-      description: 'متن اصلی یادداشت',
       category: 'شخصی',
-      tags: const ['مهم'],
+    );
+    await repository.updateNote(
+      id: note.id,
+      title: note.title,
+      description: 'متن اصلی یادداشت',
+      checklist: const [],
     );
 
     await pumpNotebook(tester, repository);
