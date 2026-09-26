@@ -31,6 +31,11 @@ void main() {
     expect(text, contains("dispatchOrReuse('build.yml', 'Arvin Build')"));
     expect(text, contains("dispatchOrReuse('device-smoke.yml', 'Arvin Device Smoke')"));
     expect(text, contains('waitForHeavy'));
+    expect(text, contains('Fast, Build and Android Smoke are independent gates'));
+    expect(text, contains('heavy gates continue independently'));
+    final deviceSmoke = File('.github/workflows/device-smoke.yml').readAsStringSync();
+    expect(deviceSmoke, contains('Run it for draft PRs too'));
+    expect(deviceSmoke, isNot(contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false")));
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
 
