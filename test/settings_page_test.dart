@@ -35,6 +35,7 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
+    expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
 
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
@@ -46,6 +47,14 @@ void main() {
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
+    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب فونت'), findsOneWidget);
+    expect(find.text('VazirHarf'), findsOneWidget);
+    await tester.tap(find.text('VazirHarf').last);
+    await tester.pumpAndSettle();
+    expect((await service.load()).fontFamily, 'VazirHarf');
+
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
       250,
@@ -53,8 +62,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Vazirharf فونت عمومی و پیش‌فرض آروین است'),
-        findsOneWidget);
     expect(find.byKey(const ValueKey('projects-settings-entry')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
