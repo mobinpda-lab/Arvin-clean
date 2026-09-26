@@ -17,14 +17,14 @@ void main() {
     });
 
 
-    test('round-trips the portable schedule settings', () {
-      const schedule = BackupSchedule(enabled: true, hour: 22, minute: 45);
+    test('weekly and monthly schedules advance independently', () {\n      const weekly = BackupSchedule(enabled: true, hour: 3, minute: 0, frequency: BackupFrequency.weekly);\n      const monthly = BackupSchedule(enabled: true, hour: 3, minute: 0, frequency: BackupFrequency.monthly);\n      expect(weekly.nextRun(DateTime(2026, 8, 12, 4)), DateTime(2026, 8, 19, 3));\n      expect(monthly.nextRun(DateTime(2026, 1, 31, 4)), DateTime(2026, 2, 28, 3));\n    });\n\n    test('round-trips the portable schedule settings', () {
+      const schedule = BackupSchedule(enabled: true, hour: 22, minute: 45, frequency: BackupFrequency.monthly);
       final restored = BackupSchedule.decodePortableJson(
         schedule.toPortableJson(),
       );
       expect(restored.enabled, isTrue);
       expect(restored.hour, 22);
-      expect(restored.minute, 45);
+      expect(restored.minute, 45);\n      expect(restored.frequency, BackupFrequency.monthly);
     });
 
     test('rejects invalid portable schedule settings', () {
