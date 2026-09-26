@@ -9,7 +9,8 @@ import 'user_guide_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule, this.onStartInteractiveGuide});
+  static void _noop() {}
+  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule = _noop, this.onStartInteractiveGuide});
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
