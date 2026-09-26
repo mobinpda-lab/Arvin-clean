@@ -173,4 +173,17 @@ void main() {
     expect(record.sourceJsonEncoded, contains('"futureField":{"keep":true}'));
     expect(record.sourceJsonEncoded, contains('"futureScalar":"preserve-me"'));
   });
+  test('migration boundary has no dependency on legacy Home UI', () {
+    final adapter = File('lib/services/task_migration_adapter.dart').readAsStringSync();
+    final writer = File('lib/services/sql_task_migration_writer.dart').readAsStringSync();
+    final reader = File('lib/services/task_migration_reader.dart').readAsStringSync();
+
+    for (final source in [adapter, writer, reader]) {
+      expect(source, isNot(contains('home_page.dart')));
+      expect(source, isNot(contains('HomePage')));
+      expect(source, isNot(contains('package:arvin/ui/home')));
+      expect(source, isNot(contains('widgets/home')));
+    }
+  });
+
 }
