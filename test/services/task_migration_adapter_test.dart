@@ -157,7 +157,7 @@ void main() {
     );
   });
 
-  test('retains unknown legacy fields in the migration envelope') {
+  test('retains unknown legacy fields in the migration envelope', () {
     const raw = '''[
       {
         "id": "unknown-1",
