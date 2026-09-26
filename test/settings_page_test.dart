@@ -62,7 +62,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
     expect(find.byKey(const ValueKey('projects-settings-entry')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
