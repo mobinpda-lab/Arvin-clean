@@ -25,7 +25,7 @@ class CalendarReminder {
   final DateTime? end;
 }
 
-enum _CalendarViewMode { day, week, month, year }
+enum _CalendarViewMode { day, week, month }
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -201,20 +201,6 @@ class _CalendarPageState extends State<CalendarPage> {
       case _CalendarViewMode.month:
         _moveMonth(delta);
         return;
-      case _CalendarViewMode.year:
-        final current = _dateFormatter.toJalali(_selectedDay);
-        final nextYear = current.year + delta;
-        final maxDay = _daysInJalaliMonth(nextYear, current.month);
-        _selectDay(
-          _dateFormatter.fromJalali(
-            JalaliDate(
-              nextYear,
-              current.month,
-              current.day > maxDay ? maxDay : current.day,
-            ),
-          ),
-        );
-        return;
     }
   }
 
@@ -316,10 +302,6 @@ class _CalendarPageState extends State<CalendarPage> {
             ButtonSegment<_CalendarViewMode>(
               value: _CalendarViewMode.month,
               label: Text('ماهانه'),
-            ),
-            ButtonSegment<_CalendarViewMode>(
-              value: _CalendarViewMode.year,
-              label: Text('سالانه'),
             ),
           ],
           selected: <_CalendarViewMode>{_viewMode},
