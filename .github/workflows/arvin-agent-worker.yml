@@ -139,7 +139,14 @@ jobs:
           set -euo pipefail
           BRANCH="ai/issue-${ARVIN_ISSUE_NUMBER}"
           EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
-          PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\n\nCloses #$ARVIN_ISSUE_NUMBER"
+          ISSUE_BODY=$(gh issue view "$ARVIN_ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""')
+          if grep -q "<!-- arvin-recovery-wave:" <<<"$ISSUE_BODY"; then
+            # Recovery Wave parents are acceptance containers, not narrow worker tasks.
+            # Never let a worker PR auto-close a Wave merely because one child fix merged.
+            PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\n\nRefs #$ARVIN_ISSUE_NUMBER\n<!-- arvin-recovery-wave-source -->"
+          else
+            PR_BODY="Automated bounded Code Worker implementation for #$ARVIN_ISSUE_NUMBER. Exact-head Fast, Build and Device gates are required. Production Orchestrator is the single promotion/merge authority.\n\nCloses #$ARVIN_ISSUE_NUMBER"
+          fi
           if [ -n "$EXISTING" ]; then
             PR_NUMBER="$EXISTING"
             echo "PR #$PR_NUMBER already exists; branch updated."
