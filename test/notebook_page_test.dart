@@ -851,20 +851,10 @@ void main() {
     await tester.showKeyboard(descriptionFinder);
     await tester.pump();
 
-    tester.testTextInput.updateEditingValue(
-      const TextEditingValue(
-        text: 'متن میانی',
-        selection: TextSelection.collapsed(offset: 9),
-      ),
-    );
+    await tester.enterText(descriptionFinder, 'متن میانی');
     await tester.pump();
 
-    tester.testTextInput.updateEditingValue(
-      const TextEditingValue(
-        text: 'متن جدید',
-        selection: TextSelection.collapsed(offset: 8),
-      ),
-    );
+    await tester.enterText(descriptionFinder, 'متن جدید');
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('notebook-editor-undo')));
