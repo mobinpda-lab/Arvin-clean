@@ -1,5 +1,10 @@
 # Arvin Canonical UI Reference
 
+## Latest final product contract — 2026-09-21
+
+The binding execution contract is `docs/ARVIN_FINAL_UI_AND_BEHAVIOR_CONTRACT.md`. The single execution ledger preventing duplicate work is `docs/ARVIN_FINAL_CONVERGENCE_EXECUTION_LEDGER_2026-09-21.md`. When older wording conflicts with the final contract, the final contract controls; existing architecture and user data must be preserved.
+
+
 ## Status
 Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
 
@@ -140,3 +145,12 @@ Calendar-facing complete/snooze behavior reported broken by the owner is tracked
 UI migration is incremental and must preserve existing working behavior while moving toward accepted canonical designs. Meaningful UI changes require appropriate widget/regression tests plus RTL and device/visual validation.
 
 A deferred user interaction is not considered delivered merely because its domain model, service, persistence, reusable page or help text exists. Recovery status is governed by #845 and Waves #846–#853 until final convergence closes the ledger.
+
+
+## Final Product Completion Authority — 2026-09-22
+For the current finalization program, the newest operational authorities are:
+- docs/ARVIN_PROJECT_OPERATING_PACKAGE.md — canonical operational governance and continuity
+- docs/ARVIN_FINAL_UI_AND_BEHAVIOR_CONTRACT.md — final product/UI/behavior contract
+- docs/ARVIN_FINAL_CONVERGENCE_EXECUTION_LEDGER_2026-09-21.md — locked execution sequence and checkpoints
+- GitHub Issue #1295 — Product First policy
+Exact code state, CI, PR and evidence remain authoritative for what is actually complete.
