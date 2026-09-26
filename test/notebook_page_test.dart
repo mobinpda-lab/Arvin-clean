@@ -853,6 +853,14 @@ void main() {
 
     tester.testTextInput.updateEditingValue(
       const TextEditingValue(
+        text: 'متن میانی',
+        selection: TextSelection.collapsed(offset: 9),
+      ),
+    );
+    await tester.pump();
+
+    tester.testTextInput.updateEditingValue(
+      const TextEditingValue(
         text: 'متن جدید',
         selection: TextSelection.collapsed(offset: 8),
       ),
@@ -863,7 +871,7 @@ void main() {
     await tester.pump();
     expect(
       tester.widget<TextField>(descriptionFinder).controller!.text,
-      'متن اولیه',
+      'متن میانی',
     );
 
     await tester.tap(find.byKey(const ValueKey('notebook-editor-redo')));
