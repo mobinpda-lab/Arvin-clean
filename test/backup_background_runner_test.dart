@@ -111,6 +111,8 @@ void main() {
     expect(backedUpTasks.single['title'], 'پشتیبان‌گیری واقعی');
     expect(backedUpTasks.single['description'], 'آخرین اطلاعات کاربر');
     expect(backedUpTasks.single['tags'], ['کار']);
+    expect((service.writtenPayload?['projects'] as List), isNotEmpty);
+    expect(service.writtenPayload?['settings'], isA<Map>());
     expect(notifications.successes, ['test-backup.json']);
   });
 
