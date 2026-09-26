@@ -31,6 +31,8 @@ void main() {
     expect(text, contains("dispatchOrReuse('build.yml', 'Arvin Build')"));
     expect(text, contains("dispatchOrReuse('device-smoke.yml', 'Arvin Device Smoke')"));
     expect(text, contains('waitForHeavy'));
+    expect(text, contains('Fast, Build and Android Smoke are independent gates'));
+    expect(text, contains('heavy gates continue independently'));
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
 
