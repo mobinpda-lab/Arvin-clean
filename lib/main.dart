@@ -1090,6 +1090,7 @@ class _HomePageState extends State<HomePage> {
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
+        projects: await ProjectStore().load(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1149,6 +1150,7 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       await taskStore.save(List<Task>.of(list));
+      await ProjectStore().save(candidate.projects);
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
