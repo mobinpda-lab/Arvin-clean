@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/services/task_migration_adapter.dart';
@@ -155,7 +157,7 @@ void main() {
     );
   });
 
-  test('retains unknown legacy fields in the migration envelope', () {
+  test('retains unknown legacy fields in the migration envelope') {
     const raw = '''[
       {
         "id": "unknown-1",
@@ -172,5 +174,21 @@ void main() {
     expect(record.sourceJson['futureScalar'], 'preserve-me');
     expect(record.sourceJsonEncoded, contains('"futureField":{"keep":true}'));
     expect(record.sourceJsonEncoded, contains('"futureScalar":"preserve-me"'));
+  });
+
+  test('migration boundary has no dependency on legacy Home UI', () {
+    final adapterSource =
+        File('lib/services/task_migration_adapter.dart').readAsStringSync();
+    final writerSource =
+        File('lib/services/sql_task_migration_writer.dart').readAsStringSync();
+    final readerSource =
+        File('lib/services/task_migration_reader.dart').readAsStringSync();
+
+    for (final source in [adapterSource, writerSource, readerSource]) {
+      expect(source, isNot(contains('home_page.dart')));
+      expect(source, isNot(contains('package:arvin/ui/home')));
+      expect(source, isNot(contains('widgets/home')));
+      expect(source, isNot(contains('ui/home/')));
+    }
   });
 }
