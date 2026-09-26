@@ -718,6 +718,10 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
 
   final _title = TextEditingController();
   final _description = TextEditingController();
+  final _titleFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
+  final _titleUndo = UndoHistoryController();
+  final _descriptionUndo = UndoHistoryController();
   final _checklistInput = TextEditingController();
   final _checklistFocus = FocusNode();
   Timer? _autosaveTimer;
@@ -731,6 +735,19 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   String? _projectTitle;
   List<String> _tags = [];
   List<String> _checklist = [];
+
+  UndoHistoryController get _activeUndoController =>
+      _titleFocus.hasFocus ? _titleUndo : _descriptionUndo;
+
+  void _undoCurrentField() {
+    final controller = _activeUndoController;
+    if (controller.value.canUndo) controller.undo();
+  }
+
+  void _redoCurrentField() {
+    final controller = _activeUndoController;
+    if (controller.value.canRedo) controller.redo();
+  }
 
   @override
   void initState() {
@@ -1217,6 +1234,10 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.dispose();
     _checklistInput.dispose();
     _checklistFocus.dispose();
+    _titleFocus.dispose();
+    _descriptionFocus.dispose();
+    _titleUndo.dispose();
+    _descriptionUndo.dispose();
     super.dispose();
   }
 
@@ -1257,13 +1278,26 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             tooltip: 'سطل زباله',
             icon: const Icon(Icons.delete_outline),
           ),
-          if (_editing)
+          if (_editing) ...[
+            IconButton(
+              key: const ValueKey('notebook-editor-undo'),
+              onPressed: _undoCurrentField,
+              tooltip: 'واگرد',
+              icon: const Icon(Icons.undo_outlined),
+            ),
+            IconButton(
+              key: const ValueKey('notebook-editor-redo'),
+              onPressed: _redoCurrentField,
+              tooltip: 'بازانجام',
+              icon: const Icon(Icons.redo_outlined),
+            ),
+            TextButton(
             TextButton(
               key: const ValueKey('notebook-done'),
               onPressed: _finishEditing,
               child: const Text('ذخیره'),
-            )
-          else
+            ),
+          ] else
             IconButton(
               key: const ValueKey('notebook-edit'),
               onPressed: () => setState(() => _editing = true),
@@ -1280,6 +1314,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             TextField(
               key: const ValueKey('notebook-title'),
               controller: _title,
+              focusNode: _titleFocus,
+              undoController: _titleUndo,
               readOnly: !_editing,
               maxLines: null,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -1352,6 +1388,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               TextField(
                 key: const ValueKey('notebook-description'),
                 controller: _description,
+                focusNode: _descriptionFocus,
+                undoController: _descriptionUndo,
                 readOnly: !_editing,
                 minLines: 12,
                 maxLines: null,
