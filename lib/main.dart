@@ -1977,35 +1977,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                compactHome ? 0 : 2,
-                16,
-                compactHome ? 4 : 8,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('home-my-tasks'),
-                      onPressed: _openMyTasks,
-                      icon: const Icon(Icons.checklist_rtl_outlined),
-                      label: const Text('کارهای من'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextButton.icon(
-                      key: const ValueKey('home-view-all'),
-                      onPressed: _showAllTasks,
-                      icon: const Icon(Icons.list_alt_rounded),
-                      label: const Text('مشاهده همه'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
             _homeGroupSelector(),
             Expanded(
               child: loading
