@@ -846,6 +846,7 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-editor-undo')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-editor-redo')), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('notebook-description')));
     await tester.enterText(
       find.byKey(const ValueKey('notebook-description')),
       'متن جدید',
