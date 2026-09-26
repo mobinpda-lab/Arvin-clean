@@ -457,8 +457,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 ),
               ),
               const SizedBox(height: 10),
-              TextField(
-                key: const ValueKey('quick-capture-description'),
+              if (widget.onCaptured == null)
+                TextField(
+                  key: const ValueKey('quick-capture-description'),
                 controller: _descriptionController,
                 enabled: !_saving,
                 minLines: 2,
@@ -470,7 +471,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
-              const SizedBox(height: 10),
+              if (widget.onCaptured == null) const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -492,8 +493,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     icon: Icons.work_outline,
                     onTap: _saving ? () {} : () { _pickProject(); },
                   ),
-                  ArvinRadioBox(
-                    label: _tagsController.text.trim().isEmpty ? 'برچسب' : _tagsController.text.trim(),
+                  if (widget.onCaptured != null)
+                    ArvinRadioBox(
+                      label: _tagsController.text.trim().isEmpty ? 'برچسب' : _tagsController.text.trim(),
                     selected: _tagsController.text.trim().isNotEmpty,
                     icon: Icons.sell_outlined,
                     onTap: _saving ? () {} : () async {
@@ -511,8 +513,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       if (value != null && mounted) setState(() {});
                     },
                   ),
-                  ArvinRadioBox(
-                    label: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
+                  if (widget.onCaptured != null)
+                    ArvinRadioBox(
+                      label: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
                     selected: _categoryController.text.trim().isNotEmpty,
                     icon: Icons.category_outlined,
                     onTap: _saving ? () {} : () async {
