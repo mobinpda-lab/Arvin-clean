@@ -18,6 +18,9 @@ void main() {
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.text('جستجو در کارها'), findsOneWidget);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.text('مشاهده همه'), findsNothing);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
