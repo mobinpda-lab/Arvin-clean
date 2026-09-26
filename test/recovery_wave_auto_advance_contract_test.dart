@@ -10,8 +10,8 @@ void main() {
     expect(worker, contains('ISSUE_BODY=$(gh issue view'));
     expect(worker, contains('arvin-recovery-wave:'));
     expect(worker, contains('arvin-recovery-wave-source'));
-    expect(worker, contains('Closes #\$ARVIN_ISSUE_NUMBER'));
-    expect(worker, contains('Refs #\$ARVIN_ISSUE_NUMBER'));
+    expect(worker, contains(r'Closes #\$ARVIN_ISSUE_NUMBER'));
+    expect(worker, contains(r'Refs #\$ARVIN_ISSUE_NUMBER'));
     expect(
       worker,
       contains('gh pr edit "\$PR_NUMBER" --repo "\$GITHUB_REPOSITORY" --body "\$PR_BODY" --add-label arvin-auto'),
