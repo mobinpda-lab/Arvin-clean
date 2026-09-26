@@ -1123,6 +1123,7 @@ class _HomePageState extends State<HomePage> {
       final emergencyBackup = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
+        projects: await ProjectStore().load(),
       );
 
       if (!mounted) return;
