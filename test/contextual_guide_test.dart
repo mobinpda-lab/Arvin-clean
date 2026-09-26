@@ -67,7 +67,7 @@ void main() {
 
     expect(workflow, contains('Arvin Build owns Analyze + all sharded tests + Debug/Release APK'));
     expect(workflow, isNot(contains('surface:')));
-    expect(build, contains('total-shards: 6'));
+    expect(build, contains('lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]'));
     expect(build, contains('flutter test'));
   });
 }
