@@ -722,6 +722,9 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   final _descriptionFocus = FocusNode();
   final _titleUndo = UndoHistoryController();
   final _descriptionUndo = UndoHistoryController();
+  late final VoidCallback _titleChangedListener;
+  late final VoidCallback _descriptionChangedListener;
+  TextEditingController? _lastEditedController;
   final _checklistInput = TextEditingController();
   final _checklistFocus = FocusNode();
   Timer? _autosaveTimer;
@@ -737,7 +740,9 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   List<String> _checklist = [];
 
   UndoHistoryController get _activeUndoController =>
-      _titleFocus.hasFocus ? _titleUndo : _descriptionUndo;
+      _lastEditedController == _title
+          ? _titleUndo
+          : _descriptionUndo;
 
   void _undoCurrentField() {
     final controller = _activeUndoController;
@@ -753,6 +758,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   void initState() {
     super.initState();
     _editing = widget.startEditing;
+    _lastEditedController = _title;
+    _titleChangedListener = () => _lastEditedController = _title;
+    _descriptionChangedListener = () => _lastEditedController = _description;
+    _title.addListener(_titleChangedListener);
+    _description.addListener(_descriptionChangedListener);
     _checklistMode = widget.focusChecklistOnOpen;
     _load();
   }
@@ -1230,6 +1240,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   @override
   void dispose() {
     _autosaveTimer?.cancel();
+    _title.removeListener(_titleChangedListener);
+    _description.removeListener(_descriptionChangedListener);
     _title.dispose();
     _description.dispose();
     _checklistInput.dispose();
