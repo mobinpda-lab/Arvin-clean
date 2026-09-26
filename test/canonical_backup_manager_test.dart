@@ -191,7 +191,7 @@ void main() {
     expect(service.readPassphrase, passphrase);
   });
 
-  test('canonical restore candidate returns tasks and optional settings together', () async {
+  test('canonical restore candidate returns tasks, settings and projects together', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
         'type': ArvinBackupService.backupType,
@@ -201,6 +201,15 @@ void main() {
           'themeMode': 'light',
           'usePersianDate': true,
         },
+        'projects': <Map<String, dynamic>>[
+          {
+            'id': 'project-1',
+            'title': 'پروژه اصلی',
+            'colorValue': 0xFF4A4CAB,
+            'isArchived': false,
+            'itemIds': <String>['task-full'],
+          },
+        ],
       };
     final manager = ArvinBackupManager(service: service);
 
@@ -208,6 +217,8 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.tasks.single.id, 'task-full');
+    expect(candidate.projects.single.id, 'project-1');
+    expect(candidate.projects.single.itemIds, ['task-full']);
     expect(candidate.settings, {
       'themeMode': 'light',
       'usePersianDate': true,
