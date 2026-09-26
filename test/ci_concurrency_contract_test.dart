@@ -32,7 +32,7 @@ void main() {
     );
   });
 
-  test('Parallel Wave runs Fast for Draft PRs and skips duplicate Ready work', () {
+  test('Parallel Wave keeps one lightweight contract gate', () {
     final parallel =
         File('.github/workflows/parallel-wave.yml').readAsStringSync();
     const draftOnly =
@@ -53,5 +53,8 @@ void main() {
         'Arvin Device Smoke owns real Android integration evidence for Ready PRs',
       ),
     );
+    expect(parallel, contains('contract:'));
+    expect(parallel, isNot(contains('surface:')));
+    expect(parallel, isNot(contains('flutter test')));
   });
 }
