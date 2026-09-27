@@ -47,7 +47,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="v0.1.0-arvin-${{ steps.head.outputs.sha }}"
+          FINAL_SHA="${{ steps.head.outputs.sha }}"
+          TAG="v0.1.0-arvin-${FINAL_SHA:0:7}"
           mkdir -p release-evidence
           gh release download "$TAG" \
             --repo "${{ github.repository }}" \
