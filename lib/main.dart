@@ -441,75 +441,151 @@ class _HomePageState extends State<HomePage> {
     await _load();
   }
 
+  Color _homeGroupAccent() {
+    return switch (_homeGroupMode) {
+      HomeGroupMode.time => ArvinColors.time,
+      HomeGroupMode.projects => ArvinColors.project,
+      HomeGroupMode.categories => ArvinColors.category,
+      HomeGroupMode.labels => ArvinColors.tag,
+    };
+  }
+
+  Color _homeGroupSoftAccent() {
+    return switch (_homeGroupMode) {
+      HomeGroupMode.time => ArvinColors.timeSoft,
+      HomeGroupMode.projects => ArvinColors.projectSoft,
+      HomeGroupMode.categories => ArvinColors.categorySoft,
+      HomeGroupMode.labels => ArvinColors.tagSoft,
+    };
+  }
+
   Widget _groupedTaskList() {
     final groups = _homeGroups
-        .where(
-          (group) =>
-              group.items.isNotEmpty ||
-              _homeGroupMode == HomeGroupMode.projects,
-        )
+        .where((group) =>
+            group.items.isNotEmpty ||
+            _homeGroupMode == HomeGroupMode.projects)
         .toList(growable: false);
     if (groups.every((group) => group.items.isEmpty)) {
       return Center(child: Text(_emptyVisibleLabel));
     }
+
+    final accent = _homeGroupAccent();
+    final softAccent = _homeGroupSoftAccent();
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
       itemCount: groups.length,
       itemBuilder: (context, groupIndex) {
         final group = groups[groupIndex];
+        final collapsed = _collapsedGroups.contains(group.id);
         final projectGroup =
             _homeGroupMode == HomeGroupMode.projects &&
             group.id != 'no_project' &&
             projects.any((project) => project.id == group.id);
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => setState(() {
-                  if (_collapsedGroups.contains(group.id)) { _collapsedGroups.remove(group.id); } else { _collapsedGroups.add(group.id); }
-                }),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(_collapsedGroups.contains(group.id) ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 20, color: const Color(0xFF80829C)),
-                      const SizedBox(width: 4),
-                      Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
-                      Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
-                      if (projectGroup) ...[
-                        const SizedBox(width: 4),
-                        IconButton(
-                          key: ValueKey('home-project-add-${group.id}'),
-                          tooltip: 'افزودن کار به ${group.title}',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _addToProject(group.id),
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
+              Material(
+                color: softAccent,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => setState(() {
+                    if (collapsed) {
+                      _collapsedGroups.remove(group.id);
+                    } else {
+                      _collapsedGroups.add(group.id);
+                    }
+                  }),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(12, 9, 8, 9),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          collapsed
+                              ? Icons.chevron_left_rounded
+                              : Icons.expand_more_rounded,
+                          size: 20,
+                          color: accent,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            group.title,
+                            softWrap: true,
+                            style: const TextStyle(
+                              color: ArvinColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 28),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${{group.items.length}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        if (projectGroup) ...[
+                          const SizedBox(width: 2),
+                          IconButton(
+                            key: ValueKey('home-project-add-${{group.id}'),
+                            tooltip: 'افزودن کار به ${{group.title}',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _addToProject(group.id),
+                            icon: Icon(Icons.add_circle_outline, color: accent),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),              const SizedBox(height: 6),
-              if (_collapsedGroups.contains(group.id))
+              ),
+              const SizedBox(height: 8),
+              if (collapsed)
                 const SizedBox.shrink()
-              else
-              if (group.items.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
+              else if (group.items.isEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: ArvinColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: ArvinColors.border),
+                  ),
+                  child: const Text(
                     'کاری در این گروه وجود ندارد',
-                    style: TextStyle(color: Color(0xFF80829C), fontSize: 12),
+                    style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                   ),
                 )
               else ...[
                 for (var index = 0; index < group.items.length; index++) ...[
-                  _taskCard(group.items[index]),
+                  _taskCard(group.items[index], accent: accent),
                   if (index != group.items.length - 1)
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                 ],
               ],
             ],
@@ -1647,54 +1723,45 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeBadge(String label, Color background, Color foreground) => Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(9)), child: Text(label, style: TextStyle(color: foreground, fontSize: 9.5, fontWeight: FontWeight.w700)));
 
-  Widget _taskCard(Task task) {
+  Widget _taskCard(Task task, {required Color accent}) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
-    final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
+    final projectTitle = _projectTitleForTask(task);
+    final borderColor = task.completed
+        ? const Color(0xFFB9DDBF)
+        : late ? ArvinColors.error : accent.withValues(alpha: 0.28);
+
     return Dismissible(
       key: ValueKey(task.id),
-      direction: selectionMode
-          ? DismissDirection.none
-          : DismissDirection.horizontal,
+      direction: selectionMode ? DismissDirection.none : DismissDirection.horizontal,
       confirmDismiss: (direction) => _applySwipe(task, direction),
-      background: task.trashed
-          ? _swipeBackground(TaskSwipeAction.none)
-          : _swipeBackground(widget.settings.swipeLeftAction),
-      secondaryBackground: task.trashed
-          ? _swipeBackground(TaskSwipeAction.trash)
-          : _swipeBackground(widget.settings.swipeRightAction),
+      background: task.trashed ? _swipeBackground(TaskSwipeAction.none) : _swipeBackground(widget.settings.swipeLeftAction),
+      secondaryBackground: task.trashed ? _swipeBackground(TaskSwipeAction.trash) : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: const Color(0xFFFDFDFE),
+        color: ArvinColors.surface,
         elevation: 1,
         shadowColor: const Color(0x14000000),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE5E7ED)),
+          side: BorderSide(color: borderColor, width: late ? 1.3 : 1),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onLongPress: () => setState(() {
             selectionMode = true;
-            selected
-              ..clear()
-              ..addAll(taskBulkSelectionService.toggle(selected, task.id));
+            selected..clear()..addAll(taskBulkSelectionService.toggle(selected, task.id));
           }),
           onTap: selectionMode
               ? () => setState(() {
-                  final next = taskBulkSelectionService.toggle(
-                    selected,
-                    task.id,
-                  );
-                  selected
-                    ..clear()
-                    ..addAll(next);
+                  final next = taskBulkSelectionService.toggle(selected, task.id);
+                  selected..clear()..addAll(next);
                   selectionMode = selected.isNotEmpty;
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            padding: const EdgeInsetsDirectional.fromSTEB(10, 10, 10, 11),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1702,145 +1769,113 @@ class _HomePageState extends State<HomePage> {
                     ? Checkbox(
                         value: selected.contains(task.id),
                         onChanged: (_) => setState(() {
-                          final next = taskBulkSelectionService.toggle(
-                            selected,
-                            task.id,
-                          );
-                          selected
-                            ..clear()
-                            ..addAll(next);
+                          final next = taskBulkSelectionService.toggle(selected, task.id);
+                          selected..clear()..addAll(next);
                           selectionMode = selected.isNotEmpty;
                         }),
                       )
-                    : IconButton(
-                        onPressed: () => _toggle(task),
-                        icon: Icon(
-                          task.completed
-                              ? Icons.check_circle_rounded
-                              : late
-                              ? Icons.warning_amber_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          color: task.completed
-                              ? const Color(0xFF409B51)
-                              : late
-                              ? const Color(0xFFDB8B23)
-                              : colors.primary,
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: IconButton(
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _toggle(task),
+                          tooltip: task.completed ? 'بازگرداندن به فعال' : 'انجام شد',
+                          icon: Icon(
+                            task.completed ? Icons.check_circle_rounded : late ? Icons.warning_amber_rounded : Icons.radio_button_unchecked_rounded,
+                            color: task.completed ? const Color(0xFF409B51) : late ? ArvinColors.error : accent,
+                          ),
                         ),
                       ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        task.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: const Color(0xFF232433),
-                          fontWeight: FontWeight.w700,
+                        task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
+                        softWrap: true,
+                        style: const TextStyle(
+                          color: ArvinColors.textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 15,
-                          decoration: task.completed
-                              ? TextDecoration.lineThrough
-                              : null,
+                          height: 1.45,
+                        ).copyWith(
+                          decoration: task.completed ? TextDecoration.lineThrough : null,
                         ),
                       ),
-                      if (preview != null || task.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                      if (preview != null || task.description.trim().isNotEmpty) ...[
+                        const SizedBox(height: 5),
                         Text(
-                          preview ?? task.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF80829C),
-                            fontSize: 12,
-                          ),
+                          preview ?? task.description.trim(),
+                          softWrap: true,
+                          style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12, height: 1.45),
                         ),
                       ],
-                      if (_projectTitleForTask(task) != null) ...[
+                      if (projectTitle != null) ...[
+                        const SizedBox(height: 6),
+                        _homeMetaChip(icon: Icons.folder_rounded, label: projectTitle, color: ArvinColors.project, softColor: ArvinColors.projectSoft),
+                      ],
+                      if (task.category?.trim().isNotEmpty == true) ...[
                         const SizedBox(height: 5),
-                        Row(
+                        _homeMetaChip(icon: Icons.grid_view_rounded, label: task.category!.trim(), color: ArvinColors.category, softColor: ArvinColors.categorySoft),
+                      ],
+                      if (task.tags.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Wrap(
+                          spacing: 5,
+                          runSpacing: 4,
                           children: [
-                            const Icon(Icons.folder_outlined, size: 15, color: Color(0xFF4B8FE8)),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                _projectTitleForTask(task)!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Color(0xFF4B8FE8), fontSize: 11, fontWeight: FontWeight.w700),
-                              ),
-                            ),
+                            for (final tag in task.tags)
+                              _homeMetaChip(icon: Icons.sell_rounded, label: '#${{tag.trim()}', color: ArvinColors.tag, softColor: ArvinColors.tagSoft),
                           ],
                         ),
                       ],
-                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
-                        const SizedBox(height: 5),
+                      if (task.completed || task.priority != TaskPriority.none || followUpDate != null) ...[
+                        const SizedBox(height: 6),
                         Wrap(
-                          spacing: 4,
-                          runSpacing: 3,
+                          spacing: 5,
+                          runSpacing: 4,
                           children: [
-                            if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
-                            if (task.priority != TaskPriority.none) _homeBadge(
-                              switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' },
-                              const Color(0xFFFFF0E3),
-                              const Color(0xFFDB8B23),
-                            ),
-                            if (task.category?.trim().isNotEmpty == true) _homeBadge(
-                              task.category!.trim(),
-                              const Color(0xFFF2ECFF),
-                              const Color(0xFF8C68D9),
-                            ),
-                            for (final tag in task.tags.take(3))
-                              _homeBadge('#${tag.trim()}', const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
+                            if (task.completed)
+                              _homeMetaChip(icon: Icons.check_circle_rounded, label: 'انجام‌شده', color: const Color(0xFF409B51), softColor: const Color(0xFFE8F5E9)),
+                            if (task.priority != TaskPriority.none)
+                              _homeMetaChip(
+                                icon: Icons.flag_rounded,
+                                label: switch (task.priority) {
+                                  TaskPriority.high => 'اهمیت زیاد',
+                                  TaskPriority.medium => 'اهمیت متوسط',
+                                  TaskPriority.low => 'اهمیت کم',
+                                  TaskPriority.none => '',
+                                },
+                                color: ArvinColors.reminder,
+                                softColor: ArvinColors.reminderSoft,
+                              ),
+                            if (followUpDate != null)
+                              _homeMetaChip(
+                                icon: Icons.event_outlined,
+                                label: 'پیگیری: ${{_date(followUpDate)} • ${{_time(followUpDate)}',
+                                color: late ? ArvinColors.error : ArvinColors.reminder,
+                                softColor: late ? ArvinColors.errorSoft : ArvinColors.reminderSoft,
+                              ),
                           ],
                         ),
                       ],
                       if (task.dueDate != null) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 6),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.schedule_rounded,
-                              size: 15,
-                              color: Color(0xFF80829C),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
+                            Icon(Icons.schedule_rounded, size: 16, color: late ? ArvinColors.error : accent),
+                            const SizedBox(width: 5),
+                            Expanded(
                               child: Text(
-                                'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF80829C),
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (followUpDate != null) ...[
-                        const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: late
-                                  ? const Color(0xFFDB8B23)
-                                  : const Color(0xFF80829C),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
+                                'موعد: ${{_date(task.dueDate!)} • ${{_time(task.dueDate!)}',
+                                softWrap: true,
                                 style: TextStyle(
-                                  color: late
-                                      ? const Color(0xFFDB8B23)
-                                      : const Color(0xFF80829C),
+                                  color: late ? ArvinColors.errorDark : ArvinColors.textSecondary,
                                   fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                                  height: 1.4,
+                                  fontWeight: late ? FontWeight.w700 : FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -1848,9 +1883,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.trashed || task.archived)
-                        TextButton(
-                          onPressed: () => _restore(task),
-                          child: const Text('بازگردانی به فعال'),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton(onPressed: () => _restore(task), child: const Text('بازگردانی به فعال')),
                         ),
                     ],
                   ),
@@ -1859,6 +1894,33 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _homeMetaChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color softColor,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(color: softColor, borderRadius: BorderRadius.circular(9)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              softWrap: true,
+              style: TextStyle(color: color, fontSize: 10.5, height: 1.25, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
