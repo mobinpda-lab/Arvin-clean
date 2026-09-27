@@ -5,7 +5,7 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
-import 'widgets/arvin_radio_box.dart';
+import 'widgets/arvin_roll_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
 ///
@@ -24,6 +24,8 @@ class QuickCaptureDialog extends StatefulWidget {
     this.projects = const <ProjectPlan>[],
     this.initialProjectId,
     this.onProjectChanged,
+    this.knownCategories = const <String>[],
+    this.knownTags = const <String>[],
   });
 
   final QuickCaptureService service;
@@ -34,6 +36,8 @@ class QuickCaptureDialog extends StatefulWidget {
   final List<ProjectPlan> projects;
   final String? initialProjectId;
   final ValueChanged<String?>? onProjectChanged;
+  final List<String> knownCategories;
+  final List<String> knownTags;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -52,6 +56,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
+  final List<String> _selectedTags = <String>[];
 
   @override
   void initState() {
@@ -105,7 +110,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         .map((tag) => tag.trim())
         .where((tag) => tag.isNotEmpty)
         .toSet();
-    task.tags = {...task.tags, ...manualTags}.toList(growable: false);
+    task.tags = {...task.tags, ..._selectedTags, ...manualTags}.toList(growable: false);
     return task;
   }
 
@@ -192,9 +197,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('امروز'), onTap: () => Navigator.pop(sheetContext, DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))),
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
             ListTile(title: const Text('هفته آینده'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 7)))),
-            ListTile(title: const Text('انتخاب تاریخ'), onTap: () async {
-              final picked = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
-              if (picked != null && sheetContext.mounted) Navigator.pop(sheetContext, picked);
+            ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
+              final date = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
+              if (date == null || !sheetContext.mounted) return;
+              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime.now()));
+              if (time != null && sheetContext.mounted) {
+                Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
+              }
             }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
@@ -264,39 +273,43 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              const SizedBox(
-                width: double.infinity,
-                child: Text('پروژه', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              ),
-              ArvinRadioBox(
-                label: 'بدون پروژه',
-                selected: _projectId == null,
-                icon: Icons.work_off_outlined,
-                onTap: () => Navigator.pop(sheetContext, ''),
-              ),
-              for (final project in widget.projects.where((p) => !p.isArchived))
-                ArvinRadioBox(
-                  label: project.title,
-                  selected: _projectId == project.id,
-                  icon: Icons.work_outline,
-                  onTap: () => Navigator.pop(sheetContext, project.id),
+          child: ArvinRollBox<String>(
+            label: 'پروژه',
+            valueLabel: _projectId == null ? 'پروژه' : widget.projects.firstWhere(
+              (p) => p.id == _projectId,
+              orElse: () => ProjectPlan(id: '', title: 'پروژه'),
+            ).title,
+            icon: Icons.folder_outlined,
+            color: const Color(0xFF3568D4),
+            emptyLabel: 'بدون پروژه',
+            items: widget.projects.where((p) => !p.isArchived).map((p) => ArvinRollItem<String>(
+              value: p.id, label: p.title, icon: Icons.folder_outlined, color: const Color(0xFF3568D4),
+            )).toList(),
+            onSelected: (value) => Navigator.pop(sheetContext, value),
+            onCreate: () async {
+              final controller = TextEditingController();
+              final value = await showModalBottomSheet<String>(
+                context: sheetContext,
+                isScrollControlled: true,
+                builder: (ctx) => Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    const Text('پروژه جدید'),
+                    TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                    FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                  ]),
                 ),
-              if (widget.projects.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('هنوز پروژه‌ای ثبت نشده است'),
-                ),
-            ],
+              );
+              controller.dispose();
+              if (value == null || value.isEmpty) return null;
+              return value;
+            },
           ),
         ),
       ),
     );
     if (!mounted || selected == null) return;
-    setState(() => _projectId = selected.isEmpty ? null : selected);
+    setState(() => _projectId = selected);
     widget.onProjectChanged?.call(_projectId);
   }
 
@@ -476,74 +489,95 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ArvinRadioBox(
-                    label: _dateLabel(_dueDate),
-                    selected: _dueDate != null,
+                  ArvinRollBox<String>(
+                    label: 'موعد',
+                    valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
                     icon: Icons.calendar_today_outlined,
-                    onTap: _saving ? () {} : () { _pickDue(); },
+                    color: const Color(0xFFE85D2A),
+                    emptyLabel: 'بدون موعد',
+                    items: const [],
+                    onSelected: (_) {},
+                    onCreate: () async { await _pickDue(); return null; },
                   ),
-                  ArvinRadioBox(
-                    label: _projectId == null
-                        ? 'پروژه'
-                        : widget.projects.firstWhere(
-                            (p) => p.id == _projectId,
-                            orElse: () => ProjectPlan(id: '', title: 'پروژه'),
-                          ).title,
-                    selected: _projectId != null,
-                    icon: Icons.work_outline,
-                    onTap: _saving ? () {} : () { _pickProject(); },
-                  ),
-                  if (widget.onCaptured != null)
-                    ArvinRadioBox(
-                      label: _tagsController.text.trim().isEmpty ? 'برچسب' : _tagsController.text.trim(),
-                    selected: _tagsController.text.trim().isNotEmpty,
-                    icon: Icons.sell_outlined,
-                    onTap: _saving ? () {} : () async {
-                      final value = await showDialog<String>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('برچسب‌ها'),
-                          content: TextField(controller: _tagsController, autofocus: true, decoration: const InputDecoration(hintText: 'مثلاً مشتری، فوری')),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-                            FilledButton(onPressed: () => Navigator.pop(dialogContext, _tagsController.text), child: const Text('اعمال')),
-                          ],
+                  ArvinRollBox<String>(
+                    label: 'دسته',
+                    valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
+                    icon: Icons.grid_view_rounded,
+                    color: const Color(0xFF7650C8),
+                    emptyLabel: 'بدون دسته',
+                    items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
+                      value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
+                    )).toList(),
+                    onSelected: (v) => setState(() => _categoryController.text = v),
+                    onCreate: () async {
+                      final controller = TextEditingController();
+                      final value = await showModalBottomSheet<String>(
+                        context: context, isScrollControlled: true,
+                        builder: (ctx) => Padding(
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            const Text('دسته جدید'),
+                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                          ]),
                         ),
                       );
-                      if (value != null && mounted) setState(() {});
+                      controller.dispose();
+                      if (value == null || value.isEmpty) return null;
+                      setState(() => _categoryController.text = value);
+                      return value;
                     },
                   ),
-                  if (widget.onCaptured != null)
-                    ArvinRadioBox(
-                      label: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
-                    selected: _categoryController.text.trim().isNotEmpty,
-                    icon: Icons.category_outlined,
-                    onTap: _saving ? () {} : () async {
-                      final value = await showDialog<String>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('دسته'),
-                          content: TextField(controller: _categoryController, autofocus: true),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-                            FilledButton(onPressed: () => Navigator.pop(dialogContext, _categoryController.text), child: const Text('اعمال')),
-                          ],
+                  ArvinTagRollBox(
+                    tags: widget.knownTags,
+                    selectedTags: _selectedTags,
+                    onChanged: (values) => setState(() {
+                      _selectedTags
+                        ..clear()
+                        ..addAll(values);
+                      _tagsController.text = _selectedTags.join('، ');
+                    }),
+                    onCreate: () async {
+                      final controller = TextEditingController();
+                      final value = await showModalBottomSheet<String>(
+                        context: context, isScrollControlled: true,
+                        builder: (ctx) => Padding(
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            const Text('برچسب جدید'),
+                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                          ]),
                         ),
                       );
-                      if (value != null && mounted) setState(() {});
+                      controller.dispose();
+                      if (value == null || value.isEmpty) return null;
+                      setState(() {
+                        if (!_selectedTags.contains(value)) _selectedTags.add(value);
+                        _tagsController.text = _selectedTags.join('، ');
+                      });
+                      return value;
                     },
                   ),
-                  ArvinRadioBox(
-                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
-                    selected: _reminderDate != null,
+                  ArvinRollBox<String>(
+                    label: 'یادآور',
+                    valueLabel: _reminderDate == null ? 'یادآور' : 'تنظیم شد',
                     icon: Icons.notifications_none_outlined,
-                    onTap: _saving ? () {} : () { _pickReminder(); },
+                    color: const Color(0xFFD58A24),
+                    emptyLabel: 'بدون یادآور',
+                    items: const [],
+                    onSelected: (_) {},
+                    onCreate: () async { await _pickReminder(); return null; },
                   ),
-                  ArvinRadioBox(
-                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
-                    selected: _recurrence != null,
+                  ArvinRollBox<String>(
+                    label: 'تکرار',
+                    valueLabel: _recurrence == null ? 'تکرار' : 'تنظیم شد',
                     icon: Icons.repeat_rounded,
-                    onTap: _saving ? () {} : () { _pickRecurrence(); },
+                    color: const Color(0xFF4A4CAB),
+                    emptyLabel: 'بدون تکرار',
+                    items: const [],
+                    onSelected: (_) {},
+                    onCreate: () async { await _pickRecurrence(); return null; },
                   ),
                 ],
               ),
