@@ -1721,8 +1721,6 @@ class _HomePageState extends State<HomePage> {
     return 'پیگیری ثبت‌شده';
   }
 
-  Widget _homeBadge(String label, Color background, Color foreground) => Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(9)), child: Text(label, style: TextStyle(color: foreground, fontSize: 9.5, fontWeight: FontWeight.w700)));
-
   Widget _taskCard(Task task, {required Color accent}) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
