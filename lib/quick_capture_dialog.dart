@@ -373,7 +373,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             if (selectedDay > monthLength) selectedDay = monthLength;
             final firstGregorian = formatter.fromJalali(JalaliDate(year, month, 1));
             final firstWeekday = firstGregorian.weekday % 7;
-            final days = List<int?>.filled(firstWeekday, null)..addAll(List<int>.generate(monthLength, (i) => i + 1));
+            final days = List<int?>.filled(firstWeekday, null, growable: true)..addAll(List<int>.generate(monthLength, (i) => i + 1));
             DateTime selectedDate() => formatter.fromJalali(JalaliDate(year, month, selectedDay));
             void changeMonth(int delta) {
               var nextYear = year;
