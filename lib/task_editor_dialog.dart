@@ -750,52 +750,62 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         accent: ArvinColors.reminder,
                       ),
                       const SizedBox(height: 10),
-                      DropdownButtonFormField<RecurrenceFrequency>(
-                        key: const ValueKey('task-editor-recurrence'),
-                        initialValue: _recurrence?.frequency,
-                        decoration: _fieldDecoration(label: 'تکرار'),
-                        items: [
-                          const DropdownMenuItem<RecurrenceFrequency>(
-                            value: null,
-                            child: Text('بدون تکرار'),
-                          ),
-                          ...RecurrenceFrequency.values.map(
-                            (frequency) =>
-                                DropdownMenuItem<RecurrenceFrequency>(
-                                  value: frequency,
-                                  child: Text(_recurrenceLabel(frequency)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<RecurrenceFrequency>(
+                          key: const ValueKey('task-editor-recurrence'),
+                          initialValue: _recurrence?.frequency,
+                          decoration: _fieldDecoration(label: 'تکرار'),
+                          items: [
+                            const DropdownMenuItem<RecurrenceFrequency>(
+                              value: null,
+                              child: Text('بدون تکرار'),
+                            ),
+                            ...RecurrenceFrequency.values.map(
+                              (frequency) =>
+                                  DropdownMenuItem<RecurrenceFrequency>(
+                                    value: frequency,
+                                    child: Text(_recurrenceLabel(frequency)),
+                                  ),
+                            ),
+                          ],
+                          onChanged: (frequency) {
+                            setState(() {
+                              _recurrence = frequency == null
+                                  ? null
+                                  : RecurrenceRule(
+                                      frequency: frequency,
+                                      interval: _recurrence?.interval ?? 1,
+                                    );
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<TaskPriority>(
+                          key: const ValueKey('task-editor-priority'),
+                          initialValue: _priority,
+                          decoration: _fieldDecoration(label: 'اولویت'),
+                          items: TaskPriority.values
+                              .map(
+                                (priority) => DropdownMenuItem<TaskPriority>(
+                                  value: priority,
+                                  child: Text(_priorityLabel(priority)),
                                 ),
+                              )
+                              .toList(growable: false),
+                          onChanged: (priority) {
+                            if (priority != null) {
+                              setState(() => _priority = priority);
+                            }
+                          },
+                        ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: 
                           ),
                         ],
-                        onChanged: (frequency) {
-                          setState(() {
-                            _recurrence = frequency == null
-                                ? null
-                                : RecurrenceRule(
-                                    frequency: frequency,
-                                    interval: _recurrence?.interval ?? 1,
-                                  );
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<TaskPriority>(
-                        key: const ValueKey('task-editor-priority'),
-                        initialValue: _priority,
-                        decoration: _fieldDecoration(label: 'اولویت'),
-                        items: TaskPriority.values
-                            .map(
-                              (priority) => DropdownMenuItem<TaskPriority>(
-                                value: priority,
-                                child: Text(_priorityLabel(priority)),
-                              ),
-                            )
-                            .toList(growable: false),
-                        onChanged: (priority) {
-                          if (priority != null) {
-                            setState(() => _priority = priority);
-                          }
-                        },
                       ),
                       const SizedBox(height: 4),
                       CheckboxListTile(
