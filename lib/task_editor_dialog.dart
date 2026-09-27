@@ -49,7 +49,6 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   static const _dateFormatter = PersianDateFormatter();
   static const _brand = ArvinColors.primary;
-  static const _softBrand = ArvinColors.primarySoft;
   static const _fieldSurface = ArvinColors.background;
   static const _border = ArvinColors.border;
 
@@ -280,15 +279,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     controller.dispose();
     return result?.trim().isEmpty == true ? null : result?.trim();
   }
-  void _addTag() {
-    final value = _tagController.text.trim();
-    if (value.isEmpty || _tags.contains(value)) return;
-    setState(() {
-      _tags.add(value);
-      _tagController.clear();
-    });
-  }
-
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
