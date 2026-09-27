@@ -70,7 +70,7 @@ jobs:
           grep -q "MAIN_SHA=${FINAL_SHA}" release-evidence/release-evidence.txt
           grep -q "BUILD_RESULT=success" release-evidence/release-evidence.txt
           grep -q "TEST_RESULT=success" release-evidence/release-evidence.txt
-          (cd release-evidence && sha256sum -c artifact.sha256)
+          (cd release-evidence && awk '{print $1 "  arvin-release.apk"}' artifact.sha256 | sha256sum -c -)
 
       - name: Fetch pinned VazirHarf for manual validation
         if: github.event_name == 'workflow_dispatch'
