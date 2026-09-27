@@ -42,7 +42,7 @@ void main() {
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
-    final tagRollBox = find.byTooltip('برچسب');
+    final tagRollBox = find.byTooltip('برچسب').last;
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(titleField, findsOneWidget);
