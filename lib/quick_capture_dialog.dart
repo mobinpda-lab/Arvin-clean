@@ -267,52 +267,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     setState(() => _recurrence = selected);
   }
 
-  Future<void> _pickProject() async {
-    final selected = await showModalBottomSheet<String?>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: ArvinRollBox<String>(
-            label: 'پروژه',
-            valueLabel: _projectId == null ? 'پروژه' : widget.projects.firstWhere(
-              (p) => p.id == _projectId,
-              orElse: () => ProjectPlan(id: '', title: 'پروژه'),
-            ).title,
-            icon: Icons.folder_outlined,
-            color: const Color(0xFF3568D4),
-            emptyLabel: 'بدون پروژه',
-            items: widget.projects.where((p) => !p.isArchived).map((p) => ArvinRollItem<String>(
-              value: p.id, label: p.title, icon: Icons.folder_outlined, color: const Color(0xFF3568D4),
-            )).toList(),
-            onSelected: (value) => Navigator.pop(sheetContext, value),
-            onCreate: () async {
-              final controller = TextEditingController();
-              final value = await showModalBottomSheet<String>(
-                context: sheetContext,
-                isScrollControlled: true,
-                builder: (ctx) => Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('پروژه جدید'),
-                    TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                    FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                  ]),
-                ),
-              );
-              controller.dispose();
-              if (value == null || value.isEmpty) return null;
-              return value;
-            },
-          ),
-        ),
-      ),
-    );
-    if (!mounted || selected == null) return;
-    setState(() => _projectId = selected);
-    widget.onProjectChanged?.call(_projectId);
-  }
 
   Future<DateTime?> _pickJalaliDate(
     BuildContext parentContext, {
@@ -505,7 +459,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
                       value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
                     )).toList(),
-                    onSelected: (v) => setState(() => _categoryController.text = v),
+                    onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
                     onCreate: () async {
                       final controller = TextEditingController();
                       final value = await showModalBottomSheet<String>(
