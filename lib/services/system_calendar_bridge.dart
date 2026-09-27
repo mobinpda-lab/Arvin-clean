@@ -215,6 +215,7 @@ class SystemCalendarBridge {
         start: start,
         end: end,
         allDay: allDay,
+        description: description,
       ),
     );
     final normalized = eventId?.trim();
@@ -228,6 +229,7 @@ class SystemCalendarBridge {
     required DateTime start,
     required DateTime end,
     required bool allDay,
+    String? description,
   }) async {
     return await _channel.invokeMethod<bool>(
           updateProviderEventMethod,
@@ -238,6 +240,7 @@ class SystemCalendarBridge {
               start: start,
               end: end,
               allDay: allDay,
+              description: description,
             ),
             'eventId': eventId,
           },
