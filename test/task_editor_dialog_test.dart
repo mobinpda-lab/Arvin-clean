@@ -9,6 +9,7 @@ void main() {
   Future<void> pumpEditor(
     WidgetTester tester, {
     Task? task,
+    List<String> knownTags = const [],
     ValueChanged<Task?>? onResult,
   }) async {
     tester.view.physicalSize = const Size(1080, 1920);
@@ -26,7 +27,7 @@ void main() {
                 onPressed: () async {
                   final result = await showDialog<Task>(
                     context: context,
-                    builder: (_) => ArvinTaskEditorDialog(task: task),
+                    builder: (_) => ArvinTaskEditorDialog(task: task, knownTags: knownTags),
                   );
                   onResult?.call(result);
                 },
@@ -226,16 +227,16 @@ void main() {
   testWidgets('Back-style close prompts and can save Task edits without data loss',
       (tester) async {
     Task? result;
-    await pumpEditor(tester, onResult: (value) => result = value);
+    await pumpEditor(tester, knownTags: const ['فوری'], onResult: (value) => result = value);
 
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-title')),
       'کار ذخیره‌شده هنگام خروج',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('task-editor-tag')),
-      'فوری',
-    );
+    await tester.tap(find.byTooltip('برچسب'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('فوری'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
