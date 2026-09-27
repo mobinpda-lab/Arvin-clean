@@ -68,13 +68,12 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار دسته‌بندی‌شده',
     );
-    await tester.tap(find.byKey(const ValueKey('task-category-new')));
+    await tester.tap(find.byTooltip('دسته'));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('task-category-new-input')),
-      '  مشتری ویژه  ',
-    );
-    await tester.tap(find.text('ثبت').last);
+    await tester.tap(find.text('افزودن').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'نام'), '  مشتری ویژه  ');
+    await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
     await save(tester);
 
@@ -98,7 +97,9 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-category-none')));
+    await tester.tap(find.byTooltip('دسته'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('بدون دسته'));
     await tester.pump();
     await save(tester);
 
@@ -123,9 +124,12 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    expect(find.byKey(const ValueKey('project-selector-p1')), findsOneWidget);
-    expect(find.byKey(const ValueKey('project-selector-p2')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('project-selector-p2')));
+    final projectRollBox = find.byTooltip('پروژه');
+    await tester.tap(projectRollBox);
+    await tester.pumpAndSettle();
+    expect(find.text('کاری'), findsWidgets);
+    expect(find.text('شخصی'), findsOneWidget);
+    await tester.tap(find.text('شخصی'));
     await tester.pump();
     await save(tester);
 
@@ -152,9 +156,9 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('project-selector-unassigned')),
-    );
+    await tester.tap(find.byTooltip('پروژه'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('بدون پروژه'));
     await tester.pump();
     await save(tester);
 
