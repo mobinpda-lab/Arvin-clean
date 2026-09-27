@@ -51,6 +51,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
+  final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
@@ -761,11 +762,17 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ? widget.onSnoozeReminder
                                 : null,
                             onEdit:
-                                (widget.canMutateReminder?.call(
+                                selectedReminders[index].id.startsWith('task-due:')
+                                ? null
+                                : ((widget.canMutateReminder?.call(
                                       selectedReminders[index],
                                     ) ??
                                     true)
                                 ? widget.onEditReminder
+                                : null),
+                            onRegisterTaskToDeviceCalendar:
+                                selectedReminders[index].id.startsWith('task-due:')
+                                ? widget.onRegisterTaskToDeviceCalendar
                                 : null,
                             onConvertToTask: widget.onConvertReminderToTask,
                             onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
@@ -824,6 +831,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onSnooze,
     this.onEdit,
+    this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
     this.onOpenExternal,
     this.onCreateTaskFromCalendarEvent,
@@ -838,6 +846,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
+  final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
   final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
@@ -853,6 +862,8 @@ class _ReminderCard extends StatefulWidget {
 
 class _ReminderCardState extends State<_ReminderCard> {
   bool _expanded = false;
+
+  bool get _isTaskDue => widget.item.id.startsWith('task-due:');
 
   bool get _hasActions =>
       (widget.isPrayer &&
@@ -970,7 +981,21 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('تعویق'),
                       onPressed: () => _run(widget.onSnooze),
                     ),
-                  if (!widget.isPrayer && widget.onEdit != null)
+                  if (_isTaskDue && widget.onEdit != null)
+                    ActionChip(
+                      key: ValueKey('task-due-edit-${item.id}'),
+                      avatar: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('ویرایش'),
+                      onPressed: () => _run(widget.onEdit),
+                    ),
+                  if (_isTaskDue && widget.onRegisterTaskToDeviceCalendar != null)
+                    ActionChip(
+                      key: ValueKey('task-due-device-calendar-${item.id}'),
+                      avatar: const Icon(Icons.event_available_outlined, size: 18),
+                      label: const Text('ثبت در تقویم گوشی'),
+                      onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
+                    ),
+                  if (!_isTaskDue && !widget.isPrayer && widget.onEdit != null)
                     ActionChip(
                       key: ValueKey('reminder-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
