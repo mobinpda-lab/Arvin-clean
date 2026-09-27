@@ -13,6 +13,7 @@ class CalendarSyncRevision {
     required this.start,
     required this.end,
     required this.allDay,
+    this.description,
   });
 
   final String reminderId;
@@ -21,6 +22,7 @@ class CalendarSyncRevision {
   final DateTime start;
   final DateTime end;
   final bool allDay;
+  final String? description;
 }
 
 /// Local metadata linking one canonical Arvin reminder to one external event.
@@ -96,15 +98,16 @@ class CalendarSyncRevisionService {
     }
 
     final start = reminder.date;
-    final end = reminder.isAllDay
+    final end = reminder.end ?? (reminder.isAllDay
         ? DateTime(start.year, start.month, start.day + 1)
-        : start.add(const Duration(minutes: 30));
+        : start.add(const Duration(minutes: 30)));
     final canonical = jsonEncode(<String, Object>{
       'id': reminder.id,
       'title': title,
       'startMillis': start.millisecondsSinceEpoch,
       'endMillis': end.millisecondsSinceEpoch,
       'allDay': reminder.isAllDay,
+      'description': reminder.description?.trim() ?? '',
     });
     final hash = await _hashAlgorithm.hash(utf8.encode(canonical));
 
@@ -115,6 +118,7 @@ class CalendarSyncRevisionService {
       start: start,
       end: end,
       allDay: reminder.isAllDay,
+      description: reminder.description?.trim().isEmpty == true ? null : reminder.description?.trim(),
     );
   }
 
