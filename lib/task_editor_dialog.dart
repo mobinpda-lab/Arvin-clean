@@ -677,7 +677,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           emptyLabel: 'بدون پروژه',
                           items: widget.projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
                             value: project.id,
-                            label: project.isArchived ? project.title + ' (بایگانی‌شده)' : project.title,
+                            label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
                             icon: Icons.folder_outlined,
                             color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
                           )).toList(),
