@@ -5,6 +5,7 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
+import 'widgets/arvin_radio_box.dart';
 import 'widgets/arvin_roll_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
@@ -489,15 +490,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ArvinRollBox<String>(
-                    label: 'موعد',
-                    valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                  ArvinRadioBox(
+                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                    selected: _dueDate != null,
                     icon: Icons.calendar_today_outlined,
-                    color: const Color(0xFFE85D2A),
-                    emptyLabel: 'بدون موعد',
-                    items: const [],
-                    onSelected: (_) {},
-                    onCreate: () async { await _pickDue(); return null; },
+                    onTap: _saving ? () {} : _pickDue,
                   ),
                   ArvinRollBox<String>(
                     label: 'دسته',
@@ -559,25 +556,17 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       return value;
                     },
                   ),
-                  ArvinRollBox<String>(
-                    label: 'یادآور',
-                    valueLabel: _reminderDate == null ? 'یادآور' : 'تنظیم شد',
+                  ArvinRadioBox(
+                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
+                    selected: _reminderDate != null,
                     icon: Icons.notifications_none_outlined,
-                    color: const Color(0xFFD58A24),
-                    emptyLabel: 'بدون یادآور',
-                    items: const [],
-                    onSelected: (_) {},
-                    onCreate: () async { await _pickReminder(); return null; },
+                    onTap: _saving ? () {} : _pickReminder,
                   ),
-                  ArvinRollBox<String>(
-                    label: 'تکرار',
-                    valueLabel: _recurrence == null ? 'تکرار' : 'تنظیم شد',
+                  ArvinRadioBox(
+                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
+                    selected: _recurrence != null,
                     icon: Icons.repeat_rounded,
-                    color: const Color(0xFF4A4CAB),
-                    emptyLabel: 'بدون تکرار',
-                    items: const [],
-                    onSelected: (_) {},
-                    onCreate: () async { await _pickRecurrence(); return null; },
+                    onTap: _saving ? () {} : _pickRecurrence,
                   ),
                 ],
               ),
