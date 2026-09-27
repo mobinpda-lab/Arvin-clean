@@ -30,6 +30,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onRefreshTasks,
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
+    this.onEditTask,
+    this.onRegisterTaskToDeviceCalendar,
   });
 
   final List<Task> tasks;
