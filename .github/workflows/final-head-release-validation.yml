@@ -40,7 +40,31 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "FINAL_HEAD=$SHA"
 
-      - name: Fetch pinned VazirHarf
+      - name: Download release-closure evidence from triggering run
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: arvin-release-closure-${{ steps.head.outputs.sha }}
+          path: release-evidence
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify release evidence matches exact final main
+        if: github.event_name == 'workflow_run'
+        env:
+          FINAL_SHA: ${{ steps.head.outputs.sha }}
+        run: |
+          set -euo pipefail
+          test -s release-evidence/release-evidence.txt
+          test -s release-evidence/arvin-release.apk
+          test -s release-evidence/artifact.sha256
+          grep -q "MAIN_SHA=${FINAL_SHA}" release-evidence/release-evidence.txt
+          grep -q "BUILD_RESULT=success" release-evidence/release-evidence.txt
+          grep -q "TEST_RESULT=success" release-evidence/release-evidence.txt
+          (cd release-evidence && sha256sum -c artifact.sha256)
+
+      - name: Fetch pinned VazirHarf for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
           git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
@@ -49,14 +73,16 @@ jobs:
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
 
-      - name: Setup exact Flutter
+      - name: Setup exact Flutter for manual validation
+        if: github.event_name == 'workflow_dispatch'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Verify repository-owned release inputs
+      - name: Verify repository-owned release inputs for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
           test -s pubspec.lock
@@ -71,20 +97,24 @@ jobs:
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
 
-      - name: Restore VazirHarf assets
+      - name: Restore VazirHarf assets for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
 
-      - name: Analyze from locked dependency graph
+      - name: Analyze from locked dependency graph for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
           flutter analyze
 
-      - name: Unit and widget tests
+      - name: Unit and widget tests for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: flutter test
 
-      - name: Build release APK
+      - name: Build release APK for manual validation
+        if: github.event_name == 'workflow_dispatch'
         run: flutter build apk --release -t lib/main.dart
 
       - name: Verify release record and artifact
