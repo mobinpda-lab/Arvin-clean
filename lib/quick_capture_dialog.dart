@@ -24,6 +24,8 @@ class QuickCaptureDialog extends StatefulWidget {
     this.projects = const <ProjectPlan>[],
     this.initialProjectId,
     this.onProjectChanged,
+    this.knownCategories = const <String>[],
+    this.knownTags = const <String>[],
   });
 
   final QuickCaptureService service;
@@ -34,6 +36,8 @@ class QuickCaptureDialog extends StatefulWidget {
   final List<ProjectPlan> projects;
   final String? initialProjectId;
   final ValueChanged<String?>? onProjectChanged;
+  final List<String> knownCategories;
+  final List<String> knownTags;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -177,8 +181,16 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   String _dateLabel(DateTime? value) {
-    if (value == null) return 'بدون موعد';
-    return const PersianDateFormatter().format(value, usePersianDate: true);
+    if (value == null) return 'موعد';
+    final formatter = const PersianDateFormatter();
+    final date = formatter.format(value, usePersianDate: true);
+    final time = formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
+    return '$date • $time';
+  }
+
+  String _timeLabel(DateTime? value) {
+    if (value == null) return 'ساعت';
+    return const PersianDateFormatter().toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
   }
 
   Future<void> _pickDue() async {
@@ -196,6 +208,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               final picked = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
               if (picked != null && sheetContext.mounted) Navigator.pop(sheetContext, picked);
             }),
+            ListTile(title: Text(_timeLabel(_dueDate)), onTap: () async {
+              Navigator.pop(sheetContext);
+              await _pickDueTime();
+            }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
         ),
@@ -203,6 +219,36 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (!mounted) return;
     setState(() => _dueDate = selected == _clearToken ? null : selected as DateTime?);
+  }
+
+  Future<void> _pickDueTime() async {
+    final base = _dueDate ?? DateTime.now();
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
+      helpText: 'انتخاب ساعت موعد',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+      builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child!),
+    );
+    if (time != null && mounted) {
+      setState(() => _dueDate = DateTime(base.year, base.month, base.day, time.hour, time.minute));
+    }
+  }
+
+  Future<void> _pickReminderTime() async {
+    final base = _reminderDate ?? _dueDate ?? DateTime.now();
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
+      helpText: 'انتخاب ساعت یادآور',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+      builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child!),
+    );
+    if (time != null && mounted) {
+      setState(() => _reminderDate = DateTime(base.year, base.month, base.day, time.hour, time.minute));
+    }
   }
 
   Future<void> _pickReminder() async {
@@ -222,6 +268,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_reminderDate ?? DateTime.now()));
               if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
             }),
+            ListTile(title: Text(_timeLabel(_reminderDate)), onTap: () async {
+              Navigator.pop(sheetContext);
+              await _pickReminderTime();
+            }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
         ),
@@ -234,6 +284,55 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     } else {
       setState(() => _reminderDate = selected == _clearToken ? null : selected as DateTime?);
     }
+  }
+
+  Future<void> _pickCategory() async {
+    final options = widget.knownCategories.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(shrinkWrap: true, children: [
+          const ListTile(title: Text('انتخاب دسته')),
+          ListTile(leading: const Icon(Icons.remove_circle_outline), title: const Text('بدون دسته'), onTap: () => Navigator.pop(sheetContext, '')),
+          for (final value in options) ListTile(leading: const Icon(Icons.category_outlined), title: Text(value), selected: _categoryController.text.trim() == value, onTap: () => Navigator.pop(sheetContext, value)),
+          const Divider(),
+          ListTile(leading: const Icon(Icons.add_circle_outline), title: const Text('ایجاد جدید'), onTap: () async {
+            final controller = TextEditingController();
+            final value = await showDialog<String>(context: sheetContext, builder: (dialogContext) => AlertDialog(title: const Text('دسته جدید'), content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: 'نام دسته')), actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')), FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('ثبت'))]));
+            controller.dispose();
+            if (value != null && value.isNotEmpty && sheetContext.mounted) Navigator.pop(sheetContext, value);
+          }),
+        ]),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    setState(() => _categoryController.text = selected);
+  }
+
+  Future<void> _pickTag() async {
+    final options = widget.knownTags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(shrinkWrap: true, children: [
+          const ListTile(title: Text('انتخاب برچسب')),
+          for (final value in options) ListTile(leading: const Icon(Icons.sell_outlined), title: Text(value), selected: _tagsController.text.split(',').map((e) => e.trim()).contains(value), onTap: () => Navigator.pop(sheetContext, value)),
+          const Divider(),
+          ListTile(leading: const Icon(Icons.add_circle_outline), title: const Text('ایجاد جدید'), onTap: () async {
+            final controller = TextEditingController();
+            final value = await showDialog<String>(context: sheetContext, builder: (dialogContext) => AlertDialog(title: const Text('برچسب جدید'), content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: 'نام برچسب')), actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')), FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('ثبت'))]));
+            controller.dispose();
+            if (value != null && value.isNotEmpty && sheetContext.mounted) Navigator.pop(sheetContext, value);
+          }),
+        ]),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    final values = _tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (!values.contains(selected)) values.add(selected);
+    setState(() => _tagsController.text = values.join(', '));
   }
 
   Future<void> _pickRecurrence() async {
@@ -495,44 +594,20 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   ),
                   if (widget.onCaptured != null)
                     ArvinRadioBox(
+                      key: const ValueKey('quick-capture-tags-dropdown'),
                       label: _tagsController.text.trim().isEmpty ? 'برچسب' : _tagsController.text.trim(),
-                    selected: _tagsController.text.trim().isNotEmpty,
-                    icon: Icons.sell_outlined,
-                    onTap: _saving ? () {} : () async {
-                      final value = await showDialog<String>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('برچسب‌ها'),
-                          content: TextField(controller: _tagsController, autofocus: true, decoration: const InputDecoration(hintText: 'مثلاً مشتری، فوری')),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-                            FilledButton(onPressed: () => Navigator.pop(dialogContext, _tagsController.text), child: const Text('اعمال')),
-                          ],
-                        ),
-                      );
-                      if (value != null && mounted) setState(() {});
-                    },
-                  ),
+                      selected: _tagsController.text.trim().isNotEmpty,
+                      icon: Icons.sell_outlined,
+                      onTap: _saving ? () {} : _pickTag,
+                    ),
                   if (widget.onCaptured != null)
                     ArvinRadioBox(
+                      key: const ValueKey('quick-capture-category-dropdown'),
                       label: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
-                    selected: _categoryController.text.trim().isNotEmpty,
-                    icon: Icons.category_outlined,
-                    onTap: _saving ? () {} : () async {
-                      final value = await showDialog<String>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('دسته'),
-                          content: TextField(controller: _categoryController, autofocus: true),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-                            FilledButton(onPressed: () => Navigator.pop(dialogContext, _categoryController.text), child: const Text('اعمال')),
-                          ],
-                        ),
-                      );
-                      if (value != null && mounted) setState(() {});
-                    },
-                  ),
+                      selected: _categoryController.text.trim().isNotEmpty,
+                      icon: Icons.category_outlined,
+                      onTap: _saving ? () {} : _pickCategory,
+                    ),
                   ArvinRadioBox(
                     label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
                     selected: _reminderDate != null,
