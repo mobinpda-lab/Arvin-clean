@@ -1,4 +1,4 @@
-# ARVIN PROJECT OPERATING PACKAGE v49.1
+# ARVIN PROJECT OPERATING PACKAGE v49.2
 ## Unified Canonical Software Production Standard
 
 **Project:** Arvin-clean
@@ -64,16 +64,37 @@ Evidence labels:
 Never present an inference as a verified fact.
 
 ## 4. Continuation Command
-The user command `ادامه` is an execution trigger.
+The user command `ادامه آروین` is the canonical Arvin execution trigger.
 
-When `ادامه` is received, AI must audit the live repository, compare it with the canonical document and current project state, identify the nearest real unfinished work, and continue safely where possible.
+Every `ادامه آروین` means: execute the project from the latest verified GitHub state, not merely provide a report.
+
+Required cycle:
+1. Read live GitHub state.
+2. Refresh main, recent commits, open PRs/issues, workflows/CI, artifacts and relevant contractual documents.
+3. Identify completed, active, queued, blocked, failed and unknown work.
+4. Remove duplicate/stale work before creating anything new.
+5. Classify work into independent, dependent and high-risk/architectural lanes.
+6. Execute independent, low-risk, clearly scoped GitHub work in parallel where safe.
+7. Execute dependent work only after prerequisites are verified.
+8. Run applicable tests/CI and inspect failures.
+9. Check product evidence and release evidence.
+10. Record meaningful outcomes in GitHub.
+11. Continue to the next real unfinished gap when no owner decision is required.
+12. Report only verified results.
 
 The command does not authorize unsafe, destructive or unvalidated work.
 
-At the end of every Arvin-related response, create a separate copyable text block containing exactly:
-`ادامه`
+### Mandatory status vocabulary
+Each tracked work item must use one of:
+- ✅ انجام‌شده و دارای شواهد
+- 🔄 در حال اجرا
+- ⏳ در صف اجرا
+- 🟡 باقی‌مانده و قابل اجرا
+- 🔴 شکست‌خورده و نیازمند اصلاح
+- ⚠️ مسدود
+- ❓ نامشخص و نیازمند بررسی
 
-Nothing else belongs inside that final block.
+Never use «احتمالاً انجام شده» as a status.
 
 ## 5. Hours-Not-Days Execution Model
 Arvin is a software factory, not a linear queue.
@@ -369,7 +390,7 @@ When another governance document conflicts with this file, this file governs unl
 When the repository and this document disagree about implementation state, GitHub wins and this document must be updated.
 
 **Canonical path:** `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
-**Current version:** v49.1
+**Current version:** v49.2
 
 ## 25. Owner Communication Contract
 All AI answers/reports for the project must be:
@@ -382,9 +403,87 @@ All AI answers/reports for the project must be:
 
 The final continuation marker is always separate from the main answer/report and contains exactly the word `ادامه`.
 
+## 26. جامع «ادامه آروین» — Execution Contract
+The exact user command **«ادامه آروین»** is an executable continuation contract, not a report request.
+
+On every invocation:
+1. Establish live GitHub reality before acting.
+2. Verify repository, branch, current `main` SHA, recent changes, open PRs/issues, workflows/CI, artifacts and applicable product/architecture documents.
+3. Compare current reality with the last verified state and discard stale assumptions.
+4. Classify every relevant work item as:
+   - ✅ انجام‌شده و دارای شواهد
+   - 🔄 در حال اجرا
+   - ⏳ در صف اجرا
+   - 🟡 باقی‌مانده و قابل اجرا
+   - 🔴 شکست‌خورده و نیازمند اصلاح
+   - ⚠️ مسدود
+   - ❓ نامشخص و نیازمند بررسی
+5. Check for duplicate branches, PRs, workers, issues, overlapping files and already-solved work before creating new work.
+6. Divide executable work into independent, dependent and high-risk/architectural lanes.
+7. Execute independent, safe, clearly scoped work in parallel wherever the available GitHub tools permit it.
+8. Keep changes on branches and use the controlled path:
+   `Issue → Branch → Change → Test → PR → CI → Validation → Merge`
+9. For architecture, migration, storage, database, major Home changes, central CI/worker changes or release-pipeline changes, perform deeper impact review before broad implementation.
+10. Never treat an old CI run, old artifact or old commit as evidence for a newer SHA.
+11. Distinguish Product Failure from Factory Failure and Provider/AI Failure.
+12. Continue deterministic and unrelated work when another lane is blocked.
+13. Do not close an Issue solely because a PR exists or code was written.
+14. Do not declare `کامل شد`, `حل شد`, `Release-Ready`, `CI سبز`, `Build موفق`, `Device Test موفق` or equivalent without direct evidence.
+15. If an executable, low-risk, reversible GitHub task is available and no owner decision is required, perform it rather than merely reporting it.
+16. Record meaningful outcomes in GitHub so the state survives conversation/account/session changes.
+17. Finish each cycle by selecting the nearest real unfinished product gap and continuing execution when safely possible.
+
+### Product-first execution priority
+Priority order is:
+- **P0:** product failure, data loss, migration/storage risk, crash, release blocker
+- **P1:** incomplete core capability, critical UX, persistence, Android behavior
+- **P2:** tests, documentation, CI and automation that improve delivery or unblock P0/P1
+- **P3:** nonessential optimization
+
+P2 may run in parallel when it removes a real P0/P1 bottleneck.
+
+### Exact-head evidence
+For meaningful validation, preserve:
+`MAIN_SHA + HEAD_SHA + WORKFLOW_RUN + JOB + RESULT + ARTIFACT`
+
+If a required evidence element is unavailable, the status remains **❓ نامشخص**.
+
+### Product QA scope
+The execution audit must consider, as applicable:
+Home, Quick Add/Quick Capture, Task, Task Detail, FollowUp, Project, Category, Tag, Notebook, Checklist, Calendar, Reminder, Recurrence, Search, Backup/Restore, Persistence, Migration, RTL, Jalali/Iran time, Android notification/widget and Swipe actions.
+
+### Storage and migration boundary
+No parallel storage/model may be introduced.
+
+Canonical flow remains:
+`UI → Application Service → Repository → DAO → Drift/SQLite`
+
+Legacy Home UI is not migration data. Legacy Home code/test dependencies must be corrected within the relevant migration/feature wave. User data, IDs, history, archive and trash must be preserved.
+
+### Device evidence boundary
+Where behavior depends on Android/device runtime, CI alone is insufficient. Device Smoke or real-device evidence is required as applicable for RTL, Swipe, Notification, Widget, Jalali picker, Keyboard, Layout, Screenshot, Persistence and Android behavior.
+
+## 27. GitHub Persistence Rule for Continuation
+The operational meaning of **«ادامه آروین»** must not exist only in conversation memory.
+
+The canonical rule must remain in the repository's active operating documentation. Any later change to the command must update the canonical operating package first, then reconcile dependent/current-state documents.
+
+A conversation change, ChatGPT account change or AI handoff must not silently remove this execution contract.
+
+## 28. Execution-First Reporting Rule
+A continuation response is primarily an execution result.
+
+The response must be concise and report only:
+1. verified current state;
+2. work actually performed or actively running;
+3. the most important next action or real blocker.
+
+Detailed evidence belongs in GitHub/CI records. No report should substitute for executable work when executable work is available.
+
 ## Version Lineage
 v47.x/v48.0 = governance foundation.
 v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
 v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
+v49.2 = canonical `ادامه آروین` execution contract, status vocabulary, exact-head evidence rule, GitHub persistence and execution-first continuation behavior.
