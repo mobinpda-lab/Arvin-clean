@@ -51,6 +51,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
+  final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
@@ -762,14 +763,15 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ? widget.onSnoozeReminder
                                 : null,
                             onEdit:
-                                selectedReminders[index].id.startsWith('task-due:')
-                                ? null
-                                : ((widget.canMutateReminder?.call(
+                                ((widget.canMutateReminder?.call(
                                       selectedReminders[index],
                                     ) ??
                                     true)
                                 ? widget.onEditReminder
                                 : null),
+                            onEditTask: selectedReminders[index].id.startsWith('task-due:')
+                                ? widget.onEditTask
+                                : null,
                             onRegisterTaskToDeviceCalendar:
                                 selectedReminders[index].id.startsWith('task-due:')
                                 ? widget.onRegisterTaskToDeviceCalendar
@@ -831,6 +833,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onSnooze,
     this.onEdit,
+    this.onEditTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
     this.onOpenExternal,
@@ -846,6 +849,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
+  final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
@@ -870,7 +874,9 @@ class _ReminderCardState extends State<_ReminderCard> {
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
-          (widget.onComplete != null ||
+          (widget.onEditTask != null ||
+              widget.onRegisterTaskToDeviceCalendar != null ||
+              widget.onComplete != null ||
               widget.onSnooze != null ||
               widget.onEdit != null ||
               widget.onConvertToTask != null ||
@@ -981,12 +987,12 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('تعویق'),
                       onPressed: () => _run(widget.onSnooze),
                     ),
-                  if (_isTaskDue && widget.onEdit != null)
+                  if (_isTaskDue && widget.onEditTask != null)
                     ActionChip(
                       key: ValueKey('task-due-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
-                      onPressed: () => _run(widget.onEdit),
+                      onPressed: () => _run(widget.onEditTask),
                     ),
                   if (_isTaskDue && widget.onRegisterTaskToDeviceCalendar != null)
                     ActionChip(
