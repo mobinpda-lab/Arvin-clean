@@ -144,7 +144,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
         child: Row(children: [
           const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag),
           const SizedBox(width: 7),
-          Expanded(child: Text(selected.isEmpty ? 'برچسب' : selected.length.toString() + ' برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
+          Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
           const Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: ArvinColors.tag),
         ]),
       ),
