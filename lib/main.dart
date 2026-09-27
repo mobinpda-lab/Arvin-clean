@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
 import 'backup_schedule_page.dart';
@@ -366,32 +368,32 @@ class _HomePageState extends State<HomePage> {
             mode: HomeGroupMode.time,
             label: 'زمان',
             icon: Icons.calendar_month_rounded,
-            accent: const Color(0xFFE39A4A),
-            softAccent: const Color(0xFFFFF0E3),
+            accent: ArvinColors.time,
+            softAccent: ArvinColors.timeSoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.projects,
             label: 'پروژه‌ها',
             icon: Icons.folder_rounded,
-            accent: const Color(0xFF4B8FE8),
-            softAccent: const Color(0xFFEAF3FF),
+            accent: ArvinColors.project,
+            softAccent: ArvinColors.projectSoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.categories,
             label: 'دسته‌ها',
             icon: Icons.grid_view_rounded,
-            accent: const Color(0xFF8C68D9),
-            softAccent: const Color(0xFFF2ECFF),
+            accent: ArvinColors.category,
+            softAccent: ArvinColors.categorySoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.labels,
             label: 'برچسب‌ها',
             icon: Icons.sell_rounded,
-            accent: const Color(0xFF38A89B),
-            softAccent: const Color(0xFFE8F8F5),
+            accent: ArvinColors.tag,
+            softAccent: ArvinColors.tagSoft,
           ),
         ],
       ),
@@ -738,7 +740,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Task?> _completeFromDetail(Task task) async {
-    task.completed = true;
+    // The detail action is a true toggle: a second tap returns the task to
+    // the active/undone state. Done remains independent from archive/trash.
+    task.completed = !task.completed;
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
     final refreshed = await taskStore.load();
