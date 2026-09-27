@@ -331,6 +331,22 @@ class _HomePageState extends State<HomePage> {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
+
+    // Statistical filters are list projections, not due-date groups. Keeping
+    // them as a flat projection prevents a completed task whose old due date
+    // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
+    // The task remains completed (and therefore not overdue) while still being
+    // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
+    if (filter == 'کل' || filter == 'فعال' || filter == 'انجام‌شده') {
+      return [
+        HomeGroup<Task>(
+          id: 'filtered',
+          title: filter,
+          items: visible,
+        ),
+      ];
+    }
+
     return homeGroupingService.buildGroups(
       _homeGroupMode,
       visible,
