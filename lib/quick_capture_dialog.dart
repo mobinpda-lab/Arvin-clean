@@ -268,13 +268,19 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('امروز'), onTap: () => Navigator.pop(sheetContext, DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))),
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
             ListTile(title: const Text('هفته آینده'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 7)))),
-            ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
-              if (date == null || !sheetContext.mounted) return;
-              final time = await _pickPersianTime(sheetContext, initial: _dueDate ?? DateTime.now());
-              if (time != null && sheetContext.mounted) {
-                Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
-              }
+            ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final initial = _dueDate ?? DateTime.now();
+                final date = await _pickJalaliDate(context, initialDate: initial);
+                if (date == null || !mounted) return;
+                final time = await _pickPersianTime(context, initial: initial);
+                if (time == null || !mounted) return;
+                setState(() {
+                  _dueDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                });
+              });
             }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
@@ -296,11 +302,19 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('۱۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -10)),
             ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
             ListTile(title: const Text('یک ساعت قبل'), onTap: () => Navigator.pop(sheetContext, -60)),
-            ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _reminderDate ?? _dueDate ?? DateTime.now());
-              if (date == null || !sheetContext.mounted) return;
-              final time = await _pickPersianTime(sheetContext, initial: _reminderDate ?? _dueDate ?? DateTime.now());
-              if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
+            ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final initial = _reminderDate ?? _dueDate ?? DateTime.now();
+                final date = await _pickJalaliDate(context, initialDate: initial);
+                if (date == null || !mounted) return;
+                final time = await _pickPersianTime(context, initial: initial);
+                if (time == null || !mounted) return;
+                setState(() {
+                  _reminderDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                });
+              });
             }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
