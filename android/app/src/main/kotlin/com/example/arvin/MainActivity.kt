@@ -101,12 +101,13 @@ class MainActivity : FlutterActivity() {
                     val startMillis = call.argument<Number>("startMillis")?.toLong()
                     val endMillis = call.argument<Number>("endMillis")?.toLong()
                     val allDay = call.argument<Boolean>("allDay") ?: false
+                    val description = call.argument<String>("description")?.trim()
                     if (calendarId == null || title.isEmpty() || startMillis == null || endMillis == null || endMillis <= startMillis) {
                         result.error("invalid_event", "Calendar provider event payload is incomplete", null)
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues(calendarId, title, startMillis, endMillis, allDay))
+                        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues(calendarId, title, startMillis, endMillis, allDay, description))
                         result.success(uri?.lastPathSegment)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied create", error.message)
@@ -126,13 +127,14 @@ class MainActivity : FlutterActivity() {
                     val startMillis = call.argument<Number>("startMillis")?.toLong()
                     val endMillis = call.argument<Number>("endMillis")?.toLong()
                     val allDay = call.argument<Boolean>("allDay") ?: false
+                    val description = call.argument<String>("description")?.trim()
                     if (calendarId == null || eventId == null || title.isEmpty() || startMillis == null || endMillis == null || endMillis <= startMillis) {
                         result.error("invalid_event", "Calendar provider update payload is incomplete", null)
                         return@setMethodCallHandler
                     }
                     try {
                         val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay, description), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied update", error.message)
@@ -286,12 +288,14 @@ class MainActivity : FlutterActivity() {
         startMillis: Long,
         endMillis: Long,
         allDay: Boolean,
+        description: String?,
     ): ContentValues = ContentValues().apply {
         put(CalendarContract.Events.CALENDAR_ID, calendarId)
         put(CalendarContract.Events.TITLE, title)
         put(CalendarContract.Events.DTSTART, startMillis)
         put(CalendarContract.Events.DTEND, endMillis)
         put(CalendarContract.Events.ALL_DAY, if (allDay) 1 else 0)
+        if (!description.isNullOrBlank()) put(CalendarContract.Events.DESCRIPTION, description)
         put(CalendarContract.Events.EVENT_TIMEZONE, if (allDay) "UTC" else TimeZone.getDefault().id)
     }
 
