@@ -33,10 +33,17 @@ class ArvinRollBox<T> extends StatelessWidget {
           if (created != null) onSelected(created);
           return;
         }
+        if (value is _ArvinClearToken) {
+          onSelected(null);
+          return;
+        }
         onSelected(value as T?);
       },
       itemBuilder: (context) => [
-        if (emptyLabel != null) PopupMenuItem<T?>(value: null, child: Text(emptyLabel!)),
+        if (emptyLabel != null) const PopupMenuItem<Object?>(
+          value: _ArvinClearToken.instance,
+          child: Text('بدون انتخاب'),
+        ),
         ...items.map((item) => PopupMenuItem<T>(
           value: item.value,
           child: Row(children: [
@@ -155,4 +162,9 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
 class _ArvinCreateToken {
   const _ArvinCreateToken._();
   static const instance = _ArvinCreateToken._();
+}
+
+class _ArvinClearToken {
+  const _ArvinClearToken._();
+  static const instance = _ArvinClearToken._();
 }
