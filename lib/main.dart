@@ -1257,7 +1257,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     final taskId = reminder.id.substring('task-due:'.length);
-    final task = _searchSource.where((item) => item.id == taskId).firstOrNull;
+    Task? task;
+    for (final candidate in _searchSource) {
+      if (candidate.id == taskId) {
+        task = candidate;
+        break;
+      }
+    }
     if (task == null) return;
     final canonical = CalendarReminder(
       id: reminder.id,
