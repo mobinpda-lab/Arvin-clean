@@ -41,6 +41,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<List<Task>> Function()? onRefreshTasks;
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
+  final Future<Task?> Function(Task task)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -144,6 +146,26 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       task.followUps = next;
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
+    });
+  }
+
+  Task? _taskForDueReminder(CalendarReminder reminder) {
+    if (!reminder.id.startsWith('task-due:')) return null;
+    final id = reminder.id.substring('task-due:'.length);
+    for (final task in _tasks) {
+      if (!task.trashed && task.id == id) return task;
+    }
+    return null;
+  }
+
+  Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
+    final task = _taskForDueReminder(reminder);
+    if (task == null || widget.onEditTask == null) return;
+    final updated = await widget.onEditTask!(task);
+    if (updated == null || !mounted) return;
+    setState(() {
+      final index = _tasks.indexWhere((item) => item.id == updated.id);
+      if (index >= 0) _tasks[index] = updated;
     });
   }
 
@@ -760,6 +782,8 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
+            onEditTask: _editTaskFromCalendar,
+            onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: _canMutateReminder,
             onCreateTaskForDate: widget.onCreateTaskForDate == null
