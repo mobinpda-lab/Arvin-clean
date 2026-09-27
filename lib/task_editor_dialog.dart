@@ -681,7 +681,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       Expanded(
                         child: ArvinRollBox<String>(
                           label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).firstOrNull ?? 'پروژه',
+                          valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
                           icon: Icons.folder_outlined,
                           color: ArvinColors.project,
                           emptyLabel: 'بدون پروژه',
