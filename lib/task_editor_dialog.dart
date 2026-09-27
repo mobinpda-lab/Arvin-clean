@@ -443,6 +443,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required String value,
     required IconData icon,
     required VoidCallback onTap,
+    Color accent = ArvinColors.primary,
   }) {
     return Material(
       color: Colors.white,
@@ -463,10 +464,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: _softBrand,
+                  color: accent.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child: Icon(icon, color: _brand, size: 20),
+                child: Icon(icon, color: accent, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -507,6 +508,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required VoidCallback onPickDate,
     required VoidCallback onPickTime,
     required VoidCallback onClear,
+    Color accent = ArvinColors.primary,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -544,6 +546,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 value: value == null ? 'انتخاب تاریخ' : _dateText(value),
                 icon: Icons.calendar_month_outlined,
                 onTap: onPickDate,
+                accent: accent,
               );
               final timeButton = _dateTimeButton(
                 key: ValueKey('$keyPrefix-time'),
@@ -551,6 +554,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 value: value == null ? 'انتخاب ساعت' : _timeText(value),
                 icon: Icons.schedule_outlined,
                 onTap: onPickTime,
+                accent: accent,
               );
               if (constraints.maxWidth < 320) {
                 return Column(
@@ -740,6 +744,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         onPickDate: _pickDueDate,
                         onPickTime: _pickDueTime,
                         onClear: _clearDueTime,
+                        accent: ArvinColors.time,
                       ),
                       const SizedBox(height: 10),
                       _dateTimeEditor(
@@ -749,6 +754,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         onPickDate: _pickReminderDate,
                         onPickTime: _pickReminderTime,
                         onClear: _clearReminderTime,
+                        accent: ArvinColors.reminder,
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<RecurrenceFrequency>(
