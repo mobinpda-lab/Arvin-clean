@@ -513,7 +513,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 key: const ValueKey('task-detail-reminder-date'),
                 child: Row(
                   children: [
-                    const Icon(Icons.notifications_none_outlined, color: _muted),
+                    const Icon(Icons.notifications_none_outlined, color: ArvinColors.reminder),
                     const SizedBox(width: 9),
                     const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
                     const Spacer(),
