@@ -638,6 +638,8 @@ class _HomePageState extends State<HomePage> {
       useSafeArea: true,
       builder: (_) => QuickCaptureDialog(
         projects: editorContext.projects,
+        knownCategories: editorContext.knownCategories,
+        knownTags: editorContext.knownTags,
         initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
@@ -655,6 +657,7 @@ class _HomePageState extends State<HomePage> {
               onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
               knownCategories: editedContext.knownCategories,
+              knownTags: editedContext.knownTags,
             ),
           );
           if (edited == null) return false;
