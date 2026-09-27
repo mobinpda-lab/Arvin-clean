@@ -964,14 +964,15 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (!widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
+                  if (!_isTaskDue && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
                       key: ValueKey('external-calendar-create-task-${item.id}'),
                       avatar: const Icon(Icons.add_task_outlined, size: 18),
                       label: const Text('ثبت در آروین'),
                       onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
                     ),
-                  if (!widget.isPrayer &&
+                  if (!_isTaskDue &&
+                      !widget.isPrayer &&
                       widget.onComplete != null &&
                       !item.completed)
                     ActionChip(
@@ -980,7 +981,8 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (!widget.isPrayer &&
+                  if (!_isTaskDue &&
+                      !widget.isPrayer &&
                       widget.onSnooze != null &&
                       !item.completed)
                     ActionChip(
@@ -1010,7 +1012,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEdit),
                     ),
-                  if (!widget.isPrayer && widget.onConvertToTask != null)
+                  if (!_isTaskDue && !widget.isPrayer && widget.onConvertToTask != null)
                     ActionChip(
                       key: ValueKey('reminder-convert-${item.id}'),
                       avatar: const Icon(Icons.task_alt_outlined, size: 18),
