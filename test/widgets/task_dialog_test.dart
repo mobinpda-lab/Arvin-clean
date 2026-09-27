@@ -36,12 +36,13 @@ void main() {
       find.byKey(const ValueKey('task-editor-description')),
       '  توضیح پیگیری  ',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('task-editor-tag')),
-      'مهم',
-    );
-    await tester.tap(find.byKey(const ValueKey('task-editor-add-tag')));
-    await tester.pump();
+    await tester.tap(find.byTooltip('برچسب'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('افزودن برچسب'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'نام'), 'مهم');
+    await tester.tap(find.text('افزودن').last);
+    await tester.pumpAndSettle();
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
