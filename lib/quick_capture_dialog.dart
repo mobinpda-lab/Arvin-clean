@@ -191,7 +191,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (value == null) return 'بدون ساعت';
     final formatter = const PersianDateFormatter();
     return formatter.toPersianDigits(
-      value.hour.toString().padLeft(2, '0') + ':' + value.minute.toString().padLeft(2, '0'),
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
     );
   }
 
@@ -211,7 +211,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           child: StatefulBuilder(
             builder: (context, setSheetState) {
               final label = formatter.toPersianDigits(
-                hour.toString().padLeft(2, '0') + ':' + minute.toString().padLeft(2, '0'),
+                '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
               );
               return Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
@@ -532,7 +532,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ? 'موعد'
                           : _dueDate!.hour == 0 && _dueDate!.minute == 0
                               ? _dateLabel(_dueDate)
-                              : _dateLabel(_dueDate) + ' • ' + _timeLabel(_dueDate),
+                              : '${_dateLabel(_dueDate)} • ${_timeLabel(_dueDate)}',
                       selected: _dueDate != null,
                       icon: Icons.calendar_today_outlined,
                       onTap: _saving ? () {} : _pickDue,
@@ -552,7 +552,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     child: ArvinRadioBox(
                       label: _reminderDate == null
                           ? 'یادآور'
-                          : _dateLabel(_reminderDate) + ' • ' + _timeLabel(_reminderDate),
+                          : '${_dateLabel(_reminderDate)} • ${_timeLabel(_reminderDate)}',
                       selected: _reminderDate != null,
                       icon: Icons.notifications_none_outlined,
                       onTap: _saving ? () {} : _pickReminder,
