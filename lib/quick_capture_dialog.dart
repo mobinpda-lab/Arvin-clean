@@ -440,123 +440,230 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 ),
               ),
               if (widget.onCaptured == null) const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ArvinRadioBox(
-                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
-                    selected: _dueDate != null,
-                    icon: Icons.calendar_today_outlined,
-                    onTap: _saving ? () {} : () { _pickDue(); },
+                  Row(
+                    children: [
+                                      ArvinRollBox<String>(
+                                        label: 'پروژه',
+                                        valueLabel: _projectId == null
+                                            ? 'پروژه'
+                                            : widget.projects
+                                                    .where((project) => project.id == _projectId)
+                                                    .map((project) => project.title)
+                                                    .isEmpty
+                                                ? 'پروژه'
+                                                : widget.projects
+                                                    .where((project) => project.id == _projectId)
+                                                    .map((project) => project.title)
+                                                    .first,
+                                        icon: Icons.folder_outlined,
+                                        color: const Color(0xFF3568D4),
+                                        emptyLabel: 'بدون پروژه',
+                                        items: widget.projects
+                                            .where((project) =>
+                                                !project.isArchived || project.id == _projectId)
+                                            .map(
+                                              (project) => ArvinRollItem<String>(
+                                                value: project.id,
+                                                label: project.isArchived
+                                                    ? '${project.title} (بایگانی‌شده)'
+                                                    : project.title,
+                                                icon: Icons.folder_outlined,
+                                                color: project.isArchived
+                                                    ? const Color(0xFF7D8298)
+                                                    : const Color(0xFF3568D4),
+                                              ),
+                                            )
+                                            .toList(),
+                                        onSelected: (value) => setState(() {
+                                          _projectId = value;
+                                        }),
+                                      ),
+                                      ArvinRollBox<String>(
+                                        label: 'دسته',
+                                        valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
+                                        icon: Icons.grid_view_rounded,
+                                        color: const Color(0xFF7650C8),
+                                        emptyLabel: 'بدون دسته',
+                                        items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
+                                          value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
+                                        )).toList(),
+                                        onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
+                                        onCreate: () async {
+                                          final controller = TextEditingController();
+                                          final value = await showModalBottomSheet<String>(
+                                            context: context, isScrollControlled: true,
+                                            builder: (ctx) => Padding(
+                                              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                const Text('دسته جدید'),
+                                                TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                                                FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                                              ]),
+                                            ),
+                                          );
+                                          controller.dispose();
+                                          if (value == null || value.isEmpty) return null;
+                                          setState(() => _categoryController.text = value);
+                                          return value;
+                                        },
+                                      ),
+                                      ArvinTagRollBox(
+                                        tags: widget.knownTags,
+                                        selectedTags: _selectedTags,
+                                        onChanged: (values) => setState(() {
+                                          _selectedTags
+                                            ..clear()
+                                            ..addAll(values);
+                                          _tagsController.text = _selectedTags.join('، ');
+                                        }),
+                                        onCreate: () async {
+                                          final controller = TextEditingController();
+                                          final value = await showModalBottomSheet<String>(
+                                            context: context, isScrollControlled: true,
+                                            builder: (ctx) => Padding(
+                                              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                const Text('برچسب جدید'),
+                                                TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                                                FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                                              ]),
+                                            ),
+                                          );
+                                          controller.dispose();
+                                          if (value == null || value.isEmpty) return null;
+                                          setState(() {
+                                            if (!_selectedTags.contains(value)) _selectedTags.add(value);
+                                            _tagsController.text = _selectedTags.join('، ');
+                                          });
+                                          return value;
+                                        },
+                                      ),
+                    
+                    ],
                   ),
-                  ArvinRollBox<String>(
-                    label: 'پروژه',
-                    valueLabel: _projectId == null
-                        ? 'پروژه'
-                        : widget.projects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .isEmpty
-                            ? 'پروژه'
-                            : widget.projects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .first,
-                    icon: Icons.folder_outlined,
-                    color: const Color(0xFF3568D4),
-                    emptyLabel: 'بدون پروژه',
-                    items: widget.projects
-                        .where((project) =>
-                            !project.isArchived || project.id == _projectId)
-                        .map(
-                          (project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived
-                                ? '${project.title} (بایگانی‌شده)'
-                                : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived
-                                ? const Color(0xFF7D8298)
-                                : const Color(0xFF3568D4),
-                          ),
-                        )
-                        .toList(),
-                    onSelected: (value) => setState(() {
-                      _projectId = value;
-                    }),
-                  ),
-                  ArvinRollBox<String>(
-                    label: 'دسته',
-                    valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
-                    icon: Icons.grid_view_rounded,
-                    color: const Color(0xFF7650C8),
-                    emptyLabel: 'بدون دسته',
-                    items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
-                      value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
-                    )).toList(),
-                    onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('دسته جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      setState(() => _categoryController.text = value);
-                      return value;
-                    },
-                  ),
-                  ArvinTagRollBox(
-                    tags: widget.knownTags,
-                    selectedTags: _selectedTags,
-                    onChanged: (values) => setState(() {
-                      _selectedTags
-                        ..clear()
-                        ..addAll(values);
-                      _tagsController.text = _selectedTags.join('، ');
-                    }),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('برچسب جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      setState(() {
-                        if (!_selectedTags.contains(value)) _selectedTags.add(value);
-                        _tagsController.text = _selectedTags.join('، ');
-                      });
-                      return value;
-                    },
-                  ),
-                  ArvinRadioBox(
-                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
-                    selected: _reminderDate != null,
-                    icon: Icons.notifications_none_outlined,
-                    onTap: _saving ? () {} : () { _pickReminder(); },
-                  ),
-                  ArvinRadioBox(
-                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
-                    selected: _recurrence != null,
-                    icon: Icons.repeat_rounded,
-                    onTap: _saving ? () {} : () { _pickRecurrence(); },
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                                      ArvinRadioBox(
+                                        label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                                        selected: _dueDate != null,
+                                        icon: Icons.calendar_today_outlined,
+                                        onTap: _saving ? () {} : () { _pickDue(); },
+                                      ),
+                                      ArvinRollBox<String>(
+                                        label: 'پروژه',
+                                        valueLabel: _projectId == null
+                                            ? 'پروژه'
+                                            : widget.projects
+                                                    .where((project) => project.id == _projectId)
+                                                    .map((project) => project.title)
+                                                    .isEmpty
+                                                ? 'پروژه'
+                                                : widget.projects
+                                                    .where((project) => project.id == _projectId)
+                                                    .map((project) => project.title)
+                                                    .first,
+                                        icon: Icons.folder_outlined,
+                                        color: const Color(0xFF3568D4),
+                                        emptyLabel: 'بدون پروژه',
+                                        items: widget.projects
+                                            .where((project) =>
+                                                !project.isArchived || project.id == _projectId)
+                                            .map(
+                                              (project) => ArvinRollItem<String>(
+                                                value: project.id,
+                                                label: project.isArchived
+                                                    ? '${project.title} (بایگانی‌شده)'
+                                                    : project.title,
+                                                icon: Icons.folder_outlined,
+                                                color: project.isArchived
+                                                    ? const Color(0xFF7D8298)
+                                                    : const Color(0xFF3568D4),
+                                              ),
+                                            )
+                                            .toList(),
+                                        onSelected: (value) => setState(() {
+                                          _projectId = value;
+                                        }),
+                                      ),
+                                      ArvinRollBox<String>(
+                                        label: 'دسته',
+                                        valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
+                                        icon: Icons.grid_view_rounded,
+                                        color: const Color(0xFF7650C8),
+                                        emptyLabel: 'بدون دسته',
+                                        items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
+                                          value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
+                                        )).toList(),
+                                        onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
+                                        onCreate: () async {
+                                          final controller = TextEditingController();
+                                          final value = await showModalBottomSheet<String>(
+                                            context: context, isScrollControlled: true,
+                                            builder: (ctx) => Padding(
+                                              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                const Text('دسته جدید'),
+                                                TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                                                FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                                              ]),
+                                            ),
+                                          );
+                                          controller.dispose();
+                                          if (value == null || value.isEmpty) return null;
+                                          setState(() => _categoryController.text = value);
+                                          return value;
+                                        },
+                                      ),
+                                      ArvinTagRollBox(
+                                        tags: widget.knownTags,
+                                        selectedTags: _selectedTags,
+                                        onChanged: (values) => setState(() {
+                                          _selectedTags
+                                            ..clear()
+                                            ..addAll(values);
+                                          _tagsController.text = _selectedTags.join('، ');
+                                        }),
+                                        onCreate: () async {
+                                          final controller = TextEditingController();
+                                          final value = await showModalBottomSheet<String>(
+                                            context: context, isScrollControlled: true,
+                                            builder: (ctx) => Padding(
+                                              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                const Text('برچسب جدید'),
+                                                TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
+                                                FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
+                                              ]),
+                                            ),
+                                          );
+                                          controller.dispose();
+                                          if (value == null || value.isEmpty) return null;
+                                          setState(() {
+                                            if (!_selectedTags.contains(value)) _selectedTags.add(value);
+                                            _tagsController.text = _selectedTags.join('، ');
+                                          });
+                                          return value;
+                                        },
+                                      ),
+                    
+                                      ArvinRadioBox(
+                                        label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
+                                        selected: _recurrence != null,
+                                        icon: Icons.repeat_rounded,
+                                        onTap: _saving ? () {} : () { _pickRecurrence(); },
+                                      ),
+                                      ArvinRadioBox(
+                                        label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
+                                        selected: _reminderDate != null,
+                                        icon: Icons.notifications_none_outlined,
+                                        onTap: _saving ? () {} : () { _pickReminder(); },
+                                      ),
+                    
+                    ],
                   ),
                 ],
               ),
