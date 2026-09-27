@@ -42,12 +42,12 @@ void main() {
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
-    final tagField = find.byKey(const ValueKey('task-editor-tag'));
+    final tagRollBox = find.byTooltip('برچسب').last;
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(titleField, findsOneWidget);
     expect(descriptionField, findsOneWidget);
-    expect(tagField, findsOneWidget);
+    expect(tagRollBox, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
     expect(
       find.byKey(const ValueKey('task-editor-followup-enabled')),
@@ -61,15 +61,14 @@ void main() {
       descriptionField,
       'ثبت از مسیر Home روی Emulator',
     );
-    await tester.ensureVisible(tagField);
-    await tester.enterText(tagField, 'آزمایش');
-    final addTagButton =
-        find.byKey(const ValueKey('task-editor-add-tag'));
-    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.ensureVisible(tagRollBox);
+    await tester.tap(tagRollBox);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(addTagButton);
+    expect(find.text('افزودن برچسب'), findsOneWidget);
+    await tester.tap(find.text('افزودن برچسب'));
     await tester.pumpAndSettle();
-    await tester.tap(addTagButton);
+    await tester.enterText(find.widgetWithText(TextField, 'نام'), 'آزمایش');
+    await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
 

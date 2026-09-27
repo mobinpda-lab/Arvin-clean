@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
@@ -34,11 +36,11 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
-  static const _brand = Color(0xFF4A4CAB);
-  static const _waiting = Color(0xFFD97706);
-  static const _done = Color(0xFF2E8B57);
-  static const _danger = Color(0xFFC94B4B);
-  static const _muted = Color(0xFF80829C);
+  static const _brand = ArvinColors.primary;
+  static const _waiting = ArvinColors.reminder;
+  static const _done = ArvinColors.tag;
+  static const _danger = ArvinColors.error;
+  static const _muted = ArvinColors.neutral;
   static const _formatter = PersianDateFormatter();
   static const _elapsedFormatter = FollowUpElapsedFormatter();
   static const _waitingService = WaitingForResponseService();
@@ -219,7 +221,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             runSpacing: 6,
             children: [
               if (_task.category?.trim().isNotEmpty == true)
-                _badge(_task.category!.trim(), const Color(0xFF8C68D9), icon: Icons.folder_outlined),
+                _badge(_task.category!.trim(), ArvinColors.category, icon: Icons.folder_outlined),
               if (_task.priority != TaskPriority.none)
                 _badge(
                   switch (_task.priority) {
@@ -233,7 +235,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
               if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
               for (final tag in _task.tags.take(4))
-                _badge('#${tag.trim()}', const Color(0xFF38A89B), icon: Icons.sell_outlined),
+                _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
           ),
           const SizedBox(height: 12),
@@ -470,15 +472,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-complete'),
-                  onPressed: widget.onComplete == null || _task.completed
+                  onPressed: widget.onComplete == null
                       ? null
                       : () async {
                           final updated = await widget.onComplete!(_task);
                           if (!mounted || updated == null) return;
                           setState(() => _task = updated);
                         },
-                  icon: Icon(_task.completed ? Icons.check_circle : Icons.check_circle_outline),
-                  label: Text(_task.completed ? 'انجام شده' : 'انجام کار'),
+                  icon: Icon(
+                    _task.completed
+                        ? Icons.check_circle
+                        : Icons.check_circle_outline,
+                    color: _task.completed ? ArvinColors.tag : ArvinColors.primary,
+                  ),
+                  label: Text(
+                    _task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار',
+                  ),
                 ),
               ),
             ],
@@ -504,7 +513,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 key: const ValueKey('task-detail-reminder-date'),
                 child: Row(
                   children: [
-                    const Icon(Icons.notifications_none_outlined, color: _muted),
+                    const Icon(Icons.notifications_none_outlined, color: ArvinColors.reminder),
                     const SizedBox(width: 9),
                     const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
                     const Spacer(),
