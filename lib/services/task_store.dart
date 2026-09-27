@@ -58,7 +58,18 @@ class TaskStore {
     });
   }
 
-  Future<void> convertToFollowUp(String taskId) async {\n    await mutate<void>((tasks) {\n      final index = tasks.indexWhere((task) => task.id == taskId);\n      if (index < 0) throw StateError('Task not found: $taskId');\n      final task = tasks[index];\n      if (task.followUpEnabled) return;\n      task.followUpEnabled = true;\n      task.updatedAt = DateTime.now();\n    });\n  }\n\n  Future<List<FollowUp>> loadFollowUps(String taskId) async {
+  Future<void> convertToFollowUp(String taskId) async {
+    await mutate<void>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == taskId);
+      if (index < 0) throw StateError('Task not found: $taskId');
+      final task = tasks[index];
+      if (task.followUpEnabled) return;
+      task.followUpEnabled = true;
+      task.updatedAt = DateTime.now();
+    });
+  }
+
+  Future<List<FollowUp>> loadFollowUps(String taskId) async {
     final tasks = await load();
     for (final task in tasks) {
       if (task.id == taskId) return List<FollowUp>.of(task.followUps);
