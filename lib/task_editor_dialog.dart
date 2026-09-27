@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
-import 'widgets/project_selector_field.dart';
-import 'widgets/arvin_radio_box.dart';
-import 'widgets/task_category_field.dart';
+import 'widgets/arvin_roll_box.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
   const ArvinTaskEditorDialog({
@@ -48,10 +48,10 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 
 class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   static const _dateFormatter = PersianDateFormatter();
-  static const _brand = Color(0xFF4A4CAB);
-  static const _softBrand = Color(0xFFF0EFFF);
-  static const _fieldSurface = Color(0xFFF8F8FC);
-  static const _border = Color(0xFFE4E4EF);
+  static const _brand = ArvinColors.primary;
+  static const _softBrand = ArvinColors.primarySoft;
+  static const _fieldSurface = ArvinColors.background;
+  static const _border = ArvinColors.border;
 
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
@@ -257,6 +257,29 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   void _clearDueTime() => setState(() => _dueDateTime = null);
   void _clearReminderTime() => setState(() => _reminderDateTime = null);
 
+  Future<String?> _promptNewName(String title) async {
+    final controller = TextEditingController();
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: ArvinColors.surface,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(sheetContext).bottom),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
+            const SizedBox(height: 12),
+            FilledButton(onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()), child: const Text('افزودن')),
+          ]),
+        ),
+      ),
+    );
+    controller.dispose();
+    return result?.trim().isEmpty == true ? null : result?.trim();
+  }
   void _addTag() {
     final value = _tagController.text.trim();
     if (value.isEmpty || _tags.contains(value)) return;
@@ -635,117 +658,69 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  TaskCategoryField(
-                    value: _category,
-                    knownCategories: widget.knownCategories,
-                    onChanged: (value) => setState(() => _category = value),
-                  ),
-                  const SizedBox(height: 16),
-                  ProjectSelectorField(
-                      projects: widget.projects,
-                      selectedProjectId: _selectedProjectId,
-                      onChanged: (value) =>
-                          setState(() => _selectedProjectId = value),
-                      onCreateProject: widget.onCreateProject,
-                  ),
-                  const SizedBox(height: 14),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: TextField(
-                          key: const ValueKey('task-editor-tag'),
-                          controller: _tagController,
-                          focusNode: _tagFocusNode,
-                          style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
-                          cursorColor: _brand,
-                          onSubmitted: (_) => _addTag(),
-                          decoration: _fieldDecoration(
-                            label: 'برچسب جدید',
-                            hint: 'مثلاً مشتری، جلسه، مهم',
-                          ),
+                        child: ArvinRollBox<String>(
+                          label: 'دسته',
+                          valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
+                          icon: Icons.grid_view_rounded,
+                          color: ArvinColors.category,
+                          emptyLabel: 'بدون دسته',
+                          items: widget.knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
+                              .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
+                          onSelected: (value) => setState(() => _category = value),
+                          onCreate: () => _promptNewName('دسته جدید'),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        width: 52,
-                        height: 52,
-                        child: FilledButton(
-                          key: const ValueKey('task-editor-add-tag'),
-                          onPressed: _addTag,
-                          style: FilledButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: _softBrand,
-                            foregroundColor: _brand,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          ),
-                          child: const Icon(Icons.add),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ArvinRollBox<String>(
+                          label: 'پروژه',
+                          valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).firstOrNull ?? 'پروژه',
+                          icon: Icons.folder_outlined,
+                          color: ArvinColors.project,
+                          emptyLabel: 'بدون پروژه',
+                          items: widget.projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
+                            value: project.id,
+                            label: project.isArchived ? project.title + ' (بایگانی‌شده)' : project.title,
+                            icon: Icons.folder_outlined,
+                            color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
+                          )).toList(),
+                          onSelected: (value) => setState(() => _selectedProjectId = value),
+                          onCreate: () async {
+                            final title = await _promptNewName('پروژه جدید');
+                            if (title == null || widget.onCreateProject == null) return null;
+                            return widget.onCreateProject!(title);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ArvinTagRollBox(
+                          tags: widget.knownTags,
+                          selectedTags: _tags,
+                          onChanged: (value) => setState(() => _tags = List<String>.of(value)),
+                          onCreate: () => _promptNewName('برچسب جدید'),
                         ),
                       ),
                     ],
                   ),
-                  if (widget.knownTags.isNotEmpty) ...[
-                    const SizedBox(height: 9),
-                    Wrap(
-                      spacing: 7,
-                      runSpacing: 7,
-                      children: widget.knownTags
-                          .map((tag) => tag.trim())
-                          .where((tag) => tag.isNotEmpty)
-                          .toSet()
-                          .map(
-                            (tag) => ArvinRadioBox(
-                              key: ValueKey('task-editor-known-tag-$tag'),
-                              label: tag,
-                              selected: _tags.contains(tag),
-                              icon: Icons.sell_outlined,
-                              accent: const Color(0xFF38A89B),
-                              onTap: () => setState(() {
-                                if (_tags.contains(tag)) {
-                                  _tags.remove(tag);
-                                } else {
-                                  _tags.add(tag);
-                                }
-                              }),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 7),
-                  ArvinRadioBox(
-                    key: const ValueKey('task-editor-new-tag'),
-                    label: 'گزینه جدید',
-                    newOption: true,
-                    accent: const Color(0xFF38A89B),
-                    selected: false,
-                    onTap: () {
-                      _tagController.clear();
-                      FocusScope.of(context).requestFocus(_tagFocusNode);
-                    },
-                  ),
                   if (_tags.isNotEmpty) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _tags
-                          .map(
-                            (item) => InputChip(
-                              label: Text(item),
-                              backgroundColor: _softBrand,
-                              side: BorderSide.none,
-                              deleteIconColor: _brand,
-                              onDeleted: () =>
-                                  setState(() => _tags.remove(item)),
-                            ),
-                          )
-                          .toList(),
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _tags.map((tag) => InputChip(
+                        label: Text(tag),
+                        backgroundColor: ArvinColors.tagSoft,
+                        side: BorderSide.none,
+                        deleteIconColor: ArvinColors.tagDark,
+                        onDeleted: () => setState(() => _tags.remove(tag)),
+                      )).toList(),
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  ExpansionTile(
+                  const SizedBox(height: 14),                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
                     initiallyExpanded: true,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
