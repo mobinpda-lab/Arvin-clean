@@ -541,7 +541,7 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            '${{group.items.length}',
+                            '${group.items.length}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
@@ -553,8 +553,8 @@ class _HomePageState extends State<HomePage> {
                         if (projectGroup) ...[
                           const SizedBox(width: 2),
                           IconButton(
-                            key: ValueKey('home-project-add-${{group.id}'),
-                            tooltip: 'افزودن کار به ${{group.title}',
+                            key: ValueKey('home-project-add-${group.id}'),
+                            tooltip: 'افزودن کار به ${group.title}',
                             visualDensity: VisualDensity.compact,
                             onPressed: () => _addToProject(group.id),
                             icon: Icon(Icons.add_circle_outline, color: accent),
@@ -1826,7 +1826,7 @@ class _HomePageState extends State<HomePage> {
                           runSpacing: 4,
                           children: [
                             for (final tag in task.tags)
-                              _homeMetaChip(icon: Icons.sell_rounded, label: '#${{tag.trim()}', color: ArvinColors.tag, softColor: ArvinColors.tagSoft),
+                              _homeMetaChip(icon: Icons.sell_rounded, label: '#${tag.trim()}', color: ArvinColors.tag, softColor: ArvinColors.tagSoft),
                           ],
                         ),
                       ],
@@ -1853,7 +1853,7 @@ class _HomePageState extends State<HomePage> {
                             if (followUpDate != null)
                               _homeMetaChip(
                                 icon: Icons.event_outlined,
-                                label: 'پیگیری: ${{_date(followUpDate)} • ${{_time(followUpDate)}',
+                                label: 'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
                                 color: late ? ArvinColors.error : ArvinColors.reminder,
                                 softColor: late ? ArvinColors.errorSoft : ArvinColors.reminderSoft,
                               ),
@@ -1869,7 +1869,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 5),
                             Expanded(
                               child: Text(
-                                'موعد: ${{_date(task.dueDate!)} • ${{_time(task.dueDate!)}',
+                                'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
                                 softWrap: true,
                                 style: TextStyle(
                                   color: late ? ArvinColors.errorDark : ArvinColors.textSecondary,
