@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arvin_clean/models/task.dart';
-import 'package:arvin_clean/task_detail_page.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/task_detail_page.dart';
 
 void main() {
   testWidgets('task detail completion toggles back to undone on second tap', (tester) async {
