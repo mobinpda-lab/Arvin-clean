@@ -146,7 +146,7 @@ void main() {
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
-  test('persists Move to Today as a swipe action', () async {
+  test('persists Convert to FollowUp as a swipe action', () async {\n    SharedPreferences.setMockInitialValues({});\n    final service = AppSettingsService();\n\n    await service.saveSwipeActions(\n      right: TaskSwipeAction.convertToFollowUp,\n      left: TaskSwipeAction.archive,\n    );\n\n    final settings = await service.load();\n    expect(settings.swipeRightAction, TaskSwipeAction.convertToFollowUp);\n    expect(settings.swipeLeftAction, TaskSwipeAction.archive);\n  });\n\n  test('persists Move to Today as a swipe action', () async {
     SharedPreferences.setMockInitialValues({});
     final service = AppSettingsService();
 
