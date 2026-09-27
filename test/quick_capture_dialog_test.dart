@@ -284,6 +284,10 @@ void main() {
 
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب تاریخ و ساعت'), findsOneWidget);
+
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsOneWidget);
 
     await tester.tap(find.text('انتخاب تاریخ'));
