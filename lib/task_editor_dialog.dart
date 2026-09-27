@@ -276,7 +276,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         ),
       ),
     );
-    controller.dispose();
+    // The bottom-sheet route can still perform a final rebuild while its
+    // closing animation is completing. Defer disposal so the TextField never
+    // observes a controller that was disposed during that transition.
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     return result?.trim().isEmpty == true ? null : result?.trim();
   }
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
