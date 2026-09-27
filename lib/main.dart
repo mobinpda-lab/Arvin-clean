@@ -79,6 +79,7 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = settings.fontSizeScale;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'مدیریت کارها و پیگیری آروین',
@@ -87,12 +88,14 @@ class _ArvinAppState extends State<ArvinApp> {
         colorSchemeSeed: const Color(0xFF4A4CAB),
         brightness: Brightness.light,
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
+        textTheme: ThemeData.light().textTheme.apply(fontSizeFactor: textScale),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
+        textTheme: ThemeData.dark().textTheme.apply(fontSizeFactor: textScale),
       ),
       themeMode: settings.themeMode,
       home: Directionality(
