@@ -40,7 +40,7 @@ class ArvinRollBox<T> extends StatelessWidget {
         onSelected(value as T?);
       },
       itemBuilder: (context) => [
-        if (emptyLabel != null) const PopupMenuItem<Object?>(
+        if (emptyLabel != null) PopupMenuItem<Object?>(
           value: _ArvinClearToken.instance,
           child: Text(emptyLabel!),
         ),
