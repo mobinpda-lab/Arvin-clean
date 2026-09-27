@@ -261,4 +261,37 @@ void main() {
     expect(input.controller?.text, 'متن باید بماند #مهم');
   });
 
+
+  testWidgets('quick capture keeps موعد/تکرار/یادآور in one row and opens Persian date/time pickers',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد'), findsOneWidget);
+    expect(find.text('تکرار'), findsOneWidget);
+    expect(find.text('یادآور'), findsOneWidget);
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب تاریخ'), findsOneWidget);
+
+    await tester.tap(find.text('انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
+    expect(find.textContaining('۱۴:'), findsWidgets);
+  });
+
 }
