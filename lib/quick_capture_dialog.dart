@@ -451,6 +451,42 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     onTap: _saving ? () {} : () { _pickDue(); },
                   ),
                   ArvinRollBox<String>(
+                    label: 'پروژه',
+                    valueLabel: _projectId == null
+                        ? 'پروژه'
+                        : widget.projects
+                                .where((project) => project.id == _projectId)
+                                .map((project) => project.title)
+                                .isEmpty
+                            ? 'پروژه'
+                            : widget.projects
+                                .where((project) => project.id == _projectId)
+                                .map((project) => project.title)
+                                .first,
+                    icon: Icons.folder_outlined,
+                    color: const Color(0xFF3568D4),
+                    emptyLabel: 'بدون پروژه',
+                    items: widget.projects
+                        .where((project) =>
+                            !project.isArchived || project.id == _projectId)
+                        .map(
+                          (project) => ArvinRollItem<String>(
+                            value: project.id,
+                            label: project.isArchived
+                                ? '${project.title} (بایگانی‌شده)'
+                                : project.title,
+                            icon: Icons.folder_outlined,
+                            color: project.isArchived
+                                ? const Color(0xFF7D8298)
+                                : const Color(0xFF3568D4),
+                          ),
+                        )
+                        .toList(),
+                    onSelected: (value) => setState(() {
+                      _projectId = value;
+                    }),
+                  ),
+                  ArvinRollBox<String>(
                     label: 'دسته',
                     valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
                     icon: Icons.grid_view_rounded,
