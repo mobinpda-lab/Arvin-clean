@@ -36,6 +36,8 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onSnoozeReminder,
     this.onEditReminder,
+    this.onEditTask,
+    this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
     this.onCreateTaskFromCalendarEvent,
