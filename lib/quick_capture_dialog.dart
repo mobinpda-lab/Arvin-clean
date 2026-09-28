@@ -27,6 +27,8 @@ class QuickCaptureDialog extends StatefulWidget {
     this.onProjectChanged,
     this.knownCategories = const <String>[],
     this.knownTags = const <String>[],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final QuickCaptureService service;
@@ -39,6 +41,8 @@ class QuickCaptureDialog extends StatefulWidget {
   final ValueChanged<String?>? onProjectChanged;
   final List<String> knownCategories;
   final List<String> knownTags;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -58,11 +62,15 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final List<String> _selectedTags = <String>[];
+  late List<String> _knownCategories;
+  late List<String> _knownTags;
 
   @override
   void initState() {
     super.initState();
     _projectId = widget.initialProjectId;
+    _knownCategories = List<String>.of(widget.knownCategories);
+    _knownTags = List<String>.of(widget.knownTags);
   }
 
   Future<void> _handleBack() async {
@@ -503,7 +511,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     icon: Icons.grid_view_rounded,
                     color: const Color(0xFF7650C8),
                     emptyLabel: 'بدون دسته',
-                    items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
+                    items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
                       value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
                     )).toList(),
                     onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
@@ -522,13 +530,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       );
                       controller.dispose();
                       if (value == null || value.isEmpty) return null;
-                      setState(() => _categoryController.text = value);
-                      return value;
+                      final created = await widget.onCreateCategory?.call(value) ?? value;
+                      if (!mounted) return created;
+                      setState(() {
+                        _categoryController.text = created;
+                        if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                      });
+                      return created;
                     },
                   ),),
                       const SizedBox(width: 8),
                       Expanded(child: ArvinTagRollBox(
-                    tags: widget.knownTags,
+                    tags: _knownTags,
                     selectedTags: _selectedTags,
                     onChanged: (values) => setState(() {
                       _selectedTags
@@ -551,11 +564,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       );
                       controller.dispose();
                       if (value == null || value.isEmpty) return null;
+                      final created = await widget.onCreateTag?.call(value) ?? value;
+                      if (!mounted) return created;
                       setState(() {
-                        if (!_selectedTags.contains(value)) _selectedTags.add(value);
+                        if (!_selectedTags.contains(created)) _selectedTags.add(created);
+                        if (!_knownTags.contains(created)) _knownTags.add(created);
                         _tagsController.text = _selectedTags.join('، ');
                       });
-                      return value;
+                      return created;
                     },
                   ),),
                     ],
