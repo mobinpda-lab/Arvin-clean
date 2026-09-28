@@ -19,12 +19,15 @@ void main() {
     List<String> selected = <String>[];
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ArvinTagRollBox(
-            tags: const <String>['مهم', 'مشتری'],
-            selectedTags: selected,
-            onChanged: (value) => selected = List<String>.of(value),
+      StatefulBuilder(
+        builder: (context, setState) => MaterialApp(
+          home: Scaffold(
+            body: ArvinTagRollBox(
+              tags: const <String>['مهم', 'مشتری'],
+              selectedTags: selected,
+              onChanged: (value) =>
+                  setState(() => selected = List<String>.of(value)),
+            ),
           ),
         ),
       ),
@@ -44,7 +47,9 @@ void main() {
 
     await tester.tap(find.byTooltip('برچسب'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری'));
+    await tester.tap(
+      find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری'),
+    );
     await tester.pumpAndSettle();
 
     expect(selected, containsAll(<String>['مهم', 'مشتری']));
