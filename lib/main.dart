@@ -349,7 +349,7 @@ class _HomePageState extends State<HomePage> {
     // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
     // The task remains completed (and therefore not overdue) while still being
     // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
-    if (filter == 'کل' || filter == 'فعال' || filter == 'انجام‌شده') {
+    if (filter == 'فعال' || filter == 'انجام‌شده') {
       return [
         HomeGroup<Task>(
           id: 'filtered',
