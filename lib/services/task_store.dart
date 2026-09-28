@@ -444,7 +444,16 @@ class TaskStore {
           <Object?>[row['project_id'], row['task_id'], row['ordinal']],
         );
       }
-
+      // Keep categories used by canonical Tasks visible in the independent catalog.
+      for (final task in tasks) {
+        final category = task.category?.trim();
+        if (category != null && category.isNotEmpty) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+            <Object?>[category, DateTime.now().toIso8601String()],
+          );
+        }
+      }
 
       await executor.runCustom('COMMIT');
     } catch (_) {
