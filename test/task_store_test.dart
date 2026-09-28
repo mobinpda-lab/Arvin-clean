@@ -123,6 +123,38 @@ void main() {
     expect(await store.load(), hasLength(1));
   });
 
+  test('referenced taxonomy cannot be destructively deleted or renamed', () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'taxonomy-used',
+        title: 'وابسته',
+        category: 'کاری',
+        tags: <String>['مهم'],
+      ),
+    ]);
+    await store.createCategory('کاری');
+    await store.createTag('مهم');
+
+    expect(
+      store.deleteCategoryCatalog('کاری'),
+      throwsA(isA<StateError>()),
+    );
+    expect(
+      store.deleteTagCatalog('مهم'),
+      throwsA(isA<StateError>()),
+    );
+
+    await store.renameCategoryCatalog('کاری', 'کارهای روزانه');
+    await store.renameTagCatalog('مهم', 'ضروری');
+
+    final loaded = await store.load();
+    expect(loaded.single.category, 'کارهای روزانه');
+    expect(loaded.single.tags, contains('ضروری'));
+    expect(await store.loadCategories(), contains('کارهای روزانه'));
+    expect(await store.loadTags(), contains('ضروری'));
+  });
+
   test('TaskStore rejects malformed canonical document instead of empty fallback',
       () async {
     final prefs = await SharedPreferences.getInstance();
