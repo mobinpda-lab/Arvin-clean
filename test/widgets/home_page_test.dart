@@ -64,6 +64,39 @@ void main() {
     expect(find.text('کار انجام‌نشده'), findsNothing);
   });
 
+
+  testWidgets('Home contextual filters hide completed tasks while All shows them',
+      (tester) async {
+    final today = DateTime.now();
+    final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"completed-today","title":"کار انجام‌شده امروز","completed":true,"dueDate":"$isoToday"},{"id":"active-today","title":"کار فعال امروز","completed":false,"dueDate":"$isoToday"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-filter-all')), findsOneWidget);
+    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
+    expect(find.text('کار فعال امروز'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-my-tasks-today')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار فعال امروز'), findsOneWidget);
+    expect(find.text('کار انجام‌شده امروز'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-all')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار فعال امروز'), findsOneWidget);
+    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
+  });
+
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
