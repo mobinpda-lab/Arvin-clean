@@ -1065,16 +1065,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 onTap: _pickFollowUpTime,
                               );
 
-                              if (constraints.maxWidth < 320) {
-                                return Column(
-                                  children: [
-                                    dateButton,
-                                    const SizedBox(height: 10),
-                                    timeButton,
-                                  ],
-                                );
-                              }
-
                               return Row(
                                 children: [
                                   Expanded(child: dateButton),
