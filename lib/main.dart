@@ -1616,6 +1616,18 @@ class _HomePageState extends State<HomePage> {
             );
         }
         return false;
+      case TaskSwipeAction.convertToFollowUp:
+        if (task.followUpEnabled) return false;
+        await taskStore.convertToFollowUp(task.id);
+        await _load();
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
+            );
+        }
+        return false;
       case TaskSwipeAction.none:
         return false;
     }
