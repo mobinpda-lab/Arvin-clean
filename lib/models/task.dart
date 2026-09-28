@@ -241,7 +241,8 @@ class Task {
           .whereType<String>()
           .toList(),
       checklistEnabled: json['checklistEnabled'] as bool? ??
-          (json['notebookKind'] == NotebookItemKind.checklist.name),
+          ((json['checklist'] as List<dynamic>? ?? const []).isNotEmpty ||
+              json['notebookKind'] == NotebookItemKind.checklist.name),
       notebookKind: NotebookItemKind.values.cast<NotebookItemKind?>().firstWhere(
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
