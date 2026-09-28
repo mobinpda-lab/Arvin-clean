@@ -122,9 +122,11 @@ class Task {
 
   bool get isNotebookItem => isSimpleNote || isNotebookChecklist;
 
+  /// Notebook checklists are explicit Notebook items only.
+  /// Task-editor checklists use [checklistEnabled] and must never become
+  /// Notebook items merely because the canonical Task has checklist rows.
   bool get isNotebookChecklist =>
-      notebookKind == NotebookItemKind.checklist ||
-      (notebookKind == null && checklist.isNotEmpty);
+      notebookKind == NotebookItemKind.checklist;
 
   static List<PersonReference> _normalizePeople(
     Iterable<PersonReference> values,
