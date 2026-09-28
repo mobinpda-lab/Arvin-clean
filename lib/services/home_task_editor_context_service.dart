@@ -60,6 +60,7 @@ class HomeTaskEditorContextService {
     }
       .map((value) => value.trim())
       .where((value) => value.isNotEmpty)
+      .toSet()
       .toList()
       ..sort();
 
