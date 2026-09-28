@@ -210,9 +210,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
             ListTile(title: const Text('هفته آینده'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 7)))),
             ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
+              final date = await _pickJalaliDate(context, initialDate: _dueDate ?? DateTime.now());
               if (date == null || !sheetContext.mounted) return;
-              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime.now()));
+              final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime.now()));
               if (time != null && sheetContext.mounted) {
                 Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
               }
@@ -247,7 +247,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
             ListTile(title: const Text('یک ساعت قبل'), onTap: () => Navigator.pop(sheetContext, -60)),
             ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _reminderDate ?? _dueDate ?? DateTime.now());
+              final date = await _pickJalaliDate(context, initialDate: _reminderDate ?? _dueDate ?? DateTime.now());
               if (date == null || !sheetContext.mounted) return;
               final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_reminderDate ?? DateTime.now()));
               if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
@@ -419,6 +419,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     final initial = formatter.toJalali(initialDate);
     return showDialog<DateTime>(
       context: parentContext,
+      useRootNavigator: true,
       builder: (sheetContext) {
         var year = initial.year;
         var month = initial.month;
