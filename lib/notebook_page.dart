@@ -445,7 +445,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           label: 'همه پروژه‌ها',
                           value: _activeProjectId,
                           items: _projects
-                              .map((project) => DropdownMenuItem<String>(
+                              .map((project) => DropdownMenuItem<String?>(
                                     value: project.id,
                                     child: Text(project.title),
                                   ))
@@ -461,7 +461,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           label: 'همه برچسب‌ها',
                           value: _activeTag,
                           items: _availableTags
-                              .map((tag) => DropdownMenuItem<String>(
+                              .map((tag) => DropdownMenuItem<String?>(
                                     value: tag,
                                     child: Text('#$tag'),
                                   ))
@@ -616,7 +616,7 @@ class _NotebookPageState extends State<NotebookPage> {
     required Key key,
     required String label,
     required String? value,
-    required List<DropdownMenuItem<String>> items,
+    required List<DropdownMenuItem<String?>> items,
     required ValueChanged<String?> onChanged,
   }) {
     return DecoratedBox(
