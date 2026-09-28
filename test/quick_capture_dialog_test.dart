@@ -260,6 +260,11 @@ void main() {
     final reminderHour = find.text('انتخاب ساعت');
     expect(reminderHour, findsOneWidget);
     await tester.ensureVisible(reminderHour);
+    await tester.tap(reminderHour);
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
