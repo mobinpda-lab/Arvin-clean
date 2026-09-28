@@ -205,6 +205,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
               }
             }),
+            ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
+              final base = _dueDate ?? DateTime.now();
+              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(base));
+              if (time != null && sheetContext.mounted) {
+                Navigator.pop(sheetContext, DateTime(base.year, base.month, base.day, time.hour, time.minute));
+              }
+            }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
         ),
@@ -230,6 +237,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               if (date == null || !sheetContext.mounted) return;
               final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_reminderDate ?? DateTime.now()));
               if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
+            }),
+            ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
+              final base = _reminderDate ?? _dueDate ?? DateTime.now();
+              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(base));
+              if (time != null && sheetContext.mounted) {
+                Navigator.pop(sheetContext, DateTime(base.year, base.month, base.day, time.hour, time.minute));
+              }
             }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
