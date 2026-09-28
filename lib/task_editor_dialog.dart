@@ -750,9 +750,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         accent: ArvinColors.reminder,
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final recurrence = Expanded(
                             child: DropdownButtonFormField<RecurrenceFrequency>(
                               key: const ValueKey('task-editor-recurrence'),
                               initialValue: _recurrence?.frequency,
@@ -780,9 +780,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 });
                               },
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
+                          ),;
+                          final priority = Expanded(
                             child: DropdownButtonFormField<TaskPriority>(
                               key: const ValueKey('task-editor-priority'),
                               initialValue: _priority,
@@ -801,8 +800,24 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 }
                               },
                             ),
-                          ),
-                        ],
+                          ),;
+                          if (constraints.maxWidth < 400) {
+                            return Column(
+                              children: [
+                                recurrence,
+                                const SizedBox(height: 10),
+                                priority,
+                              ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              recurrence,
+                              const SizedBox(width: 10),
+                              priority,
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 4),
                       CheckboxListTile(
