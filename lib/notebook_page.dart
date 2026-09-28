@@ -9,41 +9,6 @@ import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-enum _NotebookCreateMode { note, checklist }
-
-class _ChecklistPreset {
-  const _ChecklistPreset({
-    required this.id,
-    required this.title,
-    this.items = const [],
-  });
-
-  final String id;
-  final String title;
-  final List<String> items;
-}
-
-const _checklistPresets = <_ChecklistPreset>[
-  _ChecklistPreset(
-    id: 'shopping',
-    title: 'لیست خرید',
-    items: ['[ ] نان', '[ ] شیر', '[ ] میوه'],
-  ),
-  _ChecklistPreset(
-    id: 'travel',
-    title: 'وسایل سفر',
-    items: ['[ ] مدارک', '[ ] شارژر', '[ ] لباس'],
-  ),
-  _ChecklistPreset(
-    id: 'today',
-    title: 'کارهای امروز',
-  ),
-  _ChecklistPreset(
-    id: 'blank',
-    title: 'چک‌لیست جدید',
-  ),
-];
-
 class NotebookPage extends StatefulWidget {
   NotebookPage({
     super.key,
@@ -62,7 +27,6 @@ class _NotebookPageState extends State<NotebookPage> {
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
-  _NotebookCreateMode _activeMode = _NotebookCreateMode.note;
   String _activeCategory = 'همه';
   bool _showTrash = false;
 
@@ -358,85 +322,14 @@ class _NotebookPageState extends State<NotebookPage> {
     await _reload();
   }
 
-  Future<_ChecklistPreset?> _chooseChecklistPreset() {
-    return showModalBottomSheet<_ChecklistPreset>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            children: [
-              Text(
-                'قالب چک‌لیست',
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              for (final preset in _checklistPresets)
-                ListTile(
-                  key: ValueKey('notebook-preset-${preset.id}'),
-                  leading: Icon(
-                    preset.id == 'shopping'
-                        ? Icons.shopping_basket_outlined
-                        : preset.id == 'travel'
-                            ? Icons.luggage_outlined
-                            : preset.id == 'today'
-                                ? Icons.today_outlined
-                                : Icons.checklist_outlined,
-                  ),
-                  title: Text(preset.title),
-                  subtitle: preset.items.isEmpty
-                      ? const Text('از یک چک‌لیست خالی شروع کنید')
-                      : Text(
-                          '${preset.items.length} مورد پیشنهادی قابل ویرایش',
-                        ),
-                  onTap: () => Navigator.of(sheetContext).pop(preset),
-                ),
-              TextButton(
-                key: const ValueKey('notebook-preset-cancel'),
-                onPressed: () => Navigator.of(sheetContext).pop(),
-                child: const Text('انصراف'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _create() async {
-    final mode = _activeMode;
-
-    if (mode == _NotebookCreateMode.note) {
-      final note = await widget.repository.createNote(
-        title: 'یادداشت جدید',
-        notebookKind: NotebookItemKind.note,
-        category: _activeCategory == 'همه' ? null : _activeCategory,
-      );
-      if (!mounted) return;
-      await _open(note, startEditing: true);
-      return;
-    }
-
-    final preset = await _chooseChecklistPreset();
-    if (!mounted || preset == null) return;
-
     final note = await widget.repository.createNote(
-      title: preset.title,
-      checklist: preset.items,
-      notebookKind: NotebookItemKind.checklist,
+      title: 'یادداشت جدید',
+      notebookKind: NotebookItemKind.note,
       category: _activeCategory == 'همه' ? null : _activeCategory,
     );
     if (!mounted) return;
-    await _open(
-      note,
-      startEditing: true,
-      focusChecklistOnOpen: preset.items.isEmpty,
-    );
+    await _open(note, startEditing: true);
   }
 
   @override
