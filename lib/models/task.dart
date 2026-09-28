@@ -184,7 +184,7 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
-        if (checklistEnabled) 'checklistEnabled': true,
+        'checklistEnabled': checklistEnabled,
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
         if (priority != TaskPriority.none) 'priority': priority.name,
