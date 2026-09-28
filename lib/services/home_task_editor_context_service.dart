@@ -1,6 +1,7 @@
 import '../models/goal_project.dart';
 import '../models/task.dart';
 import 'task_project_assignment_service.dart';
+import 'task_store.dart';
 
 class HomeTaskEditorContext {
   const HomeTaskEditorContext({
@@ -24,9 +25,12 @@ class HomeTaskEditorContext {
 class HomeTaskEditorContextService {
   HomeTaskEditorContextService({
     TaskProjectAssignmentService? assignmentService,
-  }) : assignmentService = assignmentService ?? TaskProjectAssignmentService();
+    TaskStore? taskStore,
+  }) : assignmentService = assignmentService ?? TaskProjectAssignmentService(),
+       taskStore = taskStore ?? TaskStore();
 
   final TaskProjectAssignmentService assignmentService;
+  final TaskStore taskStore;
 
   Future<HomeTaskEditorContext> load({
     required Iterable<Task> tasks,
@@ -37,20 +41,27 @@ class HomeTaskEditorContextService {
         ? null
         : await assignmentService.projectIdForTask(task.id);
 
-    final tags = tasks
-        .expand((item) => item.tags)
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()
+    final storedTags = await taskStore.loadTags();
+    final storedCategories = await taskStore.loadCategories();
+
+    final tags = <String>{
+      ...storedTags,
+      ...tasks.expand((item) => item.tags),
+    }
+      .map((value) => value.trim())
+      .where((value) => value.isNotEmpty)
+      .toSet()
+      .toList()
       ..sort();
 
-    final categories = tasks
-        .map((item) => item.category?.trim())
-        .whereType<String>()
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()
+    final categories = <String>{
+      ...storedCategories,
+      ...tasks.map((item) => item.category ?? ''),
+    }
+      .map((value) => value.trim())
+      .where((value) => value.isNotEmpty)
+      .toSet()
+      .toList()
       ..sort();
 
     return HomeTaskEditorContext(

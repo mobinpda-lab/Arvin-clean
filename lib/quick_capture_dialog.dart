@@ -27,6 +27,8 @@ class QuickCaptureDialog extends StatefulWidget {
     this.onProjectChanged,
     this.knownCategories = const <String>[],
     this.knownTags = const <String>[],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final QuickCaptureService service;
@@ -39,6 +41,8 @@ class QuickCaptureDialog extends StatefulWidget {
   final ValueChanged<String?>? onProjectChanged;
   final List<String> knownCategories;
   final List<String> knownTags;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -53,16 +57,22 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _dueDate;
   DateTime? _reminderDate;
   RecurrenceRule? _recurrence;
+  final TextEditingController _recurrenceIntervalController =
+      TextEditingController(text: '1');
   String? _projectId;
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final List<String> _selectedTags = <String>[];
+  late List<String> _knownCategories;
+  late List<String> _knownTags;
 
   @override
   void initState() {
     super.initState();
     _projectId = widget.initialProjectId;
+    _knownCategories = List<String>.of(widget.knownCategories);
+    _knownTags = List<String>.of(widget.knownTags);
   }
 
   Future<void> _handleBack() async {
@@ -89,6 +99,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _descriptionController.dispose();
     _categoryController.dispose();
     _tagsController.dispose();
+    _recurrenceIntervalController.dispose();
     super.dispose();
   }
 
@@ -147,8 +158,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         _saving = false;
         _error = 'ثبت انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
       });
-    }
-  }
+    }  }
 
 
   Future<void> _openFullForm() async {
@@ -192,8 +202,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
+        child: SingleChildScrollView(
+          child: Wrap(
+            children: [
             const ListTile(title: Text('موعد انجام')),
             ListTile(title: const Text('امروز'), onTap: () => Navigator.pop(sheetContext, DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))),
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
@@ -206,8 +217,16 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
               }
             }),
+            ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
+              final base = _dueDate ?? DateTime.now();
+              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(base));
+              if (time != null && sheetContext.mounted) {
+                Navigator.pop(sheetContext, DateTime(base.year, base.month, base.day, time.hour, time.minute));
+              }
+            }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -220,8 +239,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
+        child: SingleChildScrollView(
+          child: Wrap(
+            children: [
             const ListTile(title: Text('یادآور')),
             ListTile(title: const Text('۱۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -10)),
             ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
@@ -232,8 +252,16 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_reminderDate ?? DateTime.now()));
               if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
             }),
+            ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
+              final base = _reminderDate ?? _dueDate ?? DateTime.now();
+              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(base));
+              if (time != null && sheetContext.mounted) {
+                Navigator.pop(sheetContext, DateTime(base.year, base.month, base.day, time.hour, time.minute));
+              }
+            }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -254,17 +282,132 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         child: Wrap(
           children: [
             const ListTile(title: Text('تکرار')),
-            ListTile(title: const Text('بدون تکرار'), onTap: () => Navigator.pop(sheetContext)),
-            ListTile(title: const Text('روزانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.daily))),
-            ListTile(title: const Text('هفتگی'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.weekly))),
-            ListTile(title: const Text('ماهانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.monthly))),
-            ListTile(title: const Text('سالانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.yearly))),
+            ListTile(
+              title: const Text('بدون تکرار'),
+              onTap: () => Navigator.pop(sheetContext),
+            ),
+            ListTile(
+              title: const Text('هر روز'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر هفته'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.weekly),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر ماه'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.monthly),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر سال'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.yearly),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.tune_rounded),
+              title: const Text('تکرار سفارشی روزانه / هفتگی'),
+              subtitle: const Text('مثلاً هر ۵ روز یا هر ۳ هفته'),
+              onTap: () async {
+                final controller = TextEditingController(
+                  text: _recurrence?.interval.toString() ?? '1',
+                );
+                var frequency = _recurrence?.frequency == RecurrenceFrequency.weekly
+                    ? RecurrenceFrequency.weekly
+                    : RecurrenceFrequency.daily;
+                final custom = await showDialog<RecurrenceRule>(
+                  context: sheetContext,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('تکرار سفارشی'),
+                    content: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StatefulBuilder(
+                            builder: (context, setDialogState) =>
+                                DropdownButtonFormField<RecurrenceFrequency>(
+                              initialValue: frequency,
+                              decoration: const InputDecoration(labelText: 'واحد تکرار'),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: RecurrenceFrequency.daily,
+                                  child: Text('روز'),
+                                ),
+                                DropdownMenuItem(
+                                  value: RecurrenceFrequency.weekly,
+                                  child: Text('هفته'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setDialogState(() => frequency = value);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: controller,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'تعداد',
+                              hintText: 'مثلاً ۵',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('لغو'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          final interval = int.tryParse(controller.text.trim());
+                          if (interval == null || interval < 1) return;
+                          Navigator.pop(
+                            dialogContext,
+                            RecurrenceRule(
+                              frequency: frequency,
+                              interval: interval,
+                            ),
+                          );
+                        },
+                        child: const Text('ثبت'),
+                      ),
+                    ],
+                  ),
+                );
+                controller.dispose();
+                if (custom != null && sheetContext.mounted) {
+                  Navigator.pop(sheetContext, custom);
+                }
+              },
+            ),
           ],
         ),
       ),
     );
     if (!mounted) return;
-    setState(() => _recurrence = selected);
+    setState(() {
+      _recurrence = selected;
+      if (selected != null) {
+        _recurrenceIntervalController.text = selected.interval.toString();
+      }
+    });
   }
 
 
@@ -274,10 +417,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }) async {
     final formatter = const PersianDateFormatter();
     final initial = formatter.toJalali(initialDate);
-    return showModalBottomSheet<DateTime>(
+    return showDialog<DateTime>(
       context: parentContext,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (sheetContext) {
         var year = initial.year;
         var month = initial.month;
@@ -297,14 +438,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               if (nextMonth < 1) { nextMonth = 12; nextYear--; }
               if (nextMonth > 12) { nextMonth = 1; nextYear++; }
               setSheetState(() {
-                year = nextYear; month = nextMonth;
-                final length = formatter.monthLength(year, month);
+                year = nextYear; month = nextMonth;                final length = formatter.monthLength(year, month);
                 if (selectedDay > length) selectedDay = length;
               });
             }
             final canGoBack = !formatter.fromJalali(JalaliDate(year, month, 1)).isBefore(today);
-            return SafeArea(
-              child: Padding(
+            return Dialog(
+              child: SafeArea(
+                child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -349,6 +490,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 10),
                     SizedBox(width: double.infinity, child: FilledButton(onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
                   ],
+                ),
                 ),
               ),
             );
@@ -447,8 +589,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     children: [
                       Expanded(child: ArvinRollBox<String>(
                     label: 'پروژه',
-                    valueLabel: _projectId == null
-                        ? 'پروژه'
+                    valueLabel: _projectId == null                        ? 'پروژه'
                         : widget.projects
                                 .where((project) => project.id == _projectId)
                                 .map((project) => project.title)
@@ -488,7 +629,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     icon: Icons.grid_view_rounded,
                     color: const Color(0xFF7650C8),
                     emptyLabel: 'بدون دسته',
-                    items: widget.knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
+                    items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
                       value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
                     )).toList(),
                     onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
@@ -507,13 +648,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       );
                       controller.dispose();
                       if (value == null || value.isEmpty) return null;
-                      setState(() => _categoryController.text = value);
-                      return value;
+                      final created = await widget.onCreateCategory?.call(value) ?? value;
+                      if (!mounted) return created;
+                      setState(() {
+                        _categoryController.text = created;
+                        if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                      });
+                      return created;
                     },
                   ),),
                       const SizedBox(width: 8),
                       Expanded(child: ArvinTagRollBox(
-                    tags: widget.knownTags,
+                    tags: _knownTags,
                     selectedTags: _selectedTags,
                     onChanged: (values) => setState(() {
                       _selectedTags
@@ -536,11 +682,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       );
                       controller.dispose();
                       if (value == null || value.isEmpty) return null;
+                      final created = await widget.onCreateTag?.call(value) ?? value;
+                      if (!mounted) return created;
                       setState(() {
-                        if (!_selectedTags.contains(value)) _selectedTags.add(value);
+                        if (!_selectedTags.contains(created)) _selectedTags.add(created);
+                        if (!_knownTags.contains(created)) _knownTags.add(created);
                         _tagsController.text = _selectedTags.join('، ');
                       });
-                      return value;
+                      return created;
                     },
                   ),),
                     ],
@@ -597,8 +746,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       onPressed: _saving ? null : _submit,
                       child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                     ),
-                  ),
-                ],
+                  ),                ],
               ),
             ],
           ),

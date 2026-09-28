@@ -102,6 +102,27 @@ void main() {
     expect(loaded.single.title, 'Persisted task');
   });
 
+
+  test('canonical taxonomy catalog preserves unassigned categories and tags', () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(id: 'taxonomy-1', title: 'A', category: 'موجود', tags: <String>['مهم']),
+    ]);
+
+    await store.createCategory('بدون استفاده');
+    await store.createTag('برچسب مستقل');
+
+    expect(await store.loadCategories(), containsAll(<String>['موجود', 'بدون استفاده']));
+    expect(await store.loadTags(), containsAll(<String>['مهم', 'برچسب مستقل']));
+
+    await store.deleteCategoryCatalog('بدون استفاده');
+    await store.deleteTagCatalog('برچسب مستقل');
+
+    expect(await store.loadCategories(), isNot(contains('بدون استفاده')));
+    expect(await store.loadTags(), isNot(contains('برچسب مستقل')));
+    expect(await store.load(), hasLength(1));
+  });
+
   test('TaskStore rejects malformed canonical document instead of empty fallback',
       () async {
     final prefs = await SharedPreferences.getInstance();

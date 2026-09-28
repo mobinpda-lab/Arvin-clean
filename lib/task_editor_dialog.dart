@@ -23,6 +23,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.onCreateProject,
     this.knownCategories = const [],
     this.knownTags = const [],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final Task? task;
@@ -41,6 +43,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
   final List<String> knownTags;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
@@ -63,9 +67,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
+  late List<String> _knownCategories;
+  late List<String> _knownTags;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
+  late final TextEditingController _recurrenceIntervalController;
   late TaskPriority _priority;
   bool _saving = false;
 
@@ -91,9 +98,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
+    _knownCategories = List<String>.of(widget.knownCategories);
+    _knownTags = List<String>.of(widget.knownTags);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
+    _recurrenceIntervalController = TextEditingController(
+      text: '${task?.recurrence?.interval ?? 1}',
+    );
     _priority = task?.priority ?? TaskPriority.none;
   }
 
@@ -102,6 +114,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
+    _recurrenceIntervalController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -525,8 +538,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 TextButton.icon(
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 17),
+                  icon: const Icon(Icons.close, size: 16),
                   label: const Text('حذف'),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
             ],
           ),
@@ -664,10 +682,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           icon: Icons.grid_view_rounded,
                           color: ArvinColors.category,
                           emptyLabel: 'بدون دسته',
-                          items: widget.knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
+                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
                               .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
                           onSelected: (value) => setState(() => _category = value),
-                          onCreate: () => _promptNewName('دسته جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('دسته جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateCategory?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              _category = created;
+                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -695,10 +723,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinTagRollBox(
-                          tags: widget.knownTags,
+                          tags: _knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () => _promptNewName('برچسب جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('برچسب جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateTag?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              if (!_tags.contains(created)) _tags.add(created);
+                              if (!_knownTags.contains(created)) _knownTags.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                     ],
@@ -754,6 +792,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         builder: (context, constraints) {
                           final recurrence = DropdownButtonFormField<RecurrenceFrequency>(
                             key: const ValueKey('task-editor-recurrence'),
+                            isExpanded: true,
                             initialValue: _recurrence?.frequency,
                             decoration: _fieldDecoration(label: 'تکرار'),
                             items: [
@@ -769,18 +808,44 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               ),
                             ],
                             onChanged: (frequency) {
+                              final interval =
+                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
                                 _recurrence = frequency == null
                                     ? null
                                     : RecurrenceRule(
                                         frequency: frequency,
-                                        interval: _recurrence?.interval ?? 1,
+                                        interval: interval > 0 ? interval : 1,
                                       );
+                              });
+                            },
+                          );
+                          final recurrenceInterval = TextFormField(
+                            key: const ValueKey('task-editor-recurrence-interval'),
+                            controller: _recurrenceIntervalController,
+                            enabled: _recurrence != null,
+                            keyboardType: TextInputType.number,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(
+                              label: 'تعداد فاصله',
+                              hint: 'مثلاً ۵',
+                            ),
+                            onChanged: (value) {
+                              final interval = int.tryParse(value.trim());
+                              if (_recurrence == null || interval == null || interval < 1) {
+                                return;
+                              }
+                              setState(() {
+                                _recurrence = RecurrenceRule(
+                                  frequency: _recurrence!.frequency,
+                                  interval: interval,
+                                );
                               });
                             },
                           );
                           final priority = DropdownButtonFormField<TaskPriority>(
                             key: const ValueKey('task-editor-priority'),
+                            isExpanded: true,
                             initialValue: _priority,
                             decoration: _fieldDecoration(label: 'اولویت'),
                             items: TaskPriority.values
@@ -800,7 +865,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           if (constraints.maxWidth < 400) {
                             return Column(
                               children: [
-                                recurrence,
+                                Row(
+                                  children: [
+                                    Expanded(child: recurrence),
+                                    if (_recurrence != null) ...[
+                                      const SizedBox(width: 10),
+                                      SizedBox(width: 120, child: recurrenceInterval),
+                                    ],
+                                  ],
+                                ),
                                 const SizedBox(height: 10),
                                 priority,
                               ],
@@ -809,6 +882,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           return Row(
                             children: [
                               Expanded(child: recurrence),
+                              if (_recurrence != null) ...[
+                                const SizedBox(width: 10),
+                                SizedBox(width: 120, child: recurrenceInterval),
+                              ],
                               const SizedBox(width: 10),
                               Expanded(child: priority),
                             ],

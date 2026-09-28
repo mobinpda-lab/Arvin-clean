@@ -31,6 +31,8 @@ class _TaskTaxonomyManagementPageState
   late final TaskTaxonomyMutationService mutationService;
 
   List<Task> tasks = const <Task>[];
+  List<String> categoryNames = const <String>[];
+  List<String> tagNames = const <String>[];
   bool loading = true;
   bool saving = false;
   Object? loadFailure;
@@ -47,9 +49,13 @@ class _TaskTaxonomyManagementPageState
   Future<void> _load() async {
     try {
       final loaded = await store.load();
+      final loadedCategories = await store.loadCategories();
+      final loadedTags = await store.loadTags();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(loaded);
+        categoryNames = List<String>.of(loadedCategories);
+        tagNames = List<String>.of(loadedTags);
         loading = false;
         loadFailure = null;
       });
@@ -64,9 +70,14 @@ class _TaskTaxonomyManagementPageState
 
   Map<String, int> get _categories {
     final counts = <String, int>{};
+    for (final category in categoryNames) {
+      counts[category] = 0;
+    }
     for (final task in tasks) {
       final category = task.category?.trim();
-      if (category == null || category.isEmpty) continue;
+      if (category == null || category.isEmpty) {
+        continue;
+      }
       counts[category] = (counts[category] ?? 0) + 1;
     }
     return Map<String, int>.fromEntries(
@@ -76,10 +87,15 @@ class _TaskTaxonomyManagementPageState
 
   Map<String, int> get _tags {
     final counts = <String, int>{};
+    for (final tag in tagNames) {
+      counts[tag] = 0;
+    }
     for (final task in tasks) {
       for (final raw in task.tags) {
         final tag = raw.trim();
-        if (tag.isEmpty) continue;
+        if (tag.isEmpty) {
+          continue;
+        }
         counts[tag] = (counts[tag] ?? 0) + 1;
       }
     }
@@ -152,6 +168,50 @@ class _TaskTaxonomyManagementPageState
     }
   }
 
+  Future<String?> _askCreate(String title, String inputKey) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          key: ValueKey(inputKey),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              Navigator.pop(dialogContext, value.isEmpty ? null : value);
+            },
+            child: const Text('افزودن'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
+
+  Future<void> _createCategory() async {
+    if (saving) return;
+    final value = await _askCreate('دسته جدید', 'taxonomy-category-create-input');
+    if (value == null || !mounted) return;
+    await store.createCategory(value);
+    await _load();
+  }
+
+  Future<void> _createTag() async {
+    if (saving) return;
+    final value = await _askCreate('برچسب جدید', 'taxonomy-tag-create-input');
+    if (value == null || !mounted) return;
+    await store.createTag(value);
+    await _load();
+  }
+
   Future<void> _renameCategory(String category) async {
     if (saving) return;
     final next = await _askRename(
@@ -170,6 +230,7 @@ class _TaskTaxonomyManagementPageState
     });
     final changed = _takePendingChanged();
     await _persistMutation(changed, '$changed مورد به «$next» منتقل شد');
+    await store.renameCategoryCatalog(category, next);
   }
 
   void _showDeleteBlocked(TaskTaxonomyDeleteBlocked error) {
@@ -185,10 +246,12 @@ class _TaskTaxonomyManagementPageState
       );
   }
 
-  void _deleteCategory(String category) {
+  Future<void> _deleteCategory(String category) async {
     if (saving) return;
     try {
       mutationService.deleteCategory(tasks, category);
+      await store.deleteCategoryCatalog(category);
+      await _load();
     } on TaskTaxonomyDeleteBlocked catch (error) {
       _showDeleteBlocked(error);
     }
@@ -211,12 +274,15 @@ class _TaskTaxonomyManagementPageState
     });
     final changed = _takePendingChanged();
     await _persistMutation(changed, '$changed مورد با برچسب «$next» به‌روز شد');
+    await store.renameTagCatalog(tag, next);
   }
 
-  void _deleteTag(String tag) {
+  Future<void> _deleteTag(String tag) async {
     if (saving) return;
     try {
       mutationService.deleteTag(tasks, tag);
+      await store.deleteTagCatalog(tag);
+      await _load();
     } on TaskTaxonomyDeleteBlocked catch (error) {
       _showDeleteBlocked(error);
     }
@@ -286,6 +352,28 @@ class _TaskTaxonomyManagementPageState
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              key: const ValueKey('taxonomy-create-category'),
+                              onPressed: _createCategory,
+                              icon: const Icon(Icons.create_new_folder_outlined),
+                              label: const Text('دسته جدید'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: FilledButton.icon(
+                              key: const ValueKey('taxonomy-create-tag'),
+                              onPressed: _createTag,
+                              icon: const Icon(Icons.new_label_outlined),
+                              label: const Text('برچسب جدید'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       const Card(
                         child: Padding(
                           padding: EdgeInsets.all(12),

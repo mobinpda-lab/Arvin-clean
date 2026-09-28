@@ -25,4 +25,23 @@ void main() {
       expect(rule.nextOccurrence(from), DateTime(2026, 8, 29, 10, 30));
     });
   });
+
+  test('calculates a custom five-day recurrence interval', () {
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      interval: 5,
+    );
+    final from = DateTime(2026, 9, 28, 10, 30);
+    expect(rule.nextOccurrence(from), DateTime(2026, 10, 3, 10, 30));
+  });
+
+  test('calculates a custom three-week recurrence interval', () {
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.weekly,
+      interval: 3,
+    );
+    final from = DateTime(2026, 9, 28, 10, 30);
+    expect(rule.nextOccurrence(from), DateTime(2026, 10, 19, 10, 30));
+  });
+
 }

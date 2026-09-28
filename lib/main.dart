@@ -237,6 +237,18 @@ class _HomePageState extends State<HomePage> {
     return values;
   }
 
+  Future<String?> _createCategory(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    return TaskStore().createCategory(name);
+  }
+
+  Future<String?> _createTag(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    return TaskStore().createTag(name);
+  }
+
   Future<void> _save() {
     if (loadFailure != null) {
       throw StateError(
@@ -445,6 +457,8 @@ class _HomePageState extends State<HomePage> {
         onProjectChanged: (value) => selectedProjectId = value,
                 knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return;
@@ -587,6 +601,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return null;
@@ -616,6 +632,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return null;
@@ -656,6 +674,8 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
         initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
@@ -742,6 +762,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (edited == null) return;

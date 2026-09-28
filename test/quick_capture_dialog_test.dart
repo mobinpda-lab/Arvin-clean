@@ -221,6 +221,52 @@ void main() {
     expect(captured.single.title, 'کار فقط با عنوان');
   });
 
+
+  testWidgets('quick capture exposes direct hour selection for due date and reminder',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'time-1',
+              now: () => DateTime(2026, 9, 28, 9, 30),
+              onCaptured: (_) async {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    final dueHour = find.text('انتخاب ساعت');
+    await tester.ensureVisible(dueHour);
+    await tester.tap(dueHour);
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
+    await tester.pumpAndSettle();
+    // Cancelling the time picker leaves its parent bottom sheet open; close it
+    // explicitly so the reminder control can be exercised independently.
+    Navigator.of(tester.element(find.text('موعد انجام'))).pop();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    final reminderHour = find.text('انتخاب ساعت');
+    expect(reminderHour, findsOneWidget);
+    await tester.ensureVisible(reminderHour);
+    await tester.tap(reminderHour);
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
