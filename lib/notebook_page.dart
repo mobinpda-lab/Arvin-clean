@@ -71,9 +71,10 @@ class _NotebookPageState extends State<NotebookPage> {
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      final isChecklist = note.isNotebookChecklist;
-      if (_activeMode == _NotebookCreateMode.note && isChecklist) return false;
-      if (_activeMode == _NotebookCreateMode.checklist && !isChecklist) return false;
+      // Checklists are a Task feature, not a Notebook feature.
+      // Legacy checklist data remains in canonical Task storage but is not
+      // exposed as a Notebook item, so no user data is deleted.
+      if (note.isNotebookChecklist) return false;
       if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
         return false;
       }
@@ -255,13 +256,8 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _addTagsToSelected() async {
     if (_selected.isEmpty) return;
-    final notes = await widget.repository.loadNotes();
+    final knownTags = await widget.repository.loadTags();
     if (!mounted) return;
-    final knownTags = <String>{
-      for (final note in notes)
-        for (final tag in note.tags)
-          if (tag.trim().isNotEmpty) tag.trim(),
-    }.toList()..sort();
 
     final selected = await showModalBottomSheet<List<String>>(
       context: context,
@@ -522,28 +518,6 @@ class _NotebookPageState extends State<NotebookPage> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: SegmentedButton<_NotebookCreateMode>(
-                    key: const ValueKey('notebook-mode-switch'),
-                    segments: const [
-                      ButtonSegment(
-                        value: _NotebookCreateMode.note,
-                        label: Text('یادداشت‌ها'),
-                        icon: Icon(Icons.note_alt_outlined),
-                      ),
-                      ButtonSegment(
-                        value: _NotebookCreateMode.checklist,
-                        label: Text('چک‌لیست‌ها'),
-                        icon: Icon(Icons.checklist_outlined),
-                      ),
-                    ],
-                    selected: {_activeMode},
-                    onSelectionChanged: (selection) => setState(
-                      () => _activeMode = selection.first,
-                    ),
-                  ),
-                ),
                 Expanded(
                   child: visibleNotes.isEmpty
                       ? Center(
@@ -663,9 +637,7 @@ class _NotebookPageState extends State<NotebookPage> {
           : FloatingActionButton(
               key: const ValueKey('notebook-create'),
               onPressed: _loading ? null : _create,
-              tooltip: _activeMode == _NotebookCreateMode.note
-                  ? 'یادداشت جدید'
-                  : 'چک‌لیست جدید',
+              tooltip: 'یادداشت جدید',
               child: const Icon(Icons.add),
             ),
     );
@@ -912,6 +884,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (selected == _newCategoryToken) {
       nextCategory = await _promptNewCategory();
       if (!mounted || nextCategory == null || nextCategory.trim().isEmpty) return;
+      await widget.repository.createCategory(nextCategory);
     } else if (selected == _clearCategoryToken) {
       nextCategory = null;
     } else {
@@ -1091,6 +1064,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   onTap: () async {
                     final tag = await _promptNewTag();
                     if (!mounted || tag == null || tag.trim().isEmpty) return;
+                    await widget.repository.createTag(tag.trim());
+                    if (!mounted) return;
                     setSheetState(() => working.add(tag.trim()));
                   },
                 ),
