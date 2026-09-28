@@ -70,10 +70,14 @@ class _TaskTaxonomyManagementPageState
 
   Map<String, int> get _categories {
     final counts = <String, int>{};
-    for (final category in categoryNames) counts[category] = 0;
+    for (final category in categoryNames) {
+      counts[category] = 0;
+    }
     for (final task in tasks) {
       final category = task.category?.trim();
-      if (category == null || category.isEmpty) continue;
+      if (category == null || category.isEmpty) {
+        continue;
+      }
       counts[category] = (counts[category] ?? 0) + 1;
     }
     return Map<String, int>.fromEntries(
@@ -87,7 +91,9 @@ class _TaskTaxonomyManagementPageState
     for (final task in tasks) {
       for (final raw in task.tags) {
         final tag = raw.trim();
-        if (tag.isEmpty) continue;
+        if (tag.isEmpty) {
+          continue;
+        }
         counts[tag] = (counts[tag] ?? 0) + 1;
       }
     }
