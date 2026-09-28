@@ -2,6 +2,17 @@ import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('legacy checklist payload remains enabled after canonical JSON migration', () {
+    final legacy = Task.fromJson({
+      'id': 'legacy-checklist',
+      'title': 'چک‌لیست قدیمی',
+      'checklist': ['[ ] مورد قدیمی'],
+    });
+    expect(legacy.checklistEnabled, isTrue);
+    expect(legacy.checklist, const ['[ ] مورد قدیمی']);
+    expect(legacy.isNotebookChecklist, isFalse);
+  });
+
   test('Task checklist mode survives canonical JSON round trip', () {
     final enabled = Task(
       id: 'task-checklist',
