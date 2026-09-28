@@ -167,6 +167,16 @@ class _HomePageState extends State<HomePage> {
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
 
+  bool get _homeHasContextualFilter =>
+      _listScope != TaskListScope.all ||
+      _dueScope != null ||
+      _categoryFilter != null ||
+      _projectFilter != null ||
+      _tagFilter != null;
+
+  bool get _homeAllFilterSelected =>
+      filter == 'کل' && !_homeHasContextualFilter;
+
   @override
   void initState() {
     super.initState();
@@ -325,6 +335,11 @@ class _HomePageState extends State<HomePage> {
             return false;
           }
           if (filter == 'سطل زباله' && !task.trashed) return false;
+          // «همه» is the only Home grouping filter that includes completed
+          // tasks. Contextual grouping filters (time/project/category/tag)
+          // are active-task projections; explicit status filters keep their
+          // own semantics.
+          if (_homeHasContextualFilter && task.completed) return false;
           if (matchingIds != null && !matchingIds.contains(task.id)) {
             return false;
           }
@@ -384,6 +399,34 @@ class _HomePageState extends State<HomePage> {
         onTap: () => _selectHomeGroupMode(mode),
       ),
     );
+  }
+
+  Widget _homeAllFilterSelector() {
+    final selected = _homeAllFilterSelected;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: ArvinRadioBox(
+        key: const ValueKey('home-filter-all'),
+        label: 'همه',
+        icon: Icons.select_all_rounded,
+        accent: ArvinColors.primary,
+        selected: selected,
+        onTap: _selectHomeAllFilter,
+      ),
+    );
+  }
+
+  void _selectHomeAllFilter() {
+    setState(() {
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _categoryFilter = null;
+      _projectFilter = null;
+      _tagFilter = null;
+      selected.clear();
+      selectionMode = false;
+    });
   }
 
   Widget _homeGroupSelector() {
@@ -2022,6 +2065,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
+            _homeAllFilterSelector(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
