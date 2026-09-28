@@ -72,6 +72,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
+  late final TextEditingController _recurrenceIntervalController;
   late TaskPriority _priority;
   bool _saving = false;
 
@@ -102,6 +103,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
+    _recurrenceIntervalController = TextEditingController(
+      text: '${task?.recurrence?.interval ?? 1}',
+    );
     _priority = task?.priority ?? TaskPriority.none;
   }
 
@@ -110,6 +114,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
+    _recurrenceIntervalController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -797,13 +802,38 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               ),
                             ],
                             onChanged: (frequency) {
+                              final interval =
+                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
                                 _recurrence = frequency == null
                                     ? null
                                     : RecurrenceRule(
                                         frequency: frequency,
-                                        interval: _recurrence?.interval ?? 1,
+                                        interval: interval > 0 ? interval : 1,
                                       );
+                              });
+                            },
+                          );
+                          final recurrenceInterval = TextFormField(
+                            key: const ValueKey('task-editor-recurrence-interval'),
+                            controller: _recurrenceIntervalController,
+                            enabled: _recurrence != null,
+                            keyboardType: TextInputType.number,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(
+                              label: 'تعداد فاصله',
+                              hint: 'مثلاً ۵',
+                            ),
+                            onChanged: (value) {
+                              final interval = int.tryParse(value.trim());
+                              if (_recurrence == null || interval == null || interval < 1) {
+                                return;
+                              }
+                              setState(() {
+                                _recurrence = RecurrenceRule(
+                                  frequency: _recurrence!.frequency,
+                                  interval: interval,
+                                );
                               });
                             },
                           );
@@ -828,7 +858,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           if (constraints.maxWidth < 400) {
                             return Column(
                               children: [
-                                recurrence,
+                                Row(
+                                  children: [
+                                    Expanded(child: recurrence),
+                                    if (_recurrence != null) ...[
+                                      const SizedBox(width: 10),
+                                      SizedBox(width: 120, child: recurrenceInterval),
+                                    ],
+                                  ],
+                                ),
                                 const SizedBox(height: 10),
                                 priority,
                               ],
@@ -837,6 +875,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           return Row(
                             children: [
                               Expanded(child: recurrence),
+                              if (_recurrence != null) ...[
+                                const SizedBox(width: 10),
+                                SizedBox(width: 120, child: recurrenceInterval),
+                              ],
                               const SizedBox(width: 10),
                               Expanded(child: priority),
                             ],
