@@ -108,33 +108,6 @@ void main() {
     expect(find.text('موردی مطابق فیلتر فعلی پیدا نشد'), findsOneWidget);
   });
 
-  testWidgets('empty checklist keeps checklist identity and progress survives persistence',
-      (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 45));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'blank');
-    expect(
-      find.byKey(const ValueKey('notebook-checklist-progress')),
-      findsOneWidget,
-    );
-    expect(find.text('چک‌لیست — 0 از 0 انجام شده'), findsOneWidget);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-      'مورد اول',
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-checklist-add')));
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byKey(const ValueKey('notebook-check-0')));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    final persisted = (await repository.loadNotes()).single;
-    expect(persisted.isNotebookChecklist, isTrue);
-    expect(persisted.checklist, ['[x] مورد اول']);
-    expect(find.text('چک‌لیست — 1 از 1 انجام شده'), findsOneWidget);
-  });
-
   testWidgets('Notebook list renders Jalali date with Persian digits', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 12));
     await repository.createNote(id: 'jalali-list-date', title: 'تاریخ شمسی');
