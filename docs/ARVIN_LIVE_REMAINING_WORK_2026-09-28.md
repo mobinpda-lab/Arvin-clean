@@ -6,7 +6,7 @@
 > This file is the persistent continuity ledger for the `ادامه آروین` execution trigger. GitHub reality outranks chat memory and historical reports.
 
 ## 1. Live baseline
-- Current `main`: `fcfe53bd16adb87a94e47a0f26240a99ddb9e989`
+- Current `main`: `f4c33d01eee809bf6f165cf9ee5cf10fcd9d2b9b`
 - Strategy: **PRODUCT FIRST + FACTORY MINIMAL**
 - Direct changes to `main`: prohibited.
 - Product changes must use Issue + Branch + PR.
@@ -19,12 +19,18 @@
 - PR #1902 custom recurrence was **merged** on 2026-09-28. Its implementation head was `96acb2bd0dfc9e30ff79fef17a6fa14d82e20a8d`.
 - Current `main` contains the custom recurrence interval implementation in Quick Add and Task Edit and recurrence tests.
 - PR #1901 remains **OPEN** at `964a55c46c92627c4e218bb816abda6b571e26da`.
-- #1901 received a narrow-RTL Task Editor overflow fix; at audit time its new exact-head Device Smoke was still running and Build was queued.
-- Current-main Release Closure run `36445968668` for `fcfe53bd...` was **in progress** at audit time.
-- For current `main`, Production Orchestrator, Production Loop, Autonomous Task Queue and AI Code Worker had successful runs recorded at audit time.
+- #1901 received a narrow-RTL Task Editor overflow fix, but remains OPEN and is not merged. Exact-head Device Smoke run `36444855568` is green; exact-head Build run `36444855984` failed.
+- Current-main exact-head gates for `f4c33d01...` are still pending/queued/in-progress at this audit: Build `36446983445`, Device Smoke `36446825221`, Release Closure `36446988086`.
+- For the preceding `fcfe53bd...` main state, production/orchestrator/release-dispatcher automation had successful runs, but those are not evidence for the newer exact SHA.
 - Physical-phone acceptance of the complete P0/P1 list is **unknown** until explicitly recorded.
 
 ## 3. Remaining product work — P0/P1
+
+### 3.0 Immediate CI blockers
+- #1901 Analyze failure: unused import `widgets/arvin_radio_box.dart` at `lib/main.dart:16`.
+- #1901 Test failure: `test/widgets/home_page_test.dart` completed-task visibility test expects `کار انجام‌شده قدیمی` but finds 0 widgets.
+- #1901 Device Smoke is green, but Build is not; therefore the PR is not releasable.
+- Automated failure Issue #1922 tracks the failed Build. Resolve the underlying code/test issue; do not bypass the gate.
 
 ### 3.1 Calendar / device calendar
 - Restore/verify the expected calendar actions:
@@ -133,7 +139,7 @@ Older open PRs in this domain must be compared with current `main` before any re
 ## 7. Cross-conversation/account continuation rule
 When the user sends **«ادامه آروین»** from a new conversation or account:
 1. Read this file.
-2. Read Issue #1923 and the binding issues above.
+2. Read Issue #1925 first, then Issue #1923 and the binding issues above.
 3. Read the current `main` SHA and open PR list.
 4. Re-check exact-head CI; never reuse stale CI.
 5. Select the highest-priority unfinished lane.
