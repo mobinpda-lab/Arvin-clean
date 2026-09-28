@@ -247,13 +247,14 @@ void main() {
     await tester.ensureVisible(dueHour);
     await tester.tap(dueHour);
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
+    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
+    await tester.tap(find.text('انتخاب ساعت').last);
     await tester.pumpAndSettle();
-    // Cancelling the time picker leaves its parent bottom sheet open; close it
-    // explicitly so the reminder control can be exercised independently.
-    Navigator.of(tester.element(find.text('موعد انجام'))).pop();
-    await tester.pumpAndSettle();
+    // The parent Due sheet is intentionally closed before opening the
+    // dedicated Persian time picker, so Quick Capture is restored underneath.
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
@@ -262,9 +263,9 @@ void main() {
     await tester.ensureVisible(reminderHour);
     await tester.tap(reminderHour);
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
-    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
   });
 
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
@@ -307,4 +308,30 @@ void main() {
     expect(input.controller?.text, 'متن باید بماند #مهم');
   });
 
+  testWidgets('Quick Capture opens a usable Persian date/time picker', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('موعد'), findsOneWidget);
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب تاریخ'), findsWidgets);
+    await tester.tap(find.byType(FilledButton).last);
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
+  });
 }
