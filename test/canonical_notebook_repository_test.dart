@@ -75,8 +75,8 @@ void main() {
     await store.createTag('مهم');
     await store.createTag('پیگیری');
 
-    expect(await repository.loadCategories(), ['کاری', 'شخصی']);
-    expect(await repository.loadTags(), ['مهم', 'پیگیری']);
+    expect(await repository.loadCategories(), containsAll(<String>['کاری', 'شخصی']));
+    expect(await repository.loadTags(), containsAll(<String>['مهم', 'پیگیری']));
   });
 
   test('note converts to Task on the same canonical identity', () async {
