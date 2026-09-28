@@ -6,7 +6,7 @@
 > This file is the persistent continuity ledger for the `ادامه آروین` execution trigger. GitHub reality outranks chat memory and historical reports.
 
 ## 1. Live baseline
-- Current `main`: `f4c33d01eee809bf6f165cf9ee5cf10fcd9d2b9b`
+- Current `main`: `2dc35230ae69d27494659e06f0022e9028e13239`
 - Strategy: **PRODUCT FIRST + FACTORY MINIMAL**
 - Direct changes to `main`: prohibited.
 - Product changes must use Issue + Branch + PR.
@@ -20,6 +20,7 @@
 - Current `main` contains the custom recurrence interval implementation in Quick Add and Task Edit and recurrence tests.
 - PR #1901 remains **OPEN** at `964a55c46c92627c4e218bb816abda6b571e26da`.
 - #1901 received a narrow-RTL Task Editor overflow fix, but remains OPEN and is not merged. Exact-head Device Smoke run `36444855568` is green; exact-head Build run `36444855984` failed.
+- P0 #1928 is OPEN against current main, head `9794a1d9e72200b0d2bdd96317cbb62a35739a8f`. Its first exact-head CI had Build failure in Analyze/Test lanes; the Quick Add regression test still expected Flutter `TimePickerDialog` after the Persian picker was intentionally introduced. The test contract was corrected in commit `9794a1d9e72200b0d2bdd96317cbb62a35739a8f`; new exact-head CI is now running.
 - Current-main exact-head gates for `f4c33d01...` are still pending/queued/in-progress at this audit: Build `36446983445`, Device Smoke `36446825221`, Release Closure `36446988086`.
 - For the preceding `fcfe53bd...` main state, production/orchestrator/release-dispatcher automation had successful runs, but those are not evidence for the newer exact SHA.
 - Physical-phone acceptance of the complete P0/P1 list is **unknown** until explicitly recorded.
@@ -32,7 +33,14 @@
 - #1901 Device Smoke is green, but Build is not; therefore the PR is not releasable.
 - Automated failure Issue #1922 tracks the failed Build. Resolve the underlying code/test issue; do not bypass the gate.
 
-### 3.1 Calendar / device calendar
+### 3.1 Overdue Task Card / recurring cleanup
+- #1930 is the binding requirement from the owner reference image.
+- Overdue cards must show semantic red due-date treatment plus calendar icon, explicit overdue meaning, and an `×` control that removes only the due date, not the Task.
+- Recurring-task cleanup must be explicit and controlled and use the canonical Task data path; no parallel recurring storage/model.
+- Required acceptance: exact-head Analyze/Test/Debug+Release Build/Device Smoke and the same APK on the physical phone.
+- Implementation waits until active P0 #1927/#1928 is closed; no parallel implementation.
+
+### 3.2 Calendar / device calendar
 - Restore/verify the expected calendar actions:
   - «ویرایش کارهای آروین»
   - «ثبت کارهای آروین در تقویم پیش‌فرض گوشی»
@@ -41,7 +49,7 @@
 - No parallel calendar engine/store/settings storage.
 - Real Android provider evidence is required; emulator alone is insufficient.
 
-### 3.2 Home
+### 3.3 Home
 - Match the latest owner-approved Home reference.
 - Four grouping controls must remain:
   - زمان
@@ -58,7 +66,7 @@
 - Semantic colors, iconography and state indication must follow the product color contract.
 - Final visual acceptance must be performed on the real phone.
 
-### 3.3 Typography / Appearance
+### 3.4 Typography / Appearance
 - Real font picker in Settings with preview.
 - Real app-wide font-size control.
 - VazirHarf v34.003 remains the default/canonical font.
@@ -67,7 +75,7 @@
 - Use canonical `AppSettingsService`; no parallel settings store.
 - Larger/smaller text must not shrink cards into clipping.
 
-### 3.4 Project / Category / Tag management
+### 3.5 Project / Category / Tag management
 - Central Settings management for Project / Category / Tag.
 - Category and Tag creation must exist.
 - Newly created items must appear immediately in Roll Box selectors.
@@ -76,7 +84,7 @@
 - Task and Notebook must consume the same canonical taxonomy.
 - Existing relationships must survive reload/persistence.
 
-### 3.5 Notebook / دفترچه
+### 3.6 Notebook / دفترچه
 - دفترچه remains a separate Arvin section.
 - Checklist is **not** a separate tab/page/list.
 - Notebook editor bottom row has three independent inline tools:
@@ -92,7 +100,7 @@
 - No parallel Notebook storage/model/repository.
 - Removing standalone Checklist/Shopping/Travel UI is allowed only after dependency audit and without deleting user data.
 
-### 3.6 Quick Add / Task Edit
+### 3.7 Quick Add / Task Edit
 - Date + Time are on one row wherever both exist.
 - Quick Add Due Date/Time must not open a blank page.
 - Quick Add Reminder Date/Time must not open a blank page.
@@ -125,6 +133,8 @@ Older open PRs in this domain must be compared with current `main` before any re
 - other old UI/docs PRs only after diff/goal verification.
 
 ## 6. Binding issues
+- #1928 — current-main Quick Add Persian Date/Time repair
+- #1930 — overdue Task card + recurring cleanup UI
 - #1901 — real-device regression closure
 - #1911 — binding Notebook/Home filter product contract
 - #1912 — Home screenshot/reference contract
@@ -151,6 +161,7 @@ When the user sends **«ادامه آروین»** from a new conversation or acc
 
 ## 8. Current audit conclusion
 - Overall Product/Release-Ready status: **نامشخص — not yet proven Release-Ready**.
+- Current active execution: **#1928 / head `9794a1d9...` — CI in progress; no merge yet.**
 - #1902 custom recurrence: **merged; real-device acceptance still requires evidence**.
 - #1901: **open; P0/P1 work remains as listed above**.
 - Current-main Release Closure: **in progress at audit time**.
