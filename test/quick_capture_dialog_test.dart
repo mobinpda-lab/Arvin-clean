@@ -244,7 +244,7 @@ void main() {
     await tester.tap(find.text('انتخاب ساعت'));
     await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsOneWidget);
-    await tester.tap(find.text('لغو'));
+    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('یادآور'));
