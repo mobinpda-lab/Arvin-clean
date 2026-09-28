@@ -675,7 +675,7 @@ class _HomePageState extends State<HomePage> {
   ({Color accent, Color soft}) _groupAccent(String id) {
     if (_homeGroupMode == HomeGroupMode.time) {
       return switch (id) {
-        'overdue' => (accent: ArvinColors.danger, soft: ArvinColors.dangerSoft),
+        'overdue' => (accent: ArvinColors.error, soft: ArvinColors.errorSoft),
         'today' => (accent: ArvinColors.time, soft: ArvinColors.timeSoft),
         'future' => (accent: ArvinColors.project, soft: ArvinColors.projectSoft),
         _ => (accent: ArvinColors.neutral, soft: ArvinColors.neutralSoft),
