@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 4;
+  static const int version = 5;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -24,6 +24,8 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS project_items (
   project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
+    '''CREATE TABLE IF NOT EXISTS taxonomy_categories (
+  name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS tags (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS task_tags (

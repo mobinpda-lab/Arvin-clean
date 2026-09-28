@@ -224,6 +224,41 @@ void main() {
     expect(result!.category, 'مشتریان');
     expect(result!.checklist, const ['[ ] ارسال قرارداد']);
   });
+  testWidgets('checklist toggle persists enabled state and items without data loss',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'checklist-task',
+      title: 'کار چک‌لیستی',
+      checklist: const ['[ ] مورد اول'],
+      checklistEnabled: true,
+    );
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+    expect(find.text('مورد اول'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+    expect(find.text('مورد اول'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.checklistEnabled, isFalse);
+    expect(result!.checklist, const ['[ ] مورد اول']);
+
+    result = null;
+    await pumpEditor(tester, task: result ?? Task(
+      id: 'checklist-task',
+      title: 'کار چک‌لیستی',
+      checklist: const ['[ ] مورد اول'],
+      checklistEnabled: false,
+    ), onResult: (value) => result = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+  });
+
   testWidgets('Back-style close prompts and can save Task edits without data loss',
       (tester) async {
     Task? result;

@@ -35,6 +35,166 @@ class TaskStore {
   Future<List<Task>> load() =>
       TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
 
+  Future<List<String>> loadCategories() async {
+    return TaskStorageLock.synchronized<List<String>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT name FROM taxonomy_categories ORDER BY name',
+        const [],
+      );
+      return rows.map((row) => row['name'] as String).toList(growable: false);
+    });
+  }
+
+  Future<List<String>> loadTags() async {
+    return TaskStorageLock.synchronized<List<String>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT name FROM tags ORDER BY name',
+        const [],
+      );
+      return rows.map((row) => row['name'] as String).toList(growable: false);
+    });
+  }
+
+  Future<String> createCategory(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) throw ArgumentError.value(value, 'value');
+    return TaskStorageLock.synchronized<String>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+        <Object?>[name, DateTime.now().toIso8601String()],
+      );
+      return name;
+    });
+  }
+
+  Future<String> createTag(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) throw ArgumentError.value(value, 'value');
+    return TaskStorageLock.synchronized<String>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+        <Object?>[_tagId(name), name],
+      );
+      return name;
+    });
+  }
+
+  Future<void> renameCategoryCatalog(String from, String to) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+          <Object?>[target, DateTime.now().toIso8601String()],
+        );
+        await executor.runUpdate(
+          'UPDATE tasks SET category = ? WHERE category = ?',
+          <Object?>[target, source],
+        );
+        await executor.runDelete(
+          'DELETE FROM taxonomy_categories WHERE name = ?',
+          <Object?>[source],
+        );
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> deleteCategoryCatalog(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return;
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final referenced = await executor.runSelect(
+        'SELECT 1 FROM tasks WHERE category = ? LIMIT 1',
+        <Object?>[name],
+      );
+      if (referenced.isNotEmpty) {
+        throw StateError('Category is in use and cannot be deleted: $name');
+      }
+      await executor.runDelete(
+        'DELETE FROM taxonomy_categories WHERE name = ?',
+        <Object?>[name],
+      );
+    });
+  }
+
+  Future<void> renameTagCatalog(String from, String to) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final sourceRows = await executor.runSelect(
+        'SELECT id FROM tags WHERE name = ? LIMIT 1',
+        <Object?>[source],
+      );
+      if (sourceRows.isNotEmpty) {
+        final sourceId = sourceRows.single['id'];
+        final targetId = _tagId(target);
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+          <Object?>[targetId, target],
+        );
+        await executor.runDelete(
+          '''DELETE FROM task_tags
+             WHERE tag_id = ? AND task_id IN (
+               SELECT task_id FROM task_tags WHERE tag_id = ?
+             )''',
+          <Object?>[sourceId, targetId],
+        );
+        await executor.runUpdate(
+          'UPDATE task_tags SET tag_id = ? WHERE tag_id = ?',
+          <Object?>[targetId, sourceId],
+        );
+        await executor.runDelete(
+          'DELETE FROM tags WHERE id = ?',
+          <Object?>[sourceId],
+        );
+      }
+    });
+  }
+
+  Future<void> deleteTagCatalog(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return;
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final referenced = await executor.runSelect(
+        '''SELECT 1 FROM task_tags
+           JOIN tags ON tags.id = task_tags.tag_id
+           WHERE tags.name = ? LIMIT 1''',
+        <Object?>[name],
+      );
+      if (referenced.isNotEmpty) {
+        throw StateError('Tag is in use and cannot be deleted: $name');
+      }
+      await executor.runDelete(
+        'DELETE FROM tags WHERE name = ?',
+        <Object?>[name],
+      );
+    });
+  }
+
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
@@ -102,7 +262,22 @@ class TaskStore {
       preferences: preferences,
     );
     await _verifyLegacySourceBeforeCutover(executor, preferences);
+    await _seedCategoryCatalog(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
+  }
+
+  Future<void> _seedCategoryCatalog(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      'SELECT DISTINCT category FROM tasks WHERE category IS NOT NULL AND TRIM(category) <> ?',
+      <Object?>[''],
+    );
+    for (final row in rows) {
+      final category = (row['category'] as String).trim();
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+        <Object?>[category, DateTime.now().toIso8601String()],
+      );
+    }
   }
 
   Future<void> _verifyLegacySourceBeforeCutover(
@@ -261,7 +436,6 @@ class TaskStore {
       }
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
-      await executor.runCustom('DELETE FROM tags');
       await executor.runCustom('DELETE FROM task_people');
       await executor.runCustom('DELETE FROM checklist_items');
       await executor.runCustom('DELETE FROM follow_ups');
@@ -309,7 +483,16 @@ class TaskStore {
           <Object?>[row['project_id'], row['task_id'], row['ordinal']],
         );
       }
-
+      // Keep categories used by canonical Tasks visible in the independent catalog.
+      for (final task in tasks) {
+        final category = task.category?.trim();
+        if (category != null && category.isNotEmpty) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+            <Object?>[category, DateTime.now().toIso8601String()],
+          );
+        }
+      }
 
       await executor.runCustom('COMMIT');
     } catch (_) {

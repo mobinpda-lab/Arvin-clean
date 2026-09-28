@@ -66,6 +66,19 @@ void main() {
 
     expect(await TaskStore().load(), hasLength(1));
   });
+  test('Notebook taxonomy reads the same canonical Task catalogs', () async {
+    final store = TaskStore(executor: database);
+    final repository = CanonicalNotebookRepository(store: store);
+
+    await store.createCategory('کاری');
+    await store.createCategory('شخصی');
+    await store.createTag('مهم');
+    await store.createTag('پیگیری');
+
+    expect(await repository.loadCategories(), containsAll(<String>['کاری', 'شخصی']));
+    expect(await repository.loadTags(), containsAll(<String>['مهم', 'پیگیری']));
+  });
+
   test('note converts to Task on the same canonical identity', () async {
     var now = DateTime.utc(2026, 9, 19, 10);
     final repository = CanonicalNotebookRepository(

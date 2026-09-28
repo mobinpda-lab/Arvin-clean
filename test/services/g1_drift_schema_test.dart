@@ -120,4 +120,17 @@ void main() {
       throwsA(isA<Exception>()),
     );
   });
+  test('upgrades an existing pre-taxonomy schema without losing task data', () async {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, recurrence_json TEXT NULL)");
+    await database.runCustom("INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES ('legacy-task', 'قدیمی', '', 0, 'none', 0, 0, 0)");
+    await G1DriftSchema.install(database);
+    final taxonomyTables = await database.runSelect("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'taxonomy_categories'", const []);
+    expect(taxonomyTables, hasLength(1));
+    final tasks = await database.runSelect("SELECT id, title FROM tasks WHERE id = ?", <Object?>['legacy-task']);
+    expect(tasks, hasLength(1));
+    expect(tasks.single['title'], 'قدیمی');
+    final columns = await database.runSelect("PRAGMA table_info('tasks')", const []);
+    expect(columns.map((row) => row['name']), contains('legacy_payload_json'));
+  });
 }

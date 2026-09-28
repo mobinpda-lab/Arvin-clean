@@ -73,6 +73,7 @@ class Task {
     this.tags = const [],
     this.category,
     this.checklist = const [],
+    this.checklistEnabled = false,
     this.notebookKind,
     this.reminderDate,
     this.priority = TaskPriority.none,
@@ -95,6 +96,9 @@ class Task {
   List<String> tags;
   String? category;
   List<String> checklist;
+  /// Whether the Task editor's checklist mode is enabled. This is additive
+  /// and persisted through the canonical Task payload; it is not a second store.
+  bool checklistEnabled;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
   TaskPriority priority;
@@ -118,9 +122,11 @@ class Task {
 
   bool get isNotebookItem => isSimpleNote || isNotebookChecklist;
 
+  /// Notebook checklists are explicit Notebook items only.
+  /// Task-editor checklists use [checklistEnabled] and must never become
+  /// Notebook items merely because the canonical Task has checklist rows.
   bool get isNotebookChecklist =>
-      notebookKind == NotebookItemKind.checklist ||
-      (notebookKind == null && checklist.isNotEmpty);
+      notebookKind == NotebookItemKind.checklist;
 
   static List<PersonReference> _normalizePeople(
     Iterable<PersonReference> values,
@@ -180,6 +186,7 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
+        'checklistEnabled': checklistEnabled,
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
         if (priority != TaskPriority.none) 'priority': priority.name,
@@ -233,6 +240,9 @@ class Task {
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      checklistEnabled: json['checklistEnabled'] as bool? ??
+          ((json['checklist'] as List<dynamic>? ?? const []).isNotEmpty ||
+              json['notebookKind'] == NotebookItemKind.checklist.name),
       notebookKind: NotebookItemKind.values.cast<NotebookItemKind?>().firstWhere(
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,

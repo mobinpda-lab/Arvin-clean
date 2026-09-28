@@ -237,6 +237,18 @@ class _HomePageState extends State<HomePage> {
     return values;
   }
 
+  Future<String?> _createCategory(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    return TaskStore().createCategory(name);
+  }
+
+  Future<String?> _createTag(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    return TaskStore().createTag(name);
+  }
+
   Future<void> _save() {
     if (loadFailure != null) {
       throw StateError(
@@ -337,7 +349,7 @@ class _HomePageState extends State<HomePage> {
     // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
     // The task remains completed (and therefore not overdue) while still being
     // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
-    if (filter == 'کل' || filter == 'فعال' || filter == 'انجام‌شده') {
+    if (filter == 'فعال' || filter == 'انجام‌شده') {
       return [
         HomeGroup<Task>(
           id: 'filtered',
@@ -363,13 +375,111 @@ class _HomePageState extends State<HomePage> {
   }) {
     final selectedMode = _homeGroupMode == mode;
     return Expanded(
-      child: ArvinRadioBox(
-        key: ValueKey('home-group-${mode.name}'),
-        label: label,
-        icon: icon,
-        accent: accent,
+      child: Semantics(
+        button: true,
         selected: selectedMode,
-        onTap: () => _selectHomeGroupMode(mode),
+        label: label,
+        child: Material(
+          color: selectedMode ? softAccent : ArvinColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            key: ValueKey('home-group-${mode.name}'),
+            onTap: () => _selectHomeGroupMode(mode),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              constraints: const BoxConstraints(minHeight: 76),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selectedMode ? accent : ArvinColors.border,
+                  width: selectedMode ? 1.8 : 1.0,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: selectedMode
+                          ? accent.withValues(alpha: 0.14)
+                          : softAccent,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Icon(icon, color: accent, size: 21),
+                  ),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      softWrap: false,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ArvinColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: selectedMode
+                            ? FontWeight.w800
+                            : FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<String> get _homeTags {
+    final values = tasks
+        .expand((task) => task.tags)
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return values;
+  }
+
+  Widget _homeFilterBox({
+    required Key key,
+    required String label,
+    required String? value,
+    required List<DropdownMenuItem<String?>> items,
+    required ValueChanged<String?> onChanged,
+    required Color accent,
+  }) {
+    return Expanded(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accent.withValues(alpha: 0.28)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String?>(
+            key: key,
+            isExpanded: true,
+            value: value,
+            hint: Text(label, overflow: TextOverflow.ellipsis),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            items: [
+              DropdownMenuItem<String?>(
+                value: null,
+                child: Text(label),
+              ),
+              ...items,
+            ],
+            onChanged: onChanged,
+          ),
+        ),
       ),
     );
   }
@@ -416,6 +526,109 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _homeActiveFilters() {
+    if (_homeGroupMode == HomeGroupMode.time) return const SizedBox.shrink();
+    final categoryItems = _homeCategories
+        .map((category) => DropdownMenuItem<String?>(
+              value: category,
+              child: Text(category),
+            ))
+        .toList();
+    final projectItems = projects
+        .map((project) => DropdownMenuItem<String?>(
+              value: project.id,
+              child: Text(project.title),
+            ))
+        .toList();
+    final tagItems = _homeTags
+        .map((tag) => DropdownMenuItem<String?>(
+              value: tag,
+              child: Text('#$tag'),
+            ))
+        .toList();
+
+    if (_homeGroupMode == HomeGroupMode.projects) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            _homeFilterBox(
+              key: const ValueKey('home-project-filter'),
+              label: 'همه پروژه‌ها',
+              value: _projectFilter,
+              items: projectItems,
+              onChanged: (value) => setState(() => _projectFilter = value),
+              accent: ArvinColors.project,
+            ),
+            const SizedBox(width: 8),
+            _homeFilterBox(
+              key: const ValueKey('home-project-category-filter'),
+              label: 'همه دسته‌ها',
+              value: _categoryFilter,
+              items: categoryItems,
+              onChanged: (value) => setState(() => _categoryFilter = value),
+              accent: ArvinColors.category,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_homeGroupMode == HomeGroupMode.categories) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Row(
+          children: [
+            _homeFilterBox(
+              key: const ValueKey('home-category-filter'),
+              label: 'همه دسته‌ها',
+              value: _categoryFilter,
+              items: categoryItems,
+              onChanged: (value) => setState(() => _categoryFilter = value),
+              accent: ArvinColors.category,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          _homeFilterBox(
+            key: const ValueKey('home-tag-project-filter'),
+            label: 'همه پروژه‌ها',
+            value: _projectFilter,
+            items: projectItems,
+            onChanged: (value) => setState(() => _projectFilter = value),
+            accent: ArvinColors.project,
+          ),
+          const SizedBox(width: 8),
+          _homeFilterBox(
+            key: const ValueKey('home-tag-category-filter'),
+            label: 'همه دسته‌ها',
+            value: _categoryFilter,
+            items: categoryItems,
+            onChanged: (value) => setState(() => _categoryFilter = value),
+            accent: ArvinColors.category,
+          ),
+          const SizedBox(width: 8),
+          _homeFilterBox(
+            key: const ValueKey('home-tag-filter'),
+            label: 'همه برچسب‌ها',
+            value: _tagFilter,
+            items: tagItems,
+            onChanged: (value) => setState(() => _tagFilter = value),
+            accent: ArvinColors.tag,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _selectHomeGroupMode(HomeGroupMode mode) {
     setState(() {
       _homeGroupMode = mode;
@@ -445,6 +658,8 @@ class _HomePageState extends State<HomePage> {
         onProjectChanged: (value) => selectedProjectId = value,
                 knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return;
@@ -455,6 +670,38 @@ class _HomePageState extends State<HomePage> {
       projectId: selectedProjectId,
     );
     await _load();
+  }
+
+  ({Color accent, Color soft}) _groupAccent(String id) {
+    if (_homeGroupMode == HomeGroupMode.time) {
+      return switch (id) {
+        'overdue' => (accent: ArvinColors.error, soft: ArvinColors.errorSoft),
+        'today' => (accent: ArvinColors.time, soft: ArvinColors.timeSoft),
+        'future' => (accent: ArvinColors.project, soft: ArvinColors.projectSoft),
+        _ => (accent: ArvinColors.neutral, soft: ArvinColors.neutralSoft),
+      };
+    }
+    if (_homeGroupMode == HomeGroupMode.projects) {
+      return (accent: ArvinColors.project, soft: ArvinColors.projectSoft);
+    }
+    if (_homeGroupMode == HomeGroupMode.categories) {
+      return (accent: ArvinColors.category, soft: ArvinColors.categorySoft);
+    }
+    return (accent: ArvinColors.tag, soft: ArvinColors.tagSoft);
+  }
+
+  IconData _groupIcon(String id) {
+    if (_homeGroupMode == HomeGroupMode.time) {
+      return switch (id) {
+        'overdue' => Icons.warning_amber_rounded,
+        'today' => Icons.today_rounded,
+        'future' => Icons.event_available_rounded,
+        _ => Icons.event_note_rounded,
+      };
+    }
+    if (_homeGroupMode == HomeGroupMode.projects) return Icons.folder_rounded;
+    if (_homeGroupMode == HomeGroupMode.categories) return Icons.grid_view_rounded;
+    return Icons.sell_rounded;
   }
 
   Widget _groupedTaskList() {
@@ -483,33 +730,96 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => setState(() {
-                  if (_collapsedGroups.contains(group.id)) { _collapsedGroups.remove(group.id); } else { _collapsedGroups.add(group.id); }
-                }),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(_collapsedGroups.contains(group.id) ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 20, color: const Color(0xFF80829C)),
-                      const SizedBox(width: 4),
-                      Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
-                      Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
-                      if (projectGroup) ...[
-                        const SizedBox(width: 4),
-                        IconButton(
-                          key: ValueKey('home-project-add-${group.id}'),
-                          tooltip: 'افزودن کار به ${group.title}',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _addToProject(group.id),
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  key: ValueKey('home-group-header-${group.id}'),
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => setState(() {
+                    if (_collapsedGroups.contains(group.id)) {
+                      _collapsedGroups.remove(group.id);
+                    } else {
+                      _collapsedGroups.add(group.id);
+                    }
+                  }),
+                  child: Builder(
+                    builder: (context) {
+                      final groupColors = _groupAccent(group.id);
+                      return Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: groupColors.soft,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: groupColors.accent.withValues(alpha: 0.28),
+                          ),
                         ),
-                      ],
-                    ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              _groupIcon(group.id),
+                              size: 22,
+                              color: groupColors.accent,
+                            ),
+                            const SizedBox(width: 7),
+                            Expanded(
+                              child: Text(
+                                group.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: ArvinColors.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 30),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: groupColors.accent.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${group.items.length}',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: groupColors.accent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            Icon(
+                              _collapsedGroups.contains(group.id)
+                                  ? Icons.chevron_left_rounded
+                                  : Icons.expand_more_rounded,
+                              size: 21,
+                              color: groupColors.accent,
+                            ),
+                            if (projectGroup)
+                              IconButton(
+                                key: ValueKey('home-project-add-${group.id}'),
+                                tooltip: 'افزودن کار به ${group.title}',
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => _addToProject(group.id),
+                                icon: Icon(
+                                  Icons.add_circle_outline,
+                                  size: 20,
+                                  color: groupColors.accent,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),              const SizedBox(height: 6),
+              ),
+              const SizedBox(height: 7),
               if (_collapsedGroups.contains(group.id))
                 const SizedBox.shrink()
               else
@@ -587,6 +897,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return null;
@@ -616,6 +928,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (task == null) return null;
@@ -656,6 +970,8 @@ class _HomePageState extends State<HomePage> {
         projects: editorContext.projects,
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
         initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
@@ -742,6 +1058,8 @@ class _HomePageState extends State<HomePage> {
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
+        onCreateCategory: _createCategory,
+        onCreateTag: _createTag,
       ),
     );
     if (edited == null) return;
@@ -1724,7 +2042,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1757,7 +2075,7 @@ class _HomePageState extends State<HomePage> {
                               : colors.primary,
                         ),
                       ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1776,7 +2094,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       if (preview != null || task.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           preview ?? task.description,
                           maxLines: 1,
@@ -1788,7 +2106,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (_projectTitleForTask(task) != null) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             const Icon(Icons.folder_outlined, size: 15, color: Color(0xFF4B8FE8)),
@@ -1849,7 +2167,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (followUpDate != null) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Icon(
@@ -2000,6 +2318,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
+            _homeActiveFilters(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())

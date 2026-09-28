@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'services/persian_date_formatter.dart';
@@ -9,40 +10,7 @@ import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-enum _NotebookCreateMode { note, checklist }
-
-class _ChecklistPreset {
-  const _ChecklistPreset({
-    required this.id,
-    required this.title,
-    this.items = const [],
-  });
-
-  final String id;
-  final String title;
-  final List<String> items;
-}
-
-const _checklistPresets = <_ChecklistPreset>[
-  _ChecklistPreset(
-    id: 'shopping',
-    title: 'لیست خرید',
-    items: ['[ ] نان', '[ ] شیر', '[ ] میوه'],
-  ),
-  _ChecklistPreset(
-    id: 'travel',
-    title: 'وسایل سفر',
-    items: ['[ ] مدارک', '[ ] شارژر', '[ ] لباس'],
-  ),
-  _ChecklistPreset(
-    id: 'today',
-    title: 'کارهای امروز',
-  ),
-  _ChecklistPreset(
-    id: 'blank',
-    title: 'چک‌لیست جدید',
-  ),
-];
+enum _NotebookInlineMode { none, numbered, tick }
 
 class NotebookPage extends StatefulWidget {
   NotebookPage({
@@ -62,19 +30,37 @@ class _NotebookPageState extends State<NotebookPage> {
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
-  _NotebookCreateMode _activeMode = _NotebookCreateMode.note;
   String _activeCategory = 'همه';
+  String? _activeProjectId;
+  String? _activeTag;
+  List<ProjectPlan> _projects = const [];
+  List<String> _availableTags = const [];
   bool _showTrash = false;
 
   static const _referenceCategories = <String>['همه', 'شخصی', 'کاری', 'ایده‌ها'];
 
+  String? _projectIdForNote(String noteId) {
+    for (final project in _projects) {
+      if (project.itemIds.contains(noteId)) return project.id;
+    }
+    return null;
+  }
+
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      final isChecklist = note.isNotebookChecklist;
-      if (_activeMode == _NotebookCreateMode.note && isChecklist) return false;
-      if (_activeMode == _NotebookCreateMode.checklist && !isChecklist) return false;
+      // Checklist is an editor tool, not a Notebook list section.
+      // Existing canonical checklist data is preserved and can still be
+      // opened by its canonical item id.
       if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
+        return false;
+      }
+      if (_activeProjectId != null &&
+          _projectIdForNote(note.id) != _activeProjectId) {
+        return false;
+      }
+      if (_activeTag != null &&
+          !note.tags.map((tag) => tag.trim()).contains(_activeTag)) {
         return false;
       }
       if (query.isEmpty) return true;
@@ -93,9 +79,13 @@ class _NotebookPageState extends State<NotebookPage> {
     final notes = _showTrash
         ? await widget.repository.loadTrashedNotes()
         : await widget.repository.loadNotes();
+    final projects = await widget.repository.loadProjects();
+    final tags = await widget.repository.loadTags();
     if (!mounted) return;
     setState(() {
       _notes = notes;
+      _projects = List<ProjectPlan>.of(projects);
+      _availableTags = List<String>.of(tags)..sort();
       _loading = false;
     });
   }
@@ -255,13 +245,8 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _addTagsToSelected() async {
     if (_selected.isEmpty) return;
-    final notes = await widget.repository.loadNotes();
+    final knownTags = await widget.repository.loadTags();
     if (!mounted) return;
-    final knownTags = <String>{
-      for (final note in notes)
-        for (final tag in note.tags)
-          if (tag.trim().isNotEmpty) tag.trim(),
-    }.toList()..sort();
 
     final selected = await showModalBottomSheet<List<String>>(
       context: context,
@@ -362,85 +347,14 @@ class _NotebookPageState extends State<NotebookPage> {
     await _reload();
   }
 
-  Future<_ChecklistPreset?> _chooseChecklistPreset() {
-    return showModalBottomSheet<_ChecklistPreset>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            children: [
-              Text(
-                'قالب چک‌لیست',
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              for (final preset in _checklistPresets)
-                ListTile(
-                  key: ValueKey('notebook-preset-${preset.id}'),
-                  leading: Icon(
-                    preset.id == 'shopping'
-                        ? Icons.shopping_basket_outlined
-                        : preset.id == 'travel'
-                            ? Icons.luggage_outlined
-                            : preset.id == 'today'
-                                ? Icons.today_outlined
-                                : Icons.checklist_outlined,
-                  ),
-                  title: Text(preset.title),
-                  subtitle: preset.items.isEmpty
-                      ? const Text('از یک چک‌لیست خالی شروع کنید')
-                      : Text(
-                          '${preset.items.length} مورد پیشنهادی قابل ویرایش',
-                        ),
-                  onTap: () => Navigator.of(sheetContext).pop(preset),
-                ),
-              TextButton(
-                key: const ValueKey('notebook-preset-cancel'),
-                onPressed: () => Navigator.of(sheetContext).pop(),
-                child: const Text('انصراف'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _create() async {
-    final mode = _activeMode;
-
-    if (mode == _NotebookCreateMode.note) {
-      final note = await widget.repository.createNote(
-        title: 'یادداشت جدید',
-        notebookKind: NotebookItemKind.note,
-        category: _activeCategory == 'همه' ? null : _activeCategory,
-      );
-      if (!mounted) return;
-      await _open(note, startEditing: true);
-      return;
-    }
-
-    final preset = await _chooseChecklistPreset();
-    if (!mounted || preset == null) return;
-
     final note = await widget.repository.createNote(
-      title: preset.title,
-      checklist: preset.items,
-      notebookKind: NotebookItemKind.checklist,
+      title: 'یادداشت جدید',
+      notebookKind: NotebookItemKind.note,
       category: _activeCategory == 'همه' ? null : _activeCategory,
     );
     if (!mounted) return;
-    await _open(
-      note,
-      startEditing: true,
-      focusChecklistOnOpen: preset.items.isEmpty,
-    );
+    await _open(note, startEditing: true);
   }
 
   @override
@@ -479,7 +393,7 @@ class _NotebookPageState extends State<NotebookPage> {
                 children: [
                   Text('دفترچه'),
                   Text(
-                    'یادداشت‌ها و چک‌لیست‌ها',
+                    'یادداشت‌ها',
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                   ),
                 ],
@@ -523,25 +437,42 @@ class _NotebookPageState extends State<NotebookPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: SegmentedButton<_NotebookCreateMode>(
-                    key: const ValueKey('notebook-mode-switch'),
-                    segments: const [
-                      ButtonSegment(
-                        value: _NotebookCreateMode.note,
-                        label: Text('یادداشت‌ها'),
-                        icon: Icon(Icons.note_alt_outlined),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(
+                        child: _notebookFilterBox(
+                          key: const ValueKey('notebook-project-filter'),
+                          label: 'همه پروژه‌ها',
+                          value: _activeProjectId,
+                          items: _projects
+                              .map((project) => DropdownMenuItem<String?>(
+                                    value: project.id,
+                                    child: Text(project.title),
+                                  ))
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _activeProjectId = value),
+                        ),
                       ),
-                      ButtonSegment(
-                        value: _NotebookCreateMode.checklist,
-                        label: Text('چک‌لیست‌ها'),
-                        icon: Icon(Icons.checklist_outlined),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookFilterBox(
+                          key: const ValueKey('notebook-tag-filter'),
+                          label: 'همه برچسب‌ها',
+                          value: _activeTag,
+                          items: _availableTags
+                              .map((tag) => DropdownMenuItem<String?>(
+                                    value: tag,
+                                    child: Text('#$tag'),
+                                  ))
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _activeTag = value),
+                        ),
                       ),
                     ],
-                    selected: {_activeMode},
-                    onSelectionChanged: (selection) => setState(
-                      () => _activeMode = selection.first,
-                    ),
                   ),
                 ),
                 Expanded(
@@ -663,9 +594,7 @@ class _NotebookPageState extends State<NotebookPage> {
           : FloatingActionButton(
               key: const ValueKey('notebook-create'),
               onPressed: _loading ? null : _create,
-              tooltip: _activeMode == _NotebookCreateMode.note
-                  ? 'یادداشت جدید'
-                  : 'چک‌لیست جدید',
+              tooltip: 'یادداشت جدید',
               child: const Icon(Icons.add),
             ),
     );
@@ -682,6 +611,39 @@ class _NotebookPageState extends State<NotebookPage> {
     return _listDateFormatter.format(
       iranTime,
       usePersianDate: true,
+    );
+  }
+
+  Widget _notebookFilterBox({
+    required Key key,
+    required String label,
+    required String? value,
+    required List<DropdownMenuItem<String?>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F4FB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE1E2F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          key: key,
+          isExpanded: true,
+          value: value,
+          hint: Text(label, overflow: TextOverflow.ellipsis),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          items: [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text(label),
+            ),
+            ...items,
+          ],
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 
@@ -733,6 +695,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _editing = false;
   bool _saving = false;
   bool _checklistMode = false;
+  _NotebookInlineMode _inlineMode = _NotebookInlineMode.none;
+  bool _applyingInlineContinuation = false;
   String? _category;
   String? _projectId;
   String? _projectTitle;
@@ -743,6 +707,146 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (_titleFocus.hasFocus) return _titleUndo;
     if (_descriptionFocus.hasFocus) return _descriptionUndo;
     return _lastEditedController == _title ? _titleUndo : _descriptionUndo;
+  }
+
+  void _applyInlineContinuation() {
+    if (_applyingInlineContinuation ||
+        !_editing ||
+        _inlineMode == _NotebookInlineMode.none) {
+      return;
+    }
+    final value = _description.value;
+    final cursor = value.selection.extentOffset;
+    if (cursor <= 0 ||
+        cursor > value.text.length ||
+        !value.selection.isCollapsed ||
+        !value.text.substring(0, cursor).endsWith('\n')) {
+      return;
+    }
+    final beforeNewline = value.text.substring(0, cursor - 1);
+    final lineStart = beforeNewline.lastIndexOf('\n') + 1;
+    final previousLine = beforeNewline.substring(lineStart).trimLeft();
+    String prefix;
+    if (_inlineMode == _NotebookInlineMode.tick) {
+      prefix = '✓ ';
+    } else {
+      final match = RegExp(r'^([۰-۹0-9]+)\.\s').firstMatch(previousLine);
+      final previousNumber = match == null
+          ? 0
+          : int.tryParse(
+                match.group(1)!.replaceAllMapped(
+                  RegExp(r'[۰-۹]'),
+                  (m) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(m.group(0)!).toString(),
+                ),
+              ) ??
+              0;
+      prefix = _toPersianDigits(previousNumber + 1) + '. ';
+    }
+    _applyingInlineContinuation = true;
+    _description.value = value.copyWith(
+      text: value.text.substring(0, cursor) +
+          prefix +
+          value.text.substring(cursor),
+      selection: TextSelection.collapsed(offset: cursor + prefix.length),
+      composing: TextRange.empty,
+    );
+    _applyingInlineContinuation = false;
+  }
+
+  static String _toPersianDigits(int value) {
+    const digits = '۰۱۲۳۴۵۶۷۸۹';
+    return value.toString().split('').map((d) => digits[int.parse(d)]).join();
+  }
+
+  void _toggleInlineMode(_NotebookInlineMode mode) {
+    if (!_editing) return;
+    if (_checklistMode) _disableChecklistMode();
+    final selection = _description.selection;
+    final cursor = selection.isValid ? selection.extentOffset : _description.text.length;
+    final prefix = mode == _NotebookInlineMode.numbered ? '۱. ' : '✓ ';
+    final currentLineStart = _description.text.lastIndexOf('\n', cursor - 1) + 1;
+    final currentLine = _description.text.substring(currentLineStart, cursor);
+    final alreadyActive = (mode == _NotebookInlineMode.numbered &&
+            RegExp(r'^([۰-۹0-9]+)\.\s').hasMatch(currentLine)) ||
+        (mode == _NotebookInlineMode.tick && currentLine.startsWith('✓ '));
+    if (alreadyActive && _inlineMode == mode) {
+      final linePrefix = mode == _NotebookInlineMode.tick
+          ? '✓ '
+          : (RegExp(r'^([۰-۹0-9]+)\.\s').firstMatch(currentLine)?.group(0) ?? '');
+      if (linePrefix.isNotEmpty) {
+        final newText = _description.text.replaceRange(
+          currentLineStart,
+          currentLineStart + linePrefix.length,
+          '',
+        );
+        _description.value = _description.value.copyWith(
+          text: newText,
+          selection: TextSelection.collapsed(
+            offset: (cursor - linePrefix.length).clamp(0, newText.length).toInt(),
+          ),
+          composing: TextRange.empty,
+        );
+      }
+      setState(() => _inlineMode = _NotebookInlineMode.none);
+      _scheduleAutosave();
+      return;
+    }
+    final newText = _description.text.replaceRange(cursor, cursor, prefix);
+    _description.value = _description.value.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: cursor + prefix.length),
+      composing: TextRange.empty,
+    );
+    setState(() => _inlineMode = mode);
+    _scheduleAutosave();
+    _descriptionFocus.requestFocus();
+  }
+
+  void _enableChecklistMode() {
+    if (!_editing) return;
+    _inlineMode = _NotebookInlineMode.none;
+    final value = _description.value;
+    final cursor = value.selection.isValid ? value.selection.extentOffset : value.text.length;
+    final before = value.text.substring(0, cursor);
+    final after = value.text.substring(cursor);
+    final lines = after
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .map((line) => line.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), ''))
+        .map((line) => '[ ] ' + line)
+        .toList();
+    _description.value = value.copyWith(
+      text: before,
+      selection: TextSelection.collapsed(offset: before.length),
+      composing: TextRange.empty,
+    );
+    setState(() {
+      _checklistMode = true;
+      if (lines.isNotEmpty) _checklist.addAll(lines);
+    });
+    _scheduleAutosave();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _checklistFocus.requestFocus();
+    });
+  }
+
+  void _disableChecklistMode() {
+    if (!_checklistMode) return;
+    final labels = _checklist.map(_checklistLabel).where((v) => v.trim().isNotEmpty).toList();
+    final base = _description.text.trimRight();
+    final suffix = labels.isEmpty ? '' : (base.isEmpty ? '' : '\n') + labels.join('\n');
+    final newText = base + suffix;
+    setState(() {
+      _checklistMode = false;
+      _checklist.clear();
+      _description.value = _description.value.copyWith(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newText.length),
+        composing: TextRange.empty,
+      );
+    });
+    _scheduleAutosave();
   }
 
   void _undoCurrentField() {
@@ -764,6 +868,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _descriptionChangedListener = () => _lastEditedController = _description;
     _title.addListener(_titleChangedListener);
     _description.addListener(_descriptionChangedListener);
+    _description.addListener(_applyInlineContinuation);
     _checklistMode = widget.focusChecklistOnOpen;
     _load();
   }
@@ -912,6 +1017,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (selected == _newCategoryToken) {
       nextCategory = await _promptNewCategory();
       if (!mounted || nextCategory == null || nextCategory.trim().isEmpty) return;
+      await widget.repository.createCategory(nextCategory);
     } else if (selected == _clearCategoryToken) {
       nextCategory = null;
     } else {
@@ -1049,13 +1155,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   }
 
   Future<void> _pickTags() async {
-    final notes = await widget.repository.loadNotes();
+    final knownTags = await widget.repository.loadTags();
     if (!mounted) return;
-    final knownTags = <String>{
-      for (final note in notes)
-        for (final tag in note.tags)
-          if (tag.trim().isNotEmpty) tag.trim(),
-    }.toList()..sort();
 
     final selected = await showModalBottomSheet<List<String>>(
       context: context,
@@ -1091,6 +1192,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   onTap: () async {
                     final tag = await _promptNewTag();
                     if (!mounted || tag == null || tag.trim().isEmpty) return;
+                    await widget.repository.createTag(tag.trim());
+                    if (!mounted) return;
                     setSheetState(() => working.add(tag.trim()));
                   },
                 ),
@@ -1511,11 +1614,85 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         ],
         ),
       ),
+      bottomNavigationBar: _editing
+          ? SafeArea(
+              child: Material(
+                elevation: 4,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-number'),
+                          icon: Icons.format_list_numbered_rounded,
+                          label: 'شماره',
+                          selected: _inlineMode == _NotebookInlineMode.numbered,
+                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.numbered),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-tick'),
+                          icon: Icons.done_rounded,
+                          label: 'تیک',
+                          selected: _inlineMode == _NotebookInlineMode.tick,
+                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.tick),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-checklist'),
+                          icon: Icons.checklist_rounded,
+                          label: 'چک‌لیست',
+                          selected: _checklistMode,
+                          onPressed: () {
+                            if (_checklistMode) {
+                              _disableChecklistMode();
+                            } else {
+                              _enableChecklistMode();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
       ),
     );
   }
 
   static const _editorDateFormatter = PersianDateFormatter();
+  Widget _notebookToolButton({
+    required Key key,
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onPressed,
+  }) {
+    final color = Theme.of(context).colorScheme.primary;
+    return OutlinedButton.icon(
+      key: key,
+      onPressed: onPressed,
+      icon: Icon(icon, color: selected ? color : null),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: selected ? color.withValues(alpha: 0.10) : null,
+        side: BorderSide(
+          color: selected ? color : Theme.of(context).dividerColor,
+        ),
+      ),
+    );
+  }
+
+
 
   static String _formatEditorDate(DateTime value) {
     final iranTime = value.toUtc().add(const Duration(hours: 3, minutes: 30));

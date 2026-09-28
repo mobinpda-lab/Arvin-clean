@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   setUp(() {
@@ -49,7 +50,6 @@ void main() {
 
     expect(find.text('حرکت به راست'), findsOneWidget);
   });
-
 
   testWidgets('RTL Move-to-Today keeps the task and does not dismiss it',
       (tester) async {
@@ -126,5 +126,93 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('حرکت به چپ'), findsOneWidget);
+  });
+
+  testWidgets('RTL right swipe converts the same task to follow-up',
+      (tester) async {
+    const taskId = 'rtl-convert-right';
+
+    final settings = const AppSettings(
+      themeMode: ThemeMode.light,
+      usePersianDate: true,
+      fontFamily: null,
+      swipeRightAction: TaskSwipeAction.convertToFollowUp,
+      swipeLeftAction: TaskSwipeAction.none,
+    );
+
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از راست"}]',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(settings: settings),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    final result =
+        await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    await tester.pumpAndSettle();
+
+    expect(result, isFalse);
+    expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
+
+    expect(
+      find.text('کار به کار پیگیری‌دار تبدیل شد'),
+      findsOneWidget,
+    );
+    final stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isTrue);
+  });
+
+  testWidgets('RTL left swipe converts the same task to follow-up',
+      (tester) async {
+    const taskId = 'rtl-convert-left';
+
+    final settings = const AppSettings(
+      themeMode: ThemeMode.light,
+      usePersianDate: true,
+      fontFamily: null,
+      swipeRightAction: TaskSwipeAction.none,
+      swipeLeftAction: TaskSwipeAction.convertToFollowUp,
+    );
+
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از چپ"}]',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(settings: settings),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    final result =
+        await dismissible.confirmDismiss!(DismissDirection.startToEnd);
+    await tester.pumpAndSettle();
+
+    expect(result, isFalse);
+    expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
+
+    expect(
+      find.text('کار به کار پیگیری‌دار تبدیل شد'),
+      findsOneWidget,
+    );
+    final stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isTrue);
   });
 }

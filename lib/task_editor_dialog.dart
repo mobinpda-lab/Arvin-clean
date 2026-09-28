@@ -23,6 +23,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.onCreateProject,
     this.knownCategories = const [],
     this.knownTags = const [],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final Task? task;
@@ -41,6 +43,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
   final List<String> knownTags;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
@@ -63,10 +67,16 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
+  late List<String> _knownCategories;
+  late List<String> _knownTags;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
+  late final TextEditingController _recurrenceIntervalController;
   late TaskPriority _priority;
+  late bool _checklistEnabled;
+  late List<String> _checklist;
+  late final TextEditingController _checklistItemController;
   bool _saving = false;
 
   @override
@@ -91,10 +101,18 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
+    _knownCategories = List<String>.of(widget.knownCategories);
+    _knownTags = List<String>.of(widget.knownTags);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
+    _recurrenceIntervalController = TextEditingController(
+      text: '${task?.recurrence?.interval ?? 1}',
+    );
     _priority = task?.priority ?? TaskPriority.none;
+    _checklist = List<String>.of(task?.checklist ?? const []);
+    _checklistEnabled = task?.checklistEnabled ?? _checklist.isNotEmpty;
+    _checklistItemController = TextEditingController();
   }
 
   @override
@@ -102,6 +120,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
+    _recurrenceIntervalController.dispose();
+    _checklistItemController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -307,6 +327,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           _reminderDateTime != null ||
           _recurrence != null ||
           _priority != TaskPriority.none ||
+          _checklistEnabled ||
+          _checklist.isNotEmpty ||
           _completed;
     }
 
@@ -326,6 +348,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _reminderDateTime != existing.reminderDate ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _priority != existing.priority ||
+        _checklistEnabled != existing.checklistEnabled ||
+        !listEquals(_checklist, existing.checklist) ||
         _completed != existing.completed;
   }
 
@@ -391,7 +415,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
         category: _category,
-        checklist: List<String>.of(existing?.checklist ?? const []),
+        checklist: List<String>.of(_checklist),
+        checklistEnabled: _checklistEnabled,
         reminderDate: _reminderDateTime,
         priority: _priority,
         archived: existing?.archived ?? false,
@@ -525,8 +550,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 TextButton.icon(
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 17),
+                  icon: const Icon(Icons.close, size: 16),
                   label: const Text('حذف'),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
             ],
           ),
@@ -549,15 +579,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 onTap: onPickTime,
                 accent: accent,
               );
-              if (constraints.maxWidth < 320) {
-                return Column(
-                  children: [
-                    dateButton,
-                    const SizedBox(height: 10),
-                    timeButton,
-                  ],
-                );
-              }
               return Row(
                 children: [
                   Expanded(child: dateButton),
@@ -664,10 +685,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           icon: Icons.grid_view_rounded,
                           color: ArvinColors.category,
                           emptyLabel: 'بدون دسته',
-                          items: widget.knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
+                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
                               .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
                           onSelected: (value) => setState(() => _category = value),
-                          onCreate: () => _promptNewName('دسته جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('دسته جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateCategory?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              _category = created;
+                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -695,10 +726,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinTagRollBox(
-                          tags: widget.knownTags,
+                          tags: _knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () => _promptNewName('برچسب جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('برچسب جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateTag?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              if (!_tags.contains(created)) _tags.add(created);
+                              if (!_knownTags.contains(created)) _knownTags.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                     ],
@@ -717,7 +758,93 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       )).toList(),
                     ),
                   ],
-                  const SizedBox(height: 14),                  ExpansionTile(
+                  const SizedBox(height: 14),
+                  Container(
+                    key: const ValueKey('task-editor-checklist'),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDFDFE),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: _border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: SwitchListTile.adaptive(
+                            key: const ValueKey('task-editor-checklist-toggle'),
+                          contentPadding: EdgeInsets.zero,
+                          value: _checklistEnabled,
+                          onChanged: (value) => setState(() => _checklistEnabled = value),
+                          title: const Text('چک‌لیست', style: TextStyle(fontWeight: FontWeight.w800)),
+                            subtitle: const Text('فعال/غیرفعال با یک کلیک؛ موارد قبلی هنگام غیرفعال‌کردن حفظ می‌شوند.'),
+                          ),
+                        ),
+                        if (_checklistEnabled) ...[
+                          const SizedBox(height: 6),
+                          for (var index = 0; index < _checklist.length; index++)
+                            Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                key: ValueKey('task-editor-checklist-$index'),
+                              contentPadding: EdgeInsets.zero,
+                              value: _checklist[index].startsWith('[x] '),
+                              onChanged: (value) => setState(() {
+                                final label = _checklist[index].replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
+                                _checklist[index] = value == true ? '[x] $label' : '[ ] $label';
+                              }),
+                              title: Text(
+                                _checklist[index].replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), ''),
+                              ),
+                              secondary: IconButton(
+                                key: ValueKey('task-editor-checklist-remove-$index'),
+                                tooltip: 'حذف مورد',
+                                onPressed: () => setState(() => _checklist.removeAt(index)),
+                                icon: const Icon(Icons.delete_outline),
+                                ),
+                              ),
+                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  key: const ValueKey('task-editor-checklist-input'),
+                                  controller: _checklistItemController,
+                                  textInputAction: TextInputAction.done,
+                                  decoration: _fieldDecoration(label: 'مورد جدید'),
+                                  onSubmitted: (_) {
+                                    final value = _checklistItemController.text.trim();
+                                    if (value.isEmpty) return;
+                                    setState(() {
+                                      _checklist.add('[ ] $value');
+                                      _checklistItemController.clear();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                key: const ValueKey('task-editor-checklist-add'),
+                                tooltip: 'افزودن مورد',
+                                onPressed: () {
+                                  final value = _checklistItemController.text.trim();
+                                  if (value.isEmpty) return;
+                                  setState(() {
+                                    _checklist.add('[ ] $value');
+                                    _checklistItemController.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
                     initiallyExpanded: true,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -754,6 +881,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         builder: (context, constraints) {
                           final recurrence = DropdownButtonFormField<RecurrenceFrequency>(
                             key: const ValueKey('task-editor-recurrence'),
+                            isExpanded: true,
                             initialValue: _recurrence?.frequency,
                             decoration: _fieldDecoration(label: 'تکرار'),
                             items: [
@@ -769,18 +897,44 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               ),
                             ],
                             onChanged: (frequency) {
+                              final interval =
+                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
                                 _recurrence = frequency == null
                                     ? null
                                     : RecurrenceRule(
                                         frequency: frequency,
-                                        interval: _recurrence?.interval ?? 1,
+                                        interval: interval > 0 ? interval : 1,
                                       );
+                              });
+                            },
+                          );
+                          final recurrenceInterval = TextFormField(
+                            key: const ValueKey('task-editor-recurrence-interval'),
+                            controller: _recurrenceIntervalController,
+                            enabled: _recurrence != null,
+                            keyboardType: TextInputType.number,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(
+                              label: 'تعداد فاصله',
+                              hint: 'مثلاً ۵',
+                            ),
+                            onChanged: (value) {
+                              final interval = int.tryParse(value.trim());
+                              if (_recurrence == null || interval == null || interval < 1) {
+                                return;
+                              }
+                              setState(() {
+                                _recurrence = RecurrenceRule(
+                                  frequency: _recurrence!.frequency,
+                                  interval: interval,
+                                );
                               });
                             },
                           );
                           final priority = DropdownButtonFormField<TaskPriority>(
                             key: const ValueKey('task-editor-priority'),
+                            isExpanded: true,
                             initialValue: _priority,
                             decoration: _fieldDecoration(label: 'اولویت'),
                             items: TaskPriority.values
@@ -797,34 +951,32 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               }
                             },
                           );
-                          if (constraints.maxWidth < 400) {
-                            return Column(
-                              children: [
-                                recurrence,
-                                const SizedBox(height: 10),
-                                priority,
-                              ],
-                            );
-                          }
                           return Row(
                             children: [
                               Expanded(child: recurrence),
-                              const SizedBox(width: 10),
+                              if (_recurrence != null) ...[
+                                const SizedBox(width: 8),
+                                SizedBox(width: 88, child: recurrenceInterval),
+                              ],
+                              const SizedBox(width: 8),
                               Expanded(child: priority),
                             ],
                           );
                         },
                       ),
                       const SizedBox(height: 4),
-                      CheckboxListTile(
-                        key: const ValueKey('task-editor-completed'),
+                      Material(
+                        color: Colors.transparent,
+                        child: CheckboxListTile(
+                          key: const ValueKey('task-editor-completed'),
                         value: _completed,
                         onChanged: (value) =>
                             setState(() => _completed = value ?? false),
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
                         title: const Text('انجام‌شده'),
-                        subtitle: const Text('وضعیت فعلی این کار'),
+                          subtitle: const Text('وضعیت فعلی این کار'),
+                        ),
                       ),
                     ],
                   ),
@@ -918,16 +1070,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 icon: Icons.schedule_outlined,
                                 onTap: _pickFollowUpTime,
                               );
-
-                              if (constraints.maxWidth < 320) {
-                                return Column(
-                                  children: [
-                                    dateButton,
-                                    const SizedBox(height: 10),
-                                    timeButton,
-                                  ],
-                                );
-                              }
 
                               return Row(
                                 children: [

@@ -48,6 +48,27 @@ void main() {
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
   });
 
+  testWidgets('Home exposes mode-specific taxonomy roll filters', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-group-projects')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-project-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-project-category-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-tag-filter')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-group-categories')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-category-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-project-filter')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-group-labels')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-tag-project-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-tag-category-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-tag-filter')), findsOneWidget);
+  });
   testWidgets('HomePage loads legacy storage through the unified reader',
       (tester) async {
     final legacyTask = {
