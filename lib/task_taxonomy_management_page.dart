@@ -87,7 +87,9 @@ class _TaskTaxonomyManagementPageState
 
   Map<String, int> get _tags {
     final counts = <String, int>{};
-    for (final tag in tagNames) counts[tag] = 0;
+    for (final tag in tagNames) {
+      counts[tag] = 0;
+    }
     for (final task in tasks) {
       for (final raw in task.tags) {
         final tag = raw.trim();
