@@ -550,8 +550,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 TextButton.icon(
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 17),
+                  icon: const Icon(Icons.close, size: 16),
                   label: const Text('حذف'),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
             ],
           ),
@@ -929,6 +934,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           );
                           final priority = DropdownButtonFormField<TaskPriority>(
                             key: const ValueKey('task-editor-priority'),
+                            isExpanded: true,
                             initialValue: _priority,
                             decoration: _fieldDecoration(label: 'اولویت'),
                             items: TaskPriority.values
