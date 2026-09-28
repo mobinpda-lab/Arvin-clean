@@ -74,6 +74,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late RecurrenceRule? _recurrence;
   late final TextEditingController _recurrenceIntervalController;
   late TaskPriority _priority;
+  late bool _checklistEnabled;
+  late List<String> _checklist;
+  late final TextEditingController _checklistItemController;
   bool _saving = false;
 
   @override
@@ -107,6 +110,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       text: '${task?.recurrence?.interval ?? 1}',
     );
     _priority = task?.priority ?? TaskPriority.none;
+    _checklist = List<String>.of(task?.checklist ?? const []);
+    _checklistEnabled = task?.checklistEnabled ?? _checklist.isNotEmpty;
+    _checklistItemController = TextEditingController();
   }
 
   @override
@@ -115,6 +121,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _descriptionController.dispose();
     _tagController.dispose();
     _recurrenceIntervalController.dispose();
+    _checklistItemController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -320,6 +327,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           _reminderDateTime != null ||
           _recurrence != null ||
           _priority != TaskPriority.none ||
+          _checklistEnabled ||
+          _checklist.isNotEmpty ||
           _completed;
     }
 
@@ -339,6 +348,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _reminderDateTime != existing.reminderDate ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _priority != existing.priority ||
+        _checklistEnabled != existing.checklistEnabled ||
+        !listEquals(_checklist, existing.checklist) ||
         _completed != existing.completed;
   }
 
@@ -404,7 +415,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
         category: _category,
-        checklist: List<String>.of(existing?.checklist ?? const []),
+        checklist: List<String>.of(_checklist),
+        checklistEnabled: _checklistEnabled,
         reminderDate: _reminderDateTime,
         priority: _priority,
         archived: existing?.archived ?? false,
@@ -562,15 +574,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 onTap: onPickTime,
                 accent: accent,
               );
-              if (constraints.maxWidth < 320) {
-                return Column(
-                  children: [
-                    dateButton,
-                    const SizedBox(height: 10),
-                    timeButton,
-                  ],
-                );
-              }
               return Row(
                 children: [
                   Expanded(child: dateButton),
@@ -750,7 +753,87 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       )).toList(),
                     ),
                   ],
-                  const SizedBox(height: 14),                  ExpansionTile(
+                  const SizedBox(height: 14),
+                  Container(
+                    key: const ValueKey('task-editor-checklist'),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDFDFE),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: _border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SwitchListTile.adaptive(
+                          key: const ValueKey('task-editor-checklist-toggle'),
+                          contentPadding: EdgeInsets.zero,
+                          value: _checklistEnabled,
+                          onChanged: (value) => setState(() => _checklistEnabled = value),
+                          title: const Text('چک‌لیست', style: TextStyle(fontWeight: FontWeight.w800)),
+                          subtitle: const Text('فعال/غیرفعال با یک کلیک؛ موارد قبلی هنگام غیرفعال‌کردن حفظ می‌شوند.'),
+                        ),
+                        if (_checklistEnabled) ...[
+                          const SizedBox(height: 6),
+                          for (var index = 0; index < _checklist.length; index++)
+                            CheckboxListTile(
+                              key: ValueKey('task-editor-checklist-$index'),
+                              contentPadding: EdgeInsets.zero,
+                              value: _checklist[index].startsWith('[x] '),
+                              onChanged: (value) => setState(() {
+                                final label = _checklist[index].replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), '');
+                                _checklist[index] = value == true ? '[x] $label' : '[ ] $label';
+                              }),
+                              title: Text(
+                                _checklist[index].replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), ''),
+                              ),
+                              secondary: IconButton(
+                                key: ValueKey('task-editor-checklist-remove-$index'),
+                                tooltip: 'حذف مورد',
+                                onPressed: () => setState(() => _checklist.removeAt(index)),
+                                icon: const Icon(Icons.delete_outline),
+                              ),
+                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  key: const ValueKey('task-editor-checklist-input'),
+                                  controller: _checklistItemController,
+                                  textInputAction: TextInputAction.done,
+                                  decoration: _fieldDecoration(label: 'مورد جدید'),
+                                  onSubmitted: (_) {
+                                    final value = _checklistItemController.text.trim();
+                                    if (value.isEmpty) return;
+                                    setState(() {
+                                      _checklist.add('[ ] $value');
+                                      _checklistItemController.clear();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                key: const ValueKey('task-editor-checklist-add'),
+                                tooltip: 'افزودن مورد',
+                                onPressed: () {
+                                  final value = _checklistItemController.text.trim();
+                                  if (value.isEmpty) return;
+                                  setState(() {
+                                    _checklist.add('[ ] $value');
+                                    _checklistItemController.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
                     initiallyExpanded: true,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -856,31 +939,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               }
                             },
                           );
-                          if (constraints.maxWidth < 400) {
-                            return Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(child: recurrence),
-                                    if (_recurrence != null) ...[
-                                      const SizedBox(width: 10),
-                                      SizedBox(width: 120, child: recurrenceInterval),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                priority,
-                              ],
-                            );
-                          }
                           return Row(
                             children: [
                               Expanded(child: recurrence),
                               if (_recurrence != null) ...[
-                                const SizedBox(width: 10),
-                                SizedBox(width: 120, child: recurrenceInterval),
+                                const SizedBox(width: 8),
+                                SizedBox(width: 88, child: recurrenceInterval),
                               ],
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(child: priority),
                             ],
                           );
