@@ -242,7 +242,7 @@ void main() {
 
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
     final dueHour = find.text('انتخاب ساعت');
     await tester.ensureVisible(dueHour);
     await tester.tap(dueHour);
@@ -252,9 +252,9 @@ void main() {
     expect(find.text('دقیقه'), findsOneWidget);
     await tester.tap(find.text('انتخاب ساعت').last);
     await tester.pumpAndSettle();
-    // The Persian time picker is a dedicated modal. Confirming it returns
-    // control to Quick Capture without reopening the parent sheet.
-    expect(find.text('موعد'), findsOneWidget);
+    // The parent Due sheet is intentionally closed before opening the
+    // dedicated Persian time picker, so Quick Capture is restored underneath.
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
