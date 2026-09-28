@@ -360,6 +360,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       RecurrenceFrequency.weekly => 'هفته',
       RecurrenceFrequency.monthly => 'ماه',
       RecurrenceFrequency.yearly => 'سال',
+      RecurrenceFrequency.oncePerDay => 'روز',
     };
     return 'هر ' + _recurrence!.interval.toString() + ' ' + unit;
   }
@@ -713,7 +714,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         ),
                       ),
                     ],
-                  ),,
+                  ),
                 ],
               ),
               const SizedBox(height: 14),
