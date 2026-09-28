@@ -187,6 +187,86 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     return const PersianDateFormatter().format(value, usePersianDate: true);
   }
 
+  String _timeLabel(DateTime? value) {
+    if (value == null) return 'بدون ساعت';
+    final formatter = const PersianDateFormatter();
+    return formatter.toPersianDigits(
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+    );
+  }
+
+  Future<TimeOfDay?> _pickPersianTime(
+    BuildContext parentContext, {
+    required DateTime initial,
+  }) async {
+    var hour = initial.hour;
+    var minute = initial.minute - (initial.minute % 5);
+    return showModalBottomSheet<TimeOfDay>(
+      context: parentContext,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final formatter = const PersianDateFormatter();
+        return SafeArea(
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              final label = formatter.toPersianDigits(
+                '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+              );
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('انتخاب ساعت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            initialValue: hour,
+                            decoration: const InputDecoration(labelText: 'ساعت'),
+                            items: List.generate(24, (value) => DropdownMenuItem(value: value, child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))))),
+                            onChanged: (value) => setSheetState(() => hour = value ?? hour),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            initialValue: minute,
+                            decoration: const InputDecoration(labelText: 'دقیقه'),
+                            items: List.generate(12, (index) {
+                              final value = index * 5;
+                              return DropdownMenuItem(value: value, child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))));
+                            }),
+                            onChanged: (value) => setSheetState(() => minute = value ?? minute),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(
+                          sheetContext,
+                          TimeOfDay(hour: hour, minute: minute),
+                        ),
+                        child: const Text('انتخاب ساعت'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _pickDue() async {
     final selected = await showModalBottomSheet<Object>(
       context: context,
@@ -199,12 +279,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
             ListTile(title: const Text('هفته آینده'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 7)))),
             ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _dueDate ?? DateTime.now());
-              if (date == null || !sheetContext.mounted) return;
-              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime.now()));
-              if (time != null && sheetContext.mounted) {
-                Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
-              }
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final initial = _dueDate ?? DateTime.now();
+                final date = await _pickJalaliDate(context, initialDate: initial);
+                if (date == null || !mounted) return;
+                final time = await _pickPersianTime(context, initial: initial);
+                if (time == null || !mounted) return;
+                setState(() {
+                  _dueDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                });
+              });
             }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
@@ -227,10 +313,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
             ListTile(title: const Text('یک ساعت قبل'), onTap: () => Navigator.pop(sheetContext, -60)),
             ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-              final date = await _pickJalaliDate(sheetContext, initialDate: _reminderDate ?? _dueDate ?? DateTime.now());
-              if (date == null || !sheetContext.mounted) return;
-              final time = await showTimePicker(context: sheetContext, initialTime: TimeOfDay.fromDateTime(_reminderDate ?? DateTime.now()));
-              if (time != null && sheetContext.mounted) Navigator.pop(sheetContext, DateTime(date.year, date.month, date.day, time.hour, time.minute));
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final initial = _reminderDate ?? _dueDate ?? DateTime.now();
+                final date = await _pickJalaliDate(context, initialDate: initial);
+                if (date == null || !mounted) return;
+                final time = await _pickPersianTime(context, initial: initial);
+                if (time == null || !mounted) return;
+                setState(() {
+                  _reminderDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                });
+              });
             }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
           ],
@@ -289,7 +383,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
             if (selectedDay > monthLength) selectedDay = monthLength;
             final firstGregorian = formatter.fromJalali(JalaliDate(year, month, 1));
             final firstWeekday = firstGregorian.weekday % 7;
-            final days = List<int?>.filled(firstWeekday, null)..addAll(List<int>.generate(monthLength, (i) => i + 1));
+            final days = List<int?>.filled(firstWeekday, null, growable: true)..addAll(List<int>.generate(monthLength, (i) => i + 1));
             DateTime selectedDate() => formatter.fromJalali(JalaliDate(year, month, selectedDay));
             void changeMonth(int delta) {
               var nextYear = year;
@@ -549,7 +643,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   Row(
                     children: [
                       Expanded(child: ArvinRadioBox(
-                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                    label: _dueDate == null ? 'موعد' : (_dueDate!.hour == 0 && _dueDate!.minute == 0 ? _dateLabel(_dueDate) : '${_dateLabel(_dueDate)} • ${_timeLabel(_dueDate)}'),
                     selected: _dueDate != null,
                     icon: Icons.calendar_today_outlined,
                     onTap: _saving ? () {} : () { _pickDue(); },
@@ -563,7 +657,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   ),),
                       const SizedBox(width: 8),
                       Expanded(child: ArvinRadioBox(
-                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
+                    label: _reminderDate == null ? 'یادآور' : '${_dateLabel(_reminderDate)} • ${_timeLabel(_reminderDate)}',
                     selected: _reminderDate != null,
                     icon: Icons.notifications_none_outlined,
                     onTap: _saving ? () {} : () { _pickReminder(); },
