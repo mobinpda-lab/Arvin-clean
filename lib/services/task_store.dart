@@ -100,6 +100,10 @@ class TaskStore {
           'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
           <Object?>[target, DateTime.now().toIso8601String()],
         );
+        await executor.runUpdate(
+          'UPDATE tasks SET category = ? WHERE category = ?',
+          <Object?>[target, source],
+        );
         await executor.runDelete(
           'DELETE FROM taxonomy_categories WHERE name = ?',
           <Object?>[source],
@@ -118,6 +122,13 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
+      final referenced = await executor.runSelect(
+        'SELECT 1 FROM tasks WHERE category = ? LIMIT 1',
+        <Object?>[name],
+      );
+      if (referenced.isNotEmpty) {
+        throw StateError('Category is in use and cannot be deleted: $name');
+      }
       await executor.runDelete(
         'DELETE FROM taxonomy_categories WHERE name = ?',
         <Object?>[name],
@@ -132,14 +143,33 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      await executor.runInsert(
-        'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
-        <Object?>[_tagId(target), target],
-      );
-      await executor.runDelete(
-        'DELETE FROM tags WHERE name = ?',
+      final sourceRows = await executor.runSelect(
+        'SELECT id FROM tags WHERE name = ? LIMIT 1',
         <Object?>[source],
       );
+      if (sourceRows.isNotEmpty) {
+        final sourceId = sourceRows.single['id'];
+        final targetId = _tagId(target);
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+          <Object?>[targetId, target],
+        );
+        await executor.runDelete(
+          '''DELETE FROM task_tags
+             WHERE tag_id = ? AND task_id IN (
+               SELECT task_id FROM task_tags WHERE tag_id = ?
+             )''',
+          <Object?>[sourceId, targetId],
+        );
+        await executor.runUpdate(
+          'UPDATE task_tags SET tag_id = ? WHERE tag_id = ?',
+          <Object?>[targetId, sourceId],
+        );
+        await executor.runDelete(
+          'DELETE FROM tags WHERE id = ?',
+          <Object?>[sourceId],
+        );
+      }
     });
   }
 
@@ -149,6 +179,15 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
+      final referenced = await executor.runSelect(
+        '''SELECT 1 FROM task_tags
+           JOIN tags ON tags.id = task_tags.tag_id
+           WHERE tags.name = ? LIMIT 1''',
+        <Object?>[name],
+      );
+      if (referenced.isNotEmpty) {
+        throw StateError('Tag is in use and cannot be deleted: $name');
+      }
       await executor.runDelete(
         'DELETE FROM tags WHERE name = ?',
         <Object?>[name],
