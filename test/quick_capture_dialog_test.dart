@@ -256,7 +256,8 @@ void main() {
     expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.text('ساعت'), findsOneWidget);
     expect(find.text('دقیقه'), findsOneWidget);
-    expect(find.text('۰۹'), findsOneWidget);
+    expect(find.text('۱۴'), findsOneWidget);
+    expect(find.text('۳۵'), findsOneWidget);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
