@@ -250,6 +250,10 @@ void main() {
     expect(find.byType(TimePickerDialog), findsOneWidget);
     Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
     await tester.pumpAndSettle();
+    // Cancelling the time picker leaves its parent bottom sheet open; close it
+    // explicitly so the reminder control can be exercised independently.
+    Navigator.of(tester.element(find.text('موعد انجام'))).pop();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
