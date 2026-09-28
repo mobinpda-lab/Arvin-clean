@@ -375,13 +375,64 @@ class _HomePageState extends State<HomePage> {
   }) {
     final selectedMode = _homeGroupMode == mode;
     return Expanded(
-      child: ArvinRadioBox(
-        key: ValueKey('home-group-${mode.name}'),
-        label: label,
-        icon: icon,
-        accent: accent,
+      child: Semantics(
+        button: true,
         selected: selectedMode,
-        onTap: () => _selectHomeGroupMode(mode),
+        label: label,
+        child: Material(
+          color: selectedMode ? softAccent : ArvinColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            key: ValueKey('home-group-${mode.name}'),
+            onTap: () => _selectHomeGroupMode(mode),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              constraints: const BoxConstraints(minHeight: 76),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selectedMode ? accent : ArvinColors.border,
+                  width: selectedMode ? 1.8 : 1.0,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: selectedMode
+                          ? accent.withValues(alpha: 0.14)
+                          : softAccent,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Icon(icon, color: accent, size: 21),
+                  ),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      softWrap: false,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ArvinColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: selectedMode
+                            ? FontWeight.w800
+                            : FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
