@@ -50,6 +50,10 @@ class CanonicalNotebookRepository {
   /// No notebook-specific tag list is created here.
   Future<List<String>> loadTags() => _store.loadTags();
 
+  Future<String> createCategory(String value) => _store.createCategory(value);
+
+  Future<String> createTag(String value) => _store.createTag(value);
+
   Future<Task?> loadNote(String id) async {
     final tasks = await _store.load();
     for (final task in tasks) {
