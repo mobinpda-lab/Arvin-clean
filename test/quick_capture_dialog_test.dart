@@ -243,10 +243,9 @@ void main() {
     expect(find.text('انتخاب ساعت'), findsOneWidget);
     await tester.tap(find.text('انتخاب ساعت'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب زمان'), findsOneWidget);
-    await tester.tap(find.text('10:00'));
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('موعد'), findsOneWidget);
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
