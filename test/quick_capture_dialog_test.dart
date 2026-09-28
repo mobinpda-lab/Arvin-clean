@@ -228,10 +228,12 @@ void main() {
       MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: QuickCaptureDialog(
-            idFactory: () => 'time-1',
-            now: () => DateTime(2026, 9, 28, 9, 30),
-            onCaptured: (_) async {},
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'time-1',
+              now: () => DateTime(2026, 9, 28, 9, 30),
+              onCaptured: (_) async {},
+            ),
           ),
         ),
       ),
