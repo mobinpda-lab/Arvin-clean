@@ -74,13 +74,54 @@ void main() {
     expect(title.controller?.text, 'یادداشت جدید');
     expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
-    expect(find.text('چک‌لیست'), findsNothing);
+    expect(find.byKey(const ValueKey('notebook-inline-number')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-tick')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-checklist')), findsOneWidget);
 
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
     expect(notes.single.checklist, isEmpty);
   });
 
+  testWidgets('notebook editor has inline list tools and checklist toggles in place',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 13));
+    final note = await repository.createNote(
+      id: 'inline-tools',
+      title: 'یادداشت ابزارها',
+    );
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(ValueKey('notebook-note-' + note.id)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-edit')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('notebook-inline-number')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-tick')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-checklist')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-inline-checklist')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-checklist-input')),
+      'مورد اول',
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-checklist-add')));
+    await tester.pumpAndSettle();
+    expect(find.text('مورد اول'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-inline-checklist')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-done')));
+    await tester.pumpAndSettle();
+    final persisted = await repository.loadNote(note.id);
+    expect(persisted?.checklist, isEmpty);
+    expect(persisted?.description, contains('مورد اول'));
+  });
   testWidgets('selected category becomes default for new note and search filters cards',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 30));
