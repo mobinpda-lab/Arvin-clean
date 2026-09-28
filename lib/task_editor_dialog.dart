@@ -780,7 +780,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 });
                               },
                             ),
-                          ),
+                          );
                           final priority = Expanded(
                             child: DropdownButtonFormField<TaskPriority>(
                               key: const ValueKey('task-editor-priority'),
@@ -800,7 +800,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 }
                               },
                             ),
-                          ),
+                          );
                           if (constraints.maxWidth < 400) {
                             return Column(
                               children: [
