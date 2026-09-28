@@ -197,14 +197,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     return const PersianDateFormatter().format(value, usePersianDate: true);
   }
 
-  String _timeLabel(DateTime? value) {
-    if (value == null) return 'بدون ساعت';
-    final formatter = const PersianDateFormatter();
-    return formatter.toPersianDigits(
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
-    );
-  }
-
   Future<TimeOfDay?> _pickPersianTime(
     BuildContext parentContext, {
     required DateTime initial,
