@@ -247,13 +247,14 @@ void main() {
     await tester.ensureVisible(dueHour);
     await tester.tap(dueHour);
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
+    await tester.tap(find.text('انتخاب ساعت').last);
     await tester.pumpAndSettle();
-    // Cancelling the time picker leaves its parent bottom sheet open; close it
-    // explicitly so the reminder control can be exercised independently.
-    Navigator.of(tester.element(find.text('موعد انجام'))).pop();
-    await tester.pumpAndSettle();
+    // The Persian time picker is a dedicated modal. Confirming it returns
+    // control to Quick Capture without reopening the parent sheet.
+    expect(find.text('موعد'), findsOneWidget);
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
@@ -262,9 +263,9 @@ void main() {
     await tester.ensureVisible(reminderHour);
     await tester.tap(reminderHour);
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
-    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('ساعت'), findsOneWidget);
+    expect(find.text('دقیقه'), findsOneWidget);
   });
 
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
