@@ -221,6 +221,38 @@ void main() {
     expect(captured.single.title, 'کار فقط با عنوان');
   });
 
+
+  testWidgets('quick capture exposes direct hour selection for due date and reminder',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: QuickCaptureDialog(
+            idFactory: () => 'time-1',
+            now: () => DateTime(2026, 9, 28, 9, 30),
+            onCaptured: (_) async {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    await tester.tap(find.text('انتخاب ساعت'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب زمان'), findsOneWidget);
+    await tester.tap(find.text('10:00'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('موعد'), findsOneWidget);
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+  });
+
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
