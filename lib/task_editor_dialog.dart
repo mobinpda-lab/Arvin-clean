@@ -659,6 +659,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     children: [
                       Expanded(
                         child: ArvinRollBox<String>(
+                          key: const ValueKey('task-editor-category'),
                           label: 'دسته',
                           valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
                           icon: Icons.grid_view_rounded,
@@ -673,6 +674,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinRollBox<String>(
+                          key: const ValueKey('task-editor-project'),
                           label: 'پروژه',
                           valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
                           icon: Icons.folder_outlined,
@@ -695,6 +697,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinTagRollBox(
+                          key: const ValueKey('task-editor-tag'),
                           tags: widget.knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
