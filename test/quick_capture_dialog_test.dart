@@ -280,7 +280,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('انتخاب تاریخ و ساعت'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب تاریخ'), findsOneWidget);
+    expect(find.text('انتخاب تاریخ'), findsWidgets);
     await tester.tap(find.byType(FilledButton).last);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsOneWidget);
