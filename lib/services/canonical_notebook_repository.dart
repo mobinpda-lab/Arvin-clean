@@ -42,17 +42,13 @@ class CanonicalNotebookRepository {
     return notes;
   }
 
-  Future<List<String>> loadCategories() async {
-    final notes = await loadNotes();
-    final values = notes
-        .map((note) => note.category?.trim())
-        .whereType<String>()
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-    return values;
-  }
+  /// Notebook uses the same canonical Task taxonomy catalog as work/tasks.
+  /// No notebook-specific category list is created here.
+  Future<List<String>> loadCategories() => _store.loadCategories();
+
+  /// Notebook uses the same canonical Task tag catalog as work/tasks.
+  /// No notebook-specific tag list is created here.
+  Future<List<String>> loadTags() => _store.loadTags();
 
   Future<Task?> loadNote(String id) async {
     final tasks = await _store.load();
