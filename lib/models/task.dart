@@ -73,6 +73,7 @@ class Task {
     this.tags = const [],
     this.category,
     this.checklist = const [],
+    this.checklistEnabled = false,
     this.notebookKind,
     this.reminderDate,
     this.priority = TaskPriority.none,
@@ -95,6 +96,9 @@ class Task {
   List<String> tags;
   String? category;
   List<String> checklist;
+  /// Whether the Task editor's checklist mode is enabled. This is additive
+  /// and persisted through the canonical Task payload; it is not a second store.
+  bool checklistEnabled;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
   TaskPriority priority;
@@ -180,6 +184,7 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
+        if (checklistEnabled) 'checklistEnabled': true,
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
         if (priority != TaskPriority.none) 'priority': priority.name,
