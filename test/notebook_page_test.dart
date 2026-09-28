@@ -50,6 +50,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Notebook exposes notes only and no checklist surface', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await pumpNotebook(tester, repository);
+
+    expect(find.text('یادداشت‌ها'), findsOneWidget);
+    expect(find.text('چک‌لیست‌ها'), findsNothing);
+    expect(find.text('لیست خرید'), findsNothing);
+    expect(find.text('وسایل سفر'), findsNothing);
+  });
+
   testWidgets('simple-note editor stays text focused and hides checklist controls',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7));
