@@ -1,4 +1,4 @@
-# ARVIN PROJECT OPERATING PACKAGE v49.1
+# ARVIN PROJECT OPERATING PACKAGE v49.2
 ## Unified Canonical Software Production Standard
 
 **Project:** Arvin-clean
@@ -64,14 +64,14 @@ Evidence labels:
 Never present an inference as a verified fact.
 
 ## 4. Continuation Command
-The user command `ادامه` is an execution trigger.
+The user command `ادامه آروین` is the canonical Arvin execution trigger.
 
-When `ادامه` is received, AI must audit the live repository, compare it with the canonical document and current project state, identify the nearest real unfinished work, and continue safely where possible.
+When `ادامه آروین` is received, AI must audit the live repository, compare it with the canonical document and current project state, identify the nearest real unfinished work, and continue safely where possible.
 
 The command does not authorize unsafe, destructive or unvalidated work.
 
 At the end of every Arvin-related response, create a separate copyable text block containing exactly:
-`ادامه`
+`ادامه آروین`
 
 Nothing else belongs inside that final block.
 
@@ -380,7 +380,7 @@ All AI answers/reports for the project must be:
 - focused on result and next action
 - explicit about what is verified versus planned
 
-The final continuation marker is always separate from the main answer/report and contains exactly the word `ادامه`.
+The final continuation marker is always separate from the main answer/report and contains exactly `ادامه آروین`.
 
 ## Version Lineage
 v47.x/v48.0 = governance foundation.
@@ -388,3 +388,4 @@ v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
 v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
+v49.2 = canonicalized the user-facing continuation trigger as `ادامه آروین` so continuity survives conversation/account changes.
