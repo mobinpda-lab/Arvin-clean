@@ -577,57 +577,6 @@ class _NotebookPageState extends State<NotebookPage> {
                 ),
               ],
             ),
-      bottomNavigationBar: _editing
-          ? SafeArea(
-              child: Material(
-                elevation: 4,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                  child: Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Expanded(
-                        child: _notebookToolButton(
-                          key: const ValueKey('notebook-inline-number'),
-                          icon: Icons.format_list_numbered_rounded,
-                          label: 'شماره',
-                          selected: _inlineMode == _NotebookInlineMode.numbered,
-                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.numbered),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _notebookToolButton(
-                          key: const ValueKey('notebook-inline-tick'),
-                          icon: Icons.done_rounded,
-                          label: 'تیک',
-                          selected: _inlineMode == _NotebookInlineMode.tick,
-                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.tick),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _notebookToolButton(
-                          key: const ValueKey('notebook-inline-checklist'),
-                          icon: Icons.checklist_rounded,
-                          label: 'چک‌لیست',
-                          selected: _checklistMode,
-                          onPressed: () {
-                            if (_checklistMode) {
-                              _disableChecklistMode();
-                            } else {
-                              _enableChecklistMode();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          : null,
       bottomNavigationBar: _selectionMode
           ? TaskBulkSelectionBar(
               selectedCount: _selected.length,
@@ -1665,6 +1614,57 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         ],
         ),
       ),
+      bottomNavigationBar: _editing
+          ? SafeArea(
+              child: Material(
+                elevation: 4,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-number'),
+                          icon: Icons.format_list_numbered_rounded,
+                          label: 'شماره',
+                          selected: _inlineMode == _NotebookInlineMode.numbered,
+                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.numbered),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-tick'),
+                          icon: Icons.done_rounded,
+                          label: 'تیک',
+                          selected: _inlineMode == _NotebookInlineMode.tick,
+                          onPressed: () => _toggleInlineMode(_NotebookInlineMode.tick),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookToolButton(
+                          key: const ValueKey('notebook-inline-checklist'),
+                          icon: Icons.checklist_rounded,
+                          label: 'چک‌لیست',
+                          selected: _checklistMode,
+                          onPressed: () {
+                            if (_checklistMode) {
+                              _disableChecklistMode();
+                            } else {
+                              _enableChecklistMode();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
       ),
     );
   }
