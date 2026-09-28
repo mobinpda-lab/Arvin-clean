@@ -13,6 +13,7 @@ class ArvinRollBox<T> extends StatelessWidget {
     required this.color,
     this.emptyLabel,
     this.onCreate,
+    this.createLabel = 'افزودن',
   });
   final String label;
   final String valueLabel;
@@ -22,6 +23,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   final Color color;
   final String? emptyLabel;
   final Future<T?> Function()? onCreate;
+  final String createLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,7 @@ class ArvinRollBox<T> extends StatelessWidget {
             child: Row(children: [
               Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
               SizedBox(width: 9),
-              Text('افزودن'),
+              Text(createLabel),
             ]),
           ),
         ],
