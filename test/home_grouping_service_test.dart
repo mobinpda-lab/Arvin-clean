@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arvin_clean/home/grouping/home_grouping_service.dart';
-import 'package:arvin_clean/home/grouping/home_group_mode.dart';
-import 'package:arvin_clean/models/goal_project.dart';
-import 'package:arvin_clean/models/task.dart';
+import 'package:arvin/home/grouping/home_grouping_service.dart';
+import 'package:arvin/home/grouping/home_group_mode.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/task.dart';
 
 void main() {
   const service = HomeGroupingService();
