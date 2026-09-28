@@ -386,6 +386,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  List<String> get _homeTags {
+    final values = tasks
+        .expand((task) => task.tags)
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return values;
+  }
+
+  Widget _homeFilterBox({
+    required Key key,
+    required String label,
+    required String? value,
+    required List<DropdownMenuItem<String?>> items,
+    required ValueChanged<String?> onChanged,
+    required Color accent,
+  }) {
+    return Expanded(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accent.withValues(alpha: 0.28)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String?>(
+            key: key,
+            isExpanded: true,
+            value: value,
+            hint: Text(label, overflow: TextOverflow.ellipsis),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            items: [
+              DropdownMenuItem<String?>(
+                value: null,
+                child: Text(label),
+              ),
+              ...items,
+            ],
+            onChanged: onChanged,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _homeGroupSelector() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -422,6 +469,109 @@ class _HomePageState extends State<HomePage> {
             icon: Icons.sell_rounded,
             accent: ArvinColors.tag,
             softAccent: ArvinColors.tagSoft,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _homeActiveFilters() {
+    if (_homeGroupMode == HomeGroupMode.time) return const SizedBox.shrink();
+    final categoryItems = _homeCategories
+        .map((category) => DropdownMenuItem<String?>(
+              value: category,
+              child: Text(category),
+            ))
+        .toList();
+    final projectItems = projects
+        .map((project) => DropdownMenuItem<String?>(
+              value: project.id,
+              child: Text(project.title),
+            ))
+        .toList();
+    final tagItems = _homeTags
+        .map((tag) => DropdownMenuItem<String?>(
+              value: tag,
+              child: Text('#$tag'),
+            ))
+        .toList();
+
+    if (_homeGroupMode == HomeGroupMode.projects) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            _homeFilterBox(
+              key: const ValueKey('home-project-filter'),
+              label: 'همه پروژه‌ها',
+              value: _projectFilter,
+              items: projectItems,
+              onChanged: (value) => setState(() => _projectFilter = value),
+              accent: ArvinColors.project,
+            ),
+            const SizedBox(width: 8),
+            _homeFilterBox(
+              key: const ValueKey('home-project-category-filter'),
+              label: 'همه دسته‌ها',
+              value: _categoryFilter,
+              items: categoryItems,
+              onChanged: (value) => setState(() => _categoryFilter = value),
+              accent: ArvinColors.category,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_homeGroupMode == HomeGroupMode.categories) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Row(
+          children: [
+            _homeFilterBox(
+              key: const ValueKey('home-category-filter'),
+              label: 'همه دسته‌ها',
+              value: _categoryFilter,
+              items: categoryItems,
+              onChanged: (value) => setState(() => _categoryFilter = value),
+              accent: ArvinColors.category,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          _homeFilterBox(
+            key: const ValueKey('home-tag-project-filter'),
+            label: 'همه پروژه‌ها',
+            value: _projectFilter,
+            items: projectItems,
+            onChanged: (value) => setState(() => _projectFilter = value),
+            accent: ArvinColors.project,
+          ),
+          const SizedBox(width: 8),
+          _homeFilterBox(
+            key: const ValueKey('home-tag-category-filter'),
+            label: 'همه دسته‌ها',
+            value: _categoryFilter,
+            items: categoryItems,
+            onChanged: (value) => setState(() => _categoryFilter = value),
+            accent: ArvinColors.category,
+          ),
+          const SizedBox(width: 8),
+          _homeFilterBox(
+            key: const ValueKey('home-tag-filter'),
+            label: 'همه برچسب‌ها',
+            value: _tagFilter,
+            items: tagItems,
+            onChanged: (value) => setState(() => _tagFilter = value),
+            accent: ArvinColors.tag,
           ),
         ],
       ),
@@ -2022,6 +2172,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
+            _homeActiveFilters(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
