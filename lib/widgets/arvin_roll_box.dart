@@ -56,11 +56,11 @@ class ArvinRollBox<T> extends StatelessWidget {
         )),
         if (onCreate != null) ...[
           const PopupMenuDivider(),
-          const PopupMenuItem<Object?>(
+          PopupMenuItem<Object?>(
             value: _ArvinCreateToken.instance,
             child: Row(children: [
-              Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
-              SizedBox(width: 9),
+              const Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
+              const SizedBox(width: 9),
               Text(createLabel),
             ]),
           ),
