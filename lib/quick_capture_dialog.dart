@@ -275,8 +275,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     final initial = formatter.toJalali(initialDate);
     return showDialog<DateTime>(
       context: parentContext,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (sheetContext) {
         var year = initial.year;
         var month = initial.month;
@@ -301,8 +299,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               });
             }
             final canGoBack = !formatter.fromJalali(JalaliDate(year, month, 1)).isBefore(today);
-            return SafeArea(
-              child: Padding(
+            return Dialog(
+              child: SafeArea(
+                child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -347,6 +346,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 10),
                     SizedBox(width: double.infinity, child: FilledButton(onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
                   ],
+                ),
                 ),
               ),
             );
