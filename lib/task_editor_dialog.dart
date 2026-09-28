@@ -765,33 +765,39 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        SwitchListTile.adaptive(
-                          key: const ValueKey('task-editor-checklist-toggle'),
+                        Material(
+                          color: Colors.transparent,
+                          child: SwitchListTile.adaptive(
+                            key: const ValueKey('task-editor-checklist-toggle'),
                           contentPadding: EdgeInsets.zero,
                           value: _checklistEnabled,
                           onChanged: (value) => setState(() => _checklistEnabled = value),
                           title: const Text('چک‌لیست', style: TextStyle(fontWeight: FontWeight.w800)),
-                          subtitle: const Text('فعال/غیرفعال با یک کلیک؛ موارد قبلی هنگام غیرفعال‌کردن حفظ می‌شوند.'),
+                            subtitle: const Text('فعال/غیرفعال با یک کلیک؛ موارد قبلی هنگام غیرفعال‌کردن حفظ می‌شوند.'),
+                          ),
                         ),
                         if (_checklistEnabled) ...[
                           const SizedBox(height: 6),
                           for (var index = 0; index < _checklist.length; index++)
-                            CheckboxListTile(
-                              key: ValueKey('task-editor-checklist-$index'),
+                            Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                key: ValueKey('task-editor-checklist-$index'),
                               contentPadding: EdgeInsets.zero,
                               value: _checklist[index].startsWith('[x] '),
                               onChanged: (value) => setState(() {
-                                final label = _checklist[index].replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), '');
+                                final label = _checklist[index].replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
                                 _checklist[index] = value == true ? '[x] $label' : '[ ] $label';
                               }),
                               title: Text(
-                                _checklist[index].replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), ''),
+                                _checklist[index].replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), ''),
                               ),
                               secondary: IconButton(
                                 key: ValueKey('task-editor-checklist-remove-$index'),
                                 tooltip: 'حذف مورد',
                                 onPressed: () => setState(() => _checklist.removeAt(index)),
                                 icon: const Icon(Icons.delete_outline),
+                                ),
                               ),
                             ),
                           Row(
@@ -953,15 +959,18 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         },
                       ),
                       const SizedBox(height: 4),
-                      CheckboxListTile(
-                        key: const ValueKey('task-editor-completed'),
+                      Material(
+                        color: Colors.transparent,
+                        child: CheckboxListTile(
+                          key: const ValueKey('task-editor-completed'),
                         value: _completed,
                         onChanged: (value) =>
                             setState(() => _completed = value ?? false),
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
                         title: const Text('انجام‌شده'),
-                        subtitle: const Text('وضعیت فعلی این کار'),
+                          subtitle: const Text('وضعیت فعلی این کار'),
+                        ),
                       ),
                     ],
                   ),
