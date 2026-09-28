@@ -40,28 +40,20 @@ void main() {
     expect(find.text('توضیح'), findsOneWidget);
   });
 
-  testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
+  testWidgets('completed tasks are not projected into the overdue time group', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active","title":"کار انجام‌نشده","completed":false}]',
+          '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active-old","title":"کار انجام‌نشده قدیمی","completed":false,"dueDate":"2026-09-20T10:00:00.000"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    // «همه کارها»: a completed task with an old due date must remain visible.
-    expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
-    expect(find.text('کار انجام‌نشده'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-completed')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
-    expect(find.text('کار انجام‌نشده'), findsNothing);
+    // Canonical Home time grouping uses Task.dueDate; completed tasks are
+    // never classified as «عقب‌افتاده».
+    expect(find.text('عقب‌افتاده'), findsOneWidget);
+    expect(find.text('کار انجام‌نشده قدیمی'), findsOneWidget);
+    expect(find.text('کار انجام‌شده قدیمی'), findsNothing);
   });
 
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
