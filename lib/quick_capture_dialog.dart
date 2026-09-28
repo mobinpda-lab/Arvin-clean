@@ -57,6 +57,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _dueDate;
   DateTime? _reminderDate;
   RecurrenceRule? _recurrence;
+  final TextEditingController _recurrenceIntervalController =
+      TextEditingController(text: '1');
   String? _projectId;
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -97,6 +99,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _descriptionController.dispose();
     _categoryController.dispose();
     _tagsController.dispose();
+    _recurrenceIntervalController.dispose();
     super.dispose();
   }
 
@@ -279,17 +282,131 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         child: Wrap(
           children: [
             const ListTile(title: Text('تکرار')),
-            ListTile(title: const Text('بدون تکرار'), onTap: () => Navigator.pop(sheetContext)),
-            ListTile(title: const Text('روزانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.daily))),
-            ListTile(title: const Text('هفتگی'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.weekly))),
-            ListTile(title: const Text('ماهانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.monthly))),
-            ListTile(title: const Text('سالانه'), onTap: () => Navigator.pop(sheetContext, const RecurrenceRule(frequency: RecurrenceFrequency.yearly))),
+            ListTile(
+              title: const Text('بدون تکرار'),
+              onTap: () => Navigator.pop(sheetContext),
+            ),
+            ListTile(
+              title: const Text('هر روز'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر هفته'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.weekly),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر ماه'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.monthly),
+              ),
+            ),
+            ListTile(
+              title: const Text('هر سال'),
+              onTap: () => Navigator.pop(
+                sheetContext,
+                const RecurrenceRule(frequency: RecurrenceFrequency.yearly),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.tune_rounded),
+              title: const Text('تکرار سفارشی روزانه / هفتگی'),
+              subtitle: const Text('مثلاً هر ۵ روز یا هر ۳ هفته'),
+              onTap: () async {
+                final controller = TextEditingController(
+                  text: _recurrence?.interval.toString() ?? '1',
+                );
+                final custom = await showDialog<RecurrenceRule>(
+                  context: sheetContext,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('تکرار سفارشی'),
+                    content: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DropdownButtonFormField<RecurrenceFrequency>(
+                            initialValue: _recurrence?.frequency == RecurrenceFrequency.weekly
+                                ? RecurrenceFrequency.weekly
+                                : RecurrenceFrequency.daily,
+                            decoration: const InputDecoration(labelText: 'واحد تکرار'),
+                            items: const [
+                              DropdownMenuItem(
+                                value: RecurrenceFrequency.daily,
+                                child: Text('روز'),
+                              ),
+                              DropdownMenuItem(
+                                value: RecurrenceFrequency.weekly,
+                                child: Text('هفته'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                _recurrenceIntervalController.text =
+                                    controller.text;
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: controller,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'تعداد',
+                              hintText: 'مثلاً ۵',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('لغو'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          final interval = int.tryParse(controller.text.trim());
+                          if (interval == null || interval < 1) return;
+                          Navigator.pop(
+                            dialogContext,
+                            RecurrenceRule(
+                              frequency: _recurrence?.frequency == RecurrenceFrequency.weekly
+                                  ? RecurrenceFrequency.weekly
+                                  : RecurrenceFrequency.daily,
+                              interval: interval,
+                            ),
+                          );
+                        },
+                        child: const Text('ثبت'),
+                      ),
+                    ],
+                  ),
+                );
+                controller.dispose();
+                if (custom != null && sheetContext.mounted) {
+                  Navigator.pop(sheetContext, custom);
+                }
+              },
+            ),
           ],
         ),
       ),
     );
     if (!mounted) return;
-    setState(() => _recurrence = selected);
+    setState(() {
+      _recurrence = selected;
+      if (selected != null) {
+        _recurrenceIntervalController.text = selected.interval.toString();
+      }
+    });
   }
 
 
