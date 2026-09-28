@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   setUp(() {
@@ -161,12 +162,14 @@ void main() {
     expect(result, isFalse);
     expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'پیگیری‌دار'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
+    expect(
+      find.text('کار به کار پیگیری‌دار تبدیل شد'),
+      findsOneWidget,
+    );
+    final stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isTrue);
   });
 
   testWidgets('RTL left swipe converts the same task to follow-up',
@@ -203,11 +206,13 @@ void main() {
     expect(result, isFalse);
     expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'پیگیری‌دار'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
+    expect(
+      find.text('کار به کار پیگیری‌دار تبدیل شد'),
+      findsOneWidget,
+    );
+    final stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isTrue);
   });
 }
