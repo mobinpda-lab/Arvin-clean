@@ -331,22 +331,6 @@ class _HomePageState extends State<HomePage> {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
-
-    // Statistical filters are list projections, not due-date groups. Keeping
-    // them as a flat projection prevents a completed task whose old due date
-    // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
-    // The task remains completed (and therefore not overdue) while still being
-    // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
-    if (filter == 'کل' || filter == 'فعال' || filter == 'انجام‌شده') {
-      return [
-        HomeGroup<Task>(
-          id: 'filtered',
-          title: filter,
-          items: visible,
-        ),
-      ];
-    }
-
     return homeGroupingService.buildGroups(
       _homeGroupMode,
       visible,
@@ -1616,18 +1600,6 @@ class _HomePageState extends State<HomePage> {
             );
         }
         return false;
-      case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
-        return false;
       case TaskSwipeAction.none:
         return false;
     }
@@ -1639,14 +1611,12 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(

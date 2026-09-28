@@ -440,12 +440,17 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 ),
               ),
               if (widget.onCaptured == null) const SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(child: ArvinRollBox<String>(
+                  ArvinRadioBox(
+                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                    selected: _dueDate != null,
+                    icon: Icons.calendar_today_outlined,
+                    onTap: _saving ? () {} : () { _pickDue(); },
+                  ),
+                  ArvinRollBox<String>(
                     label: 'پروژه',
                     valueLabel: _projectId == null
                         ? 'پروژه'
@@ -480,9 +485,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     onSelected: (value) => setState(() {
                       _projectId = value;
                     }),
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinRollBox<String>(
+                  ),
+                  ArvinRollBox<String>(
                     label: 'دسته',
                     valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
                     icon: Icons.grid_view_rounded,
@@ -510,9 +514,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       setState(() => _categoryController.text = value);
                       return value;
                     },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinTagRollBox(
+                  ),
+                  ArvinTagRollBox(
                     tags: widget.knownTags,
                     selectedTags: _selectedTags,
                     onChanged: (values) => setState(() {
@@ -542,33 +545,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       });
                       return value;
                     },
-                  ),),
-                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(child: ArvinRadioBox(
-                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
-                    selected: _dueDate != null,
-                    icon: Icons.calendar_today_outlined,
-                    onTap: _saving ? () {} : () { _pickDue(); },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinRadioBox(
-                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
-                    selected: _recurrence != null,
-                    icon: Icons.repeat_rounded,
-                    onTap: _saving ? () {} : () { _pickRecurrence(); },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinRadioBox(
+                  ArvinRadioBox(
                     label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
                     selected: _reminderDate != null,
                     icon: Icons.notifications_none_outlined,
                     onTap: _saving ? () {} : () { _pickReminder(); },
-                  ),),
-                    ],
+                  ),
+                  ArvinRadioBox(
+                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
+                    selected: _recurrence != null,
+                    icon: Icons.repeat_rounded,
+                    onTap: _saving ? () {} : () { _pickRecurrence(); },
                   ),
                 ],
               ),

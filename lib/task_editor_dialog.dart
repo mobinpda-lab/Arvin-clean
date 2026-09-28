@@ -269,7 +269,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
-            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
+            TextField(key: const ValueKey('arvin-inline-create-name'), controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
             const SizedBox(height: 12),
             FilledButton(onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()), child: const Text('افزودن')),
           ]),
@@ -659,6 +659,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     children: [
                       Expanded(
                         child: ArvinRollBox<String>(
+                          key: const ValueKey('task-editor-category'),
                           label: 'دسته',
                           valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
                           icon: Icons.grid_view_rounded,
@@ -673,6 +674,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinRollBox<String>(
+                          key: const ValueKey('task-editor-project'),
                           label: 'پروژه',
                           valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
                           icon: Icons.folder_outlined,
@@ -695,6 +697,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinTagRollBox(
+                          key: const ValueKey('task-editor-tag'),
                           tags: widget.knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
@@ -750,69 +753,51 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         accent: ArvinColors.reminder,
                       ),
                       const SizedBox(height: 10),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final recurrence = DropdownButtonFormField<RecurrenceFrequency>(
-                            key: const ValueKey('task-editor-recurrence'),
-                            initialValue: _recurrence?.frequency,
-                            decoration: _fieldDecoration(label: 'تکرار'),
-                            items: [
-                              const DropdownMenuItem<RecurrenceFrequency>(
-                                value: null,
-                                child: Text('بدون تکرار'),
-                              ),
-                              ...RecurrenceFrequency.values.map(
-                                (frequency) => DropdownMenuItem<RecurrenceFrequency>(
+                      DropdownButtonFormField<RecurrenceFrequency>(
+                        key: const ValueKey('task-editor-recurrence'),
+                        initialValue: _recurrence?.frequency,
+                        decoration: _fieldDecoration(label: 'تکرار'),
+                        items: [
+                          const DropdownMenuItem<RecurrenceFrequency>(
+                            value: null,
+                            child: Text('بدون تکرار'),
+                          ),
+                          ...RecurrenceFrequency.values.map(
+                            (frequency) =>
+                                DropdownMenuItem<RecurrenceFrequency>(
                                   value: frequency,
                                   child: Text(_recurrenceLabel(frequency)),
                                 ),
+                          ),
+                        ],
+                        onChanged: (frequency) {
+                          setState(() {
+                            _recurrence = frequency == null
+                                ? null
+                                : RecurrenceRule(
+                                    frequency: frequency,
+                                    interval: _recurrence?.interval ?? 1,
+                                  );
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<TaskPriority>(
+                        key: const ValueKey('task-editor-priority'),
+                        initialValue: _priority,
+                        decoration: _fieldDecoration(label: 'اولویت'),
+                        items: TaskPriority.values
+                            .map(
+                              (priority) => DropdownMenuItem<TaskPriority>(
+                                value: priority,
+                                child: Text(_priorityLabel(priority)),
                               ),
-                            ],
-                            onChanged: (frequency) {
-                              setState(() {
-                                _recurrence = frequency == null
-                                    ? null
-                                    : RecurrenceRule(
-                                        frequency: frequency,
-                                        interval: _recurrence?.interval ?? 1,
-                                      );
-                              });
-                            },
-                          );
-                          final priority = DropdownButtonFormField<TaskPriority>(
-                            key: const ValueKey('task-editor-priority'),
-                            initialValue: _priority,
-                            decoration: _fieldDecoration(label: 'اولویت'),
-                            items: TaskPriority.values
-                                .map(
-                                  (priority) => DropdownMenuItem<TaskPriority>(
-                                    value: priority,
-                                    child: Text(_priorityLabel(priority)),
-                                  ),
-                                )
-                                .toList(growable: false),
-                            onChanged: (priority) {
-                              if (priority != null) {
-                                setState(() => _priority = priority);
-                              }
-                            },
-                          );
-                          if (constraints.maxWidth < 400) {
-                            return Column(
-                              children: [
-                                recurrence,
-                                const SizedBox(height: 10),
-                                priority,
-                              ],
-                            );
+                            )
+                            .toList(growable: false),
+                        onChanged: (priority) {
+                          if (priority != null) {
+                            setState(() => _priority = priority);
                           }
-                          return Row(
-                            children: [
-                              Expanded(child: recurrence),
-                              const SizedBox(width: 10),
-                              Expanded(child: priority),
-                            ],
-                          );
                         },
                       ),
                       const SizedBox(height: 4),
