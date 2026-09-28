@@ -322,6 +322,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 final controller = TextEditingController(
                   text: _recurrence?.interval.toString() ?? '1',
                 );
+                var frequency = _recurrence?.frequency == RecurrenceFrequency.weekly
+                    ? RecurrenceFrequency.weekly
+                    : RecurrenceFrequency.daily;
                 final custom = await showDialog<RecurrenceRule>(
                   context: sheetContext,
                   builder: (dialogContext) => AlertDialog(
@@ -331,27 +334,27 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          DropdownButtonFormField<RecurrenceFrequency>(
-                            initialValue: _recurrence?.frequency == RecurrenceFrequency.weekly
-                                ? RecurrenceFrequency.weekly
-                                : RecurrenceFrequency.daily,
-                            decoration: const InputDecoration(labelText: 'واحد تکرار'),
-                            items: const [
-                              DropdownMenuItem(
-                                value: RecurrenceFrequency.daily,
-                                child: Text('روز'),
-                              ),
-                              DropdownMenuItem(
-                                value: RecurrenceFrequency.weekly,
-                                child: Text('هفته'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                _recurrenceIntervalController.text =
-                                    controller.text;
-                              }
-                            },
+                          StatefulBuilder(
+                            builder: (context, setDialogState) =>
+                                DropdownButtonFormField<RecurrenceFrequency>(
+                              initialValue: frequency,
+                              decoration: const InputDecoration(labelText: 'واحد تکرار'),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: RecurrenceFrequency.daily,
+                                  child: Text('روز'),
+                                ),
+                                DropdownMenuItem(
+                                  value: RecurrenceFrequency.weekly,
+                                  child: Text('هفته'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setDialogState(() => frequency = value);
+                                }
+                              },
+                            ),
                           ),
                           const SizedBox(height: 12),
                           TextField(
@@ -378,9 +381,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           Navigator.pop(
                             dialogContext,
                             RecurrenceRule(
-                              frequency: _recurrence?.frequency == RecurrenceFrequency.weekly
-                                  ? RecurrenceFrequency.weekly
-                                  : RecurrenceFrequency.daily,
+                              frequency: frequency,
                               interval: interval,
                             ),
                           );
