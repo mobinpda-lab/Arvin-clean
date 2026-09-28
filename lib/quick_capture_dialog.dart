@@ -147,8 +147,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         _saving = false;
         _error = 'ثبت انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
       });
-    }
-  }
+    }  }
 
 
   Future<void> _openFullForm() async {
@@ -274,7 +273,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }) async {
     final formatter = const PersianDateFormatter();
     final initial = formatter.toJalali(initialDate);
-    return showModalBottomSheet<DateTime>(
+    return showDialog<DateTime>(
       context: parentContext,
       isScrollControlled: true,
       showDragHandle: true,
@@ -297,8 +296,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               if (nextMonth < 1) { nextMonth = 12; nextYear--; }
               if (nextMonth > 12) { nextMonth = 1; nextYear++; }
               setSheetState(() {
-                year = nextYear; month = nextMonth;
-                final length = formatter.monthLength(year, month);
+                year = nextYear; month = nextMonth;                final length = formatter.monthLength(year, month);
                 if (selectedDay > length) selectedDay = length;
               });
             }
@@ -447,8 +445,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     children: [
                       Expanded(child: ArvinRollBox<String>(
                     label: 'پروژه',
-                    valueLabel: _projectId == null
-                        ? 'پروژه'
+                    valueLabel: _projectId == null                        ? 'پروژه'
                         : widget.projects
                                 .where((project) => project.id == _projectId)
                                 .map((project) => project.title)
@@ -597,8 +594,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       onPressed: _saving ? null : _submit,
                       child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                     ),
-                  ),
-                ],
+                  ),                ],
               ),
             ],
           ),
