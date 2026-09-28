@@ -23,6 +23,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.onCreateProject,
     this.knownCategories = const [],
     this.knownTags = const [],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final Task? task;
@@ -41,6 +43,8 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
   final List<String> knownTags;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
@@ -63,6 +67,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
+  late List<String> _knownCategories;
+  late List<String> _knownTags;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
@@ -91,6 +97,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
+    _knownCategories = List<String>.of(widget.knownCategories);
+    _knownTags = List<String>.of(widget.knownTags);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
@@ -664,10 +672,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           icon: Icons.grid_view_rounded,
                           color: ArvinColors.category,
                           emptyLabel: 'بدون دسته',
-                          items: widget.knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
+                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
                               .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
                           onSelected: (value) => setState(() => _category = value),
-                          onCreate: () => _promptNewName('دسته جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('دسته جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateCategory?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              _category = created;
+                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -695,10 +713,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinTagRollBox(
-                          tags: widget.knownTags,
+                          tags: _knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () => _promptNewName('برچسب جدید'),
+                          onCreate: () async {
+                            final value = await _promptNewName('برچسب جدید');
+                            if (value == null) return null;
+                            final created = await widget.onCreateTag?.call(value) ?? value;
+                            if (!mounted) return created;
+                            setState(() {
+                              if (!_tags.contains(created)) _tags.add(created);
+                              if (!_knownTags.contains(created)) _knownTags.add(created);
+                            });
+                            return created;
+                          },
                         ),
                       ),
                     ],
