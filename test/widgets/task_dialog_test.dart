@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('افزودن برچسب'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'نام'), 'مهم');
+    await tester.enterText(find.byKey(const ValueKey('arvin-inline-create-name')), 'مهم');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
