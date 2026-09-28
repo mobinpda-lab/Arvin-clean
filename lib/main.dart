@@ -1914,7 +1914,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             IconButton(
-                              key: ValueKey('task-card-clear-due-' + task.id),
+                              key: ValueKey('task-card-clear-due-${task.id}'),
                               tooltip: 'حذف موعد',
                               visualDensity: VisualDensity.compact,
                               padding: EdgeInsets.zero,
