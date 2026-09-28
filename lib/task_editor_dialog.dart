@@ -787,6 +787,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         builder: (context, constraints) {
                           final recurrence = DropdownButtonFormField<RecurrenceFrequency>(
                             key: const ValueKey('task-editor-recurrence'),
+                            isExpanded: true,
                             initialValue: _recurrence?.frequency,
                             decoration: _fieldDecoration(label: 'تکرار'),
                             items: [
