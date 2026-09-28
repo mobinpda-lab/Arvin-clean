@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'services/persian_date_formatter.dart';
@@ -28,18 +29,36 @@ class _NotebookPageState extends State<NotebookPage> {
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
   String _activeCategory = 'همه';
+  String? _activeProjectId;
+  String? _activeTag;
+  List<ProjectPlan> _projects = const [];
+  List<String> _availableTags = const [];
   bool _showTrash = false;
 
   static const _referenceCategories = <String>['همه', 'شخصی', 'کاری', 'ایده‌ها'];
 
+  String? _projectIdForNote(String noteId) {
+    for (final project in _projects) {
+      if (project.itemIds.contains(noteId)) return project.id;
+    }
+    return null;
+  }
+
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      // Checklists are a Task feature, not a Notebook feature.
-      // Legacy checklist data remains in canonical Task storage but is not
-      // exposed as a Notebook item, so no user data is deleted.
-      if (note.isNotebookChecklist) return false;
+      // Checklist is an editor tool, not a Notebook list section.
+      // Existing canonical checklist data is preserved and can still be
+      // opened by its canonical item id.
       if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
+        return false;
+      }
+      if (_activeProjectId != null &&
+          _projectIdForNote(note.id) != _activeProjectId) {
+        return false;
+      }
+      if (_activeTag != null &&
+          !note.tags.map((tag) => tag.trim()).contains(_activeTag)) {
         return false;
       }
       if (query.isEmpty) return true;
@@ -58,9 +77,13 @@ class _NotebookPageState extends State<NotebookPage> {
     final notes = _showTrash
         ? await widget.repository.loadTrashedNotes()
         : await widget.repository.loadNotes();
+    final projects = await widget.repository.loadProjects();
+    final tags = await widget.repository.loadTags();
     if (!mounted) return;
     setState(() {
       _notes = notes;
+      _projects = List<ProjectPlan>.of(projects);
+      _availableTags = List<String>.of(tags)..sort();
       _loading = false;
     });
   }
@@ -411,6 +434,45 @@ class _NotebookPageState extends State<NotebookPage> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(
+                        child: _notebookFilterBox(
+                          key: const ValueKey('notebook-project-filter'),
+                          label: 'همه پروژه‌ها',
+                          value: _activeProjectId,
+                          items: _projects
+                              .map((project) => DropdownMenuItem<String>(
+                                    value: project.id,
+                                    child: Text(project.title),
+                                  ))
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _activeProjectId = value),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _notebookFilterBox(
+                          key: const ValueKey('notebook-tag-filter'),
+                          label: 'همه برچسب‌ها',
+                          value: _activeTag,
+                          items: _availableTags
+                              .map((tag) => DropdownMenuItem<String>(
+                                    value: tag,
+                                    child: Text('#$tag'),
+                                  ))
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _activeTag = value),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: visibleNotes.isEmpty
                       ? Center(
@@ -547,6 +609,39 @@ class _NotebookPageState extends State<NotebookPage> {
     return _listDateFormatter.format(
       iranTime,
       usePersianDate: true,
+    );
+  }
+
+  Widget _notebookFilterBox({
+    required Key key,
+    required String label,
+    required String? value,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F4FB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE1E2F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          key: key,
+          isExpanded: true,
+          value: value,
+          hint: Text(label, overflow: TextOverflow.ellipsis),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          items: [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text(label),
+            ),
+            ...items,
+          ],
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 
