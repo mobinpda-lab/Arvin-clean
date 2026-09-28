@@ -222,7 +222,7 @@ class _TaskTaxonomyManagementPageState
     });
     final changed = _takePendingChanged();
     await _persistMutation(changed, '$changed مورد به «$next» منتقل شد');
-    if (changed > 0) await store.renameCategoryCatalog(category, next);
+    await store.renameCategoryCatalog(category, next);
   }
 
   void _showDeleteBlocked(TaskTaxonomyDeleteBlocked error) {
@@ -266,7 +266,7 @@ class _TaskTaxonomyManagementPageState
     });
     final changed = _takePendingChanged();
     await _persistMutation(changed, '$changed مورد با برچسب «$next» به‌روز شد');
-    if (changed > 0) await store.renameTagCatalog(tag, next);
+    await store.renameTagCatalog(tag, next);
   }
 
   Future<void> _deleteTag(String tag) async {
