@@ -191,8 +191,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
+        child: SingleChildScrollView(
+          child: Wrap(
+            children: [
             const ListTile(title: Text('موعد انجام')),
             ListTile(title: const Text('امروز'), onTap: () => Navigator.pop(sheetContext, DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))),
             ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
@@ -213,7 +214,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               }
             }),
             ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -226,8 +228,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
+        child: SingleChildScrollView(
+          child: Wrap(
+            children: [
             const ListTile(title: Text('یادآور')),
             ListTile(title: const Text('۱۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -10)),
             ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
@@ -246,7 +249,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               }
             }),
             ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-          ],
+            ],
+          ),
         ),
       ),
     );
