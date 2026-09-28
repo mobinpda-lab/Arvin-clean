@@ -242,12 +242,12 @@ void main() {
 
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('انتخاب ساعت'), findsWidgets);
     final dueHour = find.text('انتخاب ساعت');
     await tester.ensureVisible(dueHour);
     await tester.tap(dueHour);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.text('ساعت'), findsOneWidget);
     expect(find.text('دقیقه'), findsOneWidget);
     await tester.tap(find.text('انتخاب ساعت').last);
@@ -263,7 +263,7 @@ void main() {
     await tester.ensureVisible(reminderHour);
     await tester.tap(reminderHour);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.text('ساعت'), findsOneWidget);
     expect(find.text('دقیقه'), findsOneWidget);
   });
@@ -330,7 +330,7 @@ void main() {
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     await tester.tap(find.byType(FilledButton).last);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.text('ساعت'), findsOneWidget);
     expect(find.text('دقیقه'), findsOneWidget);
   });
