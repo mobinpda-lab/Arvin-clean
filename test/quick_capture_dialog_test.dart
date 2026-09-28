@@ -243,7 +243,9 @@ void main() {
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsOneWidget);
-    await tester.tap(find.text('انتخاب ساعت'));
+    final dueHour = find.text('انتخاب ساعت');
+    await tester.ensureVisible(dueHour);
+    await tester.tap(dueHour);
     await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsOneWidget);
     Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
@@ -251,7 +253,9 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    final reminderHour = find.text('انتخاب ساعت');
+    expect(reminderHour, findsOneWidget);
+    await tester.ensureVisible(reminderHour);
   });
 
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
