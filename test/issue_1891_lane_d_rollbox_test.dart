@@ -33,16 +33,18 @@ void main() {
     await tester.tap(find.byTooltip('برچسب'));
     await tester.pumpAndSettle();
 
-    expect(find.text('مهم'), findsOneWidget);
-    expect(find.text('مشتری'), findsOneWidget);
+    final important = find.widgetWithText(CheckedPopupMenuItem<String>, 'مهم');
+    final customer = find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری');
+    expect(important, findsOneWidget);
+    expect(customer, findsOneWidget);
 
-    await tester.tap(find.text('مهم'));
+    await tester.tap(important);
     await tester.pumpAndSettle();
     expect(selected, <String>['مهم']);
 
     await tester.tap(find.byTooltip('برچسب'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('مشتری'));
+    await tester.tap(find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری'));
     await tester.pumpAndSettle();
 
     expect(selected, containsAll(<String>['مهم', 'مشتری']));
