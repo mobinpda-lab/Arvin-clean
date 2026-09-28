@@ -157,6 +157,17 @@ void main() {
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
+  test('persists Convert to FollowUp independently on either swipe side', () async {
+    final service = AppSettingsService();
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.trash,
+      left: TaskSwipeAction.convertToFollowUp,
+    );
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.trash);
+    expect(settings.swipeLeftAction, TaskSwipeAction.convertToFollowUp);
+  });
+
   test('persists Move to Today as a swipe action', () async {
     SharedPreferences.setMockInitialValues({});
     final service = AppSettingsService();
