@@ -412,11 +412,34 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   children: [
                     const Text('انتخاب تاریخ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    Row(children: [
-                      IconButton(tooltip: 'ماه قبل', onPressed: canGoBack ? () => changeMonth(-1) : null, icon: const Icon(Icons.chevron_right)),
-                      Expanded(child: Center(child: Text('${formatter.monthName(month)} ${formatter.toPersianDigits(year.toString())}', style: const TextStyle(fontWeight: FontWeight.w700)))),
-                      IconButton(tooltip: 'ماه بعد', onPressed: () => changeMonth(1), icon: const Icon(Icons.chevron_left)),
-                    ]),
+                    Row(
+                      children: [
+                        IconButton(
+                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'ماه قبل',
+                          onPressed: canGoBack ? () => changeMonth(-1) : null,
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${formatter.monthName(month)} ${formatter.toPersianDigits(year.toString())}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'ماه بعد',
+                          onPressed: () => changeMonth(1),
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      ],
+                    ),
                     const Row(children: [
                       Expanded(child: Center(child: Text('ش'))), Expanded(child: Center(child: Text('ی'))),
                       Expanded(child: Center(child: Text('د'))), Expanded(child: Center(child: Text('س'))),
