@@ -9,6 +9,8 @@ import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
+enum _NotebookInlineTool { none, number, tick, checklist }
+
 class NotebookPage extends StatefulWidget {
   NotebookPage({
     super.key,
