@@ -695,7 +695,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           onCreate: _saving ? null : _pickCustomDue,
                           onSelected: (value) {
                             if (value is DateTime) {
-                              setState(() => _dueDate = DateTime(value.year, value.month, value.day));
+                              setState(() => _dueDate = value);
                             } else {
                               setState(() => _dueDate = null);
                             }
