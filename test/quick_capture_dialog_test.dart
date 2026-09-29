@@ -354,8 +354,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    await tester.tap(find.text('۱۶').last);
-    await tester.tap(find.text('انتخاب ساعت').last);
+    final hourBox = find.text('ساعت ۱۴');
+    expect(hourBox, findsOneWidget);
+    await tester.tap(hourBox);
+    await tester.pumpAndSettle();
+    final hour16 = find.text('۱۶');
+    expect(hour16, findsOneWidget);
+    await tester.tap(hour16);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilledButton).last);
     await tester.pumpAndSettle();
 
     await tester.enterText(
