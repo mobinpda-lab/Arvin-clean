@@ -1895,25 +1895,40 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 5),
                         Row(
                           children: [
-                            const Icon(
-                              Icons.schedule_rounded,
+                            Icon(
+                              Icons.calendar_today_outlined,
                               size: 15,
-                              color: Color(0xFF80829C),
+                              color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
                             ),
                             const SizedBox(width: 4),
-                            Flexible(
+                            Expanded(
                               child: Text(
-                                'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF80829C),
+                                late
+                                    ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
+                                    : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                style: TextStyle(
+                                  color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
                                   fontSize: 11,
+                                  fontWeight: late ? FontWeight.w800 : FontWeight.w500,
                                 ),
                               ),
                             ),
+                            IconButton(
+                              key: ValueKey('task-card-clear-due-${task.id}'),
+                              tooltip: 'حذف موعد',
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              onPressed: () async {
+                                setState(() => task.dueDate = null);
+                                await _save();
+                              },
+                              icon: const Icon(Icons.close_rounded, size: 17),
+                              color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
+                            ),
                           ],
                         ),
-                      ],
-                      if (followUpDate != null) ...[
+                      ],                      if (followUpDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
                           children: [
