@@ -124,6 +124,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
+          # Current-main Calendar validation lane: preserve deterministic headless execution.
           # Avoid the hosted-emulator ColorBuffer/GPU failure mode seen in CI;
           # keep the emulator headless and deterministic for product smoke.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none
