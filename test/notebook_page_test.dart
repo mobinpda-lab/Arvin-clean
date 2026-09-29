@@ -139,7 +139,7 @@ void main() {
     final description = tester.widget<TextField>(
       find.byKey(const ValueKey('notebook-description')),
     );
-    expect(description.controller!.text, '[ ] مورد انجام‌شده\\n[ ] مورد باز');
+    expect(description.controller!.text, '[x] مورد انجام‌شده\\n[ ] مورد باز');
 
     final persisted = await repository.loadNote(note.id);
     expect(persisted?.checklist, const ['[x] مورد انجام‌شده', '[ ] مورد باز']);
