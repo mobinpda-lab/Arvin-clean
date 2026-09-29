@@ -52,7 +52,7 @@ class ArvinRollBox<T> extends StatelessWidget {
           child: Row(children: [
             Icon(item.icon ?? icon, size: 20, color: item.color ?? color),
             const SizedBox(width: 9),
-            Flexible(child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis)),
+            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
         if (onCreate != null) ...[
@@ -133,7 +133,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
           child: Row(children: [
             const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag),
             const SizedBox(width: 8),
-            Expanded(child: Text(tag)),
+            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(tag, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
         if (widget.onCreate != null) ...[
