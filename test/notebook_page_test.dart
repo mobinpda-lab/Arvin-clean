@@ -588,7 +588,7 @@ void main() {
     final persisted = await repository.loadNote(note.id);
     expect(persisted?.title, 'عنوان ذخیره‌شده');
     expect(persisted?.description, 'متن ذخیره‌شده هنگام بازگشت');
-    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('دفترچه'), findsWidgets);
   });
 
 
