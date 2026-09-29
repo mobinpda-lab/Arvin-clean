@@ -241,3 +241,10 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - New PR #1981 HEAD: `22359b0b80f9679d96db4099b3accd99b3854aff`.
 - Device Smoke for the previous head was skipped; therefore Device Smoke for #1981 remains **نامشخص/اثبات‌نشده** until the corrected exact HEAD gets valid smoke evidence.
 - Notebook remains unmodified; current main audit confirms standalone checklist mode/presets still exist and inline controls are absent. Notebook implementation must preserve existing checklist data and canonical storage.
+
+
+## 2026-09-29 execution update — #1981 re-triggered with ready PR
+- PR #1981 is now **Ready for review** (not draft) so the repository's Device Smoke workflow condition can execute.
+- Added focused regression coverage for contextual Category filtering and verified the PR head moved to `6cdecf6b8c3d35e58dc32d3b8ad31af694da5c37`.
+- Exact-head workflows for `6cdecf6b8c3d35e58dc32d3b8ad31af694da5c37`: Build is **pending**, Device Smoke is **queued**, Production Loop is **in progress**; no pass is claimed yet.
+- The earlier Device Smoke skip was caused by the PR being Draft; after marking it Ready, the new exact-head smoke run is queued. This is now the correct path to obtain valid six-scenario smoke evidence.
