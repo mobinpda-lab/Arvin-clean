@@ -296,3 +296,13 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Supporting orchestrator/production workflows for the repaired HEAD completed successfully where observed, but these do not substitute for the required product gates.
 - Current #1982 Gate status: **در حال اجرا / not yet proven**.
 - No merge and no Release-Ready claim.
+
+
+## 2026-09-29 execution update — #1982 second exact-head failure and immediate repair
+- Build run `36552226033` **FAILED**. The exact compiler error was that `_NotebookInlineTool` was referenced but its enum declaration was absent from `lib/notebook_page.dart`.
+- Analyze failed for the same missing type; Test shards failed/blocked from the same source error; Debug and Release APK builds failed.
+- Device Smoke run `36552226025`: SQL Migration, SQL Persistence and Backup/Restore completed successfully, but Home, Quick Capture and People failed because the app could not build/load from the same source error. Therefore the required 6/6 Smoke Gate is **FAILED**.
+- This is a new, concrete failure after the first repair; no false-green retry was accepted.
+- Immediate controlled repair committed to the same Notebook branch: `dde758ba8756d434b65b979fce0a56aafc41b9e8`, restoring the missing `_NotebookInlineTool` enum declaration.
+- New exact-head gates must run against this new SHA. Until their results are returned, #1982 remains **نامشخص/در انتظار شواهد**.
+- No merge and no Release-Ready claim.
