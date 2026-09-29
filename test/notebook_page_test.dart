@@ -123,6 +123,27 @@ void main() {
     expect(notes.single.checklist, isEmpty);
   });
 
+  testWidgets('legacy checklist data remains recoverable in inline editor', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 8));
+    final note = await repository.createNote(
+      id: 'legacy-checklist',
+      title: 'چک‌لیست قدیمی',
+      checklist: const ['[x] مورد انجام‌شده', '[ ] مورد باز'],
+      notebookKind: NotebookItemKind.checklist,
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(ValueKey('notebook-note-${note.id}')));
+    await tester.pumpAndSettle();
+
+    final description = tester.widget<TextField>(
+      find.byKey(const ValueKey('notebook-description')),
+    );
+    expect(description.controller!.text, '[ ] مورد انجام‌شده\\n[ ] مورد باز');
+
+    final persisted = await repository.loadNote(note.id);
+    expect(persisted?.checklist, const ['[x] مورد انجام‌شده', '[ ] مورد باز']);
+  });
   testWidgets('selected category becomes default for new note and search filters cards',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 30));
