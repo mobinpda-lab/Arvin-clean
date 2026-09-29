@@ -345,9 +345,9 @@ class _CalendarIntegrationSettingsPageState
                   const Divider(height: 32),
                   _switch(
                     key: const ValueKey('calendar-auto-sync'),
-                    title: 'همگام‌سازی خودکار',
+                    title: 'ثبت خودکار کارها در تقویم مقصد',
                     subtitle:
-                        'اجرای واقعی پس از تکمیل موتور همگام‌سازی فعال خواهد شد.',
+                        'با روشن‌بودن این گزینه، کارهای دارای موعد آروین به‌صورت خودکار در تقویم مقصد ثبت و به‌روزرسانی می‌شوند.',
                     value: current.autoSync,
                     update: (value) => current.copyWith(autoSync: value),
                   ),
