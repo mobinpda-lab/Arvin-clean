@@ -5,7 +5,6 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
-import 'widgets/arvin_radio_box.dart';
 import 'widgets/arvin_roll_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
@@ -224,40 +223,47 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 8),
                     Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: hour,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'ساعت'),
-                            items: List.generate(
-                              24,
-                              (value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                              ),
-                            ),
-                            onChanged: (value) => setSheetState(() => hour = value ?? hour),
-                          ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ArvinRollBox<int>(
+                      label: 'ساعت',
+                      valueLabel: formatter.toPersianDigits(hour.toString().padLeft(2, '0')),
+                      icon: Icons.access_time_rounded,
+                      color: const Color(0xFF3568D4),
+                      items: List.generate(
+                        24,
+                        (value) => ArvinRollItem<int>(
+                          value: value,
+                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                          icon: Icons.schedule_outlined,
+                          color: const Color(0xFF3568D4),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: minute,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'دقیقه'),
-                            items: List.generate(12, (index) {
-                              final value = index * 5;
-                              return DropdownMenuItem(
-                                value: value,
-                                child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                              );
-                            }),
-                            onChanged: (value) => setSheetState(() => minute = value ?? minute),
-                          ),
-                        ),
-                      ],
+                      ),
+                      onSelected: (value) { if (value != null) setSheetState(() => hour = value); },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ArvinRollBox<int>(
+                      label: 'دقیقه',
+                      valueLabel: formatter.toPersianDigits(minute.toString().padLeft(2, '0')),
+                      icon: Icons.more_time_rounded,
+                      color: const Color(0xFF7650C8),
+                      items: List.generate(
+                        12,
+                        (index) {
+                          final value = index * 5;
+                          return ArvinRollItem<int>(
+                            value: value,
+                            label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                            icon: Icons.timelapse_outlined,
+                            color: const Color(0xFF7650C8),
+                          );
+                        },
+                      ),
+                      onSelected: (value) { if (value != null) setSheetState(() => minute = value); },
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -280,246 +286,91 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
   }
 
-  Future<void> _pickDue() async {
-    final selected = await showModalBottomSheet<Object>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Wrap(
-            children: [
-              const ListTile(title: Text('موعد انجام')),
-              ListTile(title: const Text('امروز'), onTap: () => Navigator.pop(sheetContext, DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))),
-              ListTile(title: const Text('فردا'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 1)))),
-              ListTile(title: const Text('هفته آینده'), onTap: () => Navigator.pop(sheetContext, DateTime.now().add(const Duration(days: 7)))),
-              ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  if (!mounted) return;
-                  final initial = _dueDate ?? DateTime.now();
-                  final date = await _pickJalaliDate(context, initialDate: initial);
-                  if (date == null || !mounted) return;
-                  final time = await _pickPersianTime(context, initial: initial);
-                  if (time == null || !mounted) return;
-                  setState(() {
-                    _dueDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-                  });
-                });
-              }),
-              ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  if (!mounted) return;
-                  final base = _dueDate ?? DateTime.now();
-                  final time = await _pickPersianTime(context, initial: base);
-                  if (time == null || !mounted) return;
-                  setState(() {
-                    _dueDate = DateTime(base.year, base.month, base.day, time.hour, time.minute);
-                  });
-                });
-              }),
-              ListTile(title: const Text('بدون موعد'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (!mounted) return;
-    if (selected is DateTime || selected == _clearToken) {
-      setState(() => _dueDate = selected == _clearToken ? null : selected as DateTime);
-    }
+  Future<DateTime?> _pickCustomDue() async {
+    final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
+    final date = await _pickJalaliDate(context, initialDate: initial);
+    if (date == null || !mounted) return null;
+    final time = await _pickPersianTime(context, initial: initial);
+    if (time == null || !mounted) return null;
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  Future<void> _pickReminder() async {
-    final selected = await showModalBottomSheet<Object>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Wrap(
-            children: [
-              const ListTile(title: Text('یادآور')),
-              ListTile(title: const Text('۱۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -10)),
-              ListTile(title: const Text('۳۰ دقیقه قبل'), onTap: () => Navigator.pop(sheetContext, -30)),
-              ListTile(title: const Text('یک ساعت قبل'), onTap: () => Navigator.pop(sheetContext, -60)),
-              ListTile(title: const Text('انتخاب تاریخ و ساعت'), onTap: () async {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  if (!mounted) return;
-                  final initial = _reminderDate ?? _dueDate ?? DateTime.now();
-                  final date = await _pickJalaliDate(context, initialDate: initial);
-                  if (date == null || !mounted) return;
-                  final time = await _pickPersianTime(context, initial: initial);
-                  if (time == null || !mounted) return;
-                  setState(() {
-                    _reminderDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-                  });
-                });
-              }),
-              ListTile(title: const Text('انتخاب ساعت'), onTap: () async {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  if (!mounted) return;
-                  final base = _reminderDate ?? _dueDate ?? DateTime.now();
-                  final time = await _pickPersianTime(context, initial: base);
-                  if (time == null || !mounted) return;
-                  setState(() {
-                    _reminderDate = DateTime(base.year, base.month, base.day, time.hour, time.minute);
-                  });
-                });
-              }),
-              ListTile(title: const Text('بدون یادآور'), onTap: () => Navigator.pop(sheetContext, _clearToken)),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (!mounted) return;
-    if (selected is int) {
-      final base = _dueDate ?? DateTime.now();
-      setState(() => _reminderDate = base.add(Duration(minutes: selected)));
-    } else if (selected is DateTime || selected == _clearToken) {
-      setState(() => _reminderDate = selected == _clearToken ? null : selected as DateTime);
-    }
+  Future<DateTime?> _pickCustomReminder() async {
+    final initial = _reminderDate ?? _dueDate ?? widget.now?.call() ?? DateTime.now();
+    final date = await _pickJalaliDate(context, initialDate: initial);
+    if (date == null || !mounted) return null;
+    final time = await _pickPersianTime(context, initial: initial);
+    if (time == null || !mounted) return null;
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  Future<void> _pickRecurrence() async {
-    final selected = await showModalBottomSheet<RecurrenceRule?>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
-            const ListTile(title: Text('تکرار')),
-            ListTile(
-              title: const Text('بدون تکرار'),
-              onTap: () => Navigator.pop(sheetContext),
-            ),
-            ListTile(
-              title: const Text('هر روز'),
-              onTap: () => Navigator.pop(
-                sheetContext,
-                const RecurrenceRule(frequency: RecurrenceFrequency.daily),
-              ),
-            ),
-            ListTile(
-              title: const Text('هر هفته'),
-              onTap: () => Navigator.pop(
-                sheetContext,
-                const RecurrenceRule(frequency: RecurrenceFrequency.weekly),
-              ),
-            ),
-            ListTile(
-              title: const Text('هر ماه'),
-              onTap: () => Navigator.pop(
-                sheetContext,
-                const RecurrenceRule(frequency: RecurrenceFrequency.monthly),
-              ),
-            ),
-            ListTile(
-              title: const Text('هر سال'),
-              onTap: () => Navigator.pop(
-                sheetContext,
-                const RecurrenceRule(frequency: RecurrenceFrequency.yearly),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.tune_rounded),
-              title: const Text('تکرار سفارشی روزانه / هفتگی'),
-              subtitle: const Text('مثلاً هر ۵ روز یا هر ۳ هفته'),
-              onTap: () async {
-                final controller = TextEditingController(
-                  text: _recurrence?.interval.toString() ?? '1',
-                );
-                var frequency = _recurrence?.frequency == RecurrenceFrequency.weekly
-                    ? RecurrenceFrequency.weekly
-                    : RecurrenceFrequency.daily;
-                final custom = await showDialog<RecurrenceRule>(
-                  context: sheetContext,
-                  builder: (dialogContext) => AlertDialog(
-                    title: const Text('تکرار سفارشی'),
-                    content: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          StatefulBuilder(
-                            builder: (context, setDialogState) =>
-                                DropdownButtonFormField<RecurrenceFrequency>(
-                              initialValue: frequency,
-                              decoration: const InputDecoration(labelText: 'واحد تکرار'),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: RecurrenceFrequency.daily,
-                                  child: Text('روز'),
-                                ),
-                                DropdownMenuItem(
-                                  value: RecurrenceFrequency.weekly,
-                                  child: Text('هفته'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setDialogState(() => frequency = value);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: controller,
-                            autofocus: true,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'تعداد',
-                              hintText: 'مثلاً ۵',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: const Text('لغو'),
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          final interval = int.tryParse(controller.text.trim());
-                          if (interval == null || interval < 1) return;
-                          Navigator.pop(
-                            dialogContext,
-                            RecurrenceRule(
-                              frequency: frequency,
-                              interval: interval,
-                            ),
-                          );
-                        },
-                        child: const Text('ثبت'),
-                      ),
+  Future<RecurrenceRule?> _pickCustomRecurrence() async {
+    final controller = TextEditingController(text: _recurrence?.interval.toString() ?? '1');
+    var frequency = _recurrence?.frequency == RecurrenceFrequency.weekly
+        ? RecurrenceFrequency.weekly
+        : RecurrenceFrequency.daily;
+    try {
+      return await showDialog<RecurrenceRule>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('تکرار سفارشی'),
+          content: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StatefulBuilder(
+                  builder: (context, setDialogState) => DropdownButtonFormField<RecurrenceFrequency>(
+                    initialValue: frequency,
+                    decoration: const InputDecoration(labelText: 'واحد تکرار'),
+                    items: const [
+                      DropdownMenuItem(value: RecurrenceFrequency.daily, child: Text('روز')),
+                      DropdownMenuItem(value: RecurrenceFrequency.weekly, child: Text('هفته')),
                     ],
+                    onChanged: (value) {
+                      if (value != null) setDialogState(() => frequency = value);
+                    },
                   ),
-                );
-                controller.dispose();
-                if (custom != null && sheetContext.mounted) {
-                  Navigator.pop(sheetContext, custom);
-                }
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'تعداد', hintText: 'مثلاً ۵'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
+            FilledButton(
+              onPressed: () {
+                final interval = int.tryParse(controller.text.trim());
+                if (interval == null || interval < 1) return;
+                Navigator.pop(dialogContext, RecurrenceRule(frequency: frequency, interval: interval));
               },
+              child: const Text('ثبت'),
             ),
           ],
         ),
-      ),
-    );
-    if (!mounted) return;
-    setState(() {
-      _recurrence = selected;
-      if (selected != null) {
-        _recurrenceIntervalController.text = selected.interval.toString();
-      }
-    });
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
-
+  String _recurrenceLabel() {
+    if (_recurrence == null) return 'تکرار';
+    final unit = switch (_recurrence!.frequency) {
+      RecurrenceFrequency.daily => 'روز',
+      RecurrenceFrequency.weekly => 'هفته',
+      RecurrenceFrequency.monthly => 'ماه',
+      RecurrenceFrequency.yearly => 'سال',
+      RecurrenceFrequency.oncePerDay => 'روز',
+    };
+    return 'هر ${_recurrence!.interval} $unit';
+  }
   Future<DateTime?> _pickJalaliDate(
     BuildContext parentContext, {
     required DateTime initialDate,
@@ -532,11 +383,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         var year = initial.year;
         var month = initial.month;
         var selectedDay = initial.day;
-        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        final clockNow = widget.now?.call() ?? DateTime.now();
+        final today = DateTime(clockNow.year, clockNow.month, clockNow.day);
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final monthLength = formatter.monthLength(year, month);
-            if (selectedDay > monthLength) selectedDay = monthLength;
+            if (selectedDay > monthLength) { selectedDay = monthLength; }
             final firstGregorian = formatter.fromJalali(JalaliDate(year, month, 1));
             final firstWeekday = firstGregorian.weekday % 7;
             final days = List<int?>.filled(firstWeekday, null, growable: true)..addAll(List<int>.generate(monthLength, (i) => i + 1));
@@ -561,11 +413,34 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   children: [
                     const Text('انتخاب تاریخ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    Row(children: [
-                      IconButton(tooltip: 'ماه قبل', onPressed: canGoBack ? () => changeMonth(-1) : null, icon: const Icon(Icons.chevron_right)),
-                      Expanded(child: Center(child: Text('${formatter.monthName(month)} ${formatter.toPersianDigits(year.toString())}', style: const TextStyle(fontWeight: FontWeight.w700)))),
-                      IconButton(tooltip: 'ماه بعد', onPressed: () => changeMonth(1), icon: const Icon(Icons.chevron_left)),
-                    ]),
+                    Row(
+                      children: [
+                        IconButton(
+                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'ماه قبل',
+                          onPressed: canGoBack ? () => changeMonth(-1) : null,
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${formatter.monthName(month)} ${formatter.toPersianDigits(year.toString())}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'ماه بعد',
+                          onPressed: () => changeMonth(1),
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      ],
+                    ),
                     const Row(children: [
                       Expanded(child: Center(child: Text('ش'))), Expanded(child: Center(child: Text('ی'))),
                       Expanded(child: Center(child: Text('د'))), Expanded(child: Center(child: Text('س'))),
@@ -597,7 +472,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    SizedBox(width: double.infinity, child: FilledButton(onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
+                    SizedBox(width: double.infinity, child: FilledButton(key: const ValueKey('quick-capture-date-confirm'), onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
                   ],
                 ),
                 ),
@@ -608,8 +483,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       },
     );
   }
-  static const _clearToken = Object();
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -806,26 +679,72 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Expanded(child: ArvinRadioBox(
-                    label: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
-                    selected: _dueDate != null,
-                    icon: Icons.calendar_today_outlined,
-                    onTap: _saving ? () {} : () { _pickDue(); },
-                  ),),
+                      Expanded(
+                        child: ArvinRollBox<Object?>(
+                          label: 'موعد',
+                          valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                          icon: Icons.calendar_today_outlined,
+                          color: const Color(0xFF2F7D5A),
+                          emptyLabel: 'بدون موعد',
+                          items: [
+                            ArvinRollItem<Object?>(value: DateTime.now(), label: 'امروز', icon: Icons.today_outlined, color: const Color(0xFF2F7D5A)),
+                            ArvinRollItem<Object?>(value: DateTime.now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: const Color(0xFF3568D4)),
+                            ArvinRollItem<Object?>(value: DateTime.now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: const Color(0xFF7650C8)),
+                          ],
+                          createLabel: 'تاریخ و ساعت سفارشی',
+                          onCreate: _saving ? null : _pickCustomDue,
+                          onSelected: (value) {
+                            if (value is DateTime) {
+                              setState(() => _dueDate = DateTime(value.year, value.month, value.day));
+                            } else {
+                              setState(() => _dueDate = null);
+                            }
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: ArvinRadioBox(
-                    label: _recurrence == null ? 'تکرار' : 'تکرار تنظیم شد',
-                    selected: _recurrence != null,
-                    icon: Icons.repeat_rounded,
-                    onTap: _saving ? () {} : () { _pickRecurrence(); },
-                  ),),
+                      Expanded(
+                        child: ArvinRollBox<RecurrenceRule?>(
+                          label: 'تکرار',
+                          valueLabel: _recurrenceLabel(),
+                          icon: Icons.repeat_rounded,
+                          color: const Color(0xFFD16A2D),
+                          emptyLabel: 'بدون تکرار',
+                          items: const [
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: Color(0xFFD16A2D)),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: Color(0xFF3568D4)),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: Color(0xFF7650C8)),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.yearly), label: 'هر سال', icon: Icons.event_repeat_outlined, color: Color(0xFF2F7D5A)),
+                          ],
+                          createLabel: 'تکرار سفارشی',
+                          onCreate: _saving ? null : _pickCustomRecurrence,
+                          onSelected: (value) => setState(() => _recurrence = value),
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: ArvinRadioBox(
-                    label: _reminderDate == null ? 'یادآور' : 'یادآور تنظیم شد',
-                    selected: _reminderDate != null,
-                    icon: Icons.notifications_none_outlined,
-                    onTap: _saving ? () {} : () { _pickReminder(); },
-                  ),),
+                      Expanded(
+                        child: ArvinRollBox<Object?>(
+                          label: 'یادآور',
+                          valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
+                          icon: Icons.notifications_none_outlined,
+                          color: const Color(0xFFE08A2E),
+                          emptyLabel: 'بدون یادآور',
+                          items: [
+                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(minutes: 10)), label: '۱۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(minutes: 30)), label: '۳۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                          ],
+                          createLabel: 'تاریخ و ساعت سفارشی',
+                          onCreate: _saving ? null : _pickCustomReminder,
+                          onSelected: (value) {
+                            if (value is DateTime) {
+                              setState(() => _reminderDate = value);
+                            } else {
+                              setState(() => _reminderDate = null);
+                            }
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ],
