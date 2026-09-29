@@ -154,7 +154,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
     if (!reminder.id.startsWith('task-due:') || widget.onEditTask == null) return;
     final id = reminder.id.substring('task-due:'.length);
-    final task = _tasks.where((item) => !item.trashed && item.id == id).firstOrNull;
+    Task? task;
+    for (final candidate in _tasks) {
+      if (!candidate.trashed && candidate.id == id) {
+        task = candidate;
+        break;
+      }
+    }
     if (task == null) return;
     await widget.onEditTask!(task);
     if (!mounted) return;
