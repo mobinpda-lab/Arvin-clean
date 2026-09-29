@@ -223,38 +223,34 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 8),
                     Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    Row(
+                    Column(
                       children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: hour,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'ساعت'),
-                            items: List.generate(
-                              24,
-                              (value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                              ),
+                        DropdownButtonFormField<int>(
+                          initialValue: hour,
+                          isExpanded: true,
+                          decoration: const InputDecoration(labelText: 'ساعت'),
+                          items: List.generate(
+                            24,
+                            (value) => DropdownMenuItem(
+                              value: value,
+                              child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
                             ),
-                            onChanged: (value) => setSheetState(() => hour = value ?? hour),
                           ),
+                          onChanged: (value) => setSheetState(() => hour = value ?? hour),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: minute,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'دقیقه'),
-                            items: List.generate(12, (index) {
-                              final value = index * 5;
-                              return DropdownMenuItem(
-                                value: value,
-                                child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                              );
-                            }),
-                            onChanged: (value) => setSheetState(() => minute = value ?? minute),
-                          ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<int>(
+                          initialValue: minute,
+                          isExpanded: true,
+                          decoration: const InputDecoration(labelText: 'دقیقه'),
+                          items: List.generate(12, (index) {
+                            final value = index * 5;
+                            return DropdownMenuItem(
+                              value: value,
+                              child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
+                            );
+                          }),
+                          onChanged: (value) => setSheetState(() => minute = value ?? minute),
                         ),
                       ],
                     ),
@@ -280,7 +276,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   Future<DateTime?> _pickCustomDue() async {
-    final initial = _dueDate ?? DateTime.now();
+    final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await _pickJalaliDate(context, initialDate: initial);
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial);
@@ -289,7 +285,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   Future<DateTime?> _pickCustomReminder() async {
-    final initial = _reminderDate ?? _dueDate ?? DateTime.now();
+    final initial = _reminderDate ?? _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await _pickJalaliDate(context, initialDate: initial);
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial);
