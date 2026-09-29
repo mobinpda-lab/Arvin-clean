@@ -279,3 +279,20 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - New exact-head CI for `4fb785990b5eeb5be3f23a55cc663b2e00a31236` is not yet returned by the workflow-run lookup; therefore the repaired Notebook lane is currently **نامشخص/منتظر شواهد exact-head**.
 - **No merge. No Release-Ready claim.**
 - Next action: verify the new exact-head Analyze + all six Test shards + Debug/Release APK + six-scenario Device Smoke. If any gate fails, inspect the exact failure and patch the same controlled branch; if all gates pass, perform final diff/data-safety review before any merge decision.
+
+
+## 2026-09-29 execution update — #1981 exact-head gates verified
+- PR #1981 HEAD `6cdecf6b8c3d35e58dc32d3b8ad31af694da5c37` now has completed exact-head evidence.
+- Build run `36546259524`: Analyze PASS; test-0 through test-5 PASS; Debug APK PASS with verification/upload; Release APK PASS with verification/upload.
+- Device Smoke run `36546259584`: Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore and People all PASS.
+- Therefore #1981's exact-head CI/Smoke Gate is **VERIFIED GREEN** on that SHA.
+- PR #1981 remains separate from Notebook #1982 and has not been merged automatically. Merge decision remains outside this execution step.
+- Next action for #1981 is final product/diff review and owner acceptance before any merge; no Release-Ready claim is made from CI alone.
+
+## 2026-09-29 execution update — #1982 repaired HEAD gates started
+- Repaired Notebook test HEAD: `4fb785990b5eeb5be3f23a55cc663b2e00a31236`.
+- Exact-head Build run `36552226033`: queued/in progress at latest observation; Debug and Release build jobs are executing, with test shards beginning/queued.
+- Exact-head Device Smoke run `36552226025`: all six required scenarios are executing; no result is claimed yet.
+- Supporting orchestrator/production workflows for the repaired HEAD completed successfully where observed, but these do not substitute for the required product gates.
+- Current #1982 Gate status: **در حال اجرا / not yet proven**.
+- No merge and no Release-Ready claim.
