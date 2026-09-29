@@ -590,19 +590,18 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   late final VoidCallback _titleChangedListener;
   late final VoidCallback _descriptionChangedListener;
   TextEditingController? _lastEditedController;
-  final _checklistInput = TextEditingController();
-  final _checklistFocus = FocusNode();
   Timer? _autosaveTimer;
   Task? _note;
   bool _loading = true;
   bool _editing = false;
   bool _saving = false;
-  bool _checklistMode = false;
   String? _category;
   String? _projectId;
   String? _projectTitle;
   List<String> _tags = [];
-  List<String> _checklist = [];
+  List<String> _legacyChecklist = [];
+  _NotebookInlineTool _inlineTool = _NotebookInlineTool.none;
+  int _nextInlineNumber = 1;
 
   UndoHistoryController get _activeUndoController {
     if (_titleFocus.hasFocus) return _titleUndo;
@@ -629,7 +628,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _descriptionChangedListener = () => _lastEditedController = _description;
     _title.addListener(_titleChangedListener);
     _description.addListener(_descriptionChangedListener);
-    _checklistMode = widget.focusChecklistOnOpen;
     _load();
   }
 
@@ -644,7 +642,10 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _note = note;
     _title.text = note.title;
     _description.text = note.description;
-    _checklist = List<String>.of(note.checklist);
+    _legacyChecklist = List<String>.of(note.checklist);
+    if (_description.text.trim().isEmpty && _legacyChecklist.isNotEmpty) {
+      _description.text = _legacyChecklist.map(_checklistLabel).map((value) => '[ ] $value').join('\\n');
+    }
     _category = note.category;
     _tags = List<String>.of(note.tags);
     final projectId = await widget.repository.projectIdForNote(note.id);
@@ -656,15 +657,9 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         break;
       }
     }
-    _checklistMode = _checklistMode || note.isNotebookChecklist;
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);
-    if (widget.focusChecklistOnOpen && _editing) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _checklistFocus.requestFocus();
-      });
-    }
   }
 
   void _scheduleAutosave() {
@@ -682,7 +677,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         id: widget.noteId,
         title: _title.text,
         description: _description.text,
-        checklist: _checklistMode ? _checklist : const [],
+        checklist: _legacyChecklist,
       );
     } finally {
       _saving = false;
@@ -1110,8 +1105,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.removeListener(_descriptionChangedListener);
     _title.dispose();
     _description.dispose();
-    _checklistInput.dispose();
-    _checklistFocus.dispose();
     _titleFocus.dispose();
     _descriptionFocus.dispose();
     _titleUndo.dispose();
