@@ -1,4 +1,5 @@
 import '../calendar_page.dart';
+import '../models/task.dart';
 import 'app_settings_service.dart';
 import 'calendar_provider_sync_executor.dart';
 import 'calendar_sync_plan_service.dart';
@@ -54,5 +55,18 @@ class CalendarOutboundSyncService {
     final links = await linkStore.load();
     final plan = planService.plan(revisions: revisions, links: links);
     return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
+  }
+
+  Future<CalendarProviderSyncResult?> syncTask(Task task) async {
+    final dueDate = task.dueDate;
+    if (dueDate == null) return null;
+    final reminder = CalendarReminder(
+      id: 'task-due:${task.id}',
+      title: task.title,
+      description: task.description,
+      date: dueDate,
+      completed: task.completed,
+    );
+    return sync(<CalendarReminder>[reminder]);
   }
 }
