@@ -16,6 +16,7 @@ import 'notebook_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
+import 'services/calendar_outbound_sync_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -54,6 +55,8 @@ class ArvinApp extends StatefulWidget {
 
 class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
+  final CalendarOutboundSyncService calendarOutboundSyncService =
+      CalendarOutboundSyncService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
@@ -267,6 +270,19 @@ class _HomePageState extends State<HomePage> {
     }
     return taskStore.save(List<Task>.of(tasks));
   }
+  Future<void> _syncTaskToDeviceCalendar(Task task) async {
+    try {
+      await calendarOutboundSyncService.syncTask(task);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('ثبت خودکار در تقویم گوشی انجام نشد: $error')),
+        );
+    }
+  }
+
 
   DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
@@ -655,6 +671,7 @@ class _HomePageState extends State<HomePage> {
       taskId: task.id,
       projectId: selectedProjectId,
     );
+    await _syncTaskToDeviceCalendar(task);
     await _load();
     return task;
   }
@@ -686,6 +703,7 @@ class _HomePageState extends State<HomePage> {
       taskId: task.id,
       projectId: selectedProjectId,
     );
+    await _syncTaskToDeviceCalendar(task);
     await _load();
     return task;
   }
@@ -750,6 +768,7 @@ class _HomePageState extends State<HomePage> {
             taskId: edited.id,
             projectId: selectedProjectId,
           );
+          await _syncTaskToDeviceCalendar(edited);
           final refreshed = await taskStore.load();
           if (!mounted) return false;
           setState(() {
@@ -770,6 +789,7 @@ class _HomePageState extends State<HomePage> {
             taskId: captured.id,
             projectId: selectedProjectId,
           );
+          await _syncTaskToDeviceCalendar(captured);
 
           final refreshed = await taskStore.load();
           if (!mounted) return;
@@ -816,6 +836,7 @@ class _HomePageState extends State<HomePage> {
       taskId: edited.id,
       projectId: selectedProjectId,
     );
+    await _syncTaskToDeviceCalendar(edited);
   }
 
   Future<Task?> _editFromDetail(Task task) async {
