@@ -55,17 +55,16 @@ void main() {
     await pumpNotebook(tester, repository);
 
     expect(find.text('دفترچه'), findsOneWidget);
-    expect(find.text('یادداشت‌ها و چک‌لیست‌ها'), findsOneWidget);
+    expect(find.text('یادداشت‌ها و چک‌لیست‌ها'), findsNothing);
     expect(find.byKey(const ValueKey('notebook-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-filter-همه')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-filter-شخصی')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-filter-کاری')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-filter-ایده‌ها')), findsOneWidget);
-    expect(find.text('یادداشت‌ها'), findsOneWidget);
-    expect(find.text('چک‌لیست‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-create')), findsOneWidget);
   });
 
-  testWidgets('simple-note editor stays text focused and hides checklist controls',
+  testWidgets('simple-note editor exposes inline writing tools',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7));
     await pumpNotebook(tester, repository);
@@ -78,11 +77,46 @@ void main() {
     );
     expect(title.controller?.text, 'یادداشت جدید');
     expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
-    expect(find.text('چک‌لیست'), findsNothing);
+    expect(find.byKey(const ValueKey('notebook-inline-tools')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-number')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-tick')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-checklist')), findsOneWidget);
 
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
+    expect(notes.single.checklist, isEmpty);
+  });
+
+  testWidgets('inline tools insert and continue number tick checklist text', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7, 30));
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-create')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('notebook-inline-number')));
+    await tester.enterText(find.byKey(const ValueKey('notebook-description')), 'اول');
+    await tester.testTextInput.receiveAction(TextInputAction.newline);
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
+      contains('1. اول\\n2. '),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('notebook-inline-tick')));
+    await tester.enterText(find.byKey(const ValueKey('notebook-description')), '✓ دوم');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('notebook-inline-checklist')));
+    await tester.enterText(find.byKey(const ValueKey('notebook-description')), '[ ] سوم');
+    await tester.pump();
+
+    final persisted = await repository.loadNote('note-');
+    expect(persisted, isNull);
+    final notes = await repository.loadNotes();
+    expect(notes, hasLength(1));
+    expect(notes.single.description, contains('1. اول'));
+    expect(notes.single.description, contains('✓ دوم'));
+    expect(notes.single.description, contains('[ ] سوم'));
     expect(notes.single.checklist, isEmpty);
   });
 
