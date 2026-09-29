@@ -1,14 +1,14 @@
 # Arvin — Live Remaining Work & Cross-Conversation Continuity Ledger
 
 > **Updated 2026-09-29:** This ledger supersedes older status statements where they conflict with current `main`, current PR heads, or exact-head CI evidence.
-**Audit date:** 2026-09-28  
+**Audit date:** 2026-09-29  
 **Time basis:** Iran time  
 **Repository:** `mobinpda-lab/Arvin-clean`
 
 > این فایل مرجع پایدار فرمان «ادامه آروین» است. واقعیت GitHub بر حافظه گفتگو و گزارش‌های تاریخی مقدم است.
 
 ## 1. خط مبنا
-- Current `main`: `cccda42e43f414d347d60b645c7be93ac3f58f54`
+- Current `main`: `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`
 - Strategy: **PRODUCT FIRST + FACTORY MINIMAL**
 - تغییر مستقیم روی `main`: ممنوع.
 - تغییر محصول: Issue → Branch → Commit → PR.
@@ -19,9 +19,9 @@
 
 ## 2. وضعیت تأییدشده فعلی
 - PR #1945 overdue-card slice is **MERGED** into current main; current main is `83e647ecc02b266e69e37f61fa214a17f97c2b51`.
-- PR #1944 Quick Add RollBox scheduling remains **OPEN**. Latest HEAD is `4c4038f563f8cf91d8d7692fc41400a9a0629ed2`. Exact-head CI for this latest SHA is **نامشخص** until a run is verified.
+- PR #1944 Quick Add RollBox scheduling status must be reconciled against current main; the merged current-main Quick Add implementation is now at `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`. The old #1944 status is historical.
 - #1959 is the canonical GitHub product issue for automatic Task → selected Arvin destination Calendar synchronization, including stable Event identity, update/delete semantics, manual register/edit preservation, and duplicate-safe destination changes.
-- PR #1939 با HEAD `8bd91d9b8ea4557f5cf6279019981c25a3eaffc7` در 2026-09-28 با merge SHA `cccda42e43f414d347d60b645c7be93ac3f58f54` **MERGED** شد.
+- PR #1939 was superseded by subsequent merges; current main is now `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`.
 - Device Smoke #2832 روی همان HEAD پس از اجرای مجدد **SUCCESS** شد؛ هر ۶ سناریوی Home، Quick Capture، SQL Persistence، SQL Migration، Backup/Restore و People سبز شدند.
 - Analyze، Full Test، Debug APK و Release APK برای HEAD #1939 نیز موفق بودند.
 - PR #1902 custom recurrence قبلاً merge شده؛ پیاده‌سازی interval روز/هفته در main موجود است. پذیرش دستگاه واقعی آن هنوز **نامشخص** است.
@@ -167,9 +167,9 @@
 With any new conversation/account, «ادامه آروین» means: read this ledger, verify current main, verify all open relevant PR heads and exact-head CI, continue from the highest unfinished product lane, and update GitHub evidence. This ledger is the continuity source; chat memory is not the source of truth.
 
 ## 12. جمع‌بندی زنده
-- #1939 P0: **MERGED + exact-head CI سبز**.
+- Current main after Quick Add merge: **exact-head CI verified green**.
 - #1945 overdue slice: **MERGED** on current main.
-- #1944 Quick Add RollBox scheduling: **OPEN / latest SHA `4c4038f...` / exact-head CI نامشخص**.
+- Current-main Quick Add scheduling: **MERGED into `f76b5b35...` / exact-head CI green**.
 - #1959 Calendar Sync: **OPEN / canonical product contract recorded**.
 - #1901: **OPEN / stale / extraction required**.
 - Device Smoke #2832: **SUCCESS** روی HEAD #1939.
@@ -187,3 +187,26 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Root-cause follow-up: the date-confirm control now has stable key `quick-capture-date-confirm` and both affected tests target that key instead of an ambiguous generic FilledButton. Test commit: `c720e378a211ee3540ce58b8b3e432a640366fc1`; product commit immediately before it: `c7cf8b319349e74c1c4166d94654b4e6cd940f59`.
 - New exact-head CI for c720e378 has not yet produced a workflow-run record at the time of this update; therefore the new fix remains **نامشخص** until CI runs on the exact SHA.
 - Do not merge #1944 until exact-head Analyze/full Test/Debug/Release/Device Smoke are green and the branch is safely reconciled with current main.
+
+
+## 2026-09-29 execution update — exact-head Gate verification and #1901 extraction audit
+- **Exact current main:** `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`.
+- **Analyze Gate:** PASS. Build workflow run `36538477828`, job `quality (analyze)` succeeded; repository-owned Android V2 audit also succeeded.
+- **Full Test Gate:** PASS. The same Build run has all six test shards `test-0` through `test-5` successful. No required test shard failed or was skipped.
+- **Debug APK Gate:** PASS. Build job `apk (debug)` succeeded, including APK verification and artifact upload.
+- **Release APK Gate:** PASS. Build job `apk (release)` succeeded, including APK verification and artifact upload.
+- **Device Smoke Gate:** PASS. Run `36538477892` has all 6 required scenarios successful: Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People.
+- **Exact-head release validation:** PASS. Run `36543138141` explicitly asserted exact current main, verified reuse of exact-head release evidence, and published validation evidence. Its artifact is named `arvin-final-head-release-validation-f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`.
+- **Release Closure:** run `36543094241` succeeded, but its actual release-build steps were skipped because no pending release was detected. Therefore this workflow is supporting evidence, not a replacement for the successful Release APK Gate above.
+- **Current-main Gate result:** Analyze ✓ / Full Test ✓ / Debug ✓ / Release ✓ / Device Smoke 6/6 ✓. Thus the previously unknown CI status of current main is now **VERIFIED GREEN**.
+- **Important limitation:** this proves exact-head CI/build/smoke evidence. It does **not** prove owner physical-phone acceptance, complete product Release-Ready status, or every outstanding product contract.
+- **#1901 audit:** PR remains stale/diverged and must not be merged wholesale. Changed files are 27 total: 4 contract/docs files, 10 product implementation files, and 13 test files. Extracted product themes are:
+  1. Notebook inline number/tick/checklist tools and removal of standalone checklist surface.
+  2. Shared canonical Project/Category/Tag taxonomy and immediate catalog selection.
+  3. Home mode-specific Roll Box filters and clipping/accessibility improvements.
+  4. Task Editor checklist toggle and preservation of checklist data when disabled.
+  5. Quick Add direct hour selection tests.
+  6. Legacy-schema migration preservation test for task data.
+  7. Swipe/RTL acceptance coverage and recurrence/checklist regression coverage.
+- **#1901 decision:** these themes are requirements to audit against current main, not merge instructions. The Quick Add scheduling portion is already present on current main, so it must be extracted rather than imported from #1901.
+- **Next controlled product lane:** audit the remaining #1901 deltas against current main, starting with **Notebook + Home filter contract**, then Task Editor/Taxonomy. Calendar Sync/Event-ID changes remain a separate higher-risk architecture lane and require the previously defined independent review before irreversible persistence changes.
