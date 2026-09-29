@@ -24,6 +24,7 @@ class _FakeBridge extends SystemCalendarBridge {
     required DateTime start,
     required DateTime end,
     required bool allDay,
+    String? description,
   }) async {
     calls.add('create:$calendarId:$title');
     return failCreate ? null : 'event-1';
@@ -37,6 +38,7 @@ class _FakeBridge extends SystemCalendarBridge {
     required DateTime start,
     required DateTime end,
     required bool allDay,
+    String? description,
   }) async {
     calls.add('update:$calendarId:$eventId:$title');
     return !failUpdate;

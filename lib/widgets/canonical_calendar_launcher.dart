@@ -30,6 +30,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onRefreshTasks,
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
+    this.onEditTask,
+    this.onRegisterTaskToDeviceCalendar,
   });
 
   final List<Task> tasks;
@@ -41,6 +43,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<List<Task>> Function()? onRefreshTasks;
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
+  final Future<void> Function(Task task)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -145,6 +149,23 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
+  }
+
+  Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
+    if (!reminder.id.startsWith('task-due:') || widget.onEditTask == null) return;
+    final id = reminder.id.substring('task-due:'.length);
+    Task? task;
+    for (final candidate in _tasks) {
+      if (!candidate.trashed && candidate.id == id) {
+        task = candidate;
+        break;
+      }
+    }
+    if (task == null) return;
+    await widget.onEditTask!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
   }
 
   FollowUpCalendarTarget? _targetFor(CalendarReminder reminder) =>
@@ -760,6 +781,8 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
+            onEditTask: _editTaskFromCalendar,
+            onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: _canMutateReminder,
             onCreateTaskForDate: widget.onCreateTaskForDate == null

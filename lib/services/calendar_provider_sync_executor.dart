@@ -73,6 +73,7 @@ class CalendarProviderSyncExecutor {
             start: revision.start,
             end: revision.end,
             allDay: revision.allDay,
+            description: revision.description,
           );
           if (eventId == null) {
             throw StateError('Calendar Provider did not create an event.');
@@ -99,6 +100,7 @@ class CalendarProviderSyncExecutor {
             start: revision.start,
             end: revision.end,
             allDay: revision.allDay,
+            description: revision.description,
           );
           if (!ok) {
             throw StateError('Calendar Provider did not update linked event.');
