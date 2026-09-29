@@ -223,36 +223,41 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 8),
                     Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    Column(
-                      children: [
-                        DropdownButtonFormField<int>(
-                          initialValue: hour,
-                          isExpanded: true,
-                          decoration: const InputDecoration(labelText: 'ساعت'),
-                          items: List.generate(
-                            24,
-                            (value) => DropdownMenuItem(
-                              value: value,
-                              child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                            ),
-                          ),
-                          onChanged: (value) => setSheetState(() => hour = value ?? hour),
+                    ArvinRollBox<int>(
+                      label: 'ساعت',
+                      valueLabel: formatter.toPersianDigits(hour.toString().padLeft(2, '0')),
+                      icon: Icons.access_time_rounded,
+                      color: const Color(0xFF3568D4),
+                      items: List.generate(
+                        24,
+                        (value) => ArvinRollItem<int>(
+                          value: value,
+                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                          icon: Icons.schedule_outlined,
+                          color: const Color(0xFF3568D4),
                         ),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField<int>(
-                          initialValue: minute,
-                          isExpanded: true,
-                          decoration: const InputDecoration(labelText: 'دقیقه'),
-                          items: List.generate(12, (index) {
-                            final value = index * 5;
-                            return DropdownMenuItem(
-                              value: value,
-                              child: Text(formatter.toPersianDigits(value.toString().padLeft(2, '0'))),
-                            );
-                          }),
-                          onChanged: (value) => setSheetState(() => minute = value ?? minute),
-                        ),
-                      ],
+                      ),
+                      onSelected: (value) => setSheetState(() => hour = value),
+                    ),
+                    const SizedBox(height: 10),
+                    ArvinRollBox<int>(
+                      label: 'دقیقه',
+                      valueLabel: formatter.toPersianDigits(minute.toString().padLeft(2, '0')),
+                      icon: Icons.more_time_rounded,
+                      color: const Color(0xFF7650C8),
+                      items: List.generate(
+                        12,
+                        (index) {
+                          final value = index * 5;
+                          return ArvinRollItem<int>(
+                            value: value,
+                            label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                            icon: Icons.timelapse_outlined,
+                            color: const Color(0xFF7650C8),
+                          );
+                        },
+                      ),
+                      onSelected: (value) => setSheetState(() => minute = value),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
