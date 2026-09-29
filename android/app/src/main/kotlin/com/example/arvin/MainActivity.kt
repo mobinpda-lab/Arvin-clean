@@ -127,6 +127,7 @@ class MainActivity : FlutterActivity() {
                     val startMillis = call.argument<Number>("startMillis")?.toLong()
                     val endMillis = call.argument<Number>("endMillis")?.toLong()
                     val allDay = call.argument<Boolean>("allDay") ?: false
+                    val description = call.argument<String>("description")?.trim()
                     if (calendarId == null || eventId == null || title.isEmpty() || startMillis == null || endMillis == null || endMillis <= startMillis) {
                         result.error("invalid_event", "Calendar provider update payload is incomplete", null)
                         return@setMethodCallHandler
