@@ -316,7 +316,7 @@ void main() {
     expect(find.text('موعد'), findsOneWidget);
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     await tester.tap(find.byType(FilledButton).last);
