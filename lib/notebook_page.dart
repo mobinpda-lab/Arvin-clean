@@ -768,7 +768,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.text = note.description;
     _legacyChecklist = List<String>.of(note.checklist);
     if (_description.text.trim().isEmpty && _legacyChecklist.isNotEmpty) {
-      _description.text = _legacyChecklist.map(_checklistLabel).map((value) => '[ ] $value').join('\\n');
+      _description.text = _legacyChecklist.map((item) => item.trim().startsWith('[x] ') ? '[x] ${_checklistLabel(item)}' : '[ ] ${_checklistLabel(item)}').join('\\n');
     }
     _category = note.category;
     _tags = List<String>.of(note.tags);
