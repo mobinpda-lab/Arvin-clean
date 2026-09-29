@@ -250,7 +250,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     expect(find.text('فروردین'), findsNothing);
-    final dateConfirm = find.byType(FilledButton).last;
+    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsWidgets);
