@@ -243,7 +243,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('notebook-edit')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-checklist-input')), findsNothing);
+    expect(find.byKey(const ValueKey('notebook-inline-tools')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('notebook-edit')));
     await tester.pump();
