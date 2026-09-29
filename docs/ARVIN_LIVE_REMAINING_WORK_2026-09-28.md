@@ -233,3 +233,11 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - PR #1981 HEAD: `45f5246ed80979767ff5f0fa757a0b7f77170c9f`.
 - CI has started on exact HEAD. Current observed state: Build queued; Device Smoke workflow completed with **skipped** job, therefore Device Smoke acceptance for #1981 is **نامشخص/اثبات‌نشده** until the workflow contract/result is resolved.
 - #1911 Notebook inline-editor work remains separate and has not been falsely marked complete.
+
+
+## 2026-09-29 execution update — #1981 lint correction
+- PR #1981 first exact-head Build attempt on `45f5246ed80979767ff5f0fa757a0b7f77170c9f` reached `flutter analyze` and failed with two `unnecessary_brace_in_string_interps` infos in `lib/main.dart:505` and `:514`; this is a real Analyze Gate failure for that head, not a workflow skip.
+- Corrected those two interpolations on the same controlled branch.
+- New PR #1981 HEAD: `22359b0b80f9679d96db4099b3accd99b3854aff`.
+- Device Smoke for the previous head was skipped; therefore Device Smoke for #1981 remains **نامشخص/اثبات‌نشده** until the corrected exact HEAD gets valid smoke evidence.
+- Notebook remains unmodified; current main audit confirms standalone checklist mode/presets still exist and inline controls are absent. Notebook implementation must preserve existing checklist data and canonical storage.
