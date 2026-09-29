@@ -260,3 +260,8 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Latest Notebook PR HEAD: `346ad11c3263239ba8f73b9a56238463f1f67b5d`.
 - CI for the earlier Notebook head started Build successfully into execution, but Device Smoke was skipped because that head was still Draft; PR is now Ready for review. Current latest-head CI evidence is not yet available and therefore remains **نامشخص/اثبات‌نشده**.
 - No merge is authorized from this work yet. Exact-head Analyze + full Test + Debug/Release + six-scenario Device Smoke remain mandatory.
+## 2026-09-29 execution update — #1982 exact-head gates now running
+- Latest Notebook HEAD `346ad11c3263239ba8f73b9a56238463f1f67b5d` now has a real exact-head `Arvin Build` run `36547072564` and `Arvin Device Smoke` run `36547072420`.
+- Build currently has Analyze, all six test shards, Debug APK and Release APK jobs **in progress**.
+- Device Smoke currently has all six required scenarios — Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People — **in progress**.
+- Therefore no Notebook PASS is claimed yet; current Gate status is **در حال اجرا**.
