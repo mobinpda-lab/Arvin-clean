@@ -30,15 +30,21 @@ class _NotebookPageState extends State<NotebookPage> {
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
   String _activeCategory = 'همه';
+  String? _activeProjectId;
+  String? _activeTag;
+  List<ProjectPlan> _projects = const [];
+  List<String> _knownTags = const [];
   bool _showTrash = false;
 
 
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
-        return false;
-      }
+      if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) return false;
+      final projectId = _activeProjectId;
+      if (projectId != null && !_projects.any((project) => project.id == projectId && project.itemIds.contains(note.id))) return false;
+      final tag = _activeTag;
+      if (tag != null && !note.tags.any((value) => value.trim() == tag)) return false;
       if (query.isEmpty) return true;
       return note.title.toLowerCase().contains(query) ||
           note.description.toLowerCase().contains(query);
