@@ -527,6 +527,7 @@ class _HomePageState extends State<HomePage> {
       taskId: task.id,
       projectId: selectedProjectId,
     );
+    await _syncTaskToDeviceCalendar(task);
     await _load();
   }
 
@@ -850,6 +851,7 @@ class _HomePageState extends State<HomePage> {
     task.completed = !task.completed;
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    await _syncTaskToDeviceCalendar(task);
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
@@ -1943,6 +1945,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () async {
                                 setState(() => task.dueDate = null);
                                 await _save();
+                                await _syncTaskToDeviceCalendar(task);
                               },
                               icon: const Icon(Icons.close_rounded, size: 17),
                               color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
