@@ -552,6 +552,8 @@ class _NotebookPageState extends State<NotebookPage> {
     );
   }
 
+  String _checklistLabel(String item) => item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
+
   void _toggleInlineTool(_NotebookInlineTool tool) {
     if (!_editing) return;
     setState(() => _inlineTool = _inlineTool == tool ? _NotebookInlineTool.none : tool);
@@ -1091,73 +1093,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     await widget.repository.moveSelectedToTrash(<String>[widget.noteId]);
     if (!mounted) return;
     Navigator.of(context).pop();
-  }
-
-  void _addChecklistItem() {
-    if (!_editing || !_checklistMode) return;
-    final value = _checklistInput.text.trim();
-    if (value.isEmpty) return;
-    setState(() {
-      _checklist.add('[ ] $value');
-      _checklistInput.clear();
-    });
-    _scheduleAutosave();
-  }
-
-  bool _checked(String item) => item.startsWith('[x] ');
-
-  String _checklistLabel(String item) =>
-      item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
-
-  void _toggleChecklist(int index, bool? value) {
-    if (!_editing || !_checklistMode) return;
-    final label = _checklistLabel(_checklist[index]);
-    setState(() {
-      _checklist[index] = value == true ? '[x] $label' : '[ ] $label';
-    });
-    _scheduleAutosave();
-  }
-
-  Future<void> _editChecklistItem(int index) async {
-    if (!_editing || !_checklistMode) return;
-    var editedLabel = _checklistLabel(_checklist[index]);
-    final replacement = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('ویرایش مورد'),
-        content: TextFormField(
-          key: const ValueKey('notebook-checklist-edit-input'),
-          initialValue: editedLabel,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'متن مورد'),
-          onChanged: (value) => editedLabel = value,
-          onFieldSubmitted: (value) =>
-              Navigator.of(dialogContext).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            key: const ValueKey('notebook-checklist-edit-save'),
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(editedLabel.trim()),
-            child: const Text('ذخیره'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || replacement == null || replacement.isEmpty) return;
-    final prefix = _checked(_checklist[index]) ? '[x] ' : '[ ] ';
-    setState(() => _checklist[index] = '$prefix$replacement');
-    _scheduleAutosave();
-  }
-
-  void _removeChecklistItem(int index) {
-    if (!_editing || !_checklistMode) return;
-    setState(() => _checklist.removeAt(index));
-    _scheduleAutosave();
   }
 
   @override
