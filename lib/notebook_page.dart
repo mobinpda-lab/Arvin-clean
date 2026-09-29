@@ -1109,7 +1109,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     if (!_editing || _inlineTool == _NotebookInlineTool.none) return;
     final text = _description.text;
     final selection = _description.selection;
-    if (!selection.isValid || selection.baseOffset != text.length || !text.endsWith('\n')) return;
+    if (!text.endsWith('\n')) return;
+    if (selection.isValid && selection.baseOffset != text.length) return;
     _insertInlinePrefix();
   }
 
