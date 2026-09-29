@@ -362,7 +362,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       RecurrenceFrequency.yearly => 'سال',
       RecurrenceFrequency.oncePerDay => 'روز',
     };
-    return 'هر ' + _recurrence!.interval.toString() + ' ' + unit;
+    return 'هر ${_recurrence!.interval} $unit';
   }
   Future<DateTime?> _pickJalaliDate(
     BuildContext parentContext, {
@@ -380,7 +380,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final monthLength = formatter.monthLength(year, month);
-            if (selectedDay > monthLength) selectedDay = monthLength;
+            if (selectedDay > monthLength) { selectedDay = monthLength; }
             final firstGregorian = formatter.fromJalali(JalaliDate(year, month, 1));
             final firstWeekday = firstGregorian.weekday % 7;
             final days = List<int?>.filled(firstWeekday, null, growable: true)..addAll(List<int>.generate(monthLength, (i) => i + 1));
@@ -452,8 +452,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       },
     );
   }
-  static const _clearToken = Object();
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
