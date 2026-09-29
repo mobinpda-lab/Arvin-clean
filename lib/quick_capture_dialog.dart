@@ -237,7 +237,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           color: const Color(0xFF3568D4),
                         ),
                       ),
-                      onSelected: (value) => setSheetState(() => hour = value),
+                      onSelected: (value) { if (value != null) setSheetState(() => hour = value); },
                     ),
                     const SizedBox(height: 10),
                     ArvinRollBox<int>(
@@ -257,7 +257,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           );
                         },
                       ),
-                      onSelected: (value) => setSheetState(() => minute = value),
+                      onSelected: (value) { if (value != null) setSheetState(() => minute = value); },
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
