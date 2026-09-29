@@ -245,10 +245,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('notebook-edit')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-inline-tools')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-inline-tools')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('notebook-edit')));
     await tester.pump();
+    expect(find.byKey(const ValueKey('notebook-inline-tools')), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('notebook-title')),
       'یادداشت ویرایش‌شده',
