@@ -97,6 +97,47 @@ void main() {
     expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
   });
 
+  testWidgets('Home contextual grouping exposes canonical Roll Box filters', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"p1","title":"کار پروژه","category":"کاری","tags":["مهم"]},{"id":"p2","title":"کار شخصی","category":"شخصی","tags":["مهم"]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-group-projects')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-context-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-context-tag')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-group-categories')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-context-project')), findsNothing);
+    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-group-labels')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-context-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-context-tag')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-context-tag')));
+    await tester.pumpAndSettle();
+    expect(find.text('مهم'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('home-filter-برچسب-مهم')));
+    await tester.pumpAndSettle();
+    expect(find.text('برچسب: مهم'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-context-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-دسته-کاری')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار پروژه'), findsOneWidget);
+    expect(find.text('کار شخصی'), findsNothing);
+  });
+
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':

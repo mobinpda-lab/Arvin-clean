@@ -490,6 +490,151 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _pickHomeContextFilter({
+    required String title,
+    required List<String> options,
+    required String? current,
+    required ValueChanged<String?> onChanged,
+  }) async {
+    final selectedValue = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          children: [
+            Text(title, style: Theme.of(sheetContext).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            ArvinRadioBox(
+              key: ValueKey('home-filter-$title-all'),
+              label: 'همه',
+              selected: current == null,
+              icon: Icons.clear_all_rounded,
+              onTap: () => Navigator.of(sheetContext).pop(null),
+            ),
+            const SizedBox(height: 8),
+            for (final option in options) ...[
+              ArvinRadioBox(
+                key: ValueKey('home-filter-$title-$option'),
+                label: option,
+                selected: option == current,
+                icon: Icons.filter_alt_outlined,
+                onTap: () => Navigator.of(sheetContext).pop(option),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    onChanged(selectedValue);
+    setState(() {
+      filter = 'کل';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  Widget _homeContextualFilters() {
+    final categories = _homeCategories;
+    final tags = tasks
+        .expand((task) => task.tags)
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    final projectsById = <String, String>{
+      for (final project in projects)
+        if (!project.isArchived) project.id: project.title.trim(),
+    };
+    final showProject = _homeGroupMode == HomeGroupMode.projects ||
+        _homeGroupMode == HomeGroupMode.labels;
+    final showCategory = _homeGroupMode == HomeGroupMode.projects ||
+        _homeGroupMode == HomeGroupMode.categories ||
+        _homeGroupMode == HomeGroupMode.labels;
+    final showTag = _homeGroupMode == HomeGroupMode.labels;
+    if (!showProject && !showCategory && !showTag) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 7,
+        runSpacing: 7,
+        children: [
+          if (showProject)
+            _homeContextFilterButton(
+              key: const ValueKey('home-context-project'),
+              label: _projectFilter == null ? 'پروژه: همه' : 'پروژه: ${projectsById[_projectFilter] ?? 'بدون پروژه'}',
+              icon: Icons.folder_rounded,
+              accent: ArvinColors.project,
+              onTap: () => _pickHomeContextFilter(
+                title: 'پروژه',
+                options: projectsById.values.toList(growable: false),
+                current: _projectFilter == null ? null : projectsById[_projectFilter],
+                onChanged: (value) {
+                  if (value == null) {
+                    _projectFilter = null;
+                  } else {
+                    final match = projectsById.entries.where((e) => e.value == value);
+                    _projectFilter = match.isEmpty ? null : match.first.key;
+                  }
+                },
+              ),
+            ),
+          if (showCategory)
+            _homeContextFilterButton(
+              key: const ValueKey('home-context-category'),
+              label: _categoryFilter == null ? 'دسته: همه' : 'دسته: $_categoryFilter',
+              icon: Icons.grid_view_rounded,
+              accent: ArvinColors.category,
+              onTap: () => _pickHomeContextFilter(
+                title: 'دسته',
+                options: categories,
+                current: _categoryFilter,
+                onChanged: (value) => _categoryFilter = value,
+              ),
+            ),
+          if (showTag)
+            _homeContextFilterButton(
+              key: const ValueKey('home-context-tag'),
+              label: _tagFilter == null ? 'برچسب: همه' : 'برچسب: $_tagFilter',
+              icon: Icons.sell_rounded,
+              accent: ArvinColors.tag,
+              onTap: () => _pickHomeContextFilter(
+                title: 'برچسب',
+                options: tags,
+                current: _tagFilter,
+                onChanged: (value) => _tagFilter = value,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _homeContextFilterButton({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required Color accent,
+    required VoidCallback onTap,
+  }) {
+    return ArvinRadioBox(
+      key: key,
+      label: label,
+      icon: icon,
+      accent: accent,
+      selected: !label.endsWith('همه'),
+      onTap: onTap,
+    );
+  }
+
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -2154,6 +2299,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
+            _homeContextualFilters(),
             _homeAllFilterSelector(),
             Expanded(
               child: loading
