@@ -210,3 +210,13 @@ With any new conversation/account, «ادامه آروین» means: read this le
   7. Swipe/RTL acceptance coverage and recurrence/checklist regression coverage.
 - **#1901 decision:** these themes are requirements to audit against current main, not merge instructions. The Quick Add scheduling portion is already present on current main, so it must be extracted rather than imported from #1901.
 - **Next controlled product lane:** audit the remaining #1901 deltas against current main, starting with **Notebook + Home filter contract**, then Task Editor/Taxonomy. Calendar Sync/Event-ID changes remain a separate higher-risk architecture lane and require the previously defined independent review before irreversible persistence changes.
+
+
+## 2026-09-29 execution update — #1911 current-main gap audit
+- #1911 is the existing owner issue for Notebook inline tools, shared taxonomy, Notebook/Home filters; no duplicate issue was created.
+- Current main still has a separate Notebook «یادداشت‌ها / چک‌لیست‌ها» mode and a checklist preset chooser. Expected inline editor controls `notebook-inline-number`, `notebook-inline-tick`, and `notebook-inline-checklist` are not present.
+- Current Notebook list exposes fixed category chips (`همه/شخصی/کاری/ایده‌ها`) rather than the full canonical Project + Category + Tag combined filter contract from #1911.
+- Current Home has the four grouping controls, but the #1911 contextual Roll Box filter acceptance is not yet proven on current main.
+- The extracted #1901 Task Editor checklist-toggle acceptance control is not present on current main.
+- Current TaskStore taxonomy lifecycle also needs safety correction/audit: direct catalog deletion methods do not currently enforce a reference-protection rule. This was recorded on Issue #847; no parallel taxonomy store/model is permitted.
+- **Next product implementation lane:** #1911 Notebook + Home filter contract, with #847 taxonomy safety kept as a dependent/shared-data safety constraint. Start from current main, add focused regression tests first, and preserve canonical Task/Notebook/Taxonomy storage.
