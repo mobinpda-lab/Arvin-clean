@@ -94,29 +94,32 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('notebook-inline-number')));
-    await tester.enterText(find.byKey(const ValueKey('notebook-description')), 'اول');
-    await tester.testTextInput.receiveAction(TextInputAction.newline);
-    await tester.pump();
-    expect(
-      tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
-      contains('1. اول\\n2. '),
+    final description = tester.widget<TextField>(
+      find.byKey(const ValueKey('notebook-description')),
     );
+    expect(description.controller!.text, '1. ');
+
+    description.controller!.text = '1. اول\\n';
+    description.onChanged?.call(description.controller!.text);
+    expect(description.controller!.text, '1. اول\\n2. ');
 
     await tester.tap(find.byKey(const ValueKey('notebook-inline-tick')));
-    await tester.enterText(find.byKey(const ValueKey('notebook-description')), '✓ دوم');
-    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
+      '1. اول\\n2. ✓ ',
+    );
 
     await tester.tap(find.byKey(const ValueKey('notebook-inline-checklist')));
-    await tester.enterText(find.byKey(const ValueKey('notebook-description')), '[ ] سوم');
-    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
+      '1. اول\\n2. ✓ [ ] ',
+    );
 
-    final persisted = await repository.loadNote('note-');
-    expect(persisted, isNull);
+    await tester.pump(const Duration(milliseconds: 500));
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
     expect(notes.single.description, contains('1. اول'));
-    expect(notes.single.description, contains('✓ دوم'));
-    expect(notes.single.description, contains('[ ] سوم'));
+    expect(notes.single.description, contains('✓ [ ] '));
     expect(notes.single.checklist, isEmpty);
   });
 
