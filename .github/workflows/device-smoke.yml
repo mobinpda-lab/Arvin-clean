@@ -31,8 +31,8 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # Run all six independent scenarios concurrently when repository runner capacity permits; coverage is unchanged.
-      max-parallel: 6
+      # Run all independent scenarios concurrently when repository runner capacity permits; coverage is unchanged.
+      max-parallel: 7
       matrix:
         include:
           - scenario: home
@@ -47,6 +47,8 @@ jobs:
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
           - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
+          - scenario: calendar
+            test_file: integration_test/android_calendar_provider_acceptance_test.dart
     steps:
       - uses: actions/checkout@v4
       - name: Cache pinned VazirHarf
@@ -122,4 +124,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
+          # Avoid the hosted-emulator ColorBuffer/GPU failure mode seen in CI;
+          # keep the emulator headless and deterministic for product smoke.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none
           script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
