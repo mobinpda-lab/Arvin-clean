@@ -62,6 +62,7 @@ class _ArvinAppState extends State<ArvinApp> {
     themeMode: ThemeMode.system,
     usePersianDate: true,
     fontFamily: null,
+    fontSize: 16.0,
   );
 
   @override
@@ -91,12 +92,14 @@ class _ArvinAppState extends State<ArvinApp> {
         colorSchemeSeed: const Color(0xFF4A4CAB),
         brightness: Brightness.light,
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
+        textTheme: ThemeData.light().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
+        textTheme: ThemeData.dark().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       themeMode: settings.themeMode,
       home: Directionality(
