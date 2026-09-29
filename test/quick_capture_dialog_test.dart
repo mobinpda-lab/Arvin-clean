@@ -318,7 +318,9 @@ void main() {
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
-    await tester.tap(find.byType(FilledButton).last);
+    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    expect(dateConfirm, findsOneWidget);
+    await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.byTooltip('ساعت'), findsOneWidget);
