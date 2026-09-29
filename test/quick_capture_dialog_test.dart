@@ -321,7 +321,7 @@ void main() {
     await tester.tap(find.byType(FilledButton).last);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.text('ساعت'), findsOneWidget);
-    expect(find.text('دقیقه'), findsOneWidget);
+    expect(find.byTooltip('ساعت'), findsOneWidget);
+    expect(find.byTooltip('دقیقه'), findsOneWidget);
   });
 }
