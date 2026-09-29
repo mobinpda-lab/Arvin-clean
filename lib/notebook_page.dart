@@ -593,6 +593,25 @@ class _NotebookPageState extends State<NotebookPage> {
     if (!selection.isValid || selection.baseOffset != text.length || !text.endsWith('\n')) return;
     _insertInlinePrefix();
   }
+  Widget _inlineToolButton({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required _NotebookInlineTool tool,
+  }) {
+    final selected = _inlineTool == tool;
+    return FilledButton.tonalIcon(
+      key: key,
+      onPressed: () => _toggleInlineTool(tool),
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        backgroundColor: selected ? Theme.of(context).colorScheme.primaryContainer : null,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _search.dispose();
@@ -1297,115 +1316,49 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
             ),
             const Divider(height: 16, thickness: 0.5),
             const SizedBox(height: 4),
-            if (!_checklistMode)
-              TextField(
-                key: const ValueKey('notebook-description'),
-                controller: _description,
-                focusNode: _descriptionFocus,
-                undoController: _descriptionUndo,
-                readOnly: !_editing,
-                minLines: 12,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: const InputDecoration(
-                  hintText: 'شروع به نوشتن کنید…',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              )
-            else if (_description.text.trim().isNotEmpty)
-              TextField(
-                key: const ValueKey('notebook-description'),
-                controller: _description,
-                focusNode: _descriptionFocus,
-                undoController: _descriptionUndo,
-                readOnly: !_editing,
-                minLines: 2,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
-                  hintText: 'توضیحات',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-          if (_checklistMode) ...[
-            const SizedBox(height: 20),
-            Builder(
-              builder: (context) {
-                final completed = _checklist.where(_checked).length;
-                final total = _checklist.length;
-                final progress = total == 0 ? 0.0 : completed / total;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'چک‌لیست — $completed از $total انجام شده',
-                      key: const ValueKey('notebook-checklist-progress-label'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      key: const ValueKey('notebook-checklist-progress'),
-                      value: progress,
-                    ),
-                  ],
-                );
-              },
-            ),
-            for (var index = 0; index < _checklist.length; index++)
-              CheckboxListTile(
-                key: ValueKey('notebook-check-$index'),
+            TextField(
+              key: const ValueKey('notebook-description'),
+              controller: _description,
+              focusNode: _descriptionFocus,
+              undoController: _descriptionUndo,
+              readOnly: !_editing,
+              minLines: 12,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              textAlignVertical: TextAlignVertical.top,
+              onChanged: (_) => _handleInlineTextChanged(),
+              decoration: const InputDecoration(
+                hintText: 'شروع به نوشتن کنید…',
+                border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                value: _checked(_checklist[index]),
-                onChanged: _editing
-                    ? (value) => _toggleChecklist(index, value)
-                    : null,
-                title: Text(_checklistLabel(_checklist[index])),
-                secondary: _editing
-                    ? PopupMenuButton<String>(
-                        key: ValueKey('notebook-check-menu-$index'),
-                        tooltip: 'گزینه‌های مورد',
-                        onSelected: (action) {
-                          if (action == 'edit') {
-                            _editChecklistItem(index);
-                          } else if (action == 'remove') {
-                            _removeChecklistItem(index);
-                          }
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Text('ویرایش مورد'),
-                          ),
-                          PopupMenuItem(
-                            value: 'remove',
-                            child: Text('حذف مورد'),
-                          ),
-                        ],
-                      )
-                    : null,
               ),
+            ),
+            const SizedBox(height: 10),
             if (_editing)
               Row(
+                key: const ValueKey('notebook-inline-tools'),
+                textDirection: TextDirection.rtl,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('notebook-checklist-input'),
-                      controller: _checklistInput,
-                      focusNode: _checklistFocus,
-                      onSubmitted: (_) => _addChecklistItem(),
-                      decoration: const InputDecoration(
-                        labelText: 'مورد جدید چک‌لیست',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    key: const ValueKey('notebook-checklist-add'),
-                    onPressed: _addChecklistItem,
-                    icon: const Icon(Icons.add),
-                  ),
+                  Expanded(child: _inlineToolButton(
+                    key: const ValueKey('notebook-inline-number'),
+                    label: 'شماره',
+                    icon: Icons.format_list_numbered_rounded,
+                    tool: _NotebookInlineTool.number,
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: _inlineToolButton(
+                    key: const ValueKey('notebook-inline-tick'),
+                    label: 'تیک',
+                    icon: Icons.done_rounded,
+                    tool: _NotebookInlineTool.tick,
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: _inlineToolButton(
+                    key: const ValueKey('notebook-inline-checklist'),
+                    label: 'چک‌لیست',
+                    icon: Icons.checklist_rounded,
+                    tool: _NotebookInlineTool.checklist,
+                  )),
                 ],
               ),
           ],
