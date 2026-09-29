@@ -502,7 +502,7 @@ class _HomePageState extends State<HomePage> {
             Text(title, style: Theme.of(sheetContext).textTheme.titleMedium),
             const SizedBox(height: 10),
             ArvinRadioBox(
-              key: ValueKey('home-filter-${title}-all'),
+              key: ValueKey('home-filter-$title-all'),
               label: 'همه',
               selected: current == null,
               icon: Icons.clear_all_rounded,
@@ -511,7 +511,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             for (final option in options) ...[
               ArvinRadioBox(
-                key: ValueKey('home-filter-${title}-$option'),
+                key: ValueKey('home-filter-$title-$option'),
                 label: option,
                 selected: option == current,
                 icon: Icons.filter_alt_outlined,
