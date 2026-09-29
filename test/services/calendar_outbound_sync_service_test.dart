@@ -97,6 +97,39 @@ void main() {
     expect(executor.receivedPlan?.items.single.reminderId, 'followup:task-1:f1');
   });
 
+  test('task auto-sync scopes planning to the same Task link', () async {
+    final otherLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:other-task',
+      calendarId: 'calendar-7',
+      eventId: 'event-other',
+      lastSyncedFingerprint: 'fingerprint-other',
+    );
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links([otherLink]),
+    );
+
+    final task = Task(
+      id: 'task-42',
+      title: 'کار مهم',
+      dueDate: DateTime(2026, 9, 29, 14, 30),
+    );
+
+    final result = await service.syncTask(task);
+
+    expect(result?.created, 1);
+    expect(executor.receivedPlan?.items.length, 1);
+    expect(executor.receivedPlan?.items.single.reminderId, 'task-due:task-42');
+  });
+
   test('canonical Task with due date is auto-sync eligible', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
