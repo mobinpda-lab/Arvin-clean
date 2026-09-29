@@ -370,7 +370,7 @@ class _NotebookPageState extends State<NotebookPage> {
                 children: [
                   Text('دفترچه'),
                   Text(
-                    'یادداشت‌ها و چک‌لیست‌ها',
+                    'دفترچه',
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                   ),
                 ],
