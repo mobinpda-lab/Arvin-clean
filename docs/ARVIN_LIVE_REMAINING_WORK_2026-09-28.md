@@ -187,3 +187,12 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Root-cause follow-up: the date-confirm control now has stable key `quick-capture-date-confirm` and both affected tests target that key instead of an ambiguous generic FilledButton. Test commit: `c720e378a211ee3540ce58b8b3e432a640366fc1`; product commit immediately before it: `c7cf8b319349e74c1c4166d94654b4e6cd940f59`.
 - New exact-head CI for c720e378 has not yet produced a workflow-run record at the time of this update; therefore the new fix remains **نامشخص** until CI runs on the exact SHA.
 - Do not merge #1944 until exact-head Analyze/full Test/Debug/Release/Device Smoke are green and the branch is safely reconciled with current main.
+
+
+## 2026-09-29 continuation — PR #1973
+- PR #1944 was closed as stale/diverged; its current-main extraction is PR #1973.
+- PR #1973 latest HEAD: `a54896291f665feccb88d36e37d5ae6efe38a597`.
+- Previous exact-head Build #4652 on c720e378 passed Analyze, Debug, Release, test-0/1/2/3 but failed test-4/test-5 because the generic FilledButton.last test target prevented reliable progression to the time picker; Device Smoke #2867 also had the known Home smoke failure in that run.
+- Fixes now on #1973: stable date-confirm key and explicit Persian `ساعت`/`دقیقه` labels in the time RollBoxes.
+- New exact-head Build #4657 and Device Smoke #2869 for a548962 are running/queued; until completion their product status is **نامشخص**.
+- #1959 Calendar Sync contract remains separate; destination-change reconciliation is still **نامشخص** and Event-ID persistence requires independent architecture review before irreversible storage/model changes.
