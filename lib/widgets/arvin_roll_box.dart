@@ -13,6 +13,7 @@ class ArvinRollBox<T> extends StatelessWidget {
     required this.color,
     this.emptyLabel,
     this.onCreate,
+    this.createLabel = 'افزودن',
   });
   final String label;
   final String valueLabel;
@@ -22,11 +23,13 @@ class ArvinRollBox<T> extends StatelessWidget {
   final Color color;
   final String? emptyLabel;
   final Future<T?> Function()? onCreate;
+  final String createLabel;
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<Object?>(
       tooltip: label,
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
       onSelected: (value) async {
         if (value is _ArvinCreateToken) {
           final created = await onCreate?.call();
@@ -47,19 +50,19 @@ class ArvinRollBox<T> extends StatelessWidget {
         ...items.map((item) => PopupMenuItem<T>(
           value: item.value,
           child: Row(children: [
-            Icon(item.icon ?? icon, size: 20, color: item.color ?? color),
-            const SizedBox(width: 9),
-            Expanded(child: Text(item.label)),
+            Icon(item.icon ?? icon, size: 18, color: item.color ?? color),
+            const SizedBox(width: 7),
+            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
         if (onCreate != null) ...[
           const PopupMenuDivider(),
-          const PopupMenuItem<Object?>(
+          PopupMenuItem<Object?>(
             value: _ArvinCreateToken.instance,
             child: Row(children: [
-              Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
-              SizedBox(width: 9),
-              Text('افزودن'),
+              const Icon(Icons.add_circle_outline, size: 18, color: ArvinColors.primary),
+              const SizedBox(width: 9),
+              Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(createLabel, maxLines: 1, overflow: TextOverflow.ellipsis))),
             ]),
           ),
         ],
@@ -115,6 +118,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
     final selected = widget.selectedTags.toSet();
     return PopupMenuButton<Object?>(
       tooltip: 'برچسب',
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
       onSelected: (value) async {
         if (value is _ArvinCreateToken) { await _create(); return; }
         if (value is! String) return;
@@ -127,9 +131,9 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
           value: tag,
           checked: selected.contains(tag),
           child: Row(children: [
-            const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag),
-            const SizedBox(width: 8),
-            Expanded(child: Text(tag)),
+            const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
+            const SizedBox(width: 7),
+            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(tag, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
         if (widget.onCreate != null) ...[
