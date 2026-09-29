@@ -472,7 +472,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    SizedBox(width: double.infinity, child: FilledButton(onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
+                    SizedBox(width: double.infinity, child: FilledButton(key: const ValueKey('quick-capture-date-confirm'), onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
                   ],
                 ),
                 ),
