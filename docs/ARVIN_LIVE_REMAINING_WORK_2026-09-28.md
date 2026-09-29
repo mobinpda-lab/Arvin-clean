@@ -220,3 +220,16 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - The extracted #1901 Task Editor checklist-toggle acceptance control is not present on current main.
 - Current TaskStore taxonomy lifecycle also needs safety correction/audit: direct catalog deletion methods do not currently enforce a reference-protection rule. This was recorded on Issue #847; no parallel taxonomy store/model is permitted.
 - **Next product implementation lane:** #1911 Notebook + Home filter contract, with #847 taxonomy safety kept as a dependent/shared-data safety constraint. Start from current main, add focused regression tests first, and preserve canonical Task/Notebook/Taxonomy storage.
+
+## 2026-09-29 execution update — #1911 Home lane started
+- Created current-main branch `feature/1911-home-contextual-rollbox-current-main` from `f76b5b35...`.
+- PR #1981 opened as Draft: `feat(home): add contextual Roll Box filters for #1911`.
+- Product change: Home grouping views now expose canonical contextual Roll Box controls:
+  - Projects: Project + Category
+  - Categories: Category
+  - Labels: Project + Category + Tag
+- Implementation reuses existing `tasks`, `projects`, category/tag data and existing filter state; no new storage/model/repository was introduced.
+- Added widget coverage for the contextual controls and tag selection.
+- PR #1981 HEAD: `45f5246ed80979767ff5f0fa757a0b7f77170c9f`.
+- CI has started on exact HEAD. Current observed state: Build queued; Device Smoke workflow completed with **skipped** job, therefore Device Smoke acceptance for #1981 is **نامشخص/اثبات‌نشده** until the workflow contract/result is resolved.
+- #1911 Notebook inline-editor work remains separate and has not been falsely marked complete.
