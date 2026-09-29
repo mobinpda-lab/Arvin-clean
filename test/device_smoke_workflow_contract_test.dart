@@ -16,6 +16,10 @@ void main() {
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('max-parallel: 7'));
     expect(workflow, contains('timeout-minutes: 30'));
+    expect(
+      workflow,
+      contains('emulator-options: -no-window -gpu off -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none'),
+    );
 
     final matrixScenarios = RegExp(
       r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
