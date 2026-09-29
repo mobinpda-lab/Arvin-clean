@@ -222,7 +222,7 @@ void main() {
   });
 
 
-  testWidgets('quick capture exposes direct hour selection for due date and reminder',
+  testWidgets('Quick Add scheduling uses RollBox and Persian custom date/time',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -230,9 +230,7 @@ void main() {
           textDirection: TextDirection.rtl,
           child: Scaffold(
             body: QuickCaptureDialog(
-              idFactory: () => 'time-1',
-              now: () => DateTime(2026, 9, 28, 9, 30),
-              onCaptured: (_) async {},
+              now: () => DateTime(2026, 9, 27, 14, 35),
             ),
           ),
         ),
@@ -240,34 +238,26 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('موعد'), findsOneWidget);
+    expect(find.text('تکرار'), findsOneWidget);
+    expect(find.text('یادآور'), findsOneWidget);
+
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
-    final dueHour = find.text('انتخاب ساعت');
-    await tester.ensureVisible(dueHour);
-    await tester.tap(dueHour);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب تاریخ'), findsWidgets);
+    expect(find.text('فروردین'), findsNothing);
+    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.text('ساعت'), findsOneWidget);
     expect(find.text('دقیقه'), findsOneWidget);
-    await tester.tap(find.text('انتخاب ساعت').last);
-    await tester.pumpAndSettle();
-    // The parent Due sheet is intentionally closed before opening the
-    // dedicated Persian time picker, so Quick Capture is restored underneath.
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
-
-    await tester.tap(find.text('یادآور'));
-    await tester.pumpAndSettle();
-    final reminderHour = find.text('انتخاب ساعت');
-    expect(reminderHour, findsOneWidget);
-    await tester.ensureVisible(reminderHour);
-    await tester.tap(reminderHour);
-    await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.text('ساعت'), findsOneWidget);
-    expect(find.text('دقیقه'), findsOneWidget);
+    expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
-
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -325,7 +315,7 @@ void main() {
     expect(find.text('موعد'), findsOneWidget);
     await tester.tap(find.text('موعد'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     await tester.tap(find.byType(FilledButton).last);
