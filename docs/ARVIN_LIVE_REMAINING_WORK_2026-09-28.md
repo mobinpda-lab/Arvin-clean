@@ -187,3 +187,15 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Root-cause follow-up: the date-confirm control now has stable key `quick-capture-date-confirm` and both affected tests target that key instead of an ambiguous generic FilledButton. Test commit: `c720e378a211ee3540ce58b8b3e432a640366fc1`; product commit immediately before it: `c7cf8b319349e74c1c4166d94654b4e6cd940f59`.
 - New exact-head CI for c720e378 has not yet produced a workflow-run record at the time of this update; therefore the new fix remains **نامشخص** until CI runs on the exact SHA.
 - Do not merge #1944 until exact-head Analyze/full Test/Debug/Release/Device Smoke are green and the branch is safely reconciled with current main.
+
+
+## 2026-09-29 execution update — current-main reconciliation
+- Verified current `main` ref: `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`.
+- PR #1973 (`feat(ux): standardize Quick Add scheduling on current main`) is **MERGED** into that main SHA at 2026-09-29 11:14 Iran time.
+- The merged Quick Add lane carries the current-main Roll Box scheduling implementation and the latest Persian hour/minute test alignment. This confirms code presence on main; it does **not** by itself prove physical-phone acceptance or Release-Ready status.
+- Intermediate failures recorded for #1974/#1975/#1976/#1978 refer to older/intermediate SHAs and are not evidence about current main `f76b5b35...`.
+- Exact-head workflow records associated with current main `f76b5b35...` were checked through the available PR-triggered workflow lookup and no run was returned. Therefore current-main Analyze/Test/Debug/Release/Device-Smoke status is **نامشخص** until a run explicitly tied to `f76b5b35...` is verified.
+- Quick Add P0 code inspection on current main confirms the custom Due/Reminder flow now uses the Persian/Jalali date picker followed by a Persian hour/minute Roll Box; the generic blank-screen path is no longer represented in the current implementation. Physical-device acceptance remains **نامشخص**.
+- PR #1934's Quick Add Roll Box contract is therefore **implemented on main at code level**, but its full acceptance gate remains open until exact-head CI + required device/owner evidence are tied to the same SHA.
+- The next product priority remains the remaining P0/P1 owner regression lanes: Calendar/device-calendar sync, Home visual contract, Taxonomy/Settings, Notebook, Typography, and Task Editor.
+- Release-Ready for the whole product remains **نامشخص**.
