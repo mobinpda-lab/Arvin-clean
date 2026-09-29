@@ -50,8 +50,8 @@ class ArvinRollBox<T> extends StatelessWidget {
         ...items.map((item) => PopupMenuItem<T>(
           value: item.value,
           child: Row(children: [
-            Icon(item.icon ?? icon, size: 20, color: item.color ?? color),
-            const SizedBox(width: 9),
+            Icon(item.icon ?? icon, size: 18, color: item.color ?? color),
+            const SizedBox(width: 7),
             Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
@@ -60,7 +60,7 @@ class ArvinRollBox<T> extends StatelessWidget {
           PopupMenuItem<Object?>(
             value: _ArvinCreateToken.instance,
             child: Row(children: [
-              const Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
+              const Icon(Icons.add_circle_outline, size: 18, color: ArvinColors.primary),
               const SizedBox(width: 9),
               Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(createLabel, maxLines: 1, overflow: TextOverflow.ellipsis))),
             ]),
@@ -131,8 +131,8 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
           value: tag,
           checked: selected.contains(tag),
           child: Row(children: [
-            const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag),
-            const SizedBox(width: 8),
+            const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
+            const SizedBox(width: 7),
             Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(tag, maxLines: 1, overflow: TextOverflow.ellipsis))),
           ]),
         )),
