@@ -223,7 +223,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     const SizedBox(height: 8),
                     Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
-                    ArvinRollBox<int>(
+                    SizedBox(
+                      width: double.infinity,
+                      child: ArvinRollBox<int>(
                       label: 'ساعت',
                       valueLabel: formatter.toPersianDigits(hour.toString().padLeft(2, '0')),
                       icon: Icons.access_time_rounded,
@@ -238,9 +240,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         ),
                       ),
                       onSelected: (value) { if (value != null) setSheetState(() => hour = value); },
+                      ),
                     ),
                     const SizedBox(height: 10),
-                    ArvinRollBox<int>(
+                    SizedBox(
+                      width: double.infinity,
+                      child: ArvinRollBox<int>(
                       label: 'دقیقه',
                       valueLabel: formatter.toPersianDigits(minute.toString().padLeft(2, '0')),
                       icon: Icons.more_time_rounded,
@@ -258,6 +263,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         },
                       ),
                       onSelected: (value) { if (value != null) setSheetState(() => minute = value); },
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
