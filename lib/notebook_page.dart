@@ -440,22 +440,36 @@ class _NotebookPageState extends State<NotebookPage> {
                     ),
                   ),
                 ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      for (final category in _referenceCategories)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            key: ValueKey('notebook-filter-$category'),
-                            label: Text(category),
-                            selected: _activeCategory == category,
-                            onSelected: (_) =>
-                                setState(() => _activeCategory = category),
-                          ),
-                        ),
+                      ArvinRadioBox(
+                        key: const ValueKey('notebook-project-filter'),
+                        label: _activeProjectId == null ? 'پروژه‌ها: همه' : (_projects.firstWhere((p) => p.id == _activeProjectId, orElse: () => ProjectPlan(id: '', title: 'پروژه')).title),
+                        icon: Icons.work_outline,
+                        accent: ArvinColors.project,
+                        selected: _activeProjectId != null,
+                        onTap: _pickNotebookProject,
+                      ),
+                      ArvinRadioBox(
+                        key: const ValueKey('notebook-category-filter'),
+                        label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory',
+                        icon: Icons.folder_outlined,
+                        accent: ArvinColors.category,
+                        selected: _activeCategory != 'همه',
+                        onTap: _pickNotebookCategory,
+                      ),
+                      ArvinRadioBox(
+                        key: const ValueKey('notebook-tag-filter'),
+                        label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag',
+                        icon: Icons.sell_outlined,
+                        accent: ArvinColors.tag,
+                        selected: _activeTag != null,
+                        onTap: _pickNotebookTag,
+                      ),
                     ],
                   ),
                 ),
