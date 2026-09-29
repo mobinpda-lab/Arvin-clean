@@ -9,41 +9,6 @@ import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 
-enum _NotebookCreateMode { note, checklist }
-
-class _ChecklistPreset {
-  const _ChecklistPreset({
-    required this.id,
-    required this.title,
-    this.items = const [],
-  });
-
-  final String id;
-  final String title;
-  final List<String> items;
-}
-
-const _checklistPresets = <_ChecklistPreset>[
-  _ChecklistPreset(
-    id: 'shopping',
-    title: 'لیست خرید',
-    items: ['[ ] نان', '[ ] شیر', '[ ] میوه'],
-  ),
-  _ChecklistPreset(
-    id: 'travel',
-    title: 'وسایل سفر',
-    items: ['[ ] مدارک', '[ ] شارژر', '[ ] لباس'],
-  ),
-  _ChecklistPreset(
-    id: 'today',
-    title: 'کارهای امروز',
-  ),
-  _ChecklistPreset(
-    id: 'blank',
-    title: 'چک‌لیست جدید',
-  ),
-];
-
 class NotebookPage extends StatefulWidget {
   NotebookPage({
     super.key,
@@ -62,18 +27,13 @@ class _NotebookPageState extends State<NotebookPage> {
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
-  _NotebookCreateMode _activeMode = _NotebookCreateMode.note;
   String _activeCategory = 'همه';
   bool _showTrash = false;
 
-  static const _referenceCategories = <String>['همه', 'شخصی', 'کاری', 'ایده‌ها'];
 
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      final isChecklist = note.isNotebookChecklist;
-      if (_activeMode == _NotebookCreateMode.note && isChecklist) return false;
-      if (_activeMode == _NotebookCreateMode.checklist && !isChecklist) return false;
       if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) {
         return false;
       }
