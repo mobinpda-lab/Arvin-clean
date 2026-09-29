@@ -58,15 +58,40 @@ class CalendarOutboundSyncService {
   }
 
   Future<CalendarProviderSyncResult?> syncTask(Task task) async {
+    final integration = (await settingsService.load()).calendarIntegration;
+    final targetCalendarId = integration.targetCalendarId?.trim();
+    if (!integration.enabled ||
+        !integration.syncArvinToDevice ||
+        targetCalendarId == null ||
+        targetCalendarId.isEmpty) {
+      return null;
+    }
+
+    final reminderId = 'task-due:${task.id}';
+    final links = await linkStore.load();
+    final linked = <ExternalCalendarEventLink>[
+      for (final link in links)
+        if (link.reminderId == reminderId) link,
+    ];
+
+    final revisions = <CalendarSyncRevision>[];
     final dueDate = task.dueDate;
-    if (dueDate == null) return null;
-    final reminder = CalendarReminder(
-      id: 'task-due:${task.id}',
-      title: task.title,
-      description: task.description,
-      date: dueDate,
-      completed: task.completed,
+    if (dueDate != null && !task.completed) {
+      final reminder = CalendarReminder(
+        id: reminderId,
+        title: task.title,
+        description: task.description,
+        date: dueDate,
+        completed: false,
+      );
+      revisions.add(await revisionService.fromReminder(reminder));
+    }
+
+    final plan = planService.plan(
+      revisions: revisions,
+      links: linked,
     );
-    return sync(<CalendarReminder>[reminder]);
+    if (plan.items.isEmpty) return null;
+    return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
   }
 }
