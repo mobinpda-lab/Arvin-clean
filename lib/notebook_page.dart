@@ -322,85 +322,14 @@ class _NotebookPageState extends State<NotebookPage> {
     await _reload();
   }
 
-  Future<_ChecklistPreset?> _chooseChecklistPreset() {
-    return showModalBottomSheet<_ChecklistPreset>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            children: [
-              Text(
-                'قالب چک‌لیست',
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              for (final preset in _checklistPresets)
-                ListTile(
-                  key: ValueKey('notebook-preset-${preset.id}'),
-                  leading: Icon(
-                    preset.id == 'shopping'
-                        ? Icons.shopping_basket_outlined
-                        : preset.id == 'travel'
-                            ? Icons.luggage_outlined
-                            : preset.id == 'today'
-                                ? Icons.today_outlined
-                                : Icons.checklist_outlined,
-                  ),
-                  title: Text(preset.title),
-                  subtitle: preset.items.isEmpty
-                      ? const Text('از یک چک‌لیست خالی شروع کنید')
-                      : Text(
-                          '${preset.items.length} مورد پیشنهادی قابل ویرایش',
-                        ),
-                  onTap: () => Navigator.of(sheetContext).pop(preset),
-                ),
-              TextButton(
-                key: const ValueKey('notebook-preset-cancel'),
-                onPressed: () => Navigator.of(sheetContext).pop(),
-                child: const Text('انصراف'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _create() async {
-    final mode = _activeMode;
-
-    if (mode == _NotebookCreateMode.note) {
-      final note = await widget.repository.createNote(
-        title: 'یادداشت جدید',
-        notebookKind: NotebookItemKind.note,
-        category: _activeCategory == 'همه' ? null : _activeCategory,
-      );
-      if (!mounted) return;
-      await _open(note, startEditing: true);
-      return;
-    }
-
-    final preset = await _chooseChecklistPreset();
-    if (!mounted || preset == null) return;
-
     final note = await widget.repository.createNote(
-      title: preset.title,
-      checklist: preset.items,
-      notebookKind: NotebookItemKind.checklist,
+      title: 'یادداشت جدید',
+      notebookKind: NotebookItemKind.note,
       category: _activeCategory == 'همه' ? null : _activeCategory,
     );
     if (!mounted) return;
-    await _open(
-      note,
-      startEditing: true,
-      focusChecklistOnOpen: preset.items.isEmpty,
-    );
+    await _open(note, startEditing: true);
   }
 
   @override
@@ -480,28 +409,6 @@ class _NotebookPageState extends State<NotebookPage> {
                           ),
                         ),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: SegmentedButton<_NotebookCreateMode>(
-                    key: const ValueKey('notebook-mode-switch'),
-                    segments: const [
-                      ButtonSegment(
-                        value: _NotebookCreateMode.note,
-                        label: Text('یادداشت‌ها'),
-                        icon: Icon(Icons.note_alt_outlined),
-                      ),
-                      ButtonSegment(
-                        value: _NotebookCreateMode.checklist,
-                        label: Text('چک‌لیست‌ها'),
-                        icon: Icon(Icons.checklist_outlined),
-                      ),
-                    ],
-                    selected: {_activeMode},
-                    onSelectionChanged: (selection) => setState(
-                      () => _activeMode = selection.first,
-                    ),
                   ),
                 ),
                 Expanded(
@@ -623,9 +530,7 @@ class _NotebookPageState extends State<NotebookPage> {
           : FloatingActionButton(
               key: const ValueKey('notebook-create'),
               onPressed: _loading ? null : _create,
-              tooltip: _activeMode == _NotebookCreateMode.note
-                  ? 'یادداشت جدید'
-                  : 'چک‌لیست جدید',
+              tooltip: 'یادداشت جدید',
               child: const Icon(Icons.add),
             ),
     );
