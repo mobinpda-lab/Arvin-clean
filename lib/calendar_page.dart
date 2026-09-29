@@ -956,14 +956,14 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (!widget._isTaskDue && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
+                  if (!_isTaskDue && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
                       key: ValueKey('external-calendar-create-task-${item.id}'),
                       avatar: const Icon(Icons.add_task_outlined, size: 18),
                       label: const Text('ثبت در آروین'),
                       onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
                     ),
-                  if (!widget._isTaskDue &&
+                  if (!_isTaskDue &&
                       !widget.isPrayer &&
                       widget.onComplete != null &&
                       !item.completed)
@@ -973,7 +973,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (!widget._isTaskDue &&
+                  if (!_isTaskDue &&
                       !widget.isPrayer &&
                       widget.onSnooze != null &&
                       !item.completed)
@@ -983,28 +983,28 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('تعویق'),
                       onPressed: () => _run(widget.onSnooze),
                     ),
-                  if (widget._isTaskDue && widget.onEditTask != null)
+                  if (_isTaskDue && widget.onEditTask != null)
                     ActionChip(
                       key: ValueKey('task-due-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEditTask),
                     ),
-                  if (widget._isTaskDue && widget.onRegisterTaskToDeviceCalendar != null)
+                  if (_isTaskDue && widget.onRegisterTaskToDeviceCalendar != null)
                     ActionChip(
                       key: ValueKey('task-due-device-calendar-${item.id}'),
                       avatar: const Icon(Icons.event_available_outlined, size: 18),
                       label: const Text('ثبت در تقویم گوشی'),
                       onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
                     ),
-                  if (!widget._isTaskDue && !widget.isPrayer && widget.onEdit != null)
+                  if (!_isTaskDue && !widget.isPrayer && widget.onEdit != null)
                     ActionChip(
                       key: ValueKey('reminder-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEdit),
                     ),
-                  if (!widget._isTaskDue && !widget.isPrayer && widget.onConvertToTask != null)
+                  if (!_isTaskDue && !widget.isPrayer && widget.onConvertToTask != null)
                     ActionChip(
                       key: ValueKey('reminder-convert-${item.id}'),
                       avatar: const Icon(Icons.task_alt_outlined, size: 18),
