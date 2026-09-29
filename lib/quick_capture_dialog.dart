@@ -383,7 +383,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         var year = initial.year;
         var month = initial.month;
         var selectedDay = initial.day;
-        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        final clockNow = widget.now?.call() ?? DateTime.now();
+        final today = DateTime(clockNow.year, clockNow.month, clockNow.day);
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final monthLength = formatter.monthLength(year, month);
