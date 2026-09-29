@@ -183,3 +183,14 @@ void main() {
   });
 
 }
+
+
+test('persists and clamps app-wide font size', () async {
+  final service = AppSettingsService();
+  await service.saveFontSize(22);
+  expect((await service.load()).fontSize, 22);
+  await service.saveFontSize(99);
+  expect((await service.load()).fontSize, 24);
+  await service.saveFontSize(1);
+  expect((await service.load()).fontSize, 12);
+});
