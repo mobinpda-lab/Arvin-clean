@@ -100,7 +100,7 @@ void main() {
   testWidgets('Home contextual grouping exposes canonical Roll Box filters', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"p1","title":"کار پروژه","category":"کاری","tags":["مهم"]}]',
+          '[{"id":"p1","title":"کار پروژه","category":"کاری","tags":["مهم"]},{"id":"p2","title":"کار شخصی","category":"شخصی","tags":["مهم"]}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
@@ -129,6 +129,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-برچسب-مهم')));
     await tester.pumpAndSettle();
     expect(find.text('برچسب: مهم'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-context-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-دسته-کاری')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار پروژه'), findsOneWidget);
+    expect(find.text('کار شخصی'), findsNothing);
   });
 
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
