@@ -18,7 +18,7 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
     expect(
       workflow,
-      contains('emulator-options: -no-window -gpu off -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none'),
+      contains('emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none'),
     );
 
     final matrixScenarios = RegExp(
