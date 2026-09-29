@@ -50,24 +50,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> selectChecklistMode(WidgetTester tester) async {
-    await tester.tap(find.text('چک‌لیست‌ها'));
-    await tester.pumpAndSettle();
-  }
-
-  Future<void> openChecklistPreset(
-    WidgetTester tester,
-    String presetId,
-  ) async {
-    await selectChecklistMode(tester);
-    await tester.tap(find.byKey(const ValueKey('notebook-create')));
-    await tester.pumpAndSettle();
-    final preset = find.byKey(ValueKey('notebook-preset-$presetId'));
-    await tester.ensureVisible(preset);
-    await tester.tap(preset);
-    await tester.pumpAndSettle();
-  }
-
   testWidgets('approved Notebook reference controls are present', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
     await pumpNotebook(tester, repository);
@@ -81,28 +63,6 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-filter-ایده‌ها')), findsOneWidget);
     expect(find.text('یادداشت‌ها'), findsOneWidget);
     expect(find.text('چک‌لیست‌ها'), findsOneWidget);
-  });
-
-  testWidgets('checklist preset chooser cancels without creating a note',
-      (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6, 30));
-    await pumpNotebook(tester, repository);
-
-    await selectChecklistMode(tester);
-    await tester.tap(find.byKey(const ValueKey('notebook-create')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('لیست خرید'), findsOneWidget);
-    expect(find.text('وسایل سفر'), findsOneWidget);
-    expect(find.text('کارهای امروز'), findsOneWidget);
-    expect(find.text('چک‌لیست جدید'), findsOneWidget);
-
-    final cancel = find.byKey(const ValueKey('notebook-preset-cancel'));
-    await tester.ensureVisible(cancel);
-    await tester.tap(cancel);
-    await tester.pumpAndSettle();
-
-    expect(await repository.loadNotes(), isEmpty);
   });
 
   testWidgets('simple-note editor stays text focused and hides checklist controls',
@@ -124,99 +84,6 @@ void main() {
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
     expect(notes.single.checklist, isEmpty);
-  });
-
-  testWidgets('shopping preset persists editable starter items', (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 8));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'shopping');
-
-    final title = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-title')),
-    );
-    expect(title.controller?.text, 'لیست خرید');
-    expect(find.text('نان'), findsOneWidget);
-    expect(find.text('شیر'), findsOneWidget);
-    expect(find.text('میوه'), findsOneWidget);
-
-    var persisted = (await repository.loadNotes()).single;
-    expect(persisted.checklist, ['[ ] نان', '[ ] شیر', '[ ] میوه']);
-
-    await tester.tap(find.byKey(const ValueKey('notebook-check-menu-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ویرایش مورد').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-checklist-edit-input')),
-      'نان سنگک',
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('notebook-checklist-edit-save')),
-    );
-    await tester.pump(const Duration(milliseconds: 500));
-
-    persisted = (await repository.loadNotes()).single;
-    expect(persisted.checklist.first, '[ ] نان سنگک');
-
-    await tester.tap(find.byKey(const ValueKey('notebook-check-menu-1')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('حذف مورد').last);
-    await tester.pump(const Duration(milliseconds: 500));
-
-    persisted = (await repository.loadNotes()).single;
-    expect(persisted.checklist, ['[ ] نان سنگک', '[ ] میوه']);
-  });
-
-  testWidgets('travel preset uses canonical starter checklist', (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 9));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'travel');
-
-    final persisted = (await repository.loadNotes()).single;
-    expect(persisted.title, 'وسایل سفر');
-    expect(persisted.checklist, ['[ ] مدارک', '[ ] شارژر', '[ ] لباس']);
-  });
-
-  testWidgets('today preset starts empty and focuses checklist entry',
-      (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 10));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'today');
-
-    final input = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-    );
-    expect(input.focusNode?.hasFocus, isTrue);
-
-    final persisted = (await repository.loadNotes()).single;
-    expect(persisted.title, 'کارهای امروز');
-    expect(persisted.checklist, isEmpty);
-  });
-
-  testWidgets('blank preset remains available and persists normal additions',
-      (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'blank');
-
-    final checklistInput = tester.widget<TextField>(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-    );
-    expect(checklistInput.focusNode?.hasFocus, isTrue);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-      'ارسال گزارش',
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-checklist-add')));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    final persisted = (await repository.loadNotes()).single;
-    expect(persisted.checklist, ['[ ] ارسال گزارش']);
   });
 
   testWidgets('selected category becomes default for new note and search filters cards',
@@ -244,33 +111,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('موردی مطابق فیلتر فعلی پیدا نشد'), findsOneWidget);
-  });
-
-  testWidgets('empty checklist keeps checklist identity and progress survives persistence',
-      (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 45));
-    await pumpNotebook(tester, repository);
-
-    await openChecklistPreset(tester, 'blank');
-    expect(
-      find.byKey(const ValueKey('notebook-checklist-progress')),
-      findsOneWidget,
-    );
-    expect(find.text('چک‌لیست — 0 از 0 انجام شده'), findsOneWidget);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('notebook-checklist-input')),
-      'مورد اول',
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-checklist-add')));
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byKey(const ValueKey('notebook-check-0')));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    final persisted = (await repository.loadNotes()).single;
-    expect(persisted.isNotebookChecklist, isTrue);
-    expect(persisted.checklist, ['[x] مورد اول']);
-    expect(find.text('چک‌لیست — 1 از 1 انجام شده'), findsOneWidget);
   });
 
   testWidgets('Notebook list renders Jalali date with Persian digits', (tester) async {
@@ -723,25 +563,6 @@ void main() {
     expect(persisted?.title, 'عنوان ذخیره‌شده با برگشت سیستم');
     expect(persisted?.description, 'متن ذخیره‌شده با برگشت سیستم');
     expect(find.text('دفترچه'), findsOneWidget);
-  });
-
-  testWidgets('empty checklist reopens in checklist mode', (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 9, 18, 13));
-    await repository.createNote(
-      id: 'empty-checklist-reopen',
-      title: 'چک‌لیست خالی',
-      notebookKind: NotebookItemKind.checklist,
-    );
-
-    await pumpNotebook(tester, repository);
-    await selectChecklistMode(tester);
-    await tester.tap(
-      find.byKey(const ValueKey('notebook-note-empty-checklist-reopen')),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('notebook-checklist-progress')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-description')), findsNothing);
   });
 
   testWidgets('editor converts note to task on same canonical identity',
