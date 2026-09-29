@@ -29,7 +29,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<Object?>(
       tooltip: label,
-      constraints: const BoxConstraints(minWidth: 180, maxWidth: 220),
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
       onSelected: (value) async {
         if (value is _ArvinCreateToken) {
           final created = await onCreate?.call();
@@ -118,7 +118,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
     final selected = widget.selectedTags.toSet();
     return PopupMenuButton<Object?>(
       tooltip: 'برچسب',
-      constraints: const BoxConstraints(minWidth: 180, maxWidth: 220),
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
       onSelected: (value) async {
         if (value is _ArvinCreateToken) { await _create(); return; }
         if (value is! String) return;
