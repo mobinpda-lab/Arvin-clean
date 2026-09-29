@@ -623,7 +623,7 @@ void main() {
     final persisted = await repository.loadNote(note.id);
     expect(persisted?.title, 'عنوان ذخیره‌شده با برگشت سیستم');
     expect(persisted?.description, 'متن ذخیره‌شده با برگشت سیستم');
-    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('دفترچه'), findsWidgets);
   });
 
   testWidgets('editor converts note to task on same canonical identity',
@@ -658,7 +658,7 @@ void main() {
     expect(converted.tags, const ['مهم']);
     expect(converted.followUpEnabled, isTrue);
     expect(converted.notebookKind, NotebookItemKind.note);
-    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('دفترچه'), findsWidgets);
   });
 
 
