@@ -854,7 +854,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
 
   bool get isPrayer => item.id.startsWith('prayer-');
-  bool get widget._isTaskDue => item.id.startsWith('task-due:');
+  bool get _isTaskDue => item.id.startsWith('task-due:');
 
   @override
   State<_ReminderCard> createState() => _ReminderCardState();
