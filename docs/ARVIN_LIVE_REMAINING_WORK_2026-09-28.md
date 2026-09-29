@@ -265,3 +265,17 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Build currently has Analyze, all six test shards, Debug APK and Release APK jobs **in progress**.
 - Device Smoke currently has all six required scenarios — Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People — **in progress**.
 - Therefore no Notebook PASS is claimed yet; current Gate status is **در حال اجرا**.
+
+## 2026-09-29 execution update — #1982 exact-head failure and controlled repair
+- Exact-head Build run `36547072564` for Notebook HEAD `346ad11c3263239ba8f73b9a56238463f1f67b5d` **FAILED**.
+- Analyze failed on `lib/notebook_page.dart` with concrete compile/analyzer errors including missing `ProjectPlan` type/import, nullable Project access, inline-editor methods/state placed on the wrong state class, missing `_description`/autosave members in that class, and a malformed closing bracket.
+- Debug APK and Release APK failed at Flutter compilation for the same root source failure.
+- All six Device Smoke scenarios were blocked by the same compilation failure; Home, Quick Capture and People explicitly failed to load the debug APK. SQL Persistence, SQL Migration and Backup/Restore reached their harness but the exact Notebook source did not produce a valid APK, so the six-scenario Gate is **FAILED**, not green.
+- Root cause is now identified; no retry-only/false-green action was used.
+- Controlled repair was made on the same Notebook branch using current-main semantics. Commit: `1a15dd4814c1213d97bb3dd2636c26b4c8cfd146`.
+- The repaired implementation imports the canonical `ProjectPlan`, keeps Project/Category/Tag filters in the existing canonical data path, moves inline Number/Tick/Checklist editor state and methods into the editor state, removes the standalone Checklist editor path, and preserves legacy `Task.checklist` data rather than replacing it with a second storage representation.
+- Notebook regression tests were aligned in commit `4fb785990b5eeb5be3f23a55cc663b2e00a31236`.
+- PR #1982 remains OPEN/UNMERGED. A GitHub comment with the failure evidence and repair SHAs was recorded (comment `5887867401`).
+- New exact-head CI for `4fb785990b5eeb5be3f23a55cc663b2e00a31236` is not yet returned by the workflow-run lookup; therefore the repaired Notebook lane is currently **نامشخص/منتظر شواهد exact-head**.
+- **No merge. No Release-Ready claim.**
+- Next action: verify the new exact-head Analyze + all six Test shards + Debug/Release APK + six-scenario Device Smoke. If any gate fails, inspect the exact failure and patch the same controlled branch; if all gates pass, perform final diff/data-safety review before any merge decision.
