@@ -248,3 +248,15 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Added focused regression coverage for contextual Category filtering and verified the PR head moved to `6cdecf6b8c3d35e58dc32d3b8ad31af694da5c37`.
 - Exact-head workflows for `6cdecf6b8c3d35e58dc32d3b8ad31af694da5c37`: Build is **pending**, Device Smoke is **queued**, Production Loop is **in progress**; no pass is claimed yet.
 - The earlier Device Smoke skip was caused by the PR being Draft; after marking it Ready, the new exact-head smoke run is queued. This is now the correct path to obtain valid six-scenario smoke evidence.
+
+## 2026-09-29 execution update — Notebook lane #1982
+- Created controlled branch `feature/1911-notebook-inline-tools-current-main` from current main `f76b5b35fce30254b22627b0e8f7c0dd915f5a9b`.
+- Opened PR #1982 for the Notebook portion of #1911; it is Ready for review and remains unmerged.
+- Removed the standalone Checklist list mode/preset path from Notebook list UI.
+- Added inline Number / Tick / Checklist writing tools in the existing canonical Notebook editor; no new Storage/Model/Repository was added.
+- Existing legacy Checklist data remains in the canonical Task checklist field and is surfaced as inline text when the description is empty; checked state is preserved.
+- Replaced fixed Notebook category chips with canonical Project / Category / Tag Roll Box filters using existing Task/Project data.
+- Added focused UI coverage for inline tools and legacy Checklist preservation.
+- Latest Notebook PR HEAD: `346ad11c3263239ba8f73b9a56238463f1f67b5d`.
+- CI for the earlier Notebook head started Build successfully into execution, but Device Smoke was skipped because that head was still Draft; PR is now Ready for review. Current latest-head CI evidence is not yet available and therefore remains **نامشخص/اثبات‌نشده**.
+- No merge is authorized from this work yet. Exact-head Analyze + full Test + Debug/Release + six-scenario Device Smoke remain mandatory.
