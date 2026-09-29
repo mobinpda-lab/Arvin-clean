@@ -61,9 +61,19 @@ class _NotebookPageState extends State<NotebookPage> {
     final notes = _showTrash
         ? await widget.repository.loadTrashedNotes()
         : await widget.repository.loadNotes();
+    final projects = await widget.repository.loadProjects();
+    final tagSet = <String>{};
+    for (final note in notes) {
+      for (final tag in note.tags) {
+        if (tag.trim().isNotEmpty) tagSet.add(tag.trim());
+      }
+    }
+    final tags = tagSet.toList()..sort();
     if (!mounted) return;
     setState(() {
       _notes = notes;
+      _projects = projects;
+      _knownTags = tags;
       _loading = false;
     });
   }
