@@ -78,6 +78,36 @@ class _NotebookPageState extends State<NotebookPage> {
     });
   }
 
+  Future<void> _pickNotebookProject() async {
+    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
+      ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, onTap: () => Navigator.pop(sheetContext)),
+      const SizedBox(height: 8),
+      for (final project in _projects.where((p) => !p.isArchived)) ...[ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, onTap: () => Navigator.pop(sheetContext, project.id)), const SizedBox(height: 8)],
+    ])));
+    if (!mounted) return;
+    setState(() => _activeProjectId = selected);
+  }
+
+  Future<void> _pickNotebookCategory() async {
+    final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
+    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
+      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, onTap: () => Navigator.pop(sheetContext, 'همه')),
+      const SizedBox(height: 8),
+      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
+    ])));
+    if (!mounted || selected == null) return;
+    setState(() => _activeCategory = selected);
+  }
+
+  Future<void> _pickNotebookTag() async {
+    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
+      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, onTap: () => Navigator.pop(sheetContext)),
+      const SizedBox(height: 8),
+      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
+    ])));
+    if (!mounted) return;
+    setState(() => _activeTag = selected);
+  }
   void _toggleSelection(String id) {
     setState(() {
       _selectionMode = true;
