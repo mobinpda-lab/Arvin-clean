@@ -51,7 +51,7 @@ class ArvinRollBox<T> extends StatelessWidget {
           child: Row(children: [
             Icon(item.icon ?? icon, size: 20, color: item.color ?? color),
             const SizedBox(width: 9),
-            Expanded(child: Text(item.label)),
+            SizedBox(width: 150, child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis)),
           ]),
         )),
         if (onCreate != null) ...[
