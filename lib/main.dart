@@ -55,8 +55,6 @@ class ArvinApp extends StatefulWidget {
 
 class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
-  final CalendarOutboundSyncService calendarOutboundSyncService =
-      CalendarOutboundSyncService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
@@ -131,6 +129,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
+  final CalendarOutboundSyncService calendarOutboundSyncService =
+      CalendarOutboundSyncService();
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
   final HomeGroupingService homeGroupingService = const HomeGroupingService();
