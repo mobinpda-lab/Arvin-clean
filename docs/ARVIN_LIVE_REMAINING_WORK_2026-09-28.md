@@ -317,3 +317,12 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Latest exact-head workflows for b721244feb5fe34b934c513a3548a707a22292fc have started: Arvin Build run 36560251813 is in progress, Arvin Device Smoke run 36560251815 is in progress, and G1 lock sync run 36560251890 completed successfully. Orchestrator and Production Loop also completed successfully. The required product gates are در حال اجرا; no PASS is claimed yet.
 - PR #1982 is OPEN, Ready for Review, unmerged, base main at f76b5b35fce30254b22627b0e8f7c0dd915f5a9b; current PR head is b721244feb5fe34b934c513a3548a707a22292fc. Compare against current main shows 27 commits ahead, 0 behind, with only lib/notebook_page.dart and test/notebook_page_test.dart changed in the PR diff. No merge performed.
 - Next action is exact-head verification of all required gates for b721244feb5fe34b934c513a3548a707a22292fc; if Full Test or Smoke exposes a new concrete failure, repair the same controlled branch. If all gates pass, perform final product/data-safety review before any merge decision.
+
+
+## 2026-09-29 execution update — #1982 latest exact-head failure and controlled test repair
+- Exact-head Build run 36560251813 for b721244feb5fe34b934c513a3548a707a22292fc completed with Analyze PASS, Debug APK PASS, Release APK PASS, but Full Test failed in test-2 and test-5 on the same Notebook assertion: the test expected notebook-inline-tools while the note was still in read-only mode. The current product code intentionally renders the inline toolbar only when `_editing` is true.
+- The same Build run therefore has 4/6 test shards passing and 2/6 failing; this is a genuine Full Test Gate failure, not a workflow problem. Device Smoke run 36560251815 completed 6/6 PASS, but Smoke cannot compensate for a failed Full Test Gate.
+- Controlled test-only repair committed on the same Notebook branch: 97dddfe48bd094820a2d8e1a70faa04ae4193341. The test now expects the toolbar to be absent in read-only mode and present immediately after entering edit mode. No product/storage/model/repository change.
+- PR #1982 remains OPEN/Ready for Review/unmerged. No merge and no Release-Ready claim.
+- Exact-head CI for 97dddfe48bd094820a2d8e1a70faa04ae4193341 is not yet returned by the commit workflow lookup; status is نامشخص until a workflow run is observed.
+- Next action: verify exact-head gates for 97dddfe48bd094820a2d8e1a70faa04ae4193341. If another concrete failure appears, repair the same controlled branch; if all gates pass, perform final product/data-safety review before any merge decision.
