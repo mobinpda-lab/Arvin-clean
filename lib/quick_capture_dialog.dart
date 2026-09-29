@@ -227,7 +227,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       width: double.infinity,
                       child: ArvinRollBox<int>(
                       label: 'ساعت',
-                      valueLabel: formatter.toPersianDigits(hour.toString().padLeft(2, '0')),
+                      valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
                       icon: Icons.access_time_rounded,
                       color: const Color(0xFF3568D4),
                       items: List.generate(
@@ -247,7 +247,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       width: double.infinity,
                       child: ArvinRollBox<int>(
                       label: 'دقیقه',
-                      valueLabel: formatter.toPersianDigits(minute.toString().padLeft(2, '0')),
+                      valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
                       icon: Icons.more_time_rounded,
                       color: const Color(0xFF7650C8),
                       items: List.generate(
