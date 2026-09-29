@@ -24,6 +24,7 @@ void main() {
         'themeMode',
         'usePersianDate',
         'fontFamily',
+        'fontSize',
         'swipeRightAction',
         'swipeLeftAction',
         'calendarIntegration',
@@ -59,6 +60,7 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
+      'fontSize': 16.0,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
       'calendarIntegration': {
