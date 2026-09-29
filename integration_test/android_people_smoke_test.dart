@@ -19,10 +19,32 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+    Future<void> waitForFinder(Finder finder, {int attempts = 100}) async {
+      for (var attempt = 0; attempt < attempts; attempt++) {
+        if (finder.evaluate().isNotEmpty) return;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    // Use the canonical Quick Capture entry point used by the Android smoke
+    // suite. The home shortcut is not guaranteed to be mounted before the
+    // navigation menu is opened on a cold emulator.
+    final homeMenu = find.byKey(const ValueKey('home-menu'));
+    await tester.ensureVisible(homeMenu);
+    await tester.tap(homeMenu);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    final quickCaptureEntry =
+        find.byKey(const ValueKey('home-more-quick-capture'));
+    await waitForFinder(quickCaptureEntry);
+    expect(quickCaptureEntry, findsOneWidget);
+    await tester.ensureVisible(quickCaptureEntry);
+    await tester.tap(quickCaptureEntry);
+
+    final quickCaptureDialog =
+        find.byKey(const ValueKey('quick-capture-dialog'));
+    await waitForFinder(quickCaptureDialog);
+    expect(quickCaptureDialog, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تست افراد اندروید',
