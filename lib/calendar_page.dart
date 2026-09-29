@@ -771,6 +771,13 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onEditReminder
                                 : null,
+                            onEditTask: selectedReminders[index].id.startsWith('task-due:')
+                                ? widget.onEditTask
+                                : null,
+                            onRegisterTaskToDeviceCalendar:
+                                selectedReminders[index].id.startsWith('task-due:')
+                                ? widget.onRegisterTaskToDeviceCalendar
+                                : null,
                             onConvertToTask: widget.onConvertReminderToTask,
                             onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
                                 ? widget.onOpenExternalReminder
