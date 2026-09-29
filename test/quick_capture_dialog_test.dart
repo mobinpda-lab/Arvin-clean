@@ -326,4 +326,46 @@ void main() {
     expect(find.byTooltip('ساعت'), findsOneWidget);
     expect(find.byTooltip('دقیقه'), findsOneWidget);
   });
+
+  testWidgets('Quick Add preserves selected due time from custom date/time',
+      (tester) async {
+    final captured = <Task>[];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+              onCaptured: (task) async => captured.add(task),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انتخاب ساعت'), findsWidgets);
+    await tester.tap(find.text('۱۶').last);
+    await tester.tap(find.text('انتخاب ساعت').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار با ساعت',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured.single.dueDate, DateTime(2026, 9, 27, 16, 35));
+  });
+
 }
