@@ -124,4 +124,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
+          # Avoid the hosted-emulator ColorBuffer/GPU failure mode seen in CI;
+          # keep the emulator headless and deterministic for product smoke.
+          emulator-options: -no-window -gpu off -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
           script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
