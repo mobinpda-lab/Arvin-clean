@@ -552,6 +552,47 @@ class _NotebookPageState extends State<NotebookPage> {
     );
   }
 
+  void _toggleInlineTool(_NotebookInlineTool tool) {
+    if (!_editing) return;
+    setState(() => _inlineTool = _inlineTool == tool ? _NotebookInlineTool.none : tool);
+    if (_inlineTool != _NotebookInlineTool.none) _insertInlinePrefix();
+  }
+
+  String _inlinePrefix() {
+    switch (_inlineTool) {
+      case _NotebookInlineTool.number:
+        return '${_nextInlineNumber++}. ';
+      case _NotebookInlineTool.tick:
+        return '✓ ';
+      case _NotebookInlineTool.checklist:
+        return '[ ] ';
+      case _NotebookInlineTool.none:
+        return '';
+    }
+  }
+
+  void _insertInlinePrefix() {
+    final prefix = _inlinePrefix();
+    if (prefix.isEmpty) return;
+    final selection = _description.selection;
+    final start = selection.isValid ? selection.start : _description.text.length;
+    final end = selection.isValid ? selection.end : start;
+    final text = _description.text;
+    _description.value = _description.value.copyWith(
+      text: '${text.substring(0, start)}$prefix${text.substring(end)}',
+      selection: TextSelection.collapsed(offset: start + prefix.length),
+      composing: TextRange.empty,
+    );
+    _scheduleAutosave();
+  }
+
+  void _handleInlineTextChanged() {
+    if (!_editing || _inlineTool == _NotebookInlineTool.none) return;
+    final text = _description.text;
+    final selection = _description.selection;
+    if (!selection.isValid || selection.baseOffset != text.length || !text.endsWith('\n')) return;
+    _insertInlinePrefix();
+  }
   @override
   void dispose() {
     _search.dispose();
