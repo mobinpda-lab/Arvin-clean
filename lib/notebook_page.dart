@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
 import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
-
-enum _NotebookInlineTool { none, number, tick, checklist }
 
 class NotebookPage extends StatefulWidget {
   NotebookPage({
@@ -36,7 +35,6 @@ class _NotebookPageState extends State<NotebookPage> {
   List<String> _knownTags = const [];
   bool _showTrash = false;
 
-
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
@@ -46,8 +44,7 @@ class _NotebookPageState extends State<NotebookPage> {
       final tag = _activeTag;
       if (tag != null && !note.tags.any((value) => value.trim() == tag)) return false;
       if (query.isEmpty) return true;
-      return note.title.toLowerCase().contains(query) ||
-          note.description.toLowerCase().contains(query);
+      return note.title.toLowerCase().contains(query) || note.description.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -58,9 +55,7 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _reload() async {
-    final notes = _showTrash
-        ? await widget.repository.loadTrashedNotes()
-        : await widget.repository.loadNotes();
+    final notes = _showTrash ? await widget.repository.loadTrashedNotes() : await widget.repository.loadNotes();
     final projects = await widget.repository.loadProjects();
     final tagSet = <String>{};
     for (final note in notes) {
@@ -68,22 +63,26 @@ class _NotebookPageState extends State<NotebookPage> {
         if (tag.trim().isNotEmpty) tagSet.add(tag.trim());
       }
     }
-    final tags = tagSet.toList()..sort();
     if (!mounted) return;
     setState(() {
       _notes = notes;
       _projects = projects;
-      _knownTags = tags;
+      _knownTags = tagSet.toList()..sort();
       _loading = false;
     });
   }
 
   Future<void> _pickNotebookProject() async {
-    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, onTap: () => Navigator.pop(sheetContext)),
-      const SizedBox(height: 8),
-      for (final project in _projects.where((p) => !p.isArchived)) ...[ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, onTap: () => Navigator.pop(sheetContext, project.id)), const SizedBox(height: 8)],
-    ])));
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
+        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext)),
+        const SizedBox(height: 8),
+        for (final project in _projects.where((p) => !p.isArchived)) ...[
+          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext, project.id)),
+          const SizedBox(height: 8),
+        ],
+      ])));
     if (!mounted) return;
     setState(() => _activeProjectId = selected);
   }
@@ -91,9 +90,9 @@ class _NotebookPageState extends State<NotebookPage> {
   Future<void> _pickNotebookCategory() async {
     final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, onTap: () => Navigator.pop(sheetContext, 'همه')),
+      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, 'همه')),
       const SizedBox(height: 8),
-      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
+      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
     ])));
     if (!mounted || selected == null) return;
     setState(() => _activeCategory = selected);
@@ -101,13 +100,14 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _pickNotebookTag() async {
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, onTap: () => Navigator.pop(sheetContext)),
+      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext)),
       const SizedBox(height: 8),
-      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
+      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
     ])));
     if (!mounted) return;
     setState(() => _activeTag = selected);
   }
+
   void _toggleSelection(String id) {
     setState(() {
       _selectionMode = true;
@@ -371,11 +371,7 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _create() async {
-    final note = await widget.repository.createNote(
-      title: 'یادداشت جدید',
-      notebookKind: NotebookItemKind.note,
-      category: _activeCategory == 'همه' ? null : _activeCategory,
-    );
+    final note = await widget.repository.createNote(title: 'یادداشت جدید', notebookKind: NotebookItemKind.note, category: _activeCategory == 'همه' ? null : _activeCategory);
     if (!mounted) return;
     await _open(note, startEditing: true);
   }
@@ -441,35 +437,14 @@ class _NotebookPageState extends State<NotebookPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      ArvinRadioBox(
-                        key: const ValueKey('notebook-project-filter'),
-                        label: _activeProjectId == null ? 'پروژه‌ها: همه' : (_projects.firstWhere((p) => p.id == _activeProjectId, orElse: () => ProjectPlan(id: '', title: 'پروژه')).title),
-                        icon: Icons.work_outline,
-                        accent: const Color(0xFF4A4CAB),
-                        selected: _activeProjectId != null,
-                        onTap: _pickNotebookProject,
-                      ),
-                      ArvinRadioBox(
-                        key: const ValueKey('notebook-category-filter'),
-                        label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory',
-                        icon: Icons.folder_outlined,
-                        accent: const Color(0xFF7B61A8),
-                        selected: _activeCategory != 'همه',
-                        onTap: _pickNotebookCategory,
-                      ),
-                      ArvinRadioBox(
-                        key: const ValueKey('notebook-tag-filter'),
-                        label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag',
-                        icon: Icons.sell_outlined,
-                        accent: const Color(0xFF2E8B8B),
-                        selected: _activeTag != null,
-                        onTap: _pickNotebookTag,
-                      ),
+                      ArvinRadioBox(key: const ValueKey('notebook-project-filter'), label: _activeProjectId == null ? 'پروژه‌ها: همه' : _projects.firstWhere((p) => p.id == _activeProjectId, orElse: () => ProjectPlan(id: '', title: 'پروژه')).title, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), selected: _activeProjectId != null, onTap: _pickNotebookProject),
+                      ArvinRadioBox(key: const ValueKey('notebook-category-filter'), label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), selected: _activeCategory != 'همه', onTap: _pickNotebookCategory),
+                      ArvinRadioBox(key: const ValueKey('notebook-tag-filter'), label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag', icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), selected: _activeTag != null, onTap: _pickNotebookTag),
                     ],
                   ),
                 ),
@@ -612,68 +587,6 @@ class _NotebookPageState extends State<NotebookPage> {
     );
   }
 
-  String _checklistLabel(String item) => item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
-
-  void _toggleInlineTool(_NotebookInlineTool tool) {
-    if (!_editing) return;
-    setState(() => _inlineTool = _inlineTool == tool ? _NotebookInlineTool.none : tool);
-    if (_inlineTool != _NotebookInlineTool.none) _insertInlinePrefix();
-  }
-
-  String _inlinePrefix() {
-    switch (_inlineTool) {
-      case _NotebookInlineTool.number:
-        return '${_nextInlineNumber++}. ';
-      case _NotebookInlineTool.tick:
-        return '✓ ';
-      case _NotebookInlineTool.checklist:
-        return '[ ] ';
-      case _NotebookInlineTool.none:
-        return '';
-    }
-  }
-
-  void _insertInlinePrefix() {
-    final prefix = _inlinePrefix();
-    if (prefix.isEmpty) return;
-    final selection = _description.selection;
-    final start = selection.isValid ? selection.start : _description.text.length;
-    final end = selection.isValid ? selection.end : start;
-    final text = _description.text;
-    _description.value = _description.value.copyWith(
-      text: '${text.substring(0, start)}$prefix${text.substring(end)}',
-      selection: TextSelection.collapsed(offset: start + prefix.length),
-      composing: TextRange.empty,
-    );
-    _scheduleAutosave();
-  }
-
-  void _handleInlineTextChanged() {
-    if (!_editing || _inlineTool == _NotebookInlineTool.none) return;
-    final text = _description.text;
-    final selection = _description.selection;
-    if (!selection.isValid || selection.baseOffset != text.length || !text.endsWith('\n')) return;
-    _insertInlinePrefix();
-  }
-  Widget _inlineToolButton({
-    required Key key,
-    required String label,
-    required IconData icon,
-    required _NotebookInlineTool tool,
-  }) {
-    final selected = _inlineTool == tool;
-    return FilledButton.tonalIcon(
-      key: key,
-      onPressed: () => _toggleInlineTool(tool),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: FilledButton.styleFrom(
-        backgroundColor: selected ? Theme.of(context).colorScheme.primaryContainer : null,
-        visualDensity: VisualDensity.compact,
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _search.dispose();
@@ -768,7 +681,10 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _description.text = note.description;
     _legacyChecklist = List<String>.of(note.checklist);
     if (_description.text.trim().isEmpty && _legacyChecklist.isNotEmpty) {
-      _description.text = _legacyChecklist.map((item) => item.trim().startsWith('[x] ') ? '[x] ${_checklistLabel(item)}' : '[ ] ${_checklistLabel(item)}').join('\\n');
+      _description.text = _legacyChecklist.map((item) {
+        final checked = item.trim().startsWith('[x]');
+        return checked ? '[x] ${_checklistLabel(item)}' : '[ ] ${_checklistLabel(item)}';
+      }).join('\n');
     }
     _category = note.category;
     _tags = List<String>.of(note.tags);
@@ -801,7 +717,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         id: widget.noteId,
         title: _title.text,
         description: _description.text,
-        checklist: _legacyChecklist,
+        checklist: List<String>.of(_legacyChecklist),
       );
     } finally {
       _saving = false;
@@ -1155,6 +1071,60 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     Navigator.of(context).pop();
   }
 
+  String _checklistLabel(String item) => item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
+
+  void _toggleInlineTool(_NotebookInlineTool tool) {
+    if (!_editing) return;
+    setState(() => _inlineTool = _inlineTool == tool ? _NotebookInlineTool.none : tool);
+    if (_inlineTool != _NotebookInlineTool.none) _insertInlinePrefix();
+  }
+
+  String _inlinePrefix() {
+    switch (_inlineTool) {
+      case _NotebookInlineTool.number: return '${_nextInlineNumber++}. ';
+      case _NotebookInlineTool.tick: return '✓ ';
+      case _NotebookInlineTool.checklist: return '[ ] ';
+      case _NotebookInlineTool.none: return '';
+    }
+  }
+
+  void _insertInlinePrefix() {
+    final prefix = _inlinePrefix();
+    if (prefix.isEmpty) return;
+    final selection = _description.selection;
+    final start = selection.isValid ? selection.start : _description.text.length;
+    final end = selection.isValid ? selection.end : start;
+    final text = _description.text;
+    _description.value = _description.value.copyWith(
+      text: '${text.substring(0, start)}$prefix${text.substring(end)}',
+      selection: TextSelection.collapsed(offset: start + prefix.length),
+      composing: TextRange.empty,
+    );
+    _scheduleAutosave();
+  }
+
+  void _handleInlineTextChanged() {
+    if (!_editing || _inlineTool == _NotebookInlineTool.none) return;
+    final text = _description.text;
+    final selection = _description.selection;
+    if (!selection.isValid || selection.baseOffset != text.length || !text.endsWith('\n')) return;
+    _insertInlinePrefix();
+  }
+
+  Widget _inlineToolButton({required Key key, required String label, required IconData icon, required _NotebookInlineTool tool}) {
+    final selected = _inlineTool == tool;
+    return FilledButton.tonalIcon(
+      key: key,
+      onPressed: () => _toggleInlineTool(tool),
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        backgroundColor: selected ? Theme.of(context).colorScheme.primaryContainer : null,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _autosaveTimer?.cancel();
@@ -1322,11 +1292,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               keyboardType: TextInputType.multiline,
               textAlignVertical: TextAlignVertical.top,
               onChanged: (_) => _handleInlineTextChanged(),
-              decoration: const InputDecoration(
-                hintText: 'شروع به نوشتن کنید…',
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
+              decoration: const InputDecoration(hintText: 'شروع به نوشتن کنید…', border: InputBorder.none, contentPadding: EdgeInsets.zero),
             ),
             const SizedBox(height: 10),
             if (_editing)
@@ -1334,29 +1300,14 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 key: const ValueKey('notebook-inline-tools'),
                 textDirection: TextDirection.rtl,
                 children: [
-                  Expanded(child: _inlineToolButton(
-                    key: const ValueKey('notebook-inline-number'),
-                    label: 'شماره',
-                    icon: Icons.format_list_numbered_rounded,
-                    tool: _NotebookInlineTool.number,
-                  )),
+                  Expanded(child: _inlineToolButton(key: const ValueKey('notebook-inline-number'), label: 'شماره', icon: Icons.format_list_numbered_rounded, tool: _NotebookInlineTool.number)),
                   const SizedBox(width: 8),
-                  Expanded(child: _inlineToolButton(
-                    key: const ValueKey('notebook-inline-tick'),
-                    label: 'تیک',
-                    icon: Icons.done_rounded,
-                    tool: _NotebookInlineTool.tick,
-                  )),
+                  Expanded(child: _inlineToolButton(key: const ValueKey('notebook-inline-tick'), label: 'تیک', icon: Icons.done_rounded, tool: _NotebookInlineTool.tick)),
                   const SizedBox(width: 8),
-                  Expanded(child: _inlineToolButton(
-                    key: const ValueKey('notebook-inline-checklist'),
-                    label: 'چک‌لیست',
-                    icon: Icons.checklist_rounded,
-                    tool: _NotebookInlineTool.checklist,
-                  )),
+                  Expanded(child: _inlineToolButton(key: const ValueKey('notebook-inline-checklist'), label: 'چک‌لیست', icon: Icons.checklist_rounded, tool: _NotebookInlineTool.checklist)),
                 ],
               ),
-          ],
+
         ],
         ),
       ),
