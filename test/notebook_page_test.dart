@@ -146,6 +146,7 @@ void main() {
   testWidgets('selected category becomes default for new note and search filters cards',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 30));
+    await repository.createNote(id: 'category-seed', title: 'یادداشت دسته', category: 'شخصی');
     await pumpNotebook(tester, repository);
 
     await tester.tap(find.byKey(const ValueKey('notebook-category-filter')));
@@ -155,7 +156,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-create')));
     await tester.pumpAndSettle();
 
-    final created = (await repository.loadNotes()).single;
+    final created = (await repository.loadNotes()).firstWhere((note) => note.title == 'یادداشت جدید');
     expect(created.category, 'شخصی');
     expect(created.isNotebookChecklist, isFalse);
 
