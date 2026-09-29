@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _load() async { final value = await widget.service.load(); if (!mounted) return; setState(() => settings = value); }
   Future<void> _setTheme(ThemeMode mode) async { final current = settings; if (current == null) return; await widget.service.saveThemeMode(mode); final next = current.copyWith(themeMode: mode); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setPersianDate(bool value) async { final current = settings; if (current == null) return; await widget.service.saveUsePersianDate(value); final next = current.copyWith(usePersianDate: value); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
+  Future<void> _setFontSize(double size) async { final current = settings; if (current == null) return; await widget.service.saveFontSize(size); final next = current.copyWith(fontSize: size); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setFontFamily(String? family) async { final current = settings; if (current == null) return; await widget.service.saveFontFamily(family); final next = current.copyWith(fontFamily: family, clearFontFamily: family == null); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _showFontPicker() async {
     final current = settings;
