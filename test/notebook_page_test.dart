@@ -54,13 +54,12 @@ void main() {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
     await pumpNotebook(tester, repository);
 
-    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('دفترچه'), findsWidgets);
     expect(find.text('یادداشت‌ها و چک‌لیست‌ها'), findsNothing);
     expect(find.byKey(const ValueKey('notebook-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-filter-همه')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-filter-شخصی')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-filter-کاری')), findsOneWidget);
-    expect(find.byKey(const ValueKey('notebook-filter-ایده‌ها')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-project-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-category-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-tag-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-create')), findsOneWidget);
   });
 
@@ -99,20 +98,20 @@ void main() {
     );
     expect(description.controller!.text, '1. ');
 
-    description.controller!.text = '1. اول\\n';
+    description.controller!.text = '1. اول\n';
     description.onChanged?.call(description.controller!.text);
-    expect(description.controller!.text, '1. اول\\n2. ');
+    expect(description.controller!.text, '1. اول\n2. ');
 
     await tester.tap(find.byKey(const ValueKey('notebook-inline-tick')));
     expect(
       tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
-      '1. اول\\n2. ✓ ',
+      '1. اول\n2. ✓ ',
     );
 
     await tester.tap(find.byKey(const ValueKey('notebook-inline-checklist')));
     expect(
       tester.widget<TextField>(find.byKey(const ValueKey('notebook-description'))).controller!.text,
-      '1. اول\\n2. ✓ [ ] ',
+      '1. اول\n2. ✓ [ ] ',
     );
 
     await tester.pump(const Duration(milliseconds: 500));
@@ -139,7 +138,7 @@ void main() {
     final description = tester.widget<TextField>(
       find.byKey(const ValueKey('notebook-description')),
     );
-    expect(description.controller!.text, '[x] مورد انجام‌شده\\n[ ] مورد باز');
+    expect(description.controller!.text, '[x] مورد انجام‌شده\n[ ] مورد باز');
 
     final persisted = await repository.loadNote(note.id);
     expect(persisted?.checklist, const ['[x] مورد انجام‌شده', '[ ] مورد باز']);
@@ -149,7 +148,9 @@ void main() {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 11, 30));
     await pumpNotebook(tester, repository);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-filter-شخصی')));
+    await tester.tap(find.byKey(const ValueKey('notebook-category-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-filter-شخصی')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-create')));
     await tester.pumpAndSettle();
