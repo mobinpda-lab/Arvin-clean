@@ -20,9 +20,12 @@ void main() {
     }
 
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    final quickCaptureDialog = find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (quickCaptureDialog.evaluate().isNotEmpty) break;
+    }
+    expect(quickCaptureDialog, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تست افراد اندروید',
