@@ -669,7 +669,48 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         body: Column(
           children: [
-            Padding(\n              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),\n              child: Material(\n                color: Theme.of(context).colorScheme.primaryContainer,\n                borderRadius: BorderRadius.circular(18),\n                child: Padding(\n                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),\n                  child: Row(\n                    children: [\n                      IconButton(\n                        key: const ValueKey('calendar-period-previous'),\n                        onPressed: () => _movePeriod(-1),\n                        tooltip: 'بازه قبل',\n                        icon: const Icon(Icons.chevron_right),\n                      ),\n                      Expanded(\n                        child: Center(\n                          child: Semantics(\n                            header: true,\n                            label: 'ماه \${_jalaliMonthYear(selectedJalali)}',\n                            child: Text(\n                              _jalaliMonthYear(selectedJalali),\n                              key: const ValueKey('calendar-month-year-header'),\n                              style: Theme.of(context).textTheme.titleLarge?.copyWith(\n                                fontWeight: FontWeight.w800,\n                              ),\n                            ),\n                          ),\n                        ),\n                      ),\n                      IconButton(\n                        key: const ValueKey('calendar-period-next'),\n                        onPressed: () => _movePeriod(1),\n                        tooltip: 'بازه بعد',\n                        icon: const Icon(Icons.chevron_left),\n                      ),\n                    ],\n                  ),\n                ),\n              ),\n            ),\n            _buildViewModeSelector(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+              child: Material(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(18),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('calendar-period-previous'),
+                        onPressed: () => _movePeriod(-1),
+                        tooltip: 'بازه قبل',
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Semantics(
+                            header: true,
+                            label: 'ماه ${_jalaliMonthYear(selectedJalali)}',
+                            child: Text(
+                              _jalaliMonthYear(selectedJalali),
+                              key: const ValueKey('calendar-month-year-header'),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('calendar-period-next'),
+                        onPressed: () => _movePeriod(1),
+                        tooltip: 'بازه بعد',
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            _buildViewModeSelector(),
             GestureDetector(
               key: const ValueKey('calendar-swipe-surface'),
               behavior: HitTestBehavior.opaque,
