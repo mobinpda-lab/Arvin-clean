@@ -59,17 +59,12 @@ class _NotebookPageState extends State<NotebookPage> {
   Future<void> _reload() async {
     final notes = _showTrash ? await widget.repository.loadTrashedNotes() : await widget.repository.loadNotes();
     final projects = await widget.repository.loadProjects();
-    final tagSet = <String>{};
-    for (final note in notes) {
-      for (final tag in note.tags) {
-        if (tag.trim().isNotEmpty) tagSet.add(tag.trim());
-      }
-    }
+    final tagSet = await widget.repository.loadTags();
     if (!mounted) return;
     setState(() {
       _notes = notes;
       _projects = projects;
-      _knownTags = tagSet.toList()..sort();
+      _knownTags = tagSet;
       _loading = false;
     });
   }
@@ -265,13 +260,8 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _addTagsToSelected() async {
     if (_selected.isEmpty) return;
-    final notes = await widget.repository.loadNotes();
+    final knownTags = await widget.repository.loadTags();
     if (!mounted) return;
-    final knownTags = <String>{
-      for (final note in notes)
-        for (final tag in note.tags)
-          if (tag.trim().isNotEmpty) tag.trim(),
-    }.toList()..sort();
 
     final selected = await showModalBottomSheet<List<String>>(
       context: context,
