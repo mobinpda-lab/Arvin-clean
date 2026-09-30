@@ -124,6 +124,6 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('calendar-jump-cancel')));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
   });
 }
