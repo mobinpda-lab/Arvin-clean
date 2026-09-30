@@ -31,7 +31,7 @@ void main() {
     );
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
-    expect(find.text('۱۴۰۵/۰۵'), findsOneWidget);
+    expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
 
     expect(
       find.byKey(const ValueKey('calendar-view-mode-control')),
@@ -128,10 +128,10 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height,
       lessThan(280),
     );
-    expect(find.text('۱۴۰۵/۰۵'), findsOneWidget);
+    expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
   });
 
   testWidgets('visible Today action selects today and refreshes selected list',
