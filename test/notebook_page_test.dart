@@ -376,6 +376,15 @@ void main() {
     expect(await repository.loadNotes(), hasLength(2));
   });
 
+  test('Notebook taxonomy reads and writes the canonical catalog', () async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 30, 10));
+    await repository.createCategory('دسته مستقل');
+    await repository.createTag('برچسب مستقل');
+
+    expect(await repository.loadCategories(), contains('دسته مستقل'));
+    expect(await repository.loadTags(), contains('برچسب مستقل'));
+  });
+
   testWidgets('new category is created and applied without an extra save step',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 28, 1));
