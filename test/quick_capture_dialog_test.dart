@@ -364,16 +364,21 @@ void main() {
     await tester.pumpAndSettle();
     final hour16 = find.text('۱۶');
     expect(hour16, findsOneWidget);
+    await tester.ensureVisible(hour16);
     await tester.tap(hour16);
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(FilledButton).last);
+    final timeConfirm = find.byType(FilledButton).last;
+    await tester.ensureVisible(timeConfirm);
+    await tester.tap(timeConfirm);
     await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با ساعت',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
     expect(captured.single.dueDate, DateTime(2026, 9, 27, 16, 35));
