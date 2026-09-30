@@ -21,7 +21,8 @@ void main() {
     expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
     expect(device, contains('cancel-in-progress: true'));
-    expect(device, contains('max-parallel: 6'));
+    expect(device, contains('max-parallel: 7'));
+    expect(device, contains('android_calendar_provider_acceptance_test.dart'));
     expect(
       build,
       isNot(contains(r'github.event.pull_request.number || github.run_id')),
