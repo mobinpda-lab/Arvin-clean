@@ -1,8 +1,8 @@
 # مشخصات مرجع محصول — تقویم آروین
 
-آخرین به‌روزرسانی: ۱۴۰۵/۰۷/۰۸ — ۳۰ سپتامبر ۲۰۲۶
+آخرین به‌روزرسانی: ۱۴۰۵/۰۷/۰۹ — ۱ اکتبر ۲۰۲۶
 مبنای اجرایی فعلی: شاخه feat/calendar-recurrence-and-product-ux-20260930
-آخرین HEAD اصلاح UX: b573d391bbee3445d5adec87a734d1efa11f8b10
+آخرین HEAD اعتبارسنجی‌شده: e8bb80ee233a59567ab71d696dec455c5d52c278
 قرارداد canonical: Issue #2042
 
 ## 1) اصل محصول
@@ -39,6 +39,7 @@ Move to Today برای نمایش recurrence لازم نیست و بخشی از 
 - حذف دائمی Task باید event لینک‌شده را حذف کند.
 - Calendar Sync باید به تقویم دستگاه انتخاب‌شده کاربر محدود باشد.
 - Provider acceptance باید روی exact HEAD اجرا شود.
+- اجرای کامل چرخه خودکار Task→Device Calendar روی دستگاه فیزیکی در وضعیت فعلی «نامشخص» است؛ acceptance موجود Provider به‌تنهایی این چرخه را اثبات نمی‌کند.
 
 ## 7) UI تقویم
 - RTL و Persian digits الزامی است.
@@ -48,7 +49,13 @@ Move to Today برای نمایش recurrence لازم نیست و بخشی از 
 - کنترل‌های رفتن به بازه قبل/بعد و «امروز» حفظ می‌شوند.
 - ظاهر تقویم باید حرفه‌ای، خوانا و سازگار با زبان و پالت رسمی آروین باشد.
 
-## 8) تست‌های الزامی
+## 8) وضعیت فعلی recurrence — مهم
+مدل canonical موجود در HEAD فعلی فقط frequencyهای daily/weekly/monthly/yearly/oncePerDay و interval عددی مربوط به همان واحد تقویمی را دارد.
+Projection واقعی occurrenceهای گذشته/امروز/آینده در Calendar هنوز در کد و تست‌ها به‌طور کافی اثبات نشده است.
+intervalهای دقیقه/ساعت مانند ۲۰ دقیقه، ۹۰ دقیقه، ۱ ساعت و ۲ ساعت نیز در مدل/تست فعلی اثبات نشده‌اند.
+این موارد gap محصول هستند، نه مجوز ایجاد engine یا storage موازی.
+
+## 9) تست‌های الزامی
 - روزانه: گذشته/امروز/آینده.
 - هفتگی و ماهانه.
 - intervalهای ۲۰ دقیقه، ۹۰ دقیقه، ۱ ساعت، ۲ ساعت و مرز نیمه‌شب.
@@ -59,11 +66,21 @@ Move to Today برای نمایش recurrence لازم نیست و بخشی از 
 - Persian RTL/digits و سربرگ ماه، شامل «مهر ۱۴۰۵».
 - Analyze + full Test + Debug/Release Build + exact-head Device Smoke.
 
-## 9) Architecture Gate
-قبل از تغییر مدل، storage یا recurrence engine باید بازبینی معماری DeepSeek طبق قرارداد Issue #2042 انجام شود. تا فراهم‌شدن آن، فقط audit، contract و تست‌های غیرمخرب و UI مستقل مجاز است. ایجاد storage/model/repository/engine موازی ممنوع است.
+## 10) Architecture Gate
+قبل از تغییر مدل، storage یا recurrence engine باید بازبینی معماری DeepSeek طبق قرارداد Issue #2042 انجام شود. در GitHub تا این HEAD، شواهد قابل اتکایی از تکمیل این بازبینی موجود نیست. تا فراهم‌شدن آن، فقط audit، contract و تست‌های غیرمخرب و UI مستقل مجاز است. ایجاد storage/model/repository/engine موازی ممنوع است.
 
-## 10) وضعیت اثبات‌شده
-UX سربرگ ماه شمسی در شاخه کاری پیاده شده و خطای syntax ناشی از commit قبلی نیز در HEAD b573d391... اصلاح شده است. CI برای همین HEAD در حال اعتبارسنجی است؛ تا سبزشدن کامل Build/Tests/Device Smoke، release-ready ادعا نمی‌شود.
+## 11) وضعیت اثبات‌شده در HEAD فعلی
+- سربرگ ماه شمسی با نام کامل، از جمله «مهر ۱۴۰۵»، در UI پیاده و تست شده است.
+- Analyze: PASS
+- Full test matrix (6 shards): PASS
+- Debug APK: PASS
+- Release APK: PASS
+- Exact-head Android Device Smoke: PASS
+- Exact-head Calendar Provider Acceptance: PASS
+- Orchestrator / Parallel Wave / Production Loop / G1 Lock Sync: PASS
+- Recurrence projection acceptance: هنوز اثبات نشده.
+- DeepSeek architecture review: نامشخص.
+- Release Ready: ادعا نمی‌شود.
 
 ## منابع canonical
 - Issue #2042: قرارداد recurrence/calendar/reminder
