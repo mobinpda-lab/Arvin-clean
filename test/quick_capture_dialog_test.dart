@@ -366,4 +366,58 @@ void main() {
     expect(find.byTooltip('دقیقه'), findsOneWidget);
     expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
+  testWidgets('Quick Add preserves custom due and reminder time in the canonical Task',
+      (tester) async {
+    final captured = <Task>[];
+    final fixedNow = DateTime(2026, 9, 27, 14, 35);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => fixedNow,
+              onCaptured: (task) async => captured.add(task),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب ساعت').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۴۰۵/۰۷/۰۵ • ۱۴:۳۵'), findsOneWidget);
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب ساعت').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۴۰۵/۰۷/۰۵ • ۱۴:۳۵'), findsNWidgets(2));
+
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار زمان‌دار',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, hasLength(1));
+    expect(captured.single.dueDate, DateTime(2026, 9, 27, 14, 35));
+    expect(captured.single.reminderDate, DateTime(2026, 9, 27, 14, 35));
+  });
+
 }
