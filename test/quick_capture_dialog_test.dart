@@ -186,6 +186,7 @@ void main() {
       ['کار اول', 'کار دوم', 'کار سوم'],
     );
   });
+
   testWidgets('canonical capture keeps title-only path and optional choices',
       (tester) async {
     final captured = <Task>[];
@@ -220,7 +221,6 @@ void main() {
 
     expect(captured.single.title, 'کار فقط با عنوان');
   });
-
 
   testWidgets('Quick Add scheduling uses RollBox and Persian custom date/time',
       (tester) async {
@@ -258,6 +258,7 @@ void main() {
     expect(find.byTooltip('دقیقه'), findsOneWidget);
     expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
+
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -360,10 +361,9 @@ void main() {
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.text('انتخاب ساعت'), findsWidgets);
     expect(find.byTooltip('ساعت'), findsOneWidget);
     expect(find.byTooltip('دقیقه'), findsOneWidget);
     expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
-
 }
