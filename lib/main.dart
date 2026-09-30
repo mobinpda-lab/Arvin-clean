@@ -919,6 +919,7 @@ class _HomePageState extends State<HomePage> {
             taskId: edited.id,
             projectId: selectedProjectId,
           );
+          await _syncTaskToDeviceCalendar(edited);
           final refreshed = await taskStore.load();
           if (!mounted) return false;
           setState(() {
@@ -939,6 +940,7 @@ class _HomePageState extends State<HomePage> {
             taskId: captured.id,
             projectId: selectedProjectId,
           );
+          await _syncTaskToDeviceCalendar(captured);
 
           final refreshed = await taskStore.load();
           if (!mounted) return;
@@ -985,6 +987,7 @@ class _HomePageState extends State<HomePage> {
       taskId: edited.id,
       projectId: selectedProjectId,
     );
+    await _syncTaskToDeviceCalendar(edited);
   }
 
   Future<Task?> _editFromDetail(Task task) async {
