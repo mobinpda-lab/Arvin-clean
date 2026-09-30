@@ -10,7 +10,11 @@ void main() {
     expect(workflow, contains('name: Arvin Device Smoke'));
     expect(
       workflow,
-      contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false"),
+      isNot(contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false")),
+    );
+    expect(
+      workflow,
+      contains('# Run on draft PRs too: draft status must not suppress exact-head product evidence.'),
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
