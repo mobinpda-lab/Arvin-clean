@@ -79,6 +79,33 @@ class CalendarOutboundSyncService {
     return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
   }
 
+  Future<CalendarProviderSyncResult?> removeTask(Task task) async {
+    final integration = (await settingsService.load()).calendarIntegration;
+    final targetCalendarId = integration.targetCalendarId?.trim();
+    if (!integration.enabled ||
+        !integration.syncArvinToDevice ||
+        targetCalendarId == null ||
+        targetCalendarId.isEmpty) {
+      return null;
+    }
+    final reminderId = 'task-due:${task.id}';
+    final links = await linkStore.load();
+    final linked = <ExternalCalendarEventLink>[
+      for (final link in links)
+        if (link.reminderId == reminderId) link,
+    ];
+    if (linked.isEmpty) return null;
+    final plan = planService.plan(
+      revisions: const <CalendarSyncRevision>[],
+      links: linked,
+    );
+    if (plan.items.isEmpty) return null;
+    return executor.execute(
+      plan: plan,
+      targetCalendarId: targetCalendarId,
+    );
+  }
+
   Future<CalendarProviderSyncResult?> syncTask(Task task) async {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
