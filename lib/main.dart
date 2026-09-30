@@ -7,7 +7,6 @@ import 'backup_manager.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
-import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
@@ -17,9 +16,7 @@ import 'notebook_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
-import 'services/calendar_provider_sync_executor.dart';
-import 'services/calendar_sync_plan_service.dart';
-import 'services/external_calendar_link_store.dart';
+import 'services/calendar_outbound_sync_service.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -135,6 +132,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
+  final CalendarOutboundSyncService calendarOutboundSyncService = CalendarOutboundSyncService();
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
   final HomeGroupingService homeGroupingService = const HomeGroupingService();
@@ -273,6 +271,25 @@ class _HomePageState extends State<HomePage> {
       );
     }
     return taskStore.save(List<Task>.of(tasks));
+  }
+
+  Future<void> _syncTaskToDeviceCalendar(Task task) async {
+    try { await calendarOutboundSyncService.syncTask(task); }
+    catch (error) { if (!mounted) return; ScaffoldMessenger.of(context)..hideCurrentSnackBar()..showSnackBar(SnackBar(content: Text('ثبت خودکار در تقویم گوشی انجام نشد: $error'))); }
+  }
+
+  Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
+    if (!reminder.id.startsWith('task-due:')) return;
+    final taskId = reminder.id.substring('task-due:'.length);
+    Task? task;
+    for (final candidate in _searchSource) { if (!candidate.trashed && candidate.id == taskId) { task = candidate; break; } }
+    if (task == null) return;
+    try {
+      final result = await calendarOutboundSyncService.registerTask(task);
+      if (!mounted) return;
+      final message = result == null ? 'ابتدا اتصال تقویم و تقویم مقصد را در تنظیمات انتخاب کنید.' : result.created > 0 ? 'کار در تقویم گوشی ثبت شد.' : result.updated > 0 ? 'رویداد تقویم گوشی به‌روزرسانی شد.' : result.noOp > 0 ? 'رویداد تقویم گوشی از قبل به‌روز بود.' : 'ثبت کار در تقویم انجام نشد.';
+      ScaffoldMessenger.of(context)..hideCurrentSnackBar()..showSnackBar(SnackBar(content: Text(message)));
+    } catch (error) { if (!mounted) return; ScaffoldMessenger.of(context)..hideCurrentSnackBar()..showSnackBar(SnackBar(content: Text('ثبت در تقویم گوشی انجام نشد: $error'))); }
   }
 
   DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
@@ -981,6 +998,7 @@ class _HomePageState extends State<HomePage> {
     task.completed = !task.completed;
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    await _syncTaskToDeviceCalendar(task);
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
@@ -1464,75 +1482,6 @@ class _HomePageState extends State<HomePage> {
     await _load();
     return List<Task>.of(_searchSource);
   }
-  Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
-    if (!reminder.id.startsWith('task-due:')) return;
-    var settings = await appSettingsService.load();
-    var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
-      if (!mounted) return;
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => CalendarIntegrationSettingsPage(
-            service: appSettingsService,
-          ),
-        ),
-      );
-      if (!mounted) return;
-      settings = await appSettingsService.load();
-      targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    }
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ابتدا یک تقویم مقصد را انتخاب کنید.')),
-      );
-      return;
-    }
-
-    final taskId = reminder.id.substring('task-due:'.length);
-    Task? task;
-    for (final candidate in _searchSource) {
-      if (candidate.id == taskId) {
-        task = candidate;
-        break;
-      }
-    }
-    if (task == null) return;
-
-    final canonical = CalendarReminder(
-      id: reminder.id,
-      title: task.title,
-      date: task.dueDate ?? reminder.date,
-      completed: task.completed,
-      description: task.description,
-    );
-    try {
-      final revision = await CalendarSyncRevisionService().fromReminder(canonical);
-      final links = await ExternalCalendarLinkStore().load();
-      final plan = const CalendarSyncPlanService().plan(
-        revisions: <CalendarSyncRevision>[revision],
-        links: links,
-      );
-      final result = await CalendarProviderSyncExecutor().execute(
-        plan: plan,
-        targetCalendarId: targetCalendarId,
-      );
-      if (!mounted) return;
-      final message = result.created > 0
-          ? 'کار در تقویم گوشی ثبت شد.'
-          : result.updated > 0
-          ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
-          : 'رویداد تقویم گوشی از قبل به‌روز بود.';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ثبت در تقویم گوشی انجام نشد: $error')),
-      );
-    }
-  }
-
-
   Future<void> _openPrimaryCalendar() async {
     if (!mounted) return;
     // Re-read canonical SQL before opening calendar/timeline so navigation never
