@@ -129,7 +129,7 @@ jobs:
           # keep the emulator headless and deterministic for product smoke.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none
           script: |
-            set -euo pipefail
+            bash -euo pipefail
             if [ "${{ matrix.scenario }}" = "calendar" ]; then
               flutter build apk --debug
               adb install -r build/app/outputs/flutter-apk/app-debug.apk
