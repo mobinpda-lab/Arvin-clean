@@ -326,4 +326,44 @@ void main() {
     expect(find.byTooltip('ساعت'), findsOneWidget);
     expect(find.byTooltip('دقیقه'), findsOneWidget);
   });
+
+  testWidgets('Quick Add date/time picker works from the real Quick Capture bottom sheet',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  builder: (_) => QuickCaptureDialog(
+                    now: () => DateTime(2026, 9, 27, 14, 35),
+                  ),
+                ),
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب تاریخ'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب ساعت'), findsOneWidget);
+    expect(find.byTooltip('ساعت'), findsOneWidget);
+    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.text('۱۴:۳۵'), findsOneWidget);
+  });
+
 }
