@@ -65,7 +65,7 @@ class CalendarOutboundSyncService {
     final linked = <ExternalCalendarEventLink>[for (final link in links) if (link.reminderId == reminderId) link];
     final revisions = <CalendarSyncRevision>[];
     final dueDate = task.dueDate;
-    if (dueDate != null && !task.completed) {
+    if (dueDate != null && !task.completed && !task.archived && !task.trashed) {
       revisions.add(await revisionService.fromReminder(CalendarReminder(
         id: reminderId,
         title: task.title,
@@ -88,7 +88,7 @@ class CalendarOutboundSyncService {
     final linked = <ExternalCalendarEventLink>[for (final link in links) if (link.reminderId == reminderId) link];
     final revisions = <CalendarSyncRevision>[];
     final dueDate = task.dueDate;
-    if (dueDate != null && !task.completed) {
+    if (dueDate != null && !task.completed && !task.archived && !task.trashed) {
       revisions.add(await revisionService.fromReminder(CalendarReminder(
         id: reminderId,
         title: task.title,
