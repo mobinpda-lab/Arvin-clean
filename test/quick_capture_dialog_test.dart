@@ -354,7 +354,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    final hourBox = find.text('ساعت ۱۴');
+    final hourBox = find.byTooltip('ساعت');
     expect(hourBox, findsOneWidget);
     await tester.tap(hourBox);
     await tester.pumpAndSettle();
