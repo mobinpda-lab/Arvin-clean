@@ -128,4 +128,12 @@ jobs:
           # Avoid the hosted-emulator ColorBuffer/GPU failure mode seen in CI;
           # keep the emulator headless and deterministic for product smoke.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none
-          script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+          script: |
+            set -euo pipefail
+            if [ "${{ matrix.scenario }}" = "calendar" ]; then
+              flutter build apk --debug
+              adb install -r build/app/outputs/flutter-apk/app-debug.apk
+              adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
+              adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+            fi
+            flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
