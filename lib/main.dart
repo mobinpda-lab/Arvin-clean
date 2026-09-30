@@ -284,6 +284,43 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+  Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
+    if (!reminder.id.startsWith('task-due:')) return;
+    final taskId = reminder.id.substring('task-due:'.length);
+    Task? task;
+    for (final candidate in _searchSource) {
+      if (!candidate.trashed && candidate.id == taskId) {
+        task = candidate;
+        break;
+      }
+    }
+    if (task == null) return;
+
+    try {
+      final result = await calendarOutboundSyncService.registerTask(task);
+      if (!mounted) return;
+      final message = result == null
+          ? 'ابتدا اتصال تقویم و تقویم مقصد را در تنظیمات انتخاب کنید.'
+          : result.created > 0
+              ? 'کار در تقویم گوشی ثبت شد.'
+              : result.updated > 0
+                  ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
+                  : result.noOp > 0
+                      ? 'رویداد تقویم گوشی از قبل به‌روز بود.'
+                      : 'ثبت کار در تقویم انجام نشد.';
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('ثبت در تقویم گوشی انجام نشد: $error')),
+        );
+    }
+  }
+
   DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
   String? _projectTitleForTask(Task task) {
@@ -1494,6 +1531,8 @@ class _HomePageState extends State<HomePage> {
           onRefreshTasks: _refreshCanonicalTasksForCalendar,
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
+          onEditTask: (task) async { await _editFromDetail(task); },
+          onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
         ),
       ),
     );
@@ -1553,6 +1592,8 @@ class _HomePageState extends State<HomePage> {
               tasks: _searchSource,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
+              onEditTask: (task) async { await _editFromDetail(task); },
+              onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
             ),
           ),
         );
