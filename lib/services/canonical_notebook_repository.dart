@@ -42,17 +42,14 @@ class CanonicalNotebookRepository {
     return notes;
   }
 
-  Future<List<String>> loadCategories() async {
-    final notes = await loadNotes();
-    final values = notes
-        .map((note) => note.category?.trim())
-        .whereType<String>()
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-    return values;
-  }
+  /// Returns the canonical category catalog used by Task and Notebook.
+  /// Categories are not derived only from currently visible Notebook items, so
+  /// an existing category remains selectable even when no current Note uses it.
+  Future<List<String>> loadCategories() => _store.loadCategories();
+
+  /// Returns the canonical tag catalog used by Task and Notebook.
+  /// This keeps selector options shared across surfaces without a Notebook store.
+  Future<List<String>> loadTags() => _store.loadTags();
 
   Future<Task?> loadNote(String id) async {
     final tasks = await _store.load();
