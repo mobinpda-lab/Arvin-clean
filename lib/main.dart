@@ -1296,6 +1296,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _deleteForever(Task task) async {
+    await calendarOutboundSyncService.removeTask(task);
     setState(() => tasks.removeWhere((item) => item.id == task.id));
     await _save();
   }
