@@ -106,6 +106,15 @@ class _CalendarPageState extends State<CalendarPage> {
   String _time(DateTime date) => _dateFormatter.toPersianDigits(
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
   );
+  static const _jalaliMonthNames = <String>[
+    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
+  ];
+
+  String _jalaliMonthYear(JalaliDate date) {
+    final month = _jalaliMonthNames[date.month - 1];
+    return _dateFormatter.toPersianDigits('$month ${date.year}');
+  }
 
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
