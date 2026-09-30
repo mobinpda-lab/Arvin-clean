@@ -559,20 +559,6 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  static const _jalaliMonthNames = <String>[
-    'فروردین',
-    'اردیبهشت',
-    'خرداد',
-    'تیر',
-    'مرداد',
-    'شهریور',
-    'مهر',
-    'آبان',
-    'آذر',
-    'دی',
-    'بهمن',
-    'اسفند',
-  ];
 
   Widget _buildYearView() {
     final current = _dateFormatter.toJalali(_selectedDay);
