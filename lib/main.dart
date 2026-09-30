@@ -393,7 +393,6 @@ class _HomePageState extends State<HomePage> {
     required String label,
     required IconData icon,
     required Color accent,
-    required Color softAccent,
   }) {
     final selectedMode = _homeGroupMode == mode;
     return Expanded(
@@ -447,7 +446,6 @@ class _HomePageState extends State<HomePage> {
             label: 'زمان',
             icon: Icons.calendar_month_rounded,
             accent: ArvinColors.time,
-            softAccent: ArvinColors.timeSoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
@@ -455,7 +453,6 @@ class _HomePageState extends State<HomePage> {
             label: 'پروژه‌ها',
             icon: Icons.folder_rounded,
             accent: ArvinColors.project,
-            softAccent: ArvinColors.projectSoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
@@ -463,7 +460,6 @@ class _HomePageState extends State<HomePage> {
             label: 'دسته‌ها',
             icon: Icons.grid_view_rounded,
             accent: ArvinColors.category,
-            softAccent: ArvinColors.categorySoft,
           ),
           const SizedBox(width: 7),
           _homeGroupButton(
@@ -471,7 +467,6 @@ class _HomePageState extends State<HomePage> {
             label: 'برچسب‌ها',
             icon: Icons.sell_rounded,
             accent: ArvinColors.tag,
-            softAccent: ArvinColors.tagSoft,
           ),
         ],
       ),
