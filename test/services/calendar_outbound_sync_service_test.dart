@@ -1,4 +1,5 @@
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/calendar_outbound_sync_service.dart';
 import 'package:arvin/services/calendar_provider_sync_executor.dart';
@@ -94,6 +95,21 @@ void main() {
     expect(result?.created, 1);
     expect(executor.receivedTarget, 'calendar-7');
     expect(executor.receivedPlan?.items.single.reminderId, 'followup:task-1:f1');
+  });
+
+  test('Task auto-sync creates one canonical event', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(settingsService: _Settings(const CalendarIntegrationSettings(enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7')), executor: executor, linkStore: _Links());
+    final result = await service.syncTask(Task(id: 'task-42', title: 'کار مهم', dueDate: DateTime(2026, 9, 30, 15)));
+    expect(result?.created, 1);
+    expect(executor.receivedPlan?.items.single.reminderId, 'task-due:task-42');
+  });
+
+  test('Task without due date does not create an event', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(settingsService: _Settings(const CalendarIntegrationSettings(enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7')), executor: executor, linkStore: _Links());
+    expect(await service.syncTask(Task(id: 'task-43', title: 'بدون موعد')), isNull);
+    expect(executor.receivedPlan, isNull);
   });
 
   test('existing link produces idempotent update/no-op planning, not duplicate create', () async {
