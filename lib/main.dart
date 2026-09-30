@@ -264,13 +264,19 @@ class _HomePageState extends State<HomePage> {
     return TaskStore().createTag(name);
   }
 
-  Future<void> _save() {
+  Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
         'Canonical task storage is unreadable; refusing Home write.',
       );
     }
-    return taskStore.save(List<Task>.of(tasks));
+    final snapshot = List<Task>.of(tasks);
+    await taskStore.save(snapshot);
+    final integration = (await appSettingsService.load()).calendarIntegration;
+    if (!integration.enabled || !integration.syncArvinToDevice) return;
+    for (final task in snapshot) {
+      await _syncTaskToDeviceCalendar(task);
+    }
   }
 
   Future<void> _syncTaskToDeviceCalendar(Task task) async {
