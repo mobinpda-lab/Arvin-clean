@@ -49,7 +49,7 @@ void main() {
 
     expect(find.text('رویداد روز انتخابی'), findsOneWidget);
     expect(find.text('رویداد روز مبنا'), findsNothing);
-    expect(find.text('۱۴۰۵/۰۵'), findsOneWidget);
+    expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
   });
 
   testWidgets('cancelling Jalali date jump has zero calendar side effects',
@@ -88,7 +88,7 @@ void main() {
 
     expect(find.text('انتخاب بدون تغییر'), findsOneWidget);
     expect(find.text('نباید انتخاب شود'), findsNothing);
-    expect(find.text('۱۴۰۵/۰۵'), findsOneWidget);
+    expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
   });
 
   testWidgets('changing Jalali month clamps an invalid day safely',
