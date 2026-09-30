@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/iran_clock.dart';
 
-void main() {
+void main() {\n  testWidgets('shows Persian Jalali month-year header', (tester) async {\n    await tester.pumpWidget(\n      MaterialApp(\n        home: CalendarPage(\n          initialSelectedDay: DateTime(2026, 10, 15),\n          reminders: const [],\n        ),\n      ),\n    );\n\n    expect(find.byKey(const ValueKey('calendar-month-year-header')), findsOneWidget);\n    expect(find.text('مهر ۱۴۰۵'), findsOneWidget);\n  });\n
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
     final day = DateTime(now.year, now.month, now.day);
@@ -167,7 +167,7 @@ void main() {
 
     await tester.tap(find.text('سالانه'));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
 
     await tester.fling(
       find.byKey(const ValueKey('calendar-swipe-surface')),
@@ -193,14 +193,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
 
     await tester.tap(find.text('ماهانه'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۷'), findsOneWidget);
+    expect(find.text('مهر ۱۴۰۵'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
     await tester.pumpAndSettle();
