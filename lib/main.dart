@@ -445,29 +445,29 @@ class _HomePageState extends State<HomePage> {
             mode: HomeGroupMode.time,
             label: 'زمان',
             icon: Icons.calendar_month_rounded,
-            accent: ArvinColors.time,,
-
+            accent: ArvinColors.time,
+          ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.projects,
             label: 'پروژه‌ها',
             icon: Icons.folder_rounded,
-            accent: ArvinColors.project,,
-
+            accent: ArvinColors.project,
+          ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.categories,
             label: 'دسته‌ها',
             icon: Icons.grid_view_rounded,
-            accent: ArvinColors.category,,
-
+            accent: ArvinColors.category,
+          ),
           const SizedBox(width: 7),
           _homeGroupButton(
             mode: HomeGroupMode.labels,
             label: 'برچسب‌ها',
             icon: Icons.sell_rounded,
-            accent: ArvinColors.tag,,
-
+            accent: ArvinColors.tag,
+          ),
         ],
       ),
     );
