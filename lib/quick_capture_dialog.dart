@@ -204,88 +204,95 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     var minute = initial.minute - (initial.minute % 5);
     return showDialog<TimeOfDay>(
       context: parentContext,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
+      builder: (dialogContext) {
         final formatter = const PersianDateFormatter();
         return Dialog(
           child: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
               child: StatefulBuilder(
-            builder: (context, setSheetState) {
-              final label = formatter.toPersianDigits(
-                '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-              );
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('انتخاب ساعت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 8),
-                    Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ArvinRollBox<int>(
-                      label: 'ساعت',
-                      valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
-                      icon: Icons.access_time_rounded,
-                      color: const Color(0xFF3568D4),
-                      items: List.generate(
-                        24,
-                        (value) => ArvinRollItem<int>(
-                          value: value,
-                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                          icon: Icons.schedule_outlined,
+                builder: (context, setDialogState) {
+                  final label = formatter.toPersianDigits(
+                    '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+                  );
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'انتخاب ساعت',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        label,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ArvinRollBox<int>(
+                          label: 'ساعت',
+                          valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
+                          icon: Icons.access_time_rounded,
                           color: const Color(0xFF3568D4),
+                          items: List.generate(
+                            24,
+                            (value) => ArvinRollItem<int>(
+                              value: value,
+                              label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                              icon: Icons.schedule_outlined,
+                              color: const Color(0xFF3568D4),
+                            ),
+                          ),
+                          onSelected: (value) {
+                            if (value != null) setDialogState(() => hour = value);
+                          },
                         ),
                       ),
-                      onSelected: (value) { if (value != null) setSheetState(() => hour = value); },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ArvinRollBox<int>(
-                      label: 'دقیقه',
-                      valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
-                      icon: Icons.more_time_rounded,
-                      color: const Color(0xFF7650C8),
-                      items: List.generate(
-                        12,
-                        (index) {
-                          final value = index * 5;
-                          return ArvinRollItem<int>(
-                            value: value,
-                            label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                            icon: Icons.timelapse_outlined,
-                            color: const Color(0xFF7650C8),
-                          );
-                        },
-                      ),
-                      onSelected: (value) { if (value != null) setSheetState(() => minute = value); },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => Navigator.pop(
-                          sheetContext,
-                          TimeOfDay(hour: hour, minute: minute),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ArvinRollBox<int>(
+                          label: 'دقیقه',
+                          valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
+                          icon: Icons.more_time_rounded,
+                          color: const Color(0xFF7650C8),
+                          items: List.generate(
+                            12,
+                            (index) {
+                              final value = index * 5;
+                              return ArvinRollItem<int>(
+                                value: value,
+                                label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                                icon: Icons.timelapse_outlined,
+                                color: const Color(0xFF7650C8),
+                              );
+                            },
+                          ),
+                          onSelected: (value) {
+                            if (value != null) setDialogState(() => minute = value);
+                          },
                         ),
-                        child: const Text('انتخاب ساعت'),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () => Navigator.pop(
+                            dialogContext,
+                            TimeOfDay(hour: hour, minute: minute),
+                          ),
+                          child: const Text('انتخاب ساعت'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
-        ),
-      );
+        );
       },
     );
   }
