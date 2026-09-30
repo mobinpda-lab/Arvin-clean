@@ -52,7 +52,8 @@ forbid(parallel, '- name: Build release APK', str(parallel_path))
 require(device, "branches: [main, master]", str(device_path))
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
-require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
+forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
+require(device, '# Run on draft PRs too: draft status must not suppress exact-head product evidence.', str(device_path))
 for scenario in [
     'home',
     'quick-capture',
