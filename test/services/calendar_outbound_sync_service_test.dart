@@ -105,6 +105,22 @@ void main() {
     expect(executor.receivedPlan?.items.single.reminderId, 'task-due:task-42');
   });
 
+  test('archived or trashed Task does not create an active calendar event', () async {
+    for (final task in <Task>[
+      Task(id: 'task-44', title: 'بایگانی', dueDate: DateTime(2026, 9, 30, 15), archived: true),
+      Task(id: 'task-45', title: 'سطل', dueDate: DateTime(2026, 9, 30, 15), trashed: true),
+    ]) {
+      final executor = _Executor();
+      final service = CalendarOutboundSyncService(
+        settingsService: _Settings(const CalendarIntegrationSettings(enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7')),
+        executor: executor,
+        linkStore: _Links(),
+      );
+      expect(await service.syncTask(task), isNull);
+      expect(executor.receivedPlan, isNull);
+    }
+  });
+
   test('Task without due date does not create an event', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(settingsService: _Settings(const CalendarIntegrationSettings(enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7')), executor: executor, linkStore: _Links());
