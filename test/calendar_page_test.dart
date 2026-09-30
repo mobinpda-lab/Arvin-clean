@@ -4,7 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/iran_clock.dart';
 
-void main() {\n  testWidgets('shows Persian Jalali month-year header', (tester) async {\n    await tester.pumpWidget(\n      MaterialApp(\n        home: CalendarPage(\n          initialSelectedDay: DateTime(2026, 10, 15),\n          reminders: const [],\n        ),\n      ),\n    );\n\n    expect(find.byKey(const ValueKey('calendar-month-year-header')), findsOneWidget);\n    expect(find.text('مهر ۱۴۰۵'), findsOneWidget);\n  });\n
+void main() {
+  testWidgets('shows Persian Jalali month-year header', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: DateTime(2026, 10, 15),
+          reminders: const [],
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('calendar-month-year-header')), findsOneWidget);
+    expect(find.text('مهر ۱۴۰۵'), findsOneWidget);
+  });
+
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
     final day = DateTime(now.year, now.month, now.day);
