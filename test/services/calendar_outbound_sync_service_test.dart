@@ -121,6 +121,44 @@ void main() {
     }
   });
 
+  test('permanently deleted Task removes its linked calendar event', () async {
+    final task = Task(
+      id: 'task-46',
+      title: 'حذف دائمی',
+      dueDate: DateTime(2026, 9, 30, 16),
+    );
+    final reminder = CalendarReminder(
+      id: 'task-due:task-46',
+      title: task.title,
+      date: task.dueDate!,
+    );
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links([
+        ExternalCalendarEventLink(
+          reminderId: reminder.id,
+          calendarId: 'calendar-7',
+          eventId: 'event-46',
+          lastSyncedFingerprint: revision.fingerprint,
+        ),
+      ]),
+    );
+
+    final result = await service.removeTask(task);
+    expect(result?.deleted, 1);
+    expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.delete);
+    expect(executor.receivedPlan?.items.single.eventId, 'event-46');
+  });
+
   test('Task without due date does not create an event', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(settingsService: _Settings(const CalendarIntegrationSettings(enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7')), executor: executor, linkStore: _Links());
