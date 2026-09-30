@@ -10,6 +10,8 @@ on:
       - 'lib/services/calendar_sync_plan_service.dart'
       - 'lib/services/system_calendar_bridge.dart'
       - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
+      - 'lib/calendar_page.dart'
+      - 'test/calendar_page_test.dart'
   pull_request:
     branches: [main]
     paths:
