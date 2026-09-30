@@ -1,4 +1,5 @@
 import '../calendar_page.dart';
+import '../models/task.dart';
 import 'app_settings_service.dart';
 import 'calendar_provider_sync_executor.dart';
 import 'calendar_sync_plan_service.dart';
@@ -55,4 +56,50 @@ class CalendarOutboundSyncService {
     final plan = planService.plan(revisions: revisions, links: links);
     return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
   }
+  Future<CalendarProviderSyncResult?> registerTask(Task task) async {
+    final integration = (await settingsService.load()).calendarIntegration;
+    final targetCalendarId = integration.targetCalendarId?.trim();
+    if (!integration.enabled || targetCalendarId == null || targetCalendarId.isEmpty) return null;
+    final reminderId = 'task-due:${task.id}';
+    final links = await linkStore.load();
+    final linked = <ExternalCalendarEventLink>[for (final link in links) if (link.reminderId == reminderId) link];
+    final revisions = <CalendarSyncRevision>[];
+    final dueDate = task.dueDate;
+    if (dueDate != null && !task.completed) {
+      revisions.add(await revisionService.fromReminder(CalendarReminder(
+        id: reminderId,
+        title: task.title,
+        description: task.description,
+        date: dueDate,
+        completed: false,
+      )));
+    }
+    final plan = planService.plan(revisions: revisions, links: linked);
+    if (plan.items.isEmpty) return null;
+    return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
+  }
+
+  Future<CalendarProviderSyncResult?> syncTask(Task task) async {
+    final integration = (await settingsService.load()).calendarIntegration;
+    final targetCalendarId = integration.targetCalendarId?.trim();
+    if (!integration.enabled || !integration.syncArvinToDevice || targetCalendarId == null || targetCalendarId.isEmpty) return null;
+    final reminderId = 'task-due:${task.id}';
+    final links = await linkStore.load();
+    final linked = <ExternalCalendarEventLink>[for (final link in links) if (link.reminderId == reminderId) link];
+    final revisions = <CalendarSyncRevision>[];
+    final dueDate = task.dueDate;
+    if (dueDate != null && !task.completed) {
+      revisions.add(await revisionService.fromReminder(CalendarReminder(
+        id: reminderId,
+        title: task.title,
+        description: task.description,
+        date: dueDate,
+        completed: false,
+      )));
+    }
+    final plan = planService.plan(revisions: revisions, links: linked);
+    if (plan.items.isEmpty) return null;
+    return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
+  }
+
 }
