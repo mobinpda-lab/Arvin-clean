@@ -190,7 +190,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۶/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۶'), findsOneWidget);
   });
 
 
