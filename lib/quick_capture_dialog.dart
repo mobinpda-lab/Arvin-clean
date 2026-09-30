@@ -311,7 +311,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial);
     if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selected = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    setState(() => _dueDate = selected);
+    return selected;
   }
 
   Future<DateTime?> _pickCustomReminder() async {
@@ -320,7 +322,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial);
     if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selected = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    setState(() => _reminderDate = selected);
+    return selected;
   }
 
   Future<RecurrenceRule?> _pickCustomRecurrence() async {
