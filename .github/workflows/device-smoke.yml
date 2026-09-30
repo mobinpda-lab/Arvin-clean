@@ -20,7 +20,7 @@ env:
 
 jobs:
   device-smoke:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    # Run on draft PRs too: draft status must not suppress exact-head product evidence.
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
