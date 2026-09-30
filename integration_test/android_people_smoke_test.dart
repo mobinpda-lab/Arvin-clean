@@ -19,10 +19,31 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+    // Open Quick Capture through the canonical Home menu action. This avoids
+    // relying on the FAB subtree being directly hit-testable on every
+    // emulator viewport while exercising the same production Quick Capture.
+    final homeMenu = find.byKey(const ValueKey('home-menu'));
+    await tester.ensureVisible(homeMenu);
+    await tester.tap(homeMenu);
+    await tester.pumpAndSettle();
+    final quickCaptureAction =
+        find.byKey(const ValueKey('home-more-quick-capture'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      if (quickCaptureAction.evaluate().isNotEmpty) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(quickCaptureAction, findsOneWidget);
+    await tester.ensureVisible(quickCaptureAction);
+    await tester.tap(quickCaptureAction);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    final quickCaptureDialog =
+        find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      if (quickCaptureDialog.evaluate().isNotEmpty) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(quickCaptureDialog, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تست افراد اندروید',
