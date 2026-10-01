@@ -222,4 +222,26 @@ void main() {
     expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
   });
 
+  test('projects a canonical task reminder independently from its due date', () {
+    final reminderDate = DateTime(2026, 10, 6, 8, 30);
+    final task = Task(
+      id: 'task-reminder',
+      title: 'تماس صبحگاهی',
+      reminderDate: reminderDate,
+      dueDate: DateTime(2026, 10, 6, 17),
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(
+      reminders.map((item) => item.id),
+      contains('task-reminder:task-reminder'),
+    );
+    expect(
+      reminders.firstWhere((item) => item.id == 'task-reminder:task-reminder').date,
+      reminderDate,
+    );
+  });
+
 }
