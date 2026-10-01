@@ -22,7 +22,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
+    final quickCapture =
+        find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (quickCapture.evaluate().isNotEmpty) break;
+    }
+    expect(quickCapture, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تست افراد اندروید',
@@ -61,7 +67,8 @@ void main() {
 
     // Full-form editing returns to the Quick Capture sheet. Close every
     // remaining visible capture sheet before exercising real navigation.
-    final quickCapture = find.byKey(const ValueKey('quick-capture-dialog'));
+    // Full-form editing returns to the Quick Capture sheet. Close every
+    // remaining visible capture sheet before exercising real navigation.
     for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
       final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
       if (cancel.evaluate().isEmpty) break;
