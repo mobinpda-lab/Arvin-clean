@@ -31,7 +31,8 @@ class StartupPermissionService {
   final Future<bool> Function()? _calendarPermissionRequester;
 
   Future<void> requestOnStartup() async {
-    final preferences = _preferences ?? await SharedPreferences.getInstance();
+    final preferences =
+        _preferences ?? await SharedPreferences.getInstance();
     if (preferences.getBool(_promptedKey) == true) return;
 
     try {
@@ -39,6 +40,8 @@ class StartupPermissionService {
         await _requestNotificationPermission();
       } on MissingPluginException {
         // Non-Android/widget-test environments have no Android permission API.
+      } on LateInitializationError {
+        // The notification platform singleton is absent in widget-test hosts.
       }
       try {
         await _requestCalendarPermission();
