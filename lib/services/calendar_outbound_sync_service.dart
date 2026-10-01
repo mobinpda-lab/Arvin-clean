@@ -43,6 +43,7 @@ class CalendarOutboundSyncService {
 
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      if (!_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
       } on ArgumentError {
@@ -54,5 +55,27 @@ class CalendarOutboundSyncService {
     final links = await linkStore.load();
     final plan = planService.plan(revisions: revisions, links: links);
     return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
+  }
+
+  bool _enabledForReminder(
+    CalendarIntegrationSettings integration,
+    CalendarReminder reminder,
+  ) {
+    if (reminder.id.startsWith('task-due:')) {
+      return integration.syncDueDates;
+    }
+    if (reminder.id.startsWith('task-reminder:')) {
+      return integration.syncTaskReminders;
+    }
+    if (reminder.id.startsWith('followup:')) {
+      return integration.syncFollowUps;
+    }
+    if (reminder.id.startsWith('task-followup:')) {
+      return integration.syncFollowUpReminders;
+    }
+    if (reminder.id.startsWith('task-recurrence:')) {
+      return integration.syncRecurrence;
+    }
+    return false;
   }
 }
