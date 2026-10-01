@@ -769,6 +769,8 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   @override
   Widget build(BuildContext context) {
     final reminders = widget.projection.project(_tasks);
+    List<CalendarReminder> projectVisible(DateTime from, DateTime to) =>
+        widget.projection.project(_tasks, visibleFrom: from, visibleTo: to);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -778,6 +780,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           buttonKey: const ValueKey('calendar-context-help'),
           child: IranianOfficialCalendarPage(
             reminders: reminders,
+            visibleReminderProjection: projectVisible,
             onCompleteReminder: _completeReminder,
             onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
