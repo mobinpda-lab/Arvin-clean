@@ -19,6 +19,7 @@ on:
       - 'lib/services/calendar_sync_plan_service.dart'
       - 'lib/services/system_calendar_bridge.dart'
       - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
+      - 'test/follow_up_calendar_projection_test.dart'
   workflow_dispatch:
 
 permissions:
