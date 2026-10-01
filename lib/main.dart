@@ -19,11 +19,11 @@ import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
-import 'services/calendar_outbound_sync_service.dart';
+
 import 'services/calendar_provider_sync_executor.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/external_calendar_link_store.dart';
-import 'services/follow_up_calendar_projection.dart';
+
 import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
