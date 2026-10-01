@@ -1,4 +1,12 @@
-enum RecurrenceFrequency { daily, weekly, monthly, yearly, oncePerDay }
+enum RecurrenceFrequency {
+  daily,
+  weekly,
+  monthly,
+  yearly,
+  oncePerDay,
+  minutes,
+  hours,
+}
 
 class RecurrenceRule {
   const RecurrenceRule({
@@ -40,19 +48,74 @@ class RecurrenceRule {
         final month = targetMonth % 12 + 1;
         final day = from.day;
         final lastDay = DateTime(year, month + 1, 0).day;
-        return DateTime(year, month, day > lastDay ? lastDay : day,
-            from.hour, from.minute, from.second, from.millisecond, from.microsecond);
+        return DateTime(
+          year,
+          month,
+          day > lastDay ? lastDay : day,
+          from.hour,
+          from.minute,
+          from.second,
+          from.millisecond,
+          from.microsecond,
+        );
       case RecurrenceFrequency.yearly:
         final year = from.year + interval;
         final lastDay = DateTime(year, from.month + 1, 0).day;
-        return DateTime(year, from.month, from.day > lastDay ? lastDay : from.day,
-            from.hour, from.minute, from.second, from.millisecond, from.microsecond);
+        return DateTime(
+          year,
+          from.month,
+          from.day > lastDay ? lastDay : from.day,
+          from.hour,
+          from.minute,
+          from.second,
+          from.millisecond,
+          from.microsecond,
+        );
+      case RecurrenceFrequency.minutes:
+        return from.add(Duration(minutes: interval));
+      case RecurrenceFrequency.hours:
+        return from.add(Duration(hours: interval));
     }
   }
 
-  /// Returns the first future occurrence on or after [target].
+  /// Returns every recurrence occurrence intersecting [from, to).
+  ///
+  /// [anchor] is the original canonical scheduled instant. The canonical
+  /// Task is never mutated and no occurrence is persisted.
+  List<DateTime> occurrencesBetween({
+    required DateTime anchor,
+    required DateTime from,
+    required DateTime to,
+  }) {
+    if (!from.isBefore(to)) return const [];
+    if (to.isBefore(anchor)) {
+      return const [];
+    }
+
+    var first = anchor;
+    if (first.isBefore(from)) {
+      first = resumeFromToday(scheduledFrom: anchor, target: from);
+    }
+
+    final result = <DateTime>[];
+    var occurrence = first;
+    while (occurrence.isBefore(to)) {
+      if (!occurrence.isBefore(from)) {
+        result.add(occurrence);
+      }
+      final next = nextOccurrence(occurrence);
+      if (!next.isAfter(occurrence)) break;
+      occurrence = next;
+    }
+    return List<DateTime>.unmodifiable(result);
+  }
+
+  /// Returns the first occurrence on or after [target].
   /// The original scheduled date is never mutated.
-  DateTime resumeFromToday({required DateTime scheduledFrom, required DateTime target}) {
+  DateTime resumeFromToday({
+    required DateTime scheduledFrom,
+    required DateTime target,
+  }) {
     var occurrence = scheduledFrom;
     if (!occurrence.isBefore(target)) return occurrence;
 

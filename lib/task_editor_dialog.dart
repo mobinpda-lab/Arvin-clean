@@ -441,6 +441,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     RecurrenceFrequency.monthly => 'ماهانه',
     RecurrenceFrequency.yearly => 'سالانه',
     RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
+    RecurrenceFrequency.minutes => 'دقیقه‌ای',
+    RecurrenceFrequency.hours => 'ساعتی',
   };
 
   Widget _dateTimeButton({
