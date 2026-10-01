@@ -33,3 +33,27 @@ void main() {
     expect(source, isNot(contains('tasks[index] = edited')));
   });
 }
+
+
+  test('Home exposes a user-visible calendar sync recovery action', () {
+    final source = File('lib/main.dart').readAsStringSync();
+
+    expect(
+      source,
+      contains('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
+    );
+    expect(source, contains('تلاش دوباره'));
+    expect(source, contains('Future<void> _retryCalendarSync'));
+    expect(
+      source,
+      contains('همگام‌سازی با تقویم مقصد انجام شد.'),
+    );
+    expect(
+      source,
+      contains('همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.'),
+    );
+    expect(
+      source,
+      isNot(contains('external side effect and is retried on the next canonical save')),
+    );
+  });
