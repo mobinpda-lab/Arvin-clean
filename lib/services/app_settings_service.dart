@@ -7,7 +7,6 @@ class CalendarIntegrationSettings {
   const CalendarIntegrationSettings({
     this.enabled = false,
     this.showExternalEvents = false,
-    this.syncArvinToDevice = false,
     this.visibleCalendarIds = const <String>{},
     this.targetCalendarId,
     this.syncDueDates = true,
@@ -21,8 +20,7 @@ class CalendarIntegrationSettings {
 
   final bool enabled;
   final bool showExternalEvents;
-  final bool syncArvinToDevice;
-  final Set<String> visibleCalendarIds;
+  /// Backward-compatible alias; [autoSync] is the single canonical setting.\n  bool get syncArvinToDevice => autoSync;\n  final Set<String> visibleCalendarIds;
   final String? targetCalendarId;
   final bool syncDueDates;
   final bool syncTaskReminders;
@@ -35,7 +33,6 @@ class CalendarIntegrationSettings {
   CalendarIntegrationSettings copyWith({
     bool? enabled,
     bool? showExternalEvents,
-    bool? syncArvinToDevice,
     Set<String>? visibleCalendarIds,
     String? targetCalendarId,
     bool clearTargetCalendarId = false,
@@ -50,7 +47,6 @@ class CalendarIntegrationSettings {
     return CalendarIntegrationSettings(
       enabled: enabled ?? this.enabled,
       showExternalEvents: showExternalEvents ?? this.showExternalEvents,
-      syncArvinToDevice: syncArvinToDevice ?? this.syncArvinToDevice,
       visibleCalendarIds: Set<String>.unmodifiable(
         visibleCalendarIds ?? this.visibleCalendarIds,
       ),
@@ -263,8 +259,7 @@ class AppSettingsService {
       'calendarIntegration': <String, dynamic>{
         'enabled': calendar.enabled,
         'showExternalEvents': calendar.showExternalEvents,
-        'syncArvinToDevice': calendar.syncArvinToDevice,
-        'visibleCalendarIds': calendar.visibleCalendarIds.toList()..sort(),
+          'visibleCalendarIds': calendar.visibleCalendarIds.toList()..sort(),
         if (calendar.targetCalendarId != null)
           'targetCalendarId': calendar.targetCalendarId,
         'syncDueDates': calendar.syncDueDates,
@@ -321,7 +316,6 @@ class AppSettingsService {
     for (final key in <String>[
       'enabled',
       'showExternalEvents',
-      'syncArvinToDevice',
       'syncDueDates',
       'syncTaskReminders',
       'syncFollowUps',
@@ -367,7 +361,6 @@ class AppSettingsService {
       calendarIntegration: CalendarIntegrationSettings(
         enabled: calendarMap['enabled'] as bool? ?? false,
         showExternalEvents: calendarMap['showExternalEvents'] as bool? ?? false,
-        syncArvinToDevice: calendarMap['syncArvinToDevice'] as bool? ?? false,
         visibleCalendarIds: (visibleIdsRaw is List ? visibleIdsRaw : const <dynamic>[])
             .whereType<String>()
             .map((id) => id.trim())
@@ -380,7 +373,7 @@ class AppSettingsService {
         syncFollowUpReminders:
             calendarMap['syncFollowUpReminders'] as bool? ?? true,
         syncRecurrence: calendarMap['syncRecurrence'] as bool? ?? false,
-        autoSync: calendarMap['autoSync'] as bool? ?? false,
+        autoSync: calendarMap['autoSync'] as bool? ??\n            calendarMap['syncArvinToDevice'] as bool? ?? false,
         deleteLinkedEventWithTask:
             calendarMap['deleteLinkedEventWithTask'] as bool? ?? false,
       ),
@@ -436,7 +429,7 @@ class AppSettingsService {
       syncFollowUpReminders:
           preferences.getBool(_calendarSyncFollowUpReminderKey) ?? true,
       syncRecurrence: preferences.getBool(_calendarSyncRecurrenceKey) ?? false,
-      autoSync: preferences.getBool(_calendarAutoSyncKey) ?? false,
+      autoSync: preferences.getBool(_calendarAutoSyncKey) ??\n          preferences.getBool(_calendarSyncOutboundKey) ?? false,
       deleteLinkedEventWithTask:
           preferences.getBool(_calendarDeleteLinkedKey) ?? false,
     );
