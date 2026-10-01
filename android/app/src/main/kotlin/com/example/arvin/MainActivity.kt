@@ -20,6 +20,7 @@ class MainActivity : FlutterActivity() {
     private var pendingWidgetTaskId: String? = null
     private var pendingCalendarPermissionResult: MethodChannel.Result? = null
     private var pendingCalendarWritePermissionResult: MethodChannel.Result? = null
+    private var pendingCalendarAccessPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -182,6 +183,33 @@ class MainActivity : FlutterActivity() {
                         this,
                         arrayOf(Manifest.permission.READ_CALENDAR),
                         CALENDAR_PERMISSION_REQUEST_CODE,
+                    )
+                }
+                METHOD_REQUEST_CALENDAR_ACCESS_PERMISSIONS -> {
+                    if (hasCalendarReadPermission() && hasCalendarWritePermission()) {
+                        result.success(true)
+                        return@setMethodCallHandler
+                    }
+                    if (pendingCalendarAccessPermissionResult != null) {
+                        result.error(
+                            "permission_request_in_progress",
+                            "Calendar access permission request is already active",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    pendingCalendarAccessPermissionResult = result
+                    val permissions = mutableListOf<String>()
+                    if (!hasCalendarReadPermission()) {
+                        permissions.add(Manifest.permission.READ_CALENDAR)
+                    }
+                    if (!hasCalendarWritePermission()) {
+                        permissions.add(Manifest.permission.WRITE_CALENDAR)
+                    }
+                    ActivityCompat.requestPermissions(
+                        this,
+                        permissions.toTypedArray(),
+                        CALENDAR_ACCESS_PERMISSION_REQUEST_CODE,
                     )
                 }
                 METHOD_LIST_DEVICE_CALENDARS -> {
@@ -456,6 +484,13 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+        if (requestCode == CALENDAR_ACCESS_PERMISSION_REQUEST_CODE) {
+            val pending = pendingCalendarAccessPermissionResult
+            pendingCalendarAccessPermissionResult = null
+            val granted = hasCalendarReadPermission() && hasCalendarWritePermission()
+            pending?.success(granted)
+            return
+        }
         if (requestCode == CALENDAR_WRITE_PERMISSION_REQUEST_CODE) {
             val pending = pendingCalendarWritePermissionResult
             pendingCalendarWritePermissionResult = null
@@ -492,6 +527,7 @@ class MainActivity : FlutterActivity() {
             "calendarWritePermissionGranted"
         const val METHOD_REQUEST_CALENDAR_WRITE_PERMISSION =
             "requestCalendarWritePermission"
+        const val METHOD_REQUEST_CALENDAR_ACCESS_PERMISSIONS = "requestCalendarAccessPermissions"
         const val METHOD_CREATE_DEVICE_CALENDAR_EVENT = "createDeviceCalendarEvent"
         const val METHOD_UPDATE_DEVICE_CALENDAR_EVENT = "updateDeviceCalendarEvent"
         const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
@@ -499,6 +535,7 @@ class MainActivity : FlutterActivity() {
         const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102
         const val CALENDAR_WRITE_PERMISSION_REQUEST_CODE = 4103
+        const val CALENDAR_ACCESS_PERMISSION_REQUEST_CODE = 4104
         const val MAX_EVENT_QUERY_CALENDARS = 20
         const val MAX_EVENT_QUERY_WINDOW_MILLIS = 93L * 24L * 60L * 60L * 1000L
     }
