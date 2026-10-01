@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../lib/services/startup_permission_service.dart';
+import 'package:arvin/services/startup_permission_service.dart';
 
 void main() {
   test('startup requests notification and calendar permissions once', () async {
