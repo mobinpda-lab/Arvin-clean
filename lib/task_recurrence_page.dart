@@ -143,8 +143,12 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
         return 'ماهانه';
       case RecurrenceFrequency.yearly:
         return 'سالانه';
-      case RecurrenceFrequency.oncePerDay:
-        return 'یک‌بار در روز';
+        case RecurrenceFrequency.oncePerDay:
+          return 'یک‌بار در روز';
+        case RecurrenceFrequency.minutes:
+          return 'دقیقه‌ای';
+        case RecurrenceFrequency.hours:
+          return 'ساعتی';
     }
   }
 
