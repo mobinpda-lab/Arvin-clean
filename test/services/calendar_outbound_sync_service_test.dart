@@ -73,8 +73,7 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
+              targetCalendarId: 'calendar-7',
         ),
       ),
       executor: executor,
@@ -104,8 +103,7 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
+              targetCalendarId: 'calendar-7',
         ),
       ),
       executor: executor,
