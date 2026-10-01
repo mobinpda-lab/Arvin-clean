@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
-import 'package:arvin/models/recurrence.dart';
 
 void main() {
   const projection = FollowUpCalendarProjection();
@@ -206,75 +205,43 @@ void main() {
     expect(reminder.completed, isTrue);
   });
 
-  test('projects recurring task across past, today and future visible dates', () {
+  test('projects a canonical task reminder separately from its due date', () {
+    final reminderDate = DateTime(2026, 12, 5, 9);
+    final dueDate = DateTime(2026, 12, 5, 14);
     final task = Task(
-      id: 'daily-task',
-      title: 'کار روزانه',
-      dueDate: DateTime(2026, 10, 1, 14),
-      recurrence: const RecurrenceRule(
-        frequency: RecurrenceFrequency.daily,
-      ),
+      id: 'task-reminder',
+      title: 'تماس',
+      reminderDate: reminderDate,
+      dueDate: dueDate,
     );
 
-    final reminders = projection.project(
-      <Task>[task],
-      visibleFrom: DateTime(2026, 9, 30),
-      visibleTo: DateTime(2026, 10, 4),
-    );
-
-    expect(reminders, hasLength(3));
-    expect(reminders.map((item) => item.date), <DateTime>[
-      DateTime(2026, 10, 1, 14),
-      DateTime(2026, 10, 2, 14),
-      DateTime(2026, 10, 3, 14),
-    ]);
-    expect(
-      reminders.map((item) => item.id).toSet().length,
-      reminders.length,
-    );
-  });
-
-  test('projects custom minute recurrence without creating independent tasks', () {
-    final task = Task(
-      id: 'short-cycle',
-      title: 'کار کوتاه',
-      dueDate: DateTime(2026, 10, 1, 23, 40),
-      recurrence: const RecurrenceRule(
-        frequency: RecurrenceFrequency.minutes,
-        interval: 20,
-      ),
-    );
-
-    final reminders = projection.project(
-      <Task>[task],
-      visibleFrom: DateTime(2026, 10, 2),
-      visibleTo: DateTime(2026, 10, 2, 1, 1),
-    );
-
-    expect(reminders, hasLength(4));
-    expect(reminders.first.id, startsWith('task-due:short-cycle:'));
-    expect(reminders.map((item) => item.title).toSet(), {'کار کوتاه'});
-  });
-
-  test('weekly recurrence respects the visible range and does not leak other dates', () {
-    final task = Task(
-      id: 'weekly-task',
-      title: 'کار هفتگی',
-      dueDate: DateTime(2026, 10, 3, 9),
-      recurrence: const RecurrenceRule(
-        frequency: RecurrenceFrequency.weekly,
-      ),
-    );
-
-    final reminders = projection.project(
-      <Task>[task],
-      visibleFrom: DateTime(2026, 10, 5),
-      visibleTo: DateTime(2026, 10, 20),
-    );
+    final reminders = projection.project(<Task>[task]);
 
     expect(reminders, hasLength(2));
-    expect(reminders[0].date, DateTime(2026, 10, 10, 9));
-    expect(reminders[1].date, DateTime(2026, 10, 17, 9));
+    expect(reminders.map((item) => item.id), contains('task-reminder:task-reminder'));
+    expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
+  });
+
+  test('projects a canonical task reminder independently from its due date', () {
+    final reminderDate = DateTime(2026, 10, 6, 8, 30);
+    final task = Task(
+      id: 'task-reminder',
+      title: 'تماس صبحگاهی',
+      reminderDate: reminderDate,
+      dueDate: DateTime(2026, 10, 6, 17),
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(
+      reminders.map((item) => item.id),
+      contains('task-reminder:task-reminder'),
+    );
+    expect(
+      reminders.firstWhere((item) => item.id == 'task-reminder:task-reminder').date,
+      reminderDate,
+    );
   });
 
 }

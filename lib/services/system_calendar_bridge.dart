@@ -136,7 +136,11 @@ class SystemCalendarBridge {
   final MethodChannel _channel;
 
   static bool isEligible(CalendarReminder reminder) =>
-      (reminder.id.startsWith('followup:') || reminder.id.startsWith('task-due:')) &&
+      (reminder.id.startsWith('followup:') ||
+          reminder.id.startsWith('task-due:') ||
+          reminder.id.startsWith('task-reminder:') ||
+          reminder.id.startsWith('task-recurrence:') ||
+          reminder.id.startsWith('task-followup:')) &&
       !reminder.completed;
 
   Future<bool> insert(CalendarReminder reminder) async {
