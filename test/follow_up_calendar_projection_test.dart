@@ -205,4 +205,75 @@ void main() {
     expect(reminder.completed, isTrue);
   });
 
+  test('projects recurring task across past, today and future visible dates', () {
+    final task = Task(
+      id: 'daily-task',
+      title: 'کار روزانه',
+      dueDate: DateTime(2026, 10, 1, 14),
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+      ),
+    );
+
+    final reminders = projection.project(
+      <Task>[task],
+      visibleFrom: DateTime(2026, 9, 30),
+      visibleTo: DateTime(2026, 10, 4),
+    );
+
+    expect(reminders, hasLength(3));
+    expect(reminders.map((item) => item.date), <DateTime>[
+      DateTime(2026, 10, 1, 14),
+      DateTime(2026, 10, 2, 14),
+      DateTime(2026, 10, 3, 14),
+    ]);
+    expect(
+      reminders.map((item) => item.id).toSet().length,
+      reminders.length,
+    );
+  });
+
+  test('projects custom minute recurrence without creating independent tasks', () {
+    final task = Task(
+      id: 'short-cycle',
+      title: 'کار کوتاه',
+      dueDate: DateTime(2026, 10, 1, 23, 40),
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.minutes,
+        interval: 20,
+      ),
+    );
+
+    final reminders = projection.project(
+      <Task>[task],
+      visibleFrom: DateTime(2026, 10, 2),
+      visibleTo: DateTime(2026, 10, 2, 1, 1),
+    );
+
+    expect(reminders, hasLength(4));
+    expect(reminders.first.id, startsWith('task-due:short-cycle:'));
+    expect(reminders.map((item) => item.title).toSet(), {'کار کوتاه'});
+  });
+
+  test('weekly recurrence respects the visible range and does not leak other dates', () {
+    final task = Task(
+      id: 'weekly-task',
+      title: 'کار هفتگی',
+      dueDate: DateTime(2026, 10, 3, 9),
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.weekly,
+      ),
+    );
+
+    final reminders = projection.project(
+      <Task>[task],
+      visibleFrom: DateTime(2026, 10, 5),
+      visibleTo: DateTime(2026, 10, 20),
+    );
+
+    expect(reminders, hasLength(2));
+    expect(reminders[0].date, DateTime(2026, 10, 10, 9));
+    expect(reminders[1].date, DateTime(2026, 10, 17, 9));
+  });
+
 }
