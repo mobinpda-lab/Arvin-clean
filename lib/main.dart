@@ -1041,7 +1041,33 @@ class _HomePageState extends State<HomePage> {
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
+    await _syncCalendarAfterDetailTaskUpdate(refreshed);
+    if (!mounted) return task;
     return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
+  Future<void> _syncCalendarAfterDetailTaskUpdate(
+    List<Task> snapshot,
+  ) async {
+    try {
+      await calendarOutboundSyncService.sync(
+        calendarProjection.project(snapshot),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _retryCalendarSync(snapshot),
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    }
   }
 
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
