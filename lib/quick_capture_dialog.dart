@@ -202,14 +202,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }) async {
     var hour = initial.hour;
     var minute = initial.minute - (initial.minute % 5);
-    return showModalBottomSheet<TimeOfDay>(
+    return showDialog<TimeOfDay>(
       context: parentContext,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (sheetContext) {
         final formatter = const PersianDateFormatter();
-        return SafeArea(
-          child: StatefulBuilder(
+        return Dialog(
+          child: SafeArea(
+            child: StatefulBuilder(
             builder: (context, setSheetState) {
               final label = formatter.toPersianDigits(
                 '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
@@ -280,6 +279,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 ),
               );
             },
+            ),
           ),
         );
       },
