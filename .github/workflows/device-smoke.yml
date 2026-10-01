@@ -128,4 +128,4 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+          script: flutter test --no-dds ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
