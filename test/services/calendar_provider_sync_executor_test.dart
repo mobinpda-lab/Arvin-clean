@@ -162,6 +162,76 @@ void main() {
     expect(store.links.single.lastSyncedFingerprint, 'new');
   });
 
+  test('changing target calendar migrates the linked event without leaving a duplicate', () async {
+    final old = ExternalCalendarEventLink(
+      reminderId: 'followup:1',
+      calendarId: '42',
+      eventId: '7',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge();
+    final store = _MemoryLinkStore([old]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    final result = await executor.execute(
+      plan: CalendarSyncPlan([
+        CalendarSyncPlanItem(
+          reminderId: 'followup:1',
+          action: CalendarSyncAction.update,
+          revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+          link: old,
+        ),
+      ]),
+      targetCalendarId: '99',
+    );
+
+    expect(result.updated, 1);
+    expect(
+      bridge.calls,
+      ['create:99:پیگیری جدید', 'delete:42:7'],
+    );
+    expect(store.links.single.calendarId, '99');
+    expect(store.links.single.eventId, 'event-1');
+    expect(store.links.single.lastSyncedFingerprint, 'new');
+  });
+
+  test('target migration rolls back replacement when old event cannot be removed', () async {
+    final old = ExternalCalendarEventLink(
+      reminderId: 'followup:1',
+      calendarId: '42',
+      eventId: '7',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge()..failDelete = true;
+    final store = _MemoryLinkStore([old]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    await expectLater(
+      executor.execute(
+        plan: CalendarSyncPlan([
+          CalendarSyncPlanItem(
+            reminderId: 'followup:1',
+            action: CalendarSyncAction.update,
+            revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+            link: old,
+          ),
+        ]),
+        targetCalendarId: '99',
+      ),
+      throwsStateError,
+    );
+
+    expect(
+      bridge.calls,
+      ['create:99:پیگیری جدید', 'delete:42:7', 'delete:99:event-1'],
+    );
+    expect(store.links.single.calendarId, '42');
+    expect(store.links.single.eventId, '7');
+    expect(store.saveCount, 0);
+  });
+
   test('delete removes link only after exact provider delete succeeds', () async {
     final old = ExternalCalendarEventLink(
       reminderId: 'followup:1',
