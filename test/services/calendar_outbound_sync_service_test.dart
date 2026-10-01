@@ -10,47 +10,109 @@ import 'package:flutter_test/flutter_test.dart';
 class _Settings extends AppSettingsService {
   _Settings(this.integration);
   final CalendarIntegrationSettings integration;
-
   @override
   Future<AppSettings> load() async => AppSettings(
-        themeMode: ThemeMode.system,
-        usePersianDate: true,
-        fontFamily: null,
-        calendarIntegration: integration,
-      );
-  test('honors per-source sync settings before planning provider writes', () async {
+    themeMode: ThemeMode.system, usePersianDate: true, fontFamily: null,
+    calendarIntegration: integration,
+  );
+}
+class _Links extends ExternalCalendarLinkStore {
+  _Links([this.links = const []]);
+  final List<ExternalCalendarEventLink> links;
+  @override Future<List<ExternalCalendarEventLink>> load() async => links;
+}
+class _Executor extends CalendarProviderSyncExecutor {
+  CalendarSyncPlan? receivedPlan;
+  String? receivedTarget;
+  @override
+  Future<CalendarProviderSyncResult> execute({
+    required CalendarSyncPlan plan, required String targetCalendarId,
+  }) async {
+    receivedPlan = plan; receivedTarget = targetCalendarId;
+    return CalendarProviderSyncResult(
+      created: plan.count(CalendarSyncAction.create),
+      updated: plan.count(CalendarSyncAction.update),
+      deleted: plan.count(CalendarSyncAction.delete),
+      noOp: plan.count(CalendarSyncAction.noOp),
+    );
+  }
+}
+void main() {
+  CalendarReminder followUp(String id) => CalendarReminder(
+    id: 'followup:task-1:$id', title: 'پیگیری مشتری',
+    date: DateTime(2026, 9, 16, 10),
+  );
+
+  test('does nothing while outbound sync is disabled', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
-          syncDueDates: false,
-          syncTaskReminders: true,
-          syncFollowUps: false,
-          syncFollowUpReminders: false,
-          syncRecurrence: false,
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links(),
+      settingsService: _Settings(const CalendarIntegrationSettings()),
+      executor: executor, linkStore: _Links(),
     );
+    expect(await service.sync([followUp('f1')]), isNull);
+    expect(executor.receivedPlan, isNull);
+  });
 
+  test('plans canonical follow-ups and executes against selected target', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7',
+      )),
+      executor: executor, linkStore: _Links(),
+    );
+    final result = await service.sync([
+      followUp('f1'),
+      CalendarReminder(
+        id: 'official:holiday', title: 'تعطیل رسمی',
+        date: DateTime(2026, 9, 16), isAllDay: true,
+      ),
+    ]);
+    expect(result?.created, 1);
+    expect(executor.receivedTarget, 'calendar-7');
+    expect(executor.receivedPlan?.items.single.reminderId, 'followup:task-1:f1');
+  });
+
+  test('existing link produces idempotent no-op, not duplicate create', () async {
+    final reminder = followUp('f1');
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7',
+      )),
+      executor: executor,
+      linkStore: _Links([ExternalCalendarEventLink(
+        reminderId: reminder.id, calendarId: 'calendar-7', eventId: 'event-9',
+        lastSyncedFingerprint: revision.fingerprint,
+      )]),
+    );
+    final result = await service.sync([reminder]);
+    expect(result?.noOp, 1);
+    expect(result?.created, 0);
+  });
+
+  test('honors per-source settings before planning writes', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true, syncArvinToDevice: true, targetCalendarId: 'calendar-7',
+        syncDueDates: false, syncTaskReminders: true, syncFollowUps: false,
+        syncFollowUpReminders: false, syncRecurrence: false,
+      )),
+      executor: executor, linkStore: _Links(),
+    );
     final result = await service.sync([
       CalendarReminder(
-        id: 'task-due:task-1',
-        title: 'موعد',
+        id: 'task-due:task-1', title: 'موعد',
         date: DateTime(2026, 9, 16, 10),
       ),
       CalendarReminder(
-        id: 'task-reminder:task-1',
-        title: 'یادآوری',
+        id: 'task-reminder:task-1', title: 'یادآوری',
         date: DateTime(2026, 9, 16, 9),
       ),
       followUp('f1'),
     ]);
-
     expect(result?.created, 1);
     expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
   });
@@ -60,263 +122,35 @@ class _Settings extends AppSettingsService {
     final revision = await CalendarSyncRevisionService().fromReminder(reminder);
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          syncFollowUps: false,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true, syncArvinToDevice: true, syncFollowUps: false,
+        targetCalendarId: 'calendar-7',
+      )),
       executor: executor,
-      linkStore: _Links([
-        ExternalCalendarEventLink(
-          reminderId: reminder.id,
-          calendarId: 'calendar-7',
-          eventId: 'event-9',
-          lastSyncedFingerprint: revision.fingerprint,
-        ),
-      ]),
+      linkStore: _Links([ExternalCalendarEventLink(
+        reminderId: reminder.id, calendarId: 'calendar-7', eventId: 'event-9',
+        lastSyncedFingerprint: revision.fingerprint,
+      )]),
     );
-
     final result = await service.sync(const <CalendarReminder>[]);
     expect(result?.deleted, 0);
     expect(executor.receivedPlan?.items, isEmpty);
   });
 
-  test('task reminder uses the canonical task-reminder source setting', () async {
+  test('task reminder uses canonical task-reminder source setting', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          syncTaskReminders: true,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links(),
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true, syncArvinToDevice: true, syncTaskReminders: true,
+        targetCalendarId: 'calendar-7',
+      )),
+      executor: executor, linkStore: _Links(),
     );
-
-    final result = await service.sync([
-      CalendarReminder(
-        id: 'task-reminder:task-1',
-        title: 'یادآوری: خرید',
-        date: DateTime(2026, 9, 16, 10),
-      ),
-    ]);
-
+    final result = await service.sync([CalendarReminder(
+      id: 'task-reminder:task-1', title: 'یادآوری: خرید',
+      date: DateTime(2026, 9, 16, 10),
+    )]);
     expect(result?.created, 1);
-    expect(
-      executor.receivedPlan?.items.single.reminderId,
-      'task-reminder:task-1',
-    );
-  });
-
-  test('honors per-source sync settings before planning provider writes', () async {
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
-          syncDueDates: false,
-          syncTaskReminders: true,
-          syncFollowUps: false,
-          syncFollowUpReminders: false,
-          syncRecurrence: false,
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links(),
-    );
-
-    final result = await service.sync([
-      CalendarReminder(
-        id: 'task-due:task-1',
-        title: 'موعد',
-        date: DateTime(2026, 9, 16, 10),
-      ),
-      CalendarReminder(
-        id: 'task-reminder:task-1',
-        title: 'یادآوری',
-        date: DateTime(2026, 9, 16, 9),
-      ),
-      followUp('f1'),
-    ]);
-
-    expect(result?.created, 1);
-    expect(
-      executor.receivedPlan?.items.single.reminderId,
-      'task-reminder:task-1',
-    );
-  });
-
-  test('disabled source does not delete its existing external link', () async {
-    final reminder = followUp('f1');
-    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          syncFollowUps: false,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links([
-        ExternalCalendarEventLink(
-          reminderId: reminder.id,
-          calendarId: 'calendar-7',
-          eventId: 'event-9',
-          lastSyncedFingerprint: revision.fingerprint,
-        ),
-      ]),
-    );
-
-    final result = await service.sync(const <CalendarReminder>[]);
-    expect(result?.deleted, 0);
-    expect(executor.receivedPlan?.items, isEmpty);
-  });
-
-  test('task reminder uses the canonical task-reminder source setting', () async {
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          syncTaskReminders: true,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links(),
-    );
-
-    final result = await service.sync([
-      CalendarReminder(
-        id: 'task-reminder:task-1',
-        title: 'یادآوری: خرید',
-        date: DateTime(2026, 9, 16, 10),
-      ),
-    ]);
-
-    expect(result?.created, 1);
-    expect(
-      executor.receivedPlan?.items.single.reminderId,
-      'task-reminder:task-1',
-    );
-  });
-
-}
-}
-
-class _Links extends ExternalCalendarLinkStore {
-  _Links([this.links = const []]);
-  final List<ExternalCalendarEventLink> links;
-
-  @override
-  Future<List<ExternalCalendarEventLink>> load() async => links;
-}
-
-class _Executor extends CalendarProviderSyncExecutor {
-  CalendarSyncPlan? receivedPlan;
-  String? receivedTarget;
-
-  @override
-  Future<CalendarProviderSyncResult> execute({
-    required CalendarSyncPlan plan,
-    required String targetCalendarId,
-  }) async {
-    receivedPlan = plan;
-    receivedTarget = targetCalendarId;
-    return CalendarProviderSyncResult(
-      created: plan.count(CalendarSyncAction.create),
-      updated: plan.count(CalendarSyncAction.update),
-      deleted: plan.count(CalendarSyncAction.delete),
-      noOp: plan.count(CalendarSyncAction.noOp),
-    );
-  }
-}
-
-void main() {
-  CalendarReminder followUp(String id) => CalendarReminder(
-        id: 'followup:task-1:$id',
-        title: 'پیگیری مشتری',
-        date: DateTime(2026, 9, 16, 10),
-      );
-
-  test('does nothing while outbound sync is disabled', () async {
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(const CalendarIntegrationSettings()),
-      executor: executor,
-      linkStore: _Links(),
-    );
-
-    expect(await service.sync([followUp('f1')]), isNull);
-    expect(executor.receivedPlan, isNull);
-  });
-
-  test('plans canonical follow-ups and executes against selected target', () async {
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links(),
-    );
-
-    final result = await service.sync([
-      followUp('f1'),
-      CalendarReminder(
-        id: 'official:holiday',
-        title: 'تعطیل رسمی',
-        date: DateTime(2026, 9, 16),
-        isAllDay: true,
-      ),
-    ]);
-
-    expect(result?.created, 1);
-    expect(executor.receivedTarget, 'calendar-7');
-    expect(executor.receivedPlan?.items.single.reminderId, 'followup:task-1:f1');
-  });
-
-  test('existing link produces idempotent update/no-op planning, not duplicate create', () async {
-    final reminder = followUp('f1');
-    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
-    final executor = _Executor();
-    final service = CalendarOutboundSyncService(
-      settingsService: _Settings(
-        const CalendarIntegrationSettings(
-          enabled: true,
-          syncArvinToDevice: true,
-          targetCalendarId: 'calendar-7',
-        ),
-      ),
-      executor: executor,
-      linkStore: _Links([
-        ExternalCalendarEventLink(
-          reminderId: reminder.id,
-          calendarId: 'calendar-7',
-          eventId: 'event-9',
-          lastSyncedFingerprint: revision.fingerprint,
-        ),
-      ]),
-    );
-
-    final result = await service.sync([reminder]);
-    expect(result?.noOp, 1);
-    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
   });
 }
