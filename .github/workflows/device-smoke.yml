@@ -19,11 +19,6 @@ env:
   FLUTTER_VERSION: '3.47.0'
 
 jobs:
-  # All canonical Android scenarios are independent. Keep them in one matrix so
-  # GitHub can schedule them concurrently. Each scenario gets its own hosted
-  # runner/emulator, so max-parallel can use the repository's available runner
-  # concurrency without reducing product coverage.
-  # Explicit fast-lane contract required by repository validation.
   device-smoke:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: device-smoke (${{ matrix.scenario }})
@@ -31,7 +26,6 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # Run all six independent scenarios concurrently when repository runner capacity permits; coverage is unchanged.
       max-parallel: 6
       matrix:
         include:
@@ -128,4 +122,4 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test --no-dds ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+          script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
