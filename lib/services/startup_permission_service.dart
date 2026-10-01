@@ -38,10 +38,9 @@ class StartupPermissionService {
     try {
       try {
         await _requestNotificationPermission();
-      } on MissingPluginException {
-        // Non-Android/widget-test environments have no Android permission API.
-      } on LateInitializationError {
-        // The notification platform singleton is absent in widget-test hosts.
+      } catch (error) {
+        if (!_isUnavailableNotificationPlatform(error)) rethrow;
+        // Non-Android/widget-test environments have no notification permission API.
       }
       try {
         await _requestCalendarPermission();
@@ -52,6 +51,11 @@ class StartupPermissionService {
       // A single startup attempt must never trap the user in a prompt loop.
       await preferences.setBool(_promptedKey, true);
     }
+  }
+
+  bool _isUnavailableNotificationPlatform(Object error) {
+    return error is MissingPluginException ||
+        error.runtimeType.toString() == 'LateInitializationError';
   }
 
   Future<void> _requestNotificationPermission() async {
