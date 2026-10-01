@@ -429,7 +429,6 @@ class AppSettingsService {
       syncFollowUpReminders:
           preferences.getBool(_calendarSyncFollowUpReminderKey) ?? true,
       syncRecurrence: preferences.getBool(_calendarSyncRecurrenceKey) ?? false,
-      autoSync: preferences.getBool(_calendarAutoSyncKey) ??\n          preferences.getBool(_calendarSyncOutboundKey) ?? false,
       deleteLinkedEventWithTask:
           preferences.getBool(_calendarDeleteLinkedKey) ?? false,
     );
