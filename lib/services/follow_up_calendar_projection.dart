@@ -74,7 +74,7 @@ class FollowUpCalendarProjection {
         reminders.add(
           CalendarReminder(
             id: taskReminderIdFor(task),
-            title: 'یادآوری: \${task.title}',
+            title: 'یادآوری: ${task.title}',
             date: taskReminderDate,
             completed: task.completed,
           ),
