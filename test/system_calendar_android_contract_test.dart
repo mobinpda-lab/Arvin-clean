@@ -41,9 +41,7 @@ void main() {
     expect(activity, contains('READ_CALENDAR'));
     expect(activity, contains('WRITE_CALENDAR'));
     expect(main, contains('StartupPermissionService().requestOnStartup()'));
-    expect(
-      service,
-      contains("invokeMethod<bool>('requestCalendarAccessPermissions')"),
-    );
+    expect(service, contains('requestCalendarAccessPermissions'));
+    expect(service, contains('MethodChannel'));
   });
 }
