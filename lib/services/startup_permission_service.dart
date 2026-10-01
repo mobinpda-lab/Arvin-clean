@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,26 +38,22 @@ class StartupPermissionService {
     if (preferences.getBool(_promptedKey) == true) return;
 
     try {
-      try {
-        await _requestNotificationPermission();
-      } catch (error) {
-        if (!_isUnavailableNotificationPlatform(error)) rethrow;
-        // Non-Android/widget-test environments have no notification permission API.
-      }
-      try {
-        await _requestCalendarPermission();
-      } on MissingPluginException {
-        // Non-Android/widget-test environments have no Android permission API.
+      if (Platform.isAndroid) {
+        try {
+          await _requestNotificationPermission();
+        } on MissingPluginException {
+          // The Android permission API is unavailable in a non-plugin host.
+        }
+        try {
+          await _requestCalendarPermission();
+        } on MissingPluginException {
+          // The Android calendar permission API is unavailable in a non-plugin host.
+        }
       }
     } finally {
       // A single startup attempt must never trap the user in a prompt loop.
       await preferences.setBool(_promptedKey, true);
     }
-  }
-
-  bool _isUnavailableNotificationPlatform(Object error) {
-    return error is MissingPluginException ||
-        error.runtimeType.toString() == 'LateInitializationError';
   }
 
   Future<void> _requestNotificationPermission() async {
