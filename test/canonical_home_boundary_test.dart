@@ -49,4 +49,15 @@ void main() {
     expect(source, isNot(contains('tasks[tasks.indexOf(old)] = edited')));
     expect(source, isNot(contains('tasks[index] = edited')));
   });
+  test('Quick Capture routes newly persisted canonical Tasks through calendar sync', () {
+    final source = File('lib/main.dart').readAsStringSync();
+
+    expect(source, contains('Future<void> _syncCalendarAfterQuickCapture(List<Task> snapshot)'));
+    expect(source, contains('await _syncCalendarAfterQuickCapture(refreshed);'));
+    expect(source, contains('await calendarOutboundSyncService.sync('));
+    expect(source, contains('calendarProjection.project(snapshot)'));
+    expect(source, contains("onCaptured: (captured) async"));
+    expect(source, contains("onFullForm: (draft) async"));
+  });
+
 }

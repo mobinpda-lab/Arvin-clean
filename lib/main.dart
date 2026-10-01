@@ -899,6 +899,28 @@ class _HomePageState extends State<HomePage> {
     return task;
   }
 
+  Future<void> _syncCalendarAfterQuickCapture(List<Task> snapshot) async {
+    try {
+      await calendarOutboundSyncService.sync(
+        calendarProjection.project(snapshot),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _retryCalendarSync(snapshot),
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    }
+  }
+
   Future<void> _quickCapture() async {
     if (loadFailure != null) {
       ScaffoldMessenger.of(context)
@@ -966,6 +988,7 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
+          await _syncCalendarAfterQuickCapture(refreshed);
           return true;
         },
         onCaptured: (captured) async {
@@ -987,6 +1010,8 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
+          await _syncCalendarAfterQuickCapture(refreshed);
+          if (!mounted) return;
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
