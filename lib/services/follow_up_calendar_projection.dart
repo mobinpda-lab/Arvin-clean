@@ -21,6 +21,8 @@ class FollowUpCalendarProjection {
 
   String dueDateReminderIdFor(Task task) => 'task-due:${task.id}';
 
+  String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
+
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
@@ -45,11 +47,7 @@ class FollowUpCalendarProjection {
   bool _sameInstant(DateTime a, DateTime b) =>
       a.toUtc().isAtSameMomentAs(b.toUtc());
 
-  List<CalendarReminder> project(
-    Iterable<Task> tasks, {
-    DateTime? visibleFrom,
-    DateTime? visibleTo,
-  }) {
+  List<CalendarReminder> project(Iterable<Task> tasks) {
     final reminders = <CalendarReminder>[];
 
     for (final task in tasks) {
@@ -70,31 +68,22 @@ class FollowUpCalendarProjection {
         taskDatesAlreadyProjected.add(followUp.dateTime);
       }
 
+      final taskReminderDate = task.reminderDate;
+      if (taskReminderDate != null &&
+          !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
+        reminders.add(
+          CalendarReminder(
+            id: taskReminderIdFor(task),
+            title: 'یادآوری: ${task.title}',
+            date: taskReminderDate,
+            completed: task.completed,
+          ),
+        );
+        taskDatesAlreadyProjected.add(taskReminderDate);
+      }
+
       final dueDate = task.dueDate;
-      final recurrence = task.recurrence;
-      if (recurrence != null &&
-          dueDate != null &&
-          visibleFrom != null &&
-          visibleTo != null) {
-        for (final occurrence in recurrence.occurrencesBetween(
-          anchor: dueDate,
-          from: visibleFrom,
-          to: visibleTo,
-        )) {
-          if (taskDatesAlreadyProjected.any((date) => _sameInstant(date, occurrence))) {
-            continue;
-          }
-          reminders.add(
-            CalendarReminder(
-              id: 'task-due:${task.id}:${occurrence.toIso8601String()}',
-              title: task.title,
-              date: occurrence,
-              completed: task.completed,
-            ),
-          );
-          taskDatesAlreadyProjected.add(occurrence);
-        }
-      } else if (dueDate != null &&
+      if (dueDate != null &&
           !taskDatesAlreadyProjected.any((date) => _sameInstant(date, dueDate))) {
         reminders.add(
           CalendarReminder(

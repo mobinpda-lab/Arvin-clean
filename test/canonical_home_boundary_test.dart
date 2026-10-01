@@ -11,7 +11,8 @@ void main() {
     expect(source, isNot(contains('_canonicalSnapshotOf')));
     expect(source, contains('List<Task> tasks = [];'));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
-    expect(source, contains('return taskStore.save(List<Task>.of(tasks));'));
+    expect(source, contains('await taskStore.save(snapshot);'));
+    expect(source, contains('calendarOutboundSyncService.sync('));
     expect(source, isNot(contains('TaskMigrationWriter')));
     expect(source, isNot(contains('migrationWriter.save(')));
   });
