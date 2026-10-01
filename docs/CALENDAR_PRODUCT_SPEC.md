@@ -53,7 +53,7 @@ Move to Today برای نمایش recurrence لازم نیست و بخشی از 
 مدل canonical موجود در HEAD فعلی فقط frequencyهای daily/weekly/monthly/yearly/oncePerDay و interval عددی مربوط به همان واحد تقویمی را دارد.
 Projection واقعی occurrenceهای گذشته/امروز/آینده در Calendar هنوز در کد و تست‌ها به‌طور کافی اثبات نشده است.
 intervalهای دقیقه/ساعت مانند ۲۰ دقیقه، ۹۰ دقیقه، ۱ ساعت و ۲ ساعت نیز در مدل/تست فعلی اثبات نشده‌اند.
-این موارد gap محصول هستند، نه مجوز ایجاد engine یا storage موازی.
+این موارد gap محصول هستند و نباید با ایجاد engine یا storage موازی حل شوند.
 
 ## 9) تست‌های الزامی
 - روزانه: گذشته/امروز/آینده.
@@ -66,10 +66,7 @@ intervalهای دقیقه/ساعت مانند ۲۰ دقیقه، ۹۰ دقیقه�
 - Persian RTL/digits و سربرگ ماه، شامل «مهر ۱۴۰۵».
 - Analyze + full Test + Debug/Release Build + exact-head Device Smoke.
 
-## 10) Architecture Gate
-قبل از تغییر مدل، storage یا recurrence engine باید بازبینی معماری DeepSeek طبق قرارداد Issue #2042 انجام شود. در GitHub تا این HEAD، شواهد قابل اتکایی از تکمیل این بازبینی موجود نیست. تا فراهم‌شدن آن، فقط audit، contract و تست‌های غیرمخرب و UI مستقل مجاز است. ایجاد storage/model/repository/engine موازی ممنوع است.
-
-## 11) وضعیت اثبات‌شده در HEAD فعلی
+## 10) وضعیت اثبات‌شده در HEAD فعلی
 - سربرگ ماه شمسی با نام کامل، از جمله «مهر ۱۴۰۵»، در UI پیاده و تست شده است.
 - Analyze: PASS
 - Full test matrix (6 shards): PASS
@@ -79,7 +76,7 @@ intervalهای دقیقه/ساعت مانند ۲۰ دقیقه، ۹۰ دقیقه�
 - Exact-head Calendar Provider Acceptance: PASS
 - Orchestrator / Parallel Wave / Production Loop / G1 Lock Sync: PASS
 - Recurrence projection acceptance: هنوز اثبات نشده.
-- DeepSeek architecture review: نامشخص.
+- Physical-device automatic Task→Device Calendar lifecycle: نامشخص.
 - Release Ready: ادعا نمی‌شود.
 
 ## منابع canonical
