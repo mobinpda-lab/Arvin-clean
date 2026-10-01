@@ -1011,6 +1011,7 @@ class _HomePageState extends State<HomePage> {
             loading = false;
           });
           await _syncCalendarAfterQuickCapture(refreshed);
+          if (!mounted) return;
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
