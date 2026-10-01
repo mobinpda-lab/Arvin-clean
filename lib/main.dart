@@ -291,8 +291,44 @@ class _HomePageState extends State<HomePage> {
         calendarProjection.project(snapshot),
       );
     } catch (_) {
-      // Canonical Task persistence already succeeded. Calendar sync is an
-      // external side effect and is retried on the next canonical save.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _retryCalendarSync(snapshot),
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    }
+  }
+
+  Future<void> _retryCalendarSync(List<Task> snapshot) async {
+    try {
+      await calendarOutboundSyncService.sync(
+        calendarProjection.project(snapshot),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('همگام‌سازی با تقویم مقصد انجام شد.')),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.',
+            ),
+          ),
+        );
     }
   }
 
