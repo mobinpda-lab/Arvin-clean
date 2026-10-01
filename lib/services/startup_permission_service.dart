@@ -25,6 +25,7 @@ class StartupPermissionService {
         _calendarPermissionRequester = calendarPermissionRequester;
 
   static const _promptedKey = 'startup_permissions_prompted_v1';
+  static Future<void>? _inFlightRequest;
 
   final SharedPreferences? _preferences;
   final FlutterLocalNotificationsPlugin _notifications;
@@ -32,7 +33,19 @@ class StartupPermissionService {
   final Future<void> Function()? _notificationPermissionRequester;
   final Future<bool> Function()? _calendarPermissionRequester;
 
-  Future<void> requestOnStartup() async {
+  Future<void> requestOnStartup() {
+    final inFlight = _inFlightRequest;
+    if (inFlight != null) return inFlight;
+    final request = _requestOnStartup();
+    _inFlightRequest = request;
+    return request.whenComplete(() {
+      if (identical(_inFlightRequest, request)) {
+        _inFlightRequest = null;
+      }
+    });
+  }
+
+  Future<void> _requestOnStartup() async {
     final preferences =
         _preferences ?? await SharedPreferences.getInstance();
     if (preferences.getBool(_promptedKey) == true) return;
@@ -47,11 +60,15 @@ class StartupPermissionService {
           await _requestNotificationPermission();
         } on MissingPluginException {
           // The Android permission API is unavailable in a non-plugin host.
+        } on PlatformException catch (error) {
+          if (error.code != 'permissionRequestInProgress') rethrow;
         }
         try {
           await _requestCalendarPermission();
         } on MissingPluginException {
           // The Android calendar permission API is unavailable in a non-plugin host.
+        } on PlatformException catch (error) {
+          if (error.code != 'permissionRequestInProgress') rethrow;
         }
       }
     } finally {
