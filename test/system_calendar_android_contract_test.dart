@@ -27,4 +27,21 @@ void main() {
     expect(activity, contains('deleteDeviceCalendarEvent'));
     expect(activity, contains('CalendarContract.Events.CALENDAR_ID'));
   });
+
+  test('startup calendar permission contract is wired to the native boundary', () {
+    final activity = File(
+      'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
+    ).readAsStringSync();
+    final main = File('lib/main.dart').readAsStringSync();
+    final service =
+        File('lib/services/startup_permission_service.dart').readAsStringSync();
+
+    expect(activity, contains('requestCalendarAccessPermissions'));
+    expect(activity, contains('CALENDAR_ACCESS_PERMISSION_REQUEST_CODE'));
+    expect(activity, contains('READ_CALENDAR'));
+    expect(activity, contains('WRITE_CALENDAR'));
+    expect(main, contains('StartupPermissionService().requestOnStartup()'));
+    expect(service, contains('requestCalendarAccessPermissions'));
+    expect(service, contains('MethodChannel'));
+  });
 }
