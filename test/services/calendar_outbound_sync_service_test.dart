@@ -128,7 +128,7 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-          syncArvinToDevice: true,
+          autoSync: true,
           targetCalendarId: 'calendar-7',
           syncDueDates: false,
           syncTaskReminders: true,
