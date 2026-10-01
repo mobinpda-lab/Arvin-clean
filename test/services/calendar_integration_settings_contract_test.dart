@@ -33,7 +33,6 @@ void main() {
     const calendar = CalendarIntegrationSettings(
       enabled: true,
       showExternalEvents: true,
-      syncArvinToDevice: true,
       visibleCalendarIds: {'google-work', 'samsung-local'},
       targetCalendarId: 'google-work',
       syncDueDates: true,
@@ -50,7 +49,7 @@ void main() {
 
     expect(restored.enabled, isTrue);
     expect(restored.showExternalEvents, isTrue);
-    expect(restored.syncArvinToDevice, isTrue);
+    expect(restored.autoSync, isTrue);
     expect(restored.visibleCalendarIds, {'google-work', 'samsung-local'});
     expect(restored.targetCalendarId, 'google-work');
     expect(restored.syncTaskReminders, isFalse);

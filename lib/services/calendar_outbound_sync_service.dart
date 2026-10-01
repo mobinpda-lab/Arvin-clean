@@ -35,7 +35,7 @@ class CalendarOutboundSyncService {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
     if (!integration.enabled ||
-        !integration.syncArvinToDevice ||
+        !integration.autoSync ||
         targetCalendarId == null ||
         targetCalendarId.isEmpty) {
       return null;

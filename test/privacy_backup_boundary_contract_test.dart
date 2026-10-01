@@ -66,7 +66,6 @@ void main() {
       'calendarIntegration': {
         'enabled': false,
         'showExternalEvents': false,
-        'syncArvinToDevice': false,
         'visibleCalendarIds': <String>[],
         'syncDueDates': true,
         'syncTaskReminders': true,
