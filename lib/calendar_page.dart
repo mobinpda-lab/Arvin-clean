@@ -4,6 +4,7 @@ import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/iran_clock.dart';
+import 'models/task.dart';
 import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
@@ -43,6 +44,7 @@ class CalendarPage extends StatefulWidget {
     this.onCreateTaskFromCalendarEvent,
     this.canMutateReminder,
     this.onCreateTaskForDate,
+    this.visibleReminderProjection,
     this.prayerStatusFor,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
@@ -65,6 +67,11 @@ class CalendarPage extends StatefulWidget {
 
   /// Creates a canonical Task with the pressed calendar date prefilled.
   final Future<void> Function(DateTime date)? onCreateTaskForDate;
+
+  /// Optional read-only canonical recurrence projection for the currently
+  /// visible Calendar range. It owns no storage and never mutates Tasks.
+  final List<CalendarReminder> Function(DateTime from, DateTime to)?
+  visibleReminderProjection;
 
   final PrayerCompletionStatus? Function(CalendarReminder reminder)?
   prayerStatusFor;
@@ -107,17 +114,48 @@ class _CalendarPageState extends State<CalendarPage> {
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
   );
 
+  (DateTime, DateTime) _visibleRange() {
+    switch (_viewMode) {
+      case _CalendarViewMode.day:
+        final start = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
+        return (start, start.add(const Duration(days: 1)));
+      case _CalendarViewMode.week:
+        final start = _startOfWeek(_selectedDay);
+        return (start, start.add(const Duration(days: 7)));
+      case _CalendarViewMode.month:
+        final start = DateTime(_month.year, _month.month, _month.day);
+        return (start, DateTime(start.year, start.month + 1, 1));
+      case _CalendarViewMode.year:
+        final start = DateTime(_selectedDay.year, 1, 1);
+        return (start, DateTime(start.year + 1, 1, 1));
+    }
+  }
+
+  List<CalendarReminder> _calendarReminders() {
+    final range = _visibleRange();
+    final projected = widget.visibleReminderProjection?.call(range.$1, range.$2) ?? const <CalendarReminder>[];
+    if (projected.isEmpty) return widget.reminders;
+    final merged = <CalendarReminder>[...widget.reminders];
+    final existing = merged.map((item) => item.id).toSet();
+    for (final item in projected) {
+      if (existing.add(item.id)) merged.add(item);
+    }
+    merged.sort((a, b) => a.date.compareTo(b.date));
+    return List<CalendarReminder>.unmodifiable(merged);
+  }
+
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  List<CalendarReminder> _forDay(DateTime day) => widget.reminders
+  List<CalendarReminder> _forDay(DateTime day) => _calendarReminders()
       .where((item) => _sameDay(item.date, day))
       .toList(growable: false);
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
+    final reminders = _calendarReminders();
     final current = _dateFormatter.toJalali(_month);
-    for (final item in widget.reminders) {
+    for (final item in reminders) {
       final j = _dateFormatter.toJalali(item.date);
       if (j.year == current.year && j.month == current.month) {
         counts[j.day] = (counts[j.day] ?? 0) + 1;
