@@ -205,4 +205,21 @@ void main() {
     expect(reminder.completed, isTrue);
   });
 
+  test('projects a canonical task reminder separately from its due date', () {
+    final reminderDate = DateTime(2026, 12, 5, 9);
+    final dueDate = DateTime(2026, 12, 5, 14);
+    final task = Task(
+      id: 'task-reminder',
+      title: 'تماس',
+      reminderDate: reminderDate,
+      dueDate: dueDate,
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id), contains('task-reminder:task-reminder'));
+    expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
+  });
+
 }
