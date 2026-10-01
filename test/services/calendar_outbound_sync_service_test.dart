@@ -18,6 +18,43 @@ class _Settings extends AppSettingsService {
         fontFamily: null,
         calendarIntegration: integration,
       );
+  test('honors per-source sync settings before planning provider writes', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          targetCalendarId: 'calendar-7',
+          syncDueDates: false,
+          syncTaskReminders: true,
+          syncFollowUps: false,
+          syncFollowUpReminders: false,
+          syncRecurrence: false,
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links(),
+    );
+
+    final result = await service.sync([
+      CalendarReminder(
+        id: 'task-due:task-1',
+        title: 'موعد',
+        date: DateTime(2026, 9, 16, 10),
+      ),
+      CalendarReminder(
+        id: 'task-reminder:task-1',
+        title: 'یادآوری',
+        date: DateTime(2026, 9, 16, 9),
+      ),
+      followUp('f1'),
+    ]);
+
+    expect(result?.created, 1);
+    expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
+  });
+
 }
 
 class _Links extends ExternalCalendarLinkStore {
