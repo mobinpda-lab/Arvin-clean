@@ -29,8 +29,16 @@ class StartupPermissionService {
     if (preferences.getBool(_promptedKey) == true) return;
 
     try {
-      await _requestNotificationPermission();
-      await _requestCalendarPermission();
+      try {
+        await _requestNotificationPermission();
+      } on MissingPluginException {
+        // Non-Android/widget-test environments have no Android permission API.
+      }
+      try {
+        await _requestCalendarPermission();
+      } on MissingPluginException {
+        // Non-Android/widget-test environments have no Android permission API.
+      }
     } finally {
       // A single startup attempt must never trap the user in a prompt loop.
       await preferences.setBool(_promptedKey, true);
