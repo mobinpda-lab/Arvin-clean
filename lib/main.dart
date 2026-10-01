@@ -35,6 +35,7 @@ import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
+import 'services/startup_permission_service.dart';
 import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
@@ -73,6 +74,9 @@ class _ArvinAppState extends State<ArvinApp> {
   void initState() {
     super.initState();
     _loadSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      StartupPermissionService().requestOnStartup();
+    });
   }
 
   Future<void> _loadSettings() async {
