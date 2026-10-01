@@ -261,15 +261,6 @@ class _CalendarIntegrationSettingsPageState
                     update: (value) =>
                         current.copyWith(showExternalEvents: value),
                   ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-outbound'),
-                    title: 'ارسال کارهای آروین به تقویم',
-                    subtitle:
-                        'موارد انتخاب‌شده فقط پس از تکمیل موتور همگام‌سازی به تقویم مقصد ارسال خواهند شد.',
-                    value: current.syncArvinToDevice,
-                    update: (value) =>
-                        current.copyWith(syncArvinToDevice: value),
-                  ),
                   const Divider(height: 32),
                   const Text(
                     'تقویم‌های دستگاه',
@@ -345,9 +336,9 @@ class _CalendarIntegrationSettingsPageState
                   const Divider(height: 32),
                   _switch(
                     key: const ValueKey('calendar-auto-sync'),
-                    title: 'همگام‌سازی خودکار',
+                    title: 'ثبت خودکار کارها در تقویم مقصد',
                     subtitle:
-                        'اجرای واقعی پس از تکمیل موتور همگام‌سازی فعال خواهد شد.',
+                        'هر Task دارای موعد/یادآور مجاز، با تقویم مقصد انتخاب‌شده همگام می‌شود.',
                     value: current.autoSync,
                     update: (value) => current.copyWith(autoSync: value),
                   ),
