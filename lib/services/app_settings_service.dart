@@ -372,7 +372,8 @@ class AppSettingsService {
         syncFollowUpReminders:
             calendarMap['syncFollowUpReminders'] as bool? ?? true,
         syncRecurrence: calendarMap['syncRecurrence'] as bool? ?? false,
-        autoSync: calendarMap['autoSync'] as bool? ??\n            calendarMap['syncArvinToDevice'] as bool? ?? false,
+        autoSync: calendarMap['autoSync'] as bool? ??
+            calendarMap['syncArvinToDevice'] as bool? ?? false,
         deleteLinkedEventWithTask:
             calendarMap['deleteLinkedEventWithTask'] as bool? ?? false,
       ),
@@ -416,7 +417,7 @@ class AppSettingsService {
       enabled: preferences.getBool(_calendarEnabledKey) ?? false,
       showExternalEvents:
           preferences.getBool(_calendarShowExternalKey) ?? false,
-      syncArvinToDevice:
+      autoSync: preferences.getBool(_calendarAutoSyncKey) ??
           preferences.getBool(_calendarSyncOutboundKey) ?? false,
       visibleCalendarIds: Set<String>.unmodifiable(visibleIds),
       targetCalendarId:
