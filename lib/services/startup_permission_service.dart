@@ -38,7 +38,11 @@ class StartupPermissionService {
     if (preferences.getBool(_promptedKey) == true) return;
 
     try {
-      if (Platform.isAndroid) {
+      // Production permission APIs are Android-only. Injected requesters are
+      // also allowed on the host so the permission lifecycle remains testable.
+      if (Platform.isAndroid ||
+          _notificationPermissionRequester != null ||
+          _calendarPermissionRequester != null) {
         try {
           await _requestNotificationPermission();
         } on MissingPluginException {
