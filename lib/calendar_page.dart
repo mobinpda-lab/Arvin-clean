@@ -4,7 +4,6 @@ import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/iran_clock.dart';
-import 'models/task.dart';
 import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
