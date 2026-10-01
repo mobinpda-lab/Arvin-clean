@@ -47,7 +47,11 @@ class FollowUpCalendarProjection {
   bool _sameInstant(DateTime a, DateTime b) =>
       a.toUtc().isAtSameMomentAs(b.toUtc());
 
-  List<CalendarReminder> project(Iterable<Task> tasks) {
+  List<CalendarReminder> project(
+    Iterable<Task> tasks, {
+    DateTime? visibleFrom,
+    DateTime? visibleTo,
+  }) {
     final reminders = <CalendarReminder>[];
 
     for (final task in tasks) {
@@ -83,7 +87,30 @@ class FollowUpCalendarProjection {
       }
 
       final dueDate = task.dueDate;
-      if (dueDate != null &&
+      final recurrence = task.recurrence;
+      if (recurrence != null &&
+          dueDate != null &&
+          visibleFrom != null &&
+          visibleTo != null) {
+        for (final occurrence in recurrence.occurrencesBetween(
+          anchor: dueDate,
+          from: visibleFrom,
+          to: visibleTo,
+        )) {
+          if (taskDatesAlreadyProjected.any((date) => _sameInstant(date, occurrence))) {
+            continue;
+          }
+          reminders.add(
+            CalendarReminder(
+              id: 'task-due:${task.id}:${occurrence.toIso8601String()}',
+              title: task.title,
+              date: occurrence,
+              completed: task.completed,
+            ),
+          );
+          taskDatesAlreadyProjected.add(occurrence);
+        }
+      } else if (dueDate != null &&
           !taskDatesAlreadyProjected.any((date) => _sameInstant(date, dueDate))) {
         reminders.add(
           CalendarReminder(
