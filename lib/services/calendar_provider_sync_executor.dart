@@ -93,22 +93,62 @@ class CalendarProviderSyncExecutor {
           if (revision == null || link == null) {
             throw StateError('Update plan item is missing revision/link data.');
           }
-          final ok = await bridge.updateProviderEvent(
-            calendarId: link.calendarId,
-            eventId: link.eventId,
+
+          if (link.calendarId == calendarId) {
+            final ok = await bridge.updateProviderEvent(
+              calendarId: link.calendarId,
+              eventId: link.eventId,
+              title: revision.title,
+              start: revision.start,
+              end: revision.end,
+              allDay: revision.allDay,
+              description: revision.description,
+            );
+            if (!ok) {
+              throw StateError('Calendar Provider did not update linked event.');
+            }
+            links[item.reminderId] = ExternalCalendarEventLink(
+              reminderId: item.reminderId,
+              calendarId: link.calendarId,
+              eventId: link.eventId,
+              lastSyncedFingerprint: revision.fingerprint,
+            );
+            await linkStore.save(links.values);
+            updated++;
+            break;
+          }
+
+          // Calendar Provider cannot move an event between calendar accounts.
+          // Create the replacement first, then remove the old owned event. If
+          // removal fails, roll back the new event and keep the old link intact.
+          final replacementEventId = await bridge.createProviderEvent(
+            calendarId: calendarId,
             title: revision.title,
             start: revision.start,
             end: revision.end,
             allDay: revision.allDay,
             description: revision.description,
           );
-          if (!ok) {
-            throw StateError('Calendar Provider did not update linked event.');
+          if (replacementEventId == null) {
+            throw StateError('Calendar Provider did not create replacement event.');
           }
-          links[item.reminderId] = ExternalCalendarEventLink(
-            reminderId: item.reminderId,
+
+          final removedOld = await bridge.deleteProviderEvent(
             calendarId: link.calendarId,
             eventId: link.eventId,
+          );
+          if (!removedOld) {
+            await bridge.deleteProviderEvent(
+              calendarId: calendarId,
+              eventId: replacementEventId,
+            );
+            throw StateError('Calendar Provider did not remove the old linked event.');
+          }
+
+          links[item.reminderId] = ExternalCalendarEventLink(
+            reminderId: item.reminderId,
+            calendarId: calendarId,
+            eventId: replacementEventId,
             lastSyncedFingerprint: revision.fingerprint,
           );
           await linkStore.save(links.values);
