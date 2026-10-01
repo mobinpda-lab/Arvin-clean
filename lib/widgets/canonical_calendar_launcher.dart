@@ -768,7 +768,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   @override
   Widget build(BuildContext context) {
-    final reminders = widget.projection.project(_tasks);
+    final reminders = widget.projection.project(
+      _tasks.where((task) => task.recurrence == null),
+    );
     List<CalendarReminder> projectVisible(DateTime from, DateTime to) =>
         widget.projection.project(_tasks, visibleFrom: from, visibleTo: to);
     return Directionality(
