@@ -20,7 +20,9 @@ class CalendarIntegrationSettings {
 
   final bool enabled;
   final bool showExternalEvents;
-  /// Backward-compatible alias; [autoSync] is the single canonical setting.\n  bool get syncArvinToDevice => autoSync;\n  final Set<String> visibleCalendarIds;
+  /// Backward-compatible alias; [autoSync] is the single canonical setting.
+  bool get syncArvinToDevice => autoSync;
+  final Set<String> visibleCalendarIds;
   final String? targetCalendarId;
   final bool syncDueDates;
   final bool syncTaskReminders;
@@ -203,10 +205,8 @@ class AppSettingsService {
       _calendarShowExternalKey,
       settings.showExternalEvents,
     );
-    await preferences.setBool(
-      _calendarSyncOutboundKey,
-      settings.syncArvinToDevice,
-    );
+    await preferences.setBool(_calendarAutoSyncKey, settings.autoSync);
+    await preferences.remove(_calendarSyncOutboundKey);
     final visibleIds = settings.visibleCalendarIds
         .map((id) => id.trim())
         .where((id) => id.isNotEmpty)
@@ -239,7 +239,6 @@ class AppSettingsService {
       _calendarSyncRecurrenceKey,
       settings.syncRecurrence,
     );
-    await preferences.setBool(_calendarAutoSyncKey, settings.autoSync);
     await preferences.setBool(
       _calendarDeleteLinkedKey,
       settings.deleteLinkedEventWithTask,
