@@ -149,10 +149,6 @@ class _HomePageState extends State<HomePage> {
       const FollowUpCalendarProjection();
   final CalendarOutboundSyncService calendarOutboundSyncService =
       CalendarOutboundSyncService();
-  final CalendarOutboundSyncService calendarOutboundSyncService =
-      CalendarOutboundSyncService();
-  final FollowUpCalendarProjection calendarProjection =
-      const FollowUpCalendarProjection();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
   final TaskListScopeService taskListScopeService =
