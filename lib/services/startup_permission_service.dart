@@ -46,12 +46,14 @@ class StartupPermissionService {
         try {
           await _requestNotificationPermission();
         } on MissingPluginException {
+          // Permission channel is unavailable outside Android.
         } on PlatformException catch (error) {
           if (error.code != 'permissionRequestInProgress') rethrow;
         }
         try {
           await _requestCalendarPermission();
         } on MissingPluginException {
+          // Permission channel is unavailable outside Android.
         } on PlatformException catch (error) {
           if (error.code != 'permissionRequestInProgress') rethrow;
         }
