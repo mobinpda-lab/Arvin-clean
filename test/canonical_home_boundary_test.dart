@@ -32,8 +32,6 @@ void main() {
     expect(source, isNot(contains('tasks[tasks.indexOf(old)] = edited')));
     expect(source, isNot(contains('tasks[index] = edited')));
   });
-}
-
 
   test('Home exposes a user-visible calendar sync recovery action', () {
     final source = File('lib/main.dart').readAsStringSync();
@@ -57,3 +55,4 @@ void main() {
       isNot(contains('external side effect and is retried on the next canonical save')),
     );
   });
+}
