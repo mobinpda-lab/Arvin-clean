@@ -368,6 +368,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       RecurrenceFrequency.monthly => 'ماه',
       RecurrenceFrequency.yearly => 'سال',
       RecurrenceFrequency.oncePerDay => 'روز',
+      RecurrenceFrequency.minutes => 'دقیقه',
+      RecurrenceFrequency.hours => 'ساعت',
     };
     return 'هر ${_recurrence!.interval} $unit';
   }
