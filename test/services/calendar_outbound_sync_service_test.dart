@@ -73,7 +73,8 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-              targetCalendarId: 'calendar-7',
+              autoSync: true,
+targetCalendarId: 'calendar-7',
         ),
       ),
       executor: executor,
@@ -103,7 +104,8 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-              targetCalendarId: 'calendar-7',
+              autoSync: true,
+targetCalendarId: 'calendar-7',
         ),
       ),
       executor: executor,
@@ -129,6 +131,7 @@ void main() {
         const CalendarIntegrationSettings(
           enabled: true,
           autoSync: true,
+autoSync: true,
           targetCalendarId: 'calendar-7',
           syncDueDates: false,
           syncTaskReminders: true,
@@ -167,7 +170,8 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-          syncArvinToDevice: true,
+          autoSync: true,
+syncArvinToDevice: true,
           syncFollowUps: false,
           targetCalendarId: 'calendar-7',
         ),
@@ -194,7 +198,8 @@ void main() {
       settingsService: _Settings(
         const CalendarIntegrationSettings(
           enabled: true,
-          syncArvinToDevice: true,
+          autoSync: true,
+syncArvinToDevice: true,
           syncTaskReminders: true,
           targetCalendarId: 'calendar-7',
         ),
