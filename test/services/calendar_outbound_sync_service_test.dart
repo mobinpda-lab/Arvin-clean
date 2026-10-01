@@ -114,6 +114,106 @@ class _Settings extends AppSettingsService {
     );
   });
 
+  test('honors per-source sync settings before planning provider writes', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          targetCalendarId: 'calendar-7',
+          syncDueDates: false,
+          syncTaskReminders: true,
+          syncFollowUps: false,
+          syncFollowUpReminders: false,
+          syncRecurrence: false,
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links(),
+    );
+
+    final result = await service.sync([
+      CalendarReminder(
+        id: 'task-due:task-1',
+        title: 'موعد',
+        date: DateTime(2026, 9, 16, 10),
+      ),
+      CalendarReminder(
+        id: 'task-reminder:task-1',
+        title: 'یادآوری',
+        date: DateTime(2026, 9, 16, 9),
+      ),
+      followUp('f1'),
+    ]);
+
+    expect(result?.created, 1);
+    expect(
+      executor.receivedPlan?.items.single.reminderId,
+      'task-reminder:task-1',
+    );
+  });
+
+  test('disabled source does not delete its existing external link', () async {
+    final reminder = followUp('f1');
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          syncFollowUps: false,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links([
+        ExternalCalendarEventLink(
+          reminderId: reminder.id,
+          calendarId: 'calendar-7',
+          eventId: 'event-9',
+          lastSyncedFingerprint: revision.fingerprint,
+        ),
+      ]),
+    );
+
+    final result = await service.sync(const <CalendarReminder>[]);
+    expect(result?.deleted, 0);
+    expect(executor.receivedPlan?.items, isEmpty);
+  });
+
+  test('task reminder uses the canonical task-reminder source setting', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          syncArvinToDevice: true,
+          syncTaskReminders: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links(),
+    );
+
+    final result = await service.sync([
+      CalendarReminder(
+        id: 'task-reminder:task-1',
+        title: 'یادآوری: خرید',
+        date: DateTime(2026, 9, 16, 10),
+      ),
+    ]);
+
+    expect(result?.created, 1);
+    expect(
+      executor.receivedPlan?.items.single.reminderId,
+      'task-reminder:task-1',
+    );
+  });
+
+}
 }
 
 class _Links extends ExternalCalendarLinkStore {
