@@ -52,6 +52,7 @@ class CalendarOutboundSyncService {
       }
     }
 
+    final links = await linkStore.load();
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final plan = planService.plan(revisions: revisions, links: managedLinks);
     return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
