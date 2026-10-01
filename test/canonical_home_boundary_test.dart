@@ -60,4 +60,22 @@ void main() {
     expect(source, contains("onFullForm: (draft) async"));
   });
 
+  test('Task Detail completion toggle uses the existing calendar sync recovery path', () {
+    final source = File('lib/main.dart').readAsStringSync();
+
+    expect(source, contains('Future<Task?> _completeFromDetail(Task task)'));
+    expect(source, contains('task.completed = !task.completed;'));
+    expect(source, contains('await taskStore.save(List<Task>.of(tasks));'));
+    expect(source, contains('await _syncCalendarAfterDetailTaskUpdate(refreshed);'));
+    expect(source, contains('Future<void> _syncCalendarAfterDetailTaskUpdate'));
+    expect(
+      source,
+      contains('calendarOutboundSyncService.sync(\n        calendarProjection.project(snapshot),'),
+    );
+    expect(source, contains("label: 'تلاش دوباره'"));
+    expect(
+      source,
+      isNot(contains('Future<Task?> _completeFromDetail(Task task) async {\n    task.completed = !task.completed;\n    task.updatedAt = DateTime.now();\n    await taskStore.save(List<Task>.of(tasks));\n    final refreshed = await taskStore.load();\n    if (!mounted) return task;\n    setState(() => tasks = List<Task>.of(refreshed));\n    return refreshed.firstWhere((item) => item.id == task.id);\n  }')),
+    );
+  });
 }
