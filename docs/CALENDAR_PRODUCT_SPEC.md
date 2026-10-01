@@ -2,7 +2,7 @@
 
 آخرین به‌روزرسانی: ۱۴۰۵/۰۷/۰۹ — ۱ اکتبر ۲۰۲۶
 مبنای اجرایی فعلی: شاخه feat/calendar-recurrence-and-product-ux-20260930
-آخرین HEAD اعتبارسنجی‌شده: e8bb80ee233a59567ab71d696dec455c5d52c278
+آخرین HEAD اعتبارسنجی‌شده: dd56a2b2fe0e3479fd9558edff0a9fa80a71fb3e
 قرارداد canonical: Issue #2042
 
 ## 1) اصل محصول
