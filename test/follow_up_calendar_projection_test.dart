@@ -6,6 +6,20 @@ import 'package:arvin/services/follow_up_calendar_projection.dart';
 void main() {
   const projection = FollowUpCalendarProjection();
 
+  test('projects a date-only due date as an all-day calendar event', () {
+    final task = Task(
+      id: 'date-only',
+      title: 'کار روزانه',
+      dueDate: DateTime(2026, 10, 8),
+    );
+
+    final reminders = const FollowUpCalendarProjection().project([task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-due:date-only');
+    expect(reminders.single.isAllDay, isTrue);
+  });
+
   test('projects canonical follow-up history in chronological order', () {
     final tasks = <Task>[
       Task(
