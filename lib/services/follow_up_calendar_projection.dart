@@ -47,6 +47,13 @@ class FollowUpCalendarProjection {
   bool _sameInstant(DateTime a, DateTime b) =>
       a.toUtc().isAtSameMomentAs(b.toUtc());
 
+  bool _isDateOnly(DateTime value) =>
+      value.hour == 0 &&
+      value.minute == 0 &&
+      value.second == 0 &&
+      value.millisecond == 0 &&
+      value.microsecond == 0;
+
   List<CalendarReminder> project(
     Iterable<Task> tasks, {
     DateTime? visibleFrom,
@@ -118,6 +125,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: dueDate,
             completed: task.completed,
+            isAllDay: _isDateOnly(dueDate),
           ),
         );
         taskDatesAlreadyProjected.add(dueDate);
