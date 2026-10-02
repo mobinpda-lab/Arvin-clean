@@ -10,6 +10,7 @@ import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/calendar_reschedule_apply_service.dart';
 import '../services/calendar_rescheduling_advisor.dart';
+import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/follow_up_write_coordinator.dart';
 import '../services/system_calendar_bridge.dart';
@@ -59,6 +60,8 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     scheduler: AndroidAutomaticFollowUpScheduler(),
     reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
   );
+
+  CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
   CalendarRescheduleApplyService get _applyService =>
       widget.rescheduleApplyService ??
@@ -124,6 +127,34 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   void initState() {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
+    Future<void>.microtask(_reconcileDeviceCalendar);
+  }
+
+  Future<void> _reconcileDeviceCalendar() async {
+    try {
+      final now = DateTime.now().toLocal();
+      final today = DateTime(now.year, now.month, now.day);
+      final result = await _inboundSync.reconcile(
+        start: today.subtract(const Duration(days: 31)),
+        end: today.add(const Duration(days: 62)),
+      );
+      if (!mounted || !result.changed) return;
+      final refreshed = await widget.onRefreshTasks?.call();
+      if (refreshed != null && mounted) {
+        setState(() => _tasks = List<Task>.of(refreshed));
+      }
+      if (result.conflicts > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تعارض همگام‌سازی تقویم: ${result.conflicts} مورد بدون تغییر باقی ماند.',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      // Calendar access is optional; failure must not block the Arvin calendar.
+    }
   }
 
   @override
