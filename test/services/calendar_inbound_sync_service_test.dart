@@ -1,13 +1,12 @@
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/calendar_inbound_sync_service.dart';
+import 'package:arvin/services/calendar_sync_plan_service.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
+import 'package:arvin/services/system_calendar_bridge.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/native.dart';
-
-import '../lib/models/task.dart';
-import '../lib/services/calendar_inbound_sync_service.dart';
-import '../lib/services/calendar_sync_plan_service.dart';
-import '../lib/services/external_calendar_link_store.dart';
-import '../lib/services/system_calendar_bridge.dart';
-import '../lib/services/task_store.dart';
 
 void main() {
   late NativeDatabase database;
