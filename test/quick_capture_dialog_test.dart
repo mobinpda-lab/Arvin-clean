@@ -379,4 +379,35 @@ void main() {
     expect(captured.single.dueDate, DateTime(2026, 9, 27, 16, 35));
   });
 
+
+  testWidgets('Quick Add opens an independent Persian reminder date/time picker',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('quick-capture-date-confirm')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.byTooltip('ساعت'), findsOneWidget);
+    expect(find.byTooltip('دقیقه'), findsOneWidget);
+  });
 }
