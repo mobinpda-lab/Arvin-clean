@@ -2203,9 +2203,21 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8FB),
+      backgroundColor: ArvinColors.background,
       body: SafeArea(
-        child: Column(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                ArvinColors.background,
+                ArvinColors.primarySoft,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.0, 1.0],
+            ),
+          ),
+          child: Column(
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(
@@ -2345,6 +2357,7 @@ class _HomePageState extends State<HomePage> {
                       : _groupedTaskList(),
             ),
           ],
+          ),
         ),
       ),
       floatingActionButton: selected.isEmpty && loadFailure == null
