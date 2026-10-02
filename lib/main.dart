@@ -484,24 +484,6 @@ class _HomePageState extends State<HomePage> {
 
   }
 
-  String _homeCardLabel(HomeGroupMode mode) {
-    switch (mode) {
-      case HomeGroupMode.projects:
-        if (_projectFilter == null) return 'پروژه: همه';
-        final project = projects.where((p) => p.id == _projectFilter).firstOrNull;
-        return 'پروژه: \${project?.title ?? 'همه'}';
-      case HomeGroupMode.categories:
-        return _categoryFilter == null ? 'دسته: همه' : 'دسته: \$_categoryFilter';
-      case HomeGroupMode.labels:
-        return _tagFilters.isEmpty ? 'برچسب: همه' : 'برچسب: \${_tagFilters.length} مورد';
-      case HomeGroupMode.time:
-        if (_homeDateFilter == null && _homeTimeFilter == null) return 'زمان: همه';
-        final date = _homeDateFilter == null ? '' : _date(_homeDateFilter!);
-        final time = _homeTimeFilter == null ? '' : persianDateFormatter.toPersianDigits(_homeTimeFilter!.format(context));
-        return 'زمان: \${[date, time].where((v) => v.isNotEmpty).join(' • ')}';
-    }
-  }
-
   Future<void> _pickHomeSingleFilter(HomeGroupMode mode) async {
     final title = mode == HomeGroupMode.projects ? 'پروژه' : 'دسته';
     final options = mode == HomeGroupMode.projects
