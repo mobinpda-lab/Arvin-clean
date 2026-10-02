@@ -497,9 +497,26 @@ class _HomePageState extends State<HomePage> {
     setState(() { _homeDateFilter = date; _homeTimeFilter = time; });
   }
 
+  String _homeCardFilterSummary(HomeGroupMode mode) {
+    switch (mode) {
+      case HomeGroupMode.projects:
+        if (_projectFilter == null) return 'همه';
+        return projects.where((p) => p.id == _projectFilter).map((p) => p.title.trim()).firstOrNull ?? 'همه';
+      case HomeGroupMode.categories:
+        return _categoryFilter ?? 'همه';
+      case HomeGroupMode.labels:
+        return _tagFilters.isEmpty ? 'همه' : _tagFilters.join('، ');
+      case HomeGroupMode.time:
+        if (_homeDateFilter == null && _homeTimeFilter == null) return 'همه';
+        final date = _homeDateFilter == null ? '' : _date(_homeDateFilter!);
+        final time = _homeTimeFilter == null ? '' : persianDateFormatter.toPersianDigits(_homeTimeFilter!.format(context));
+        return [date, time].where((v) => v.isNotEmpty).join(' • ');
+    }
+  }
+
   Widget _homeGroupButton({required HomeGroupMode mode, required String label, required IconData icon, required Color accent, required Color softAccent}) {
     final active = mode == HomeGroupMode.projects ? _projectFilter != null : mode == HomeGroupMode.categories ? _categoryFilter != null : mode == HomeGroupMode.labels ? _tagFilters.isNotEmpty : _homeDateFilter != null || _homeTimeFilter != null;
-    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: _homeCardLabel(mode), icon: icon, accent: accent, selected: active, onTap: () async {
+    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: label, icon: icon, accent: accent, selected: active, subtitle: _homeCardFilterSummary(mode), onTap: () async {
       if (mode == HomeGroupMode.projects || mode == HomeGroupMode.categories) await _pickHomeSingleFilter(mode);
       else if (mode == HomeGroupMode.labels) await _pickHomeTags();
       else await _pickHomeTime();
