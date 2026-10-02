@@ -21,11 +21,25 @@ class _Settings extends AppSettingsService {
 }
 
 class _Links extends ExternalCalendarLinkStore {
-  _Links([this.links = const []]);
+  _Links([List<ExternalCalendarEventLink>? links])
+      : links = List<ExternalCalendarEventLink>.of(links ?? const []);
   final List<ExternalCalendarEventLink> links;
 
   @override
-  Future<List<ExternalCalendarEventLink>> load() async => links;
+  Future<List<ExternalCalendarEventLink>> load() async => List.unmodifiable(links);
+
+  @override
+  Future<void> removeByReminderIds(Iterable<String> reminderIds) async {
+    final ids = reminderIds.toSet();
+    links.removeWhere((link) => ids.contains(link.reminderId));
+  }
+
+  @override
+  Future<void> save(Iterable<ExternalCalendarEventLink> values) async {
+    links
+      ..clear()
+      ..addAll(values);
+  }
 }
 
 class _Executor extends CalendarProviderSyncExecutor {
@@ -188,6 +202,67 @@ targetCalendarId: 'calendar-7',
     final result = await service.sync(const <CalendarReminder>[]);
     expect(result?.deleted, 0);
     expect(executor.receivedPlan?.items, isEmpty);
+  });
+
+  test('delete policy off preserves provider event and clears stale link metadata', () async {
+    final reminder = followUp('f1');
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'event-9',
+        lastSyncedFingerprint: revision.fingerprint,
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          targetCalendarId: 'calendar-7',
+          deleteLinkedEventWithTask: false,
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync(const <CalendarReminder>[]);
+    expect(result?.deleted, 0);
+    expect(executor.receivedPlan?.items, isEmpty);
+    expect(links.links, isEmpty);
+  });
+
+  test('delete policy on schedules deletion of a missing canonical reminder', () async {
+    final reminder = followUp('f1');
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'event-9',
+        lastSyncedFingerprint: revision.fingerprint,
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          targetCalendarId: 'calendar-7',
+          deleteLinkedEventWithTask: true,
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync(const <CalendarReminder>[]);
+    expect(result?.deleted, 1);
+    expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.delete);
   });
 
   test('task reminder uses the canonical task-reminder source setting', () async {

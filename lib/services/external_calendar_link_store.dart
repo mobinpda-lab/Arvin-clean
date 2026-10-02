@@ -48,6 +48,13 @@ class ExternalCalendarLinkStore {
     return List<ExternalCalendarEventLink>.unmodifiable(links);
   }
 
+  Future<void> removeByReminderIds(Iterable<String> reminderIds) async {
+    final ids = reminderIds.map((id) => id.trim()).where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+    final existing = await load();
+    await save(existing.where((link) => !ids.contains(link.reminderId)));
+  }
+
   Future<void> save(Iterable<ExternalCalendarEventLink> links) async {
     final values = links.toList(growable: false)
       ..sort((a, b) => a.reminderId.compareTo(b.reminderId));

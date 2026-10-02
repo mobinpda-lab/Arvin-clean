@@ -54,8 +54,25 @@ class CalendarOutboundSyncService {
 
     final links = await linkStore.load();
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
-    final plan = planService.plan(revisions: revisions, links: managedLinks);
-    return executor.execute(plan: plan, targetCalendarId: targetCalendarId);
+    final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
+    final linksForPlan = integration.deleteLinkedEventWithTask
+        ? managedLinks
+        : managedLinks.where((link) => revisionIds.contains(link.reminderId));
+    final plan = planService.plan(revisions: revisions, links: linksForPlan);
+    final result = await executor.execute(
+      plan: plan,
+      targetCalendarId: targetCalendarId,
+    );
+    if (!integration.deleteLinkedEventWithTask) {
+      final orphanedManagedIds = managedLinks
+          .map((link) => link.reminderId)
+          .where((id) => !revisionIds.contains(id))
+          .toSet();
+      if (orphanedManagedIds.isNotEmpty) {
+        await linkStore.removeByReminderIds(orphanedManagedIds);
+      }
+    }
+    return result;
   }
 
   bool _enabledForReminder(
