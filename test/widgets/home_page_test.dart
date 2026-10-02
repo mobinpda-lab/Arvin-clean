@@ -117,6 +117,12 @@ void main() {
     expect(find.text('کار پروژه'), findsOneWidget);
     expect(find.text('کار شخصی'), findsNothing);
 
+    // Clear the category filter so the label selector is tested independently.
+    await tester.tap(find.byKey(const ValueKey('home-group-categories')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('همه').last);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(const ValueKey('home-group-labels')));
     await tester.pumpAndSettle();
     expect(find.text('برچسب‌ها'), findsAtLeastNWidgets(1));
