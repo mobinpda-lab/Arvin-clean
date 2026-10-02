@@ -61,19 +61,25 @@ class CalendarInboundSyncService {
       );
     }
 
+    // The provider bridge intentionally caps one query at 20 calendars.
+    // Batch here so a user with more than 20 linked calendars is reconciled
+    // completely instead of silently dropping links after the first 20.
     final calendarIds = links.map((link) => link.calendarId).toSet().toList();
-    if (calendarIds.length > SystemCalendarBridge.maxEventQueryCalendars) {
-      calendarIds.removeRange(
+    final events = <DeviceCalendarEvent>[];
+    for (var offset = 0;
+        offset < calendarIds.length;
+        offset += SystemCalendarBridge.maxEventQueryCalendars) {
+      final batch = calendarIds.skip(offset).take(
         SystemCalendarBridge.maxEventQueryCalendars,
-        calendarIds.length,
+      );
+      events.addAll(
+        await bridge.listDeviceCalendarEvents(
+          calendarIds: batch,
+          start: start,
+          end: end,
+        ),
       );
     }
-
-    final events = await bridge.listDeviceCalendarEvents(
-      calendarIds: calendarIds,
-      start: start,
-      end: end,
-    );
 
     final eventByProviderKey = <String, DeviceCalendarEvent>{};
     for (final event in events) {
