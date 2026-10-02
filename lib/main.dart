@@ -554,14 +554,6 @@ class _HomePageState extends State<HomePage> {
     ))));
   }
 
-  Future<void> _pickHomeTime() async {
-    final date = await showDatePicker(context: context, initialDate: _homeDateFilter ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100), helpText: 'انتخاب روز');
-    if (!mounted || date == null) return;
-    final time = await showTimePicker(context: context, initialTime: _homeTimeFilter ?? const TimeOfDay(hour: 12, minute: 0), helpText: 'انتخاب ساعت دقیق');
-    if (!mounted) return;
-    setState(() { _homeDateFilter = date; _homeTimeFilter = time; });
-  }
-
   String _homeCardFilterSummary(HomeGroupMode mode) {
     switch (mode) {
       case HomeGroupMode.projects:
@@ -583,7 +575,7 @@ class _HomePageState extends State<HomePage> {
     final active = mode == HomeGroupMode.projects ? _projectFilter != null : mode == HomeGroupMode.categories ? _categoryFilter != null : mode == HomeGroupMode.labels ? _tagFilters.isNotEmpty : _homeDateFilter != null || _homeTimeFilter != null;
     return Expanded(
       child: ArvinRadioBox(
-        key: ValueKey('home-group-' + mode.name),
+        key: ValueKey('home-group-${mode.name}'),
         label: label,
         icon: icon,
         accent: accent,
