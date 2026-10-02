@@ -516,7 +516,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeGroupButton({required HomeGroupMode mode, required String label, required IconData icon, required Color accent, required Color softAccent}) {
     final active = mode == HomeGroupMode.projects ? _projectFilter != null : mode == HomeGroupMode.categories ? _categoryFilter != null : mode == HomeGroupMode.labels ? _tagFilters.isNotEmpty : _homeDateFilter != null || _homeTimeFilter != null;
-    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: label, icon: icon, accent: accent, selected: active, subtitle: _homeCardFilterSummary(mode), onTap: () async {
+    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: label, icon: icon, accent: accent, softAccent: softAccent, selected: active, subtitle: _homeCardFilterSummary(mode), onTap: () async {
       if (mode == HomeGroupMode.projects || mode == HomeGroupMode.categories) await _pickHomeSingleFilter(mode);
       else if (mode == HomeGroupMode.labels) await _pickHomeTags();
       else await _pickHomeTime();
