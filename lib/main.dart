@@ -51,6 +51,7 @@ import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
+import 'widgets/taxonomy_icon_row.dart';
 
 void main() => runApp(const ArvinApp());
 
@@ -1116,6 +1117,7 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
           task: task,
+          projectTitle: _projectTitleForTask(task),
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
@@ -2182,24 +2184,11 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (_projectTitleForTask(task) != null) ...[
-                        const SizedBox(height: 5),
-                        Row(
-                          children: [
-                            const Icon(Icons.folder_outlined, size: 15, color: Color(0xFF4B8FE8)),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                _projectTitleForTask(task)!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Color(0xFF4B8FE8), fontSize: 11, fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ],
-                        ),
+                      if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        TaxonomyIconRow(project: _projectTitleForTask(task), category: task.category, tags: task.tags, maxTags: 2),
                       ],
-                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
+                      if (task.priority != TaskPriority.none || task.completed) ...[
                         const SizedBox(height: 5),
                         Wrap(
                           spacing: 4,
@@ -2211,13 +2200,6 @@ class _HomePageState extends State<HomePage> {
                               const Color(0xFFFFF0E3),
                               const Color(0xFFDB8B23),
                             ),
-                            if (task.category?.trim().isNotEmpty == true) _homeBadge(
-                              task.category!.trim(),
-                              const Color(0xFFF2ECFF),
-                              const Color(0xFF8C68D9),
-                            ),
-                            for (final tag in task.tags.take(3))
-                              _homeBadge('#${tag.trim()}', const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
                           ],
                         ),
                       ],
