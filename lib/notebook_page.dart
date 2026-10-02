@@ -1241,7 +1241,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   icon: const Icon(Icons.menu_book_outlined, size: 18),
                   label: Text(
                     _category == null || _category!.trim().isEmpty
-                        ? 'انتخاب دفتر'
+                        ? 'انتخاب دسته'
                         : _category!,
                   ),
                   style: TextButton.styleFrom(
