@@ -410,4 +410,6 @@ void main() {
     expect(find.byTooltip('ساعت'), findsOneWidget);
     expect(find.byTooltip('دقیقه'), findsOneWidget);
   });
+  testWidgets('Quick Add supports minute precision and all custom recurrence units', (tester) async { await tester.pumpWidget(MaterialApp(home: Directionality(textDirection: TextDirection.rtl, child: Scaffold(body: QuickCaptureDialog(now: () => DateTime(2026, 9, 27, 14, 37)))))); await tester.pumpAndSettle(); await tester.tap(find.text('موعد')); await tester.pumpAndSettle(); await tester.tap(find.text('تاریخ و ساعت سفارشی')); await tester.pumpAndSettle(); await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm'))); await tester.pumpAndSettle(); final minuteBox = find.byTooltip('دقیقه'); expect(minuteBox, findsOneWidget); await tester.tap(minuteBox); await tester.pumpAndSettle(); expect(find.text('۳۷'), findsOneWidget); });
+
 }
