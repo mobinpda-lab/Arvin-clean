@@ -118,6 +118,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: dueDate,
             completed: task.completed,
+            isAllDay: _isDateOnly(dueDate),
           ),
         );
         taskDatesAlreadyProjected.add(dueDate);
