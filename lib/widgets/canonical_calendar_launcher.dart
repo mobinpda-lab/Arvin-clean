@@ -854,7 +854,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
-            onRetryCalendarSync: widget.onRetryCalendarSync,
             onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: _canMutateReminder,
             onCreateTaskForDate: widget.onCreateTaskForDate == null
