@@ -51,15 +51,24 @@ jobs:
             const repo = context.repo.repo;
             const main = await github.rest.repos.getBranch({owner, repo, branch: 'main'});
             const sha = main.data.commit.sha;
-            const tag = `v0.1.0-arvin-${sha.slice(0,7)}`;
+            const fs = require('fs');
+            const pubspec = fs.readFileSync('pubspec.yaml', 'utf8');
+            const versionMatch = pubspec.match(/^version:\s*([^\s]+)\s*$/m);
+            if (!versionMatch) core.setFailed('pubspec.yaml version not found.');
+            const version = versionMatch[1];
+            const [appVersion, buildNumber] = version.split('+');
+            if (!appVersion || !buildNumber) core.setFailed(`Invalid semantic Flutter version: ${version}`);
+            const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;
             let complete = false;
             try {
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = ['arvin-release.apk','artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              complete = ['arvin-${version}-build${buildNumber}.apk','artifact.sha256','release-evidence.txt'].every(n => names.has(n));
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
+            core.setOutput('app_version', version);
+            core.setOutput('build_number', buildNumber);
             core.info(`MAIN_SHA=${sha}`);
             core.info(`RELEASE_TAG=${tag}`);
             core.info(`ALREADY_RELEASED=${complete}`);
@@ -290,7 +299,7 @@ jobs:
           flutter test
           flutter build apk --release -t lib/main.dart
           mkdir -p "$RELEASE_EVIDENCE"
-          cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-release.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
           sha256sum "$RELEASE_EVIDENCE/arvin-release.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
 
       - name: Store release evidence
@@ -311,7 +320,9 @@ jobs:
           LOCKFILE=pubspec.lock
           BUILD_RESULT=success
           TEST_RESULT=success
-          RELEASE_ARTIFACT=arvin-release.apk
+          RELEASE_ARTIFACT=arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk
+          APP_VERSION=${{ steps.release_state.outputs.app_version }}
+          BUILD_NUMBER=${{ steps.release_state.outputs.build_number }}
           ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
           EOF
 
@@ -332,7 +343,7 @@ jobs:
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
             try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
-            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${tag}`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${version} (build ${buildNumber})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
@@ -344,7 +355,7 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-release.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
+          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
 
       - name: Verify delivery
         if: steps.release_state.outputs.already_released != 'true'
@@ -363,7 +374,7 @@ jobs:
             const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
             const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
             const names = new Set(assets.data.map(a => a.name));
-            for (const n of ['arvin-release.apk','artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
             core.info(`DELIVERY_CHECK=success TAG=${tag}`);
 
       - name: Recovery and resume validation
@@ -393,7 +404,7 @@ jobs:
             );
             for (const release of releases) {
               if (release.draft || !release.prerelease) continue;
-              if (!release.tag_name.startsWith('v0.1.0-arvin-')) continue;
+              if (!release.tag_name.startsWith('v') || !release.tag_name.includes('-arvin-')) continue;
               if (release.tag_name === keepTag) continue;
               await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
               try {
