@@ -876,6 +876,62 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
+enum _CalendarItemVisualKind { ordinary, arvinReminder, importedPhoneCalendar, prayer }
+
+_CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
+  if (item.id.startsWith('external-calendar:')) {
+    return _CalendarItemVisualKind.importedPhoneCalendar;
+  }
+  if (item.id.startsWith('task-due:')) {
+    return _CalendarItemVisualKind.arvinReminder;
+  }
+  if (item.id.startsWith('prayer-')) {
+    return _CalendarItemVisualKind.prayer;
+  }
+  return _CalendarItemVisualKind.ordinary;
+}
+
+class _CalendarItemVisualStyle {
+  const _CalendarItemVisualStyle({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  static _CalendarItemVisualStyle of(
+    BuildContext context,
+    CalendarReminder item,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (_calendarItemVisualKind(item)) {
+      _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
+          icon: Icons.notifications_active_outlined,
+          color: scheme.primary,
+          label: 'یادآوری آروین',
+        ),
+      _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
+          icon: Icons.calendar_month_outlined,
+          color: scheme.tertiary,
+          label: 'واردشده از تقویم گوشی',
+        ),
+      _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
+          icon: Icons.event_available_outlined,
+          color: scheme.secondary,
+          label: 'نماز',
+        ),
+      _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
+          icon: Icons.event_outlined,
+          color: scheme.onSurfaceVariant,
+          label: 'یادآور',
+        ),
+    };
+  }
+}
+
 class _ReminderCard extends StatefulWidget {
   const _ReminderCard({
     required this.item,
@@ -951,6 +1007,7 @@ class _ReminderCardState extends State<_ReminderCard> {
     final subtitle = item.isAllDay
         ? '${widget.dateLabel}\nرویداد تمام‌روز'
         : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${widget.isPrayer ? prayerState : (item.completed ? 'انجام‌شده' : 'در انتظار پیگیری')}';
+    final visual = _CalendarItemVisualStyle.of(context, item);
 
     return Card(
       child: Column(
@@ -961,17 +1018,21 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ? () => setState(() => _expanded = !_expanded)
                 : null,
             leading: CircleAvatar(
+              key: ValueKey('calendar-item-icon-${item.id}'),
+              backgroundColor: visual.color.withValues(alpha: 0.14),
               child: Icon(
-                item.isAllDay
-                    ? Icons.event_outlined
-                    : item.completed
-                    ? Icons.check_circle
-                    : Icons.notifications_active_outlined,
+                item.completed ? Icons.check_circle : visual.icon,
+                color: visual.color,
               ),
             ),
-            title: const Text(
-              'یادآور',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            title: Text(
+              visual.label,
+              key: ValueKey('calendar-item-kind-${item.id}'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: visual.color,
+              ),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -979,8 +1040,10 @@ class _ReminderCardState extends State<_ReminderCard> {
                 const SizedBox(height: 2),
                 Text(
                   item.title,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: visual.color,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(subtitle),
