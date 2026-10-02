@@ -45,8 +45,25 @@ class _SettingsPageState extends State<SettingsPage> {
           child: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<String>(value: 'VazirHarf', title: Text('VazirHarf'), subtitle: Text('فونت پیش‌فرض و عمومی آروین')),
-              RadioListTile<String>(value: 'system', title: Text('فونت دستگاه'), subtitle: Text('بدون افزودن فونت جدید به برنامه')),
+              RadioListTile<String>(
+                value: 'VazirHarf',
+                title: const Text('VazirHarf'),
+                subtitle: const Text('فونت پیش‌فرض و عمومی آروین'),
+                secondary: Text(
+                  'مدیریت کارها و پیگیری آروین',
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(fontFamily: AppFonts.vazirharfFamily),
+                ),
+              ),
+              RadioListTile<String>(
+                value: 'system',
+                title: const Text('فونت دستگاه'),
+                subtitle: const Text('بدون افزودن فونت جدید به برنامه'),
+                secondary: const Text(
+                  'مدیریت کارها و پیگیری آروین',
+                  textDirection: TextDirection.rtl,
+                ),
+              ),
             ],
           ),
         ),
