@@ -42,10 +42,32 @@ class CalendarProviderSyncExecutor {
       );
     }
 
-    final granted =
+    final writeGranted =
         await bridge.hasWritePermission() || await bridge.requestWritePermission();
-    if (!granted) {
-      throw StateError('Calendar write permission was not granted.');
+    if (!writeGranted) {
+      throw StateError('دسترسی نوشتن تقویم گوشی داده نشد.');
+    }
+
+    // A target calendar can disappear or become read-only after it was selected.
+    // Validate the current provider state before mutating an event so manual
+    // registration does not surface a raw Android Provider exception.
+    final readGranted =
+        await bridge.hasReadPermission() || await bridge.requestReadPermission();
+    if (!readGranted) {
+      throw StateError('دسترسی خواندن تقویم گوشی برای بررسی تقویم مقصد داده نشد.');
+    }
+    DeviceCalendarInfo? targetCalendar;
+    for (final calendar in await bridge.listDeviceCalendars()) {
+      if (calendar.id == calendarId) {
+        targetCalendar = calendar;
+        break;
+      }
+    }
+    if (targetCalendar == null) {
+      throw StateError('تقویم مقصد پیدا نشد؛ لطفاً در تنظیمات تقویم مقصد را دوباره انتخاب کنید.');
+    }
+    if (targetCalendar.accessLevel < 500) {
+      throw StateError('تقویم مقصد اجازه ثبت رویداد ندارد؛ یک تقویم قابل ویرایش انتخاب کنید.');
     }
 
     final links = <String, ExternalCalendarEventLink>{
