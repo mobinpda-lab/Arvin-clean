@@ -65,38 +65,34 @@ void main() {
   });
 
 
-  testWidgets('Home contextual filters hide completed tasks while All shows them',
+  testWidgets('Home contextual category filter hides completed tasks while All shows them',
       (tester) async {
-    final today = DateTime.now();
-    final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"completed-today","title":"کار انجام‌شده امروز","completed":true,"dueDate":"$isoToday"},{"id":"active-today","title":"کار فعال امروز","completed":false,"dueDate":"$isoToday"}]',
+          '[{"id":"completed","title":"کار انجام‌شده","completed":true,"category":"کاری"},{"id":"active","title":"کار فعال","completed":false,"category":"کاری"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
-    expect(find.text('کار فعال امروز'), findsOneWidget);
+    expect(find.text('کار انجام‌شده'), findsOneWidget);
+    expect(find.text('کار فعال'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('home-group-categories')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-today')));
+    await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('کار فعال امروز'), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsNothing);
+    expect(find.text('کار فعال'), findsOneWidget);
+    expect(find.text('کار انجام‌شده'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
+    await tester.tap(find.byKey(const ValueKey('home-group-categories')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-all')));
+    await tester.tap(find.text('همه').last);
     await tester.pumpAndSettle();
-    expect(find.text('کار فعال امروز'), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
+
+    expect(find.text('کار فعال'), findsOneWidget);
+    expect(find.text('کار انجام‌شده'), findsOneWidget);
   });
 
   testWidgets('Home grouping cards open canonical filter selectors', (tester) async {
@@ -118,7 +114,7 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('کاری'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
-    await tester.tap(find.text('کاری'));
+    await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
     expect(find.text('کار پروژه'), findsOneWidget);
     expect(find.text('کار شخصی'), findsNothing);
