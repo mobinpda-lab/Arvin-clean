@@ -9,6 +9,7 @@ import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
+import 'widgets/taxonomy_icon_row.dart';
 
 enum _NotebookInlineTool { none, number, tick, checklist }
 
@@ -488,29 +489,14 @@ class _NotebookPageState extends State<NotebookPage> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
+                                    if (_notebookProjectTitle(note) != null || note.category?.trim().isNotEmpty == true || note.tags.isNotEmpty) ...[
+                                      const SizedBox(height: 5),
+                                      TaxonomyIconRow(project: _notebookProjectTitle(note), category: note.category, tags: note.tags, maxTags: 2),
+                                    ],
                                     const SizedBox(height: 4),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 4,
-                                      children: [
-                                        Text(
-                                          note.category?.trim().isNotEmpty ??
-                                                  false
-                                              ? note.category!
-                                              : 'بدون دسته',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
-                                        ),
-                                        Text(
-                                          _formatNotebookDate(
-                                            note.updatedAt ?? note.createdAt,
-                                          ),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
-                                        ),
-                                      ],
+                                    Text(
+                                      _formatNotebookDate(note.updatedAt ?? note.createdAt),
+                                      style: Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
@@ -564,6 +550,13 @@ class _NotebookPageState extends State<NotebookPage> {
               child: const Icon(Icons.add),
             ),
     );
+  }
+
+  String? _notebookProjectTitle(Task note) {
+    for (final project in _projects) {
+      if (!project.isArchived && project.itemIds.contains(note.id)) return project.title;
+    }
+    return null;
   }
 
   static String _checklistPreviewLabel(String item) =>
