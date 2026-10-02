@@ -15,7 +15,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
     expect(find.textContaining('2026'), findsNothing);
   });
 
