@@ -749,9 +749,14 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               ListTile(
                 leading: const Icon(Icons.event_available_outlined),
                 title: const Text('تقویم دستگاه'),
@@ -785,7 +790,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                     Navigator.of(sheetContext)
                         .pop(_CalendarMoreAction.conflicts),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
