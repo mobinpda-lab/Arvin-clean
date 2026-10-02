@@ -71,11 +71,7 @@ void main() {
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
           .map((item) => item.id),
-      ['overdue'],
-    );
-    expect(
-      groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
-      isNot(contains('completed-overdue')),
+      ['overdue', 'completed-overdue'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'no_date').items
