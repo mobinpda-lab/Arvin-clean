@@ -65,6 +65,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('projects-settings-entry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('taxonomy-settings-entry')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('taxonomy-settings-entry')));
+    await tester.pumpAndSettle();
+    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('taxonomy-create-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('taxonomy-create-tag')), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('projects-settings-entry')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
     await tester.pumpAndSettle();
