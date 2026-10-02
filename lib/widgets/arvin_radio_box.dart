@@ -8,6 +8,7 @@ class ArvinRadioBox extends StatelessWidget {
     required this.onTap,
     this.icon,
     this.accent = const Color(0xFF4A4CAB),
+    this.softAccent,
     this.newOption = false,
     this.subtitle,
   });
@@ -17,13 +18,15 @@ class ArvinRadioBox extends StatelessWidget {
   final VoidCallback onTap;
   final IconData? icon;
   final Color accent;
+  final Color? softAccent;
   final bool newOption;
   final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
-    final border = selected ? accent : const Color(0xFFE5E7ED);
-    final background = selected ? accent.withValues(alpha: 0.10) : const Color(0xFFFDFDFE);
+    final soft = softAccent ?? accent.withValues(alpha: 0.10);
+    final border = selected ? accent : accent.withValues(alpha: 0.35);
+    final background = selected ? soft.withValues(alpha: 0.95) : soft.withValues(alpha: 0.62);
     return Semantics(
       button: true,
       selected: selected,
@@ -47,7 +50,7 @@ class ArvinRadioBox extends StatelessWidget {
                 Icon(
                   newOption ? Icons.add_circle_outline_rounded : (icon ?? Icons.radio_button_checked_rounded),
                   size: 18,
-                  color: selected ? accent : const Color(0xFF80829C),
+                  color: accent,
                 ),
                 const SizedBox(width: 7),
                 Flexible(
@@ -58,7 +61,7 @@ class ArvinRadioBox extends StatelessWidget {
                       Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: const Color(0xFF232433))),
                       if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: selected ? accent : const Color(0xFF80829C))),
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: selected ? accent : accent.withValues(alpha: 0.82))),
                     ],
                   ),
                 ),
