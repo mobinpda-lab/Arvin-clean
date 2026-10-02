@@ -30,12 +30,13 @@ class CalendarOutboundSyncService {
   final ExternalCalendarLinkStore linkStore;
 
   Future<CalendarProviderSyncResult?> sync(
-    Iterable<CalendarReminder> reminders,
-  ) async {
+    Iterable<CalendarReminder> reminders, {
+    bool force = false,
+  }) async {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
     if (!integration.enabled ||
-        !integration.autoSync ||
+        (!integration.autoSync && !force) ||
         targetCalendarId == null ||
         targetCalendarId.isEmpty) {
       return null;
