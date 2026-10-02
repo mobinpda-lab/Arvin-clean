@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arvin_clean/widgets/taxonomy_icon_row.dart';
+import 'package:arvin/widgets/taxonomy_icon_row.dart';
 
 void main() {
   testWidgets('taxonomy icon row keeps project category and tags adjacent', (tester) async {
