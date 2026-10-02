@@ -1943,6 +1943,17 @@ class _HomePageState extends State<HomePage> {
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
+    final taskAccent = late
+        ? ArvinColors.error
+        : task.completed
+        ? const Color(0xFF409B51)
+        : _projectTitleForTask(task) != null
+        ? ArvinColors.project
+        : task.category?.trim().isNotEmpty == true
+        ? ArvinColors.category
+        : task.tags.isNotEmpty
+        ? ArvinColors.tag
+        : ArvinColors.neutral;
     final taskSurface = late
         ? ArvinColors.errorSoft
         : task.completed
@@ -1972,7 +1983,7 @@ class _HomePageState extends State<HomePage> {
         shadowColor: const Color(0x14000000),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE5E7ED)),
+          side: BorderSide(color: taskAccent.withValues(alpha: 0.42), width: 1.25),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -2039,7 +2050,7 @@ class _HomePageState extends State<HomePage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: const Color(0xFF232433),
+                          color: ArvinColors.textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                           decoration: task.completed
@@ -2279,10 +2290,10 @@ class _HomePageState extends State<HomePage> {
                   hintText: 'جستجو در کارها',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: const Color(0xFFFDFDFE),
+                  fillColor: ArvinColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                    borderSide: const BorderSide(color: ArvinColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
