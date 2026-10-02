@@ -58,11 +58,31 @@ class HomeGroupingService {
         }).toList(),
       ),
       HomeGroup<Task>(
+        id: 'tomorrow',
+        title: 'فردا',
+        items: tasks.where((task) {
+          final due = task.dueDate;
+          return due != null && dayOf(due) == today.add(const Duration(days: 1));
+        }).toList(),
+      ),
+      HomeGroup<Task>(
+        id: 'next_week',
+        title: 'هفته بعد',
+        items: tasks.where((task) {
+          final due = task.dueDate;
+          if (due == null) return false;
+          final day = dayOf(due);
+          return day.isAfter(today.add(const Duration(days: 1))) &&
+              !day.isAfter(today.add(const Duration(days: 7)));
+        }).toList(),
+      ),
+      HomeGroup<Task>(
         id: 'future',
         title: 'آینده',
         items: tasks.where((task) {
           final due = task.dueDate;
-          return due != null && dayOf(due).isAfter(today);
+          return due != null &&
+              dayOf(due).isAfter(today.add(const Duration(days: 7)));
         }).toList(),
       ),
       HomeGroup<Task>(
