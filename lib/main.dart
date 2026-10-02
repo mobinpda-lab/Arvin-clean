@@ -97,15 +97,64 @@ class _ArvinAppState extends State<ArvinApp> {
       title: 'مدیریت کارها و پیگیری آروین',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF4A4CAB),
-        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ArvinColors.primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: ArvinColors.primary,
+          secondary: ArvinColors.reminder,
+          tertiary: ArvinColors.project,
+          error: ArvinColors.error,
+          surface: ArvinColors.surface,
+        ),
+        scaffoldBackgroundColor: ArvinColors.background,
+        cardColor: ArvinColors.surface,
+        dividerColor: ArvinColors.border,
+        cardTheme: CardThemeData(
+          color: ArvinColors.surface,
+          elevation: 1,
+          surfaceTintColor: ArvinColors.primarySoft,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: ArvinColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ArvinColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ArvinColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ArvinColors.primary, width: 1.5),
+          ),
+        ),
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
         textTheme: ThemeData.light().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ArvinColors.primary,
+          brightness: Brightness.dark,
+        ).copyWith(
+          primary: ArvinColors.primarySoft,
+          secondary: ArvinColors.reminder,
+          tertiary: ArvinColors.project,
+          error: ArvinColors.error,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF151622),
+        cardColor: const Color(0xFF20212D),
+        dividerColor: const Color(0xFF383A49),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF20212D),
+          elevation: 1,
+          surfaceTintColor: ArvinColors.primarySoft,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
         fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
         textTheme: ThemeData.dark().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
@@ -1913,6 +1962,17 @@ class _HomePageState extends State<HomePage> {
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
+    final taskSurface = late
+        ? ArvinColors.errorSoft
+        : task.completed
+        ? const Color(0xFFEAF7ED)
+        : _projectTitleForTask(task) != null
+        ? ArvinColors.projectSoft
+        : task.category?.trim().isNotEmpty == true
+        ? ArvinColors.categorySoft
+        : task.tags.isNotEmpty
+        ? ArvinColors.tagSoft
+        : ArvinColors.surface;
     return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -1926,7 +1986,7 @@ class _HomePageState extends State<HomePage> {
           ? _swipeBackground(TaskSwipeAction.trash)
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: const Color(0xFFFDFDFE),
+        color: taskSurface,
         elevation: 1,
         shadowColor: const Color(0x14000000),
         shape: RoundedRectangleBorder(
