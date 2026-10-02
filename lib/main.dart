@@ -219,7 +219,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
-  final HomeGroupMode _homeGroupMode = HomeGroupMode.time;
+  HomeGroupMode _homeGroupMode = HomeGroupMode.time;
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -475,13 +475,11 @@ class _HomePageState extends State<HomePage> {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
 
-    // Statistical filters are list projections, not due-date groups. Keeping
-    // them as a flat projection prevents a completed task whose old due date
-    // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
-    // The task remains completed (and therefore not overdue) while still being
-    // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
-    return [HomeGroup<Task>(id: 'filtered', title: 'کارهای منطبق با فیلترها', items: visible)];
-
+    return homeGroupingService.buildGroups(
+      _homeGroupMode,
+      visible,
+      projects: projects,
+    );
   }
 
   Future<void> _pickHomeSingleFilter(HomeGroupMode mode) async {
@@ -592,13 +590,26 @@ class _HomePageState extends State<HomePage> {
         selected: active,
         subtitle: _homeCardFilterSummary(mode),
         onTap: () async {
-          if (mode == HomeGroupMode.projects ||
+          if (mode == HomeGroupMode.time) {
+            setState(() {
+              _homeGroupMode = HomeGroupMode.time;
+              _homeDateFilter = null;
+              _homeTimeFilter = null;
+              _collapsedGroups.clear();
+            });
+          } else if (mode == HomeGroupMode.projects ||
               mode == HomeGroupMode.categories) {
+            setState(() {
+              _homeGroupMode = mode;
+              _collapsedGroups.clear();
+            });
             await _pickHomeSingleFilter(mode);
-          } else if (mode == HomeGroupMode.labels) {
-            await _pickHomeTags();
           } else {
-            await _pickHomeTime();
+            setState(() {
+              _homeGroupMode = HomeGroupMode.labels;
+              _collapsedGroups.clear();
+            });
+            await _pickHomeTags();
           }
         },
       ),
