@@ -365,4 +365,29 @@ void main() {
 
     expect(find.text('کاری برای نمایش خط زمانی وجود ندارد'), findsOneWidget);
   });
+  testWidgets('calendar more menu exposes manual bidirectional sync retry', (tester) async {
+    var calls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: const <Task>[],
+          onRetryCalendarSync: () async {
+            calls++;
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    await _openMoreMenu(tester);
+    expect(find.text('تلاش دوباره برای همگام‌سازی'), findsOneWidget);
+    await tester.tap(find.text('تلاش دوباره برای همگام‌سازی'));
+    await tester.pump();
+    expect(calls, 1);
+    expect(
+      find.text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.'),
+      findsOneWidget,
+    );
+  });
+
+
 }
