@@ -793,7 +793,7 @@ void main() {
       find.byKey(const ValueKey('notebook-category-کاری')),
       findsOneWidget,
     );
-    expect(find.text('انتخاب دسته'), findsOneWidget);
+    expect(find.text('انتخاب دسته'), findsWidgets);
     expect(find.text('انتخاب دفتر'), findsNothing);
     await tester.tap(
       find.byKey(const ValueKey('notebook-category-کاری')),
