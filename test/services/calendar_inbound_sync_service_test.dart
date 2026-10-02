@@ -6,6 +6,7 @@ import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/system_calendar_bridge.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +14,7 @@ void main() {
   late NativeDatabase database;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = NativeDatabase.memory();
     await TaskStore(executor: database).save([
       Task(
