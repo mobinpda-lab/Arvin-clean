@@ -501,8 +501,16 @@ class _HomePageState extends State<HomePage> {
     )));
     if (!mounted) return;
     setState(() {
-      if (mode == HomeGroupMode.projects) _projectFilter = value == null ? null : projects.where((p) => p.title.trim() == value).map((p) => p.id).firstOrNull;
-      else _categoryFilter = value;
+      if (mode == HomeGroupMode.projects) {
+        _projectFilter = value == null
+            ? null
+            : projects
+                .where((p) => p.title.trim() == value)
+                .map((p) => p.id)
+                .firstOrNull;
+      } else {
+        _categoryFilter = value;
+      }
     });
   }
 
@@ -512,9 +520,37 @@ class _HomePageState extends State<HomePage> {
     await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (sheetContext) => StatefulBuilder(builder: (sheetContext, setSheetState) => SafeArea(child: ListView(
       padding: const EdgeInsets.all(16), shrinkWrap: true, children: [
         const Text('برچسب‌ها'),
-        ListTile(leading: const Icon(Icons.clear_all_rounded), title: const Text('همه برچسب‌ها'), onTap: () => setSheetState(draft.clear)),
-        for (final tag in tags) CheckboxListTile(value: draft.contains(tag), title: Text(tag), secondary: const Icon(Icons.sell_rounded), onChanged: (v) => setSheetState(() { if (v == true) draft.add(tag); else draft.remove(tag); })),
-        FilledButton(onPressed: () { setState(() { _tagFilters..clear()..addAll(draft); }); Navigator.pop(sheetContext); }, child: const Text('اعمال'))
+        ListTile(
+          leading: const Icon(Icons.clear_all_rounded),
+          title: const Text('همه برچسب‌ها'),
+          onTap: () => setSheetState(() {
+            draft.clear();
+          }),
+        ),
+        for (final tag in tags)
+          CheckboxListTile(
+            value: draft.contains(tag),
+            title: Text(tag),
+            secondary: const Icon(Icons.sell_rounded),
+            onChanged: (v) => setSheetState(() {
+              if (v == true) {
+                draft.add(tag);
+              } else {
+                draft.remove(tag);
+              }
+            }),
+          ),
+        FilledButton(
+          onPressed: () {
+            setState(() {
+              _tagFilters
+                ..clear()
+                ..addAll(draft);
+            });
+            Navigator.pop(sheetContext);
+          },
+          child: const Text('اعمال'),
+        )
       ],
     ))));
   }
@@ -546,11 +582,27 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeGroupButton({required HomeGroupMode mode, required String label, required IconData icon, required Color accent, required Color softAccent}) {
     final active = mode == HomeGroupMode.projects ? _projectFilter != null : mode == HomeGroupMode.categories ? _categoryFilter != null : mode == HomeGroupMode.labels ? _tagFilters.isNotEmpty : _homeDateFilter != null || _homeTimeFilter != null;
-    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: label, icon: icon, accent: accent, softAccent: softAccent, selected: active, subtitle: _homeCardFilterSummary(mode), onTap: () async {
-      if (mode == HomeGroupMode.projects || mode == HomeGroupMode.categories) await _pickHomeSingleFilter(mode);
-      else if (mode == HomeGroupMode.labels) await _pickHomeTags();
-      else await _pickHomeTime();
-    }));
+    return Expanded(
+      child: ArvinRadioBox(
+        key: ValueKey('home-group-' + mode.name),
+        label: label,
+        icon: icon,
+        accent: accent,
+        softAccent: softAccent,
+        selected: active,
+        subtitle: _homeCardFilterSummary(mode),
+        onTap: () async {
+          if (mode == HomeGroupMode.projects ||
+              mode == HomeGroupMode.categories) {
+            await _pickHomeSingleFilter(mode);
+          } else if (mode == HomeGroupMode.labels) {
+            await _pickHomeTags();
+          } else {
+            await _pickHomeTime();
+          }
+        },
+      ),
+    );
   }
 
   Widget _homeGroupSelector() {
