@@ -1117,6 +1117,7 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
           task: task,
+          projectTitle: _projectTitleForTask(task),
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
