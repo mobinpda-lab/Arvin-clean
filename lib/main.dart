@@ -182,6 +182,9 @@ class _HomePageState extends State<HomePage> {
   String? _categoryFilter;
   String? _projectFilter;
   String? _tagFilter;
+  final Set<String> _tagFilters = <String>{};
+  DateTime? _homeDateFilter;
+  TimeOfDay? _homeTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
@@ -191,7 +194,7 @@ class _HomePageState extends State<HomePage> {
       _dueScope != null ||
       _categoryFilter != null ||
       _projectFilter != null ||
-      _tagFilter != null;
+      _tagFilter != null || _tagFilters.isNotEmpty || _homeDateFilter != null || _homeTimeFilter != null;
 
   bool get _homeAllFilterSelected =>
       filter == 'کل' && !_homeHasContextualFilter;
@@ -380,8 +383,11 @@ class _HomePageState extends State<HomePage> {
           }
         }
       }
-      final tag = _tagFilter;
-      if (tag != null) scoped = scoped.where((task) => task.tags.map((value) => value.trim()).contains(tag));
+      if (_tagFilters.isNotEmpty) scoped = scoped.where((task) { final tags = task.tags.map((value) => value.trim()).toSet(); return _tagFilters.every(tags.contains); });
+      final dateFilter = _homeDateFilter;
+      if (dateFilter != null) scoped = scoped.where((task) { final due = task.dueDate; return due != null && due.year == dateFilter.year && due.month == dateFilter.month && due.day == dateFilter.day; });
+      final timeFilter = _homeTimeFilter;
+      if (timeFilter != null) scoped = scoped.where((task) { final due = task.dueDate; return due != null && due.hour == timeFilter.hour && due.minute == timeFilter.minute; });
     }
 
     final result = scoped
@@ -428,273 +434,86 @@ class _HomePageState extends State<HomePage> {
     // is intentionally excluded from «عقب‌افتاده» from disappearing entirely.
     // The task remains completed (and therefore not overdue) while still being
     // visible in «همه کارها» / «انجام‌شده» / «انجام‌نشده» as appropriate.
-    if (filter == 'کل' || filter == 'فعال' || filter == 'انجام‌شده') {
-      return [
-        HomeGroup<Task>(
-          id: 'filtered',
-          title: filter,
-          items: visible,
-        ),
-      ];
+    return [HomeGroup<Task>(id: 'filtered', title: 'کارهای منطبق با فیلترها', items: visible)];
+
+  }
+
+  String _homeCardLabel(HomeGroupMode mode) {
+    switch (mode) {
+      case HomeGroupMode.projects:
+        if (_projectFilter == null) return 'پروژه: همه';
+        final project = projects.where((p) => p.id == _projectFilter).firstOrNull;
+        return 'پروژه: ' + (project?.title ?? 'همه');
+      case HomeGroupMode.categories: return _categoryFilter == null ? 'دسته: همه' : 'دسته: ' + _categoryFilter!;
+      case HomeGroupMode.labels: return _tagFilters.isEmpty ? 'برچسب: همه' : 'برچسب: ' + _tagFilters.length.toString() + ' مورد';
+      case HomeGroupMode.time:
+        if (_homeDateFilter == null && _homeTimeFilter == null) return 'زمان: همه';
+        final date = _homeDateFilter == null ? '' : _date(_homeDateFilter!);
+        final time = _homeTimeFilter == null ? '' : persianDateFormatter.toPersianDigits(_homeTimeFilter!.format(context));
+        return 'زمان: ' + [date, time].where((v) => v.isNotEmpty).join(' • ');
     }
-
-    return homeGroupingService.buildGroups(
-      _homeGroupMode,
-      visible,
-      projects: projects,
-    );
   }
 
-  Widget _homeGroupButton({
-    required HomeGroupMode mode,
-    required String label,
-    required IconData icon,
-    required Color accent,
-    required Color softAccent,
-  }) {
-    final selectedMode = _homeGroupMode == mode;
-    return Expanded(
-      child: ArvinRadioBox(
-        key: ValueKey('home-group-${mode.name}'),
-        label: label,
-        icon: icon,
-        accent: accent,
-        selected: selectedMode,
-        onTap: () => _selectHomeGroupMode(mode),
-      ),
-    );
-  }
-
-  Widget _homeAllFilterSelector() {
-    final selected = _homeAllFilterSelected;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: ArvinRadioBox(
-        key: const ValueKey('home-filter-all'),
-        label: 'همه',
-        icon: Icons.select_all_rounded,
-        accent: ArvinColors.primary,
-        selected: selected,
-        onTap: _selectHomeAllFilter,
-      ),
-    );
-  }
-
-  void _selectHomeAllFilter() {
+  Future<void> _pickHomeSingleFilter(HomeGroupMode mode) async {
+    final title = mode == HomeGroupMode.projects ? 'پروژه' : 'دسته';
+    final options = mode == HomeGroupMode.projects
+        ? projects.where((p) => !p.isArchived).map((p) => p.title.trim()).where((v) => v.isNotEmpty).toList()
+        : _homeCategories;
+    final current = mode == HomeGroupMode.projects
+        ? projects.where((p) => p.id == _projectFilter).map((p) => p.title.trim()).firstOrNull
+        : _categoryFilter;
+    final value = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(
+      padding: const EdgeInsets.all(16), shrinkWrap: true, children: [
+        Text(title, style: Theme.of(sheetContext).textTheme.titleMedium),
+        ListTile(leading: const Icon(Icons.clear_all_rounded), title: const Text('همه'), selected: current == null, onTap: () => Navigator.pop(sheetContext)),
+        for (final option in options) ListTile(leading: Icon(mode == HomeGroupMode.projects ? Icons.folder_rounded : Icons.grid_view_rounded), title: Text(option), selected: option == current, onTap: () => Navigator.pop(sheetContext, option)),
+      ],
+    )));
+    if (!mounted) return;
     setState(() {
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
-      _projectFilter = null;
-      _tagFilter = null;
-      selected.clear();
-      selectionMode = false;
+      if (mode == HomeGroupMode.projects) _projectFilter = value == null ? null : projects.where((p) => p.title.trim() == value).map((p) => p.id).firstOrNull;
+      else _categoryFilter = value;
     });
+  }
+
+  Future<void> _pickHomeTags() async {
+    final tags = tasks.expand((task) => task.tags).map((v) => v.trim()).where((v) => v.isNotEmpty).toSet().toList()..sort();
+    final draft = Set<String>.of(_tagFilters);
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (sheetContext) => StatefulBuilder(builder: (sheetContext, setSheetState) => SafeArea(child: ListView(
+      padding: const EdgeInsets.all(16), shrinkWrap: true, children: [
+        const Text('برچسب‌ها'),
+        ListTile(leading: const Icon(Icons.clear_all_rounded), title: const Text('همه برچسب‌ها'), onTap: () => setSheetState(draft.clear)),
+        for (final tag in tags) CheckboxListTile(value: draft.contains(tag), title: Text(tag), secondary: const Icon(Icons.sell_rounded), onChanged: (v) => setSheetState(() { if (v == true) draft.add(tag); else draft.remove(tag); })),
+        FilledButton(onPressed: () { setState(() { _tagFilters..clear()..addAll(draft); }); Navigator.pop(sheetContext); }, child: const Text('اعمال'))
+      ],
+    ))));
+  }
+
+  Future<void> _pickHomeTime() async {
+    final date = await showDatePicker(context: context, initialDate: _homeDateFilter ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100), helpText: 'انتخاب روز');
+    if (!mounted || date == null) return;
+    final time = await showTimePicker(context: context, initialTime: _homeTimeFilter ?? const TimeOfDay(hour: 12, minute: 0), helpText: 'انتخاب ساعت دقیق');
+    if (!mounted) return;
+    setState(() { _homeDateFilter = date; _homeTimeFilter = time; });
+  }
+
+  Widget _homeGroupButton({required HomeGroupMode mode, required String label, required IconData icon, required Color accent, required Color softAccent}) {
+    final active = mode == HomeGroupMode.projects ? _projectFilter != null : mode == HomeGroupMode.categories ? _categoryFilter != null : mode == HomeGroupMode.labels ? _tagFilters.isNotEmpty : _homeDateFilter != null || _homeTimeFilter != null;
+    return Expanded(child: ArvinRadioBox(key: ValueKey('home-group-' + mode.name), label: _homeCardLabel(mode), icon: icon, accent: accent, selected: active, onTap: () async {
+      if (mode == HomeGroupMode.projects || mode == HomeGroupMode.categories) await _pickHomeSingleFilter(mode);
+      else if (mode == HomeGroupMode.labels) await _pickHomeTags();
+      else await _pickHomeTime();
+    }));
   }
 
   Widget _homeGroupSelector() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          _homeGroupButton(
-            mode: HomeGroupMode.time,
-            label: 'زمان',
-            icon: Icons.calendar_month_rounded,
-            accent: ArvinColors.time,
-            softAccent: ArvinColors.timeSoft,
-          ),
-          const SizedBox(width: 7),
-          _homeGroupButton(
-            mode: HomeGroupMode.projects,
-            label: 'پروژه‌ها',
-            icon: Icons.folder_rounded,
-            accent: ArvinColors.project,
-            softAccent: ArvinColors.projectSoft,
-          ),
-          const SizedBox(width: 7),
-          _homeGroupButton(
-            mode: HomeGroupMode.categories,
-            label: 'دسته‌ها',
-            icon: Icons.grid_view_rounded,
-            accent: ArvinColors.category,
-            softAccent: ArvinColors.categorySoft,
-          ),
-          const SizedBox(width: 7),
-          _homeGroupButton(
-            mode: HomeGroupMode.labels,
-            label: 'برچسب‌ها',
-            icon: Icons.sell_rounded,
-            accent: ArvinColors.tag,
-            softAccent: ArvinColors.tagSoft,
-          ),
-        ],
-      ),
-    );
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 10), child: Row(textDirection: TextDirection.rtl, children: [
+      _homeGroupButton(mode: HomeGroupMode.time, label: 'زمان', icon: Icons.calendar_month_rounded, accent: ArvinColors.time, softAccent: ArvinColors.timeSoft), const SizedBox(width: 7),
+      _homeGroupButton(mode: HomeGroupMode.projects, label: 'پروژه‌ها', icon: Icons.folder_rounded, accent: ArvinColors.project, softAccent: ArvinColors.projectSoft), const SizedBox(width: 7),
+      _homeGroupButton(mode: HomeGroupMode.categories, label: 'دسته‌ها', icon: Icons.grid_view_rounded, accent: ArvinColors.category, softAccent: ArvinColors.categorySoft), const SizedBox(width: 7),
+      _homeGroupButton(mode: HomeGroupMode.labels, label: 'برچسب‌ها', icon: Icons.sell_rounded, accent: ArvinColors.tag, softAccent: ArvinColors.tagSoft),
+    ]));
   }
-
-  void _selectHomeGroupMode(HomeGroupMode mode) {
-    setState(() {
-      _homeGroupMode = mode;
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
-      _projectFilter = null;
-      _tagFilter = null;
-      _collapsedGroups.clear();
-      selected.clear();
-      selectionMode = false;
-    });
-  }
-
-  Future<void> _pickHomeContextFilter({
-    required String title,
-    required List<String> options,
-    required String? current,
-    required ValueChanged<String?> onChanged,
-  }) async {
-    final selectedValue = await showModalBottomSheet<String?>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          children: [
-            Text(title, style: Theme.of(sheetContext).textTheme.titleMedium),
-            const SizedBox(height: 10),
-            ArvinRadioBox(
-              key: ValueKey('home-filter-$title-all'),
-              label: 'همه',
-              selected: current == null,
-              icon: Icons.clear_all_rounded,
-              onTap: () => Navigator.of(sheetContext).pop(null),
-            ),
-            const SizedBox(height: 8),
-            for (final option in options) ...[
-              ArvinRadioBox(
-                key: ValueKey('home-filter-$title-$option'),
-                label: option,
-                selected: option == current,
-                icon: Icons.filter_alt_outlined,
-                onTap: () => Navigator.of(sheetContext).pop(option),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ],
-        ),
-      ),
-    );
-    if (!mounted) return;
-    onChanged(selectedValue);
-    setState(() {
-      filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      selected.clear();
-      selectionMode = false;
-    });
-  }
-
-  Widget _homeContextualFilters() {
-    final categories = _homeCategories;
-    final tags = tasks
-        .expand((task) => task.tags)
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-    final projectsById = <String, String>{
-      for (final project in projects)
-        if (!project.isArchived) project.id: project.title.trim(),
-    };
-    final showProject = _homeGroupMode == HomeGroupMode.projects ||
-        _homeGroupMode == HomeGroupMode.labels;
-    final showCategory = _homeGroupMode == HomeGroupMode.projects ||
-        _homeGroupMode == HomeGroupMode.categories ||
-        _homeGroupMode == HomeGroupMode.labels;
-    final showTag = _homeGroupMode == HomeGroupMode.labels;
-    if (!showProject && !showCategory && !showTag) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Wrap(
-        alignment: WrapAlignment.end,
-        spacing: 7,
-        runSpacing: 7,
-        children: [
-          if (showProject)
-            _homeContextFilterButton(
-              key: const ValueKey('home-context-project'),
-              label: _projectFilter == null ? 'پروژه: همه' : 'پروژه: ${projectsById[_projectFilter] ?? 'بدون پروژه'}',
-              icon: Icons.folder_rounded,
-              accent: ArvinColors.project,
-              onTap: () => _pickHomeContextFilter(
-                title: 'پروژه',
-                options: projectsById.values.toList(growable: false),
-                current: _projectFilter == null ? null : projectsById[_projectFilter],
-                onChanged: (value) {
-                  if (value == null) {
-                    _projectFilter = null;
-                  } else {
-                    final match = projectsById.entries.where((e) => e.value == value);
-                    _projectFilter = match.isEmpty ? null : match.first.key;
-                  }
-                },
-              ),
-            ),
-          if (showCategory)
-            _homeContextFilterButton(
-              key: const ValueKey('home-context-category'),
-              label: _categoryFilter == null ? 'دسته: همه' : 'دسته: $_categoryFilter',
-              icon: Icons.grid_view_rounded,
-              accent: ArvinColors.category,
-              onTap: () => _pickHomeContextFilter(
-                title: 'دسته',
-                options: categories,
-                current: _categoryFilter,
-                onChanged: (value) => _categoryFilter = value,
-              ),
-            ),
-          if (showTag)
-            _homeContextFilterButton(
-              key: const ValueKey('home-context-tag'),
-              label: _tagFilter == null ? 'برچسب: همه' : 'برچسب: $_tagFilter',
-              icon: Icons.sell_rounded,
-              accent: ArvinColors.tag,
-              onTap: () => _pickHomeContextFilter(
-                title: 'برچسب',
-                options: tags,
-                current: _tagFilter,
-                onChanged: (value) => _tagFilter = value,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _homeContextFilterButton({
-    required Key key,
-    required String label,
-    required IconData icon,
-    required Color accent,
-    required VoidCallback onTap,
-  }) {
-    return ArvinRadioBox(
-      key: key,
-      label: label,
-      icon: icon,
-      accent: accent,
-      selected: !label.endsWith('همه'),
-      onTap: onTap,
-    );
-  }
-
   Future<void> _addToProject(String projectId) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
@@ -2410,8 +2229,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _homeGroupSelector(),
-            _homeContextualFilters(),
-            _homeAllFilterSelector(),
             Expanded(
               child: loading
                   ? const Center(child: CircularProgressIndicator())
