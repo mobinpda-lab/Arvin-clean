@@ -219,7 +219,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
-  HomeGroupMode _homeGroupMode = HomeGroupMode.time;
+  final HomeGroupMode _homeGroupMode = HomeGroupMode.time;
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -244,9 +244,6 @@ class _HomePageState extends State<HomePage> {
       _categoryFilter != null ||
       _projectFilter != null ||
       _tagFilter != null || _tagFilters.isNotEmpty || _homeDateFilter != null || _homeTimeFilter != null;
-
-  bool get _homeAllFilterSelected =>
-      filter == 'کل' && !_homeHasContextualFilter;
 
   @override
   void initState() {
@@ -492,14 +489,16 @@ class _HomePageState extends State<HomePage> {
       case HomeGroupMode.projects:
         if (_projectFilter == null) return 'پروژه: همه';
         final project = projects.where((p) => p.id == _projectFilter).firstOrNull;
-        return 'پروژه: ' + (project?.title ?? 'همه');
-      case HomeGroupMode.categories: return _categoryFilter == null ? 'دسته: همه' : 'دسته: ' + _categoryFilter!;
-      case HomeGroupMode.labels: return _tagFilters.isEmpty ? 'برچسب: همه' : 'برچسب: ' + _tagFilters.length.toString() + ' مورد';
+        return 'پروژه: \${project?.title ?? 'همه'}';
+      case HomeGroupMode.categories:
+        return _categoryFilter == null ? 'دسته: همه' : 'دسته: \$_categoryFilter';
+      case HomeGroupMode.labels:
+        return _tagFilters.isEmpty ? 'برچسب: همه' : 'برچسب: \${_tagFilters.length} مورد';
       case HomeGroupMode.time:
         if (_homeDateFilter == null && _homeTimeFilter == null) return 'زمان: همه';
         final date = _homeDateFilter == null ? '' : _date(_homeDateFilter!);
         final time = _homeTimeFilter == null ? '' : persianDateFormatter.toPersianDigits(_homeTimeFilter!.format(context));
-        return 'زمان: ' + [date, time].where((v) => v.isNotEmpty).join(' • ');
+        return 'زمان: \${[date, time].where((v) => v.isNotEmpty).join(' • ')}';
     }
   }
 
