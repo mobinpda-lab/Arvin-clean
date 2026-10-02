@@ -247,6 +247,7 @@ class CalendarInboundSyncService {
     if (reminderId.startsWith('task-due:')) {
       final task = _taskForId(tasks, reminderId.substring('task-due:'.length));
       if (task == null || task.trashed) return false;
+      task.title = revision.title;
       task.dueDate = revision.start;
       task.updatedAt = DateTime.now();
       return true;
@@ -258,6 +259,7 @@ class CalendarInboundSyncService {
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
+      task.title = revision.title.replaceFirst('یادآوری: ', '');
       task.reminderDate = revision.start;
       task.updatedAt = DateTime.now();
       return true;
