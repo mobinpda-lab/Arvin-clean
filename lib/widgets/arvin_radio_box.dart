@@ -9,6 +9,7 @@ class ArvinRadioBox extends StatelessWidget {
     this.icon,
     this.accent = const Color(0xFF4A4CAB),
     this.newOption = false,
+    this.subtitle,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class ArvinRadioBox extends StatelessWidget {
   final IconData? icon;
   final Color accent;
   final bool newOption;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +51,15 @@ class ArvinRadioBox extends StatelessWidget {
                 ),
                 const SizedBox(width: 7),
                 Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                      color: const Color(0xFF232433),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: const Color(0xFF232433))),
+                      if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: selected ? accent : const Color(0xFF80829C))),
+                    ],
                   ),
                 ),
               ],
