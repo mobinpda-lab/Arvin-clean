@@ -760,4 +760,61 @@ void main() {
     );
   });
 
+
+  testWidgets(
+      'Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries',
+      (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 9, 30, 10));
+    final taskStore = TaskStore(executor: database);
+    await taskStore.save([
+      Task(
+        id: 'taxonomy-source-task',
+        title: 'کار منبع taxonomy',
+        category: 'کاری',
+        tags: const ['مهم'],
+      ),
+    ]);
+    await repository.createNote(
+      id: 'taxonomy-note',
+      title: 'یادداشت بدون taxonomy',
+    );
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-note-taxonomy-note')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-category-picker')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('notebook-category-کاری')),
+      findsOneWidget,
+    );
+    expect(find.text('انتخاب دسته'), findsWidgets);
+    expect(find.text('انتخاب دفتر'), findsNothing);
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-category-کاری')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('notebook-tags-picker')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('notebook-tag-مهم')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('notebook-tag-مهم')));
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
+    await tester.pumpAndSettle();
+
+    final persisted = await repository.loadNote('taxonomy-note');
+    expect(persisted?.category, 'کاری');
+    expect(persisted?.tags, const ['مهم']);
+  });
+
 }
