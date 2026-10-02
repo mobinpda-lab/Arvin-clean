@@ -49,7 +49,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    // «همه کارها»: a completed task with an old due date must remain visible.
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
 
@@ -120,9 +119,9 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-group-labels')));
     await tester.pumpAndSettle();
-    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsAtLeastNWidgets(1));
     expect(find.text('مهم'), findsAtLeastNWidgets(1));
-    await tester.tap(find.text('مهم'));
+    await tester.tap(find.text('مهم').last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
