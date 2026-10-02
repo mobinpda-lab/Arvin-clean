@@ -51,6 +51,27 @@ void main() {
     expect(loaded.first.tags, <String>['مهم']);
   });
 
+  testWidgets('new unused category stays visible and selectable in management',
+      (tester) async {
+    final store = TaskStore();
+    await store.save(<Task>[]);
+    await store.createCategory('دسته مستقل');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskTaxonomyManagementPage(store: store),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('دسته مستقل'), findsOneWidget);
+    expect(find.text('0 مورد'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('taxonomy-category-delete-دسته مستقل')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('referenced tag deletion is blocked and data stays intact',
       (tester) async {
     await pumpPage(
