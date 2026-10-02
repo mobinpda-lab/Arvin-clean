@@ -31,6 +31,8 @@ void main() {
     final now = IranClock.now();
     final todayAt2300 = DateTime(now.year, now.month, now.day, 23);
     final tomorrow = DateTime(now.year, now.month, now.day + 1, 9);
+    final nextWeek = DateTime(now.year, now.month, now.day + 7, 9);
+    final beyondWeek = DateTime(now.year, now.month, now.day + 8, 9);
     final yesterday = DateTime(now.year, now.month, now.day - 1, 9);
 
     final groups = service.buildGroups(
@@ -38,6 +40,8 @@ void main() {
       [
         task('late-today', dueDate: todayAt2300),
         task('tomorrow', dueDate: tomorrow),
+        task('next-week', dueDate: nextWeek),
+        task('beyond-week', dueDate: beyondWeek),
         task('overdue', dueDate: yesterday),
         task('completed-overdue', dueDate: yesterday, completed: true),
         task('no-date'),
@@ -50,9 +54,19 @@ void main() {
       ['late-today'],
     );
     expect(
-      groups.singleWhere((group) => group.id == 'future').items
+      groups.singleWhere((group) => group.id == 'tomorrow').items
           .map((item) => item.id),
       ['tomorrow'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'next_week').items
+          .map((item) => item.id),
+      ['next-week'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'future').items
+          .map((item) => item.id),
+      ['beyond-week'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
