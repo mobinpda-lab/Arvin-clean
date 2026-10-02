@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/widgets/arvin_radio_box.dart';
+import 'package:arvin/widgets/arvin_radio_box.dart';
 
 void main() {
   testWidgets('semantic radio box keeps its family color before selection', (tester) async {
