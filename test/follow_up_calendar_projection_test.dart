@@ -50,6 +50,21 @@ void main() {
     expect(reminders.single.date, dueDate);
   });
 
+  test('projects date-only due date as an all-day calendar event', () {
+    final task = Task(
+      id: 'all-day-task',
+      title: 'کار روزانه',
+      dueDate: DateTime(2026, 10, 8),
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-due:all-day-task');
+    expect(reminders.single.date, DateTime(2026, 10, 8));
+    expect(reminders.single.isAllDay, isTrue);
+  });
+
   test('projects legacy follow-up date when canonical history is absent', () {
     final followUpDate = DateTime(2026, 11, 12, 9);
     final task = Task(
