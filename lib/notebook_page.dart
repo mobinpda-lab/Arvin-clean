@@ -942,13 +942,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   }
 
   Future<void> _pickTags() async {
-    final notes = await widget.repository.loadNotes();
+    final knownTags = (await widget.repository.loadTags())
+        .where((tag) => tag.trim().isNotEmpty)
+        .map((tag) => tag.trim())
+        .toSet()
+        .toList()
+      ..sort();
     if (!mounted) return;
-    final knownTags = <String>{
-      for (final note in notes)
-        for (final tag in note.tags)
-          if (tag.trim().isNotEmpty) tag.trim(),
-    }.toList()..sort();
 
     final selected = await showModalBottomSheet<List<String>>(
       context: context,
