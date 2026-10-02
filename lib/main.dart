@@ -235,6 +235,7 @@ class _HomePageState extends State<HomePage> {
   DateTime? _homeDateFilter;
   TimeOfDay? _homeTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
+  bool _undatedSortDescending = false;
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
 
@@ -673,6 +674,15 @@ class _HomePageState extends State<HomePage> {
             _homeGroupMode == HomeGroupMode.projects &&
             group.id != 'no_project' &&
             projects.any((project) => project.id == group.id);
+        final isUndatedGroup =
+            _homeGroupMode == HomeGroupMode.time && group.id == 'undated';
+        final groupItems = isUndatedGroup
+            ? (List<Task>.of(group.items)
+              ..sort((a, b) {
+                final result = a.title.trim().compareTo(b.title.trim());
+                return _undatedSortDescending ? -result : result;
+              }))
+            : group.items;
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Column(
@@ -687,10 +697,56 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      Icon(_collapsedGroups.contains(group.id) ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 20, color: const Color(0xFF80829C)),
+                      Expanded(
+                        child: Text(
+                          group.title,
+                          style: const TextStyle(
+                            color: Color(0xFF232433),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (isUndatedGroup)
+                        PopupMenuButton<bool>(
+                          tooltip: 'مرتب‌سازی الفبایی',
+                          initialValue: _undatedSortDescending,
+                          onSelected: (descending) => setState(() {
+                            _undatedSortDescending = descending;
+                          }),
+                          icon: Icon(
+                            _undatedSortDescending
+                                ? Icons.sort_by_alpha_rounded
+                                : Icons.sort_rounded,
+                            size: 20,
+                            color: ArvinColors.tag,
+                          ),
+                          itemBuilder: (context) => const [
+                            PopupMenuItem<bool>(
+                              value: false,
+                              child: Text('الفبایی: الف تا ی'),
+                            ),
+                            PopupMenuItem<bool>(
+                              value: true,
+                              child: Text('الفبایی: ی تا الف'),
+                            ),
+                          ],
+                        ),
+                      Text(
+                        '${group.items.length}',
+                        style: const TextStyle(
+                          color: Color(0xFF80829C),
+                          fontSize: 12,
+                        ),
+                      ),
                       const SizedBox(width: 4),
-                      Expanded(child: Text(group.title, style: const TextStyle(color: Color(0xFF232433), fontSize: 14, fontWeight: FontWeight.w800))),
-                      Text('${group.items.length}', style: const TextStyle(color: Color(0xFF80829C), fontSize: 12)),
+                      Icon(
+                        _collapsedGroups.contains(group.id)
+                            ? Icons.chevron_left_rounded
+                            : Icons.expand_more_rounded,
+                        size: 20,
+                        color: const Color(0xFF80829C),
+                      ),
                       if (projectGroup) ...[
                         const SizedBox(width: 4),
                         IconButton(
@@ -717,9 +773,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 )
               else ...[
-                for (var index = 0; index < group.items.length; index++) ...[
-                  _taskCard(group.items[index]),
-                  if (index != group.items.length - 1)
+                for (var index = 0; index < groupItems.length; index++) ...[
+                  _taskCard(groupItems[index]),
+                  if (index != groupItems.length - 1)
                     const SizedBox(height: 8),
                 ],
               ],
