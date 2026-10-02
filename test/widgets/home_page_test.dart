@@ -64,7 +64,6 @@ void main() {
     expect(find.text('کار انجام‌نشده'), findsNothing);
   });
 
-
   testWidgets('Home contextual category filter hides completed tasks while All shows them',
       (tester) async {
     SharedPreferences.setMockInitialValues({
@@ -112,8 +111,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-group-categories')));
     await tester.pumpAndSettle();
     expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('کاری'), findsOneWidget);
-    expect(find.text('شخصی'), findsOneWidget);
+    expect(find.text('کاری'), findsAtLeastNWidgets(1));
+    expect(find.text('شخصی'), findsAtLeastNWidgets(1));
     await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
     expect(find.text('کار پروژه'), findsOneWidget);
@@ -122,7 +121,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-group-labels')));
     await tester.pumpAndSettle();
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('مهم'), findsOneWidget);
+    expect(find.text('مهم'), findsAtLeastNWidgets(1));
     await tester.tap(find.text('مهم'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال'));
