@@ -290,7 +290,7 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
     expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    expect(find.text('یادآوری آروین'), findsOneWidget);
-    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('reminder-card-task-due:task-1')), matching: find.text('یادآوری آروین')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('reminder-card-external-calendar:event-1')), matching: find.text('واردشده از تقویم گوشی')), findsOneWidget);
   });
 }
