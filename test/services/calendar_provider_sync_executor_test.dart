@@ -18,6 +18,17 @@ class _FakeBridge extends SystemCalendarBridge {
   Future<bool> requestWritePermission() async => writeGranted;
 
   @override
+  Future<bool> hasReadPermission() async => true;
+
+  @override
+  Future<bool> requestReadPermission() async => true;
+
+  @override
+  Future<List<DeviceCalendarInfo>> listDeviceCalendars() async => const [
+        DeviceCalendarInfo(id: '42', displayName: 'Test', accessLevel: 700),
+      ];
+
+  @override
   Future<String?> createProviderEvent({
     required String calendarId,
     required String title,
