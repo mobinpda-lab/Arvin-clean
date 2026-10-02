@@ -56,9 +56,13 @@ class CalendarProviderSyncExecutor {
     if (!readGranted) {
       throw StateError('دسترسی خواندن تقویم گوشی برای بررسی تقویم مقصد داده نشد.');
     }
-    final targetCalendar = (await bridge.listDeviceCalendars())
-        .where((calendar) => calendar.id == calendarId)
-        .firstOrNull;
+    DeviceCalendarInfo? targetCalendar;
+    for (final calendar in await bridge.listDeviceCalendars()) {
+      if (calendar.id == calendarId) {
+        targetCalendar = calendar;
+        break;
+      }
+    }
     if (targetCalendar == null) {
       throw StateError('تقویم مقصد پیدا نشد؛ لطفاً در تنظیمات تقویم مقصد را دوباره انتخاب کنید.');
     }
