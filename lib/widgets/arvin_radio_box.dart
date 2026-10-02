@@ -20,8 +20,12 @@ class ArvinRadioBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = selected ? accent : const Color(0xFFE5E7ED);
-    final background = selected ? accent.withValues(alpha: 0.10) : const Color(0xFFFDFDFE);
+    // Keep each semantic control visibly colored before selection.
+    // Selection increases emphasis without replacing its semantic color.
+    final border = selected ? accent : accent.withValues(alpha: 0.28);
+    final background = selected
+        ? accent.withValues(alpha: 0.16)
+        : accent.withValues(alpha: 0.07);
     return Semantics(
       button: true,
       selected: selected,
@@ -43,9 +47,11 @@ class ArvinRadioBox extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  newOption ? Icons.add_circle_outline_rounded : (icon ?? Icons.radio_button_checked_rounded),
+                  newOption
+                      ? Icons.add_circle_outline_rounded
+                      : (icon ?? Icons.radio_button_checked_rounded),
                   size: 18,
-                  color: selected ? accent : const Color(0xFF80829C),
+                  color: accent,
                 ),
                 const SizedBox(width: 7),
                 Flexible(
