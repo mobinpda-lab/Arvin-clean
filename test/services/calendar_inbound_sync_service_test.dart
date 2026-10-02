@@ -67,7 +67,9 @@ void main() {
 
     expect(result.updated, 1);
     expect(result.conflicts, 0);
-    expect((await taskStore.load()).single.dueDate, DateTime(2026, 10, 9, 11));
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.dueDate, DateTime(2026, 10, 9, 11));
+    expect(refreshed.title, 'کار تغییر یافته');
   });
 
   test('provider deletion clears linked canonical due date', () async {
