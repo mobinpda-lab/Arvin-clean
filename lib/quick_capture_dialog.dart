@@ -201,7 +201,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     required DateTime initial,
   }) async {
     var hour = initial.hour;
-    var minute = initial.minute - (initial.minute % 5);
+    var minute = initial.minute;
     return showDialog<TimeOfDay>(
       context: parentContext,
       builder: (sheetContext) {
@@ -249,10 +249,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
                       icon: Icons.more_time_rounded,
                       color: const Color(0xFF7650C8),
-                      items: List.generate(
-                        12,
-                        (index) {
-                          final value = index * 5;
+                      items: List.generate(60, (value) {
                           return ArvinRollItem<int>(
                             value: value,
                             label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
@@ -306,9 +303,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   Future<RecurrenceRule?> _pickCustomRecurrence() async {
     final controller = TextEditingController(text: _recurrence?.interval.toString() ?? '1');
-    var frequency = _recurrence?.frequency == RecurrenceFrequency.weekly
-        ? RecurrenceFrequency.weekly
-        : RecurrenceFrequency.daily;
+    var frequency = _recurrence?.frequency ?? RecurrenceFrequency.daily;
     try {
       return await showDialog<RecurrenceRule>(
         context: context,
@@ -323,10 +318,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                   builder: (context, setDialogState) => DropdownButtonFormField<RecurrenceFrequency>(
                     initialValue: frequency,
                     decoration: const InputDecoration(labelText: 'واحد تکرار'),
-                    items: const [
-                      DropdownMenuItem(value: RecurrenceFrequency.daily, child: Text('روز')),
-                      DropdownMenuItem(value: RecurrenceFrequency.weekly, child: Text('هفته')),
-                    ],
+                    items: const [ DropdownMenuItem(value: RecurrenceFrequency.minutes, child: Text('دقیقه')), DropdownMenuItem(value: RecurrenceFrequency.hours, child: Text('ساعت')), DropdownMenuItem(value: RecurrenceFrequency.daily, child: Text('روز')), DropdownMenuItem(value: RecurrenceFrequency.weekly, child: Text('هفته')), DropdownMenuItem(value: RecurrenceFrequency.monthly, child: Text('ماه')), DropdownMenuItem(value: RecurrenceFrequency.yearly, child: Text('سال')), ],
                     onChanged: (value) {
                       if (value != null) setDialogState(() => frequency = value);
                     },
