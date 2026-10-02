@@ -44,9 +44,7 @@ class HomeGroupingService {
         title: 'عقب‌افتاده',
         items: tasks.where((task) {
           final due = task.dueDate;
-          return due != null &&
-              dayOf(due).isBefore(today) &&
-              !task.completed;
+          return due != null && dayOf(due).isBefore(today);
         }).toList(),
       ),
       HomeGroup<Task>(
