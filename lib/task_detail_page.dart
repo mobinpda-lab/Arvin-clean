@@ -18,6 +18,7 @@ class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
     super.key,
     required this.task,
+    this.projectTitle,
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
@@ -26,6 +27,7 @@ class TaskDetailPage extends StatefulWidget {
   });
 
   final Task task;
+  final String? projectTitle;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
@@ -219,6 +221,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           const SizedBox(height: 12),
           if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty) ...[
             TaxonomyIconRow(
+              project: widget.projectTitle,
               category: _task.category,
               tags: _task.tags,
               maxTags: 3,
