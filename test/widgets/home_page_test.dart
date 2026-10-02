@@ -77,7 +77,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-filter-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
     expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
     expect(find.text('کار فعال امروز'), findsOneWidget);
 
@@ -91,13 +91,15 @@ void main() {
     expect(find.text('کار فعال امروز'), findsOneWidget);
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-all')));
+    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-my-tasks-all')));
     await tester.pumpAndSettle();
     expect(find.text('کار فعال امروز'), findsOneWidget);
     expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
   });
 
-  testWidgets('Home contextual grouping exposes canonical Roll Box filters', (tester) async {
+  testWidgets('Home grouping cards open canonical filter selectors', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"p1","title":"کار پروژه","category":"کاری","tags":["مهم"]},{"id":"p2","title":"کار شخصی","category":"شخصی","tags":["مهم"]}]',
@@ -106,36 +108,31 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-group-projects')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-context-project')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-context-tag')), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-projects')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-categories')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-labels')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-group-categories')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-context-project')), findsNothing);
-    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-group-labels')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-context-project')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-context-category')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-context-tag')), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-context-tag')));
-    await tester.pumpAndSettle();
-    expect(find.text('مهم'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-filter-برچسب-مهم')));
-    await tester.pumpAndSettle();
-    expect(find.text('برچسب: مهم'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('home-context-category')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-filter-دسته-کاری')));
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('کاری'), findsOneWidget);
+    expect(find.text('شخصی'), findsOneWidget);
+    await tester.tap(find.text('کاری'));
     await tester.pumpAndSettle();
     expect(find.text('کار پروژه'), findsOneWidget);
     expect(find.text('کار شخصی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-group-labels')));
+    await tester.pumpAndSettle();
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.text('مهم'), findsOneWidget);
+    await tester.tap(find.text('مهم'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار پروژه'), findsOneWidget);
+    expect(find.text('کار شخصی'), findsOneWidget);
   });
 
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
