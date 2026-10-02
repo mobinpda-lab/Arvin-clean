@@ -1641,6 +1641,25 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+  Future<void> _retryCalendarSync() async {
+    final reminders = calendarProjection.project(
+      _searchSource.where((task) => !task.trashed),
+    );
+    await calendarOutboundSyncService.sync(
+      reminders,
+      force: true,
+    );
+    final now = DateTime.now().toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    final inbound = await CalendarInboundSyncService().reconcile(
+      start: today.subtract(const Duration(days: 31)),
+      end: today.add(const Duration(days: 62)),
+    );
+    if (inbound.changed) {
+      await _load();
+    }
+  }
+
   Future<void> _openPrimaryCalendar() async {
     if (!mounted) return;
     // Re-read canonical SQL before opening calendar/timeline so navigation never
@@ -1656,6 +1675,7 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
+          onRetryCalendarSync: _retryCalendarSync,
         ),
       ),
     );
