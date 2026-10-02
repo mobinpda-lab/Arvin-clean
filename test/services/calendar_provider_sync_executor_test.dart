@@ -26,6 +26,7 @@ class _FakeBridge extends SystemCalendarBridge {
   @override
   Future<List<DeviceCalendarInfo>> listDeviceCalendars() async => const [
         DeviceCalendarInfo(id: '42', displayName: 'Test', accessLevel: 700),
+        DeviceCalendarInfo(id: '99', displayName: 'Target', accessLevel: 700),
       ];
 
   @override
