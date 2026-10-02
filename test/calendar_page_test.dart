@@ -167,7 +167,7 @@ void main() {
 
     await tester.tap(find.text('سالانه'));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
 
     await tester.fling(
       find.byKey(const ValueKey('calendar-swipe-surface')),
@@ -176,7 +176,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۶/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۶'), findsOneWidget);
   });
 
 
@@ -193,18 +193,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
 
     await tester.tap(find.text('ماهانه'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۷'), findsOneWidget);
+    expect(find.text('مهر ۱۴۰۵'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
     await tester.pumpAndSettle();
-    expect(find.text('۱۴۰۵/۰۶'), findsOneWidget);
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('calendar-today')));
     await tester.pumpAndSettle();
