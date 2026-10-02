@@ -265,7 +265,7 @@ targetCalendarId: 'calendar-7',
     expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.delete);
   });
 
-  test('task reminder uses the canonical task-reminder source setting', async () {
+  test('task reminder uses the canonical task-reminder source setting', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
       settingsService: _Settings(
