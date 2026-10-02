@@ -12,11 +12,13 @@ import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
+import 'widgets/taxonomy_icon_row.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
     super.key,
     required this.task,
+    this.projectTitle,
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
@@ -25,6 +27,7 @@ class TaskDetailPage extends StatefulWidget {
   });
 
   final Task task;
+  final String? projectTitle;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
@@ -216,12 +219,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
           ],
           const SizedBox(height: 12),
+          if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty) ...[
+            TaxonomyIconRow(project: widget.projectTitle, category: _task.category, tags: _task.tags, maxTags: 3),
+            const SizedBox(height: 7),
+          ],
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
-              if (_task.category?.trim().isNotEmpty == true)
-                _badge(_task.category!.trim(), ArvinColors.category, icon: Icons.folder_outlined),
               if (_task.priority != TaskPriority.none)
                 _badge(
                   switch (_task.priority) {
@@ -234,8 +239,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   icon: Icons.flag_outlined,
                 ),
               if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
-              for (final tag in _task.tags.take(4))
-                _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
           ),
           const SizedBox(height: 12),
