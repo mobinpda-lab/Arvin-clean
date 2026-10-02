@@ -9,6 +9,7 @@ import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
+import 'arvin_colors.dart';
 
 enum _NotebookInlineTool { none, number, tick, checklist }
 
@@ -342,6 +343,46 @@ class _NotebookPageState extends State<NotebookPage> {
     );
   }
 
+  String _noteProjectTitle(Task note) {
+    for (final project in _projects) {
+      if (project.itemIds.contains(note.id) && !project.isArchived) {
+        return project.title.trim().isEmpty ? 'بدون پروژه' : project.title.trim();
+      }
+    }
+    return 'بدون پروژه';
+  }
+
+  Widget _notebookTaxonomyChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 0, maxWidth: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _open(
     Task note, {
     bool startEditing = false,
@@ -488,29 +529,41 @@ class _NotebookPageState extends State<NotebookPage> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                    const SizedBox(height: 4),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 4,
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      textDirection: TextDirection.rtl,
                                       children: [
-                                        Text(
-                                          note.category?.trim().isNotEmpty ??
-                                                  false
-                                              ? note.category!
-                                              : 'بدون دسته',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
+                                        _notebookTaxonomyChip(
+                                          icon: Icons.folder_rounded,
+                                          label: _noteProjectTitle(note),
+                                          color: ArvinColors.project,
                                         ),
-                                        Text(
-                                          _formatNotebookDate(
-                                            note.updatedAt ?? note.createdAt,
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: _notebookTaxonomyChip(
+                                            icon: Icons.grid_view_rounded,
+                                            label: note.category?.trim().isNotEmpty == true
+                                                ? note.category!.trim()
+                                                : 'بدون دسته',
+                                            color: ArvinColors.category,
                                           ),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: _notebookTaxonomyChip(
+                                            icon: Icons.sell_rounded,
+                                            label: note.tags.isEmpty
+                                                ? 'بدون برچسب'
+                                                : note.tags.take(1).join('، '),
+                                            color: ArvinColors.tag,
+                                          ),
                                         ),
                                       ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatNotebookDate(note.updatedAt ?? note.createdAt),
+                                      style: Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
