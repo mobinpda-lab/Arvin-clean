@@ -1,0 +1,7 @@
+{
+  "project": "Arvin-clean",
+  "enabled": true,
+  "mode": "autonomous",
+  "monitoring": "active",
+  "version": "1.0"
+}
