@@ -157,6 +157,25 @@ void main() {
     expect(find.text('جلسه فنی'), findsNothing);
   });
 
+  testWidgets('Home search includes active, completed, archived, and trashed tasks',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"active","title":"جستجوی مشترک فعال"},{"id":"completed","title":"جستجوی مشترک انجام‌شده","completed":true},{"id":"archived","title":"جستجوی مشترک بایگانی","archived":true},{"id":"trashed","title":"جستجوی مشترک حذف‌شده","trashed":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'جستجوی مشترک');
+    await tester.pumpAndSettle();
+
+    expect(find.text('جستجوی مشترک فعال'), findsOneWidget);
+    expect(find.text('جستجوی مشترک انجام‌شده'), findsOneWidget);
+    expect(find.text('جستجوی مشترک بایگانی'), findsOneWidget);
+    expect(find.text('جستجوی مشترک حذف‌شده'), findsOneWidget);
+  });
+
   testWidgets('Home search uses canonical Persian and FollowUp text',
       (tester) async {
     SharedPreferences.setMockInitialValues({

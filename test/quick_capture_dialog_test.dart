@@ -462,6 +462,8 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۵ دقیقه قبل'));
+    await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
   });
 
@@ -516,7 +518,7 @@ void main() {
       expect(find.text(label, skipOffstage: false), findsWidgets);
     }
 
-    final frequencyField = find.byType(DropdownButtonFormField<RecurrenceFrequency>());
+    final frequencyField = find.byType(DropdownButtonFormField);
     expect(frequencyField, findsOneWidget);
     await tester.tap(frequencyField);
     await tester.pumpAndSettle();
