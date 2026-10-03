@@ -25,6 +25,64 @@ class TaskRecurrenceRepository {
     });
   }
 
+  /// Returns the checklist state for one scheduled occurrence.
+  /// A new occurrence starts from the unchecked canonical checklist template;
+  /// it never inherits the previous occurrence's tick state.
+  Future<List<String>> checklistForOccurrence(
+    String taskId,
+    DateTime occurrence,
+  ) async {
+    final task = _findTask(await _store.load(), taskId);
+    final key = _occurrenceKey(occurrence);
+    final stored = task.checklistOccurrences[key];
+    if (stored != null) return List<String>.of(stored);
+    return task.checklist.map(_uncheckedItem).toList(growable: false);
+  }
+
+  /// Persists checklist state for exactly one recurring occurrence through the
+  /// canonical TaskStore. Other occurrences remain untouched.
+  Future<Task> setChecklistForOccurrence(
+    String taskId,
+    DateTime occurrence,
+    List<String> checklist,
+  ) {
+    return _store.mutate<Task>((tasks) {
+      final task = _findTask(tasks, taskId);
+      final next = <String, List<String>>{
+        for (final entry in task.checklistOccurrences.entries)
+          entry.key: List<String>.of(entry.value),
+      };
+      next[_occurrenceKey(occurrence)] = checklist.map(_normalizeItem).toList();
+      task.checklistOccurrences = next;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
+  static String _occurrenceKey(DateTime occurrence) =>
+      occurrence.toIso8601String();
+
+  static String _normalizeItem(String item) {
+    final trimmed = item.trim();
+    if (trimmed.startsWith('[x] ')) return trimmed;
+    if (trimmed.startsWith('[ ] ')) return trimmed;
+    if (trimmed.startsWith('[x]')) return '[x] ' + trimmed.substring(3).trim();
+    if (trimmed.startsWith('[ ]')) return '[ ] ' + trimmed.substring(3).trim();
+    return '[ ] ' + trimmed;
+  }
+
+  static String _uncheckedItem(String item) {
+    final normalized = _normalizeItem(item);
+    return '[ ] ' + normalized.substring(3).trim();
+  }
+
+  Task _findTask(List<Task> tasks, String taskId) {
+    for (final task in tasks) {
+      if (task.id == taskId) return task;
+    }
+    throw StateError('Task not found: $taskId');
+  }
+
   Future<Task> resumeFromToday(
     String taskId, {
     DateTime? target,
