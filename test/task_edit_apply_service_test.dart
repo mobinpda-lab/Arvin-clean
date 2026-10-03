@@ -64,6 +64,30 @@ void main() {
     expect(target.updatedAt, appliedAt);
   });
 
+  test('preserves recurring checklist occurrence state while editing template', () {
+    final occurrence = DateTime(2026, 10, 3, 6);
+    final target = Task(
+      id: 'recurring-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[ ] خوراکی'],
+      checklistOccurrences: {
+        occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+      },
+    );
+    final edited = Task(
+      id: 'recurring-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+    );
+
+    service.apply(target, edited);
+
+    expect(target.checklist, const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس']);
+    expect(target.checklistOccurrences, {
+      occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    });
+  });
+
   test('preserves identity history and non-editor lifecycle flags', () {
     final history = FollowUp(
       id: 'fu-history',
