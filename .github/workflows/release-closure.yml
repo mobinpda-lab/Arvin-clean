@@ -64,7 +64,7 @@ jobs:
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = ['arvin-${version}-build${buildNumber}.apk','artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
             core.setOutput('app_version', version);
@@ -300,7 +300,7 @@ jobs:
           flutter build apk --release -t lib/main.dart
           mkdir -p "$RELEASE_EVIDENCE"
           cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
-          sha256sum "$RELEASE_EVIDENCE/arvin-release.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+          sha256sum "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
 
       - name: Store release evidence
         if: steps.release_state.outputs.already_released != 'true'
@@ -333,6 +333,8 @@ jobs:
         env:
           MAIN_SHA: ${{ steps.verify.outputs.main_sha }}
           PR_NUMBER: ${{ steps.verify.outputs.candidate_pr }}
+          APP_VERSION: ${{ steps.release_state.outputs.app_version }}
+          BUILD_NUMBER: ${{ steps.release_state.outputs.build_number }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -343,7 +345,7 @@ jobs:
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
             try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
-            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${version} (build ${buildNumber})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
