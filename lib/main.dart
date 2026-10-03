@@ -2087,6 +2087,19 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeBadge(String label, Color background, Color foreground) => Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(9)), child: Text(label, style: TextStyle(color: foreground, fontSize: 9.5, fontWeight: FontWeight.w700)));
 
+  Color _taskCardAccent(Task task) {
+    final palette = <Color>[
+      ArvinColors.time,
+      ArvinColors.project,
+      ArvinColors.category,
+      ArvinColors.tag,
+      ArvinColors.reminder,
+    ];
+    final key = task.id.trim().isEmpty ? task.title : task.id;
+    final hash = key.codeUnits.fold<int>(0, (value, unit) => (value * 31 + unit) & 0x7fffffff);
+    return palette[hash % palette.length];
+  }
+
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -2105,12 +2118,18 @@ class _HomePageState extends State<HomePage> {
           ? _swipeBackground(TaskSwipeAction.trash)
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: const Color(0xFFFDFDFE),
+        color: Color.alphaBlend(
+          _taskCardAccent(task).withAlpha(22),
+          ArvinColors.surface,
+        ),
         elevation: 1,
         shadowColor: const Color(0x14000000),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE5E7ED)),
+          side: BorderSide(
+            color: _taskCardAccent(task).withAlpha(78),
+            width: 1,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
