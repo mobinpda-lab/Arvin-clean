@@ -307,7 +307,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-checklist-edit-input')),
       'خوراکی اصلاح‌شده',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-edit-save')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
