@@ -350,7 +350,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   static String _checklistLabel(String item) =>
-      item.replaceFirst(RegExp(r'^\\[(?:x| )\\]\\s*'), '');
+      item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
 
   static bool _checklistChecked(String item) => item.trim().startsWith('[x]');
 
