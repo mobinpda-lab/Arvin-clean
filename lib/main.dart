@@ -359,12 +359,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Task> get visible {
-    final matchingIds = query.trim().isEmpty
-        ? null
-        : homeSearchProjection.matchingIds(_searchSource, query);
+    final searchActive = query.trim().isNotEmpty;
+    final matchingIds = searchActive
+        ? homeSearchProjection.matchingIds(_searchSource, query)
+        : null;
 
+    // A Home search is a global search over the canonical Task list.
+    // Normal Home filters remain unchanged when no search query is active.
     Iterable<Task> scoped = tasks;
-    if (filter != 'بایگانی' && filter != 'سطل زباله') {
+    if (!searchActive && filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = taskListScopeService.project(scoped, scope: _listScope);
       final dueScope = _dueScope;
       if (dueScope != null) {
@@ -398,24 +401,26 @@ class _HomePageState extends State<HomePage> {
 
     final result = scoped
         .where((task) {
-          if (filter == 'کل' && (task.archived || task.trashed)) return false;
-          if (filter == 'فعال' &&
-              (task.archived || task.trashed || task.completed)) {
-            return false;
+          if (!searchActive) {
+            if (filter == 'کل' && (task.archived || task.trashed)) return false;
+            if (filter == 'فعال' &&
+                (task.archived || task.trashed || task.completed)) {
+              return false;
+            }
+            if (filter == 'انجام‌شده' &&
+                (task.archived || task.trashed || !task.completed)) {
+              return false;
+            }
+            if (filter == 'بایگانی' && (!task.archived || task.trashed)) {
+              return false;
+            }
+            if (filter == 'سطل زباله' && !task.trashed) return false;
+            // «همه» is the only Home grouping filter that includes completed
+            // tasks. Contextual grouping filters (time/project/category/tag)
+            // are active-task projections; explicit status filters keep their
+            // own semantics.
+            if (_homeHasContextualFilter && task.completed) return false;
           }
-          if (filter == 'انجام‌شده' &&
-              (task.archived || task.trashed || !task.completed)) {
-            return false;
-          }
-          if (filter == 'بایگانی' && (!task.archived || task.trashed)) {
-            return false;
-          }
-          if (filter == 'سطل زباله' && !task.trashed) return false;
-          // «همه» is the only Home grouping filter that includes completed
-          // tasks. Contextual grouping filters (time/project/category/tag)
-          // are active-task projections; explicit status filters keep their
-          // own semantics.
-          if (_homeHasContextualFilter && task.completed) return false;
           if (matchingIds != null && !matchingIds.contains(task.id)) {
             return false;
           }
