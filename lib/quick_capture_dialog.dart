@@ -376,7 +376,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       RecurrenceFrequency.minutes => 'دقیقه',
       RecurrenceFrequency.hours => 'ساعت',
     };
-    return 'هر ${_recurrence!.interval} $unit';
+    final formatter = const PersianDateFormatter();
+    final interval = formatter.toPersianDigits(_recurrence!.interval.toString());
+    return 'هر $interval $unit';
   }
   Future<DateTime?> _pickJalaliDate(
     BuildContext parentContext, {
