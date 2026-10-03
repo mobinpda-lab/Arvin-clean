@@ -111,8 +111,8 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-date-rollbox-rollbox')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-date-rollbox-rollbox')));
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
     await tester.pumpAndSettle();
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('فردا'), findsOneWidget);
