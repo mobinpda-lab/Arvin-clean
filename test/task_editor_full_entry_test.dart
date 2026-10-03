@@ -68,8 +68,8 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
