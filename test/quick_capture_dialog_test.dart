@@ -462,9 +462,33 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('۱۴:۲۵'), findsOneWidget);
+    expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
   });
 
+
+  testWidgets('Quick Add reminder presets match the product contract', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
+    expect(find.text('یک ساعت قبل'), findsOneWidget);
+    expect(find.text('یک روز قبل'), findsOneWidget);
+    expect(find.text('یک هفته قبل'), findsOneWidget);
+  });
 
   testWidgets('Quick Add custom recurrence exposes every canonical time unit',
       (tester) async {
