@@ -390,7 +390,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('لغو')),
-          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()), child: const Text('ذخیره')),
+          FilledButton(key: const ValueKey('task-editor-checklist-edit-save'), onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()), child: const Text('ذخیره')),
         ],
       ),
     );
