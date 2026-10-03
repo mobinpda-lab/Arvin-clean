@@ -8,7 +8,7 @@
 > این فایل مرجع پایدار فرمان «ادامه آروین» است. واقعیت GitHub بر حافظه گفتگو و گزارش‌های تاریخی مقدم است.
 
 ## 1. خط مبنا
-- Current `main`: `cccda42e43f414d347d60b645c7be93ac3f58f54`
+- Current `main`: `8437e41a72d6a0315dea3993505afc2b99c79191`
 - Strategy: **PRODUCT FIRST + FACTORY MINIMAL**
 - تغییر مستقیم روی `main`: ممنوع.
 - تغییر محصول: Issue → Branch → Commit → PR.
@@ -18,8 +18,8 @@
 - وجود کد به‌تنهایی «انجام شد» نیست؛ شواهد exact-head و پذیرش محصول لازم است.
 
 ## 2. وضعیت تأییدشده فعلی
-- PR #1945 overdue-card slice is **MERGED** into current main; current main is `83e647ecc02b266e69e37f61fa214a17f97c2b51`.
-- PR #1944 Quick Add RollBox scheduling remains **OPEN**. Latest HEAD is `4c4038f563f8cf91d8d7692fc41400a9a0629ed2`. Exact-head CI for this latest SHA is **نامشخص** until a run is verified.
+- PR #1945 overdue-card slice was merged before the current main; current main is now `8437e41a72d6a0315dea3993505afc2b99c79191`.
+- PR #1944 Quick Add RollBox scheduling is **CLOSED without merge**. Its latest tested head was `c720e378a211ee3540ce58b8b3e432a640366fc1`; do not treat it as current product evidence.
 - #1959 is the canonical GitHub product issue for automatic Task → selected Arvin destination Calendar synchronization, including stable Event identity, update/delete semantics, manual register/edit preservation, and duplicate-safe destination changes.
 - PR #1939 با HEAD `8bd91d9b8ea4557f5cf6279019981c25a3eaffc7` در 2026-09-28 با merge SHA `cccda42e43f414d347d60b645c7be93ac3f58f54` **MERGED** شد.
 - Device Smoke #2832 روی همان HEAD پس از اجرای مجدد **SUCCESS** شد؛ هر ۶ سناریوی Home، Quick Capture، SQL Persistence، SQL Migration، Backup/Restore و People سبز شدند.
@@ -179,6 +179,13 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - CI parallelization: **از قبل فعال است؛ Issue #1941 برای بهینه‌سازی مبتنی بر اندازه‌گیری ثبت شده**.
 - Release-Ready کل آروین: **نامشخص / هنوز اثبات نشده**.
 
+
+## 2026-10-03 live execution update
+- Current main verified from GitHub: `8437e41a72d6a0315dea3993505afc2b99c79191`.
+- The latest main commit stabilizes Quick Add recurrence display/test; this does not prove full release readiness.
+- Current main has no workflow-run records available through the checked GitHub workflow endpoint, so current-main CI is **نامشخص**.
+- PR #1944 is closed without merge; its changes must not be assumed to be in main.
+- PR #1901 is 85 commits ahead and 93 commits behind current main; it is not safe to merge wholesale. Product changes must be extracted into fresh current-main lanes.
 
 ## 2026-09-29 execution update
 - PR #1944 latest HEAD: `c720e378a211ee3540ce58b8b3e432a640366fc1`.
