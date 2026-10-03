@@ -66,14 +66,14 @@ class TaskRecurrenceRepository {
     final trimmed = item.trim();
     if (trimmed.startsWith('[x] ')) return trimmed;
     if (trimmed.startsWith('[ ] ')) return trimmed;
-    if (trimmed.startsWith('[x]')) return '[x] ' + trimmed.substring(3).trim();
-    if (trimmed.startsWith('[ ]')) return '[ ] ' + trimmed.substring(3).trim();
-    return '[ ] ' + trimmed;
+    if (trimmed.startsWith('[x]')) return '[x] ${trimmed.substring(3).trim()}';
+    if (trimmed.startsWith('[ ]')) return '[ ] ${trimmed.substring(3).trim()}';
+    return '[ ] $trimmed';
   }
 
   static String _uncheckedItem(String item) {
     final normalized = _normalizeItem(item);
-    return '[ ] ' + normalized.substring(3).trim();
+    return '[ ] ${normalized.substring(3).trim()}';
   }
 
   Task _findTask(List<Task> tasks, String taskId) {
