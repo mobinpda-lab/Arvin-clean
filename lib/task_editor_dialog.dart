@@ -558,6 +558,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required String label,
     required DateTime? value,
     required bool isDate,
+    required String target,
     required VoidCallback onCustom,
     required Color accent,
   }) {
@@ -591,10 +592,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           if (isDate) {
             final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
             setState(() {
-              if (label == 'تاریخ') {
-                _dueDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-              } else if (label == 'یادآوری') {
+              if (target.contains('reminder')) {
                 _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+              } else if (target.contains('follow-up')) {
+                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               }
@@ -603,10 +604,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             final minutes = int.tryParse(selection) ?? 0;
             setState(() {
               final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
-              if (label == 'ساعت') {
-                _dueDateTime = next;
-              } else if (label == 'زمان یادآوری') {
+              if (target.contains('reminder')) {
                 _reminderDateTime = next;
+              } else if (target.contains('follow-up')) {
+                _followUpDateTime = next;
               } else {
                 _followUpDateTime = next;
               }
@@ -657,9 +658,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           const SizedBox(height: 6),
           Row(
             children: [
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, onCustom: onPickDate, accent: accent)),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
               const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: title == 'یادآوری' ? 'زمان یادآوری' : 'ساعت', value: value, isDate: false, onCustom: onPickTime, accent: accent)),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
             ],
           ),
         ],
