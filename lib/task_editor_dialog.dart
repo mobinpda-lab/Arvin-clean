@@ -594,7 +594,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             setState(() {
               if (target.contains('reminder')) {
                 _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-              } else if (target.contains('follow-up')) {
+              } else if (target.contains('follow-up') || target.contains('followup')) {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
