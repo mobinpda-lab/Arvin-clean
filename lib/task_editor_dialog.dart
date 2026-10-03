@@ -59,6 +59,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _tagController;
+  late final TextEditingController _checklistController;
   late final FocusNode _tagFocusNode;
   late final FocusNode _titleFocusNode;
   DateTime? _followUpDateTime;
@@ -67,6 +68,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
+  late List<String> _checklist;
   late List<String> _knownCategories;
   late List<String> _knownTags;
   late String? _category;
@@ -87,6 +89,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       text: task?.description ?? widget.initialDescription ?? '',
     );
     _tagController = TextEditingController();
+    _checklistController = TextEditingController();
     _tagFocusNode = FocusNode();
     _titleFocusNode = FocusNode();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
@@ -98,6 +101,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
+    _checklist = List<String>.of(task?.checklist ?? const []);
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _category = task?.category;
@@ -114,6 +118,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
+    _checklistController.dispose();
     _recurrenceIntervalController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
@@ -312,6 +317,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           description.trim().isNotEmpty ||
           pendingTag.isNotEmpty ||
           _tags.isNotEmpty ||
+          _checklist.isNotEmpty ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
           _followUpEnabled ||
@@ -331,6 +337,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         description != existing.description ||
         pendingTag.isNotEmpty ||
         !listEquals(_tags, existing.tags) ||
+        !listEquals(_checklist, existing.checklist) ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
         _followUpEnabled != initialFollowUpEnabled ||
@@ -342,6 +349,107 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _completed != existing.completed;
   }
 
+  static String _checklistLabel(String item) =>
+      item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
+
+  static bool _checklistChecked(String item) => item.trim().startsWith('[x]');
+
+  static String _encodeChecklistItem(String label, bool checked) =>
+      '[${checked ? 'x' : ' '}] ${label.trim()}';
+
+  void _toggleChecklistItem(int index) {
+    if (index < 0 || index >= _checklist.length) return;
+    final label = _checklistLabel(_checklist[index]).trim();
+    if (label.isEmpty) return;
+    setState(() {
+      _checklist[index] = _encodeChecklistItem(label, !_checklistChecked(_checklist[index]));
+    });
+  }
+
+  void _moveChecklistItem(int index, int offset) {
+    final target = index + offset;
+    if (target < 0 || target >= _checklist.length) return;
+    setState(() {
+      final item = _checklist.removeAt(index);
+      _checklist.insert(target, item);
+    });
+  }
+
+  Future<void> _editChecklistItem(int index) async {
+    if (index < 0 || index >= _checklist.length) return;
+    final controller = TextEditingController(text: _checklistLabel(_checklist[index]));
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ویرایش مورد چک‌لیست'),
+        content: TextField(
+          key: const ValueKey('task-editor-checklist-edit-input'),
+          controller: controller, autofocus: true, textDirection: TextDirection.rtl,
+          decoration: const InputDecoration(labelText: 'عنوان مورد'),
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('لغو')),
+          FilledButton(key: const ValueKey('task-editor-checklist-edit-save'), onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()), child: const Text('ذخیره')),
+        ],
+      ),
+    );
+    // showDialog completes when the route is popped, while its exit animation can still rebuild
+    // the dialog tree. Dispose only after that frame so the TextField cannot observe a disposed controller.
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+    if (!mounted || result == null || result.trim().isEmpty) return;
+    setState(() {
+      _checklist[index] = _encodeChecklistItem(result.trim(), _checklistChecked(_checklist[index]));
+    });
+  }
+
+  void _addChecklistItem() {
+    final label = _checklistController.text.trim();
+    if (label.isEmpty) return;
+    setState(() {
+      _checklist.add(_encodeChecklistItem(label, false));
+      _checklistController.clear();
+    });
+  }
+
+  Widget _checklistEditor() {
+    return Container(
+      key: const ValueKey('task-editor-checklist-block'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: const Color(0xFFF4F7FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDDE3FF))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
+        const SizedBox(height: 4),
+        const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
+        const SizedBox(height: 10),
+        if (_checklist.isEmpty)
+          const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('هنوز موردی اضافه نشده.'))
+        else
+          ...List.generate(_checklist.length, (index) {
+            final item = _checklist[index];
+            final checked = _checklistChecked(item);
+            return Container(
+              key: ValueKey('task-editor-checklist-item-$index'),
+              margin: const EdgeInsets.only(bottom: 6),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
+              child: Row(children: [
+                Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
+                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
+                IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
+                IconButton(key: ValueKey('task-editor-checklist-up-$index'), tooltip: 'بالا', icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 20), onPressed: index == 0 ? null : () => _moveChecklistItem(index, -1)),
+                IconButton(key: ValueKey('task-editor-checklist-down-$index'), tooltip: 'پایین', icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20), onPressed: index == _checklist.length - 1 ? null : () => _moveChecklistItem(index, 1)),
+                IconButton(key: ValueKey('task-editor-checklist-delete-$index'), tooltip: 'حذف', icon: const Icon(Icons.delete_outline, size: 19), onPressed: () => setState(() => _checklist.removeAt(index))),
+              ]),
+            );
+          }),
+        Row(children: [
+          Expanded(child: TextField(key: const ValueKey('task-editor-checklist-input'), controller: _checklistController, textDirection: TextDirection.rtl, textInputAction: TextInputAction.done, onSubmitted: (_) => _addChecklistItem(), decoration: _fieldDecoration(label: 'مورد جدید', hint: 'مثلاً کیف'))),
+          const SizedBox(width: 8),
+          IconButton.filled(key: const ValueKey('task-editor-checklist-add'), tooltip: 'افزودن مورد', onPressed: _addChecklistItem, icon: const Icon(Icons.add)),
+        ]),
+      ]),
+    );
+  }
   Future<void> _requestClose() async {
     if (!_hasChanges) {
       Navigator.of(context).pop();
@@ -404,7 +512,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
         category: _category,
-        checklist: List<String>.of(existing?.checklist ?? const []),
+        checklist: List<String>.of(_checklist),
         reminderDate: _reminderDateTime,
         priority: _priority,
         archived: existing?.archived ?? false,
@@ -551,41 +659,30 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ],
           ),
           const SizedBox(height: 6),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final dateButton = _dateTimeButton(
-                key: ValueKey('$keyPrefix-date'),
-                label: 'تاریخ',
-                value: value == null ? 'انتخاب تاریخ' : _dateText(value),
-                icon: Icons.calendar_month_outlined,
-                onTap: onPickDate,
-                accent: accent,
-              );
-              final timeButton = _dateTimeButton(
-                key: ValueKey('$keyPrefix-time'),
-                label: 'ساعت',
-                value: value == null ? 'انتخاب ساعت' : _timeText(value),
-                icon: Icons.schedule_outlined,
-                onTap: onPickTime,
-                accent: accent,
-              );
-              if (constraints.maxWidth < 320) {
-                return Column(
-                  children: [
-                    dateButton,
-                    const SizedBox(height: 10),
-                    timeButton,
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: dateButton),
-                  const SizedBox(width: 10),
-                  Expanded(child: timeButton),
-                ],
-              );
-            },
+          Row(
+            children: [
+              Expanded(
+                child: _dateTimeButton(
+                  key: ValueKey('$keyPrefix-date'),
+                  label: 'تاریخ',
+                  value: value == null ? 'انتخاب تاریخ' : _dateText(value),
+                  icon: Icons.calendar_month_outlined,
+                  onTap: onPickDate,
+                  accent: accent,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _dateTimeButton(
+                  key: ValueKey('$keyPrefix-time'),
+                  label: 'ساعت',
+                  value: value == null ? 'انتخاب ساعت' : _timeText(value),
+                  icon: Icons.schedule_outlined,
+                  onTap: onPickTime,
+                  accent: accent,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -908,6 +1005,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  _checklistEditor(),
+                  const SizedBox(height: 12),
                   Container(
                     key: const ValueKey('task-editor-followup-block'),
                     padding: const EdgeInsets.all(14),
@@ -977,45 +1076,32 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final dateButton = _dateTimeButton(
-                                key: const ValueKey('task-editor-date'),
-                                label: 'تاریخ',
-                                value: followUp == null
-                                    ? 'انتخاب تاریخ'
-                                    : _dateText(followUp),
-                                icon: Icons.calendar_month_outlined,
-                                onTap: _pickFollowUpDate,
-                              );
-                              final timeButton = _dateTimeButton(
-                                key: const ValueKey('task-editor-time'),
-                                label: 'ساعت',
-                                value: followUp == null
-                                    ? 'انتخاب ساعت'
-                                    : _timeText(followUp),
-                                icon: Icons.schedule_outlined,
-                                onTap: _pickFollowUpTime,
-                              );
-
-                              if (constraints.maxWidth < 320) {
-                                return Column(
-                                  children: [
-                                    dateButton,
-                                    const SizedBox(height: 10),
-                                    timeButton,
-                                  ],
-                                );
-                              }
-
-                              return Row(
-                                children: [
-                                  Expanded(child: dateButton),
-                                  const SizedBox(width: 10),
-                                  Expanded(child: timeButton),
-                                ],
-                              );
-                            },
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _dateTimeButton(
+                                  key: const ValueKey('task-editor-date'),
+                                  label: 'تاریخ',
+                                  value: followUp == null
+                                      ? 'انتخاب تاریخ'
+                                      : _dateText(followUp),
+                                  icon: Icons.calendar_month_outlined,
+                                  onTap: _pickFollowUpDate,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _dateTimeButton(
+                                  key: const ValueKey('task-editor-time'),
+                                  label: 'ساعت',
+                                  value: followUp == null
+                                      ? 'انتخاب ساعت'
+                                      : _timeText(followUp),
+                                  icon: Icons.schedule_outlined,
+                                  onTap: _pickFollowUpTime,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ],

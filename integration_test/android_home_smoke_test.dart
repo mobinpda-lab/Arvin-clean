@@ -64,6 +64,17 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-time')), findsNothing);
 
     await tester.enterText(titleField, 'تست واقعی اندروید');
+
+    final checklistBlock = find.byKey(const ValueKey('task-editor-checklist-block'));
+    expect(checklistBlock, findsOneWidget);
+    final checklistInput = find.byKey(const ValueKey('task-editor-checklist-input'));
+    await tester.ensureVisible(checklistInput);
+    await tester.enterText(checklistInput, 'کیف');
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-add')));
+    await tester.pump();
+    expect(find.text('کیف'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-check-0')));
+    await tester.pump();
     await tester.enterText(
       descriptionField,
       'ثبت از مسیر Home روی Emulator',

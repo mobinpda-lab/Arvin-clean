@@ -86,6 +86,46 @@ void main() {
     expect(task.followUps.single.result, originalFollowUp.result);
   });
 
+  test('recurring checklist occurrences keep independent tick state', () async {
+    final store = TaskStore();
+    await store.save([
+      Task(
+        id: 'checklist-recurring',
+        title: 'آماده‌سازی مدرسه',
+        checklist: const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+        reminderDate: DateTime(2026, 10, 3, 6),
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(store: store);
+    final saturday = DateTime(2026, 10, 3, 6);
+    final sunday = DateTime(2026, 10, 4, 6);
+
+    expect(
+      await repository.checklistForOccurrence('checklist-recurring', saturday),
+      const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+    );
+    await repository.setChecklistForOccurrence(
+      'checklist-recurring',
+      saturday,
+      const ['[x] کیف', '[x] خوراکی', '[ ] لباس'],
+    );
+
+    expect(
+      await repository.checklistForOccurrence('checklist-recurring', saturday),
+      const ['[x] کیف', '[x] خوراکی', '[ ] لباس'],
+    );
+    expect(
+      await repository.checklistForOccurrence('checklist-recurring', sunday),
+      const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+    );
+
+    final reloaded = (await TaskStore().load()).single;
+    expect(reloaded.checklistOccurrences, {
+      saturday.toIso8601String(): const ['[x] کیف', '[x] خوراکی', '[ ] لباس'],
+    });
+  });
+
   test('resume requires both recurrence and reminder schedule', () async {
     final store = TaskStore();
     await store.save([

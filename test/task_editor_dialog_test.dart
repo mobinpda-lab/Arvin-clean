@@ -88,7 +88,7 @@ void main() {
     );
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(result, isNotNull);
     expect(result!.followUpEnabled, isTrue);
@@ -265,6 +265,60 @@ void main() {
 
     expect(result, isNull);
     expect(find.text('تغییرات ذخیره نشده'), findsNothing);
+  });
+
+  testWidgets('task editor checklist supports add, toggle, edit and persistence',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'checklist-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[x] خوراکی'],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    expect(find.text('کیف'), findsOneWidget);
+    expect(find.text('خوراکی'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-checklist-check-0')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-check-0')),
+    );
+    await tester.pump();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-checklist-input')),
+      'لباس',
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-add')),
+    );
+    await tester.pump();
+
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-edit-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-checklist-edit-input')),
+      'خوراکی اصلاح‌شده',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-edit-save')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.checklist, const [
+      '[x] کیف',
+      '[x] خوراکی اصلاح‌شده',
+      '[ ] لباس',
+    ]);
   });
 
 }
