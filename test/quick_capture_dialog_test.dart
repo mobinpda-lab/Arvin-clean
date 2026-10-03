@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
@@ -462,6 +461,8 @@ void main() {
     expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
 
     await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
   });
