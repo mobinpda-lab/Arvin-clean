@@ -597,7 +597,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               } else if (target.contains('follow-up') || target.contains('followup')) {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
-                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+                _dueDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               }
             });
           } else {
@@ -609,7 +609,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               } else if (target.contains('follow-up')) {
                 _followUpDateTime = next;
               } else {
-                _followUpDateTime = next;
+                _dueDateTime = next;
               }
             });
           }
@@ -647,6 +647,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
               if (value != null)
                 TextButton.icon(
+                  key: ValueKey('$keyPrefix-clear'),
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
                   icon: const Icon(Icons.close, size: 16),
