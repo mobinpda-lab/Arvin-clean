@@ -553,66 +553,72 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
-  Widget _dateTimeButton({
-    required Key key,
+  Widget _dateTimeRollBox({
+    required String keyPrefix,
     required String label,
-    required String value,
-    required IconData icon,
-    required VoidCallback onTap,
-    Color accent = ArvinColors.primary,
+    required DateTime? value,
+    required bool isDate,
+    required String target,
+    required VoidCallback onCustom,
+    required Color accent,
   }) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        key: key,
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(icon, color: accent, size: 20),
+    final now = _baseDateTime(null);
+    final base = value ?? now;
+    final items = isDate
+        ? <ArvinRollItem<String>>[
+            ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
+            ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
+          ]
+        : <ArvinRollItem<String>>[
+            for (final minutes in const [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900, 930, 960, 990, 1020, 1050, 1080, 1110, 1140, 1170, 1200, 1230, 1260, 1290, 1320, 1350, 1380, 1410])
+              ArvinRollItem<String>(
+                value: '$minutes',
+                label: _timeText(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60)),
+                icon: Icons.schedule_outlined,
+                color: accent,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: Color(0xFF77778A),
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+          ];
+    final currentLabel = isDate ? _dateText(base) : _timeText(base);
+    return KeyedSubtree(
+      key: ValueKey('$keyPrefix-rollbox'),
+      child: ArvinRollBox<String>(
+        label: label,
+        valueLabel: value == null ? 'انتخاب $label' : currentLabel,
+        icon: isDate ? Icons.calendar_month_outlined : Icons.schedule_outlined,
+        color: accent,
+        items: items,
+        onSelected: (selection) {
+          if (selection == null) return;
+          if (isDate) {
+            final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
+            setState(() {
+              if (target.contains('reminder')) {
+                _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+              } else if (target.contains('follow-up') || target.contains('followup')) {
+                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+              } else {
+                _dueDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+              }
+            });
+          } else {
+            final minutes = int.tryParse(selection) ?? 0;
+            setState(() {
+              final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
+              if (target.contains('reminder')) {
+                _reminderDateTime = next;
+              } else if (target.contains('follow-up')) {
+                _followUpDateTime = next;
+              } else {
+                _dueDateTime = next;
+              }
+            });
+          }
+        },
+        onCreate: () async {
+          onCustom();
+          return null;
+        },
+        createLabel: isDate ? 'تاریخ سفارشی' : 'ساعت سفارشی',
       ),
     );
   }
@@ -638,50 +644,23 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
+              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
               if (value != null)
                 TextButton.icon(
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
                   icon: const Icon(Icons.close, size: 16),
                   label: const Text('حذف'),
-                  style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
+                  style: TextButton.styleFrom(minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                 ),
             ],
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              Expanded(
-                child: _dateTimeButton(
-                  key: ValueKey('$keyPrefix-date'),
-                  label: 'تاریخ',
-                  value: value == null ? 'انتخاب تاریخ' : _dateText(value),
-                  icon: Icons.calendar_month_outlined,
-                  onTap: onPickDate,
-                  accent: accent,
-                ),
-              ),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
               const SizedBox(width: 10),
-              Expanded(
-                child: _dateTimeButton(
-                  key: ValueKey('$keyPrefix-time'),
-                  label: 'ساعت',
-                  value: value == null ? 'انتخاب ساعت' : _timeText(value),
-                  icon: Icons.schedule_outlined,
-                  onTap: onPickTime,
-                  accent: accent,
-                ),
-              ),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
             ],
           ),
         ],
@@ -1076,32 +1055,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _dateTimeButton(
-                                  key: const ValueKey('task-editor-date'),
-                                  label: 'تاریخ',
-                                  value: followUp == null
-                                      ? 'انتخاب تاریخ'
-                                      : _dateText(followUp),
-                                  icon: Icons.calendar_month_outlined,
-                                  onTap: _pickFollowUpDate,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _dateTimeButton(
-                                  key: const ValueKey('task-editor-time'),
-                                  label: 'ساعت',
-                                  value: followUp == null
-                                      ? 'انتخاب ساعت'
-                                      : _timeText(followUp),
-                                  icon: Icons.schedule_outlined,
-                                  onTap: _pickFollowUpTime,
-                                ),
-                              ),
-                            ],
+                          _dateTimeEditor(
+                            keyPrefix: 'task-editor-followup',
+                            title: 'زمان پیگیری',
+                            value: followUp,
+                            onPickDate: _pickFollowUpDate,
+                            onPickTime: _pickFollowUpTime,
+                            onClear: _clearFollowUpTime,
+                            accent: ArvinColors.primary,
                           ),
                         ],
                       ],
