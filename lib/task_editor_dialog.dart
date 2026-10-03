@@ -572,7 +572,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         : <ArvinRollItem<String>>[
             for (final minutes in const [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900, 930, 960, 990, 1020, 1050, 1080, 1110, 1140, 1170, 1200, 1230, 1260, 1290, 1320, 1350, 1380, 1410])
               ArvinRollItem<String>(
-                value: '${minutes}',
+                value: '$minutes',
                 label: _timeText(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60)),
                 icon: Icons.schedule_outlined,
                 color: accent,
@@ -647,7 +647,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
               if (value != null)
                 TextButton.icon(
-                  key: ValueKey('$keyPrefix-clear'),
                   key: ValueKey('$keyPrefix-clear'),
                   onPressed: onClear,
                   icon: const Icon(Icons.close, size: 16),
