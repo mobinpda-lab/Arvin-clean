@@ -33,6 +33,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onCreateTaskFromCalendarEvent,
     this.onEditTask,
     this.onRegisterTaskToDeviceCalendar,
+    this.onRetryCalendarSync,
   });
 
   final List<Task> tasks;
@@ -46,6 +47,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
+  final Future<void> Function()? onRetryCalendarSync;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -716,6 +718,27 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
+  Future<void> _retryCalendarSync(BuildContext context) async {
+    final retry = widget.onRetryCalendarSync;
+    if (retry == null) return;
+    try {
+      await retry();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.')),
+        );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('همگام‌سازی انجام نشد: $error')),
+        );
+    }
+  }
+
   Future<void> _openMore(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -726,9 +749,14 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               ListTile(
                 leading: const Icon(Icons.event_available_outlined),
                 title: const Text('تقویم دستگاه'),
@@ -736,6 +764,15 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                 onTap: () =>
                     Navigator.of(sheetContext)
                         .pop(_CalendarMoreAction.systemCalendar),
+              ),
+              ListTile(
+                key: const ValueKey('calendar-retry-device-sync'),
+                leading: const Icon(Icons.sync_outlined),
+                title: const Text('تلاش دوباره برای همگام‌سازی'),
+                subtitle: const Text('به‌روزرسانی دوباره آروین و تقویم گوشی در هر دو جهت'),
+                onTap: () => Navigator.of(sheetContext).pop(
+                  _CalendarMoreAction.retrySync,
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.timeline_outlined),
@@ -753,7 +790,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                     Navigator.of(sheetContext)
                         .pop(_CalendarMoreAction.conflicts),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -764,6 +803,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     switch (action) {
       case _CalendarMoreAction.systemCalendar:
         await _exportToSystemCalendar(context);
+        return;
+      case _CalendarMoreAction.retrySync:
+        await _retryCalendarSync(context);
         return;
       case _CalendarMoreAction.timeline:
         await _openTimeline(context);
@@ -839,7 +881,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 }
 
-enum _CalendarMoreAction { systemCalendar, timeline, conflicts }
+enum _CalendarMoreAction { systemCalendar, retrySync, timeline, conflicts }
 
 class _CalendarConflictAdviceEntry {
   const _CalendarConflictAdviceEntry({

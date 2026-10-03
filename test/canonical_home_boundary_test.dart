@@ -23,7 +23,7 @@ void main() {
     expect(source, contains('همگام‌سازی کار با تقویم مقصد انجام نشد.'));
     expect(source, contains('تلاش دوباره'));
     expect(source, contains('Future<void> _retryCalendarSync'));
-    expect(source, contains('همگام‌سازی با تقویم مقصد انجام شد.'));
+    expect(source, contains('همگام‌سازی دوباره انجام شد؛ تغییرات آروین و تقویم گوشی بررسی و به‌روزرسانی شد.'));
     expect(
       source,
       contains('همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.'),
