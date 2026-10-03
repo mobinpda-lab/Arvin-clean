@@ -437,4 +437,32 @@ void main() {
     expect(find.text('۳۷'), findsOneWidget);
   });
 
+
+  testWidgets('Quick Add shows the selected scheduling time and uses injected now',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('موعد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('امروز'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
+
+    await tester.tap(find.text('یادآور'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('۱۴:۲۵'), findsOneWidget);
+  });
+
 }
