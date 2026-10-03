@@ -193,8 +193,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   String _dateLabel(DateTime? value) {
     if (value == null) return 'بدون موعد';
-    return const PersianDateFormatter().format(value, usePersianDate: true);
+    final formatter = const PersianDateFormatter();
+    final date = formatter.format(value, usePersianDate: true);
+    final time = formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
+    return '$date • $time';
   }
+
+  DateTime _now() => widget.now?.call() ?? DateTime.now();
 
   Future<TimeOfDay?> _pickPersianTime(
     BuildContext parentContext, {
@@ -689,9 +694,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           color: const Color(0xFF2F7D5A),
                           emptyLabel: 'بدون موعد',
                           items: [
-                            ArvinRollItem<Object?>(value: DateTime.now(), label: 'امروز', icon: Icons.today_outlined, color: const Color(0xFF2F7D5A)),
-                            ArvinRollItem<Object?>(value: DateTime.now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: const Color(0xFF3568D4)),
-                            ArvinRollItem<Object?>(value: DateTime.now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: const Color(0xFF7650C8)),
+                            ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: const Color(0xFF2F7D5A)),
+                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: const Color(0xFF3568D4)),
+                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: const Color(0xFF7650C8)),
                           ],
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomDue,
@@ -732,9 +737,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           color: const Color(0xFFE08A2E),
                           emptyLabel: 'بدون یادآور',
                           items: [
-                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(minutes: 10)), label: '۱۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(minutes: 30)), label: '۳۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? DateTime.now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 10)), label: '۱۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 30)), label: '۳۰ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
                           ],
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomReminder,
