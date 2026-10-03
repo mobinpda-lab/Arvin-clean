@@ -194,3 +194,93 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Root-cause follow-up: the date-confirm control now has stable key `quick-capture-date-confirm` and both affected tests target that key instead of an ambiguous generic FilledButton. Test commit: `c720e378a211ee3540ce58b8b3e432a640366fc1`; product commit immediately before it: `c7cf8b319349e74c1c4166d94654b4e6cd940f59`.
 - New exact-head CI for c720e378 has not yet produced a workflow-run record at the time of this update; therefore the new fix remains **نامشخص** until CI runs on the exact SHA.
 - Do not merge #1944 until exact-head Analyze/full Test/Debug/Release/Device Smoke are green and the branch is safely reconciled with current main.
+
+
+## 2026-10-03 deep live audit — continuity update
+این بخش جدیدترین وضعیت ثبت‌شده برای اجرای «ادامه آروین» است و بر بخش‌های قدیمی همین سند مقدم است.
+
+### وضعیت محصولی فعلی
+- Current main: `8437e41a72d6a0315dea3993505afc2b99c79191`.
+- Release-Ready کل محصول: **نامشخص**.
+- CI فعلی main از endpoint بررسی‌شده workflow-run evidence قابل اتکا ندارد؛ بنابراین سبز بودن قدیمی به‌عنوان evidence جدید استفاده نمی‌شود.
+- هیچ PR قدیمی بدون مقایسه با main فعلی merge نمی‌شود.
+
+### مواردی که در این گفتگو به‌طور صریح تثبیت شدند
+1. **تقویم دوطرفه**
+   - دو نوع رویداد باید از هم قابل تشخیص باشند: «واردشده از تقویم گوشی» و «کار آروین که با تقویم گوشی لینک شده».
+   - هر دو، در صورت تغییر از هر طرف، باید طرف دیگر را به‌روزرسانی کنند.
+   - Update باید روی همان رویداد لینک‌شده انجام شود و Duplicate نسازد.
+   - حذف/تغییر/تعارض باید از مسیر canonical Calendar Provider و link موجود مدیریت شود.
+   - دکمه «تلاش دوباره برای همگام‌سازی» در More → Calendar باید یک‌بار هر دو جهت را بررسی کند.
+   - خطای واقعی گزارش‌شده کاربر: «ثبت در تقویم گوشی» پیام `not permitted` می‌دهد؛ این مورد تا پذیرش واقعی Provider/دستگاه **رفع‌شده قطعی محسوب نمی‌شود**.
+2. **Quick Add / Date-Time**
+   - تاریخ و ساعت باید واقعاً قابل انتخاب باشند و صفحه خالی باز نشود.
+   - دقیقه 00–59 و recurrence minute/hour/day/week/month/year در مسیر canonical پیاده شده؛ پذیرش نهایی محصولی هنوز لازم است.
+   - Reminder Date/Time نیز باید جداگانه کار کند.
+3. **Home**
+   - چهار مسیر اصلی: زمان / پروژه‌ها / دسته‌ها / برچسب‌ها.
+   - فیلترها باید ترکیبی، بدون reopen و بدون clipping باشند.
+   - کارت‌های رنگی semantic باید خوانا و RTL باشند.
+4. **Typography**
+   - VazirHarf v34.003 پیش‌فرض.
+   - Font picker با preview واقعی و font size سراسری.
+   - فونت‌های اضافی فقط پس از source/license verification؛ فونت fake selectable ممنوع.
+5. **Taxonomy**
+   - Project / Category / Tag مدیریت مرکزی داشته باشند.
+   - ایجاد و انتخاب مستقل باشد.
+   - مورد تازه بلافاصله در Roll Box دیده شود.
+   - Category بدون استفاده در Task فعلی حذف نشود.
+   - Task و Notebook از همان taxonomy canonical استفاده کنند.
+6. **Notebook**
+   - Notebook مستقل بماند؛ Checklist نباید به بخش مستقل Home تبدیل شود.
+   - Project/Category/Tag مشترک با Task.
+   - Tag selection و فیلترهای ترکیبی باید عملی باشند.
+   - Undo/Redo/autosave/reopen حفظ شود.
+   - حذف Checklist/Shopping/Travel فقط پس از dependency audit و بدون حذف داده.
+7. **Task Editor**
+   - Project/Category/Tag در یک ردیف آیکونی/رنگی.
+   - Tag چندانتخابی با checkmark.
+   - Date + Time یک ردیف.
+   - Repeat + Priority یک ردیف.
+   - Completed ↔ Undone و Done/All طبق قرارداد.
+8. **چک‌لیست روزانه / روال مدرسه**
+   - Issue #2230 اکنون مرجع صریح این قابلیت است.
+   - یک روال یک‌بار تعریف شود و هر روز موارد همان روال با وضعیت مستقل روزانه نمایش داده شوند.
+   - تیک/برداشتن تیک، ساعت/یادآور، حفظ پس از restart و جمع‌بندی امروز لازم است.
+   - این قابلیت نباید Checklist Notebook را به یک مدل/صفحه موازی تبدیل کند.
+   - قبل از تغییر model/storage/recurrence engine، architecture review لازم است.
+
+### PRهای current-main که در این چرخه ایجاد/به‌روزرسانی شدند
+- **#2178** Calendar Provider validation + manual bidirectional retry. آخرین HEAD ثبت‌شده: `3696121ccee82cc78412c13d7ebc323a6497d783`. CI در حال/نیازمند بازبینی exact-head؛ Device/phone acceptance هنوز قطعی نیست.
+- **#2179** Quick Add minute precision + recurrence units. HEAD `98e188eb2d06e860ced1f16f7f22eda9b702ac22`. Build/Production/Orchestrator/Parallel/G1 سبز؛ Device Smoke skipped؛ هنوز merge نشده.
+- **#2180** Home colorful semantic task cards. HEAD `6057278539617a1448607e4d7de6cc5c466f58e9`. Build/Production/Orchestrator/Parallel/G1 سبز؛ Device Smoke skipped؛ هنوز merge نشده.
+- **#2181** Font picker Persian preview. HEAD `d724c3230bb9261603cacf19924aca2503320e8d`. Build/Production/Orchestrator/Parallel/G1 سبز؛ Device Smoke skipped؛ هنوز merge نشده.
+- **#2182** Taxonomy management regression tests. HEAD `848d13e5854b1371f9b146e80a10a39db32e7e16`. Build/Production/Orchestrator/Parallel/G1 سبز؛ Device Smoke skipped؛ هنوز merge نشده.
+- **#2184** Calendar visual distinction: Arvin-linked vs imported phone-calendar items. HEAD `9d06600fd7860686b81ced3ef4e5470b8d408770`. Build + Device Smoke + Production/Orchestrator/G1 سبز؛ هنوز merge نشده.
+- **#2185** Shared Project/Category/Tag icon row across Home/Notebook/Task Detail. HEAD `1681e40b7951d20fdced9d67ff1583c697bc3781`. Build + Device Smoke + Production/Orchestrator/G1 سبز؛ هنوز merge نشده.
+
+### باقی‌مانده اجرایی — ترتیب محصول‌محور
+**P0**
+1. بستن و اثبات #2178: Build/Tests/Provider + اصلاح هر خطای exact-head + پذیرش واقعی خطای `not permitted` و ثبت دستی/ویرایش/حذف/دوطرفه.
+2. تکمیل مسیر Calendar و ثبت شواهد برای دو نوع رویداد و Retry دوطرفه.
+3. بررسی و ادغام کنترل‌شده PRهای #2179 تا #2185 فقط پس از current-main reconciliation و evidence مناسب.
+4. Home: فیلترهای ترکیبی و رفتار واقعی چهار گروه، سپس پذیرش تصویری.
+5. Quick Add/Reminder/Task Editor: Date+Time، Reminder، taxonomy، repeat/priority، Done/All.
+
+**P1**
+6. Typography: font picker + font size + فونت‌های موردنیاز با مجوز معتبر.
+7. Taxonomy مرکزی + Notebook مشترک.
+8. تکمیل Notebook UX و فیلترهای Project/Category/Tag.
+9. چک‌لیست روزانه/روال مدرسه (#2230) پس از reconcile معماری و recurrence.
+10. Swipe Task ↔ FollowUp و سایر موارد regression ثبت‌شده در #1901/#1891.
+
+**Release Gate**
+برای هر lane: Analyze → Full Test → Debug → Release → Device Smoke exact HEAD → در موارد قراردادی نصب/پذیرش گوشی واقعی → ثبت SHA و نتیجه. هیچ موردی بدون evidence «تمام‌شده» اعلام نشود.
+
+### قوانین جلوگیری از فراموشی
+هر اجرای «ادامه آروین» باید:
+1. همین فایل + #1923 + #2224 + #2230 را بخواند.
+2. main و PRهای باز را زنده بررسی کند.
+3. exact-head CI را دوباره بررسی کند.
+4. وضعیت هر مورد را به یکی از «تمام‌شده با شواهد / در حال انجام / نامشخص / deferred / superseded» تبدیل کند.
+5. نتیجه را دوباره در GitHub ثبت کند.
