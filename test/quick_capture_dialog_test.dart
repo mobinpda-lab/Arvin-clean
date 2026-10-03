@@ -484,6 +484,7 @@ void main() {
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
 
+    expect(find.text('همان زمان موعد'), findsOneWidget);
     expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
     expect(find.text('یک ساعت قبل'), findsOneWidget);
     expect(find.text('یک روز قبل'), findsOneWidget);
