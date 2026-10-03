@@ -657,41 +657,30 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ],
           ),
           const SizedBox(height: 6),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final dateButton = _dateTimeButton(
-                key: ValueKey('$keyPrefix-date'),
-                label: 'تاریخ',
-                value: value == null ? 'انتخاب تاریخ' : _dateText(value),
-                icon: Icons.calendar_month_outlined,
-                onTap: onPickDate,
-                accent: accent,
-              );
-              final timeButton = _dateTimeButton(
-                key: ValueKey('$keyPrefix-time'),
-                label: 'ساعت',
-                value: value == null ? 'انتخاب ساعت' : _timeText(value),
-                icon: Icons.schedule_outlined,
-                onTap: onPickTime,
-                accent: accent,
-              );
-              if (constraints.maxWidth < 320) {
-                return Column(
-                  children: [
-                    dateButton,
-                    const SizedBox(height: 10),
-                    timeButton,
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: dateButton),
-                  const SizedBox(width: 10),
-                  Expanded(child: timeButton),
-                ],
-              );
-            },
+          Row(
+            children: [
+              Expanded(
+                child: _dateTimeButton(
+                  key: ValueKey('$keyPrefix-date'),
+                  label: 'تاریخ',
+                  value: value == null ? 'انتخاب تاریخ' : _dateText(value),
+                  icon: Icons.calendar_month_outlined,
+                  onTap: onPickDate,
+                  accent: accent,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _dateTimeButton(
+                  key: ValueKey('$keyPrefix-time'),
+                  label: 'ساعت',
+                  value: value == null ? 'انتخاب ساعت' : _timeText(value),
+                  icon: Icons.schedule_outlined,
+                  onTap: onPickTime,
+                  accent: accent,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1085,46 +1074,33 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final dateButton = _dateTimeButton(
-                                key: const ValueKey('task-editor-date'),
-                                label: 'تاریخ',
-                                value: followUp == null
-                                    ? 'انتخاب تاریخ'
-                                    : _dateText(followUp),
-                                icon: Icons.calendar_month_outlined,
-                                onTap: _pickFollowUpDate,
-                              );
-                              final timeButton = _dateTimeButton(
-                                key: const ValueKey('task-editor-time'),
-                                label: 'ساعت',
-                                value: followUp == null
-                                    ? 'انتخاب ساعت'
-                                    : _timeText(followUp),
-                                icon: Icons.schedule_outlined,
-                                onTap: _pickFollowUpTime,
-                              );
-
-                              if (constraints.maxWidth < 320) {
-                                return Column(
-                                  children: [
-                                    dateButton,
-                                    const SizedBox(height: 10),
-                                    timeButton,
-                                  ],
-                                );
-                              }
-
-                              return Row(
-                                children: [
-                                  Expanded(child: dateButton),
-                                  const SizedBox(width: 10),
-                                  Expanded(child: timeButton),
-                                ],
-                              );
-                            },
-                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _dateTimeButton(
+                                  key: const ValueKey('task-editor-date'),
+                                  label: 'تاریخ',
+                                  value: followUp == null
+                                      ? 'انتخاب تاریخ'
+                                      : _dateText(followUp),
+                                  icon: Icons.calendar_month_outlined,
+                                  onTap: _pickFollowUpDate,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _dateTimeButton(
+                                  key: const ValueKey('task-editor-time'),
+                                  label: 'ساعت',
+                                  value: followUp == null
+                                      ? 'انتخاب ساعت'
+                                      : _timeText(followUp),
+                                  icon: Icons.schedule_outlined,
+                                  onTap: _pickFollowUpTime,
+                                ),
+                              ),
+                            ],
+                          ),),
                         ],
                       ],
                     ),
