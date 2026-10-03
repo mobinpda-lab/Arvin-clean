@@ -73,6 +73,7 @@ class Task {
     this.tags = const [],
     this.category,
     this.checklist = const [],
+    this.checklistOccurrences = const {},
     this.notebookKind,
     this.reminderDate,
     this.priority = TaskPriority.none,
@@ -95,6 +96,9 @@ class Task {
   List<String> tags;
   String? category;
   List<String> checklist;
+  /// Per-occurrence checklist state for recurring Tasks. Keys are canonical
+  /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
+  Map<String, List<String>> checklistOccurrences;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
   TaskPriority priority;
@@ -139,6 +143,22 @@ class Task {
     return List<PersonReference>.unmodifiable(next);
   }
 
+  static Map<String, List<String>> _decodeChecklistOccurrences(Object? raw) {
+    if (raw == null) return <String, List<String>>{};
+    if (raw is! Map) {
+      throw const FormatException('Task checklistOccurrences must be a map');
+    }
+    final result = <String, List<String>>{};
+    for (final entry in raw.entries) {
+      if (entry.key is! String || entry.value is! List) {
+        throw const FormatException('Invalid recurring checklist occurrence');
+      }
+      result[entry.key as String] =
+          (entry.value as List).whereType<String>().toList();
+    }
+    return result;
+  }
+
   static List<PersonReference> _decodePeople(Object? raw) {
     if (raw == null) return const <PersonReference>[];
     if (raw is! List) {
@@ -180,6 +200,10 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
+        if (checklistOccurrences.isNotEmpty)
+          'checklistOccurrences': checklistOccurrences.map(
+            (key, value) => MapEntry(key, List<String>.of(value)),
+          ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
         if (priority != TaskPriority.none) 'priority': priority.name,
@@ -233,6 +257,9 @@ class Task {
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      checklistOccurrences: _decodeChecklistOccurrences(
+        json['checklistOccurrences'],
+      ),
       notebookKind: NotebookItemKind.values.cast<NotebookItemKind?>().firstWhere(
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
