@@ -88,7 +88,7 @@ void main() {
     );
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(result, isNotNull);
     expect(result!.followUpEnabled, isTrue);
