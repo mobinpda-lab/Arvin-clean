@@ -516,10 +516,19 @@ void main() {
       expect(find.text(label, skipOffstage: false), findsWidgets);
     }
 
+    final frequencyField = find.byType(DropdownButtonFormField<RecurrenceFrequency>());
+    expect(frequencyField, findsOneWidget);
+    await tester.tap(frequencyField);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('دقیقه').last);
+    await tester.pumpAndSettle();
+
     final interval = find.byType(TextField).last;
     await tester.enterText(interval, '5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
     await tester.tap(find.text('ثبت'));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(find.text('هر ۵ دقیقه'), findsOneWidget);
   });
