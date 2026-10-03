@@ -465,4 +465,38 @@ void main() {
     expect(find.textContaining('۱۴:۲۵'), findsOneWidget);
   });
 
+
+  testWidgets('Quick Add custom recurrence exposes every canonical time unit',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 37),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('تکرار'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تکرار سفارشی'));
+    await tester.pumpAndSettle();
+
+    for (final label in ['دقیقه', 'ساعت', 'روز', 'هفته', 'ماه', 'سال']) {
+      expect(find.text(label, skipOffstage: false), findsWidgets);
+    }
+
+    final interval = find.byType(TextField).last;
+    await tester.enterText(interval, '5');
+    await tester.tap(find.text('ثبت'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('هر ۵ دقیقه'), findsOneWidget);
+  });
+
 }
