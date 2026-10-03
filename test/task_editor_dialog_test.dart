@@ -59,8 +59,8 @@ void main() {
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(find.text('کار پیگیری‌دار'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-time')), findsOneWidget);
     expect(find.text('۱۴۰۵/۰۶/۰۵'), findsOneWidget);
     expect(find.text('۱۰:۳۰'), findsOneWidget);
     expect(find.text('مشتری'), findsOneWidget);
@@ -111,18 +111,16 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-date')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-date')));
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('فردا'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('persian-date-day-6')));
-    await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.tap(find.text('فردا'));
     await tester.pumpAndSettle();
 
     expect(find.text('۱۰:۳۰'), findsOneWidget);
-    expect(find.text('۱۴۰۵/۰۶/۰۶'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
@@ -137,8 +135,8 @@ void main() {
     await pumpEditor(tester, onResult: (value) => result = value);
 
     expect(find.text('کار پیگیری‌دار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-date')), findsNothing);
-    expect(find.byKey(const ValueKey('task-editor-time')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-date')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-time')), findsNothing);
 
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-title')),
@@ -161,8 +159,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pump();
 
-    expect(find.byKey(const ValueKey('task-editor-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-time')), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-title')),
