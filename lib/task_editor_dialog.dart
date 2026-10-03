@@ -355,7 +355,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   static bool _checklistChecked(String item) => item.trim().startsWith('[x]');
 
   static String _encodeChecklistItem(String label, bool checked) =>
-      '[${checked ? 'x' : ' '}] ' + label.trim();
+      '[${checked ? 'x' : ' '}] ${label.trim()}';
 
   void _toggleChecklistItem(int index) {
     if (index < 0 || index >= _checklist.length) return;
