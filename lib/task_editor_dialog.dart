@@ -1055,32 +1055,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _dateTimeButton(
-                                  key: const ValueKey('task-editor-date'),
-                                  label: 'تاریخ',
-                                  value: followUp == null
-                                      ? 'انتخاب تاریخ'
-                                      : _dateText(followUp),
-                                  icon: Icons.calendar_month_outlined,
-                                  onTap: _pickFollowUpDate,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _dateTimeButton(
-                                  key: const ValueKey('task-editor-time'),
-                                  label: 'ساعت',
-                                  value: followUp == null
-                                      ? 'انتخاب ساعت'
-                                      : _timeText(followUp),
-                                  icon: Icons.schedule_outlined,
-                                  onTap: _pickFollowUpTime,
-                                ),
-                              ),
-                            ],
+                          _dateTimeEditor(
+                            keyPrefix: 'task-editor-followup',
+                            title: 'زمان پیگیری',
+                            value: followUp,
+                            onPickDate: _pickFollowUpDate,
+                            onPickTime: _pickFollowUpTime,
+                            onClear: _clearFollowUpTime,
+                            accent: ArvinColors.primary,
                           ),
                         ],
                       ],
