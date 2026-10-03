@@ -262,4 +262,30 @@ void main() {
     expect(snoozed, 1);
     expect(edited, 1);
   });
+  testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(id: 'task-due:task-1', title: 'آروین', date: day),
+            CalendarReminder(
+              id: 'external-calendar:event-1',
+              title: 'گوشی',
+              date: day.add(const Duration(minutes: 30)),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
+    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+  });
+
+
 }
