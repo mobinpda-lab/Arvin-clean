@@ -366,7 +366,7 @@ void main() {
     expect(hour16, findsOneWidget);
     await tester.tap(hour16);
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(FilledButton).last);
+    await tester.tap(find.byKey(const ValueKey('quick-capture-time-confirm')));
     await tester.pumpAndSettle();
 
     await tester.enterText(

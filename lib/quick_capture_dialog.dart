@@ -269,6 +269,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           sheetContext,
                           TimeOfDay(hour: hour, minute: minute),
                         ),
+                        key: const ValueKey('quick-capture-time-confirm'),
                         child: const Text('انتخاب ساعت'),
                       ),
                     ),
