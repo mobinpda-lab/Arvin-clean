@@ -394,7 +394,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         ],
       ),
     );
-    controller.dispose();
+    // showDialog completes when the route is popped, while its exit animation can still rebuild
+    // the dialog tree. Dispose only after that frame so the TextField cannot observe a disposed controller.
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     if (!mounted || result == null || result.trim().isEmpty) return;
     setState(() {
       _checklist[index] = _encodeChecklistItem(result.trim(), _checklistChecked(_checklist[index]));
