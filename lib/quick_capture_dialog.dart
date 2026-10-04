@@ -632,24 +632,29 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       _projectId = value;
                     }),
                     onCreate: () async {
-                      final controller = TextEditingController();
+                      var draftName = '';
                       final value = await showModalBottomSheet<String>(
                         context: context,
                         isScrollControlled: true,
                         builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                          padding: EdgeInsets.fromLTRB(
+                            16,
+                            16,
+                            16,
+                            16 + MediaQuery.viewInsetsOf(ctx).bottom,
+                          ),
                           child: SingleChildScrollView(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Text('پروژه جدید'),
                                 TextField(
-                                  controller: controller,
                                   autofocus: false,
+                                  onChanged: (text) => draftName = text,
                                   decoration: const InputDecoration(labelText: 'نام پروژه'),
                                 ),
                                 FilledButton(
-                                  onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                  onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                   child: const Text('افزودن'),
                                 ),
                               ],
@@ -657,16 +662,20 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ),
                         ),
                       );
-                      controller.dispose();
                       if (value == null || value.isEmpty) return null;
                       final createProject = widget.onCreateProject;
                       final createdId = createProject != null
                           ? await createProject(value)
-                          : await TaskProjectAssignmentService().createProject(title: value).then((project) => project.id);
+                          : await TaskProjectAssignmentService()
+                              .createProject(title: value)
+                              .then((project) => project.id);
                       if (!mounted || createdId == null) return createdId;
-                      final existing = _knownProjects.where((project) => project.id == createdId).toList(growable: false);
+                      final existing = _knownProjects
+                          .where((project) => project.id == createdId)
+                          .toList(growable: false);
                       if (existing.isEmpty) {
-                        final refreshed = await TaskProjectAssignmentService().loadProjects();
+                        final refreshed =
+                            await TaskProjectAssignmentService().loadProjects();
                         _knownProjects = List<ProjectPlan>.of(refreshed);
                       }
                       setState(() => _projectId = createdId);
