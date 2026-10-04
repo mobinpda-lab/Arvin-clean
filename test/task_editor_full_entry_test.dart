@@ -140,4 +140,54 @@ void main() {
     expect(results.single, isNotNull);
     expect(results.single!.title, 'پیش‌نویس حفظ شود');
   });
+
+  testWidgets('custom due time uses Persian hour/minute RollBoxes and persists selection',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'custom-time',
+      title: 'زمان سفارشی',
+      dueDate: DateTime(2026, 9, 20, 14, 30),
+    );
+
+    await openEditor(
+      tester,
+      task: task,
+      onResult: (value) => result = value,
+    );
+
+    final timeBox =
+        find.byKey(const ValueKey('task-editor-due-time-rollbox'));
+    await tester.ensureVisible(timeBox);
+    await tester.tap(timeBox);
+    await tester.pumpAndSettle();
+
+    expect(find.text('ساعت سفارشی'), findsOneWidget);
+    await tester.tap(find.text('ساعت سفارشی'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsOneWidget);
+    expect(find.byTooltip('ساعت'), findsOneWidget);
+    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.text('۱۴:۳۰'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('ساعت'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۶'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-time-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۶:۳۰'), findsOneWidget);
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, DateTime(2026, 9, 20, 16, 30));
+  });
+
 }
