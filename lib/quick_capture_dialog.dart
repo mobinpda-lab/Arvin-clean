@@ -598,12 +598,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       Expanded(child: ArvinRollBox<String>(
                     label: 'پروژه',
                     valueLabel: _projectId == null                        ? 'پروژه'
-                        : widget.projects
+                        : _knownProjects
                                 .where((project) => project.id == _projectId)
                                 .map((project) => project.title)
                                 .isEmpty
                             ? 'پروژه'
-                            : widget.projects
+                            : _knownProjects
                                 .where((project) => project.id == _projectId)
                                 .map((project) => project.title)
                                 .first,
@@ -659,11 +659,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       final createProject = widget.onCreateProject;
                       final createdId = createProject != null
                           ? await createProject(value)
-                          : await const TaskProjectAssignmentService().createProject(title: value).then((project) => project.id);
+                          : await TaskProjectAssignmentService().createProject(title: value).then((project) => project.id);
                       if (!mounted || createdId == null) return createdId;
                       final existing = _knownProjects.where((project) => project.id == createdId).toList(growable: false);
                       if (existing.isEmpty) {
-                        final refreshed = await const TaskProjectAssignmentService().loadProjects();
+                        final refreshed = await TaskProjectAssignmentService().loadProjects();
                         _knownProjects = List<ProjectPlan>.of(refreshed);
                       }
                       setState(() => _projectId = createdId);
