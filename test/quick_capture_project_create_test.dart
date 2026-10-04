@@ -40,12 +40,11 @@ void main() {
 
     await tester.enterText(find.byType(TextField).last, 'پروژه آزمایشی');
     await tester.tap(find.text('افزودن'));
-    await tester.pumpAndSettle();
+    // The modal closes while the text field may still be composing; a single
+    // frame is enough for Quick Capture to apply the created project.
+    await tester.pump();
 
     expect(createdTitle, 'پروژه آزمایشی');
-    expect(
-      find.text('پروژه آزمایشی', skipOffstage: false),
-      findsWidgets,
-    );
+    expect(find.text('پروژه آزمایشی', skipOffstage: false), findsWidgets);
   });
 }
