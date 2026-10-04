@@ -638,20 +638,22 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         isScrollControlled: true,
                         builder: (ctx) => Padding(
                           padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('پروژه جدید'),
-                              TextField(
-                                controller: controller,
-                                autofocus: false,
-                                decoration: const InputDecoration(labelText: 'نام پروژه'),
-                              ),
-                              FilledButton(
-                                onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                                child: const Text('افزودن'),
-                              ),
-                            ],
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('پروژه جدید'),
+                                TextField(
+                                  controller: controller,
+                                  autofocus: false,
+                                  decoration: const InputDecoration(labelText: 'نام پروژه'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                  child: const Text('افزودن'),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
