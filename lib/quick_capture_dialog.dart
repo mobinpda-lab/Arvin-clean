@@ -323,6 +323,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 StatefulBuilder(
                   builder: (context, setDialogState) => DropdownButtonFormField<RecurrenceFrequency>(
                     initialValue: frequency,
+                    key: const ValueKey('quick-capture-recurrence-frequency'),
                     decoration: const InputDecoration(labelText: 'واحد تکرار'),
                     items: const [
                       DropdownMenuItem(value: RecurrenceFrequency.minutes, child: Text('دقیقه')),
