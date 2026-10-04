@@ -186,31 +186,75 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required String helpText,
   }) async {
     final base = _baseDateTime(current);
-    final picked = await showTimePicker(
+    var hour = base.hour;
+    var minute = base.minute;
+    final formatter = _dateFormatter;
+
+    final picked = await showDialog<TimeOfDay>(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(base),
-      helpText: helpText,
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-      builder: (context, child) => Directionality(
+      builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme
-                .copyWith(primary: _brand),
+        child: Dialog(
+          child: SafeArea(
+            child: StatefulBuilder(
+              builder: (context, setDialogState) {
+                final label = formatter.toPersianDigits(
+                  '\${hour.toString().padLeft(2, '0')}:\${minute.toString().padLeft(2, '0')}',
+                );
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(helpText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 10),
+                      Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 12),
+                      ArvinRollBox<int>(
+                        label: 'ساعت',
+                        valueLabel: 'ساعت \${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
+                        icon: Icons.access_time_rounded,
+                        color: ArvinColors.time,
+                        items: List.generate(24, (value) => ArvinRollItem<int>(
+                          value: value,
+                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                          icon: Icons.schedule_outlined,
+                          color: ArvinColors.time,
+                        )),
+                        onSelected: (value) { if (value != null) setDialogState(() => hour = value); },
+                      ),
+                      const SizedBox(height: 10),
+                      ArvinRollBox<int>(
+                        label: 'دقیقه',
+                        valueLabel: 'دقیقه \${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
+                        icon: Icons.more_time_rounded,
+                        color: ArvinColors.category,
+                        items: List.generate(60, (value) => ArvinRollItem<int>(
+                          value: value,
+                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
+                          icon: Icons.timelapse_outlined,
+                          color: ArvinColors.category,
+                        )),
+                        onSelected: (value) { if (value != null) setDialogState(() => minute = value); },
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(width: double.infinity, child: FilledButton(
+                        key: const ValueKey('task-editor-time-confirm'),
+                        onPressed: () => Navigator.of(dialogContext).pop(TimeOfDay(hour: hour, minute: minute)),
+                        child: const Text('ثبت ساعت'),
+                      )),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-          child: child!,
         ),
       ),
     );
+
     if (picked == null) return null;
-    return DateTime(
-      base.year,
-      base.month,
-      base.day,
-      picked.hour,
-      picked.minute,
-    );
+    return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
 
   void _setFollowUpEnabled(bool value) {
