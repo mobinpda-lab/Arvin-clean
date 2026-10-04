@@ -5,6 +5,7 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
+import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
@@ -43,6 +44,9 @@ class QuickCaptureDialog extends StatefulWidget {
   final Future<String?> Function(String name)? onCreateCategory;
   final Future<String?> Function(String name)? onCreateTag;
 
+  /// Canonical Project creation; no Quick Capture-owned persistence.
+  final Future<String?> Function(String title)? onCreateProject;
+
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
 }
@@ -63,6 +67,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final List<String> _selectedTags = <String>[];
+  late List<ProjectPlan> _knownProjects;
   late List<String> _knownCategories;
   late List<String> _knownTags;
 
@@ -72,6 +77,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _projectId = widget.initialProjectId;
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
+    _knownProjects = List<ProjectPlan>.of(widget.projects);
   }
 
   Future<void> _handleBack() async {
@@ -604,7 +610,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     icon: Icons.folder_outlined,
                     color: const Color(0xFF3568D4),
                     emptyLabel: 'بدون پروژه',
-                    items: widget.projects
+                    items: _knownProjects
                         .where((project) =>
                             !project.isArchived || project.id == _projectId)
                         .map(
@@ -623,6 +629,45 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     onSelected: (value) => setState(() {
                       _projectId = value;
                     }),
+                    onCreate: () async {
+                      final controller = TextEditingController();
+                      final value = await showModalBottomSheet<String>(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (ctx) => Padding(
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('پروژه جدید'),
+                              TextField(
+                                controller: controller,
+                                autofocus: true,
+                                decoration: const InputDecoration(labelText: 'نام پروژه'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                child: const Text('افزودن'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      controller.dispose();
+                      if (value == null || value.isEmpty) return null;
+                      final createProject = widget.onCreateProject;
+                      final createdId = createProject != null
+                          ? await createProject(value)
+                          : await const TaskProjectAssignmentService().createProject(title: value).then((project) => project.id);
+                      if (!mounted || createdId == null) return createdId;
+                      final existing = _knownProjects.where((project) => project.id == createdId).toList(growable: false);
+                      if (existing.isEmpty) {
+                        final refreshed = await const TaskProjectAssignmentService().loadProjects();
+                        _knownProjects = List<ProjectPlan>.of(refreshed);
+                      }
+                      setState(() => _projectId = createdId);
+                      return createdId;
+                    },
                   ),),
                       const SizedBox(width: 8),
                       Expanded(child: ArvinRollBox<String>(
