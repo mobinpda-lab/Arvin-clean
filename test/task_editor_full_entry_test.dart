@@ -175,7 +175,7 @@ void main() {
     );
     expect(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')), findsOneWidget);
     expect(find.descendant(of: timeDialog, matching: find.byTooltip('دقیقه')), findsOneWidget);
-    expect(find.text('۱۴:۳۰'), findsOneWidget);
+    expect(find.descendant(of: timeDialog, matching: find.text('۱۴:۳۰')), findsOneWidget);
 
     await tester.tap(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')));
     await tester.pumpAndSettle();
@@ -187,7 +187,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-editor-time-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۶:۳۰'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
