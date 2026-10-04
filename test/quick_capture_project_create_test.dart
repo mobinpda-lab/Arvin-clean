@@ -43,6 +43,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(createdTitle, 'پروژه آزمایشی');
-    expect(find.text('پروژه آزمایشی'), findsWidgets);
+    expect(
+      find.text('پروژه آزمایشی', skipOffstage: false),
+      findsWidgets,
+    );
   });
 }
