@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
