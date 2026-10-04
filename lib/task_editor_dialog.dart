@@ -199,7 +199,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             child: StatefulBuilder(
               builder: (context, setDialogState) {
                 final label = formatter.toPersianDigits(
-                  '\${hour.toString().padLeft(2, '0')}:\${minute.toString().padLeft(2, '0')}',
+                  '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
                 );
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
@@ -215,7 +215,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(height: 12),
                       ArvinRollBox<int>(
                         label: 'ساعت',
-                        valueLabel: 'ساعت \${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
+                        valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
                         icon: Icons.access_time_rounded,
                         color: ArvinColors.time,
                         items: List.generate(24, (value) => ArvinRollItem<int>(
@@ -229,7 +229,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(height: 10),
                       ArvinRollBox<int>(
                         label: 'دقیقه',
-                        valueLabel: 'دقیقه \${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
+                        valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
                         icon: Icons.more_time_rounded,
                         color: ArvinColors.category,
                         items: List.generate(60, (value) => ArvinRollItem<int>(
