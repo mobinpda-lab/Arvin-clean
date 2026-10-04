@@ -610,6 +610,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     icon: Icons.folder_outlined,
                     color: const Color(0xFF3568D4),
                     emptyLabel: 'بدون پروژه',
+                    createLabel: 'ایجاد جدید',
                     items: _knownProjects
                         .where((project) =>
                             !project.isArchived || project.id == _projectId)
