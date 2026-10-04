@@ -462,6 +462,7 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
+    expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
@@ -514,14 +515,15 @@ void main() {
     await tester.tap(find.text('تکرار سفارشی'));
     await tester.pumpAndSettle();
 
+    final frequencyField = find.byKey(const ValueKey('quick-capture-custom-recurrence-frequency'));
+    expect(frequencyField, findsOneWidget);
+    await tester.tap(frequencyField);
+    await tester.pumpAndSettle();
+
     for (final label in ['دقیقه', 'ساعت', 'روز', 'هفته', 'ماه', 'سال']) {
       expect(find.text(label, skipOffstage: false), findsWidgets);
     }
 
-    final frequencyField = find.byKey(const ValueKey('quick-capture-recurrence-frequency'));
-    expect(frequencyField, findsOneWidget);
-    await tester.tap(frequencyField);
-    await tester.pumpAndSettle();
     await tester.tap(find.text('دقیقه').last);
     await tester.pumpAndSettle();
 
