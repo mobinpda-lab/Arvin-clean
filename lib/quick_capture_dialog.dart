@@ -644,7 +644,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                               const Text('پروژه جدید'),
                               TextField(
                                 controller: controller,
-                                autofocus: true,
+                                autofocus: false,
                                 decoration: const InputDecoration(labelText: 'نام پروژه'),
                               ),
                               FilledButton(
