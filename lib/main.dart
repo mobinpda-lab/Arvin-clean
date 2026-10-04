@@ -2198,8 +2198,6 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         task.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: const Color(0xFF232433),
                           fontWeight: FontWeight.w700,
@@ -2213,8 +2211,6 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 4),
                         Text(
                           preview ?? task.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF80829C),
                             fontSize: 12,

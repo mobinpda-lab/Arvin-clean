@@ -455,4 +455,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('بدون عمل'), findsOneWidget);
   });
+
+  testWidgets('Home task card allows title and description to grow without forced clipping',
+      (tester) async {
+    const title =
+        'عنوان بسیار طولانی برای اطمینان از اینکه متن کامل کار در کارت خانه قابل مشاهده می‌ماند';
+    const description =
+        'توضیح طولانی چندخطی برای بررسی اینکه متن توضیحات نیز بدون برش اجباری در کارت خانه نمایش داده شود';
+
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"long-card","title":"$title","description":"$description"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final titleWidget = tester.widget<Text>(find.text(title));
+    expect(titleWidget.maxLines, isNull);
+    expect(titleWidget.overflow, isNull);
+
+    final descriptionWidget = tester.widget<Text>(find.text(description));
+    expect(descriptionWidget.maxLines, isNull);
+    expect(descriptionWidget.overflow, isNull);
+  });
+
 }
