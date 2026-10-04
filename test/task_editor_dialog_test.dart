@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/task_editor_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -319,6 +320,44 @@ void main() {
       '[x] خوراکی اصلاح‌شده',
       '[ ] لباس',
     ]);
+  });
+
+  testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'recurrence-rollbox',
+      title: 'کار تکرارشونده',
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        interval: 2,
+      ),
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
+    expect(rollBox, findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
+
+    await tester.ensureVisible(rollBox);
+    await tester.tap(rollBox);
+    await tester.pumpAndSettle();
+
+    expect(find.text('بدون تکرار'), findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.text('هفتگی').last);
+    await tester.pumpAndSettle();
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.recurrence, isNotNull);
+    expect(result!.recurrence!.frequency, RecurrenceFrequency.weekly);
+    expect(result!.recurrence!.interval, 2);
   });
 
 }
