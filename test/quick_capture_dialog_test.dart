@@ -491,6 +491,9 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
+    expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
+    await tester.tap(find.text('۱۵ دقیقه قبل'));
+    await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
   });
 
