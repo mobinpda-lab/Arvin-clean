@@ -515,14 +515,15 @@ void main() {
     await tester.tap(find.text('تکرار سفارشی'));
     await tester.pumpAndSettle();
 
-    for (final label in ['دقیقه', 'ساعت', 'روز', 'هفته', 'ماه', 'سال']) {
-      expect(find.text(label, skipOffstage: false), findsWidgets);
-    }
-
     final frequencyField = find.byKey(const ValueKey('quick-capture-custom-recurrence-frequency'));
     expect(frequencyField, findsOneWidget);
     await tester.tap(frequencyField);
     await tester.pumpAndSettle();
+
+    for (final label in ['دقیقه', 'ساعت', 'روز', 'هفته', 'ماه', 'سال']) {
+      expect(find.text(label, skipOffstage: false), findsWidgets);
+    }
+
     await tester.tap(find.text('دقیقه').last);
     await tester.pumpAndSettle();
 
