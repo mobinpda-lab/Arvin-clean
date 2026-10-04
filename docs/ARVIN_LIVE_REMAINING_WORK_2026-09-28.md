@@ -194,3 +194,42 @@ With any new conversation/account, «ادامه آروین» means: read this le
 - Root-cause follow-up: the date-confirm control now has stable key `quick-capture-date-confirm` and both affected tests target that key instead of an ambiguous generic FilledButton. Test commit: `c720e378a211ee3540ce58b8b3e432a640366fc1`; product commit immediately before it: `c7cf8b319349e74c1c4166d94654b4e6cd940f59`.
 - New exact-head CI for c720e378 has not yet produced a workflow-run record at the time of this update; therefore the new fix remains **نامشخص** until CI runs on the exact SHA.
 - Do not merge #1944 until exact-head Analyze/full Test/Debug/Release/Device Smoke are green and the branch is safely reconciled with current main.
+
+
+## 2026-10-04 — قرارداد مرکزی Date/Time
+
+### تصمیم محصولی
+Date/Time یک تجربه مرکزی محصولی است، نه چند انتخاب‌کننده مستقل. مسیر canonical فعلی باید حفظ و یکپارچه شود؛ ساخت Date/Time engine، storage، model، repository یا selector موازی ممنوع است.
+
+### تجربه مورد انتظار
+- تقویم کاربر شمسی، فارسی و RTL.
+- Task می‌تواند بدون تاریخ و ساعت، فقط با تاریخ، یا با تاریخ + ساعت ذخیره شود.
+- Reminder در صورت فعال بودن، تاریخ و ساعت معتبر لازم دارد.
+- Repeat می‌تواند بدون ساعت مشخص باشد.
+- انتخاب سریع، انتخاب دستی و ورود عددی ساعت پشتیبانی شوند.
+- گزینه بدون تاریخ/بدون ساعت در مسیرهای اختیاری وجود داشته باشد.
+- تاریخ + ساعت هرجا با هم استفاده می‌شوند یک تجربه و یک ردیف یکپارچه داشته باشند.
+- blank screen، مسیر انگلیسی یا picker ناسازگار با RTL مجاز نیست.
+
+### جایگاه در اجرای آروین
+این قرارداد باید روی مسیر موجود #1934 (ArvinRollBox و استاندارد Date/Time) و مسیرهای canonical Task/Quick Add/Task Editor سوار شود.
+ترتیب اجرا:
+1. ممیزی همه مسیرهای Date/Time موجود.
+2. تکمیل Quick Add و Task Editor و Reminder.
+3. ممیزی Calendar/Defer/فیلترهای زمانی.
+4. تست exact-head و پذیرش گوشی واقعی.
+5. فقط بعد از شواهد معتبر، وضعیت به Done تغییر کند.
+
+### معیار پذیرش محصول
+- ساخت Task بدون تاریخ.
+- ساخت Task با تاریخ.
+- ساخت Task با تاریخ + ساعت.
+- تنظیم Reminder با تاریخ + ساعت.
+- Repeat بدون ساعت مشخص.
+- Follow-up زمان‌دار.
+- یکسان بودن تجربه انتخاب زمان در مسیرهای اصلی.
+
+### Guardrail
+Calendar و Repeat همچنان تابع Architecture Gateهای #2248 و #2254 هستند. این قرارداد به‌تنهایی مجوز تغییر بنیادی Model/Storage/Engine نیست.
+
+مرجع مرتبط: #1934، #2233، #2270، #2251، #2248، #2254.
