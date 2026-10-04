@@ -321,18 +321,29 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 StatefulBuilder(
-                  builder: (context, setDialogState) => DropdownButtonFormField<RecurrenceFrequency>(
-                    initialValue: frequency,
-                    decoration: const InputDecoration(labelText: 'واحد تکرار'),
+                  builder: (context, setDialogState) => ArvinRollBox<RecurrenceFrequency>(
+                    key: const ValueKey('quick-capture-custom-recurrence-frequency'),
+                    label: 'واحد تکرار',
+                    valueLabel: switch (frequency) {
+                      RecurrenceFrequency.minutes => 'دقیقه',
+                      RecurrenceFrequency.hours => 'ساعت',
+                      RecurrenceFrequency.daily => 'روز',
+                      RecurrenceFrequency.weekly => 'هفته',
+                      RecurrenceFrequency.monthly => 'ماه',
+                      RecurrenceFrequency.yearly => 'سال',
+                      RecurrenceFrequency.oncePerDay => 'روز',
+                    },
+                    icon: Icons.repeat_rounded,
+                    color: const Color(0xFF4A4CAB),
                     items: const [
-                      DropdownMenuItem(value: RecurrenceFrequency.minutes, child: Text('دقیقه')),
-                      DropdownMenuItem(value: RecurrenceFrequency.hours, child: Text('ساعت')),
-                      DropdownMenuItem(value: RecurrenceFrequency.daily, child: Text('روز')),
-                      DropdownMenuItem(value: RecurrenceFrequency.weekly, child: Text('هفته')),
-                      DropdownMenuItem(value: RecurrenceFrequency.monthly, child: Text('ماه')),
-                      DropdownMenuItem(value: RecurrenceFrequency.yearly, child: Text('سال')),
+                      ArvinRollItem(value: RecurrenceFrequency.minutes, label: 'دقیقه', icon: Icons.schedule_rounded),
+                      ArvinRollItem(value: RecurrenceFrequency.hours, label: 'ساعت', icon: Icons.access_time_rounded),
+                      ArvinRollItem(value: RecurrenceFrequency.daily, label: 'روز', icon: Icons.today_outlined),
+                      ArvinRollItem(value: RecurrenceFrequency.weekly, label: 'هفته', icon: Icons.view_week_outlined),
+                      ArvinRollItem(value: RecurrenceFrequency.monthly, label: 'ماه', icon: Icons.calendar_month_outlined),
+                      ArvinRollItem(value: RecurrenceFrequency.yearly, label: 'سال', icon: Icons.event_repeat_outlined),
                     ],
-                    onChanged: (value) {
+                    onSelected: (value) {
                       if (value != null) setDialogState(() => frequency = value);
                     },
                   ),
