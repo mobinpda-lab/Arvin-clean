@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/task_editor_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
