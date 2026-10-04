@@ -321,4 +321,42 @@ void main() {
     ]);
   });
 
+  testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'recurrence-rollbox',
+      title: 'کار تکرارشونده',
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        interval: 2,
+      ),
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
+    expect(rollBox, findsOneWidget);
+    expect(find.text('روزانه'), findsOneWidget);
+
+    await tester.ensureVisible(rollBox);
+    await tester.tap(rollBox);
+    await tester.pumpAndSettle();
+
+    expect(find.text('بدون تکرار'), findsOneWidget);
+    expect(find.text('روزانه'), findsOneWidget);
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.text('هفتگی'));
+    await tester.pumpAndSettle();
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.recurrence, isNotNull);
+    expect(result!.recurrence!.frequency, RecurrenceFrequency.weekly);
+    expect(result!.recurrence!.interval, 2);
+  });
+
 }
