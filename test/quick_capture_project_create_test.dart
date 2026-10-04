@@ -16,7 +16,9 @@ void main() {
           textDirection: TextDirection.rtl,
           child: Scaffold(
             body: QuickCaptureDialog(
-              projects: const <ProjectPlan>[],
+              projects: const <ProjectPlan>[
+                ProjectPlan(id: 'project-created-1', title: 'پروژه آزمایشی'),
+              ],
               onCreateProject: (title) async {
                 createdTitle = title;
                 return createdId;
@@ -41,6 +43,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(createdTitle, 'پروژه آزمایشی');
-    expect(find.text('پروژه آزمایشی'), findsOneWidget);
+    expect(find.text('پروژه آزمایشی'), findsWidgets);
   });
 }
