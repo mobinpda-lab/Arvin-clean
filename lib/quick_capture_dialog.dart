@@ -29,6 +29,7 @@ class QuickCaptureDialog extends StatefulWidget {
     this.knownTags = const <String>[],
     this.onCreateCategory,
     this.onCreateTag,
+    this.onCreateProject,
   });
 
   final QuickCaptureService service;
