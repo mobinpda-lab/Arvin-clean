@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
@@ -321,22 +323,36 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 StatefulBuilder(
-                  builder: (context, setDialogState) => DropdownButtonFormField<RecurrenceFrequency>(
-                    initialValue: frequency,
-                    key: const ValueKey('quick-capture-recurrence-frequency'),
-                    decoration: const InputDecoration(labelText: 'واحد تکرار'),
-                    items: const [
-                      DropdownMenuItem(value: RecurrenceFrequency.minutes, child: Text('دقیقه')),
-                      DropdownMenuItem(value: RecurrenceFrequency.hours, child: Text('ساعت')),
-                      DropdownMenuItem(value: RecurrenceFrequency.daily, child: Text('روز')),
-                      DropdownMenuItem(value: RecurrenceFrequency.weekly, child: Text('هفته')),
-                      DropdownMenuItem(value: RecurrenceFrequency.monthly, child: Text('ماه')),
-                      DropdownMenuItem(value: RecurrenceFrequency.yearly, child: Text('سال')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setDialogState(() => frequency = value);
-                    },
-                  ),
+                  builder: (context, setDialogState) {
+                    const labels = <RecurrenceFrequency, String>{
+                      RecurrenceFrequency.minutes: 'دقیقه',
+                      RecurrenceFrequency.hours: 'ساعت',
+                      RecurrenceFrequency.daily: 'روز',
+                      RecurrenceFrequency.weekly: 'هفته',
+                      RecurrenceFrequency.monthly: 'ماه',
+                      RecurrenceFrequency.yearly: 'سال',
+                    };
+                    return ArvinRollBox<RecurrenceFrequency>(
+                      key: const ValueKey('quick-capture-custom-recurrence-frequency'),
+                      label: 'واحد تکرار',
+                      valueLabel: labels[frequency] ?? 'روز',
+                      icon: Icons.repeat_rounded,
+                      color: ArvinColors.primary,
+                      items: labels.entries
+                          .map(
+                            (entry) => ArvinRollItem<RecurrenceFrequency>(
+                              value: entry.key,
+                              label: entry.value,
+                              icon: Icons.repeat_rounded,
+                              color: ArvinColors.primary,
+                            ),
+                          )
+                          .toList(growable: false),
+                      onSelected: (value) {
+                        if (value != null) setDialogState(() => frequency = value);
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
