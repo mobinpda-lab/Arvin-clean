@@ -162,8 +162,10 @@ void main() {
     await tester.tap(timeBox);
     await tester.pumpAndSettle();
 
-    expect(find.text('ساعت سفارشی'), findsOneWidget);
-    await tester.tap(find.text('ساعت سفارشی'));
+    final customTime = find.text('ساعت سفارشی');
+    expect(customTime, findsOneWidget);
+    await tester.ensureVisible(customTime);
+    await tester.tap(customTime);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsOneWidget);
@@ -173,7 +175,9 @@ void main() {
 
     await tester.tap(find.byTooltip('ساعت'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('۱۶'));
+    final hour16 = find.text('۱۶');
+    await tester.ensureVisible(hour16);
+    await tester.tap(hour16);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-time-confirm')));
@@ -189,5 +193,4 @@ void main() {
     expect(result, isNotNull);
     expect(result!.dueDate, DateTime(2026, 9, 20, 16, 30));
   });
-
 }
