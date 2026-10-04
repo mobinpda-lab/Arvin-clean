@@ -16,7 +16,7 @@ void main() {
           textDirection: TextDirection.rtl,
           child: Scaffold(
             body: QuickCaptureDialog(
-              projects: const <ProjectPlan>[
+              projects: <ProjectPlan>[
                 ProjectPlan(id: 'project-created-1', title: 'پروژه آزمایشی'),
               ],
               onCreateProject: (title) async {
