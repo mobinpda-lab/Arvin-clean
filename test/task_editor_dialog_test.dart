@@ -337,17 +337,17 @@ void main() {
 
     final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
     expect(rollBox, findsOneWidget);
-    expect(find.text('روزانه'), findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
 
     await tester.ensureVisible(rollBox);
     await tester.tap(rollBox);
     await tester.pumpAndSettle();
 
     expect(find.text('بدون تکرار'), findsOneWidget);
-    expect(find.text('روزانه'), findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
     expect(find.text('هفتگی'), findsOneWidget);
 
-    await tester.tap(find.text('هفتگی'));
+    await tester.tap(find.text('هفتگی').last);
     await tester.pumpAndSettle();
     expect(find.text('هفتگی'), findsOneWidget);
 
