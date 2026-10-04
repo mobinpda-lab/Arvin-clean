@@ -868,24 +868,26 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       const SizedBox(height: 10),
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final recurrence = DropdownButtonFormField<RecurrenceFrequency>(
+                          final recurrence = ArvinRollBox<RecurrenceFrequency>(
                             key: const ValueKey('task-editor-recurrence'),
-                            isExpanded: true,
-                            initialValue: _recurrence?.frequency,
-                            decoration: _fieldDecoration(label: 'تکرار'),
-                            items: [
-                              const DropdownMenuItem<RecurrenceFrequency>(
-                                value: null,
-                                child: Text('بدون تکرار'),
-                              ),
-                              ...RecurrenceFrequency.values.map(
-                                (frequency) => DropdownMenuItem<RecurrenceFrequency>(
-                                  value: frequency,
-                                  child: Text(_recurrenceLabel(frequency)),
-                                ),
-                              ),
-                            ],
-                            onChanged: (frequency) {
+                            label: 'تکرار',
+                            valueLabel: _recurrence == null
+                                ? 'بدون تکرار'
+                                : _recurrenceLabel(_recurrence!.frequency),
+                            icon: Icons.repeat_rounded,
+                            color: ArvinColors.primary,
+                            emptyLabel: 'بدون تکرار',
+                            items: RecurrenceFrequency.values
+                                .map(
+                                  (frequency) => ArvinRollItem<RecurrenceFrequency>(
+                                    value: frequency,
+                                    label: _recurrenceLabel(frequency),
+                                    icon: Icons.repeat_rounded,
+                                    color: ArvinColors.primary,
+                                  ),
+                                )
+                                .toList(growable: false),
+                            onSelected: (frequency) {
                               final interval =
                                   int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
