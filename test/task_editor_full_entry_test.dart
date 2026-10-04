@@ -140,4 +140,61 @@ void main() {
     expect(results.single, isNotNull);
     expect(results.single!.title, 'پیش‌نویس حفظ شود');
   });
+
+  testWidgets('custom due time uses Persian hour/minute RollBoxes and persists selection',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'custom-time',
+      title: 'زمان سفارشی',
+      dueDate: DateTime(2026, 9, 20, 14, 30),
+    );
+
+    await openEditor(
+      tester,
+      task: task,
+      onResult: (value) => result = value,
+    );
+
+    final timeBox =
+        find.byKey(const ValueKey('task-editor-due-time-rollbox'));
+    await tester.ensureVisible(timeBox);
+    await tester.tap(timeBox);
+    await tester.pumpAndSettle();
+
+    final customTime = find.text('ساعت سفارشی');
+    expect(customTime, findsOneWidget);
+    await tester.ensureVisible(customTime);
+    await tester.tap(customTime);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsOneWidget);
+    final timeDialog = find.ancestor(
+      of: find.byKey(const ValueKey('task-editor-time-confirm')),
+      matching: find.byType(Dialog),
+    );
+    expect(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')), findsOneWidget);
+    expect(find.descendant(of: timeDialog, matching: find.byTooltip('دقیقه')), findsOneWidget);
+    expect(find.descendant(of: timeDialog, matching: find.text('۱۴:۳۰')), findsOneWidget);
+
+    await tester.tap(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')));
+    await tester.pumpAndSettle();
+    final hour16 = find.text('۱۶');
+    await tester.ensureVisible(hour16);
+    await tester.tap(hour16);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-time-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, DateTime(2026, 9, 20, 16, 30));
+  });
 }
