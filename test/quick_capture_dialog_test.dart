@@ -222,6 +222,35 @@ void main() {
   });
 
 
+  testWidgets('Quick Add custom recurrence uses the shared RollBox', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              now: () => DateTime(2026, 9, 27, 14, 35),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('تکرار'));
+    await tester.pumpAndSettle();
+    expect(find.text('تکرار سفارشی'), findsOneWidget);
+
+    await tester.tap(find.text('تکرار سفارشی'));
+    await tester.pumpAndSettle();
+
+    final frequency = find.byKey(
+      const ValueKey('quick-capture-custom-recurrence-frequency'),
+    );
+    expect(frequency, findsOneWidget);
+    expect(find.text('روز'), findsOneWidget);
+  });
+
   testWidgets('Quick Add scheduling uses RollBox and Persian custom date/time',
       (tester) async {
     await tester.pumpWidget(
@@ -462,6 +491,7 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
+    expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
@@ -514,14 +544,17 @@ void main() {
     await tester.tap(find.text('تکرار سفارشی'));
     await tester.pumpAndSettle();
 
+    final frequencyField = find.byKey(
+      const ValueKey('quick-capture-custom-recurrence-frequency'),
+    );
+    expect(frequencyField, findsOneWidget);
+    await tester.tap(frequencyField);
+    await tester.pumpAndSettle();
+
     for (final label in ['دقیقه', 'ساعت', 'روز', 'هفته', 'ماه', 'سال']) {
       expect(find.text(label, skipOffstage: false), findsWidgets);
     }
 
-    final frequencyField = find.byKey(const ValueKey('quick-capture-recurrence-frequency'));
-    expect(frequencyField, findsOneWidget);
-    await tester.tap(frequencyField);
-    await tester.pumpAndSettle();
     await tester.tap(find.text('دقیقه').last);
     await tester.pumpAndSettle();
 
