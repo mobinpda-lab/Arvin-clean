@@ -337,14 +337,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       label: 'واحد تکرار',
                       valueLabel: labels[frequency] ?? 'روز',
                       icon: Icons.repeat_rounded,
-                      color: ArvinColors.recurrence,
+                      color: ArvinColors.primary,
                       items: labels.entries
                           .map(
                             (entry) => ArvinRollItem<RecurrenceFrequency>(
                               value: entry.key,
                               label: entry.value,
                               icon: Icons.repeat_rounded,
-                              color: ArvinColors.recurrence,
+                              color: ArvinColors.primary,
                             ),
                           )
                           .toList(growable: false),
