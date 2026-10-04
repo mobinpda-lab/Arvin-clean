@@ -545,7 +545,9 @@ void main() {
       expect(find.text(label, skipOffstage: false), findsWidgets);
     }
 
-    final frequencyField = find.byType(DropdownButtonFormField<RecurrenceFrequency>());
+    final frequencyField = find.byKey(
+      const ValueKey('quick-capture-custom-recurrence-frequency'),
+    );
     expect(frequencyField, findsOneWidget);
     await tester.tap(frequencyField);
     await tester.pumpAndSettle();
