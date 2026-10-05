@@ -14,10 +14,8 @@ void main() {
     expect(ArvinColors.primary, isNot(ArvinColors.background));
   });
 
-  testWidgets('issue 1891 tag roll box keeps existing tags multi-selectable',
-      (tester) async {
-    List<String> selected = <String>[];
-
+  testWidgets('issue 1891 tag roll box supports multi-select with apply/cancel', (tester) async {
+    List<String> selected = <String>['مهم'];
     await tester.pumpWidget(
       StatefulBuilder(
         builder: (context, setState) => MaterialApp(
@@ -25,8 +23,7 @@ void main() {
             body: ArvinTagRollBox(
               tags: const <String>['مهم', 'مشتری'],
               selectedTags: selected,
-              onChanged: (value) =>
-                  setState(() => selected = List<String>.of(value)),
+              onChanged: (value) => setState(() => selected = List<String>.of(value)),
             ),
           ),
         ),
@@ -35,23 +32,23 @@ void main() {
 
     await tester.tap(find.byTooltip('برچسب'));
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب برچسب'), findsOneWidget);
+    expect(find.byType(CheckboxListTile), findsNWidgets(2));
 
-    final important = find.widgetWithText(CheckedPopupMenuItem<String>, 'مهم');
-    final customer = find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری');
-    expect(important, findsOneWidget);
-    expect(customer, findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'مشتری'));
+    await tester.pump();
+    expect(selected, <String>['مهم']);
 
-    await tester.tap(important);
+    await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
     expect(selected, <String>['مهم']);
 
     await tester.tap(find.byTooltip('برچسب'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.widgetWithText(CheckedPopupMenuItem<String>, 'مشتری'),
-    );
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'مشتری'));
+    await tester.pump();
+    await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
-
     expect(selected, containsAll(<String>['مهم', 'مشتری']));
   });
 }
