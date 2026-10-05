@@ -89,6 +89,8 @@ void main() {
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
     expect(find.text('آزمایش'), findsOneWidget);
+    await tester.tap(find.text('اعمال'));
+    await tester.pumpAndSettle();
 
     final saveButton = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(saveButton);

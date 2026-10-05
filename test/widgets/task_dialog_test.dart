@@ -43,6 +43,8 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'نام'), 'مهم');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال'));
+    await tester.pumpAndSettle();
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);

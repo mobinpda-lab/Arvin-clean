@@ -284,6 +284,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-project-picker')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-project-rollbox')));
+    await tester.pumpAndSettle();
     expect(find.text('پروژه آروین'), findsOneWidget);
     expect(find.text('پروژه بایگانی'), findsNothing);
 
@@ -295,6 +297,8 @@ void main() {
     expect(find.text('پروژه آروین'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('notebook-project-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-project-rollbox')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('بدون پروژه').last);
     await tester.pumpAndSettle();
@@ -318,7 +322,11 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('قدیمی').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
 
     final persisted = await repository.loadNote('tag-note');
@@ -365,6 +373,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-rollbox')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('اداری').last);
     await tester.pumpAndSettle();
 
@@ -394,6 +404,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-rollbox')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('ایجاد دسته جدید').last);
     await tester.pumpAndSettle();
@@ -788,27 +800,24 @@ void main() {
       find.byKey(const ValueKey('notebook-category-picker')),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-rollbox')));
+    await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('notebook-category-کاری')),
+      find.text('کاری').last,
       findsOneWidget,
     );
     expect(find.text('انتخاب دسته'), findsWidgets);
     expect(find.text('انتخاب دفتر'), findsNothing);
-    await tester.tap(
-      find.byKey(const ValueKey('notebook-category-کاری')),
-    );
+    await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('notebook-tags-picker')),
-    );
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('notebook-tag-مهم')),
-      findsOneWidget,
-    );
-    await tester.tap(find.byKey(const ValueKey('notebook-tag-مهم')));
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
+    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    await tester.pumpAndSettle();
+    expect(find.text('مهم'), findsOneWidget);
+    await tester.tap(find.text('مهم').last);
+    await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
 
     final persisted = await repository.loadNote('taxonomy-note');

@@ -4,16 +4,9 @@ import '../arvin_colors.dart';
 
 class ArvinRollBox<T> extends StatelessWidget {
   const ArvinRollBox({
-    super.key,
-    required this.label,
-    required this.valueLabel,
-    required this.items,
-    required this.onSelected,
-    required this.icon,
-    required this.color,
-    this.emptyLabel,
-    this.onCreate,
-    this.createLabel = 'افزودن',
+    super.key, required this.label, required this.valueLabel, required this.items,
+    required this.onSelected, required this.icon, required this.color,
+    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن',
   });
   final String label;
   final String valueLabel;
@@ -36,17 +29,11 @@ class ArvinRollBox<T> extends StatelessWidget {
           if (created != null) onSelected(created);
           return;
         }
-        if (value is _ArvinClearToken) {
-          onSelected(null);
-          return;
-        }
+        if (value is _ArvinClearToken) { onSelected(null); return; }
         onSelected(value as T?);
       },
       itemBuilder: (context) => [
-        if (emptyLabel != null) PopupMenuItem<Object?>(
-          value: _ArvinClearToken.instance,
-          child: Text(emptyLabel!),
-        ),
+        if (emptyLabel != null) PopupMenuItem<Object?>(value: _ArvinClearToken.instance, child: Text(emptyLabel!)),
         ...items.map((item) => PopupMenuItem<T>(
           value: item.value,
           child: Row(children: [
@@ -68,16 +55,10 @@ class ArvinRollBox<T> extends StatelessWidget {
         ],
       ],
       child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: .42)),
-        ),
+        height: 48, padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(color: color.withValues(alpha: .08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withValues(alpha: .42))),
         child: Row(children: [
-          Icon(icon, size: 19, color: color),
-          const SizedBox(width: 7),
+          Icon(icon, size: 19, color: color), const SizedBox(width: 7),
           Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))),
           Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: color),
         ]),
@@ -88,10 +69,7 @@ class ArvinRollBox<T> extends StatelessWidget {
 
 class ArvinRollItem<T> {
   const ArvinRollItem({required this.value, required this.label, this.icon, this.color});
-  final T value;
-  final String label;
-  final IconData? icon;
-  final Color? color;
+  final T value; final String label; final IconData? icon; final Color? color;
 }
 
 class ArvinTagRollBox extends StatefulWidget {
@@ -100,75 +78,80 @@ class ArvinTagRollBox extends StatefulWidget {
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
   final Future<String?> Function()? onCreate;
+
   @override State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
 }
 
 class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
-  Future<void> _create() async {
-    final created = await widget.onCreate?.call();
-    if (created == null || created.trim().isEmpty || !mounted) return;
-    final next = List<String>.of(widget.selectedTags);
-    if (!next.contains(created.trim())) next.add(created.trim());
-    widget.onChanged(next);
+  Future<void> _openSelector() async {
+    final tags = widget.tags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
+    final working = <String>{...widget.selectedTags};
+    final applied = await showDialog<List<String>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('انتخاب برچسب'),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                for (final tag in tags)
+                  CheckboxListTile(
+                    dense: true,
+                    value: working.contains(tag),
+                    secondary: const Icon(Icons.sell_outlined, color: ArvinColors.tag),
+                    title: Text(tag),
+                    onChanged: (checked) => setDialogState(() {
+                      if (checked == true) { working.add(tag); } else { working.remove(tag); }
+                    }),
+                  ),
+                if (widget.onCreate != null)
+                  ListTile(
+                    leading: const Icon(Icons.add_circle_outline, color: ArvinColors.primary),
+                    title: const Text('افزودن برچسب'),
+                    onTap: () async {
+                      final created = await widget.onCreate!.call();
+                      if (created == null || created.trim().isEmpty) return;
+                      setDialogState(() => working.add(created.trim()));
+                    },
+                  ),
+              ]),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, working.toList()..sort()), child: const Text('اعمال')),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || applied == null) return;
+    widget.onChanged(applied);
   }
 
   @override
   Widget build(BuildContext context) {
-    final tags = widget.tags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
     final selected = widget.selectedTags.toSet();
-    return PopupMenuButton<Object?>(
-      tooltip: 'برچسب',
-      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
-      onSelected: (value) async {
-        if (value is _ArvinCreateToken) { await _create(); return; }
-        if (value is! String) return;
-        final next = List<String>.of(widget.selectedTags);
-        if (next.contains(value)) { next.remove(value); } else { next.add(value); }
-        widget.onChanged(next);
-      },
-      itemBuilder: (context) => [
-        ...tags.map((tag) => CheckedPopupMenuItem<String>(
-          value: tag,
-          checked: selected.contains(tag),
+    return GestureDetector(
+      onTap: _openSelector,
+      child: Tooltip(
+        message: 'برچسب',
+      child: Semantics(
+        button: true, label: 'برچسب',
+        child: Container(
+          height: 48, padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(color: ArvinColors.tagSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: ArvinColors.tag.withValues(alpha: .42))),
           child: Row(children: [
-            const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
-            const SizedBox(width: 7),
-            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(tag, maxLines: 1, overflow: TextOverflow.ellipsis))),
+            const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag), const SizedBox(width: 7),
+            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: ArvinColors.tag),
           ]),
-        )),
-        if (widget.onCreate != null) ...[
-          const PopupMenuDivider(),
-          const PopupMenuItem<Object?>(
-            value: _ArvinCreateToken.instance,
-            child: Row(children: [
-              Icon(Icons.add_circle_outline, size: 20, color: ArvinColors.primary),
-              SizedBox(width: 9),
-              Text('افزودن برچسب'),
-            ]),
-          ),
-        ],
-      ],
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(color: ArvinColors.tagSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: ArvinColors.tag.withValues(alpha: .42))),
-        child: Row(children: [
-          const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag),
-          const SizedBox(width: 7),
-          Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
-          const Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: ArvinColors.tag),
-        ]),
+        ),
       ),
+    ),
     );
   }
 }
 
-class _ArvinCreateToken {
-  const _ArvinCreateToken._();
-  static const instance = _ArvinCreateToken._();
-}
-
-class _ArvinClearToken {
-  const _ArvinClearToken._();
-  static const instance = _ArvinClearToken._();
-}
+class _ArvinCreateToken { const _ArvinCreateToken._(); static const instance = _ArvinCreateToken._(); }
+class _ArvinClearToken { const _ArvinClearToken._(); static const instance = _ArvinClearToken._(); }
