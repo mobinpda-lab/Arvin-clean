@@ -14,7 +14,6 @@ import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
 import 'notebook_page.dart';
-import 'widgets/arvin_radio_box.dart';
 import 'quick_capture_dialog.dart';
 import 'services/app_settings_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
@@ -646,68 +645,6 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-
-  Future<void> _addToProject(String projectId) async {
-    final editorContext = await wave2ProductFastTrack.prepareEditor(
-      tasks: tasks,
-    );
-    if (!mounted) return;
-    String? selectedProjectId = projectId;
-    final task = await showDialog<Task>(
-      context: context,
-      builder: (_) => ArvinTaskEditorDialog(
-        projects: editorContext.projects,
-        selectedProjectId: projectId,
-        onProjectChanged: (value) => selectedProjectId = value,
-                knownCategories: editorContext.knownCategories,
-        knownTags: editorContext.knownTags,
-        onCreateCategory: _createCategory,
-        onCreateTag: _createTag,
-      ),
-    );
-    if (task == null) return;
-    setState(() => tasks.add(task));
-    await _save();
-    await wave2ProductFastTrack.persistProjectSelection(
-      taskId: task.id,
-      projectId: selectedProjectId,
-    );
-    await _load();
-  }
-
-  Color _groupAccent(String id) {
-    switch (id) {
-      case 'overdue': return const Color(0xFFE53935);
-      case 'today': return const Color(0xFF3478E5);
-      case 'tomorrow': return const Color(0xFF18A77B);
-      case 'future': return const Color(0xFF5A55D6);
-      case 'no_date': return const Color(0xFF596174);
-      default: return ArvinColors.primary;
-    }
-  }
-
-  Color _groupSoft(String id) {
-    switch (id) {
-      case 'overdue': return const Color(0xFFFFF0F1);
-      case 'today': return const Color(0xFFEDF5FF);
-      case 'tomorrow': return const Color(0xFFEAF9F4);
-      case 'future': return const Color(0xFFF0EEFF);
-      case 'no_date': return const Color(0xFFF3F4F7);
-      default: return ArvinColors.primarySoft;
-    }
-  }
-
-  IconData _groupIcon(String id) {
-    switch (id) {
-      case 'overdue': return Icons.warning_amber_rounded;
-      case 'today': return Icons.wb_sunny_outlined;
-      case 'tomorrow': return Icons.wb_twilight_rounded;
-      case 'future': return Icons.event_available_rounded;
-      case 'no_date': return Icons.event_busy_rounded;
-      default: return Icons.schedule_rounded;
-    }
-  }
-
   Widget _groupedTaskList() {
     final groups = _homeGroups.where((group) => !_homeFilterActive || group.items.isNotEmpty).toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
@@ -766,31 +703,6 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
-  String get _emptyVisibleLabel {
-    if (filter == 'سطل زباله') return 'سطل زباله خالی است';
-    if (filter == 'بایگانی') return 'بایگانی خالی است';
-    if (_categoryFilter != null) {
-      return 'کاری در دسته «$_categoryFilter» وجود ندارد';
-    }
-    if (_dueScope == TaskDueScope.today) return 'کاری برای امروز وجود ندارد';
-    if (_dueScope == TaskDueScope.future) return 'کار آینده‌ای وجود ندارد';
-    if (_dueScope == TaskDueScope.overdue) {
-      return 'کار عقب‌افتاده‌ای وجود ندارد';
-    }
-    if (_dueScope == TaskDueScope.undated) {
-      return 'کار فاقد زمانی برای نمایش وجود ندارد';
-    }
-    if (_listScope == TaskListScope.simpleNotes) {
-      return 'کار بدون پیگیری برای نمایش وجود ندارد';
-    }
-    if (_listScope == TaskListScope.followUpEnabled) {
-      return 'کار پیگیری‌دار برای نمایش وجود ندارد';
-    }
-    if (filter == 'انجام‌شده') return 'کار انجام‌شده‌ای وجود ندارد';
-    return 'کاری برای نمایش وجود ندارد';
-  }
-
   String _date(DateTime date) => persianDateFormatter.format(
     date,
     usePersianDate: true,
