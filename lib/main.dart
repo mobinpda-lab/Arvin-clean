@@ -143,6 +143,29 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+enum _HomeMoreAction {
+  quickCapture,
+  myTasks,
+  today,
+  undated,
+  archive,
+  trash,
+  backup,
+  settings,
+  taxonomy,
+  about,
+}
+
+/// Backward-compatible public entry retained for existing callers/tests.
+class TaskDialog extends StatelessWidget {
+  const TaskDialog({super.key, this.task});
+
+  final Task? task;
+
+  @override
+  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
+}
+
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
@@ -2367,26 +2390,3 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-enum _HomeMoreAction {
-  quickCapture,
-  myTasks,
-  today,
-  undated,
-  archive,
-  trash,
-  backup,
-  settings,
-  taxonomy,
-  about,
-}
-
-/// Backward-compatible public entry retained for existing callers/tests.
-class TaskDialog extends StatelessWidget {
-  const TaskDialog({super.key, this.task});
-
-  final Task? task;
-
-  @override
-  Widget build(BuildContext context) => ArvinTaskEditorDialog(task: task);
-}
