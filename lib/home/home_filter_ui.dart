@@ -27,8 +27,7 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = value != 'همه';
-    return Expanded(
-      child: Semantics(
+    return Semantics(
         button: true,
         label: title + ': ' + value,
         child: Material(
@@ -69,8 +68,7 @@ class HomeFilterCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
