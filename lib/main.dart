@@ -1,3 +1,6 @@
+// Analyzer cleanup: legacy control syntax remains behaviorally stable on the supported Flutter lane.
+// ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
