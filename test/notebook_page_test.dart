@@ -287,7 +287,7 @@ void main() {
     expect(find.text('پروژه آروین'), findsOneWidget);
     expect(find.text('پروژه بایگانی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-project-project-a')));
+    await tester.tap(find.text('پروژه آروین').last);
     await tester.pumpAndSettle();
 
     expect(await repository.projectIdForNote('project-note'), 'project-a');
@@ -296,7 +296,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-project-picker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-project-clear')));
+    await tester.tap(find.text('بدون پروژه').last);
     await tester.pumpAndSettle();
 
     expect(await repository.projectIdForNote('project-note'), isNull);
@@ -318,8 +318,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-tag-قدیمی')));
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-save')));
+    await tester.tap(find.text('قدیمی').last);
     await tester.pumpAndSettle();
 
     final persisted = await repository.loadNote('tag-note');
@@ -366,7 +365,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-category-اداری')));
+    await tester.tap(find.text('اداری').last);
     await tester.pumpAndSettle();
 
     expect(find.text('اداری'), findsOneWidget);
@@ -396,7 +395,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('notebook-category-picker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-category-new')));
+    await tester.tap(find.text('ایجاد دسته جدید').last);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('notebook-category-new-input')),
