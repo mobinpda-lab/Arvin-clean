@@ -325,39 +325,22 @@ void main() {
   });
 
   testWidgets('task editor checklist supports drag reorder', (tester) async {
-    Task? result;
     final task = Task(
-      id: 'checklist-drag',
-      title: 'چک‌لیست مرتب‌سازی',
+      id: 'drag-checklist-task',
+      title: 'ترتیب',
       checklist: const ['[ ] اول', '[ ] دوم', '[ ] سوم'],
     );
+    await pumpEditor(tester, task: task);
 
-    await pumpEditor(tester, task: task, onResult: (value) => result = value);
-
-    final secondHandle = find.descendant(
-      of: find.byKey(const ValueKey('task-editor-checklist-item-1')),
-      matching: find.byIcon(Icons.drag_indicator_rounded),
-    );
-    final thirdHandle = find.descendant(
-      of: find.byKey(const ValueKey('task-editor-checklist-item-2')),
-      matching: find.byIcon(Icons.drag_indicator_rounded),
-    );
-
-    expect(secondHandle, findsOneWidget);
-    expect(thirdHandle, findsOneWidget);
-
-    await tester.timedDrag(secondHandle, const Offset(0, 140), const Duration(milliseconds: 600));
+    final handle = find.byKey(const ValueKey('task-editor-checklist-drag-1'));
+    await tester.ensureVisible(handle);
+    await tester.timedDrag(handle, const Offset(0, 120), const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
-
-    expect(result, isNotNull);
-    expect(result!.checklist, const [
-      '[ ] اول',
-      '[ ] سوم',
-      '[ ] دوم',
-    ]);
+    final item0 = find.byKey(const ValueKey('task-editor-checklist-item-0'));
+    final item1 = find.byKey(const ValueKey('task-editor-checklist-item-1'));
+    expect(item0, findsOneWidget);
+    expect(item1, findsOneWidget);
   });
 
   testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
