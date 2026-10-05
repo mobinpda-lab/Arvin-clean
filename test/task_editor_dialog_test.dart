@@ -346,7 +346,7 @@ void main() {
     expect(secondHandle, findsOneWidget);
     expect(thirdHandle, findsOneWidget);
 
-    await tester.drag(secondHandle, const Offset(0, 90));
+    await tester.timedDrag(secondHandle, const Offset(0, 140), const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
