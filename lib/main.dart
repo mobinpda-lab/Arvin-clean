@@ -479,7 +479,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeFilterCards() {
     final projectLabel = _projectFilter == null ? 'همه' : (_projectTitle(_projectFilter) ?? 'بدون پروژه');
     final categoryLabel = _categoryFilter ?? 'همه';
-    final tagLabel = _tagFilters.isEmpty ? 'همه' : '\${_tagFilters.length} مورد';
+    final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
     final cards = <Widget>[
       HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
       HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
