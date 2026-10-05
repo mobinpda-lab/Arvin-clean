@@ -180,6 +180,7 @@ class _HomePageState extends State<HomePage> {
       const HomeSearchProjection();
   final TaskListScopeService taskListScopeService =
       const TaskListScopeService();
+  final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
   final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
@@ -198,6 +199,8 @@ class _HomePageState extends State<HomePage> {
   bool selectionMode = false;
   String query = '';
   String filter = 'کل';
+  TaskListScope _listScope = TaskListScope.all;
+  TaskDueScope? _dueScope;
   String? _categoryFilter;
   String? _projectFilter;
   final Set<String> _tagFilters = <String>{};
