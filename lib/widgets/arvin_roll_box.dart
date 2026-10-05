@@ -134,6 +134,8 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
     final selected = widget.selectedTags.toSet();
     return GestureDetector(
       onTap: _openSelector,
+      child: Tooltip(
+        message: 'برچسب',
       child: Semantics(
         button: true, label: 'برچسب',
         child: Container(
@@ -146,6 +148,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
           ]),
         ),
       ),
+    ),
     );
   }
 }
