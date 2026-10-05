@@ -480,18 +480,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
                 Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
-                ReorderableDragStartListener(
-                  key: ValueKey('task-editor-checklist-drag-$index'),
-                  index: index,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(Icons.drag_indicator_rounded, size: 21),
-                  ),
-                ),
+                IconButton(key: ValueKey('task-editor-checklist-up-$index'), tooltip: 'بالا', icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 20), onPressed: index == 0 ? null : () => _moveChecklistItem(index, -1)),
+                IconButton(key: ValueKey('task-editor-checklist-down-$index'), tooltip: 'پایین', icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20), onPressed: index == _checklist.length - 1 ? null : () => _moveChecklistItem(index, 1)),
                 IconButton(key: ValueKey('task-editor-checklist-delete-$index'), tooltip: 'حذف', icon: const Icon(Icons.delete_outline, size: 19), onPressed: () => setState(() => _checklist.removeAt(index))),
               ]),
             );
-          }),
+            },
+          ),
         Row(children: [
           Expanded(child: TextField(key: const ValueKey('task-editor-checklist-input'), controller: _checklistController, textDirection: TextDirection.rtl, textInputAction: TextInputAction.done, onSubmitted: (_) => _addChecklistItem(), decoration: _fieldDecoration(label: 'مورد جدید', hint: 'مثلاً کیف'))),
           const SizedBox(width: 8),
@@ -897,3 +892,236 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       _dateTimeEditor(
                         keyPrefix: 'task-editor-due',
                         title: 'تاریخ انجام',
+                        value: _dueDateTime,
+                        onPickDate: _pickDueDate,
+                        onPickTime: _pickDueTime,
+                        onClear: _clearDueTime,
+                        accent: ArvinColors.time,
+                      ),
+                      const SizedBox(height: 10),
+                      _dateTimeEditor(
+                        keyPrefix: 'task-editor-reminder',
+                        title: 'یادآوری',
+                        value: _reminderDateTime,
+                        onPickDate: _pickReminderDate,
+                        onPickTime: _pickReminderTime,
+                        onClear: _clearReminderTime,
+                        accent: ArvinColors.reminder,
+                      ),
+                      const SizedBox(height: 10),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final recurrence = ArvinRollBox<RecurrenceFrequency>(
+                            key: const ValueKey('task-editor-recurrence'),
+                            label: 'تکرار',
+                            valueLabel: _recurrence == null
+                                ? 'بدون تکرار'
+                                : _recurrenceLabel(_recurrence!.frequency),
+                            icon: Icons.repeat_rounded,
+                            color: ArvinColors.primary,
+                            emptyLabel: 'بدون تکرار',
+                            items: RecurrenceFrequency.values
+                                .map(
+                                  (frequency) => ArvinRollItem<RecurrenceFrequency>(
+                                    value: frequency,
+                                    label: _recurrenceLabel(frequency),
+                                    icon: Icons.repeat_rounded,
+                                    color: ArvinColors.primary,
+                                  ),
+                                )
+                                .toList(growable: false),
+                            onSelected: (frequency) {
+                              final interval =
+                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
+                              setState(() {
+                                _recurrence = frequency == null
+                                    ? null
+                                    : RecurrenceRule(
+                                        frequency: frequency,
+                                        interval: interval > 0 ? interval : 1,
+                                      );
+                              });
+                            },
+                          );
+                          final recurrenceInterval = TextFormField(
+                            key: const ValueKey('task-editor-recurrence-interval'),
+                            controller: _recurrenceIntervalController,
+                            enabled: _recurrence != null,
+                            keyboardType: TextInputType.number,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(
+                              label: 'تعداد فاصله',
+                              hint: 'مثلاً ۵',
+                            ),
+                            onChanged: (value) {
+                              final interval = int.tryParse(value.trim());
+                              if (_recurrence == null || interval == null || interval < 1) {
+                                return;
+                              }
+                              setState(() {
+                                _recurrence = RecurrenceRule(
+                                  frequency: _recurrence!.frequency,
+                                  interval: interval,
+                                );
+                              });
+                            },
+                          );
+                          final priority = DropdownButtonFormField<TaskPriority>(
+                            key: const ValueKey('task-editor-priority'),
+                            isExpanded: true,
+                            initialValue: _priority,
+                            decoration: _fieldDecoration(label: 'اولویت'),
+                            items: TaskPriority.values
+                                .map(
+                                  (priority) => DropdownMenuItem<TaskPriority>(
+                                    value: priority,
+                                    child: Text(_priorityLabel(priority)),
+                                  ),
+                                )
+                                .toList(growable: false),
+                            onChanged: (priority) {
+                              if (priority != null) {
+                                setState(() => _priority = priority);
+                              }
+                            },
+                          );
+                          if (constraints.maxWidth < 400) {
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(child: recurrence),
+                                    if (_recurrence != null) ...[
+                                      const SizedBox(width: 10),
+                                      SizedBox(width: 120, child: recurrenceInterval),
+                                    ],
+                                  ],
+                                ),                                const SizedBox(height: 10),
+                                priority,
+                              ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Expanded(child: recurrence),
+                              if (_recurrence != null) ...[
+                                const SizedBox(width: 10),
+                                SizedBox(width: 120, child: recurrenceInterval),
+                              ],
+                              const SizedBox(width: 10),
+                              Expanded(child: priority),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 4),
+                      CheckboxListTile(
+                        key: const ValueKey('task-editor-completed'),
+                        value: _completed,
+                        onChanged: (value) =>
+                            setState(() => _completed = value ?? false),
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: const Text('انجام‌شده'),
+                        subtitle: const Text('وضعیت فعلی این کار'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _checklistEditor(),
+                  const SizedBox(height: 12),
+                  Container(
+                    key: const ValueKey('task-editor-followup-block'),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F7FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE8E6F7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: CheckboxListTile(
+                            key: const ValueKey('task-editor-followup-enabled'),
+                            value: _followUpEnabled,
+                            onChanged: (value) =>
+                                _setFollowUpEnabled(value ?? false),
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            activeColor: _brand,
+                            title: const Text(
+                              'کار پیگیری‌دار',
+                              style: TextStyle(
+                                color: _brand,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: const Text(
+                              'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                            ),
+                          ),
+                        ),
+                        if (!_followUpEnabled && hasHistory)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4, bottom: 6),
+                            child: Text(
+                              'سوابق پیگیری قبلی حفظ می‌شوند.',
+                              style: TextStyle(
+                                color: Color(0xFF77778A),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        if (_followUpEnabled) ...[
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'زمان پیگیری',
+                                  style: TextStyle(
+                                    color: Color(0xFF77778A),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              if (followUp != null)
+                                TextButton.icon(
+                                  key: const ValueKey(
+                                    'task-editor-clear-followup',
+                                  ),
+                                  onPressed: _clearFollowUpTime,
+                                  icon: const Icon(Icons.close, size: 17),
+                                  label: const Text('حذف زمان'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _dateTimeEditor(
+                            keyPrefix: 'task-editor-followup',
+                            title: 'زمان پیگیری',
+                            value: followUp,
+                            onPickDate: _pickFollowUpDate,
+                            onPickTime: _pickFollowUpTime,
+                            onClear: _clearFollowUpTime,
+                            accent: ArvinColors.primary,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+      ],
+    ),
+  ),
+  ),
+  ),
+  );
+  }
+}
