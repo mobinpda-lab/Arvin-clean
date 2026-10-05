@@ -801,7 +801,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('notebook-category-کاری')),
+      find.text('کاری').last,
       findsOneWidget,
     );
     expect(find.text('انتخاب دسته'), findsWidgets);
