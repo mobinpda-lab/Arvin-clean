@@ -1,0 +1,53 @@
+{
+  "project": "Arvin",
+  "repository": "mobinpda-lab/Arvin-clean",
+  "snapshot_date": "2026-10-05",
+  "verified_main_sha": "81ed798d6a6d30316f2347242bc478b59e7caa20",
+  "product_status": "NOT_RELEASE_READY",
+  "source_of_truth": "live GitHub main",
+  "continuation_issue": 1923,
+  "execution_issue": 2224,
+  "p0_issue": 2301,
+  "architecture_gate": {
+    "date_time_reminder": 2309,
+    "calendar": 2248,
+    "repeat": 2254
+  },
+  "core_product_issues": {
+    "checklist": 2230,
+    "taxonomy": 847,
+    "quick_add": 1891,
+    "home_regression": 1901,
+    "notebook": 1911,
+    "typography": 1860,
+    "release": 2251,
+    "release_gate": 2102
+  },
+  "recent_merged_prs": [2302, 2306, 2308],
+  "duplicate_closed": [2307],
+  "rules": [
+    "PRODUCT FIRST",
+    "FINISH FIRST",
+    "USER DATA FIRST",
+    "FACTORY MINIMAL",
+    "NO PARALLEL STORAGE/MODEL/REPOSITORY/ENGINE",
+    "EVIDENCE BEFORE DONE",
+    "LIVE GITHUB OVERRIDES STALE REPORTS",
+    "PERSONAL PHONE IS FINAL ACCEPTANCE, NOT DEVELOPMENT LOOP"
+  ],
+  "zip_review": {
+    "entrypoint": "ARVIN_AI_CONTEXT.md",
+    "required_docs": [
+      "docs/ai/arvin-project-evaluation.md",
+      "docs/ai/arvin-remaining-work.md",
+      "README.md",
+      "pubspec.yaml"
+    ],
+    "unknown_without_live_github": [
+      "current open PR state",
+      "current CI conclusions",
+      "current issue state",
+      "real-device acceptance"
+    ]
+  }
+}
