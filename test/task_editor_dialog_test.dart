@@ -238,6 +238,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('فوری'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
