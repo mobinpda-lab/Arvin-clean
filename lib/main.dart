@@ -545,6 +545,7 @@ class _HomePageState extends State<HomePage> {
       _timeFilter = 'all';
       _specificDateFilter = null;
       _projectFilter = null;
+      _categoryFilter = null;
       _tagFilters.clear();
     });
   }
@@ -1228,6 +1229,7 @@ class _HomePageState extends State<HomePage> {
       task.trashed = false;
       task.archived = false;
       filter = 'کل';
+      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -1236,6 +1238,7 @@ class _HomePageState extends State<HomePage> {
 
   void _selectHomeStat(String nextFilter) {
     setState(() {
+      _categoryFilter = null;
       if (nextFilter == 'امروز') {
         filter = 'کل';
       } else if (nextFilter == 'عقب‌افتاده') {
@@ -1251,6 +1254,7 @@ class _HomePageState extends State<HomePage> {
   void _selectListScope(TaskListScope scope) {
     setState(() {
       filter = 'کل';
+      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -1259,6 +1263,7 @@ class _HomePageState extends State<HomePage> {
   void _selectDueScope(TaskDueScope scope) {
     setState(() {
       filter = 'کل';
+      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
