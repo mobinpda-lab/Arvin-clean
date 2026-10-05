@@ -645,6 +645,51 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
+  Color _groupAccent(String id) {
+    switch (id) {
+      case 'past':
+        return const Color(0xFFE53935);
+      case 'today':
+        return const Color(0xFF3478E5);
+      case 'tomorrow':
+        return const Color(0xFF18A77B);
+      case 'future':
+        return const Color(0xFF5A55D6);
+      default:
+        return const Color(0xFF596174);
+    }
+  }
+
+  Color _groupSoft(String id) {
+    switch (id) {
+      case 'past':
+        return const Color(0xFFFFF0F1);
+      case 'today':
+        return const Color(0xFFEDF5FF);
+      case 'tomorrow':
+        return const Color(0xFFEAF9F4);
+      case 'future':
+        return const Color(0xFFF0EEFF);
+      default:
+        return const Color(0xFFF3F4F7);
+    }
+  }
+
+  IconData _groupIcon(String id) {
+    switch (id) {
+      case 'past':
+        return Icons.history_rounded;
+      case 'today':
+        return Icons.today_rounded;
+      case 'tomorrow':
+        return Icons.event_rounded;
+      case 'future':
+        return Icons.date_range_rounded;
+      default:
+        return Icons.remove_schedule_rounded;
+    }
+  }
+
   Widget _groupedTaskList() {
     final groups = _homeGroups.where((group) => !_homeFilterActive || group.items.isNotEmpty).toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
