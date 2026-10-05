@@ -654,23 +654,34 @@ class _HomePageState extends State<HomePage> {
 
   Color _groupAccent(String id) {
     switch (id) {
-      case 'overdue': return ArvinColors.error;
-      case 'today': return ArvinColors.project;
+      case 'overdue': return const Color(0xFFE53935);
+      case 'today': return const Color(0xFF3478E5);
       case 'tomorrow': return const Color(0xFF18A77B);
       case 'future': return const Color(0xFF5A55D6);
-      case 'no_date': return ArvinColors.neutral;
+      case 'no_date': return const Color(0xFF596174);
       default: return ArvinColors.primary;
     }
   }
 
   Color _groupSoft(String id) {
     switch (id) {
-      case 'overdue': return ArvinColors.errorSoft;
+      case 'overdue': return const Color(0xFFFFF0F1);
       case 'today': return const Color(0xFFEDF5FF);
       case 'tomorrow': return const Color(0xFFEAF9F4);
       case 'future': return const Color(0xFFF0EEFF);
       case 'no_date': return const Color(0xFFF3F4F7);
       default: return ArvinColors.primarySoft;
+    }
+  }
+
+  IconData _groupIcon(String id) {
+    switch (id) {
+      case 'overdue': return Icons.warning_amber_rounded;
+      case 'today': return Icons.wb_sunny_outlined;
+      case 'tomorrow': return Icons.wb_twilight_rounded;
+      case 'future': return Icons.event_available_rounded;
+      case 'no_date': return Icons.event_busy_rounded;
+      default: return Icons.schedule_rounded;
     }
   }
 
@@ -702,11 +713,11 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(15),
               onTap: () => setState(() { if (collapsed) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id); }),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: Row(children: [
                   Icon(collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 21, color: accent),
                   const SizedBox(width: 5),
-                  Icon(group.id == 'overdue' ? Icons.warning_amber_rounded : Icons.schedule_rounded, size: 18, color: accent),
+                  Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
                   Container(
@@ -732,7 +743,6 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
 
   String get _emptyVisibleLabel {
     if (filter == 'سطل زباله') return 'سطل زباله خالی است';
