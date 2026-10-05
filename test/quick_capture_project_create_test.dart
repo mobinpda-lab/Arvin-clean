@@ -8,6 +8,7 @@ void main() {
   testWidgets('Quick Add offers Project create-new and selects the created project',
       (tester) async {
     String? createdTitle;
+    String? selectedProjectId;
     var createdId = 'project-created-1';
 
     await tester.pumpWidget(
@@ -23,6 +24,7 @@ void main() {
                 createdTitle = title;
                 return createdId;
               },
+              onProjectChanged: (id) => selectedProjectId = id,
             ),
           ),
         ),
