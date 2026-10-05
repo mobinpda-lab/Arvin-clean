@@ -700,14 +700,17 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           ),
           if (onToggleAllDay != null && value != null) ...[
             const SizedBox(height: 4),
-            CheckboxListTile(
-              key: ValueKey('$keyPrefix-all-day'),
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              value: allDay,
-              onChanged: (next) => onToggleAllDay(next ?? false),
-              title: const Text('تمام‌روز'),
-              subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
+            Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
+                key: ValueKey('$keyPrefix-all-day'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: allDay,
+                onChanged: (next) => onToggleAllDay(next ?? false),
+                title: const Text('تمام‌روز'),
+                subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
+              ),
             ),
             ],
         ],
