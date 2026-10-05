@@ -23,6 +23,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onAddFollowUp,
     this.onEditFollowUp,
     this.onComplete,
+    this.onChecklistChanged,
     this.now,
   });
 
@@ -32,6 +33,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
   final Future<Task?> Function(Task task)? onComplete;
+  final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
   final DateTime? now;
 
   @override
@@ -266,6 +268,66 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 const Icon(Icons.notifications_none_outlined, size: 18, color: _muted),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _normalizedChecklist() => _task.checklist.map((item) {
+        final value = item.trim();
+        if (value.startsWith('[x] ')) return value;
+        if (value.startsWith('[ ] ')) return value;
+        if (value.startsWith('[x]')) return '[x] ${value.substring(3).trim()}';
+        if (value.startsWith('[ ]')) return '[ ] ${value.substring(3).trim()}';
+        return '[ ] $value';
+      }).toList();
+
+  Future<void> _toggleChecklistItem(int index) async {
+    final handler = widget.onChecklistChanged;
+    if (handler == null) return;
+    final next = _normalizedChecklist();
+    final current = next[index];
+    next[index] = current.startsWith('[x] ')
+        ? '[ ] ${current.substring(4)}'
+        : '[x] ${current.substring(4)}';
+    final updated = await handler(_task, next);
+    if (!mounted || updated == null) return;
+    setState(() => _task = updated);
+  }
+
+  Widget _checklistCard() {
+    if (_task.checklist.isEmpty) return const SizedBox.shrink();
+    final items = _normalizedChecklist();
+    final completed = items.where((item) => item.startsWith('[x] ')).length;
+    return _card(
+      key: const ValueKey('task-detail-checklist'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _sectionTitle('چک‌لیست', Icons.checklist_rounded),
+              const Spacer(),
+              Text(
+                '$completed/${items.length}',
+                key: const ValueKey('task-detail-checklist-progress'),
+                style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (var index = 0; index < items.length; index++)
+            CheckboxListTile(
+              key: ValueKey('task-detail-checklist-item-$index'),
+              value: items[index].startsWith('[x] '),
+              onChanged: widget.onChecklistChanged == null
+                  ? null
+                  : (_) => _toggleChecklistItem(index),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(items[index].substring(4)),
+            ),
         ],
       ),
     );
@@ -509,6 +571,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
           children: [
             _summaryCard(),
+            if (_task.checklist.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _checklistCard(),
+            ],
             const SizedBox(height: 10),
             _latestCard(latest, now),
             if (history.isNotEmpty) ...[

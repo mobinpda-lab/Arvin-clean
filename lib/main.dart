@@ -1074,6 +1074,20 @@ class _HomePageState extends State<HomePage> {
     return task;
   }
 
+  Future<Task?> _checklistChangedFromDetail(
+    Task task,
+    List<String> checklist,
+  ) async {
+    final target = tasks.firstWhere((item) => item.id == task.id);
+    target.checklist = List<String>.of(checklist);
+    target.updatedAt = DateTime.now();
+    await taskStore.save(List<Task>.of(tasks));
+    final refreshed = await taskStore.load();
+    if (!mounted) return target;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
   Future<Task?> _completeFromDetail(Task task) async {
     // The detail action is a true toggle: a second tap returns the task to
     // the active/undone state. Done remains independent from archive/trash.
@@ -1137,6 +1151,7 @@ class _HomePageState extends State<HomePage> {
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
+          onChecklistChanged: _checklistChangedFromDetail,
         ),
       ),
     );
