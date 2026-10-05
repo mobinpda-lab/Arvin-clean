@@ -800,6 +800,8 @@ void main() {
       find.byKey(const ValueKey('notebook-category-picker')),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('notebook-category-rollbox')));
+    await tester.pumpAndSettle();
     expect(
       find.text('کاری').last,
       findsOneWidget,
