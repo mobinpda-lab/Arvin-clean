@@ -68,6 +68,7 @@ class Task {
     this.createdAt,
     this.updatedAt,
     this.dueDate,
+    this.allDay = false,
     this.followUpEnabled = false,
     this.followUpDate,
     this.tags = const [],
@@ -91,6 +92,9 @@ class Task {
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? dueDate;
+  /// True when the due date is intentionally date-only (All-Day).
+  /// The timestamp remains for date identity; consumers must not present its time.
+  bool allDay;
   bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
@@ -195,6 +199,7 @@ class Task {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
+        if (allDay) 'allDay': true,
         'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
@@ -247,6 +252,7 @@ class Task {
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
+      allDay: json['allDay'] as bool? ?? false,
       followUpEnabled: json['followUpEnabled'] as bool? ??
           loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,
       followUpDate: legacyFollowUpDate,
