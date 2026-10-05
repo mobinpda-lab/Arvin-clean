@@ -2218,9 +2218,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                late
-                                    ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
-                                    : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                task.allDay
+                                    ? (late ? 'موعد گذشته: ${_date(task.dueDate!)}' : 'موعد: ${_date(task.dueDate!)}')
+                                    : (late ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}' : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'),
                                 style: TextStyle(
                                   color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
                                   fontSize: 11,
