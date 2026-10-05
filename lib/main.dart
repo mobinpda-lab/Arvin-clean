@@ -350,6 +350,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool get _homeFilterActive =>
+      query.trim().isNotEmpty ||
       _timeFilter != 'all' ||
       _projectFilter != null ||
       _categoryFilter != null ||
