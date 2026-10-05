@@ -52,7 +52,7 @@ jobs:
           mkdir -p release-evidence
           gh release download "$TAG" \
             --repo "${{ github.repository }}" \
-            --pattern 'arvin-release.apk' \
+            --pattern 'arvin-*.apk' \
             --pattern 'artifact.sha256' \
             --pattern 'release-evidence.txt' \
             --dir release-evidence \
@@ -65,12 +65,12 @@ jobs:
         run: |
           set -euo pipefail
           test -s release-evidence/release-evidence.txt
-          test -s release-evidence/arvin-release.apk
+          test -n "$(find release-evidence -maxdepth 1 -type f -name 'arvin-*.apk' -print -quit)"
           test -s release-evidence/artifact.sha256
           grep -q "MAIN_SHA=${FINAL_SHA}" release-evidence/release-evidence.txt
           grep -q "BUILD_RESULT=success" release-evidence/release-evidence.txt
           grep -q "TEST_RESULT=success" release-evidence/release-evidence.txt
-          (cd release-evidence && awk '{print $1 "  arvin-release.apk"}' artifact.sha256 | sha256sum -c -)
+          (cd release-evidence && awk '{print $1 "  " $2}' artifact.sha256 | sha256sum -c -)
 
       - name: Fetch pinned VazirHarf for manual validation
         if: github.event_name == 'workflow_dispatch'
