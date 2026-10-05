@@ -180,7 +180,6 @@ class _HomePageState extends State<HomePage> {
       const HomeSearchProjection();
   final TaskListScopeService taskListScopeService =
       const TaskListScopeService();
-  final TaskDueScopeService taskDueScopeService = const TaskDueScopeService();
   final TaskListSortService taskListSortService = const TaskListSortService();
   final PersianDateFormatter persianDateFormatter = const PersianDateFormatter();
   final WidgetTaskBridge widgetTaskBridge = WidgetTaskBridge();
@@ -199,8 +198,6 @@ class _HomePageState extends State<HomePage> {
   bool selectionMode = false;
   String query = '';
   String filter = 'کل';
-  TaskListScope _listScope = TaskListScope.all;
-  TaskDueScope? _dueScope;
   String? _categoryFilter;
   String? _projectFilter;
   final Set<String> _tagFilters = <String>{};
@@ -686,7 +683,7 @@ class _HomePageState extends State<HomePage> {
       case 'future':
         return Icons.date_range_rounded;
       default:
-        return Icons.remove_schedule_rounded;
+        return Icons.event_busy_rounded;
     }
   }
 
