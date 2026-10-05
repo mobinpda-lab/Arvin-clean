@@ -629,7 +629,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               } else if (target.contains('follow-up') || target.contains('followup')) {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
-                _dueDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+                _dueDateTime = _dueAllDay ? DateTime(picked.year, picked.month, picked.day) : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);\n                if (value == null || _dueAllDay) _dueAllDay = true;
               }
             });
           } else {
