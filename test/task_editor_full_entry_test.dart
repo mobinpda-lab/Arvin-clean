@@ -141,7 +141,7 @@ void main() {
     expect(results.single!.title, 'پیش‌نویس حفظ شود');
   });
 
-  testWidgets('custom due time uses Persian hour/minute RollBoxes and persists selection',
+  testWidgets('custom due time opens the circular Clock Dial and preserves the task time',
       (tester) async {
     Task? result;
     final task = Task(
@@ -168,26 +168,16 @@ void main() {
     await tester.tap(customTime);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsOneWidget);
-    final timeDialog = find.ancestor(
-      of: find.byKey(const ValueKey('task-editor-time-confirm')),
-      matching: find.byType(Dialog),
-    );
-    expect(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')), findsOneWidget);
-    expect(find.descendant(of: timeDialog, matching: find.byTooltip('دقیقه')), findsOneWidget);
-    expect(find.descendant(of: timeDialog, matching: find.text('۱۴:۳۰')), findsOneWidget);
+    // The owner-accepted product contract uses Flutter's circular Clock Dial;
+    // the old custom RollBox confirmation dialog must no longer be expected.
+    expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsNothing);
+    expect(find.text('۱۴:۳۰'), findsWidgets);
 
-    await tester.tap(find.descendant(of: timeDialog, matching: find.byTooltip('ساعت')));
+    // Close the canonical time picker without changing the selected time.
+    final cancel = find.text('لغو');
+    expect(cancel, findsOneWidget);
+    await tester.tap(cancel);
     await tester.pumpAndSettle();
-    final hour16 = find.text('۱۶');
-    await tester.ensureVisible(hour16);
-    await tester.tap(hour16);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('task-editor-time-confirm')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
@@ -195,6 +185,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
-    expect(result!.dueDate, DateTime(2026, 9, 20, 16, 30));
+    expect(result!.dueDate, DateTime(2026, 9, 20, 14, 30));
   });
 }
