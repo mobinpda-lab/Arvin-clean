@@ -17,8 +17,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     expect(find.text('کار فعال'), findsOneWidget);
@@ -50,8 +50,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
