@@ -560,7 +560,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(children: [
             TextField(onChanged: (v) => setSheetState(() => search = v), decoration: const InputDecoration(hintText: 'جستجو در پروژه‌ها...', prefixIcon: Icon(Icons.search_rounded))),
             Expanded(child: ListView(children: [
-              RadioListTile<String?>(value: null, groupValue: _projectFilter, activeColor: ArvinColors.project, title: const Text('همه پروژه‌ها'), secondary: const Icon(Icons.folder_open_rounded), onChanged: (_) => Navigator.of(sheetContext).pop(null)),
+              ListTile(leading: const Icon(Icons.folder_open_rounded, color: ArvinColors.project), title: const Text('همه پروژه‌ها'), trailing: Icon(_projectFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.project), onTap: () => Navigator.of(sheetContext).pop('__all__')),
               for (final project in filtered)
                 RadioListTile<String?>(value: project.id, groupValue: _projectFilter, activeColor: ArvinColors.project, title: Text(project.title), secondary: const Icon(Icons.folder_rounded), onChanged: (value) => Navigator.of(sheetContext).pop(value)),
             ])),
@@ -569,24 +569,24 @@ class _HomePageState extends State<HomePage> {
       },
     ));
     if (!mounted) return;
-    setState(() => _projectFilter = result);
+    setState(() => _projectFilter = result == '__all__' ? null : result);
   }
 
   Future<void> _showCategoryFilterSheet() async {
     final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
-      RadioListTile<String?>(value: null, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: const Text('همه دسته‌ها'), secondary: const Icon(Icons.layers_rounded), onChanged: (_) => Navigator.of(context).pop(null)),
+      ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
       for (final category in _homeCategories)
         RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
     ]));
     if (!mounted) return;
-    setState(() => _categoryFilter = result);
+    setState(() => _categoryFilter = result == '__all__' ? null : result);
   }
 
   Future<void> _showTagFilterSheet() async {
     final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
     final selectedTags = <String>{..._tagFilters};
     String search = '';
-    final result = await HomeFilterSheet.show<Set<String>>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
+    await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
       builder: (sheetContext, setSheetState) {
         final filtered = tags.where((tag) => tag.toLowerCase().contains(search.toLowerCase())).toList();
         return SizedBox(
@@ -594,16 +594,28 @@ class _HomePageState extends State<HomePage> {
           child: Column(children: [
             TextField(onChanged: (value) => setSheetState(() => search = value), decoration: const InputDecoration(hintText: 'جستجو در برچسب‌ها...', prefixIcon: Icon(Icons.search_rounded))),
             Expanded(child: ListView(children: [
+              ListTile(
+                leading: const Icon(Icons.sell_outlined, color: ArvinColors.tag),
+                title: const Text('همه برچسب‌ها'),
+                trailing: Icon(selectedTags.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.tag),
+                onTap: () => setSheetState(() { selectedTags.clear(); setState(() { _tagFilters.clear(); }); }),
+              ),
               for (final tag in filtered)
-                CheckboxListTile(value: selectedTags.contains(tag), activeColor: ArvinColors.tag, title: Text(tag), secondary: const Icon(Icons.sell_rounded), onChanged: (checked) => setSheetState(() { if (checked == true) selectedTags.add(tag); else selectedTags.remove(tag); })),
+                CheckboxListTile(
+                  value: selectedTags.contains(tag),
+                  activeColor: ArvinColors.tag,
+                  title: Text(tag),
+                  secondary: const Icon(Icons.sell_rounded, color: ArvinColors.tag),
+                  onChanged: (checked) => setSheetState(() {
+                    if (checked == true) selectedTags.add(tag); else selectedTags.remove(tag);
+                    setState(() { _tagFilters..clear()..addAll(selectedTags); });
+                  }),
+                ),
             ])),
-            SizedBox(width: double.infinity, child: FilledButton(style: FilledButton.styleFrom(backgroundColor: ArvinColors.tag), onPressed: () => Navigator.of(sheetContext).pop(selectedTags), child: const Text('اعمال برچسب‌ها'))),
           ]),
         );
       },
     ));
-    if (!mounted || result == null) return;
-    setState(() { _tagFilters..clear()..addAll(result); });
   }
 
 
@@ -2223,7 +2235,7 @@ class _HomePageState extends State<HomePage> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                               onPressed: () async {
-                                setState(() => task.dueDate = null);
+                                setState(() { task.dueDate = null; task.allDay = false; });
                                 await _save();
                               },
                               icon: const Icon(Icons.close_rounded, size: 17),
