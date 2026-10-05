@@ -670,6 +670,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  IconData _groupIcon(String id) {
+    switch (id) {
+      case 'overdue': return Icons.warning_amber_rounded;
+      case 'today': return Icons.wb_sunny_rounded;
+      case 'tomorrow': return Icons.event_available_rounded;
+      case 'future': return Icons.auto_awesome_rounded;
+      case 'no_date': return Icons.schedule_rounded;
+      default: return Icons.schedule_rounded;
+    }
+  }
+
   Widget _groupedTaskList() {
     final groups = _homeGroups.where((group) => !_homeFilterActive || group.items.isNotEmpty).toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
@@ -702,7 +713,7 @@ class _HomePageState extends State<HomePage> {
                 child: Row(children: [
                   Icon(collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 21, color: accent),
                   const SizedBox(width: 5),
-                  Icon(group.id == 'overdue' ? Icons.warning_amber_rounded : Icons.schedule_rounded, size: 18, color: accent),
+                  Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
                   Container(
@@ -716,7 +727,7 @@ class _HomePageState extends State<HomePage> {
             )),
             if (!collapsed) ...[
               const SizedBox(height: 6),
-              Material(color: ArvinColors.surface, borderRadius: BorderRadius.circular(16), child: Column(children: [
+              Material(color: ArvinColors.surface, borderRadius: BorderRadius.circular(14), child: Column(children: [
                 for (var i = 0; i < group.items.length; i++) ...[
                   _taskCard(group.items[i]),
                   if (i != group.items.length - 1) Divider(height: 1, indent: 58, endIndent: 10, color: ArvinColors.border),
@@ -2082,14 +2093,11 @@ class _HomePageState extends State<HomePage> {
           _taskCardAccent(task).withAlpha(22),
           ArvinColors.surface,
         ),
-        elevation: 1,
-        shadowColor: const Color(0x14000000),
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: _taskCardAccent(task).withAlpha(78),
-            width: 1,
-          ),
+          side: BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -2113,7 +2121,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
