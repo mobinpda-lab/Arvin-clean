@@ -199,8 +199,6 @@ class _HomePageState extends State<HomePage> {
   bool selectionMode = false;
   String query = '';
   String filter = 'کل';
-  TaskListScope _listScope = TaskListScope.all;
-  TaskDueScope? _dueScope;
   String? _categoryFilter;
   String? _projectFilter;
   final Set<String> _tagFilters = <String>{};
@@ -547,7 +545,6 @@ class _HomePageState extends State<HomePage> {
       _timeFilter = 'all';
       _specificDateFilter = null;
       _projectFilter = null;
-      _categoryFilter = null;
       _tagFilters.clear();
     });
   }
@@ -1231,9 +1228,6 @@ class _HomePageState extends State<HomePage> {
       task.trashed = false;
       task.archived = false;
       filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
-      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -1242,17 +1236,12 @@ class _HomePageState extends State<HomePage> {
 
   void _selectHomeStat(String nextFilter) {
     setState(() {
-      _listScope = TaskListScope.all;
-      _categoryFilter = null;
       if (nextFilter == 'امروز') {
         filter = 'کل';
-        _dueScope = TaskDueScope.today;
       } else if (nextFilter == 'عقب‌افتاده') {
         filter = 'کل';
-        _dueScope = TaskDueScope.overdue;
       } else {
         filter = nextFilter;
-        _dueScope = null;
       }
       selected.clear();
       selectionMode = false;
@@ -1262,9 +1251,6 @@ class _HomePageState extends State<HomePage> {
   void _selectListScope(TaskListScope scope) {
     setState(() {
       filter = 'کل';
-      _listScope = scope;
-      _dueScope = null;
-      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -1273,9 +1259,6 @@ class _HomePageState extends State<HomePage> {
   void _selectDueScope(TaskDueScope scope) {
     setState(() {
       filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = scope;
-      _categoryFilter = null;
       selected.clear();
       selectionMode = false;
     });
@@ -1284,8 +1267,6 @@ class _HomePageState extends State<HomePage> {
   void _selectCategory(String category) {
     setState(() {
       filter = 'کل';
-      _listScope = TaskListScope.all;
-      _dueScope = null;
       _categoryFilter = category;
       selected.clear();
       selectionMode = false;
