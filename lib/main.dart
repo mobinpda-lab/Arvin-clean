@@ -2120,6 +2120,34 @@ class _HomePageState extends State<HomePage> {
     return palette[hash % palette.length];
   }
 
+  Widget _homeChecklistProgress(Task task) {
+    final total = task.checklist.length;
+    final completed = task.checklist
+        .where((item) => item.trimLeft().startsWith('[x]'))
+        .length;
+    final progress = total == 0 ? 0.0 : completed / total;
+    return Column(
+      key: ValueKey('task-card-checklist-progress-${task.id}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.checklist_rounded, size: 15, color: Color(0xFF4A4CAB)),
+            const SizedBox(width: 4),
+            Text(
+              'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
+              style: const TextStyle(color: Color(0xFF80829C), fontSize: 11, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: Color(0xFFE9EAFF)),
+        ),
+      ],
+    );
+  }
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
     final late = _overdue(task);
@@ -2231,6 +2259,10 @@ class _HomePageState extends State<HomePage> {
                             fontSize: 12,
                           ),
                         ),
+                      ],
+                      if (task.checklist.isNotEmpty) ...[
+                        const SizedBox(height: 7),
+                        _homeChecklistProgress(task),
                       ],
                       if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
                         const SizedBox(height: 6),
