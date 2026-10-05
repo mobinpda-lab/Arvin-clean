@@ -2219,9 +2219,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                task.allDay
-                                    ? (late ? 'موعد گذشته: ${_date(task.dueDate!)}' : 'موعد: ${_date(task.dueDate!)}')
-                                    : (late ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}' : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'),
+                                late
+                                    ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
+                                    : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
                                 style: TextStyle(
                                   color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
                                   fontSize: 11,
@@ -2236,7 +2236,7 @@ class _HomePageState extends State<HomePage> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                               onPressed: () async {
-                                setState(() { task.dueDate = null; task.allDay = false; });
+                                setState(() { task.dueDate = null; });
                                 await _save();
                               },
                               icon: const Icon(Icons.close_rounded, size: 17),
