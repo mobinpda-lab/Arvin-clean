@@ -324,6 +324,25 @@ void main() {
     ]);
   });
 
+  testWidgets('task editor checklist supports drag reorder', (tester) async {
+    final task = Task(
+      id: 'drag-checklist-task',
+      title: 'ترتیب',
+      checklist: const ['[ ] اول', '[ ] دوم', '[ ] سوم'],
+    );
+    await pumpEditor(tester, task: task);
+
+    final handle = find.byKey(const ValueKey('task-editor-checklist-drag-1'));
+    await tester.ensureVisible(handle);
+    await tester.timedDrag(handle, const Offset(0, 120), const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    final item0 = find.byKey(const ValueKey('task-editor-checklist-item-0'));
+    final item1 = find.byKey(const ValueKey('task-editor-checklist-item-1'));
+    expect(item0, findsOneWidget);
+    expect(item1, findsOneWidget);
+  });
+
   testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
     Task? result;
     final task = Task(

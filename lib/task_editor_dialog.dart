@@ -408,15 +408,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     });
   }
 
-  void _moveChecklistItem(int index, int offset) {
-    final target = index + offset;
-    if (target < 0 || target >= _checklist.length) return;
-    setState(() {
-      final item = _checklist.removeAt(index);
-      _checklist.insert(target, item);
-    });
-  }
-
   Future<void> _editChecklistItem(int index) async {
     if (index < 0 || index >= _checklist.length) return;
     final controller = TextEditingController(text: _checklistLabel(_checklist[index]));
@@ -467,7 +458,18 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         if (_checklist.isEmpty)
           const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('هنوز موردی اضافه نشده.'))
         else
-          ...List.generate(_checklist.length, (index) {
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: _checklist.length,
+            onReorderItem: (oldIndex, newIndex) {
+              setState(() {
+                final item = _checklist.removeAt(oldIndex);
+                _checklist.insert(newIndex, item);
+              });
+            },
+            itemBuilder: (context, index) {
             final item = _checklist[index];
             final checked = _checklistChecked(item);
             return Container(
@@ -478,12 +480,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
                 Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
-                IconButton(key: ValueKey('task-editor-checklist-up-$index'), tooltip: 'بالا', icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 20), onPressed: index == 0 ? null : () => _moveChecklistItem(index, -1)),
-                IconButton(key: ValueKey('task-editor-checklist-down-$index'), tooltip: 'پایین', icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20), onPressed: index == _checklist.length - 1 ? null : () => _moveChecklistItem(index, 1)),
+                ReorderableDragStartListener(
+                  key: ValueKey('task-editor-checklist-drag-$index'),
+                  index: index,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Icon(Icons.drag_indicator_rounded, size: 21),
+                  ),
+                ),
                 IconButton(key: ValueKey('task-editor-checklist-delete-$index'), tooltip: 'حذف', icon: const Icon(Icons.delete_outline, size: 19), onPressed: () => setState(() => _checklist.removeAt(index))),
               ]),
             );
-          }),
+            },
+          ),
         Row(children: [
           Expanded(child: TextField(key: const ValueKey('task-editor-checklist-input'), controller: _checklistController, textDirection: TextDirection.rtl, textInputAction: TextInputAction.done, onSubmitted: (_) => _addChecklistItem(), decoration: _fieldDecoration(label: 'مورد جدید', hint: 'مثلاً کیف'))),
           const SizedBox(width: 8),
