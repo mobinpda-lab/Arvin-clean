@@ -70,7 +70,14 @@ jobs:
           grep -q "MAIN_SHA=${FINAL_SHA}" release-evidence/release-evidence.txt
           grep -q "BUILD_RESULT=success" release-evidence/release-evidence.txt
           grep -q "TEST_RESULT=success" release-evidence/release-evidence.txt
-          (cd release-evidence && awk '{print $1 "  " $2}' artifact.sha256 | sha256sum -c -)
+          (
+            cd release-evidence
+            awk '{
+              name=$2
+              sub(/^.*\//, "", name)
+              print $1 "  " name
+            }' artifact.sha256 | sha256sum -c -
+          )
 
       - name: Fetch pinned VazirHarf for manual validation
         if: github.event_name == 'workflow_dispatch'
@@ -143,11 +150,13 @@ jobs:
           if data.get('tagName') != tag:
               raise SystemExit('Release tag mismatch')
           assets = {a['name'] for a in data.get('assets', [])}
-          required = {'arvin-release.apk', 'artifact.sha256', 'release-evidence.txt'}
-          missing = required - assets
-          if missing:
-              raise SystemExit(f'Missing release assets: {sorted(missing)}')
-          print(f'FINAL_HEAD_RELEASE_VALIDATION=success SHA={sha} TAG={tag}')
+          required_evidence = {'artifact.sha256', 'release-evidence.txt'}
+          if not required_evidence.issubset(assets):
+              raise SystemExit(f'Missing release evidence assets: {sorted(required_evidence - assets)}')
+          apks = sorted(name for name in assets if name.startswith('arvin-') and name.endswith('.apk'))
+          if not apks:
+              raise SystemExit('Missing versioned Arvin APK asset')
+          print(f"FINAL_HEAD_RELEASE_VALIDATION=success SHA={sha} TAG={tag} APK={apks[0]}")
           PY
 
       - name: Publish validation evidence
