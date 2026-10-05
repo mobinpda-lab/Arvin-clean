@@ -19,10 +19,10 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('جستجو در کارها'), findsOneWidget);
+    expect(find.text('جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
     expect(find.text('مشاهده همه'), findsNothing);
   });
@@ -65,36 +65,45 @@ void main() {
   });
 
 
-  testWidgets('Home contextual filters hide completed tasks while All shows them',
+  testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
     final today = DateTime.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
+    final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"completed-today","title":"کار انجام‌شده امروز","completed":true,"dueDate":"$isoToday"},{"id":"active-today","title":"کار فعال امروز","completed":false,"dueDate":"$isoToday"}]',
+          '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-filter-all')), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
-    expect(find.text('کار فعال امروز'), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-today')));
+    await tester.tap(find.text('امروز').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('کار فعال امروز'), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('home-filter-all')));
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
     await tester.pumpAndSettle();
-    expect(find.text('کار فعال امروز'), findsOneWidget);
-    expect(find.text('کار انجام‌شده امروز'), findsOneWidget);
+    await tester.tap(find.text('اتاق').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byText('نوزاد'));
+    await tester.tap(find.byText('تعویض'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار منطبق'), findsOneWidget);
+    expect(find.text('کار نامرتبط'), findsNothing);
+    expect(find.text('کار فردا'), findsNothing);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('فردا'), findsNothing);
   });
 
   testWidgets('Home contextual grouping exposes canonical Roll Box filters', (tester) async {
