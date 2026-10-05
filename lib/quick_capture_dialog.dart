@@ -706,7 +706,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ]),
                         ),
                       );
-                      controller.dispose();
+                      // Keep the sheet's TextField controller alive through the closing animation.
+                      // Disposing it synchronously can trigger Flutter Overlay deactivation assertions.
+                      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
                       if (value == null || value.isEmpty) return null;
                       final created = await widget.onCreateCategory?.call(value) ?? value;
                       if (!mounted) return created;
@@ -740,7 +742,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ]),
                         ),
                       );
-                      controller.dispose();
+                      // Keep the sheet's TextField controller alive through the closing animation.
+                      // Disposing it synchronously can trigger Flutter Overlay deactivation assertions.
+                      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
                       if (value == null || value.isEmpty) return null;
                       final created = await widget.onCreateTag?.call(value) ?? value;
                       if (!mounted) return created;
