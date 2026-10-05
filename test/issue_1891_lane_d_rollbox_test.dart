@@ -35,7 +35,7 @@ void main() {
     expect(find.text('انتخاب برچسب'), findsOneWidget);
     expect(find.byType(CheckboxListTile), findsNWidgets(2));
 
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'مشتری'));
+    await tester.tap(find.text('مشتری'));
     await tester.pump();
     expect(selected, <String>['مهم']);
 
