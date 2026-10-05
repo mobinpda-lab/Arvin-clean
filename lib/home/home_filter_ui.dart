@@ -40,14 +40,23 @@ class HomeFilterCard extends StatelessWidget {
             onTap: onTap,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              height: 104,
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 9),
+              curve: Curves.easeOutCubic,
+              height: 108,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
               decoration: BoxDecoration(
+                color: selected ? Color.alphaBlend(accent.withAlpha(18), soft) : soft,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
-                  width: selected ? 1.4 : 1,
+                  width: selected ? 1.5 : 1,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(selected ? 13 : 8),
+                    blurRadius: selected ? 10 : 7,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
