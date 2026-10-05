@@ -479,21 +479,25 @@ class _HomePageState extends State<HomePage> {
   Widget _homeFilterCards() {
     final projectLabel = _projectFilter == null ? 'همه' : (_projectTitle(_projectFilter) ?? 'بدون پروژه');
     final categoryLabel = _categoryFilter ?? 'همه';
-    final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
+    final tagLabel = _tagFilters.isEmpty ? 'همه' : '\${_tagFilters.length} مورد';
+    final cards = <Widget>[
+      HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
+      HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
+      HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
+      HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+    ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final compact = constraints.maxWidth < 390;
+        final width = (constraints.maxWidth - (compact ? 18 : 24)) / 4;
+        return Row(textDirection: TextDirection.rtl, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (var index = 0; index < cards.length; index++) ...[
+            SizedBox(width: width, child: cards[index]),
+            if (index < cards.length - 1) SizedBox(width: compact ? 6 : 8),
+          ],
+        ]);
+      }),
     );
   }
 
