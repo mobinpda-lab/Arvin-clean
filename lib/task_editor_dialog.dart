@@ -408,15 +408,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     });
   }
 
-  void _moveChecklistItem(int index, int offset) {
-    final target = index + offset;
-    if (target < 0 || target >= _checklist.length) return;
-    setState(() {
-      final item = _checklist.removeAt(index);
-      _checklist.insert(target, item);
-    });
-  }
-
   Future<void> _editChecklistItem(int index) async {
     if (index < 0 || index >= _checklist.length) return;
     final controller = TextEditingController(text: _checklistLabel(_checklist[index]));
@@ -474,9 +465,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             buildDefaultDragHandles: false,
             proxyDecorator: (child, index, animation) => Material(color: Colors.transparent, child: child),
             itemCount: _checklist.length,
-            onReorder: (oldIndex, newIndex) {
+            onReorderItem: (oldIndex, newIndex) {
               setState(() {
-                if (newIndex > oldIndex) newIndex -= 1;
                 final item = _checklist.removeAt(oldIndex);
                 _checklist.insert(newIndex, item);
               });
