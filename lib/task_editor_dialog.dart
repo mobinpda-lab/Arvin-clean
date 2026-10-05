@@ -480,8 +480,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
                 Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
-                IconButton(key: ValueKey('task-editor-checklist-up-$index'), tooltip: 'بالا', icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 20), onPressed: index == 0 ? null : () => _moveChecklistItem(index, -1)),
-                IconButton(key: ValueKey('task-editor-checklist-down-$index'), tooltip: 'پایین', icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20), onPressed: index == _checklist.length - 1 ? null : () => _moveChecklistItem(index, 1)),
+                ReorderableDragStartListener(
+                  key: ValueKey('task-editor-checklist-drag-$index'),
+                  index: index,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Icon(Icons.drag_indicator_rounded, size: 21),
+                  ),
+                ),
                 IconButton(key: ValueKey('task-editor-checklist-delete-$index'), tooltip: 'حذف', icon: const Icon(Icons.delete_outline, size: 19), onPressed: () => setState(() => _checklist.removeAt(index))),
               ]),
             );
