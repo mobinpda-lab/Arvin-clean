@@ -71,6 +71,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<String> _checklist;
   late List<String> _knownCategories;
   late List<String> _knownTags;
+  late List<ProjectPlan> _projects;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
@@ -104,6 +105,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _checklist = List<String>.of(task?.checklist ?? const []);
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
+    _projects = List<ProjectPlan>.of(widget.projects);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
@@ -186,72 +188,22 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required String helpText,
   }) async {
     final base = _baseDateTime(current);
-    var hour = base.hour;
-    var minute = base.minute;
-    final formatter = _dateFormatter;
-
-    final picked = await showDialog<TimeOfDay>(
+    final picked = await showTimePicker(
       context: context,
-      builder: (dialogContext) => Directionality(
+      initialTime: TimeOfDay.fromDateTime(base),
+      helpText: helpText,
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+      hourLabelText: 'ساعت',
+      minuteLabelText: 'دقیقه',
+      builder: (dialogContext, child) => Directionality(
         textDirection: TextDirection.rtl,
-        child: Dialog(
-          child: SafeArea(
-            child: StatefulBuilder(
-              builder: (context, setDialogState) {                final label = formatter.toPersianDigits(
-                  '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-                );
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(helpText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 10),
-                      Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 12),
-                      ArvinRollBox<int>(
-                        label: 'ساعت',
-                        valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
-                        icon: Icons.access_time_rounded,
-                        color: ArvinColors.time,
-                        items: List.generate(24, (value) => ArvinRollItem<int>(
-                          value: value,
-                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                          icon: Icons.schedule_outlined,
-                          color: ArvinColors.time,
-                        )),
-                        onSelected: (value) { if (value != null) setDialogState(() => hour = value); },
-                      ),
-                      const SizedBox(height: 10),
-                      ArvinRollBox<int>(
-                        label: 'دقیقه',
-                        valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
-                        icon: Icons.more_time_rounded,
-                        color: ArvinColors.category,
-                        items: List.generate(60, (value) => ArvinRollItem<int>(
-                          value: value,
-                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                          icon: Icons.timelapse_outlined,
-                          color: ArvinColors.category,
-                        )),
-                        onSelected: (value) { if (value != null) setDialogState(() => minute = value); },
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(width: double.infinity, child: FilledButton(
-                        key: const ValueKey('task-editor-time-confirm'),
-                        onPressed: () => Navigator.of(dialogContext).pop(TimeOfDay(hour: hour, minute: minute)),
-                        child: const Text('ثبت ساعت'),
-                      )),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+        child: MediaQuery(
+          data: MediaQuery.of(dialogContext).copyWith(alwaysUse24HourFormat: true),
+          child: child ?? const SizedBox.shrink(),
         ),
       ),
     );
-
     if (picked == null) return null;
     return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
@@ -829,11 +781,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       Expanded(
                         child: ArvinRollBox<String>(
                           label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : widget.projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
+                          valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
                           icon: Icons.folder_outlined,
                           color: ArvinColors.project,
                           emptyLabel: 'بدون پروژه',
-                          items: widget.projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
+                          items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
                             value: project.id,
                             label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
                             icon: Icons.folder_outlined,
@@ -843,7 +795,24 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           onCreate: () async {
                             final title = await _promptNewName('پروژه جدید');
                             if (title == null || widget.onCreateProject == null) return null;
-                            return widget.onCreateProject!(title);
+                            final createdId = await widget.onCreateProject!(title);
+                            if (!mounted || createdId == null || createdId.trim().isEmpty) {
+                              return createdId;
+                            }
+                            final existing = _projects.indexWhere((project) => project.id == createdId);
+                            setState(() {
+                              if (existing >= 0) {
+                                _projects[existing] = _projects[existing].copyWith(title: title);
+                              } else {
+                                _projects = [
+                                  ..._projects,
+                                  ProjectPlan(id: createdId, title: title),
+                                ];
+                              }
+                              _selectedProjectId = createdId;
+                            });
+                            widget.onProjectChanged?.call(createdId);
+                            return createdId;
                           },
                         ),
                       ),
