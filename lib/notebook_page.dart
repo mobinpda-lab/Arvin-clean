@@ -626,9 +626,6 @@ class NotebookEditorPage extends StatefulWidget {
 }
 
 class _NotebookEditorPageState extends State<NotebookEditorPage> {
-  static const _newCategoryToken = '__new_category__';
-  static const _clearCategoryToken = '__clear_category__';
-
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _titleFocus = FocusNode();
@@ -644,7 +641,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _editing = false;
   bool _saving = false;
   String? _category;
-  String? _projectId;
   String? _projectTitle;
   List<String> _tags = [];
   List<String> _legacyChecklist = [];
@@ -701,7 +697,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _tags = List<String>.of(note.tags);
     final projectId = await widget.repository.projectIdForNote(note.id);
     final projects = await widget.repository.loadProjects();
-    _projectId = projectId;
     for (final project in projects) {
       if (project.id == projectId) {
         _projectTitle = project.title;
@@ -905,7 +900,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     await widget.repository.updateProject(id: widget.noteId, projectId: nextProjectId);
     if (!mounted) return;
     setState(() {
-      _projectId = nextProjectId;
       _projectTitle = nextTitle;
     });
   }
