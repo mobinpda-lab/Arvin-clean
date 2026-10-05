@@ -472,6 +472,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => Material(color: Colors.transparent, child: child),
             itemCount: _checklist.length,
             onReorder: (oldIndex, newIndex) {
               setState(() {
