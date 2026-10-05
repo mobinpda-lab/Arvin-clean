@@ -2127,7 +2127,7 @@ class _HomePageState extends State<HomePage> {
         .length;
     final progress = total == 0 ? 0.0 : completed / total;
     return Column(
-      key: ValueKey('task-card-checklist-progress-' + task.id),
+      key: ValueKey('task-card-checklist-progress-${task.id}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -2135,7 +2135,7 @@ class _HomePageState extends State<HomePage> {
             const Icon(Icons.checklist_rounded, size: 15, color: Color(0xFF4A4CAB)),
             const SizedBox(width: 4),
             Text(
-              'چک‌لیست: ' + persianDateFormatter.toPersianDigits('$completed از $total'),
+              'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
               style: const TextStyle(color: Color(0xFF80829C), fontSize: 11, fontWeight: FontWeight.w600),
             ),
           ],
