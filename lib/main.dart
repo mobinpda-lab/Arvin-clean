@@ -11,8 +11,6 @@ import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
-import 'home/grouping/home_group_mode.dart';
-import 'home/grouping/home_grouping_service.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
 import 'notebook_page.dart';
@@ -149,7 +147,6 @@ class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
-  final HomeGroupingService homeGroupingService = const HomeGroupingService();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   final ArvinBackupManager backupManager = ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
@@ -174,7 +171,6 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
-  HomeGroupMode _homeGroupMode = HomeGroupMode.time;
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -185,7 +181,6 @@ class _HomePageState extends State<HomePage> {
   TaskDueScope? _dueScope;
   String? _categoryFilter;
   String? _projectFilter;
-  String? _tagFilter;
   final Set<String> _tagFilters = <String>{};
   String _timeFilter = 'all';
   DateTime? _specificDateFilter;
@@ -193,15 +188,6 @@ class _HomePageState extends State<HomePage> {
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
 
-  bool get _homeHasContextualFilter =>
-      _listScope != TaskListScope.all ||
-      _dueScope != null ||
-      _categoryFilter != null ||
-      _projectFilter != null ||
-      _tagFilter != null;
-
-  bool get _homeAllFilterSelected =>
-      filter == 'کل' && !_homeHasContextualFilter;
 
   @override
   void initState() {
