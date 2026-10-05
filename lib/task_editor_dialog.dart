@@ -710,7 +710,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
             ),
             ],
-          ),
         ],
       ),
     );
