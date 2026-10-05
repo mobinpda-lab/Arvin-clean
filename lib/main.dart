@@ -199,8 +199,6 @@ class _HomePageState extends State<HomePage> {
   bool selectionMode = false;
   String query = '';
   String filter = 'کل';
-  TaskListScope _listScope = TaskListScope.all;
-  TaskDueScope? _dueScope;
   String? _categoryFilter;
   String? _projectFilter;
   final Set<String> _tagFilters = <String>{};
