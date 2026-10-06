@@ -8,6 +8,8 @@ void main() {
         File('lib/android_follow_up_reminder_scheduler.dart').readAsStringSync();
     final runner =
         File('lib/follow_up_reminder_background_runner.dart').readAsStringSync();
+    final planner =
+        File('lib/services/follow_up_reminder_alarm_planner.dart').readAsStringSync();
     final notification = File('lib/follow_up_reminder_notification_service.dart')
         .readAsStringSync();
 
@@ -20,7 +22,7 @@ void main() {
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
     expect(notification, contains('payload: candidate.taskId'));
-    expect(scheduler, contains("'task:'"));
+    expect(planner, contains("'task:'"));
     expect(runner, contains('FollowUpReminderDeliveryService'));
   });
 
@@ -31,7 +33,7 @@ void main() {
     expect(RegExp(r'await taskStore\.save\(').allMatches(home).length, 4);
     expect(
       RegExp(r'AndroidFollowUpReminderScheduler\(\)\.reschedule\(\)').allMatches(home).length,
-      4,
+      5,
     );
   });
 
