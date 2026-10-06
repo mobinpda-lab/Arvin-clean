@@ -22,6 +22,18 @@ class FollowUpReminderDeliveryService {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
+      final taskReminder = task.reminderDate;
+      if (taskReminder != null && !taskReminder.isAfter(now)) {
+        final candidate = FollowUpReminderCandidate.task(
+          taskId: task.id,
+          taskTitle: task.title,
+          scheduledAt: taskReminder,
+        );
+        if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
+          result.add(candidate);
+        }
+      }
+
       for (final followUp in task.followUps) {
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
