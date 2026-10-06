@@ -1708,16 +1708,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _openTaxonomyManagement() async {
-    if (!mounted) return;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => const TaskTaxonomyManagementPage(),
-      ),
-    );
-    if (mounted) await _load();
-  }
-
   void _showAbout() {
     showAboutDialog(
       context: context,
