@@ -37,7 +37,7 @@ void main() {
     );
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
 
-    expect(notificationCenter.dx, lessThan(menuCenter.dx));
+    expect(notificationCenter.dx, greaterThan(menuCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
@@ -53,8 +53,8 @@ void main() {
     expect(find.text('آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
