@@ -32,6 +32,7 @@ import 'services/task_list_sort_service.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
+import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
@@ -96,6 +97,7 @@ class _ArvinAppState extends State<ArvinApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',
       theme: ThemeData(
         useMaterial3: true,
