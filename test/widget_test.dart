@@ -37,16 +37,17 @@ void main() {
     expect(find.text('پروژه'), findsOneWidget);
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'دفترچه'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'اقدام بعدی'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'بیشتر'), findsOneWidget);
+    expect(find.text('خانه'), findsOneWidget);
+    expect(find.text('تقویم'), findsOneWidget);
+    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('بیشتر'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
