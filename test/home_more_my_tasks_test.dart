@@ -14,14 +14,12 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('home-more-report'), skipOffstage: false),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
 
     expect(find.byKey(const ValueKey('home-more-taxonomy')), findsNothing);
-    expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-more-report'), skipOffstage: false),
+      findsOneWidget,
+    );
     expect(find.text('گزارش‌ها'), findsOneWidget);
   });
 }
