@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
+
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
@@ -674,7 +676,11 @@ class _HomePageState extends State<HomePage> {
           Icon(Icons.search_off_rounded, size: 38, color: ArvinColors.neutral),
           const SizedBox(height: 10),
           Text(
-            _timeFilter == 'today' && filter == 'فعال' ? 'کاری برای امروز وجود ندارد' : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد'),
+            (filter == 'سطل زباله' || filter == 'بایگانی')
+                ? _emptyVisibleLabel
+                : (_timeFilter == 'today' && filter == 'فعال'
+                    ? 'کاری برای امروز وجود ندارد'
+                    : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد')),
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           if (_homeFilterActive) TextButton(onPressed: _clearHomeFilters, child: const Text('پاک کردن فیلترها')),
@@ -2282,7 +2288,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(child: Column(children: const [
                 Text('آروین', style: TextStyle(color: ArvinColors.primary, fontSize: 20, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها و پیگیری آروین', key: const ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
               ])),
               IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
             ]),
