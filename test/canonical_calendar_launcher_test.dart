@@ -134,6 +134,11 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها', skipOffstage: false),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -196,6 +201,11 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها', skipOffstage: false),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     final apply = find.textContaining('اعمال ۰۹:۳۰').first;
