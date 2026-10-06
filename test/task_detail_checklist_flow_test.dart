@@ -42,7 +42,7 @@ void main() {
 
   testWidgets('task detail hides checklist section when task has no checklist', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: TaskDetailPage(
           task: Task(id: 'no-checklist', title: 'کار ساده'),
         ),
