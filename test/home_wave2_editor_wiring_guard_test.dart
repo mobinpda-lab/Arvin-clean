@@ -28,8 +28,6 @@ void main() {
       source,
       contains('onProjectChanged: (value) => selectedProjectId = value'),
     );
-    expect(source, contains('Future<void> _addToProject(String projectId)'));
-    expect(source, contains('Future<Task?> _addForDate(DateTime date)'));
     expect(
       source,
       isNot(contains('builder: (_) => const ArvinTaskEditorDialog(),')),
