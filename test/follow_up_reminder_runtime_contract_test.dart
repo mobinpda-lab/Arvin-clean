@@ -20,6 +20,15 @@ void main() {
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
     expect(notification, contains('payload: candidate.taskId'));
+    expect(scheduler, contains('taskReminder'));
+    expect(runner, contains('FollowUpReminderDeliveryService'));
+  });
+
+  test('canonical Home Task writes reschedule the shared reminder foundation', () {
+    final home = File('lib/main.dart').readAsStringSync();
+
+    expect(home, contains('await taskStore.save(snapshot);'));
+    expect(home, contains('AndroidFollowUpReminderScheduler().reschedule()'));
   });
 
   test('canonical FollowUp write paths request reminder rescheduling', () {
