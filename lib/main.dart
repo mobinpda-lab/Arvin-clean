@@ -2364,7 +2364,6 @@ enum _HomeMoreAction {
   trash,
   backup,
   settings,
-  taxonomy,
   nextAction,
   about,
 }
