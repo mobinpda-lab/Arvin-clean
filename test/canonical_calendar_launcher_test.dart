@@ -67,11 +67,11 @@ void main() {
     );
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
-    expect(find.text('اقدام بعدی'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('خط زمانی'), findsNothing);
     expect(find.text('تداخل‌ها'), findsNothing);
@@ -290,6 +290,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('اقدام بعدی'));
     await _pumpRouteTransition(tester);
 
