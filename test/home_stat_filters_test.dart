@@ -68,7 +68,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته‌ها'));
+    await tester.tap(find.text('دسته'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب‌ها'));
     await tester.pumpAndSettle();
