@@ -125,7 +125,7 @@ void main() {
     expect(find.text('جلسه فنی'), findsNothing);
   });
 
-  testWidgets('Home search includes active, completed, archived, and trashed tasks',
+  testWidgets('Home search scopes the active Home task set',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
@@ -140,8 +140,8 @@ void main() {
 
     expect(find.text('جستجوی مشترک فعال'), findsOneWidget);
     expect(find.text('جستجوی مشترک انجام‌شده'), findsOneWidget);
-    expect(find.text('جستجوی مشترک بایگانی'), findsOneWidget);
-    expect(find.text('جستجوی مشترک حذف‌شده'), findsOneWidget);
+    expect(find.text('جستجوی مشترک بایگانی'), findsNothing);
+    expect(find.text('جستجوی مشترک حذف‌شده'), findsNothing);
   });
 
   testWidgets('Home search uses canonical Persian and FollowUp text',
