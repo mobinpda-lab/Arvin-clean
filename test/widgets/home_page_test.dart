@@ -399,7 +399,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('none')),
       400,
-      scrollable: find.byType(ListView).last,
+      scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
     final cards = find.byType(Dismissible);
