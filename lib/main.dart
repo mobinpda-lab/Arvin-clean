@@ -2356,6 +2356,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 enum _HomeMoreAction {
+  report,
   quickCapture,
   myTasks,
   today,
