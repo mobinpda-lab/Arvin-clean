@@ -674,7 +674,7 @@ class _HomePageState extends State<HomePage> {
           Icon(Icons.search_off_rounded, size: 38, color: ArvinColors.neutral),
           const SizedBox(height: 10),
           Text(
-            _homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد',
+            _timeFilter == 'today' && filter == 'فعال' ? 'کاری برای امروز وجود ندارد' : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد'),
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           if (_homeFilterActive) TextButton(onPressed: _clearHomeFilters, child: const Text('پاک کردن فیلترها')),
