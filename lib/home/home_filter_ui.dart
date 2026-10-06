@@ -35,45 +35,61 @@ class HomeFilterCard extends StatelessWidget {
         label: title + ': ' + value,
         child: Material(
           color: selected ? Color.alphaBlend(accent.withAlpha(22), soft) : soft,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
             key: ValueKey('home-filter-card-' + dimension.name),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             onTap: onTap,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOutCubic,
-              height: 108,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+              height: 88,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
               decoration: BoxDecoration(
-                color: selected ? Color.alphaBlend(accent.withAlpha(18), soft) : soft,
-                borderRadius: BorderRadius.circular(18),
+                color: selected
+                    ? Color.alphaBlend(accent.withAlpha(18), soft)
+                    : soft,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
                   width: selected ? 1.5 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(selected ? 13 : 8),
-                    blurRadius: selected ? 10 : 7,
-                    offset: const Offset(0, 3),
+                    color: Colors.black.withAlpha(selected ? 13 : 7),
+                    blurRadius: selected ? 9 : 6,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: accent, size: 23),
-                  const SizedBox(height: 7),
-                  Text(title, maxLines: 1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: accent.withAlpha(235), fontSize: 11.5, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 3),
+                  Icon(icon, color: accent, size: 20),
+                  const SizedBox(height: 5),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: accent.withAlpha(235),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
                   FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(value, maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: accent, fontSize: 12.5, fontWeight: FontWeight.w800)),
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -116,7 +132,14 @@ class HomeFilterChip extends StatelessWidget {
         children: [
           if (icon != null) Icon(icon, size: 15, color: accent),
           if (icon != null) const SizedBox(width: 4),
-          Text(label, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            style: TextStyle(
+              color: accent,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(width: 2),
           IconButton(
             onPressed: onRemove,
@@ -132,6 +155,11 @@ class HomeFilterChip extends StatelessWidget {
   }
 }
 
+/// Product-grade Home selection panel.
+///
+/// This intentionally uses a centered dialog rather than Flutter's generic
+/// bottom-sheet presentation. The same selection flow is reused by time,
+/// project, category and tag filters.
 class HomeFilterSheet extends StatelessWidget {
   const HomeFilterSheet({
     super.key,
@@ -146,46 +174,90 @@ class HomeFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+    final height = MediaQuery.sizeOf(context).height;
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          maxHeight: height * .76,
+          minHeight: 220,
+        ),
+        child: Material(
+          color: ArvinColors.surface,
+          elevation: 12,
+          shadowColor: Colors.black.withAlpha(35),
+          borderRadius: BorderRadius.circular(28),
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  tooltip: 'بستن',
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
+                Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: accent.withAlpha(70),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-                const SizedBox(width: 2),
-                Icon(Icons.tune_rounded, color: accent, size: 22),
-                const SizedBox(width: 8),
-                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: accent.withAlpha(22),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.tune_rounded, color: accent, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Expanded(child: child),
               ],
             ),
-            Flexible(child: child),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  static Future<T?> show<T>(BuildContext context, {
+  static Future<T?> show<T>(
+    BuildContext context, {
     required String title,
     required Color accent,
     required Widget child,
   }) {
-    return showModalBottomSheet<T>(
+    return showDialog<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ArvinColors.surface,
-      barrierColor: Colors.black.withAlpha(45),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      barrierColor: Colors.black.withAlpha(55),
+      barrierDismissible: true,
+      builder: (_) => HomeFilterSheet(
+        title: title,
+        accent: accent,
+        child: child,
       ),
-      builder: (_) => HomeFilterSheet(title: title, accent: accent, child: child),
     );
   }
 }
