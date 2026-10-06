@@ -11,6 +11,7 @@ import 'services/task_store.dart';
 const int followUpReminderAlarmId = 42002;
 
 // Task reminder identities use the shared `task:` namespace in the canonical planner.
+// The canonical task reminder namespace is 'task:'.
 
 @pragma('vm:entry-point')
 Future<void> arvinFollowUpReminderAlarmCallback() async {
