@@ -2194,7 +2194,6 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
-,
                       if (task.dueDate != null) ...[
                         const SizedBox(height: 5),
                         Row(
