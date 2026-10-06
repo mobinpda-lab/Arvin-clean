@@ -32,8 +32,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
     expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
