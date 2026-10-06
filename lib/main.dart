@@ -702,7 +702,7 @@ class _HomePageState extends State<HomePage> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Material(key: ValueKey('home-group-' + group.id), color: soft, borderRadius: BorderRadius.circular(15), child: InkWell(
+            Material(key: ValueKey('home-group-${group.id}'), color: soft, borderRadius: BorderRadius.circular(15), child: InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () => setState(() { if (collapsed) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id); }),
               child: Padding(
