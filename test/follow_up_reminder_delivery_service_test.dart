@@ -96,7 +96,7 @@ void main() {
     expect(result, isEmpty);
   });
 
-  test('Task-level reminder stays independent from FollowUp reminder delivery', () {
+  test('Task-level reminder is delivered by the canonical reminder service', () {
     final result = service.due(
       [
         task(
@@ -108,7 +108,26 @@ void main() {
       now: now,
     );
 
-    expect(result, isEmpty);
+    expect(result, hasLength(1));
+    expect(result.single.isTaskReminder, isTrue);
+    expect(result.single.stableKey, 'task:one');
+    expect(result.single.followUpId, isNull);
+    expect(result.single.scheduledAt, now.subtract(const Duration(minutes: 1)));
+  });
+
+  test('Task-level reminder and FollowUp reminder can coexist without duplicate identity', () {
+    final result = service.due(
+      [
+        task(
+          'one',
+          taskReminder: now.subtract(const Duration(minutes: 2)),
+          followUps: [followUp('fu', now.subtract(const Duration(minutes: 1)))],
+        ),
+      ],
+      now: now,
+    );
+
+    expect(result.map((item) => item.stableKey), ['task:one', 'one:fu']);
   });
 
   test('blank note uses canonical label and ordering is deterministic', () {
