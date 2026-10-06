@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'models/goal_project.dart';
 import 'projects_page.dart';
 import 'services/project_store.dart';
+import 'services/arvin_route_observer.dart';
 
 /// Loads the canonical Project collection before opening the existing
 /// [ProjectsPage], then persists every Project lifecycle change through the
@@ -19,7 +20,8 @@ class ProjectsLauncher extends StatefulWidget {
   State<ProjectsLauncher> createState() => _ProjectsLauncherState();
 }
 
-class _ProjectsLauncherState extends State<ProjectsLauncher> {
+class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
+  ModalRoute<void>? _route;
   late final ProjectStore _store = widget.store ?? ProjectStore();
   List<ProjectPlan>? _projects;
   Object? _loadError;
@@ -28,6 +30,27 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route == null || route == _route) return;
+    if (_route != null) arvinRouteObserver.unsubscribe(this);
+    _route = route;
+    arvinRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPopNext() {
+    _load();
+  }
+
+  @override
+  void dispose() {
+    arvinRouteObserver.unsubscribe(this);
+    super.dispose();
   }
 
   Future<void> _load() async {
