@@ -1822,6 +1822,14 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
+                key: const ValueKey('home-more-next-action'),
+                leading: const Icon(Icons.next_plan_outlined),
+                title: const Text('اقدام بعدی'),
+                subtitle: const Text('پیشنهاد بهترین کار بعدی'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.nextAction),
+              ),
+              ListTile(
                 key: const ValueKey('home-more-taxonomy'),
                 leading: const Icon(Icons.category_outlined),
                 title: const Text('دسته‌ها و برچسب‌ها'),
@@ -1876,6 +1884,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.nextAction:
+        await _openPrimaryNextAction();
         return;
       case _HomeMoreAction.taxonomy:
         await _openTaxonomyManagement();
@@ -2350,6 +2361,7 @@ enum _HomeMoreAction {
   backup,
   settings,
   taxonomy,
+  nextAction,
   about,
 }
 
