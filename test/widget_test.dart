@@ -46,7 +46,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
 
-    final moreSheet = find.byType(ListView).last;
+    final moreSheet = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('home-more-report')),
       300,
