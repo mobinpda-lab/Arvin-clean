@@ -2318,7 +2318,7 @@ class _HomePageState extends State<HomePage> {
           _homeActiveFilterChips(),
           Expanded(child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
+                Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 const Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 const Text('برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.', textAlign: TextAlign.center),
