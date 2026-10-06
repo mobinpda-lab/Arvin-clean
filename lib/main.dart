@@ -289,6 +289,12 @@ class _HomePageState extends State<HomePage> {
     final snapshot = List<Task>.of(tasks);
     await taskStore.save(snapshot);
     try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // Canonical Task storage already succeeded; the existing alarm foundation
+      // can retry on the next lifecycle/scheduler trigger.
+    }
+    try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
       );
