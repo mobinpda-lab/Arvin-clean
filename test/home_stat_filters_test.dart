@@ -21,9 +21,14 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
+    final scrollable = find.byType(Scrollable);
+    await tester.scrollUntilVisible(find.text('کار فعال'), 400, scrollable: scrollable);
     expect(find.text('کار فعال'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('کار انجام شده'), 400, scrollable: scrollable);
     expect(find.text('کار انجام شده'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('کار عقب افتاده'), 400, scrollable: scrollable);
     expect(find.text('کار عقب افتاده'), findsOneWidget);
+
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
