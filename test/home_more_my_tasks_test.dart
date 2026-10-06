@@ -8,18 +8,14 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('More exposes report center entry', (tester) async {
+  testWidgets('More exposes category and tag management', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsNothing);
-    final reportEntry = find.byKey(const ValueKey('home-more-report'));
-    await tester.ensureVisible(reportEntry);
-    await tester.pumpAndSettle();
-    expect(reportEntry, findsOneWidget);
-    expect(find.text('گزارش‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
+    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
   });
 }
