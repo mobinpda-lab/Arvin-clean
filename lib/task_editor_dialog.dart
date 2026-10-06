@@ -176,12 +176,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       confirmText: 'تأیید',
     );
     if (picked == null) return null;
+    // A new Task with a date but no explicit time is a true All-Day
+    // Task. Preserve an existing time only when the editor already had one.
+    final hasExistingTime = current != null && !(_dueAllDay && current == _dueDateTime);
     return DateTime(
       picked.year,
       picked.month,
       picked.day,
-      base.hour,
-      base.minute,
+      hasExistingTime ? base.hour : 0,
+      hasExistingTime ? base.minute : 0,
     );
   }
 
