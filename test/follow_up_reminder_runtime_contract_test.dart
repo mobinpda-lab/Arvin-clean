@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-// Reminder runtime contract: task identity is owned by the canonical planner.\nvoid main() {
+// Reminder runtime contract: task identity is owned by the canonical planner.
+void main() {
   test('independent FollowUp reminder runtime reuses reboot-safe AlarmManager', () {
     final scheduler =
         File('lib/android_follow_up_reminder_scheduler.dart').readAsStringSync();
@@ -32,7 +33,9 @@ import 'package:flutter_test/flutter_test.dart';
     expect(home, contains('await taskStore.save(snapshot);'));
     expect(RegExp(r'await taskStore\.save\(').allMatches(home).length, 4);
     expect(
-      RegExp(r'AndroidFollowUpReminderScheduler\(\)\.reschedule\(\)').allMatches(home).length,
+      RegExp(r'AndroidFollowUpReminderScheduler\(\)\.reschedule\(\)')
+          .allMatches(home)
+          .length,
       5,
     );
   });
