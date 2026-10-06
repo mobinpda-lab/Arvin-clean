@@ -20,7 +20,7 @@ void main() {
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
     expect(notification, contains('payload: candidate.taskId'));
-    expect(scheduler, contains('taskReminder'));
+    expect(scheduler, contains("'task:'"));
     expect(runner, contains('FollowUpReminderDeliveryService'));
   });
 
