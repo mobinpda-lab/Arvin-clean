@@ -702,7 +702,7 @@ class _HomePageState extends State<HomePage> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Material(color: soft, borderRadius: BorderRadius.circular(15), child: InkWell(
+            Material(key: ValueKey('home-group-' + group.id), color: soft, borderRadius: BorderRadius.circular(15), child: InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () => setState(() { if (collapsed) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id); }),
               child: Padding(
@@ -2292,7 +2292,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(child: Column(children: const [
                 Text('آروین', style: TextStyle(color: ArvinColors.primary, fontSize: 20, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: const ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
               ])),
               IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
             ]),
