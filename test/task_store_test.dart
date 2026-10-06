@@ -29,6 +29,34 @@ void main() {
     expect(loaded.single.completed, isTrue);
   });
 
+
+  test('TaskStore preserves explicit All-Day due-date state', () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'all-day-1',
+        title: 'All day',
+        dueDate: DateTime(2026, 10, 5),
+        allDay: true,
+      ),
+    ]);
+
+    final loaded = await store.load();
+    expect(loaded.single.dueDate, DateTime(2026, 10, 5));
+    expect(loaded.single.allDay, isTrue);
+  });
+
+  test('TaskStore keeps legacy tasks timed when All-Day flag is absent', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      TaskStore.key,
+      '[{"id":"legacy-timed","title":"Legacy","dueDate":"2026-10-05T00:00:00.000"}]',
+    );
+
+    final loaded = await TaskStore().load();
+    expect(loaded.single.allDay, isFalse);
+  });
+
   test('TaskStore remains compatible with older data without completed', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(

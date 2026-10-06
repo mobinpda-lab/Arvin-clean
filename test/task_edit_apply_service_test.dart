@@ -36,6 +36,7 @@ void main() {
       title: 'جدید',
       description: 'بعد',
       dueDate: DateTime(2026, 8, 30, 14),
+      allDay: true,
       followUpEnabled: false,
       tags: ['مهم', 'مشتری'],
       category: 'مشتریان',
@@ -53,6 +54,7 @@ void main() {
     expect(target.title, 'جدید');
     expect(target.description, 'بعد');
     expect(target.dueDate, DateTime(2026, 8, 30, 14));
+    expect(target.allDay, isTrue);
     expect(target.followUpEnabled, isFalse);
     expect(target.followUpDate, isNull);
     expect(target.tags, ['مهم', 'مشتری']);

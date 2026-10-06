@@ -187,4 +187,36 @@ void main() {
     expect(result, isNotNull);
     expect(result!.dueDate, DateTime(2026, 9, 20, 14, 30));
   });
+
+  testWidgets('date-only due date persists as explicit All-Day without a time', (tester) async {
+    Task? result;
+    await openEditor(tester, onResult: (value) => result = value);
+
+    final dateBox = find.byKey(const ValueKey('task-editor-due-date-rollbox'));
+    await tester.ensureVisible(dateBox);
+    await tester.tap(dateBox);
+    await tester.pumpAndSettle();
+
+    final today = find.text('امروز');
+    expect(today, findsOneWidget);
+    await tester.tap(today);
+    await tester.pumpAndSettle();
+
+    final allDay = find.byKey(const ValueKey('task-editor-due-all-day'));
+    await tester.ensureVisible(allDay);
+    await tester.pumpAndSettle();
+    final allDayTile = tester.widget<CheckboxListTile>(allDay);
+    expect(allDayTile.value, isTrue);
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.allDay, isTrue);
+    expect(result!.dueDate!.hour, 0);
+    expect(result!.dueDate!.minute, 0);
+  });
 }

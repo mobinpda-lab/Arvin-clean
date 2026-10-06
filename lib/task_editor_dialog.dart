@@ -64,6 +64,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final FocusNode _titleFocusNode;
   DateTime? _followUpDateTime;
   DateTime? _dueDateTime;
+  late bool _dueAllDay;
   DateTime? _reminderDateTime;
   late bool _followUpEnabled;
   late bool _completed;
@@ -95,6 +96,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleFocusNode = FocusNode();
     _followUpDateTime = task?.legacyHomeFollowUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
+    _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.reminderDate;
     _followUpEnabled =
         task?.followUpEnabled == true ||
@@ -174,12 +176,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       confirmText: 'تأیید',
     );
     if (picked == null) return null;
+    // A new Task with a date but no explicit time is a true All-Day
+    // Task. Preserve an existing time only when the editor already had one.
+    final hasExistingTime = current != null && !(_dueAllDay && current == _dueDateTime);
     return DateTime(
       picked.year,
       picked.month,
       picked.day,
-      base.hour,
-      base.minute,
+      hasExistingTime ? base.hour : 0,
+      hasExistingTime ? base.minute : 0,
     );
   }
 
@@ -238,7 +243,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       _dueDateTime,
       helpText: 'انتخاب تاریخ انجام کار',
     );
-    if (value != null && mounted) setState(() => _dueDateTime = value);
+    if (value != null && mounted) {
+      setState(() {
+        _dueDateTime = _dueDateTime == null
+            ? DateTime(value.year, value.month, value.day)
+            : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
+        if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
+      });
+    }
   }
 
   Future<void> _pickDueTime() async {
@@ -246,7 +258,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       _dueDateTime,
       helpText: 'انتخاب ساعت انجام کار',
     );
-    if (value != null && mounted) setState(() => _dueDateTime = value);
+    if (value != null && mounted) {
+      setState(() {
+        _dueDateTime = value;
+        _dueAllDay = false;
+      });
+    }
   }
 
   Future<void> _pickReminderDate() async {
@@ -266,7 +283,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   void _clearFollowUpTime() => setState(() => _followUpDateTime = null);
-  void _clearDueTime() => setState(() => _dueDateTime = null);
+  void _clearDueTime() => setState(() {
+    _dueDateTime = null;
+    _dueAllDay = false;
+  });
+
+  void _toggleDueAllDay(bool value) {
+    if (_dueDateTime == null) return;
+    setState(() {
+      _dueAllDay = value;
+      if (value) {
+        _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
+      }
+    });
+  }
   void _clearReminderTime() => setState(() => _reminderDateTime = null);
 
   Future<String?> _promptNewName(String title) async {
@@ -318,6 +348,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           _followUpEnabled ||
           _followUpDateTime != null ||
           _dueDateTime != null ||
+          _dueAllDay ||
           _reminderDateTime != null ||
           _recurrence != null ||
           _priority != TaskPriority.none ||
@@ -338,6 +369,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _followUpEnabled != initialFollowUpEnabled ||
         _followUpDateTime != existing.legacyHomeFollowUpDate ||
         _dueDateTime != existing.dueDate ||
+        _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _priority != existing.priority ||
@@ -511,6 +543,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
+        allDay: _dueDateTime != null && _dueAllDay,
         followUpEnabled: _followUpEnabled,
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
@@ -599,7 +632,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               } else if (target.contains('follow-up') || target.contains('followup')) {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
-                _dueDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+                _dueDateTime = _dueAllDay || value == null
+                    ? DateTime(picked.year, picked.month, picked.day)
+                    : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+                if (value == null || _dueAllDay) _dueAllDay = true;
               }
             });
           } else {
@@ -633,6 +669,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required VoidCallback onPickTime,
     required VoidCallback onClear,
     Color accent = ArvinColors.primary,
+    bool allDay = false,
+    ValueChanged<bool>? onToggleAllDay,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -662,9 +700,24 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             children: [
               Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
               const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
             ],
           ),
+          if (onToggleAllDay != null && value != null) ...[
+            const SizedBox(height: 4),
+            Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
+                key: ValueKey('$keyPrefix-all-day'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: allDay,
+                onChanged: (next) => onToggleAllDay(next ?? false),
+                title: const Text('تمام‌روز'),
+                subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
+              ),
+            ),
+            ],
         ],
       ),
     );
@@ -872,6 +925,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         onPickTime: _pickDueTime,
                         onClear: _clearDueTime,
                         accent: ArvinColors.time,
+                        allDay: _dueAllDay,
+                        onToggleAllDay: _toggleDueAllDay,
                       ),
                       const SizedBox(height: 10),
                       _dateTimeEditor(
