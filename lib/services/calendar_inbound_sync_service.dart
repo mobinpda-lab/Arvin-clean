@@ -1,3 +1,4 @@
+import '../android_follow_up_reminder_scheduler.dart';
 import '../calendar_page.dart';
 import '../models/task.dart';
 import '../services/task_store.dart';
@@ -30,15 +31,18 @@ class CalendarInboundSyncService {
     ExternalCalendarLinkStore? linkStore,
     TaskStore? taskStore,
     CalendarSyncRevisionService? revisionService,
+    Future<void> Function()? reminderReschedule,
   })  : bridge = bridge ?? SystemCalendarBridge(),
         linkStore = linkStore ?? ExternalCalendarLinkStore(),
         taskStore = taskStore ?? TaskStore(),
-        revisionService = revisionService ?? CalendarSyncRevisionService();
+        revisionService = revisionService ?? CalendarSyncRevisionService(),
+        reminderReschedule = reminderReschedule ?? AndroidFollowUpReminderScheduler().reschedule;
 
   final SystemCalendarBridge bridge;
   final ExternalCalendarLinkStore linkStore;
   final TaskStore taskStore;
   final CalendarSyncRevisionService revisionService;
+  final Future<void> Function() reminderReschedule;
 
   Future<CalendarInboundSyncResult> reconcile({
     required DateTime start,
@@ -165,6 +169,12 @@ class CalendarInboundSyncService {
 
     if (updated > 0 || deleted > 0) {
       await taskStore.save(tasks);
+      try {
+        await reminderReschedule();
+      } catch (_) {
+        // Canonical calendar/task reconciliation succeeded; reminder scheduling
+        // is best-effort and can retry through the existing scheduler lifecycle.
+      }
     }
     await linkStore.save(remainingLinks);
 
