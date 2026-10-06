@@ -24,8 +24,7 @@ class FollowUpReminderAlarmPlanner {
 
       final taskReminder = task.reminderDate;
       if (taskReminder != null) {
-        final identity =
-            'task:' + task.id + '@' + taskReminder.toIso8601String();
+        final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
         if (!delivered.contains(identity)) candidates.add(taskReminder);
       }
 
