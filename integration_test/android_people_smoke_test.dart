@@ -68,8 +68,6 @@ void main() {
 
     // Full-form editing returns to the Quick Capture sheet. Close every
     // remaining visible capture sheet before exercising real navigation.
-    // Full-form editing returns to the Quick Capture sheet. Close every
-    // remaining visible capture sheet before exercising real navigation.
     for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
       final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
       if (cancel.evaluate().isEmpty) break;
@@ -78,7 +76,7 @@ void main() {
     }
     expect(quickCapture, findsNothing);
 
-    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(ListView).last);
+    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(Scrollable).last);
     expect(find.text(taskTitle), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
