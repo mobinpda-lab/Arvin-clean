@@ -79,12 +79,12 @@ void main() {
     await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(Scrollable).last);
     expect(find.text(taskTitle), findsOneWidget);
 
-    final homeBar = find.byType(NavigationBar);
+    final homeBar = find.byType(ArvinPrimaryNavigation);
     expect(homeBar, findsOneWidget);
     await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
-    final calendarBar = find.byType(NavigationBar);
+    final calendarBar = find.byType(ArvinPrimaryNavigation);
     expect(calendarBar, findsOneWidget);
     await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
