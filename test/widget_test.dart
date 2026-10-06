@@ -45,6 +45,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
+
+    final moreSheet = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('home-more-report')),
+      300,
+      scrollable: moreSheet,
+    );
     expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
     expect(find.text('گزارش‌ها'), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
