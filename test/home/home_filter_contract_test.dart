@@ -20,13 +20,18 @@ void main() {
 
     expect(find.text('تاریخ‌گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
-    expect(find.text('فردا'), findsOneWidget);
-    expect(find.text('آینده'), findsOneWidget);
-    expect(find.text('فاقد زمان'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+
+    final scrollable = find.byType(Scrollable);
+    await tester.scrollUntilVisible(find.text('فردا'), 400, scrollable: scrollable);
+    expect(find.text('فردا'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('آینده'), 400, scrollable: scrollable);
+    expect(find.text('آینده'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('فاقد زمان'), 400, scrollable: scrollable);
+    expect(find.text('فاقد زمان'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
