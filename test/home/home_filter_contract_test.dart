@@ -38,7 +38,7 @@ void main() {
     await tester.tap(find.text('امروز').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('تاریخ‌گذشته'), findsNothing);
     expect(find.text('فردا'), findsNothing);
     expect(find.text('آینده'), findsNothing);
