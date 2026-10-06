@@ -20,7 +20,8 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
 
-    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsNothing);
+    expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
     expect(find.text('گزارش‌ها'), findsOneWidget);
   });
 }
