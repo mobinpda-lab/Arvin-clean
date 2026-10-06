@@ -52,9 +52,8 @@ void main() {
 
     // «همه کارها»: a completed task with an old due date must remain visible.
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(Scrollable).last);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
-
-    await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(ListView).last);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
@@ -397,6 +396,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('none')));
+    await tester.pumpAndSettle();
     final cards = find.byType(Dismissible);
     expect(cards, findsNWidgets(2));
 
