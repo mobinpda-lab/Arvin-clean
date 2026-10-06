@@ -10,7 +10,6 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'قرارداد',
-      reminderDate: DateTime(2026, 8, 29, 8),
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -32,6 +31,28 @@ void main() {
     expect(result.single.stableKey, 'task-1:fu-1');
   });
 
+  test('projects canonical Task reminder alongside FollowUp reminders', () {
+    final task = Task(
+      id: 'task-1',
+      title: 'کار',
+      reminderDate: DateTime(2026, 8, 28, 17),
+      followUps: [
+        FollowUp(
+          id: 'fu-1',
+          dateTime: DateTime(2026, 8, 28, 15),
+          reminderDate: DateTime(2026, 8, 28, 18),
+        ),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey), ['task:task-1', 'task-1:fu-1']);
+    expect(result.first.isTaskReminder, isTrue);
+    expect(result.first.label, 'یادآوری');
+  });
+
   test('FollowUp reminder remains independent from Task reminder', () {
     final task = Task(
       id: 'task-1',
@@ -48,8 +69,10 @@ void main() {
 
     final result = projection.pending([task], now: now);
 
-    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 18));
-    expect(result.single.label, 'پیگیری');
+    expect(result, hasLength(2));
+    final followUpReminder = result.singleWhere((item) => item.isTaskReminder == false);
+    expect(followUpReminder.scheduledAt, DateTime(2026, 8, 28, 18));
+    expect(followUpReminder.label, 'پیگیری');
   });
 
   test('ignores disabled, expired, completed, archived, and trashed work', () {

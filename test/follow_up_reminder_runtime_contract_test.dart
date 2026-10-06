@@ -8,6 +8,8 @@ void main() {
         File('lib/android_follow_up_reminder_scheduler.dart').readAsStringSync();
     final runner =
         File('lib/follow_up_reminder_background_runner.dart').readAsStringSync();
+    final planner =
+        File('lib/services/follow_up_reminder_alarm_planner.dart').readAsStringSync();
     final notification = File('lib/follow_up_reminder_notification_service.dart')
         .readAsStringSync();
 
@@ -20,6 +22,19 @@ void main() {
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
     expect(notification, contains('payload: candidate.taskId'));
+    expect(planner, contains("'task:"));
+    expect(runner, contains('FollowUpReminderDeliveryService'));
+  });
+
+  test('canonical Home Task writes reschedule the shared reminder foundation', () {
+    final home = File('lib/main.dart').readAsStringSync();
+
+    expect(home, contains('await taskStore.save(snapshot);'));
+    expect(home.split('await taskStore.save(').length - 1, 4);
+    expect(
+      home.split('AndroidFollowUpReminderScheduler().reschedule()').length - 1,
+      5,
+    );
   });
 
   test('canonical FollowUp write paths request reminder rescheduling', () {

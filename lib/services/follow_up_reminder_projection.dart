@@ -11,13 +11,22 @@ class FollowUpReminderCandidate {
     required this.scheduledAt,
   });
 
+  const FollowUpReminderCandidate.task({
+    required this.taskId,
+    required this.taskTitle,
+    required this.scheduledAt,
+  })  : followUpId = null,
+        label = 'یادآوری';
+
   final String taskId;
   final String taskTitle;
-  final String followUpId;
+  final String? followUpId;
   final String label;
   final DateTime scheduledAt;
 
-  String get stableKey => '$taskId:$followUpId';
+  bool get isTaskReminder => followUpId == null;
+
+  String get stableKey => isTaskReminder ? 'task:$taskId' : '$taskId:$followUpId';
 }
 
 /// Projects canonical FollowUp reminder state into deterministic pending work.
@@ -36,6 +45,17 @@ class FollowUpReminderProjection {
 
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
+
+      final taskReminder = task.reminderDate;
+      if (taskReminder != null && !taskReminder.isBefore(now)) {
+        result.add(
+          FollowUpReminderCandidate.task(
+            taskId: task.id,
+            taskTitle: task.title,
+            scheduledAt: taskReminder,
+          ),
+        );
+      }
 
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;

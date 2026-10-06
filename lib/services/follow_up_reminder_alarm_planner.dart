@@ -21,6 +21,13 @@ class FollowUpReminderAlarmPlanner {
     final candidates = <DateTime>[];
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
+
+      final taskReminder = task.reminderDate;
+      if (taskReminder != null) {
+        final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
+        if (!delivered.contains(identity)) candidates.add(taskReminder);
+      }
+
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;
         final at = followUp.reminderDate;
