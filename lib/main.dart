@@ -673,7 +673,10 @@ class _HomePageState extends State<HomePage> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.search_off_rounded, size: 38, color: ArvinColors.neutral),
           const SizedBox(height: 10),
-          const Text('کاری با این فیلترها پیدا نشد', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            _homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           if (_homeFilterActive) TextButton(onPressed: _clearHomeFilters, child: const Text('پاک کردن فیلترها')),
         ]),
       ));
@@ -1223,14 +1226,20 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _listScope = TaskListScope.all;
       _categoryFilter = null;
+      _projectFilter = null;
+      _tagFilters.clear();
+      _specificDateFilter = null;
       if (nextFilter == 'امروز') {
-        filter = 'کل';
+        filter = 'فعال';
+        _timeFilter = 'today';
         _dueScope = TaskDueScope.today;
       } else if (nextFilter == 'عقب‌افتاده') {
-        filter = 'کل';
+        filter = 'فعال';
+        _timeFilter = 'all';
         _dueScope = TaskDueScope.overdue;
       } else {
         filter = nextFilter;
+        _timeFilter = 'all';
         _dueScope = null;
       }
       selected.clear();
