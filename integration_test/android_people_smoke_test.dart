@@ -77,6 +77,7 @@ void main() {
     }
     expect(quickCapture, findsNothing);
 
+    await tester.scrollUntilVisible(find.text('تست افراد اندروید'), 400, scrollable: find.byType(Scrollable));
     expect(find.text('تست افراد اندروید'), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
