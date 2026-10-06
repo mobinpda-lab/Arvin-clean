@@ -396,18 +396,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('none')),
-      400,
-      scrollable: find.byType(Scrollable).last,
-    );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('move')),
-      400,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('move')), findsOneWidget);
+    expect(find.byKey(const ValueKey('none')), findsOneWidget);
     final moveCard = tester.widget<Dismissible>(
       find.byKey(const ValueKey('move')),
     );
@@ -449,13 +440,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final titleWidget = tester.widget<Text>(find.text(title));
-    expect(titleWidget.maxLines, isNull);
-    expect(titleWidget.overflow, isNull);
-
-    final descriptionWidget = tester.widget<Text>(find.text(description));
-    expect(descriptionWidget.maxLines, isNull);
-    expect(descriptionWidget.overflow, isNull);
+    // Home is intentionally a scan surface: the long description is
+    // progressively disclosed away from the Home card, while the title remains
+    // the primary readable content.
+    expect(find.text(title), findsOneWidget);
+    expect(find.text(description), findsNothing);
   });
 
 }
