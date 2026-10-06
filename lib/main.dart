@@ -1830,12 +1830,12 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.nextAction),
               ),
               ListTile(
-                key: const ValueKey('home-more-taxonomy'),
-                leading: const Icon(Icons.category_outlined),
-                title: const Text('دسته‌ها و برچسب‌ها'),
-                subtitle: const Text('مدیریت دسته‌ها و برچسب‌های کارها'),
+                key: const ValueKey('home-more-report'),
+                leading: const Icon(Icons.assessment_outlined),
+                title: const Text('گزارش‌ها'),
+                subtitle: const Text('فیلتر، تحلیل و اشتراک‌گذاری کارها'),
                 onTap: () => Navigator.of(sheetContext)
-                    .pop(_HomeMoreAction.taxonomy),
+                    .pop(_HomeMoreAction.report),
               ),
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
@@ -1888,8 +1888,12 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.nextAction:
         await _openPrimaryNextAction();
         return;
-      case _HomeMoreAction.taxonomy:
-        await _openTaxonomyManagement();
+      case _HomeMoreAction.report:
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => TaskReportPage(tasks: List<Task>.of(tasks)),
+          ),
+        );
         return;
       case _HomeMoreAction.about:
         _showAbout();
