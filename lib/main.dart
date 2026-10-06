@@ -500,7 +500,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeActiveFilterChips() {
     if (!_homeFilterActive) return const SizedBox.shrink();
     final chips = <Widget>[];
-    if (_timeFilter != 'all') chips.add(HomeFilterChip(label: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onRemove: () => setState(() { _timeFilter = 'all'; _specificDateFilter = null; }));
+    if (_timeFilter != 'all') {\n      chips.add(HomeFilterChip(\n        label: _timeFilterLabel,\n        accent: ArvinColors.time,\n        soft: ArvinColors.timeSoft,\n        icon: Icons.schedule_rounded,\n        onRemove: () => setState(() {\n          _timeFilter = 'all';\n          _specificDateFilter = null;\n        }),\n      ));\n    }
     if (_projectFilter != null) chips.add(HomeFilterChip(label: _projectTitle(_projectFilter) ?? 'بدون پروژه', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilter = null)));
     if (_categoryFilter != null) chips.add(HomeFilterChip(label: _categoryFilter!, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilter = null)));
     for (final tag in _tagFilters) chips.add(HomeFilterChip(label: tag, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.remove(tag))));
