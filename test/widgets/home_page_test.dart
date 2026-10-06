@@ -396,7 +396,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.byKey(const ValueKey('none')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('none')),
+      400,
+      scrollable: find.byType(ListView).last,
+    );
     await tester.pumpAndSettle();
     final cards = find.byType(Dismissible);
     expect(cards, findsNWidgets(2));
