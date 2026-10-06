@@ -45,10 +45,11 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('home-more-report'), skipOffstage: false),
-      findsOneWidget,
-    );
+    final reportEntry =
+        find.byKey(const ValueKey('home-more-report'));
+    await tester.ensureVisible(reportEntry);
+    await tester.pumpAndSettle();
+    expect(reportEntry, findsOneWidget);
     expect(find.text('گزارش‌ها'), findsOneWidget);
     expect(find.text('دسته‌ها و برچسب‌ها'), findsNothing);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
