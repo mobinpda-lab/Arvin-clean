@@ -95,8 +95,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byText('نوزاد'));
-    await tester.tap(find.byText('تعویض'));
+    await tester.tap(find.text('نوزاد'));
+    await tester.tap(find.text('تعویض'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار منطبق'), findsOneWidget);
