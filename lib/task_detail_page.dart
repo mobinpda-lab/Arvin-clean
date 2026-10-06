@@ -317,7 +317,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
           const SizedBox(height: 8),
           for (var index = 0; index < items.length; index++)
-            CheckboxListTile(
+            Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
               key: ValueKey('task-detail-checklist-item-$index'),
               value: items[index].startsWith('[x] '),
               onChanged: widget.onChecklistChanged == null
@@ -326,7 +328,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
               dense: true,
-              title: Text(items[index].substring(4)),
+                title: Text(items[index].substring(4)),
+              ),
             ),
         ],
       ),
