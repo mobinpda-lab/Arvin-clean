@@ -14,6 +14,11 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('home-more-taxonomy'), skipOffstage: false),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
 
     expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
     expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
