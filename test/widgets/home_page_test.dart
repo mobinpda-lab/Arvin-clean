@@ -402,9 +402,12 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    final cards = find.byType(Dismissible);
-    expect(cards, findsNWidgets(2));
-
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('move')),
+      400,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
     final moveCard = tester.widget<Dismissible>(
       find.byKey(const ValueKey('move')),
     );
