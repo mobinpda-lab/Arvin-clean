@@ -1088,6 +1088,12 @@ class _HomePageState extends State<HomePage> {
     target.checklist = List<String>.of(checklist);
     target.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // Canonical Task storage already succeeded; the existing alarm foundation
+      // can retry on the next lifecycle/scheduler trigger.
+    }
     final refreshed = await taskStore.load();
     if (!mounted) return target;
     setState(() => tasks = List<Task>.of(refreshed));
@@ -1100,6 +1106,12 @@ class _HomePageState extends State<HomePage> {
     task.completed = !task.completed;
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // Canonical Task storage already succeeded; the existing alarm foundation
+      // can retry on the next lifecycle/scheduler trigger.
+    }
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
@@ -1537,6 +1549,12 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       await taskStore.save(List<Task>.of(list));
+      try {
+        await AndroidFollowUpReminderScheduler().reschedule();
+      } catch (_) {
+        // Canonical Task storage already succeeded; the existing alarm foundation
+        // can retry on the next lifecycle/scheduler trigger.
+      }
       await ProjectStore().save(candidate.projects);
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
