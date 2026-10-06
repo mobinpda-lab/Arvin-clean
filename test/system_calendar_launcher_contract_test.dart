@@ -18,7 +18,7 @@ void main() {
     expect(source, contains('.pop(_CalendarMoreAction.systemCalendar)'));
     expect(source, contains('await _exportToSystemCalendar(context);'));
     expect(source, contains('ArvinPrimaryNavigation('));
-    expect(navigation, contains("label: 'بیشتر'"));
+    expect(navigation, contains('ArvinPrimaryDestination.more'));
     expect(source, isNot(contains("heroTag: 'arvin-system-calendar-export'")));
   });
 }

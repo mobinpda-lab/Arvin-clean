@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('primary navigation exposes the five canonical destinations',
+  testWidgets('primary navigation exposes the four canonical destinations',
       (tester) async {
     ArvinPrimaryDestination? selected;
 
@@ -23,7 +23,7 @@ void main() {
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
-    expect(find.text('اقدام بعدی'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
     expect(find.text('بیشتر'), findsOneWidget);
 
     await tester.tap(find.text('تقویم'));

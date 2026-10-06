@@ -1,4 +1,5 @@
 import 'package:arvin/main.dart' as app;
+import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ void main() {
 
   testWidgets('Android completes canonical Task People add cancel remove flow',
       (tester) async {
+    final taskTitle = 'تست افراد اندروید ${DateTime.now().microsecondsSinceEpoch}';
     app.main();
     await tester.pumpAndSettle();
 
@@ -31,7 +33,7 @@ void main() {
     expect(quickCapture, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
-      'تست افراد اندروید',
+      taskTitle,
     );
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
@@ -56,7 +58,7 @@ void main() {
     expect(descriptionField, findsOneWidget);
     expect(saveTask, findsOneWidget);
 
-    await tester.enterText(titleField, 'تست افراد اندروید');
+    await tester.enterText(titleField, taskTitle);
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
@@ -67,8 +69,6 @@ void main() {
 
     // Full-form editing returns to the Quick Capture sheet. Close every
     // remaining visible capture sheet before exercising real navigation.
-    // Full-form editing returns to the Quick Capture sheet. Close every
-    // remaining visible capture sheet before exercising real navigation.
     for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
       final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
       if (cancel.evaluate().isEmpty) break;
@@ -77,14 +77,15 @@ void main() {
     }
     expect(quickCapture, findsNothing);
 
-    expect(find.text('تست افراد اندروید'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(Scrollable).last);
+    expect(find.text(taskTitle), findsOneWidget);
 
-    final homeBar = find.byType(NavigationBar);
+    final homeBar = find.byType(ArvinPrimaryNavigation);
     expect(homeBar, findsOneWidget);
     await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
-    final calendarBar = find.byType(NavigationBar);
+    final calendarBar = find.byType(ArvinPrimaryNavigation);
     expect(calendarBar, findsOneWidget);
     await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
@@ -98,7 +99,7 @@ void main() {
     if (timelineChooser.evaluate().isNotEmpty) {
       final selectedTask = find.descendant(
         of: timelineChooser,
-        matching: find.text('تست افراد اندروید'),
+        matching: find.text(taskTitle),
       );
       await tester.tap(selectedTask);
       await tester.pumpAndSettle();
@@ -138,7 +139,7 @@ void main() {
     await tester.pumpAndSettle();
 
     var persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
@@ -152,7 +153,7 @@ void main() {
     await tester.pumpAndSettle();
 
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
     final personRow =
         find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
@@ -171,7 +172,7 @@ void main() {
     await tester.pumpAndSettle();
 
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
 
     await tester.tap(find.byTooltip('حذف ارتباط'));
@@ -187,7 +188,7 @@ void main() {
     }
     expect(find.byKey(const ValueKey('people-empty')), findsOneWidget);
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
   });

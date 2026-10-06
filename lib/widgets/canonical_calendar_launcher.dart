@@ -775,6 +775,14 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                 ),
               ),
               ListTile(
+                key: const ValueKey('calendar-more-next-action'),
+                leading: const Icon(Icons.next_plan_outlined),
+                title: const Text('اقدام بعدی'),
+                subtitle: const Text('پیشنهاد بهترین کار بعدی'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_CalendarMoreAction.nextAction),
+              ),
+              ListTile(
                 leading: const Icon(Icons.timeline_outlined),
                 title: const Text('خط زمانی'),
                 subtitle: const Text('نمایش روند زمانی یک کار'),
@@ -806,6 +814,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case _CalendarMoreAction.retrySync:
         await _retryCalendarSync(context);
+        return;
+      case _CalendarMoreAction.nextAction:
+        await _openNextAction(context, reminders);
         return;
       case _CalendarMoreAction.timeline:
         await _openTimeline(context);
@@ -881,7 +892,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 }
 
-enum _CalendarMoreAction { systemCalendar, retrySync, timeline, conflicts }
+enum _CalendarMoreAction {
+  systemCalendar,
+  retrySync,
+  nextAction,
+  timeline,
+  conflicts,
+}
 
 class _CalendarConflictAdviceEntry {
   const _CalendarConflictAdviceEntry({

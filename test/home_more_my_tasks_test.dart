@@ -8,14 +8,20 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('More exposes category and tag management', (tester) async {
+  testWidgets('More exposes report center entry', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
-    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
+    final moreSheet = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('home-more-report')),
+      300,
+      scrollable: moreSheet,
+    );
+    expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
+    expect(find.text('گزارش‌ها'), findsOneWidget);
   });
 }

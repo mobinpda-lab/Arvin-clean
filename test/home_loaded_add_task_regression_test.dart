@@ -2,6 +2,7 @@ import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,8 @@ void main() {
 
     expect(find.text('کار قبلی'), findsOneWidget);
     expect(find.text('کار تازه'), findsWidgets);
-    expect(find.text('بعد از Load اضافه شد'), findsOneWidget);
+    final stored = await TaskStore().load();
+    final saved = stored.singleWhere((task) => task.title == 'کار تازه');
+    expect(saved.description, 'بعد از Load اضافه شد');
   });
 }

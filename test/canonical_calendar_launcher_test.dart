@@ -11,6 +11,7 @@ import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
@@ -67,11 +68,11 @@ void main() {
     );
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
-    expect(find.text('اقدام بعدی'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('خط زمانی'), findsNothing);
     expect(find.text('تداخل‌ها'), findsNothing);
@@ -133,6 +134,11 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها', skipOffstage: false),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -195,6 +201,11 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها', skipOffstage: false),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     final apply = find.textContaining('اعمال ۰۹:۳۰').first;
@@ -263,6 +274,12 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+      maxScrolls: 10,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
@@ -290,6 +307,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
 
+    await _openMoreMenu(tester);
     await tester.tap(find.text('اقدام بعدی'));
     await _pumpRouteTransition(tester);
 

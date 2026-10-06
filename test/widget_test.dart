@@ -5,23 +5,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Arvin starts with the approved Bismillah above the Persian title',
+  testWidgets('Arvin starts with the canonical centered Home identity',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
-    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
+    expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
-    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
   });
 
   testWidgets('Home exposes the canonical workflow controls', (tester) async {
@@ -33,18 +34,26 @@ void main() {
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'خانه'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'تقویم'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'دفترچه'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'اقدام بعدی'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'بیشتر'), findsOneWidget);
+    expect(find.text('خانه'), findsOneWidget);
+    expect(find.text('تقویم'), findsOneWidget);
+    expect(find.text('دفترچه'), findsOneWidget);
+    expect(find.text('بیشتر'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
+
+    final moreSheet = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('home-more-report')),
+      300,
+      scrollable: moreSheet,
+    );
+    expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
+    expect(find.text('گزارش‌ها'), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
   });
 
@@ -68,7 +77,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار مهاجرتی'), findsOneWidget);
-    expect(find.text('داده قدیمی باید در Home دیده شود'), findsOneWidget);
+    expect(find.text('داده قدیمی باید در Home دیده شود'), findsNothing);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
@@ -78,8 +87,8 @@ void main() {
 
     expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
   });
 }

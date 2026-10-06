@@ -20,37 +20,129 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: selected.index,
-      onDestinationSelected: (index) =>
-          onSelected(ArvinPrimaryDestination.values[index]),
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: 'خانه',
+    final primary = const Color(0xFF4A4CAB);
+    const background = Color(0xFFFDFDFE);
+    const muted = Color(0xFF80829C);
+
+    const destinations = [
+      (
+        ArvinPrimaryDestination.home,
+        Icons.home_outlined,
+        Icons.home_rounded,
+        'خانه',
+      ),
+      (
+        ArvinPrimaryDestination.calendar,
+        Icons.calendar_month_outlined,
+        Icons.calendar_month_rounded,
+        'تقویم',
+      ),
+      (
+        ArvinPrimaryDestination.notebook,
+        Icons.note_alt_outlined,
+        Icons.note_alt_rounded,
+        'دفترچه',
+      ),
+      (
+        ArvinPrimaryDestination.more,
+        Icons.more_horiz_rounded,
+        Icons.more_horiz_rounded,
+        'بیشتر',
+      ),
+    ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: background,
+        border: Border(
+          top: BorderSide(color: Color(0xFFE7E7F0), width: 1),
         ),
-        NavigationDestination(
-          icon: Icon(Icons.calendar_month_outlined),
-          selectedIcon: Icon(Icons.calendar_month),
-          label: 'تقویم',
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final destination in destinations)
+                Expanded(
+                  child: _NavigationItem(
+                    selected: selected == destination.$1,
+                    icon: selected == destination.$1
+                        ? destination.$3
+                        : destination.$2,
+                    label: destination.$4,
+                    primary: primary,
+                    muted: muted,
+                    onTap: () => onSelected(destination.$1),
+                  ),
+                ),
+            ],
+          ),
         ),
-        NavigationDestination(
-          icon: Icon(Icons.note_alt_outlined),
-          selectedIcon: Icon(Icons.note_alt),
-          label: 'دفترچه',
+      ),
+    );
+  }
+}
+
+class _NavigationItem extends StatelessWidget {
+  const _NavigationItem({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    required this.primary,
+    required this.muted,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String label;
+  final Color primary;
+  final Color muted;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFE9EAFF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: selected ? primary : muted,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: selected ? primary : muted,
+                  fontSize: 10.5,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
-        NavigationDestination(
-          icon: Icon(Icons.auto_awesome_outlined),
-          selectedIcon: Icon(Icons.auto_awesome),
-          label: 'اقدام بعدی',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.more_horiz),
-          selectedIcon: Icon(Icons.more_horiz),
-          label: 'بیشتر',
-        ),
-      ],
+      ),
     );
   }
 }

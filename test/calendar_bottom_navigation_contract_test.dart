@@ -14,11 +14,11 @@ void main() {
       source,
       contains('selected: ArvinPrimaryDestination.calendar'),
     );
-    expect(navigation, contains("label: 'خانه'"));
-    expect(navigation, contains("label: 'تقویم'"));
-    expect(navigation, contains("label: 'دفترچه'"));
-    expect(navigation, contains("label: 'اقدام بعدی'"));
-    expect(navigation, contains("label: 'بیشتر'"));
+    expect(navigation, contains("'خانه'"));
+    expect(navigation, contains("'تقویم'"));
+    expect(navigation, contains("'دفترچه'"));
+    expect(navigation, isNot(contains("'اقدام بعدی'")));
+    expect(navigation, contains("'بیشتر'"));
 
     expect(source, isNot(contains('FloatingActionButton.extended')));
     expect(source, isNot(contains('Positioned(')));

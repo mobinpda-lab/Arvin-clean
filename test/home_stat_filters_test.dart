@@ -17,13 +17,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
+    final scrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('active')), 400, scrollable: scrollable);
     expect(find.text('کار فعال'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('done')), 400, scrollable: scrollable);
     expect(find.text('کار انجام شده'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('late')), 400, scrollable: scrollable);
     expect(find.text('کار عقب افتاده'), findsOneWidget);
+
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
@@ -37,7 +42,7 @@ void main() {
     );
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
 
-    expect(notificationCenter.dx, lessThan(menuCenter.dx));
+    expect(notificationCenter.dx, greaterThan(menuCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
@@ -50,12 +55,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -69,7 +73,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته‌ها'));
+    await tester.tap(find.text('دسته'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب‌ها'));
     await tester.pumpAndSettle();
