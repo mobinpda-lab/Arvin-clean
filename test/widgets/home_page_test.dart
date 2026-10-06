@@ -54,7 +54,7 @@ void main() {
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(ListView).first);
+    await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(ListView).last);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
