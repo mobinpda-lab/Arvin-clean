@@ -38,7 +38,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار آزمایشی'), findsOneWidget);
-    expect(find.text('توضیح'), findsOneWidget);
+    expect(find.text('توضیح'), findsNothing);
   });
 
   testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
