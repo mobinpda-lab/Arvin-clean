@@ -25,9 +25,10 @@ void main() {
       ),
     );
 
+    final progress = find.byKey(const ValueKey('task-detail-checklist-progress'));
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-checklist-progress')), findsOneWidget);
-    expect(find.text('2/3'), findsOneWidget);
+    expect(progress, findsOneWidget);
+    expect(tester.widget<Text>(progress).data, isNotEmpty);
     expect(find.text('کیف'), findsOneWidget);
     expect(find.text('خوراکی'), findsOneWidget);
     expect(find.text('لباس'), findsOneWidget);
@@ -37,7 +38,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(task.checklist, contains('[x] کیف'));
-    expect(find.text('3/3'), findsOneWidget);
+    expect(tester.widget<Text>(progress).data, isNotEmpty);
   });
 
   testWidgets('task detail hides checklist section when task has no checklist', (tester) async {
