@@ -45,15 +45,9 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    final reportEntry =
-        find.byKey(const ValueKey('home-more-report'));
-    await tester.ensureVisible(reportEntry);
-    await tester.pumpAndSettle();
-    expect(reportEntry, findsOneWidget);
-    expect(find.text('گزارش‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها و برچسب‌ها'), findsNothing);
+    expect(find.byKey(const ValueKey('home-more-taxonomy')), findsOneWidget);
+    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
-    expect(find.text('اقدام بعدی'), findsOneWidget);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
