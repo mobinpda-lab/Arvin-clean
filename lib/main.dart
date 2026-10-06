@@ -692,7 +692,7 @@ class _HomePageState extends State<HomePage> {
       ));
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 5, 16, 96),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
@@ -700,13 +700,13 @@ class _HomePageState extends State<HomePage> {
         final accent = _groupAccent(group.id);
         final soft = _groupSoft(group.id);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Material(key: ValueKey('home-group-${group.id}'), color: soft, borderRadius: BorderRadius.circular(15), child: InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () => setState(() { if (collapsed) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id); }),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
                 child: Row(children: [
                   Icon(collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 21, color: accent),
                   const SizedBox(width: 5),
@@ -715,7 +715,7 @@ class _HomePageState extends State<HomePage> {
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(color: Colors.white.withAlpha(190), borderRadius: BorderRadius.circular(12)),
                     child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
                   ),
@@ -2102,7 +2102,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            padding: const EdgeInsets.fromLTRB(7, 7, 7, 7),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2145,19 +2145,21 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                           color: const Color(0xFF232433),
                           fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                          fontSize: 14.5,
                           decoration: task.completed
                               ? TextDecoration.lineThrough
                               : null,
                         ),
                       ),
-                      if (preview != null || task.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                      if (preview != null) ...[
+                        const SizedBox(height: 3),
                         Text(
-                          preview ?? task.description,
+                          preview,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFF80829C),
-                            fontSize: 12,
+                            color: ArvinColors.textSecondary,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -2174,28 +2176,25 @@ class _HomePageState extends State<HomePage> {
                           maxTags: 2,
                         ),
                       ],
-                      if (task.priority != TaskPriority.none || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty || task.completed) ...[
-                        const SizedBox(height: 5),
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 3,
+                      if (task.priority != TaskPriority.none) ...[
+                        const SizedBox(height: 4),
+                        Row(
                           children: [
-                            if (task.completed) _homeBadge('انجام‌شده', const Color(0xFFE8F5E9), const Color(0xFF409B51)),
-                            if (task.priority != TaskPriority.none) _homeBadge(
-                              switch (task.priority) { TaskPriority.high => 'اهمیت زیاد', TaskPriority.medium => 'اهمیت متوسط', TaskPriority.low => 'اهمیت کم', TaskPriority.none => '' },
-                              const Color(0xFFFFF0E3),
-                              const Color(0xFFDB8B23),
+                            Icon(Icons.flag_rounded, size: 13, color: ArvinColors.reminder),
+                            const SizedBox(width: 4),
+                            Text(
+                              switch (task.priority) {
+                                TaskPriority.high => 'اهمیت زیاد',
+                                TaskPriority.medium => 'اهمیت متوسط',
+                                TaskPriority.low => 'اهمیت کم',
+                                TaskPriority.none => '',
+                              },
+                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w600),
                             ),
-                            if (task.category?.trim().isNotEmpty == true) _homeBadge(
-                              task.category!.trim(),
-                              const Color(0xFFF2ECFF),
-                              const Color(0xFF8C68D9),
-                            ),
-                            for (final tag in task.tags.take(3))
-                              _homeBadge('#${tag.trim()}', const Color(0xFFE8F8F5), const Color(0xFF38A89B)),
                           ],
                         ),
                       ],
+,
                       if (task.dueDate != null) ...[
                         const SizedBox(height: 5),
                         Row(
@@ -2286,19 +2285,19 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16, compactHome ? 5 : 10, 16, 7),
+            padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
               IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
               Expanded(child: Column(children: const [
-                Text('آروین', style: TextStyle(color: ArvinColors.primary, fontSize: 20, fontWeight: FontWeight.w800)),
+                Text('آروین', style: TextStyle(color: ArvinColors.primary, fontSize: 19, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
               IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
             ]),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 2, 16, compactHome ? 7 : 10),
+            padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),
             child: TextField(
               key: const ValueKey('home-canonical-search'),
               onChanged: (value) => setState(() => query = value),
@@ -2307,10 +2306,10 @@ class _HomePageState extends State<HomePage> {
                 hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                 prefixIcon: const Icon(Icons.search_rounded),
                 filled: true, fillColor: ArvinColors.surface,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: ArvinColors.border)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: ArvinColors.border)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: ArvinColors.primary, width: 1.4)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: ArvinColors.primary, width: 1.2)),
               ),
             ),
           ),
