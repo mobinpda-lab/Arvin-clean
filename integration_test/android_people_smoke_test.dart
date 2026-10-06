@@ -78,7 +78,7 @@ void main() {
     }
     expect(quickCapture, findsNothing);
 
-    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(ListView).first);
+    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(ListView).last);
     expect(find.text(taskTitle), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
