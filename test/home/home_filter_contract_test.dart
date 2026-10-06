@@ -25,7 +25,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
 
-    final scrollable = find.byType(Scrollable);
+    final scrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.text('فردا'), 400, scrollable: scrollable);
     expect(find.text('فردا'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('آینده'), 400, scrollable: scrollable);
