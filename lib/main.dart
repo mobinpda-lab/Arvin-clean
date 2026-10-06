@@ -189,6 +189,10 @@ class _HomePageState extends State<HomePage> {
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
 
+  String get _emptyVisibleLabel => filter == 'سطل زباله'
+      ? 'سطل زباله خالی است'
+      : 'بایگانی خالی است';
+
 
   @override
   void initState() {
