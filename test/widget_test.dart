@@ -70,7 +70,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار مهاجرتی'), findsOneWidget);
-    expect(find.text('داده قدیمی باید در Home دیده شود'), findsOneWidget);
+    expect(find.text('داده قدیمی باید در Home دیده شود'), findsNothing);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
