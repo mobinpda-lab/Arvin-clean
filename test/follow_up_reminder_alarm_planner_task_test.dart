@@ -43,7 +43,7 @@ void main() {
     final result = planner.nextAlarmAt(
       [task],
       deliveredState: {
-        'task:task-1': 'task:task-1@' + taskReminder.toIso8601String(),
+        'task:task-1': 'task:task-1@${taskReminder.toIso8601String()}',
       },
       now: now,
     );
