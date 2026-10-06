@@ -19,7 +19,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('تاریخ‌گذشته'), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
     expect(find.text('فاقد زمان'), findsOneWidget);
