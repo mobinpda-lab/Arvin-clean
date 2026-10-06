@@ -75,6 +75,55 @@ void main() {
     expect(refreshed.title, 'کار تغییر یافته');
   });
 
+  test('provider edit of task reminder reschedules existing reminder foundation', () async {
+    final taskStore = TaskStore(executor: database);
+    final tasks = await taskStore.load();
+    tasks.single.reminderDate = DateTime(2026, 10, 8, 10);
+    await taskStore.save(tasks);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder:task-1',
+      title: 'یادآوری: کار',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint =
+        await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: 'task-reminder:task-1',
+        calendarId: '7',
+        eventId: '42',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    var rescheduled = 0;
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: '42',
+          calendarId: '7',
+          title: 'یادآوری: کار تغییر یافته',
+          start: DateTime(2026, 10, 9, 11),
+          end: DateTime(2026, 10, 9, 11, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+      reminderReschedule: () async => rescheduled++,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.updated, 1);
+    expect(rescheduled, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.reminderDate, DateTime(2026, 10, 9, 11));
+  });
+
   test('provider deletion clears linked canonical due date', () async {
     final taskStore = TaskStore(executor: database);
     final canonical = CalendarReminder(
