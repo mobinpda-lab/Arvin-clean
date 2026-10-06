@@ -274,6 +274,12 @@ void main() {
     await tester.pump();
 
     await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('تداخل‌ها'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+      maxScrolls: 10,
+    );
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
