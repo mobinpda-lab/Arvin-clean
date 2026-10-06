@@ -21,7 +21,7 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
-    final scrollable = find.byType(Scrollable);
+    final scrollable = find.byType(ListView).first;
     await tester.scrollUntilVisible(find.text('کار فعال'), 400, scrollable: scrollable);
     expect(find.text('کار فعال'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('کار انجام شده'), 400, scrollable: scrollable);
