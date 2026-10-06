@@ -11,17 +11,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Arvin starts with the approved Bismillah above the Persian title',
+  testWidgets('Arvin starts with the canonical centered Home identity',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
-    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ'), findsNothing);
+    expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
-    expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
   });
 
   testWidgets('Home exposes the canonical workflow controls', (tester) async {
