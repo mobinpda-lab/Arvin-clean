@@ -10,6 +10,7 @@ void main() {
 
   testWidgets('Android completes canonical Task People add cancel remove flow',
       (tester) async {
+    final taskTitle = 'تست افراد اندروید ${DateTime.now().microsecondsSinceEpoch}';
     app.main();
     await tester.pumpAndSettle();
 
@@ -31,7 +32,7 @@ void main() {
     expect(quickCapture, findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
-      'تست افراد اندروید',
+      taskTitle,
     );
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
@@ -56,7 +57,7 @@ void main() {
     expect(descriptionField, findsOneWidget);
     expect(saveTask, findsOneWidget);
 
-    await tester.enterText(titleField, 'تست افراد اندروید');
+    await tester.enterText(titleField, taskTitle);
     await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
@@ -77,8 +78,8 @@ void main() {
     }
     expect(quickCapture, findsNothing);
 
-    await tester.scrollUntilVisible(find.text('تست افراد اندروید'), 400, scrollable: find.byType(Scrollable));
-    expect(find.text('تست افراد اندروید'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(Scrollable));
+    expect(find.text(taskTitle), findsOneWidget);
 
     final homeBar = find.byType(NavigationBar);
     expect(homeBar, findsOneWidget);
@@ -99,7 +100,7 @@ void main() {
     if (timelineChooser.evaluate().isNotEmpty) {
       final selectedTask = find.descendant(
         of: timelineChooser,
-        matching: find.text('تست افراد اندروید'),
+        matching: find.text(taskTitle),
       );
       await tester.tap(selectedTask);
       await tester.pumpAndSettle();
@@ -139,7 +140,7 @@ void main() {
     await tester.pumpAndSettle();
 
     var persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
 
@@ -153,7 +154,7 @@ void main() {
     await tester.pumpAndSettle();
 
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
     final personRow =
         find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
@@ -172,7 +173,7 @@ void main() {
     await tester.pumpAndSettle();
 
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
 
     await tester.tap(find.byTooltip('حذف ارتباط'));
@@ -188,7 +189,7 @@ void main() {
     }
     expect(find.byKey(const ValueKey('people-empty')), findsOneWidget);
     persisted = (await store.load())
-        .singleWhere((task) => task.title == 'تست افراد اندروید');
+        .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
   });
