@@ -4,6 +4,7 @@ enum ArvinPrimaryDestination {
   home,
   calendar,
   notebook,
+  nextAction,
   more,
 }
 
