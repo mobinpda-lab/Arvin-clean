@@ -17,7 +17,7 @@ void main() {
     expect(navigation, contains("label: 'خانه'"));
     expect(navigation, contains("label: 'تقویم'"));
     expect(navigation, contains("label: 'دفترچه'"));
-    expect(navigation, contains("label: 'اقدام بعدی'"));
+    expect(navigation, isNot(contains("label: 'اقدام بعدی'")));
     expect(navigation, contains("label: 'بیشتر'"));
 
     expect(source, isNot(contains('FloatingActionButton.extended')));
