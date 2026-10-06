@@ -10,7 +10,6 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'قرارداد',
-      reminderDate: DateTime(2026, 8, 29, 8),
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -70,8 +69,10 @@ void main() {
 
     final result = projection.pending([task], now: now);
 
-    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 18));
-    expect(result.single.label, 'پیگیری');
+    expect(result, hasLength(2));
+    final followUpReminder = result.singleWhere((item) => item.isTaskReminder == false);
+    expect(followUpReminder.scheduledAt, DateTime(2026, 8, 28, 18));
+    expect(followUpReminder.label, 'پیگیری');
   });
 
   test('ignores disabled, expired, completed, archived, and trashed work', () {
