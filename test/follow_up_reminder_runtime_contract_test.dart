@@ -28,7 +28,11 @@ void main() {
     final home = File('lib/main.dart').readAsStringSync();
 
     expect(home, contains('await taskStore.save(snapshot);'));
-    expect(home, contains('AndroidFollowUpReminderScheduler().reschedule()'));
+    expect(RegExp(r'await taskStore\.save\(').allMatches(home).length, 4);
+    expect(
+      RegExp(r'AndroidFollowUpReminderScheduler\(\)\.reschedule\(\)').allMatches(home).length,
+      4,
+    );
   });
 
   test('canonical FollowUp write paths request reminder rescheduling', () {
