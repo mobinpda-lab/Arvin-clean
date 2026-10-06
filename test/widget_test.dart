@@ -43,7 +43,7 @@ void main() {
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('home-more-report'), skipOffstage: false),
