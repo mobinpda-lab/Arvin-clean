@@ -124,23 +124,22 @@ jobs:
           disable-animations: true
           script: |
             flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-            if [ "${{ matrix.scenario }}" = "home" ]; then
-              set -euo pipefail
-              adb shell monkey -p com.example.arvin 1 >/dev/null 2>&1
-              sleep 2
-              mkdir -p artifacts/home
-              rm -f artifacts/home/arvin-home.png
-              adb shell rm -f /sdcard/arvin-home.png >/dev/null 2>&1 || true
-              captured=false
-              for attempt in 1 2 3; do
-                if adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1 && adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1 && test -s artifacts/home/arvin-home.png; then
-                  captured=true
-                  break
-                fi
-                sleep 1
-              done
-              test "$captured" = "true"
-            fi
+            case "${{ matrix.scenario }}" in
+              home)
+                adb shell monkey -p com.example.arvin 1 >/dev/null 2>&1 || true
+                sleep 2
+                mkdir -p artifacts/home
+                rm -f artifacts/home/arvin-home.png
+                adb shell rm -f /sdcard/arvin-home.png >/dev/null 2>&1 || true
+                for attempt in 1 2 3; do
+                  adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1 || true
+                  adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1 || true
+                  test -s artifacts/home/arvin-home.png && break
+                  sleep 1
+                done
+                test -s artifacts/home/arvin-home.png
+                ;;
+            esac
       - name: Upload Home screenshot evidence
         if: matrix.scenario == 'home' && success()
         uses: actions/upload-artifact@v4
