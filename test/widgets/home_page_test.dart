@@ -403,7 +403,11 @@ void main() {
     await tester.drag(scrollable, const Offset(0, -700));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('none')), findsOneWidget);
-    await tester.drag(scrollable, const Offset(0, 700));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('move')),
+      -700,
+      scrollable: scrollable,
+    );
     await tester.pumpAndSettle();
     final moveCard = tester.widget<Dismissible>(
       find.byKey(const ValueKey('move')),
