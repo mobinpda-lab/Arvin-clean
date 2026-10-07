@@ -1,7 +1,7 @@
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
 Date: 2026-10-07
-Verified current main: 638aef6ffb1a5c3a3b9c619016ad75dc85f5df75
+Verified current main: 93edc53ad8619826744ff3f986c9beff86b325f7
 
 ## Executive status
 
@@ -38,7 +38,7 @@ Protected:
 
 Exact head: 1d7052e1027f9e4ece1ee36a5aef29929b344644
 
-It was promoted from Draft to Ready so the heavy Device Smoke gate could run. The new Device Smoke is currently in progress. **Do not call #2408 Done yet.**
+Exact HEAD `1d7052e1027f9e4ece1ee36a5aef29929b344644` has successful Production Loop, Orchestrator, G1 lock sync and Device Smoke #3513. **Do not call #2408 Done yet.** The remaining gate is user-facing Settings acceptance: system font actual effect in light/dark, restart persistence, return to VazirHarf, restart persistence, and data-safety evidence.
 
 ## P0/P1 remaining product work
 
@@ -156,12 +156,12 @@ Emulator/device-smoke evidence does not replace required physical-phone acceptan
 
 ## Current execution order
 
-1. Reconcile PR #2408 Device Smoke and visual Settings evidence.
-2. Continue Calendar #2248/#1901 real-device/provider verification.
-3. Close Checklist #2230 user-facing and integration gaps.
-4. Safely advance Taxonomy, Quick Add, Home and Notebook in independent lanes.
-5. Complete Repeat only through its architecture gate.
-6. Run Golden Flow + Backup/Restore.
+1. Finish PR #2408 Settings acceptance and reconcile its branch with current main; no duplicate Typography lane.
+2. Prove Golden Flow using the existing canonical Task/Date-Time/Reminder/Checklist/Repeat/Follow-up/Timeline paths.
+3. Prove Backup → Restore integrity on the same dataset.
+4. Prove Calendar E2E using the existing provider/sync/link foundation.
+5. Final Home and Report Center UX acceptance against the approved product contract.
+6. Complete remaining independent Taxonomy/Quick Add/Notebook/Checklist gaps only where live evidence shows a concrete product gap.
 7. Produce fresh RC evidence and final physical-phone acceptance.
 8. Only then evaluate Release-Ready.
 
