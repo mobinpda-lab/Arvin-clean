@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:arvin/main.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,29 +24,27 @@ void main() {
     final today = DateTime(now.year, now.month, now.day, 12);
     final tomorrow = today.add(const Duration(days: 1));
 
-    SharedPreferences.setMockInitialValues({
-      'arvin.tasks': jsonEncode([
-        {
-          'id': 'today',
-          'title': 'کار امروز',
-          'followUpEnabled': true,
-          'dueDate': today.toIso8601String(),
-        },
-        {
-          'id': 'tomorrow',
-          'title': 'کار فردا',
-          'followUpEnabled': true,
-          'dueDate': tomorrow.toIso8601String(),
-        },
-        {
-          'id': 'completed',
-          'title': 'کار انجام‌شده امروز',
-          'completed': true,
-          'followUpEnabled': true,
-          'dueDate': today.toIso8601String(),
-        },
-      ]),
-    });
+    await TaskStore().save([
+      Task(
+        id: 'today',
+        title: 'کار امروز',
+        followUpEnabled: true,
+        dueDate: today,
+      ),
+      Task(
+        id: 'tomorrow',
+        title: 'کار فردا',
+        followUpEnabled: true,
+        dueDate: tomorrow,
+      ),
+      Task(
+        id: 'completed',
+        title: 'کار انجام‌شده امروز',
+        completed: true,
+        followUpEnabled: true,
+        dueDate: today,
+      ),
+    ]);
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -61,7 +58,7 @@ void main() {
   });
 
   testWidgets('Today menu action has a dedicated empty state', (tester) async {
-    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
+    await TaskStore().save(const <Task>[]);
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
