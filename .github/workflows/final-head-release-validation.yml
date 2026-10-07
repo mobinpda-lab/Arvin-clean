@@ -115,7 +115,7 @@ jobs:
 
       - name: Restore VazirHarf assets for manual validation
         if: github.event_name == 'workflow_dispatch'
-        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
 
       - name: Analyze from locked dependency graph for manual validation
         if: github.event_name == 'workflow_dispatch'
