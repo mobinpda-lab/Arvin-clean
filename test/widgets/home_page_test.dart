@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
@@ -72,10 +74,13 @@ void main() {
     final today = DateTime.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
-      'arvin.tasks':
-          '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
-    });
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    await TaskStore().save([
+      Task(id: 'match', title: 'کار منطبق', category: 'اتاق', tags: const ['نوزاد', 'تعویض'], dueDate: DateTime(today.year, today.month, today.day, 10)),
+      Task(id: 'tomorrow', title: 'کار فردا', category: 'اتاق', tags: const ['نوزاد', 'تعویض'], dueDate: DateTime(today.year, today.month, today.day + 1, 10)),
+      Task(id: 'other', title: 'کار نامرتبط', category: 'اداری', tags: const ['نوزاد'], dueDate: DateTime(today.year, today.month, today.day, 10)),
+    ]);
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
