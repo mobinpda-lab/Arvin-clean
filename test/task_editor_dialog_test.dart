@@ -277,7 +277,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.tap(find.byType(SwitchListTile));
     await tester.pump();
 
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
