@@ -43,4 +43,75 @@ void main() {
     expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('انتخاب زمان'), findsNothing);
   });
+  testWidgets('Home filter cards keep four Persian labels readable on a narrow phone', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  HomeFilterCard(
+                    dimension: HomeFilterDimension.time,
+                    title: 'زمان',
+                    value: 'همه',
+                    accent: ArvinColors.time,
+                    soft: ArvinColors.timeSoft,
+                    icon: Icons.schedule_rounded,
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  HomeFilterCard(
+                    dimension: HomeFilterDimension.project,
+                    title: 'پروژه',
+                    value: 'همه',
+                    accent: ArvinColors.project,
+                    soft: ArvinColors.projectSoft,
+                    icon: Icons.folder_rounded,
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  HomeFilterCard(
+                    dimension: HomeFilterDimension.category,
+                    title: 'دسته',
+                    value: 'همه',
+                    accent: ArvinColors.category,
+                    soft: ArvinColors.categorySoft,
+                    icon: Icons.layers_rounded,
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  HomeFilterCard(
+                    dimension: HomeFilterDimension.tags,
+                    title: 'برچسب‌ها',
+                    value: 'همه',
+                    accent: ArvinColors.tag,
+                    soft: ArvinColors.tagSoft,
+                    icon: Icons.sell_rounded,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+  });
+
 }
