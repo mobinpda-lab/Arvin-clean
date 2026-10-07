@@ -1,6 +1,7 @@
 import 'package:arvin/main.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +21,7 @@ void main() {
 
   testWidgets('Today menu action shows only active canonical tasks due today',
       (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 12);
     final tomorrow = today.add(const Duration(days: 1));
 
