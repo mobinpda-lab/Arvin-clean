@@ -137,6 +137,58 @@ void main() {
       reason: 'deleted event must no longer be visible',
     );
 
+    if (writable.length >= 2) {
+      final secondCalendar = writable.firstWhere((item) => item.id != calendar.id);
+      final migrationRevision = CalendarReminder(
+        id: reminder.id,
+        title: 'ARVIN calendar provider acceptance migrated',
+        date: start.add(const Duration(minutes: 30)),
+      );
+      final migration = await revisionService.fromReminder(migrationRevision);
+      final migrationLinks = await store.load();
+      final migrationPlan = planner.plan(revisions: [migration], links: migrationLinks);
+      final migrationResult = await executor.execute(
+        plan: migrationPlan,
+        targetCalendarId: secondCalendar.id,
+      );
+      expect(migrationResult.updated, 1);
+      final migratedLinks = await store.load();
+      expect(migratedLinks, hasLength(1));
+      expect(migratedLinks.single.calendarId, secondCalendar.id);
+      expect(migratedLinks.single.eventId, isNot(createdLink.eventId));
+      final oldCalendarEvents = await bridge.listDeviceCalendarEvents(
+        calendarIds: [calendar.id],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      expect(oldCalendarEvents.any((event) => event.eventId == createdLink.eventId), isFalse);
+      final newCalendarEvents = await bridge.listDeviceCalendarEvents(
+        calendarIds: [secondCalendar.id],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      expect(newCalendarEvents.any((event) => event.eventId == migratedLinks.single.eventId), isTrue);
+      debugPrint(
+        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS '
+        'from=' + calendar.id + ' to=' + secondCalendar.id,
+      );
+      final cleanupPlan = planner.plan(
+        revisions: const <CalendarSyncRevision>[],
+        links: migratedLinks,
+      );
+      final cleanupResult = await executor.execute(
+        plan: cleanupPlan,
+        targetCalendarId: secondCalendar.id,
+      );
+      expect(cleanupResult.deleted, 1);
+      expect(await store.load(), isEmpty);
+    } else {
+      debugPrint(
+        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION '
+        'writableCalendars=' + writable.length.toString(),
+      );
+    }
+
     debugPrint(
       'CALENDAR_PROVIDER_ACCEPTANCE=PASS calendarId=${calendar.id}',
     );
