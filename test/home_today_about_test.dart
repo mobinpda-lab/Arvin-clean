@@ -19,7 +19,7 @@ void main() {
 
   testWidgets('Today menu action shows only active canonical tasks due today',
       (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 12);
     final tomorrow = today.add(const Duration(days: 1));
 
