@@ -52,7 +52,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect(find.text('VazirHarf'), findsOneWidget);
+    expect(find.text('VazirHarf'), findsNWidgets(2));
+    expect((await service.load()).fontFamily, isNull);
+
+    await tester.tap(find.text('فونت دستگاه'));
+    await tester.pumpAndSettle();
+    expect((await service.load()).fontFamily, 'system');
+
+    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('VazirHarf').last);
     await tester.pumpAndSettle();
     expect((await service.load()).fontFamily, 'VazirHarf');
