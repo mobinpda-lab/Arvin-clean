@@ -32,32 +32,31 @@ class HomeFilterCard extends StatelessWidget {
     return Expanded(
       child: Semantics(
         button: true,
+        selected: selected,
         label: title + ': ' + value,
         child: Material(
-          color: selected ? Color.alphaBlend(accent.withAlpha(22), soft) : soft,
-          borderRadius: BorderRadius.circular(16),
+          color: selected ? Color.alphaBlend(accent.withAlpha(28), soft) : soft,
+          borderRadius: BorderRadius.circular(18),
           child: InkWell(
             key: ValueKey('home-filter-card-' + dimension.name),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             onTap: onTap,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOutCubic,
-              height: 88,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+              constraints: const BoxConstraints(minHeight: 104),
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
               decoration: BoxDecoration(
-                color: selected
-                    ? Color.alphaBlend(accent.withAlpha(18), soft)
-                    : soft,
-                borderRadius: BorderRadius.circular(16),
+                color: selected ? Color.alphaBlend(accent.withAlpha(20), soft) : soft,
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
+                  color: selected ? accent.withAlpha(170) : accent.withAlpha(55),
                   width: selected ? 1.5 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(selected ? 13 : 7),
-                    blurRadius: selected ? 9 : 6,
+                    color: Colors.black.withAlpha(selected ? 12 : 6),
+                    blurRadius: selected ? 8 : 5,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -65,19 +64,22 @@ class HomeFilterCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: accent, size: 20),
+                  Icon(icon, color: accent, size: 21),
                   const SizedBox(height: 5),
-                  Text(
-                    title,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: accent.withAlpha(235),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: accent.withAlpha(240),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -119,37 +121,44 @@ class HomeFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 34),
-      decoration: BoxDecoration(
-        color: soft,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: accent.withAlpha(65)),
-      ),
-      padding: const EdgeInsetsDirectional.only(start: 8, end: 5),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) Icon(icon, size: 15, color: accent),
-          if (icon != null) const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: accent,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
+    return Semantics(
+      button: true,
+      label: 'فیلتر $label، حذف',
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 34),
+        decoration: BoxDecoration(
+          color: soft,
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: accent.withAlpha(65)),
+        ),
+        padding: const EdgeInsetsDirectional.only(start: 8, end: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) Icon(icon, size: 14, color: accent),
+            if (icon != null) const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 2),
-          IconButton(
-            onPressed: onRemove,
-            tooltip: 'حذف فیلتر',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-            visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.close_rounded, size: 16, color: accent),
-          ),
-        ],
+            IconButton(
+              onPressed: onRemove,
+              tooltip: 'حذف فیلتر $label',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.close_rounded, size: 15, color: accent),
+            ),
+          ],
+        ),
       ),
     );
   }
