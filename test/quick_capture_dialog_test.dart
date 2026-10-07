@@ -223,7 +223,7 @@ void main() {
   });
 
 
-  testWidgets('Quick Add scheduling uses RollBox and Persian custom date/time',
+  testWidgets('Quick Add scheduling uses the canonical circular date/time picker',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -255,7 +255,12 @@ void main() {
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsOneWidget);
-    await tester.tap(find.text('لغو'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(TimePickerDialog),
+        matching: find.text('لغو'),
+      ),
+    );
     expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
