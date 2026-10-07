@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -69,7 +70,8 @@ void main() {
 
   testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
-    final today = DateTime.now();
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day, 10);
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
@@ -420,7 +422,7 @@ void main() {
     expect(find.text('انتقال امروز'), findsOneWidget);
 
     final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
-    final today = DateTime.now();
+    final today = IranClock.now();
     expect(moved.dueDate?.year, today.year);
     expect(moved.dueDate?.month, today.month);
     expect(moved.dueDate?.day, today.day);
