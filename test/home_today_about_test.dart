@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
