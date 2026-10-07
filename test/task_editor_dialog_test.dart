@@ -285,7 +285,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-checklist-input')),
       'کیف',
     );
-    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-add')));
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
