@@ -122,14 +122,14 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-      - name: Capture Home screenshot evidence
-        if: matrix.scenario == 'home' && success()
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/home
-          adb exec-out screencap -p > artifacts/home/arvin-home.png
-          test -s artifacts/home/arvin-home.png
+          script: |
+            set -euo pipefail
+            flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+            if [ "${{ matrix.scenario }}" = "home" ]; then
+              mkdir -p artifacts/home
+              adb exec-out screencap -p > artifacts/home/arvin-home.png
+              test -s artifacts/home/arvin-home.png
+            fi
       - name: Upload Home screenshot evidence
         if: matrix.scenario == 'home' && success()
         uses: actions/upload-artifact@v4
