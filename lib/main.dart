@@ -643,12 +643,18 @@ class _HomePageState extends State<HomePage> {
                   activeColor: ArvinColors.time,
                   title: Text(option['title'] as String),
                   secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
-                  onChanged: (value) => setSheetState(() {
-                    selectedQuick = value ?? 'all';
-                    if (selectedQuick != 'all') {
-                      fromDate = null; toDate = null; fromTime = null; toTime = null;
-                    }
-                  }),
+                  onChanged: (value) {
+                    final next = value ?? 'all';
+                    setState(() {
+                      _timeFilter = next;
+                      _specificDateFilter = null;
+                      _fromDateFilter = null;
+                      _toDateFilter = null;
+                      _fromTimeFilter = null;
+                      _toTimeFilter = null;
+                    });
+                    Navigator.of(sheetContext).pop();
+                  },
                 ),
               const Divider(height: 18),
               ListTile(
@@ -709,22 +715,7 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text('پاک کردن'),
               ),
-              if (selectedQuick != 'all')
-                FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
-                  onPressed: () {
-                    setState(() {
-                      _timeFilter = selectedQuick;
-                      _specificDateFilter = null;
-                      _fromDateFilter = null;
-                      _toDateFilter = null;
-                      _fromTimeFilter = null;
-                      _toTimeFilter = null;
-                    });
-                    Navigator.of(sheetContext).pop();
-                  },
-                  child: const Text('انتخاب'),
-                ),
+
             ],
           );
         },
