@@ -67,7 +67,13 @@ void main() {
 
     final checklistToggle = find.byKey(const ValueKey('task-editor-checklist-toggle'));
     expect(checklistToggle, findsOneWidget);
-    await tester.tap(checklistToggle);
+    final checklistSwitch = find.descendant(
+      of: checklistToggle,
+      matching: find.byType(SwitchListTile),
+    );
+    expect(checklistSwitch, findsOneWidget);
+    await tester.ensureVisible(checklistSwitch);
+    await tester.tap(checklistSwitch);
     await tester.pump();
 
     final checklistBlock = find.byKey(const ValueKey('task-editor-checklist-block'));
