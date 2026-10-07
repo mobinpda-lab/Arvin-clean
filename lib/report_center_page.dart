@@ -144,7 +144,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ),
                 extendedPadding: const EdgeInsets.symmetric(horizontal: 14),
                 extendedIconLabelSpacing: 6,
-                visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.description_outlined, size: 18),
                 label: const Text('مشاهده و خروجی'),
               ),
