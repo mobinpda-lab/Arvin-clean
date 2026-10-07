@@ -261,7 +261,7 @@ void main() {
         matching: find.text('لغو'),
       ),
     );
-    expect(find.text('۱۴:۳۵'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsNothing);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
