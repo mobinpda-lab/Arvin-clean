@@ -550,6 +550,10 @@ class _HomePageState extends State<HomePage> {
         onRemove: () => setState(() {
           _timeFilter = 'all';
           _specificDateFilter = null;
+          _fromDateFilter = null;
+          _toDateFilter = null;
+          _fromTimeFilter = null;
+          _toTimeFilter = null;
         }),
       ));
     }
@@ -589,6 +593,7 @@ class _HomePageState extends State<HomePage> {
       {'id': 'tomorrow', 'title': 'فردا', 'icon': Icons.event_rounded},
       {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
       {'id': 'next30', 'title': '۳۰ روز آینده', 'icon': Icons.calendar_month_rounded},
+      {'id': 'custom', 'title': 'تاریخ مشخص', 'icon': Icons.event_rounded},
       {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},
     ];
     var fromDate = _fromDateFilter;
@@ -643,8 +648,28 @@ class _HomePageState extends State<HomePage> {
                   activeColor: ArvinColors.time,
                   title: Text(option['title'] as String),
                   secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     final next = value ?? 'all';
+                    if (next == 'custom') {
+                      final picked = await showPersianDatePicker(
+                        context: sheetContext,
+                        initialDate: _specificDateFilter ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                        helpText: 'تاریخ مشخص',
+                      );
+                      if (picked == null) return;
+                      setState(() {
+                        _timeFilter = 'custom';
+                        _specificDateFilter = picked;
+                        _fromDateFilter = null;
+                        _toDateFilter = null;
+                        _fromTimeFilter = null;
+                        _toTimeFilter = null;
+                      });
+                      if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                      return;
+                    }
                     setState(() {
                       _timeFilter = next;
                       _specificDateFilter = null;
@@ -747,11 +772,47 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
-      ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
-        RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
-    ]));
+    String search = '';
+    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: StatefulBuilder(
+      builder: (sheetContext, setSheetState) {
+        final values = _homeCategories;
+        final filtered = values.where((value) => value.toLowerCase().contains(search.toLowerCase())).toList();
+        return SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .58,
+          child: Column(children: [
+            TextField(
+              onChanged: (value) => setSheetState(() => search = value),
+              decoration: const InputDecoration(
+                hintText: 'جستجو در دسته‌ها...',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+            ),
+            Expanded(
+              child: ListView(children: [
+                ListTile(
+                  leading: const Icon(Icons.layers_rounded, color: ArvinColors.category),
+                  title: const Text('همه دسته‌ها'),
+                  trailing: Icon(
+                    _categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: ArvinColors.category,
+                  ),
+                  onTap: () => Navigator.of(sheetContext).pop('__all__'),
+                ),
+                for (final category in filtered)
+                  RadioListTile<String?>(
+                    value: category,
+                    groupValue: _categoryFilter,
+                    activeColor: ArvinColors.category,
+                    title: Text(category),
+                    secondary: const Icon(Icons.layers_rounded, color: ArvinColors.category),
+                    onChanged: (value) => Navigator.of(sheetContext).pop(value),
+                  ),
+              ]),
+            ),
+          ]),
+        );
+      },
+    ));
     if (!mounted) return;
     setState(() => _categoryFilter = result == '__all__' ? null : result);
   }
