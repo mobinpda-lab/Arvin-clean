@@ -398,9 +398,11 @@ void main() {
       find.byKey(const ValueKey('task-editor-due-time-rollbox')),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۰:۳۰'));
     await tester.tap(find.text('۱۰:۳۰'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
@@ -430,9 +432,11 @@ void main() {
       find.byKey(const ValueKey('task-editor-due-time-rollbox')),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۱:۰۰'));
     await tester.tap(find.text('۱۱:۰۰'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
