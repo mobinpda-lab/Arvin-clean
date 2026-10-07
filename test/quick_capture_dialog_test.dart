@@ -463,6 +463,7 @@ void main() {
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
     expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
+    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
@@ -578,6 +579,7 @@ void main() {
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
