@@ -455,6 +455,14 @@ class _HomePageState extends State<HomePage> {
 
     if (matchingIds != null) scoped = scoped.where((task) => matchingIds.contains(task.id));
 
+    if (_dueScope != null) {
+      scoped = taskDueScopeService.project(
+        scoped,
+        now: IranClock.now(),
+        scope: _dueScope!,
+      );
+    }
+
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
       if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
