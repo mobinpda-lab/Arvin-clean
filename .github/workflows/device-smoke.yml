@@ -124,7 +124,7 @@ jobs:
           disable-animations: true
           script: |
             flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-            test "${{ matrix.scenario }}" != "home" || (mkdir -p artifacts/home && adb exec-out screencap -p > artifacts/home/arvin-home.png && test -s artifacts/home/arvin-home.png)
+            test "${{ matrix.scenario }}" != "home" || (adb shell monkey -p com.example.arvin 1 >/dev/null 2>&1 && sleep 2 && mkdir -p artifacts/home && adb exec-out screencap -p > artifacts/home/arvin-home.png && test -s artifacts/home/arvin-home.png)
       - name: Upload Home screenshot evidence
         if: matrix.scenario == 'home' && success()
         uses: actions/upload-artifact@v4
