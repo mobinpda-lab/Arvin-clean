@@ -280,11 +280,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       _reminderDateTime,
       helpText: 'انتخاب تاریخ یادآوری',
     );
-    if (value != null && mounted) setState(() {
-      _reminderDateTime = value;
-      _reminderFollowsDueTime = false;
-      _reminderExplicitlyCleared = false;
-    });
+    if (value != null && mounted) {
+      setState(() {
+        _reminderDateTime = value;
+        _reminderFollowsDueTime = false;
+        _reminderExplicitlyCleared = false;
+      });
+    }
   }
 
   Future<void> _pickReminderTime() async {
