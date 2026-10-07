@@ -215,6 +215,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار فقط با عنوان',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
@@ -373,6 +374,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با ساعت',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
@@ -463,6 +465,7 @@ void main() {
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
     expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
+    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
@@ -580,6 +583,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
@@ -630,9 +634,11 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
