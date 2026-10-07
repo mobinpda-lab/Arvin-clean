@@ -10,7 +10,7 @@ GitHub repository reality always outranks narrative documents.
 
 1. **Live GitHub reality** — current `main`, current code, current open/merged PRs/Issues, exact-head workflow evidence.
 2. **Newest explicit owner-approved product decision** — binding issue/design/contract for the affected surface. As of 2026-09-12, Issue #845 and its Recovery Wave mapping are the newest cross-surface owner recovery decisions where they directly conflict with older wording.
-3. **`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0** — canonical governance and software-production rules.
+3. **`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1** — canonical governance and software-production rules.
 4. **Official scorecards** — `docs/project_completion_scorecard.json` for total Arvin; `docs/progress_scorecard.json` for the 19-feature extension. Scorecards are evidence/planning registries, never permission to override a newer owner requirement.
 5. **Canonical product/UI indices** — `docs/ARVIN_UI_CANONICAL.md`, `docs/PRODUCT_CONTRACT_MATRIX.md`, the 2026-09-12 recovery audit, and the detailed contracts they link.
 6. **Implementation-specific current contracts** — current migration/security/calendar/sync/notebook/etc. documents when consistent with the above.
@@ -20,7 +20,7 @@ GitHub repository reality always outranks narrative documents.
 
 | Area | Active reference |
 | --- | --- |
-| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 |
+| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1 |
 | Current owner recovery ledger | GitHub Issue #845 |
 | Ordered recovery execution | `docs/ARVIN_RECOVERY_WAVE_EXECUTION_2026-09-12.md` + Issues #846–#853 |
 | Exact-main recovery reconciliation | `docs/ARVIN_RECOVERY_WAVE0_EXACT_MAIN_AUDIT_2026-09-12.md` |
