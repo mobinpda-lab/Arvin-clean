@@ -20,9 +20,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('فیلتر گزارش‌ها'), findsOneWidget);
-    expect(find.byKey(const ValueKey('report-filter-apply')), findsOneWidget);
-    expect(find.byKey(const ValueKey('report-filter-clear')), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('بازه دقیق'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('report-filter-apply')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-clear')), findsOneWidget);
   });
 }
