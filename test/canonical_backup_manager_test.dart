@@ -3,6 +3,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -256,4 +257,83 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('golden flow round-trips Task data through canonical backup and restore', () async {
+    await TaskStore.resetTestDatabase();
+    final task = Task(
+      id: 'golden-flow-task',
+      title: 'آماده‌سازی جلسه',
+      description: 'مسیر کامل انتشار باید بدون از دست رفتن داده حفظ شود',
+      createdAt: DateTime(2026, 10, 7, 8, 0),
+      updatedAt: DateTime(2026, 10, 7, 8, 30),
+      dueDate: DateTime(2026, 10, 8, 9, 15),
+      reminderDate: DateTime(2026, 10, 8, 9),
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 10, 9, 10),
+      tags: const ['مهم', 'جلسه'],
+      category: 'کار',
+      checklist: const ['[ ] آماده‌سازی فایل', '[x] هماهنگی'],
+      checklistOccurrences: {
+        '2026-10-08T09:15:00.000': const ['[x] آماده‌سازی فایل', '[x] هماهنگی'],
+      },
+      followUps: [
+        FollowUp(
+          id: 'golden-flow-followup',
+          dateTime: DateTime(2026, 10, 9, 10),
+          note: 'نتیجه جلسه پیگیری شود',
+          result: 'منتظر پاسخ',
+          nextFollowUp: DateTime(2026, 10, 10, 11),
+        ),
+      ],
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        interval: 2,
+      ),
+    );
+
+    final store = TaskStore();
+    await store.save([task]);
+
+    final backupService = _FakeBackupService();
+    final manager = ArvinBackupManager(service: backupService);
+    final project = ProjectPlan(
+      id: 'golden-flow-project',
+      title: 'پروژه انتشار',
+      itemIds: const ['golden-flow-task'],
+    );
+
+    final persistedBeforeBackup = (await store.load()).single;
+    await manager.backupCanonicalTasks(
+      [persistedBeforeBackup],
+      projects: [project],
+      settings: const <String, dynamic>{'themeMode': 'light'},
+    );
+
+    backupService.restoreDocument = backupService.writtenPayload;
+    final candidate = await manager.restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.projects.single.id, 'golden-flow-project');
+    expect(candidate.settings, {'themeMode': 'light'});
+    expect(candidate.tasks.single.id, 'golden-flow-task');
+
+    await TaskStore.resetTestDatabase();
+    await TaskStore().save(candidate.tasks);
+    final restored = (await TaskStore().load()).single;
+
+    expect(restored.title, 'آماده‌سازی جلسه');
+    expect(restored.dueDate, DateTime(2026, 10, 8, 9, 15));
+    expect(restored.reminderDate, DateTime(2026, 10, 8, 9));
+    expect(restored.category, 'کار');
+    expect(restored.tags, ['مهم', 'جلسه']);
+    expect(restored.checklist, ['[ ] آماده‌سازی فایل', '[x] هماهنگی']);
+    expect(restored.checklistOccurrences, {
+      '2026-10-08T09:15:00.000': const ['[x] آماده‌سازی فایل', '[x] هماهنگی'],
+    });
+    expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
+    expect(restored.recurrence?.interval, 2);
+    expect(restored.followUps.single.id, 'golden-flow-followup');
+    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
+  });
+
 }
