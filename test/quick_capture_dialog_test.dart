@@ -358,16 +358,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    final hourBox = find.byTooltip('ساعت');
-    expect(hourBox, findsOneWidget);
-    await tester.tap(hourBox);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    expect(find.text('16'), findsOneWidget);
+    await tester.tap(find.text('16'));
     await tester.pumpAndSettle();
-    final hour16 = find.text('۱۶');
-    expect(hour16, findsOneWidget);
-    await tester.tap(hour16);
+    expect(find.text('35'), findsOneWidget);
+    await tester.tap(find.text('35'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-time-confirm')));
+    await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
