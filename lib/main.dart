@@ -17,6 +17,7 @@ import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
+import 'report_center_page.dart';
 import 'services/app_settings_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/calendar_inbound_sync_service.dart';
@@ -1906,7 +1907,10 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.report:
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
-            builder: (_) => TaskReportPage(tasks: List<Task>.of(tasks)),
+            builder: (_) => ReportCenterPage(
+              tasks: List<Task>.of(tasks),
+              projects: List<ProjectPlan>.of(projects),
+            ),
           ),
         );
         return;
