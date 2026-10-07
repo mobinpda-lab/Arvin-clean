@@ -19,6 +19,19 @@ Live reconciliation refresh: 2026-09-08, based on current main lineage including
 - **Done** — detailed contract Definition of Done is closed and current handoff/status agrees.
 - **Deferred** — explicitly disabled or postponed by an owner decision; no implementation work should proceed until that decision changes.
 
+## Permanent Brand Requirement — UI/UX Gate
+
+The following is a non-removable Arvin brand requirement and must be preserved by every future UI/UX implementation, redesign, migration and release acceptance:
+
+- stable identity/header area at the top of primary pages, with Home mandatory;
+- **بسم الله الرحمن الرحیم** in a calm, respectful RTL presentation with generous whitespace and harmony with **#4A4CAB**;
+- this identity placement is brand identity, not decorative copy, and may not be removed, hidden, replaced or relocated;
+- Home must preserve **مدیریت کارها و پیگیری آروین**, the four primary grouping controls **زمان / پروژه / دسته / برچسب**, simple daily-use hierarchy, Arvin indigo identity, custom Bottom Navigation and Persian personal-assistant character;
+- **Report Center remains a separate surface** and must not be absorbed into Home;
+- final screenshots/APK visual acceptance must explicitly check this brand gate.
+
+Canonical detail: `docs/ARVIN_UI_CANONICAL.md` and `docs/HOME_STYLE_LOCK.md`.
+
 ## Matrix
 
 | Surface / capability | Binding behavior | Binding source | Canonical foundation | Current main entry point | Acceptance evidence required | Current status | Owner issue / next gap |
