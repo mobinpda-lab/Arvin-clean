@@ -124,7 +124,9 @@ jobs:
           disable-animations: true
           script: |
             flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-            adb shell monkey -p com.example.arvin 1 >/dev/null 2>&1 || true
+            # The smoke test can leave the launcher in the foreground after Flutter exits.
+            # Explicitly start the canonical Arvin activity before capturing visual evidence.
+            adb shell am start -W -n com.example.arvin/.MainActivity >/dev/null 2>&1
             sleep 2
             mkdir -p artifacts/home
             rm -f artifacts/home/arvin-home.png
