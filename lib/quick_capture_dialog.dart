@@ -777,6 +777,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     children: [
                       Expanded(
                         child: ArvinRollBox<Object?>(
+                          key: const ValueKey('quick-capture-due-rollbox'),
                           label: 'موعد',
                           valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
                           icon: Icons.calendar_today_outlined,
@@ -820,6 +821,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinRollBox<Object?>(
+                          key: const ValueKey('quick-capture-reminder-rollbox'),
                           label: 'یادآور',
                           valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
                           icon: Icons.notifications_none_outlined,
