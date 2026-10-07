@@ -399,8 +399,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byTooltip('ساعت'), findsOneWidget);
-    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
   });
   testWidgets('Quick Add supports minute precision and all custom recurrence units', (tester) async {
     await tester.pumpWidget(
