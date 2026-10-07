@@ -292,7 +292,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) return;
+    if (!_reminderFollowsDueTime) {
+      return;
+    }
     if (_dueDateTime == null || _dueAllDay) {
       _reminderDateTime = null;
     } else {
