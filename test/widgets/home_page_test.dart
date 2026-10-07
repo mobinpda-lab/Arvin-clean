@@ -69,7 +69,7 @@ void main() {
 
   testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
-    final today = DateTime.now();
+    final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
@@ -410,7 +410,7 @@ void main() {
     expect(find.text('انتقال امروز'), findsOneWidget);
 
     final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
-    final today = DateTime.now();
+    final today = IranClock.now();
     expect(moved.dueDate?.year, today.year);
     expect(moved.dueDate?.month, today.month);
     expect(moved.dueDate?.day, today.day);
