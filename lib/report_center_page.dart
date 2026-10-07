@@ -86,14 +86,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(0, 40),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          chipTheme: Theme.of(context).chipTheme.copyWith(
-            visualDensity: VisualDensity.compact,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-          ),
-        ),
-        child: Wrap(
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(Icons.tune, size: 18),
@@ -195,7 +187,6 @@ class _ActiveFilterChips extends StatelessWidget {
             const Chip(label: Text('بازه ساعت')),
           ActionChip(label: const Text('پاک کردن'), onPressed: onClear),
         ],
-        ),
       ),
     );
   }
