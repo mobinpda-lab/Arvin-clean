@@ -129,12 +129,8 @@ jobs:
             mkdir -p artifacts/home
             rm -f artifacts/home/arvin-home.png
             adb shell rm -f /sdcard/arvin-home.png >/dev/null 2>&1 || true
-            for attempt in 1 2 3; do
-              adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1 || true
-              adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1 || true
-              test -s artifacts/home/arvin-home.png && break
-              sleep 1
-            done
+            adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1
+            adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1
             test -s artifacts/home/arvin-home.png
       - name: Upload Home screenshot evidence
         if: matrix.scenario == 'home' && success()
