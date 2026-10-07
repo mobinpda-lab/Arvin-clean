@@ -381,4 +381,64 @@ void main() {
     expect(result!.recurrence!.interval, 2);
   });
 
+
+  testWidgets('timed task automatically gets one reminder at the same time',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار زمان‌دار',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۰:۳۰'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, result!.dueDate);
+  });
+
+  testWidgets('manual reminder is not overwritten when due time changes',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'manual-reminder',
+      title: 'کار با یادآوری دستی',
+      dueDate: DateTime(2026, 8, 27, 10),
+      reminderDate: DateTime(2026, 8, 27, 9),
+      allDay: false,
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۱:۰۰'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, DateTime(2026, 8, 27, 11));
+    expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
+  });
+
 }
