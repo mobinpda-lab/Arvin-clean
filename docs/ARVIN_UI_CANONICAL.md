@@ -1,5 +1,31 @@
 # Arvin Canonical UI Reference
 
+## Permanent Brand Requirement — NON-REMOVABLE
+
+This is a binding, cross-surface Arvin UI/UX requirement. It survives UI redesigns, refactors, migrations, parallel implementation waves and future conversations.
+
+### Arvin identity header
+- The top of every primary Arvin product page must reserve a stable header/identity area; **Home is the primary mandatory instance**.
+- The header must display exactly: **«بسم الله الرحمن الرحیم»** with the same calm, respectful visual character.
+- This placement is part of Arvin's **brand identity**, not decorative copy.
+- RTL presentation, generous breathing room, a soft/low-contrast treatment and harmony with **#4A4CAB** are mandatory.
+- Removing, hiding, replacing, or relocating this identity element outside the approved stable header area is prohibited in any UI redesign, refactor, migration, test fix or merge.
+- Any future UI work affecting a primary page must preserve this requirement and update the relevant regression/visual acceptance evidence.
+
+### Final Arvin visual identity checklist
+The final/reference imagery and release acceptance must preserve:
+- **بسم الله الرحمن الرحیم**
+- **مدیریت کارها و پیگیری آروین**
+- exactly four primary Home grouping controls: **زمان / پروژه / دسته / برچسب**
+- a simple, calm daily-use Home
+- a separate **Report Center**
+- Arvin's indigo identity centered on **#4A4CAB**
+- a custom Arvin **Bottom Navigation**, not a generic default navigation surface
+- the feeling of a **Persian personal assistant**, not a generic Task Manager.
+
+These are brand/product requirements, not optional visual polish. No future implementation may trade them away for generic Material convenience.
+
+## Status
 ## Status
 Accepted product/UI reference. Detailed governance is controlled by `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0.
 

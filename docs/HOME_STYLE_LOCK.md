@@ -1,6 +1,30 @@
 # Arvin Home — Approved Style Lock
 
 Status: **BINDING UI CONTRACT**
+
+## Permanent Brand Lock — NON-NEGOTIABLE
+
+- A stable identity/header area remains at the top of Home.
+- It contains **بسم الله الرحمن الرحیم**.
+- This phrase is part of Arvin's product identity, not decorative text.
+- The treatment must remain calm and respectful: RTL, generous whitespace, soft/low-contrast treatment and harmony with **#4A4CAB**.
+- It must never be removed, hidden, replaced, or moved by redesign, refactor, migration, test repair, dependency update or merge.
+- The product title remains **مدیریت کارها و پیگیری آروین** directly associated with this identity block.
+
+## Final Visual Reference — REQUIRED
+
+Final Arvin imagery and Home acceptance must preserve:
+1. **بسم الله الرحمن الرحیم**
+2. **مدیریت کارها و پیگیری آروین**
+3. four primary grouping controls: **زمان / پروژه / دسته / برچسب**
+4. simple daily-use Home
+5. separate **Report Center**
+6. Arvin identity color centered on **#4A4CAB**
+7. custom Arvin **Bottom Navigation**
+8. the feeling of a Persian personal assistant rather than a generic Task Manager.
+
+These are brand/product acceptance requirements, not optional styling preferences.
+
 Approved reference: user-supplied Home concept, 2026-08-27.
 
 This document is the canonical visual contract for the Arvin Home screen. Product work, refactors, AI coding, dependency updates and Material migrations must not replace this direction with a generic dashboard or raw/default Material layout.
