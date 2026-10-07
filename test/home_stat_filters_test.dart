@@ -55,7 +55,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);

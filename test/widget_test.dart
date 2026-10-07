@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
