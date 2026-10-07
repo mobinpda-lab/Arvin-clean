@@ -485,13 +485,16 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFE8E6F7)),
           ),
-          child: SwitchListTile(
-            value: _checklistEnabled,
-            onChanged: _setChecklistEnabled,
-            contentPadding: EdgeInsets.zero,
-            title: const Text('چک‌لیست'),
-            subtitle: Text(
-              _checklistEnabled ? 'برای این کار فعال است' : 'برای این کار غیرفعال است',
+          child: Material(
+            color: Colors.transparent,
+            child: SwitchListTile(
+              value: _checklistEnabled,
+              onChanged: _setChecklistEnabled,
+              contentPadding: EdgeInsets.zero,
+              title: const Text('چک‌لیست'),
+              subtitle: Text(
+                _checklistEnabled ? 'برای این کار فعال است' : 'برای این کار غیرفعال است',
+              ),
             ),
           ),
         ),
