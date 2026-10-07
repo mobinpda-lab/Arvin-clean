@@ -169,8 +169,7 @@ void main() {
       );
       expect(newCalendarEvents.any((event) => event.eventId == migratedLinks.single.eventId), isTrue);
       debugPrint(
-        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS '
-        'from=' + calendar.id + ' to=' + secondCalendar.id,
+        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS from=${calendar.id} to=${secondCalendar.id}',
       );
       final cleanupPlan = planner.plan(
         revisions: const <CalendarSyncRevision>[],
@@ -184,8 +183,7 @@ void main() {
       expect(await store.load(), isEmpty);
     } else {
       debugPrint(
-        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION '
-        'writableCalendars=' + writable.length.toString(),
+        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION writableCalendars=${writable.length}',
       );
     }
 
