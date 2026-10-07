@@ -111,7 +111,7 @@ class _ArvinAppState extends State<ArvinApp> {
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
-        fontFamily: settings.fontFamily ?? AppFonts.vazirharfFamily,
+        fontFamily: settings.fontFamily == 'system' ? null : (settings.fontFamily ?? AppFonts.vazirharfFamily),
         textTheme: ThemeData.dark().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       themeMode: settings.themeMode,
