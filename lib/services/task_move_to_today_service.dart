@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'iran_clock.dart';
 import 'task_store.dart';
 
 /// Canonical write path for the owner-approved «انتقال به امروز» action.
@@ -12,7 +13,7 @@ class TaskMoveToTodayService {
   final TaskStore _store;
 
   Future<Task> move(String taskId, {DateTime? now}) async {
-    final effectiveNow = now ?? DateTime.now();
+    final effectiveNow = now ?? IranClock.now();
     final tasks = await _store.load();
     final index = tasks.indexWhere((task) => task.id == taskId);
     if (index < 0) {
