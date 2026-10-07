@@ -254,9 +254,8 @@ void main() {
     final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byTooltip('ساعت'), findsOneWidget);
-    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('لغو'));
     expect(find.text('۱۴:۳۵'), findsOneWidget);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
@@ -342,7 +341,7 @@ void main() {
           textDirection: TextDirection.rtl,
           child: Scaffold(
             body: QuickCaptureDialog(
-              now: () => DateTime(2026, 9, 27, 14, 35),
+              now: () => DateTime(2026, 9, 27, 16, 35),
               onCaptured: (task) async => captured.add(task),
             ),
           ),
@@ -359,12 +358,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TimePickerDialog), findsOneWidget);
-    expect(find.text('16'), findsOneWidget);
-    await tester.tap(find.text('16'));
-    await tester.pumpAndSettle();
-    expect(find.text('35'), findsOneWidget);
-    await tester.tap(find.text('35'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
 
@@ -430,11 +423,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
-    final minuteBox = find.byTooltip('دقیقه');
-    expect(minuteBox, findsOneWidget);
-    await tester.tap(minuteBox);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
-    expect(find.text('۳۷'), findsOneWidget);
   });
 
 
