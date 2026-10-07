@@ -40,8 +40,8 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('تاریخ‌گذشته'), findsNothing);
-    expect(find.text('فردا'), findsNothing);
-    expect(find.text('آینده'), findsNothing);
-    expect(find.text('فاقد زمان'), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-tomorrow')), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-future')), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-no_date')), findsNothing);
   });
 }
