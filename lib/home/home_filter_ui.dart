@@ -157,9 +157,8 @@ class HomeFilterChip extends StatelessWidget {
 
 /// Product-grade Home selection panel.
 ///
-/// This intentionally uses a centered dialog rather than Flutter's generic
-/// bottom-sheet presentation. The same selection flow is reused by time,
-/// project, category and tag filters.
+/// Arvin-specific bottom-sheet presentation for the four Home filters.
+/// The same selection flow is reused by time, project, category and tag filters.
 class HomeFilterSheet extends StatelessWidget {
   const HomeFilterSheet({
     super.key,
@@ -175,10 +174,8 @@ class HomeFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
-      backgroundColor: Colors.transparent,
-      elevation: 0,
+    return SafeArea(
+      top: false,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 520,
@@ -249,10 +246,12 @@ class HomeFilterSheet extends StatelessWidget {
     required Color accent,
     required Widget child,
   }) {
-    return showDialog<T>(
+    return showModalBottomSheet<T>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withAlpha(55),
-      barrierDismissible: true,
       builder: (_) => HomeFilterSheet(
         title: title,
         accent: accent,
