@@ -261,6 +261,7 @@ void main() {
         matching: find.text('لغو'),
       ),
     );
+    await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsNothing);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
