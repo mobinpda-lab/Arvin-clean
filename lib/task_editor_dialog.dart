@@ -73,6 +73,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _completed;
   late List<String> _tags;
   late List<String> _checklist;
+  late bool _checklistEnabled;
   late List<String> _knownCategories;
   late List<String> _knownTags;
   late List<ProjectPlan> _projects;
@@ -112,6 +113,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
+    _checklistEnabled = task?.checklist.isNotEmpty ?? false;
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _projects = List<ProjectPlan>.of(widget.projects);
@@ -467,7 +469,41 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     });
   }
 
+  void _setChecklistEnabled(bool enabled) {
+    setState(() => _checklistEnabled = enabled);
+  }
+
   Widget _checklistEditor() {
+    return Column(
+      key: const ValueKey('task-editor-checklist-section'),
+      children: [
+        Container(
+          key: const ValueKey('task-editor-checklist-toggle'),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F7FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE8E6F7)),
+          ),
+          child: SwitchListTile(
+            value: _checklistEnabled,
+            onChanged: _setChecklistEnabled,
+            contentPadding: EdgeInsets.zero,
+            title: const Text('چک‌لیست'),
+            subtitle: Text(
+              _checklistEnabled ? 'برای این کار فعال است' : 'برای این کار غیرفعال است',
+            ),
+          ),
+        ),
+        if (_checklistEnabled) ...[
+          const SizedBox(height: 8),
+          _checklistEditorBody(),
+        ],
+      ],
+    );
+  }
+
+  Widget _checklistEditorBody() {
     return Container(
       key: const ValueKey('task-editor-checklist-block'),
       padding: const EdgeInsets.all(14),
@@ -591,7 +627,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
         category: _category,
-        checklist: List<String>.of(_checklist),
+        checklist: _checklistEnabled ? List<String>.of(_checklist) : const [],
         reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
