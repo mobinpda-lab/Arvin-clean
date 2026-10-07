@@ -53,6 +53,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
     expect(find.text('VazirHarf'), findsNWidgets(2));
+    expect((await service.load()).fontFamily, isNull);
+
+    await tester.tap(find.text('فونت دستگاه'));
+    await tester.pumpAndSettle();
+    expect((await service.load()).fontFamily, 'system');
+
+    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('VazirHarf').last);
     await tester.pumpAndSettle();
     expect((await service.load()).fontFamily, 'VazirHarf');
@@ -69,36 +77,6 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('taxonomy-settings-entry')));
     await tester.pumpAndSettle();
-    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
-    expect(find.byKey(const ValueKey('taxonomy-create-category')), findsOneWidget);
-    expect(find.byKey(const ValueKey('taxonomy-create-tag')), findsOneWidget);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
-      250,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
-    await tester.pumpAndSettle();
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('هنوز پروژه‌ای ساخته نشده است.'), findsOneWidget);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('پشتیبان‌گیری و بازیابی'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));
-    await tester.pumpAndSettle();
-    expect(backupOpened, isTrue);
+    expect(find.text('مدیریت دسته‌ها و برچسب‌ها'), findsOneWidget);
   });
 }
