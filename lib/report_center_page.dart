@@ -41,6 +41,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       builder: (_) => _ReportFilterSheet(
         initial: _filter,
         projects: widget.projects,
+        tasks: widget.tasks,
         now: _now,
       ),
     );
@@ -187,11 +188,13 @@ class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
     required this.initial,
     required this.projects,
+    required this.tasks,
     required this.now,
   });
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
+  final List<Task> tasks;
   final DateTime now;
 
   @override
@@ -300,11 +303,18 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = widget.projects
-        .expand((project) => const <String>[])
-        .toSet();
-    final tags = <String>{};
-    final allTasks = const <Task>[];
+    final categories = widget.tasks
+        .map((task) => task.category?.trim())
+        .whereType<String>()
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()..sort();
+    final tags = widget.tasks
+        .expand((task) => task.tags)
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()..sort();
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
@@ -405,6 +415,30 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              title: 'دسته',
+              child: DropdownButtonFormField<String?>(
+                value: _category,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items: [
+                  const DropdownMenuItem<String?>(value: null, child: Text('همه دسته‌ها')),
+                  ...categories.map((value) => DropdownMenuItem<String?>(value: value, child: Text(value))),
+                ],
+                onChanged: (value) => setState(() => _category = value),
+              ),
+            ),
+            _Section(
+              title: 'برچسب',
+              child: DropdownButtonFormField<String?>(
+                value: _tag,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items: [
+                  const DropdownMenuItem<String?>(value: null, child: Text('همه برچسب‌ها')),
+                  ...tags.map((value) => DropdownMenuItem<String?>(value: value, child: Text(value))),
+                ],
+                onChanged: (value) => setState(() => _tag = value),
+              ),
+            ),
+            _Section(
               title: 'وضعیت',
               child: Wrap(
                 spacing: 6,
@@ -460,8 +494,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 ],
               ),
             ),
-            if (categories.isNotEmpty || tags.isNotEmpty || allTasks.isNotEmpty)
-              const SizedBox.shrink(),
             const SizedBox(height: 16),
             Row(
               children: [
