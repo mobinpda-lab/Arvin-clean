@@ -458,7 +458,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
+    expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
