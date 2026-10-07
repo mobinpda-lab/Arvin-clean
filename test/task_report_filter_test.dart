@@ -47,7 +47,7 @@ void main() {
       dueDate: DateTime(2026, 10, 7, 15),
     );
 
-    final result = const TaskReportFilter(
+    final result = TaskReportFilter(
       fromDate: DateTime(2026, 10, 7),
       toDate: DateTime(2026, 10, 7),
       fromTime: Duration(hours: 14),
