@@ -101,8 +101,12 @@ class TaskReportFilter {
 
   bool _matchesTime(DateTime? value, DateTime now) {
     if (value == null) {
-      return timePreset == ReportTimePreset.all ||
-          timePreset == ReportTimePreset.undated;
+      final noPreciseRange = fromDate == null &&
+          toDate == null &&
+          fromTime == null &&
+          toTime == null;
+      return timePreset == ReportTimePreset.undated ||
+          (timePreset == ReportTimePreset.all && noPreciseRange);
     }
 
     final local = value.toLocal();
