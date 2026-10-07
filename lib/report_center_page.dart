@@ -83,7 +83,20 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                   FilledButton.tonalIcon(
                     key: const ValueKey('report-center-filters'),
                     onPressed: _openFilters,
-                    icon: const Icon(Icons.tune),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          chipTheme: Theme.of(context).chipTheme.copyWith(
+            visualDensity: VisualDensity.compact,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+          ),
+        ),
+        child: Wrap(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.tune, size: 18),
                     label: const Text('فیلترها'),
                   ),
                 ],
@@ -137,7 +150,10 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     builder: (_) => TaskReportPage(tasks: List<Task>.of(tasks)),
                   ),
                 ),
-                icon: const Icon(Icons.description_outlined),
+                extendedPadding: const EdgeInsets.symmetric(horizontal: 14),
+                extendedIconLabelSpacing: 6,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.description_outlined, size: 18),
                 label: const Text('مشاهده و خروجی'),
               ),
       ),
@@ -179,6 +195,7 @@ class _ActiveFilterChips extends StatelessWidget {
             const Chip(label: Text('بازه ساعت')),
           ActionChip(label: const Text('پاک کردن'), onPressed: onClear),
         ],
+        ),
       ),
     );
   }
@@ -326,7 +343,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
           boxShadow: const [BoxShadow(blurRadius: 24, offset: Offset(0, -6))],
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
           children: [
             Center(
               child: Container(
@@ -338,9 +355,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text('فیلتر گزارش‌ها', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _Section(
               title: 'زمان',
               child: Wrap(
@@ -367,7 +384,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           child: Text(_dateLabel(_fromDate, 'از تاریخ')),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickDate(false),
@@ -376,7 +393,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
@@ -401,7 +418,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'پروژه',
               child: DropdownButtonFormField<String?>(
                 initialValue: _projectId,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
                 items: [
                   const DropdownMenuItem<String?>(value: null, child: Text('همه پروژه‌ها')),
                   ...widget.projects.map(
@@ -494,7 +515,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -515,14 +536,24 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _hasFollowUp = null;
                       _hasChecklist = null;
                     }),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      visualDensity: VisualDensity.compact,
+                    ),
                     child: const Text('پاک کردن'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: FilledButton(
                     key: const ValueKey('report-filter-apply'),
                     onPressed: _apply,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      visualDensity: VisualDensity.compact,
+                    ),
                     child: const Text('اعمال'),
                   ),
                 ),
@@ -543,12 +574,12 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.only(bottom: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 7),
+              padding: const EdgeInsets.only(bottom: 4),
               child: Text(title, style: Theme.of(context).textTheme.titleSmall),
             ),
             child,
