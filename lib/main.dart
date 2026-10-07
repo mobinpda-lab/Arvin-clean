@@ -50,6 +50,7 @@ import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
+import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
@@ -187,6 +188,10 @@ class _HomePageState extends State<HomePage> {
   final Set<String> _tagFilters = <String>{};
   String _timeFilter = 'all';
   DateTime? _specificDateFilter;
+  DateTime? _fromDateFilter;
+  DateTime? _toDateFilter;
+  TimeOfDay? _fromTimeFilter;
+  TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
@@ -370,6 +375,11 @@ class _HomePageState extends State<HomePage> {
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
+    if (_timeFilter == 'customRange') {
+      final from = _fromDateFilter == null ? 'شروع' : _date(_fromDateFilter!);
+      final to = _toDateFilter == null ? 'پایان' : _date(_toDateFilter!);
+      return '$from تا $to';
+    }
     switch (_timeFilter) {
       case 'today': return 'امروز';
       case 'tomorrow': return 'فردا';
@@ -406,8 +416,26 @@ class _HomePageState extends State<HomePage> {
       if (selected == null) return true;
       return day == DateTime(selected.year, selected.month, selected.day);
     }
+    if (_timeFilter == 'customRange') {
+      final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
+      final to = _toDateFilter == null ? null : DateTime(_toDateFilter!.year, _toDateFilter!.month, _toDateFilter!.day);
+      final dayMatches = (from == null || !day.isBefore(from)) && (to == null || !day.isAfter(to));
+      if (!dayMatches) return false;
+      if (_fromTimeFilter != null) {
+        final minutes = due.hour * 60 + due.minute;
+        final fromMinutes = _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute;
+        if (minutes < fromMinutes && (from == null || day == from)) return false;
+      }
+      if (_toTimeFilter != null) {
+        final minutes = due.hour * 60 + due.minute;
+        final toMinutes = _toTimeFilter!.hour * 60 + _toTimeFilter!.minute;
+        if (minutes > toMinutes && (to == null || day == to)) return false;
+      }
+      return true;
+    }
     return true;
   }
+
 
   List<Task> get visible {
     final searchActive = query.trim().isNotEmpty;
@@ -544,6 +572,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _timeFilter = 'all';
       _specificDateFilter = null;
+      _fromDateFilter = null;
+      _toDateFilter = null;
+      _fromTimeFilter = null;
+      _toTimeFilter = null;
       _projectFilter = null;
       _categoryFilter = null;
       _tagFilters.clear();
@@ -557,21 +589,147 @@ class _HomePageState extends State<HomePage> {
       {'id': 'tomorrow', 'title': 'فردا', 'icon': Icons.event_rounded},
       {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
       {'id': 'next30', 'title': '۳۰ روز آینده', 'icon': Icons.calendar_month_rounded},
-      {'id': 'custom', 'title': 'تاریخ مشخص', 'icon': Icons.edit_calendar_rounded},
       {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},
     ];
-    final value = await HomeFilterSheet.show<String>(context, title: 'انتخاب زمان', accent: ArvinColors.time, child: ListView(shrinkWrap: true, children: [
-      for (final option in options)
-        RadioListTile<String>(value: option['id'] as String, groupValue: _timeFilter, activeColor: ArvinColors.time, title: Text(option['title'] as String), secondary: Icon(option['icon'] as IconData, color: ArvinColors.time), onChanged: (value) => Navigator.of(context).pop(value)),
-    ]));
-    if (!mounted || value == null) return;
-    if (value == 'custom') {
-      final picked = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2100), initialDate: _specificDateFilter ?? DateTime.now());
-      if (picked == null) return;
-      setState(() { _timeFilter = 'custom'; _specificDateFilter = picked; });
-    } else {
-      setState(() { _timeFilter = value; _specificDateFilter = null; });
-    }
+    var fromDate = _fromDateFilter;
+    var toDate = _toDateFilter;
+    var fromTime = _fromTimeFilter;
+    var toTime = _toTimeFilter;
+    var selectedQuick = _timeFilter == 'customRange' ? 'all' : _timeFilter;
+
+    await HomeFilterSheet.show<void>(
+      context,
+      title: 'انتخاب زمان',
+      accent: ArvinColors.time,
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          Future<void> pickFromDate() async {
+            final picked = await showPersianDatePicker(
+              context: sheetContext,
+              initialDate: fromDate ?? DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
+              helpText: 'از تاریخ',
+            );
+            if (picked != null) setSheetState(() => fromDate = picked);
+          }
+          Future<void> pickToDate() async {
+            final picked = await showPersianDatePicker(
+              context: sheetContext,
+              initialDate: toDate ?? fromDate ?? DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
+              helpText: 'تا تاریخ',
+            );
+            if (picked != null) setSheetState(() => toDate = picked);
+          }
+          Future<void> pickFromTime() async {
+            final picked = await showTimePicker(context: sheetContext, initialTime: fromTime ?? TimeOfDay.now());
+            if (picked != null) setSheetState(() => fromTime = picked);
+          }
+          Future<void> pickToTime() async {
+            final picked = await showTimePicker(context: sheetContext, initialTime: toTime ?? TimeOfDay.now());
+            if (picked != null) setSheetState(() => toTime = picked);
+          }
+          String dateLabel(DateTime? value, String empty) => value == null ? empty : _date(value);
+          String timeLabel(TimeOfDay? value, String empty) => value == null ? empty : value.format(sheetContext);
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 8),
+            children: [
+              for (final option in options)
+                RadioListTile<String>(
+                  value: option['id'] as String,
+                  groupValue: selectedQuick,
+                  activeColor: ArvinColors.time,
+                  title: Text(option['title'] as String),
+                  secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
+                  onChanged: (value) => setSheetState(() {
+                    selectedQuick = value ?? 'all';
+                    if (selectedQuick != 'all') {
+                      fromDate = null; toDate = null; fromTime = null; toTime = null;
+                    }
+                  }),
+                ),
+              const Divider(height: 18),
+              ListTile(
+                leading: const Icon(Icons.calendar_month_rounded, color: ArvinColors.time),
+                title: const Text('از تاریخ'),
+                subtitle: Text(dateLabel(fromDate, 'انتخاب نشده')),
+                onTap: () { selectedQuick = 'all'; pickFromDate(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.event_rounded, color: ArvinColors.time),
+                title: const Text('تا تاریخ'),
+                subtitle: Text(dateLabel(toDate, 'انتخاب نشده')),
+                onTap: () { selectedQuick = 'all'; pickToDate(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.schedule_rounded, color: ArvinColors.time),
+                title: const Text('از ساعت'),
+                subtitle: Text(timeLabel(fromTime, 'انتخاب نشده')),
+                onTap: () { selectedQuick = 'all'; pickFromTime(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.access_time_rounded, color: ArvinColors.time),
+                title: const Text('تا ساعت'),
+                subtitle: Text(timeLabel(toTime, 'انتخاب نشده')),
+                onTap: () { selectedQuick = 'all'; pickToTime(); },
+              ),
+              if (fromDate != null || toDate != null || fromTime != null || toTime != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
+                    onPressed: () {
+                      setState(() {
+                        _timeFilter = 'customRange';
+                        _specificDateFilter = null;
+                        _fromDateFilter = fromDate;
+                        _toDateFilter = toDate;
+                        _fromTimeFilter = fromTime;
+                        _toTimeFilter = toTime;
+                      });
+                      Navigator.of(sheetContext).pop();
+                    },
+                    icon: const Icon(Icons.check_rounded),
+                    label: const Text('اعمال بازه'),
+                  ),
+                ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _timeFilter = 'all';
+                    _specificDateFilter = null;
+                    _fromDateFilter = null;
+                    _toDateFilter = null;
+                    _fromTimeFilter = null;
+                    _toTimeFilter = null;
+                  });
+                  Navigator.of(sheetContext).pop();
+                },
+                child: const Text('پاک کردن'),
+              ),
+              if (selectedQuick != 'all')
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
+                  onPressed: () {
+                    setState(() {
+                      _timeFilter = selectedQuick;
+                      _specificDateFilter = null;
+                      _fromDateFilter = null;
+                      _toDateFilter = null;
+                      _fromTimeFilter = null;
+                      _toTimeFilter = null;
+                    });
+                    Navigator.of(sheetContext).pop();
+                  },
+                  child: const Text('انتخاب'),
+                ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _showProjectFilterSheet() async {
