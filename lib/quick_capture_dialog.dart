@@ -230,87 +230,22 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     BuildContext parentContext, {
     required DateTime initial,
   }) async {
-    var hour = initial.hour;
-    var minute = initial.minute;
-    return showDialog<TimeOfDay>(
+    return showTimePicker(
       context: parentContext,
-      builder: (sheetContext) {
-        final formatter = const PersianDateFormatter();
-        return Dialog(
-          child: SafeArea(
-            child: StatefulBuilder(
-            builder: (context, setSheetState) {
-              final label = formatter.toPersianDigits(
-                '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-              );
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('انتخاب ساعت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 8),
-                    Text(label, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ArvinRollBox<int>(
-                      label: 'ساعت',
-                      valueLabel: 'ساعت ${formatter.toPersianDigits(hour.toString().padLeft(2, '0'))}',
-                      icon: Icons.access_time_rounded,
-                      color: const Color(0xFF3568D4),
-                      items: List.generate(
-                        24,
-                        (value) => ArvinRollItem<int>(
-                          value: value,
-                          label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                          icon: Icons.schedule_outlined,
-                          color: const Color(0xFF3568D4),
-                        ),
-                      ),
-                      onSelected: (value) { if (value != null) setSheetState(() => hour = value); },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ArvinRollBox<int>(
-                      label: 'دقیقه',
-                      valueLabel: 'دقیقه ${formatter.toPersianDigits(minute.toString().padLeft(2, '0'))}',
-                      icon: Icons.more_time_rounded,
-                      color: const Color(0xFF7650C8),
-                      items: List.generate(60, (value) {
-
-                          return ArvinRollItem<int>(
-                            value: value,
-                            label: formatter.toPersianDigits(value.toString().padLeft(2, '0')),
-                            icon: Icons.timelapse_outlined,
-                            color: const Color(0xFF7650C8),
-                          );
-                        }),
-                      onSelected: (value) { if (value != null) setSheetState(() => minute = value); },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => Navigator.pop(
-                          sheetContext,
-                          TimeOfDay(hour: hour, minute: minute),
-                        ),
-                        key: const ValueKey('quick-capture-time-confirm'),
-                        child: const Text('انتخاب ساعت'),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            ),
-          ),
-        );
-      },
+      initialTime: TimeOfDay.fromDateTime(initial),
+      initialEntryMode: TimePickerEntryMode.dial,
+      helpText: 'انتخاب ساعت',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+      hourLabelText: 'ساعت',
+      minuteLabelText: 'دقیقه',
+      builder: (dialogContext, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: MediaQuery(
+          data: MediaQuery.of(dialogContext).copyWith(alwaysUse24HourFormat: true),
+          child: child ?? const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 
