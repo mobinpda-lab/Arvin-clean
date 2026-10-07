@@ -8,7 +8,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[\n        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},\n        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},\n        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n        {"id":"archived","title":"کار بایگانی","archived":true}\n      ]',
+      'arvin.tasks': '[\n        {\"id\":\"active\",\"title\":\"کار فعال\",\"category\":\"اداری\",\"tags\":[\"مهم\"],\"completed\":false},\n        {\"id\":\"done\",\"title\":\"کار انجام شده\",\"category\":\"شخصی\",\"completed\":true},\n        {\"id\":\"late\",\"title\":\"کار عقب افتاده\",\"completed\":false,\"dueDate\":\"2020-01-01T08:00:00.000\"},\n        {\"id\":\"archived\",\"title\":\"کار بایگانی\",\"archived\":true}\n      ]',
     });
   });
 
@@ -21,6 +21,10 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
+    // The overdue group is first in the canonical Home ordering, so assert it
+    // before scrolling it out of the lazy ListView viewport.
+    expect(find.text('کار عقب افتاده'), findsOneWidget);
+
     final scrollable = find.byType(ListView).last;
     for (var i = 0; i < 4; i++) {
       await tester.drag(scrollable, const Offset(0, -600));
@@ -28,7 +32,6 @@ void main() {
     }
     expect(find.text('کار فعال'), findsOneWidget);
     expect(find.text('کار انجام شده'), findsOneWidget);
-    expect(find.text('کار عقب افتاده'), findsOneWidget);
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
