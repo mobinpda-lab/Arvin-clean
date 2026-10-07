@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final tomorrow = today.add(const Duration(days: 1));
     final future = today.add(const Duration(days: 4));
