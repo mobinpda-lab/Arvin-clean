@@ -3,7 +3,7 @@ import '../models/goal_project.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
 
-enum ReportStatusFilter { all, open, completed, archived, trashed }
+enum ReportStatusFilter { all, open, completed, archived }
 
 class TaskReportFilter {
   const TaskReportFilter({
@@ -96,8 +96,6 @@ class TaskReportFilter {
         return task.completed;
       case ReportStatusFilter.archived:
         return task.archived;
-      case ReportStatusFilter.trashed:
-        return task.trashed;
     }
   }
 
