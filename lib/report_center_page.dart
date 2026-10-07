@@ -594,7 +594,6 @@ String _statusLabel(ReportStatusFilter value) => switch (value) {
       ReportStatusFilter.open => 'باز',
       ReportStatusFilter.completed => 'انجام‌شده',
       ReportStatusFilter.archived => 'بایگانی',
-      ReportStatusFilter.trashed => 'سطل زباله',
     };
 
 String _priorityLabel(TaskPriority value) => switch (value) {
