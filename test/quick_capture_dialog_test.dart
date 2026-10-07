@@ -462,11 +462,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
 
-    await tester.tap(find.text('یادآور'));
+    final reminderRollBox = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderRollBox);
+    await tester.tap(reminderRollBox);
     await tester.pumpAndSettle();
     expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
-    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
-    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.tap(find.text('۱۵ دقیقه قبل'));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
