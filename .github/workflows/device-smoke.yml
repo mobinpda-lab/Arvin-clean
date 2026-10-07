@@ -125,8 +125,18 @@ jobs:
           script: |
             flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
             # The smoke test can leave the launcher in the foreground after Flutter exits.
-            # Reuse the previously working launcher-based relaunch before visual capture.
-            adb shell monkey -p com.example.arvin 1 >/dev/null 2>&1 || true
+            # Relaunch the canonical Arvin activity and verify it is actually resumed
+            # before capturing visual evidence. Retry because the emulator adb daemon can
+            # briefly be unavailable immediately after the integration test exits.
+            adb wait-for-device
+            for attempt in 1 2 3 4 5; do
+              adb shell am start -n com.example.arvin/.MainActivity >/dev/null 2>&1 || true
+              sleep 1
+              if adb shell dumpsys activity activities 2>/dev/null | grep -q 'com.example.arvin'; then
+                break
+              fi
+            done
+            adb shell dumpsys activity activities 2>/dev/null | grep -q 'com.example.arvin'
             sleep 2
             mkdir -p artifacts/home
             rm -f artifacts/home/arvin-home.png
