@@ -21,15 +21,13 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
-    final scrollable = find.byType(Scrollable).last;
-    await tester.scrollUntilVisible(find.text('کار فعال'), -500, scrollable: scrollable);
-    await tester.pumpAndSettle();
+    final scrollable = find.byType(ListView).last;
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pumpAndSettle();
+    }
     expect(find.text('کار فعال'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('کار انجام شده'), -500, scrollable: scrollable);
-    await tester.pumpAndSettle();
     expect(find.text('کار انجام شده'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('کار عقب افتاده'), -500, scrollable: scrollable);
-    await tester.pumpAndSettle();
     expect(find.text('کار عقب افتاده'), findsOneWidget);
     expect(find.text('کار بایگانی'), findsNothing);
   });
