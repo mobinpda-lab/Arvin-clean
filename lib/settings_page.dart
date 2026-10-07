@@ -40,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) => AlertDialog(
         title: const Text('انتخاب فونت'),
         content: RadioGroup<String>(
-          groupValue: current.fontFamily ?? 'system',
+          groupValue: current.fontFamily ?? 'VazirHarf',
           onChanged: (value) { if (value != null) Navigator.of(context).pop(value); },
           child: const Column(
             mainAxisSize: MainAxisSize.min,
@@ -70,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
     if (choice == null) return;
-    await _setFontFamily(choice == 'system' ? null : AppFonts.vazirharfFamily);
+    await _setFontFamily(choice == 'system' ? 'system' : AppFonts.vazirharfFamily);
   }
   Future<void> _setSwipeAction({required bool rightSide, required TaskSwipeAction action}) async { final current = settings; if (current == null) return; final next = rightSide ? current.copyWith(swipeRightAction: action) : current.copyWith(swipeLeftAction: action); await widget.service.saveSwipeActions(right: next.swipeRightAction, left: next.swipeLeftAction); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار', TaskSwipeAction.none => 'بدون عمل' };
@@ -90,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 20), const Divider(height: 32), const Text('کارها و حرکت کارت‌ها', key: ValueKey('swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.'), const SizedBox(height: 12),
       DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-right-action'), initialValue: current.swipeRightAction, decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); }),
       const SizedBox(height: 12), DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-left-action'), initialValue: current.swipeLeftAction, decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); }),
-      const Divider(height: 32), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: Text(current.fontFamily == null ? 'فونت دستگاه' : 'VazirHarf'), trailing: const Icon(Icons.chevron_left), onTap: _showFontPicker),
+      const Divider(height: 32), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: Text(current.fontFamily == 'system' ? 'فونت دستگاه' : 'VazirHarf'), trailing: const Icon(Icons.chevron_left), onTap: _showFontPicker),
       const SizedBox(height: 12), ListTile(contentPadding: EdgeInsets.zero, title: const Text('اندازه متن'), subtitle: Text(current.fontSize.toStringAsFixed(0)), leading: const Icon(Icons.format_size), trailing: SizedBox(width: 180, child: Slider(min: 12, max: 24, divisions: 12, value: current.fontSize.clamp(12, 24), label: current.fontSize.toStringAsFixed(0), onChanged: _setFontSize)),), const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const SizedBox(height: 20), const Text('تقویم و همگام‌سازی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
