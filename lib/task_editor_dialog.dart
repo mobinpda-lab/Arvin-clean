@@ -67,6 +67,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late bool _dueAllDay;
   DateTime? _reminderDateTime;
   bool _reminderFollowsDueTime = true;
+  bool _reminderExplicitlyCleared = false;
+  DateTime? _initialReminderDateTime;
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
@@ -99,6 +101,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.reminderDate;
+    _initialReminderDateTime = task?.reminderDate;
     _reminderFollowsDueTime = task == null ||
         task.reminderDate == null ||
         (task.dueDate != null && !task.allDay && task.reminderDate == task.dueDate);
@@ -280,6 +283,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     if (value != null && mounted) setState(() {
       _reminderDateTime = value;
       _reminderFollowsDueTime = false;
+      _reminderExplicitlyCleared = false;
     });
   }
 
@@ -322,6 +326,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   void _clearReminderTime() => setState(() {
     _reminderDateTime = null;
     _reminderFollowsDueTime = false;
+    _reminderExplicitlyCleared = true;
   });
 
   Future<String?> _promptNewName(String title) async {
@@ -559,6 +564,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final now = DateTime.now();
     final existing = widget.task;
     _syncAutomaticReminder();
+    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
+        ? _dueDateTime
+        : (_reminderDateTime ??
+            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
@@ -575,7 +584,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
-        reminderDate: _reminderDateTime,
+        reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
