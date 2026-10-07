@@ -837,11 +837,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomReminder,
                           onSelected: (value) {
-                            if (value is DateTime) {
-                              setState(() => _reminderDate = value);
-                            } else {
-                              setState(() => _reminderDate = null);
-                            }
+                            setState(() {
+                              _reminderDate = value is DateTime ? value : null;
+                              _reminderFollowsDueTime = false;
+                            });
                           },
                         ),
                       ),
