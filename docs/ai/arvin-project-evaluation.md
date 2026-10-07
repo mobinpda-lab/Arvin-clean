@@ -1,179 +1,169 @@
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
-Date: 2026-10-05
-Verified main for this snapshot: `81ed798d6a6d30316f2347242bc478b59e7caa20`
+Date: 2026-10-07
+Verified current main: 638aef6ffb1a5c3a3b9c619016ad75dc85f5df75
 
 ## Executive status
 
-Arvin is NOT Release-Ready yet. Several important foundations are implemented, but product-level acceptance and integration remain incomplete. The highest-value unfinished lane is canonical Date/Time/Reminder behavior, followed by Calendar sync, Checklist completion, Repeat, Taxonomy, Notebook, Typography, regression and final release evidence.
+**Arvin is NOT Release-Ready yet.**
+
+Live GitHub shows substantial product progress. The remaining gap is product integration, real-device acceptance, and release evidence. Older percentage snapshots are historical and are not current status.
 
 ## Confirmed recent work
 
-### DONE with exact-head evidence
-- PR #2302 merged: restored circular Clock Dial time picker and immediate new Project visibility in the Task Editor.
-- PR #2306 merged: Task Detail shows/toggles canonical Checklist and progress.
-- PR #2308 merged: Home Task cards show Checklist progress.
-- Stale duplicate #2307 was closed as duplicate.
-- Main at this snapshot: `81ed798...`.
+### Implementation slices with exact-head evidence
 
-These are implementation states, not blanket product-release approval.
+- **#2301 Date/Time/Reminder**: merged. Canonical Date-only All-Day and Date+Time automatic Reminder behavior were implemented on the existing Task/Reminder foundation.
+  - #2301 exact head bda056efb3e10a3b90f8638f1cdb3c6103c0ca7e: Build SUCCESS, Device Smoke SUCCESS.
+  - #2337 exact head 83ba479f69da6b7cdcfee66b16d9f7eb197692cf: Build SUCCESS, Device Smoke SUCCESS.
+  - #2345 exact head 387f7e46e66d75cd2e1388479c3f51d1aedf1223: Device Smoke SUCCESS.
+  - This is implementation evidence, not final physical-phone acceptance of the complete product contract.
+- **#2302**: circular Clock Dial and immediate Project visibility restored.
+- **#2306 / #2308**: canonical Checklist display/toggle/progress reached Task Detail and Home.
+- **#2406**: Report Center filter surface merged.
+- **#2407**: Home filter presentation corrected to the canonical Arvin Bottom Sheet, reusing the existing filter state/semantics. Exact head d5f5de29a24164b9d798b15738e60a9c74d76468 passed Build and Device Smoke; it merged as 638aef6ffb1a5c3a3b9c619016ad75dc85f5df75.
 
-## P0 — execute first
+## Active lane
 
-### 1. Date/Time/Reminder — #2301
-Status: IN PROGRESS / architecture gate active.
+### Typography — #1860 / PR #2408
+**Status: IN PROGRESS — DEVICE/UX VERIFICATION**
 
-Required:
-- Date only = true All-Day; never show fake 00:00.
-- Date + Time = Timed Task + exactly one canonical automatic Reminder at the same timestamp.
-- No Date = no due-based automatic Reminder/Event.
-- Date-only ↔ Date+Time transitions are reversible and idempotent.
-- Editing date/time reconciles Reminder/Calendar without duplicates.
-- Manual Reminder is not silently overwritten.
-- Preserve Task IDs/history/Backup/Restore.
-- Keep date and time side-by-side; circular Clock Dial; Persian RTL.
-- Focused tests + Analyze/Test + exact-head Build + Android Smoke.
-- Final device acceptance near RC.
+PR #2408 makes the existing «فونت دستگاه» selection real through the canonical AppSettingsService/AppSettings path.
 
-Architecture decision document exists at `docs/architecture/date-time-reminder-canonical-decision.md` on PR #2309. Do not create a parallel Date/Reminder engine.
+Protected:
+- no new storage/model/controller;
+- no new font engine;
+- VazirHarf remains canonical default;
+- existing font-size path remains unchanged.
 
-### 2. Calendar — #2248 / #1901
-Status: IN PROGRESS / NEEDS VERIFICATION.
+Exact head: 1d7052e1027f9e4ece1ee36a5aef29929b344644
 
-Required:
-- Selected destination calendar is actually honored after change/edit.
-- Previous calendar event is reconciled; no duplicate/orphan.
-- Edit/delete/update keeps Task↔Event identity.
-- Phone default-calendar opt-in sync works.
-- No-date Tasks do not sync as timed events.
-- Completed Tasks are removed from phone calendar when contract requires.
-- All-Day remains All-Day; provider 00:00 is compatibility only.
-- Recurrence mapping/import behavior must be verified.
-- Architecture review before fundamental Calendar engine/model/storage changes.
+It was promoted from Draft to Ready so the heavy Device Smoke gate could run. The new Device Smoke is currently in progress. **Do not call #2408 Done yet.**
 
-### 3. Checklist — #2230
-Status: PARTIAL.
+## P0/P1 remaining product work
 
-Already implemented:
-- canonical Task checklist;
+### Calendar — #2248 / #1901
+**IN PROGRESS — NEEDS REAL-DEVICE VERIFICATION**
+
+Verify:
+- destination calendar change/edit is honored;
+- old events reconcile without orphan/duplicate;
+- Task↔Event identity remains stable;
+- phone default-calendar opt-in sync works;
+- no-date Tasks do not become timed events;
+- All-Day remains All-Day;
+- recurrence/provider behavior is correct.
+
+Use the existing Calendar foundation. No parallel Calendar engine/store/repository.
+
+### Checklist — #2230
+**PARTIAL — NEEDS ACCEPTANCE**
+
+Present:
+- canonical Task Checklist;
 - Task Detail display/toggle/progress;
 - Home progress;
 - reorder foundation.
 
 Remaining:
-- user-facing add/edit/delete/move/reorder completion path;
-- active/inactive capability;
-- independent occurrence state for Repeat;
-- Checklist + Date/Time/Reminder;
-- Checklist + Follow-up;
-- Checklist + Project/Category/Tag;
-- Backup/Restore and migration/history;
-- recurring-template change behavior;
-- RTL/Persian UI and acceptance.
+- complete add/edit/delete/move/reorder user flow;
+- active/inactive behavior;
+- independent Repeat occurrence state;
+- Date/Time/Reminder, Follow-up and taxonomy integration;
+- Backup/Restore/history;
+- RTL/Persian acceptance.
 
-## P1 — after/alongside P0 where safely independent
+### Repeat — #2254
+**ARCHITECTURE GATE / BACKLOG IMPLEMENTATION**
 
-### 4. Repeat — #2254
-Status: ARCHITECTURE GATE / BACKLOG implementation.
+Do not create a second recurrence engine. Required lifecycle semantics include start/end/count, current/completed/remaining/progress, next/last/history, occurrence-aware Checklist, Timeline/Calendar projection and Backup/Restore.
 
-Need lifecycle semantics, not merely recurring reminders:
-start/end/count/current/completed/remaining/progress/next/history, Timeline, per-occurrence Checklist, Backup/Restore, integration tests.
+### Taxonomy — #847 / #1861
+**IN PROGRESS / NEEDS VERIFICATION**
 
-### 5. Taxonomy — #847 / #1861
-Status: IN PROGRESS / NEEDS VERIFICATION.
+One canonical Project/Category/Tag source must support create/select/edit/archive/safe delete, immediate Roll Box visibility, combined filters, Notebook integration and Backup/Restore.
 
-Need robust Project/Category/Tag lifecycle using one canonical source:
-create, select, rename/edit, archive/disable, safe delete/reassign, immediate visibility, filters, Notebook integration, Backup/Restore.
-
-### 6. Quick Add / Task Edit — #1891
-Status: PARTIAL / NEEDS VERIFICATION.
-
-Need:
-- date/time side-by-side everywhere;
-- no blank date/time picker;
-- Reminder works;
-- Persian RTL/digits;
-- Project/Category/Tag roll boxes with existing values + Create New last;
-- immediate refresh;
-- Repeat + Priority same row;
-- completed↔undone and filters;
-- swipe normal Task ↔ Follow-up.
-
-### 7. Home — #1912 / #1901
-Status: PARTIAL / NEEDS FINAL DEVICE VERIFICATION.
-
-Need final visual/UX acceptance:
-- Home title and approved four group controls;
-- Time/Projects/Categories/Tags filters combine correctly;
-- no legacy stat cards;
-- readable multiline Task cards;
-- no clipping;
-- filter changes take effect without reopen;
-- daily decision-center behavior.
-
-### 8. Notebook — #1911 / #850
-Status: IN PROGRESS / NEEDS VERIFICATION.
-
-Need independent Notebook with:
-- inline numbering/tick/checklist tools independently on/off;
-- continuation from same text point;
-- autosave/reopen/undo/redo;
-- canonical Project/Category/Tag;
-- combined filters;
-- Tag selection;
-- safe cleanup of legacy Notebook-specific checklist/shopping/travel structures only after dependency audit.
-
-### 9. Typography — #1860
-Status: NEEDS VERIFICATION.
+### Quick Add / Task Editor — #1891
+**PARTIAL / NEEDS VERIFICATION**
 
 Required:
-- VazirHarf v34.003 default;
-- real system font option;
-- real app-wide font size persisted across restart;
-- valid font assets/source/license;
-- RTL preview;
-- no fake selectable fonts.
+- Date + Time side-by-side;
+- real pickers, no blank screen;
+- Reminder Date + Time;
+- Persian RTL/digits;
+- Project/Category/Tag Roll Boxes with existing values and «ایجاد جدید» last;
+- immediate refresh;
+- Repeat + Priority;
+- Done/Undone and filtering;
+- Task ↔ Follow-up swipe.
 
-## P1/P2 — release closure
+### Home — #1912 / #1901
+**IMPLEMENTATION ADVANCED — NEEDS FINAL DEVICE/OWNER VISUAL ACCEPTANCE**
 
-### 10. Backup/Restore/Data Safety
-Status: NEEDS VERIFICATION.
+The existing Home structure and four controls remain protected:
+**زمان / پروژه / دسته / برچسب**
 
-Must preserve:
-Task identity, IDs, history, Checklist and occurrence state, Follow-up timeline, taxonomy, Notes/Notebook, Reminder/Calendar relationships as applicable. No reset or data-loss migration.
+PR #2407 now uses the required Bottom Sheet while preserving the existing filter state/semantics.
 
-### 11. Notifications / Widget / Lock Screen
-Status: NEEDS VERIFICATION.
+Still required:
+- comparison with the approved visual reference;
+- no clipping;
+- combined contextual filters;
+- filter changes without reopening;
+- readable multiline Task cards;
+- owner acceptance on the actual APK.
 
-Validate Date-only vs Timed semantics and Reminder reconciliation.
+### Notebook — #1911 / #850
+**IN PROGRESS / NEEDS VERIFICATION**
 
-### 12. Golden Flow
-Status: NOT PROVEN.
+Verify independent Notebook editor behavior, numbering/tick/checklist tools, autosave/reopen/undo/redo, canonical taxonomy, combined filters, Tag selection and safe legacy cleanup without data loss.
 
-Create Task → Date/Time → Reminder → Checklist → Repeat → Follow-up → Timeline → Complete → Backup → Restore.
+### Backup/Restore + Data Safety
+**NEEDS VERIFICATION**
 
-### 13. Release Gate — #2102 / #2251
-Status: NOT RELEASE-READY.
+Must preserve Task IDs/history, Checklist and occurrence state, Follow-up timeline, taxonomy, Notebook data and Reminder/Calendar relationships where applicable.
 
-Required fresh evidence on the actual release candidate:
-Analyze → full tests → Debug Build → Release Build → Android Smoke → product acceptance → final device verification → release.
+### Notifications / Widget / Lock Screen
+**NEEDS VERIFICATION**
 
-## Hygiene / stale work
+Verify Date-only vs Timed semantics and Reminder reconciliation across all surfaces.
 
-Old AUTO-FIX issues tied to old SHAs are not current blockers unless the same failure reproduces on current HEAD.
+## Golden Flow
 
-Old PRs such as #1892, #1885, #1847, #1844 must be compared against current main before any reuse. Do not resurrect parallel implementations.
+**NOT PROVEN**
 
-## Execution order
+Create Task → Date/Time → Reminder → Checklist → Repeat → Follow-up → Timeline → Complete → Backup → Restore
 
-1. Finish #2309 architecture gate and implement #2301.
-2. Run exact-head tests/build/smoke and record evidence.
-3. Continue Calendar #2248/#1901 integration verification.
-4. Finish Checklist #2230.
-5. Parallelize safe Taxonomy / Quick Add / Home / Typography / Notebook work.
-6. Implement Repeat #2254 after architecture decision.
-7. Run Golden Flow + Backup/Restore + release gates.
-8. Final device verification only near RC.
+The same user data must survive the complete flow.
+
+## Release Gate
+
+**NOT RELEASE-READY**
+
+Fresh evidence is still required on the actual release candidate:
+
+Analyze → Full Test → Debug Build → Release Build → Android Smoke → product acceptance → physical-phone acceptance → release.
+
+Emulator/device-smoke evidence does not replace required physical-phone acceptance for Home, Calendar, Date/Time/Reminder, Settings, Taxonomy and Notebook UX.
+
+## Anti-repeat / hygiene
+
+- Do not resurrect old PRs merely because they remain open.
+- #1901 is an owner/device regression reference and must not be merged blindly because its base is stale.
+- Old AUTO-FIX issues tied to obsolete SHAs are not current blockers unless the same failure reproduces on current main.
+- No parallel Task/Reminder/Calendar/Repeat/Taxonomy/Notebook/Storage/Repository engines.
+- Architecture/storage/migration changes must use the existing architecture-review gates.
+
+## Current execution order
+
+1. Reconcile PR #2408 Device Smoke and visual Settings evidence.
+2. Continue Calendar #2248/#1901 real-device/provider verification.
+3. Close Checklist #2230 user-facing and integration gaps.
+4. Safely advance Taxonomy, Quick Add, Home and Notebook in independent lanes.
+5. Complete Repeat only through its architecture gate.
+6. Run Golden Flow + Backup/Restore.
+7. Produce fresh RC evidence and final physical-phone acceptance.
+8. Only then evaluate Release-Ready.
 
 ## Status vocabulary
 
