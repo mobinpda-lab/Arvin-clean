@@ -400,7 +400,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'پروژه',
               child: DropdownButtonFormField<String?>(
-                value: _projectId,
+                initialValue: _projectId,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: [
                   const DropdownMenuItem<String?>(value: null, child: Text('همه پروژه‌ها')),
@@ -417,7 +417,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'دسته',
               child: DropdownButtonFormField<String?>(
-                value: _category,
+                initialValue: _category,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: [
                   const DropdownMenuItem<String?>(value: null, child: Text('همه دسته‌ها')),
@@ -429,7 +429,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'برچسب',
               child: DropdownButtonFormField<String?>(
-                value: _tag,
+                initialValue: _tag,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: [
                   const DropdownMenuItem<String?>(value: null, child: Text('همه برچسب‌ها')),
