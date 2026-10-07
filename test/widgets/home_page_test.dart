@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 
 void main() {
@@ -71,7 +72,7 @@ void main() {
 
   testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
-    final today = DateTime.now();
+    final today = IranClock.now();
     await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
     await TaskStore().save([
