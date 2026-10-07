@@ -46,6 +46,20 @@ jobs:
               return RECOVERY_WAVE_TITLE.test(issue.title || '');
             }
 
+            async function safeComment(issueNumber, body) {
+              try {
+                await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
+              } catch (error) {
+                const status = Number(error?.status || 0);
+                const message = String(error?.message || '');
+                if (status === 403 && /more than 2500 comments/i.test(message)) {
+                  core.warning(`#${issueNumber}: GitHub issue comment cap reached; continuing without the optional queue comment.`);
+                  return false;
+                }
+                throw error;
+              }
+            }
+
             async function openWorkerPr(issueNumber) {
               const openPrs = await github.paginate(github.rest.pulls.list, {
                 owner, repo, state: 'open', head: `${owner}:ai/issue-${issueNumber}`, per_page: 100,
@@ -84,7 +98,7 @@ jobs:
 
               await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: RETRYABLE_BLOCK_LABEL }).catch(() => {});
               await github.rest.issues.addLabels({ owner, repo, issue_number: issue.number, labels: ['factory:ready'] });
-              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `<!-- arvin-autonomous-block-recovery -->\nRetryable factory block recovered automatically after cooldown. Current main=${currentMainSha}. Permanent/manual/security stops were not bypassed.` });
+              await safeComment(issue.number, `<!-- arvin-autonomous-block-recovery -->\nRetryable factory block recovered automatically after cooldown. Current main=${currentMainSha}. Permanent/manual/security stops were not bypassed.`);
               recoveredBlocked.add(issue.number);
             }
 
@@ -107,7 +121,7 @@ jobs:
 
               await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: 'factory:leased' }).catch(() => {});
               await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: 'factory:in-progress' }).catch(() => {});
-              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `<!-- arvin-autonomous-stale-lease-release -->\nStale autonomous lease released automatically: leased main ${leasedSha}, current main ${currentMainSha}, no open worker PR. The stale worker must fail closed; no completion is claimed.` });
+              await safeComment(issue.number, `<!-- arvin-autonomous-stale-lease-release -->\nStale autonomous lease released automatically: leased main ${leasedSha}, current main ${currentMainSha}, no open worker PR. The stale worker must fail closed; no completion is claimed.`);
               releasedStale.add(issue.number);
             }
 
@@ -138,20 +152,20 @@ jobs:
             for (const item of candidates.slice(0, 1)) {
               const number = item.issue.number;
               await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:leased','factory:in-progress'] });
-              await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-lease -->\nARVIN Queue leased issue #${number} against exact main ${main.data.commit.sha}.` });
+              await safeComment(number, `<!-- arvin-autonomous-lease -->\nARVIN Queue leased issue #${number} against exact main ${main.data.commit.sha}.`);
               try {
                 await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'arvin-agent-worker.yml', ref: 'main', inputs: { issue_number: String(number), expected_main_sha: main.data.commit.sha } });
-                await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-dispatch -->\nAI Code Worker dispatched for #${number}; exact-main snapshot=${main.data.commit.sha}.` });
+                await safeComment(number, `<!-- arvin-autonomous-dispatch -->\nAI Code Worker dispatched for #${number}; exact-main snapshot=${main.data.commit.sha}.`);
               } catch (error) {
                 const status = Number(error?.status || 0);
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'factory:leased' }).catch(() => {});
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'factory:in-progress' }).catch(() => {});
                 if ([401, 403, 404].includes(status)) {
                   await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['factory:escalated'] });
-                  await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with non-retryable status ${status || 'unknown'}: ${error.message}. Manual/permission resolution is required; no automatic retry storm will occur.` });
+                  await safeComment(number, `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with non-retryable status ${status || 'unknown'}: ${error.message}. Manual/permission resolution is required; no automatic retry storm will occur.`);
                 } else {
                   await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [RETRYABLE_BLOCK_LABEL] });
-                  await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with retryable status ${status || 'unknown'}: ${error.message}. The queue will recover this block automatically after the bounded cooldown; no completion is claimed.` });
+                  await safeComment(number, `<!-- arvin-autonomous-dispatch-failure -->\nARVIN Queue dispatch failed closed with retryable status ${status || 'unknown'}: ${error.message}. The queue will recover this block automatically after the bounded cooldown; no completion is claimed.`);
                 }
               }
             }
