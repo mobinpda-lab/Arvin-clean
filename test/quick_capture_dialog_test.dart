@@ -215,6 +215,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار فقط با عنوان',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
@@ -373,6 +374,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با ساعت',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
 
@@ -458,9 +460,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
+    expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
 
-    await tester.tap(find.text('یادآور'));
+    final reminderRollBox = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderRollBox);
+    await tester.tap(reminderRollBox);
     await tester.pumpAndSettle();
     expect(find.text('۱۵ دقیقه قبل'), findsOneWidget);
     await tester.tap(find.text('۱۵ دقیقه قبل'));
@@ -535,6 +539,112 @@ void main() {
     await tester.pump();
 
     expect(find.text('هر ۵ دقیقه'), findsOneWidget);
+  });
+
+
+  testWidgets('timed Quick Add automatically uses the due time as reminder',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 8, 26, 12, 0);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () async {
+                  captured = await showModalBottomSheet<Task>(
+                    context: context,
+                    builder: (_) => QuickCaptureDialog(
+                      idFactory: () => 'quick-auto-reminder',
+                      now: () => fixedNow,
+                    ),
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار زمان‌دار',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('امروز'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, fixedNow);
+    expect(captured!.reminderDate, fixedNow);
+  });
+
+  testWidgets('Quick Add manual reminder remains independent from due time',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 8, 26, 12, 0);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () async {
+                  captured = await showModalBottomSheet<Task>(
+                    context: context,
+                    builder: (_) => QuickCaptureDialog(
+                      idFactory: () => 'quick-manual-reminder',
+                      now: () => fixedNow,
+                    ),
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار با یادآوری دستی',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('امروز'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
+    await tester.tap(find.text('۱۵ دقیقه قبل'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, fixedNow);
+    expect(captured!.reminderDate, fixedNow.subtract(const Duration(minutes: 15)));
   });
 
 }

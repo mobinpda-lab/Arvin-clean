@@ -60,6 +60,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   bool _saving = false;
   DateTime? _dueDate;
   DateTime? _reminderDate;
+  bool _reminderFollowsDueTime = true;
   RecurrenceRule? _recurrence;
   final TextEditingController _recurrenceIntervalController =
       TextEditingController(text: '1');
@@ -109,6 +110,22 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     super.dispose();
   }
 
+  void _syncAutomaticReminder() {
+    if (!_reminderFollowsDueTime) return;
+    if (_dueDate == null) {
+      _reminderDate = null;
+    } else {
+      _reminderDate = _dueDate;
+    }
+  }
+
+  void _setDueDate(DateTime? value) {
+    setState(() {
+      _dueDate = value;
+      _syncAutomaticReminder();
+    });
+  }
+
   Task? _buildDraft() {
     final createdAt = widget.now?.call() ?? DateTime.now();
     final task = widget.service.capture(
@@ -118,6 +135,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (task == null) return null;
     task.description = _descriptionController.text.trim();
+    _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
@@ -759,6 +777,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     children: [
                       Expanded(
                         child: ArvinRollBox<Object?>(
+                          key: const ValueKey('quick-capture-due-rollbox'),
                           label: 'موعد',
                           valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
                           icon: Icons.calendar_today_outlined,
@@ -773,9 +792,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           onCreate: _saving ? null : _pickCustomDue,
                           onSelected: (value) {
                             if (value is DateTime) {
-                              setState(() => _dueDate = value);
+                              _setDueDate(value);
                             } else {
-                              setState(() => _dueDate = null);
+                              _setDueDate(null);
                             }
                           },
                         ),
@@ -802,6 +821,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinRollBox<Object?>(
+                          key: const ValueKey('quick-capture-reminder-rollbox'),
                           label: 'یادآور',
                           valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
                           icon: Icons.notifications_none_outlined,
@@ -817,11 +837,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomReminder,
                           onSelected: (value) {
-                            if (value is DateTime) {
-                              setState(() => _reminderDate = value);
-                            } else {
-                              setState(() => _reminderDate = null);
-                            }
+                            setState(() {
+                              _reminderDate = value is DateTime ? value : null;
+                              _reminderFollowsDueTime = false;
+                            });
                           },
                         ),
                       ),

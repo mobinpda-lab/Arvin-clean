@@ -66,6 +66,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   DateTime? _dueDateTime;
   late bool _dueAllDay;
   DateTime? _reminderDateTime;
+  bool _reminderFollowsDueTime = true;
+  bool _reminderExplicitlyCleared = false;
+  DateTime? _initialReminderDateTime;
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
@@ -98,6 +101,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.reminderDate;
+    _initialReminderDateTime = task?.reminderDate;
+    _reminderFollowsDueTime = task == null ||
+        task.reminderDate == null ||
+        (task.dueDate != null && !task.allDay && task.reminderDate == task.dueDate);
     _followUpEnabled =
         task?.followUpEnabled == true ||
         (task?.followUps.isNotEmpty ?? false) ||
@@ -249,6 +256,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ? DateTime(value.year, value.month, value.day)
             : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
         if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
+        _syncAutomaticReminder();
       });
     }
   }
@@ -262,6 +270,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       setState(() {
         _dueDateTime = value;
         _dueAllDay = false;
+        _syncAutomaticReminder();
       });
     }
   }
@@ -271,7 +280,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       _reminderDateTime,
       helpText: 'انتخاب تاریخ یادآوری',
     );
-    if (value != null && mounted) setState(() => _reminderDateTime = value);
+    if (value != null && mounted) {
+      setState(() {
+        _reminderDateTime = value;
+        _reminderFollowsDueTime = false;
+        _reminderExplicitlyCleared = false;
+      });
+    }
   }
 
   Future<void> _pickReminderTime() async {
@@ -279,13 +294,31 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       _reminderDateTime,
       helpText: 'انتخاب ساعت یادآوری',
     );
-    if (value != null && mounted) setState(() => _reminderDateTime = value);
+    if (value != null && mounted) {
+      setState(() {
+        _reminderDateTime = value;
+        _reminderFollowsDueTime = false;
+        _reminderExplicitlyCleared = false;
+      });
+    }
+  }
+
+  void _syncAutomaticReminder() {
+    if (!_reminderFollowsDueTime) {
+      return;
+    }
+    if (_dueDateTime == null || _dueAllDay) {
+      _reminderDateTime = null;
+    } else {
+      _reminderDateTime = _dueDateTime;
+    }
   }
 
   void _clearFollowUpTime() => setState(() => _followUpDateTime = null);
   void _clearDueTime() => setState(() {
     _dueDateTime = null;
     _dueAllDay = false;
+    _syncAutomaticReminder();
   });
 
   void _toggleDueAllDay(bool value) {
@@ -295,9 +328,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       if (value) {
         _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
       }
+      _syncAutomaticReminder();
     });
   }
-  void _clearReminderTime() => setState(() => _reminderDateTime = null);
+  void _clearReminderTime() => setState(() {
+    _reminderDateTime = null;
+    _reminderFollowsDueTime = false;
+    _reminderExplicitlyCleared = true;
+  });
 
   Future<String?> _promptNewName(String title) async {
     final controller = TextEditingController();
@@ -533,6 +571,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
     final now = DateTime.now();
     final existing = widget.task;
+    _syncAutomaticReminder();
+    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
+        ? _dueDateTime
+        : (_reminderDateTime ??
+            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
@@ -549,7 +592,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
-        reminderDate: _reminderDateTime,
+        reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
@@ -629,6 +672,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             setState(() {
               if (target.contains('reminder')) {
                 _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+                _reminderFollowsDueTime = false;
               } else if (target.contains('follow-up') || target.contains('followup')) {
                 _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
@@ -636,6 +680,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     ? DateTime(picked.year, picked.month, picked.day)
                     : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
                 if (value == null || _dueAllDay) _dueAllDay = true;
+                _syncAutomaticReminder();
               }
             });
           } else {
@@ -644,10 +689,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
               if (target.contains('reminder')) {
                 _reminderDateTime = next;
+                _reminderFollowsDueTime = false;
               } else if (target.contains('follow-up')) {
                 _followUpDateTime = next;
               } else {
                 _dueDateTime = next;
+                _dueAllDay = false;
+                _syncAutomaticReminder();
               }
             });
           }
