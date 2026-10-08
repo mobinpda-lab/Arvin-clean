@@ -29,4 +29,67 @@ void main() {
     expect(find.byKey(const ValueKey('report-filter-apply')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-clear')), findsOneWidget);
   });
+
+  testWidgets(
+    'Report Center applies combined filters and opens the filtered report scope',
+    (tester) async {
+      final now = DateTime(2026, 10, 7, 10);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportCenterPage(
+            now: now,
+            tasks: [
+              Task(
+                id: 'match',
+                title: 'جلسه امروز',
+                category: 'کار',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 7, 15),
+              ),
+              Task(
+                id: 'wrong-time',
+                title: 'جلسه فردا',
+                category: 'کار',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 8, 15),
+              ),
+              Task(
+                id: 'wrong-category',
+                title: 'خرید امروز',
+                category: 'خرید',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 7, 15),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      expect(find.text('کار'), findsWidgets);
+      await tester.tap(find.text('کار').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('نتیجه: 2 کار'), findsOneWidget);
+      expect(find.text('جلسه امروز'), findsOneWidget);
+      expect(find.text('خرید امروز'), findsNothing);
+      expect(find.text('جلسه فردا'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('report-center-open-report')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('گزارش و اشتراک‌گذاری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('report-task-match')), findsOneWidget);
+      expect(find.byKey(const ValueKey('report-task-wrong-time')), findsOneWidget);
+      expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
+    },
+  );
 }
