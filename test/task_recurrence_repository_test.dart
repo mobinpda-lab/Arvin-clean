@@ -151,4 +151,67 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+  test('complete occurrence updates history without completing canonical Task', () async {
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'complete-occurrence',
+        title: 'Recurring',
+        reminderDate: occurrence,
+        recurrence: const RecurrenceRule(
+          frequency: RecurrenceFrequency.weekly,
+          interval: 1,
+        ),
+      ),
+    ]);
+
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 9, 30),
+    );
+    await repository.completeOccurrence('complete-occurrence', occurrence);
+
+    final task = (await store.load()).single;
+    expect(task.completed, isFalse);
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+    expect(
+      (await repository.occurrenceState('complete-occurrence', occurrence))['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+  });
+
+  test('turning Repeat off keeps Task and occurrence history', () async {
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'disable-repeat',
+        title: 'Recurring',
+        reminderDate: occurrence,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+        occurrenceHistory: {
+          occurrence.toIso8601String(): {
+            'scheduledDate': occurrence.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+          },
+        },
+      ),
+    ]);
+
+    final repository = TaskRecurrenceRepository(store: store);
+    await repository.setRule('disable-repeat', null);
+
+    final task = (await store.load()).single;
+    expect(task.id, 'disable-repeat');
+    expect(task.recurrence, isNull);
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+  });
+
 }

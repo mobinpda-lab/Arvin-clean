@@ -75,6 +75,7 @@ class Task {
     this.category,
     this.checklist = const [],
     this.checklistOccurrences = const {},
+    this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
     this.priority = TaskPriority.none,
@@ -103,6 +104,9 @@ class Task {
   /// Per-occurrence checklist state for recurring Tasks. Keys are canonical
   /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
   Map<String, List<String>> checklistOccurrences;
+  /// Per-occurrence execution history for recurring Tasks. Keys are canonical
+  /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
+  Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
   TaskPriority priority;
@@ -163,6 +167,22 @@ class Task {
     return result;
   }
 
+  static Map<String, Map<String, dynamic>> _decodeOccurrenceHistory(Object? raw) {
+    if (raw == null) return <String, Map<String, dynamic>>{};
+    if (raw is! Map) {
+      throw const FormatException('Task occurrenceHistory must be a map');
+    }
+    final result = <String, Map<String, dynamic>>{};
+    for (final entry in raw.entries) {
+      if (entry.key is! String || entry.value is! Map) {
+        throw const FormatException('Invalid recurring occurrence history');
+      }
+      result[entry.key as String] =
+          Map<String, dynamic>.from(entry.value as Map);
+    }
+    return result;
+  }
+
   static List<PersonReference> _decodePeople(Object? raw) {
     if (raw == null) return const <PersonReference>[];
     if (raw is! List) {
@@ -208,6 +228,10 @@ class Task {
         if (checklistOccurrences.isNotEmpty)
           'checklistOccurrences': checklistOccurrences.map(
             (key, value) => MapEntry(key, List<String>.of(value)),
+          ),
+        if (occurrenceHistory.isNotEmpty)
+          'occurrenceHistory': occurrenceHistory.map(
+            (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
@@ -265,6 +289,9 @@ class Task {
           .toList(),
       checklistOccurrences: _decodeChecklistOccurrences(
         json['checklistOccurrences'],
+      ),
+      occurrenceHistory: _decodeOccurrenceHistory(
+        json['occurrenceHistory'],
       ),
       notebookKind: NotebookItemKind.values.cast<NotebookItemKind?>().firstWhere(
             (value) => value?.name == json['notebookKind'],
