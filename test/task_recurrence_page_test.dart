@@ -140,7 +140,7 @@ void main() {
     expect(find.textContaining('انجام‌شده: 1'), findsOneWidget);
     expect(find.byKey(const ValueKey('recurrence-next')), findsOneWidget);
     expect(find.byKey(const ValueKey('recurrence-last')), findsOneWidget);
-    expect(find.byKey(const ValueKey('recurrence-history-${occurrence.toIso8601String()}')), findsOneWidget);
+    expect(find.byKey(ValueKey('recurrence-history-${occurrence.toIso8601String()}')), findsOneWidget);
     expect(find.text('انجام‌شده'), findsWidgets);
 
     final next = find.byKey(const ValueKey('recurrence-complete-next'));
