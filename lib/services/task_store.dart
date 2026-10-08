@@ -471,7 +471,7 @@ class TaskStore {
     final knownKeys = <String>{
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
+      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
       'completed', 'followUps', 'recurrence', 'people',
     };
     final preserved = <String, dynamic>{};
