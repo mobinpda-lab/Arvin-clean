@@ -142,7 +142,7 @@ class FollowUpCalendarProjection {
           final state = task.occurrenceHistory[occurrence.toIso8601String()];
           final completed = state?['status'] == RecurrenceOccurrenceStatus.completed.name;
           reminders.add(CalendarReminder(
-            id: 'task-due:' + task.id + ':' + occurrence.toIso8601String(),
+            id: 'task-due:${task.id}:${occurrence.toIso8601String()}',
             title: task.title,
             date: occurrence,
             completed: completed,
