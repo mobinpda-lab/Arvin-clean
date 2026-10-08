@@ -80,4 +80,19 @@ void main() {
 
     expect(prefs.getString('arvin.tasks'), before);
   });
+  testWidgets('Home time filter exposes precise date and time range controls',
+      (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('زمان'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('از تاریخ'), findsOneWidget);
+    expect(find.text('تا تاریخ'), findsOneWidget);
+    expect(find.text('از ساعت'), findsOneWidget);
+    expect(find.text('تا ساعت'), findsOneWidget);
+    expect(find.text('اعمال بازه'), findsOneWidget);
+  });
+
 }
