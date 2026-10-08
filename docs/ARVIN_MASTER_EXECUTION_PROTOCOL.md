@@ -91,3 +91,46 @@ FINISH THE PRODUCT
 - این تکرارهای تقویمی Task یا رکورد ذخیره‌سازی مستقل نیستند.
 - Count و End Date همچنان محدوده معتبر Repeat را تعیین می‌کنند.
 - Task canonical، تاریخچه، Checklist occurrence state و Backup/Restore منبع حقیقت باقی می‌مانند.
+
+## Repeat Tracking Level Contract
+
+Repeat می‌تواند دو سطح تجربه داشته باشد، بدون ساخت سیستم جدید:
+
+- **NORMAL:** برای کارهای روزمره، عادت‌ها و یادآوری‌های ساده؛ نمایش Current Status، Next Occurrence و Completion.
+- **TRACKING:** برای تعهدها، پرداخت‌های دوره‌ای، قراردادها و پیگیری‌های مهم؛ نمایش Start Date، Total Occurrences، Completed، Missed، Remaining، Next Occurrence، Last Status، History و Progress.
+
+در رابط کاربر اصطلاحات فنی مانند Recurrence، Occurrence، Lifecycle و Tracking Level نمایش داده نشود. کاربر فقط انتخابی ساده مانند «نوع پیگیری: عادی / مهم و قابل پیگیری» می‌بیند. امکانات TRACKING فقط با Progressive Disclosure و هنگام نیاز آشکار می‌شوند.
+
+**Protected:** یک Task canonical، Repeat architecture #2254، Checklist per occurrence، Backup/Restore و User Data Guard.
+
+## 56. Autonomous Product Completion Mode
+عامل اجرایی پس از «ادامه آروین» فقط گزارش نمی‌دهد؛ Reality Snapshot می‌گیرد، تصمیم می‌گیرد، در GitHub ثبت می‌کند، اجرا می‌کند، Validate و Evidence تولید می‌کند و ادامه می‌دهد. فقط تصمیم محصولی، ریسک Data، انتخاب رفتاری مبهم یا دسترسی ضروری نیازمند توقف و سؤال از کاربر است.
+
+## 57. No Idle Development
+هیچ blocker محیطی نباید کل محصول را متوقف کند. Blocker ثبت و ایزوله شود و کارهای مستقل ادامه یابد.
+
+## 58. Bottleneck Management
+در هر چرخه فقط مهم‌ترین Release Bottleneck انتخاب شود. معیار انتخاب Release Impact است، نه آسانی یا جذابیت کار.
+
+## 59. Product Decision Rule
+در ابهام: سادگی کاربر، حفظ داده، تجربه روزانه، سازگاری معماری موجود و سپس سرعت توسعه اولویت دارند. پیچیدگی فقط با ارزش واقعی اضافه شود.
+
+## 60. No Over Engineering
+Framework، abstraction، سیستم عمومی، معماری یا Storage جدید بدون نیاز واقعی ممنوع. راه‌حل باید Simple, Reliable, Maintainable باشد.
+
+## 61. Feature Completion Rule
+Feature فقط وقتی کامل است که User Flow، UX، Visual، Data، Test و Evidence کامل باشند.
+
+## 62. Product Consistency Rule
+قابلیت‌ها باید با Task Model، Design System، Navigation، Data Model، Backup/Restore، Search و Filter موجود هماهنگ باشند و جزیره جدا نسازند.
+
+## 63. Release Cleanup
+پیش از Release، Unused Code، Dead Feature، Duplicate Logic، Temporary Solution، Debug Element و Incomplete UI بررسی و حذف/اصلاح شوند.
+
+## 64. Final Delivery Report
+پیش از اعلام نهایی، گزارش محصولی شامل قابلیت‌های کامل، Flowهای تأییدشده، بهبود تجربه کاربر، Evidence و وضعیت آمادگی استفاده روزانه تهیه شود.
+
+## 65. Final Acceptance Question
+آیا یک کاربر واقعی می‌تواند فردا صبح آروین را بدون آموزش خاص برای کارهای روزانه، تعهدها، پیگیری‌ها و برنامه‌های خود استفاده کند؟ اگر خیر، ادامه؛ اگر بله ولی Evidence ناقص است، Evidence تکمیل؛ اگر بله و Evidence کامل است، Release Candidate.
+
+**FINAL PRINCIPLE:** GITHUB REMEMBERS · FACTORY EXECUTES · AUTOMATION ACCELERATES · EVIDENCE PROVES · PRODUCT WINS · FINISH ARVIN
