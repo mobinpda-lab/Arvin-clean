@@ -79,7 +79,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
+  late bool _repeatEnabled;
+  DateTime? _recurrenceStartDate;
+  DateTime? _recurrenceEndDate;
   late final TextEditingController _recurrenceIntervalController;
+  late final TextEditingController _recurrenceCountController;
   late TaskPriority _priority;
   bool _saving = false;
 
@@ -118,8 +122,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
     _recurrence = task?.recurrence;
+    _repeatEnabled = task?.recurrence?.active ?? false;
+    _recurrenceStartDate = task?.recurrence?.startDate;
+    _recurrenceEndDate = task?.recurrence?.endDate;
     _recurrenceIntervalController = TextEditingController(
       text: '${task?.recurrence?.interval ?? 1}',
+    );
+    _recurrenceCountController = TextEditingController(
+      text: task?.recurrence?.count?.toString() ?? '',
     );
     _priority = task?.priority ?? TaskPriority.none;
   }
@@ -131,6 +141,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _tagController.dispose();
     _checklistController.dispose();
     _recurrenceIntervalController.dispose();
+    _recurrenceCountController.dispose();
     _tagFocusNode.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -366,7 +377,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
-    return a.frequency == b.frequency && a.interval == b.interval;
+    return a.frequency == b.frequency &&
+        a.interval == b.interval &&
+        a.startDate == b.startDate &&
+        a.endDate == b.endDate &&
+        a.count == b.count &&
+        a.active == b.active;
   }
 
   bool get _hasChanges {
@@ -410,6 +426,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
+        _repeatEnabled != (existing.recurrence?.active ?? false) ||
         _priority != existing.priority ||
         _completed != existing.completed;
   }
@@ -562,6 +579,36 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
   }
 
+  RecurrenceRule? _buildRecurrence() {
+    if (_recurrence == null) return null;
+    final interval = int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
+    final parsedCount = int.tryParse(_recurrenceCountController.text.trim());
+    return RecurrenceRule(
+      frequency: _recurrence!.frequency,
+      interval: interval > 0 ? interval : 1,
+      startDate: _recurrenceStartDate,
+      endDate: _recurrenceEndDate,
+      count: parsedCount != null && parsedCount > 0 ? parsedCount : null,
+      active: _repeatEnabled,
+    );
+  }
+
+  Future<void> _pickRecurrenceStart() async {
+    final value = await _chooseDate(_recurrenceStartDate ?? _dueDateTime, helpText: 'شروع تکرار');
+    if (value == null || !mounted) return;
+    setState(() => _recurrenceStartDate = DateTime(value.year, value.month, value.day));
+  }
+
+  Future<void> _pickRecurrenceEnd() async {
+    final value = await _chooseDate(_recurrenceEndDate ?? _recurrenceStartDate ?? _dueDateTime, helpText: 'پایان تکرار');
+    if (value == null || !mounted) return;
+    if (_recurrenceStartDate != null && !value.isAfter(_recurrenceStartDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('پایان تکرار باید بعد از شروع باشد')));
+      return;
+    }
+    setState(() => _recurrenceEndDate = DateTime(value.year, value.month, value.day));
+  }
+
   void _save() {
     if (_saving) return;
     _saving = true;
@@ -598,7 +645,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         trashed: existing?.trashed ?? false,
         completed: _completed,
         followUps: List<FollowUp>.of(existing?.followUps ?? const []),
-        recurrence: _recurrence,
+        recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
@@ -1040,8 +1087,47 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 _recurrence = RecurrenceRule(
                                   frequency: _recurrence!.frequency,
                                   interval: interval,
+                                  startDate: _recurrenceStartDate,
+                                  endDate: _recurrenceEndDate,
+                                  count: int.tryParse(_recurrenceCountController.text.trim()),
+                                  active: _repeatEnabled,
                                 );
                               });
+                            },
+                          );
+                          final repeatEnabled = SwitchListTile(
+                            key: const ValueKey('task-editor-repeat-enabled'),
+                            contentPadding: EdgeInsets.zero,
+                            value: _repeatEnabled,
+                            title: const Text('تکرار فعال باشد'),
+                            onChanged: _recurrence == null ? null : (value) {
+                              setState(() {
+                                _repeatEnabled = value;
+                                _recurrence = _buildRecurrence();
+                              });
+                            },
+                          );
+                          final repeatStart = OutlinedButton.icon(
+                            key: const ValueKey('task-editor-repeat-start'),
+                            onPressed: _recurrence == null ? null : _pickRecurrenceStart,
+                            icon: const Icon(Icons.play_circle_outline),
+                            label: Text(_recurrenceStartDate == null ? 'شروع: از زمان کار' : 'شروع: ${_dateText(_recurrenceStartDate!)}'),
+                          );
+                          final repeatEnd = OutlinedButton.icon(
+                            key: const ValueKey('task-editor-repeat-end'),
+                            onPressed: _recurrence == null ? null : _pickRecurrenceEnd,
+                            icon: const Icon(Icons.stop_circle_outlined),
+                            label: Text(_recurrenceEndDate == null ? 'بدون پایان' : 'پایان: ${_dateText(_recurrenceEndDate!)}'),
+                          );
+                          final repeatCount = TextFormField(
+                            key: const ValueKey('task-editor-recurrence-count'),
+                            controller: _recurrenceCountController,
+                            enabled: _recurrence != null,
+                            keyboardType: TextInputType.number,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(label: 'تعداد تکرار', hint: 'اختیاری'),
+                            onChanged: (_) {
+                              if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
                             },
                           );
                           final priority = DropdownButtonFormField<TaskPriority>(
