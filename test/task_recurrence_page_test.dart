@@ -104,4 +104,58 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('Repeat lifecycle shows progress next last and history and records the next occurrence', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'lifecycle-ui',
+        title: 'کار تکرارشونده',
+        reminderDate: occurrence,
+        recurrence: const RecurrenceRule(
+          frequency: RecurrenceFrequency.daily,
+          interval: 1,
+          count: 3,
+        ),
+        occurrenceHistory: {
+          occurrence.toIso8601String(): {
+            'scheduledDate': occurrence.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+            'completionDate': DateTime(2026, 10, 8, 9, 30).toIso8601String(),
+          },
+        },
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 10),
+    );
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(repository: repository)));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('recurrence-lifecycle-card')), findsOneWidget);
+    expect(find.textContaining('انجام‌شده: 1'), findsOneWidget);
+    expect(find.byKey(const ValueKey('recurrence-next')), findsOneWidget);
+    expect(find.byKey(const ValueKey('recurrence-last')), findsOneWidget);
+    expect(find.byKey(const ValueKey('recurrence-history-${occurrence.toIso8601String()}')), findsOneWidget);
+    expect(find.text('انجام‌شده'), findsWidgets);
+
+    final next = find.byKey(const ValueKey('recurrence-complete-next'));
+    expect(next, findsOneWidget);
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+
+    final updated = (await store.load()).single;
+    expect(updated.id, 'lifecycle-ui');
+    expect(updated.completed, isFalse);
+    expect(updated.occurrenceHistory.length, 2);
+    expect(
+      updated.occurrenceHistory[DateTime(2026, 10, 9, 9).toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+  });
+
 }
