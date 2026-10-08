@@ -23,6 +23,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   final _count = TextEditingController();
   List<Task> _tasks = const [];
   String? _selectedTaskId;
+  Task? _selectedTaskState;
   bool _loading = true;
   bool _saving = false;
   bool _enabled = false;
@@ -61,6 +62,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     setState(() {
       _tasks = active;
       _selectedTaskId = nextSelected?.id;
+      _selectedTaskState = nextSelected;
       _loading = false;
       _enabled = rule != null && rule.active;
       _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
@@ -118,14 +120,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     });
   }
 
-  Task? get _selectedTask {
-    final id = _selectedTaskId;
-    if (id == null) return null;
-    for (final task in _tasks) {
-      if (task.id == id) return task;
-    }
-    return null;
-  }
+  Task? get _selectedTask => _selectedTaskState;
 
   Future<void> _saveRule() async {
     final task = _selectedTask;
@@ -369,6 +364,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                           final selected = _tasks.where((item) => item.id == value).firstOrNull;
                           setState(() {
                             _selectedTaskId = value;
+                            _selectedTaskState = selected;
                             final rule = selected?.recurrence;
                             _enabled = rule != null && rule.active;
                             _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
