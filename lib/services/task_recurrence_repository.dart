@@ -25,6 +25,135 @@ class TaskRecurrenceRepository {
     });
   }
 
+  /// Returns the execution state for one occurrence without creating a
+  /// separate occurrence record. Past unrecorded occurrences are reported as
+  /// missed; future ones are pending.
+  Future<Map<String, dynamic>> occurrenceState(
+    String taskId,
+    DateTime occurrence, {
+    DateTime? now,
+  }) async {
+    final task = _findTask(await _store.load(), taskId);
+    final key = _occurrenceKey(occurrence);
+    final stored = task.occurrenceHistory[key];
+    if (stored != null) return Map<String, dynamic>.from(stored);
+
+    final reference = now ?? _now();
+    return <String, dynamic>{
+      'scheduledDate': occurrence.toIso8601String(),
+      'status': occurrence.isBefore(reference)
+          ? RecurrenceOccurrenceStatus.missed.name
+          : RecurrenceOccurrenceStatus.pending.name,
+    };
+  }
+
+  /// Records an explicit execution outcome on the canonical Task. This never
+  /// toggles Task.completed and never creates another Task.
+  Future<Task> setOccurrenceStatus(
+    String taskId,
+    DateTime occurrence,
+    RecurrenceOccurrenceStatus status, {
+    DateTime? completedAt,
+    String? result,
+  }) {
+    return _store.mutate<Task>((tasks) {
+      final task = _find(tasks, taskId);
+      final key = _occurrenceKey(occurrence);
+      final history = <String, Map<String, dynamic>>{
+        for (final entry in task.occurrenceHistory.entries)
+          entry.key: Map<String, dynamic>.from(entry.value),
+      };
+      final state = <String, dynamic>{
+        'scheduledDate': occurrence.toIso8601String(),
+        'status': status.name,
+      };
+      if (completedAt != null) {
+        state['completionDate'] = completedAt.toIso8601String();
+      }
+      if (result != null && result.trim().isNotEmpty) {
+        state['result'] = result.trim();
+      }
+      history[key] = state;
+      task.occurrenceHistory = history;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
+  Future<Task> completeOccurrence(
+    String taskId,
+    DateTime occurrence, {
+    DateTime? completedAt,
+    String? result,
+  }) {
+    return setOccurrenceStatus(
+      taskId,
+      occurrence,
+      RecurrenceOccurrenceStatus.completed,
+      completedAt: completedAt ?? _now(),
+      result: result,
+    );
+  }
+
+  Future<Task> skipOccurrence(
+    String taskId,
+    DateTime occurrence, {
+    String? result,
+  }) {
+    return setOccurrenceStatus(
+      taskId,
+      occurrence,
+      RecurrenceOccurrenceStatus.skipped,
+      result: result,
+    );
+  }
+
+  Future<Task> cancelOccurrence(
+    String taskId,
+    DateTime occurrence, {
+    String? result,
+  }) {
+    return setOccurrenceStatus(
+      taskId,
+      occurrence,
+      RecurrenceOccurrenceStatus.cancelled,
+      result: result,
+    );
+  }
+
+  /// Returns completed/known occurrence counts for a bounded Repeat. For an
+  /// unbounded Repeat, only completed count is returned; no fake percentage.
+  Future<Map<String, dynamic>> progress(
+    String taskId, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final task = _findTask(await _store.load(), taskId);
+    final rule = task.recurrence;
+    final anchor = task.reminderDate;
+    if (rule == null || anchor == null) {
+      return <String, dynamic>{'completed': 0, 'total': null, 'remaining': null};
+    }
+
+    final start = from ?? rule.startDate ?? anchor;
+    final end = to ?? rule.endDate ?? DateTime(9999, 12, 31, 23, 59, 59);
+    final occurrences = rule.occurrencesBetween(
+      anchor: anchor,
+      from: start,
+      to: end,
+    );
+    final completed = occurrences.where((occurrence) {
+      final state = task.occurrenceHistory[_occurrenceKey(occurrence)];
+      return state?['status'] == RecurrenceOccurrenceStatus.completed.name;
+    }).length;
+    final total = rule.count;
+    return <String, dynamic>{
+      'completed': completed,
+      'total': total,
+      'remaining': total == null ? null : (total - completed).clamp(0, total),
+    };
+  }
+
   /// Returns the checklist state for one scheduled occurrence.
   /// A new occurrence starts from the unchecked canonical checklist template;
   /// it never inherits the previous occurrence's tick state.
