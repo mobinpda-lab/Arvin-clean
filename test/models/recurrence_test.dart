@@ -101,4 +101,39 @@ void main() {
     ]);
   });
 
+
+  test('clamps monthly recurrence to the last valid day without mutating the source', () {
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.monthly,
+      interval: 1,
+    );
+    final source = DateTime(2026, 1, 31, 10, 30);
+    expect(rule.nextOccurrence(source), DateTime(2026, 2, 28, 10, 30));
+    expect(source, DateTime(2026, 1, 31, 10, 30));
+  });
+
+  test('clamps yearly recurrence to a valid day', () {
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.yearly,
+      interval: 1,
+    );
+    final source = DateTime(2024, 2, 29, 8, 15);
+    expect(rule.nextOccurrence(source), DateTime(2025, 2, 28, 8, 15));
+  });
+
+  test('occurrence projection excludes the upper boundary', () {
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      interval: 1,
+    );
+    final occurrences = rule.occurrencesBetween(
+      anchor: DateTime(2026, 10, 1, 9),
+      from: DateTime(2026, 10, 1, 9),
+      to: DateTime(2026, 10, 3, 9),
+    );
+    expect(occurrences, <DateTime>[
+      DateTime(2026, 10, 1, 9),
+      DateTime(2026, 10, 2, 9),
+    ]);
+  });
 }
