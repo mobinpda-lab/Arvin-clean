@@ -154,7 +154,7 @@ void main() {
       now: () => DateTime(2026, 10, 8, 10),
     );
 
-    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(repository: repository)));
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(initialTaskId: 'lifecycle-ui', repository: repository)));
     await tester.pumpAndSettle();
 
     final lifecycleCard = find.byKey(const ValueKey('recurrence-lifecycle-card'));
