@@ -71,7 +71,9 @@ void main() {
       await tester.drag(find.byType(ListView).last, const Offset(0, -700));
       await tester.pumpAndSettle();
 
-      expect(find.text('کار'), findsWidgets);
+      final categoryField = find.byType(DropdownButtonFormField<String?>).at(1);
+      await tester.tap(categoryField);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('کار').last);
       await tester.pumpAndSettle();
 
