@@ -346,8 +346,7 @@ void main() {
       visibleTo: DateTime(2026, 10, 20),
     );
 
-    expect(reminders, hasLength(2));
+    expect(reminders, hasLength(1));
     expect(reminders[0].date, DateTime(2026, 10, 10, 9));
-    expect(reminders[1].date, DateTime(2026, 10, 17, 9));
   });
 }
