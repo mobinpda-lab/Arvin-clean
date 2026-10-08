@@ -221,6 +221,58 @@ void main() {
     );
   });
 
+  testWidgets('Tracking Level persists and is visible on the existing Repeat lifecycle card', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final reminder = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'tracking-level-ui',
+        title: 'تعهد قابل پیگیری',
+        reminderDate: reminder,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 8),
+    );
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(
+      initialTaskId: 'tracking-level-ui',
+      repository: repository,
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.text('این کار مهم و قابل پیگیری است'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('recurrence-enabled')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('recurrence-save')));
+    await tester.pumpAndSettle();
+
+    final normalTask = (await store.load()).single;
+    expect(normalTask.recurrence?.trackingLevel, RecurrenceTrackingLevel.normal);
+
+    final trackedRule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      trackingLevel: RecurrenceTrackingLevel.tracking,
+    );
+    await repository.setRule('tracking-level-ui', trackedRule);
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(
+      initialTaskId: 'tracking-level-ui',
+      repository: repository,
+    )));
+    await tester.pumpAndSettle();
+
+    final card = find.byKey(const ValueKey('recurrence-lifecycle-card'));
+    await tester.scrollUntilVisible(card, 500, scrollable: find.byType(Scrollable).first);
+    await _pumpUntilFound(tester, card);
+    expect(find.text('این کار مهم و قابل پیگیری است'), findsOneWidget);
+    final trackedTask = (await store.load()).single;
+    expect(trackedTask.recurrence?.trackingLevel, RecurrenceTrackingLevel.tracking);
+  });
+
   testWidgets('Repeat editor persists start end and count on canonical Task', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
