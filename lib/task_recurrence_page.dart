@@ -249,15 +249,6 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 
-  String _trackingLevelLabel(RecurrenceTrackingLevel value) {
-    switch (value) {
-      case RecurrenceTrackingLevel.normal:
-        return 'عادی';
-      case RecurrenceTrackingLevel.tracking:
-        return 'مهم و قابل پیگیری';
-    }
-  }
-
   String _frequencyLabel(RecurrenceFrequency value) {
     switch (value) {
       case RecurrenceFrequency.daily: return 'روزانه';
