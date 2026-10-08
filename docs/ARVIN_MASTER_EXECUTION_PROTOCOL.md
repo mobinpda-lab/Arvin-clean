@@ -81,3 +81,36 @@ EVIDENCE PROVES
 PRODUCT WINS
 
 FINISH THE PRODUCT
+
+
+## 56. Autonomous Product Completion Mode
+عامل اجرایی پس از «ادامه آروین» فقط گزارش نمی‌دهد؛ Reality Snapshot می‌گیرد، تصمیم می‌گیرد، در GitHub ثبت می‌کند، اجرا می‌کند، Validate و Evidence تولید می‌کند و ادامه می‌دهد. فقط تصمیم محصولی، ریسک Data، انتخاب رفتاری مبهم یا دسترسی ضروری نیازمند توقف و سؤال از کاربر است.
+
+## 57. No Idle Development
+هیچ blocker محیطی نباید کل محصول را متوقف کند. Blocker ثبت و ایزوله شود و کارهای مستقل ادامه یابد.
+
+## 58. Bottleneck Management
+در هر چرخه فقط مهم‌ترین Release Bottleneck انتخاب شود. معیار انتخاب Release Impact است، نه آسانی یا جذابیت کار.
+
+## 59. Product Decision Rule
+در ابهام: سادگی کاربر، حفظ داده، تجربه روزانه، سازگاری معماری موجود و سپس سرعت توسعه اولویت دارند. پیچیدگی فقط با ارزش واقعی اضافه شود.
+
+## 60. No Over Engineering
+Framework، abstraction، سیستم عمومی، معماری یا Storage جدید بدون نیاز واقعی ممنوع. راه‌حل باید Simple, Reliable, Maintainable باشد.
+
+## 61. Feature Completion Rule
+Feature فقط وقتی کامل است که User Flow، UX، Visual، Data، Test و Evidence کامل باشند.
+
+## 62. Product Consistency Rule
+قابلیت‌ها باید با Task Model، Design System، Navigation، Data Model، Backup/Restore، Search و Filter موجود هماهنگ باشند و جزیره جدا نسازند.
+
+## 63. Release Cleanup
+پیش از Release، Unused Code، Dead Feature، Duplicate Logic، Temporary Solution، Debug Element و Incomplete UI بررسی و حذف/اصلاح شوند.
+
+## 64. Final Delivery Report
+پیش از اعلام نهایی، گزارش محصولی شامل قابلیت‌های کامل، Flowهای تأییدشده، بهبود تجربه کاربر، Evidence و وضعیت آمادگی استفاده روزانه تهیه شود.
+
+## 65. Final Acceptance Question
+آیا یک کاربر واقعی می‌تواند فردا صبح آروین را بدون آموزش خاص برای کارهای روزانه، تعهدها، پیگیری‌ها و برنامه‌های خود استفاده کند؟ اگر خیر، ادامه؛ اگر بله ولی Evidence ناقص است، Evidence تکمیل؛ اگر بله و Evidence کامل است، Release Candidate.
+
+**FINAL PRINCIPLE:** GITHUB REMEMBERS · FACTORY EXECUTES · AUTOMATION ACCELERATES · EVIDENCE PROVES · PRODUCT WINS · FINISH ARVIN
