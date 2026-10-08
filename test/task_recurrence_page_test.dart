@@ -8,6 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var attempt = 0; attempt < 50; attempt++) {
+    if (finder.evaluate().length == 1) return;
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(finder, findsOneWidget);
+}
+
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
@@ -75,6 +83,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final resume = find.byKey(const ValueKey('recurrence-resume-today'));
+    await _pumpUntilFound(tester, resume);
     expect(resume, findsOneWidget);
     await tester.tap(resume);
     await tester.pumpAndSettle();
@@ -136,7 +145,9 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(repository: repository)));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('recurrence-lifecycle-card')), findsOneWidget);
+    final lifecycleCard = find.byKey(const ValueKey('recurrence-lifecycle-card'));
+    await _pumpUntilFound(tester, lifecycleCard);
+    expect(lifecycleCard, findsOneWidget);
     expect(find.textContaining('انجام‌شده: 1'), findsOneWidget);
     expect(find.byKey(const ValueKey('recurrence-next')), findsOneWidget);
     expect(find.byKey(const ValueKey('recurrence-last')), findsOneWidget);
