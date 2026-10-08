@@ -119,6 +119,21 @@ void main() {
     expect(restored.active, isTrue);
   });
 
+  test('round-trips tracking level and preserves legacy default', () {
+    const tracked = RecurrenceRule(
+      frequency: RecurrenceFrequency.monthly,
+      trackingLevel: RecurrenceTrackingLevel.tracking,
+    );
+    final restored = RecurrenceRule.fromJson(tracked.toJson());
+    expect(restored.trackingLevel, RecurrenceTrackingLevel.tracking);
+
+    final legacy = RecurrenceRule.fromJson(<String, dynamic>{
+      'frequency': 'monthly',
+      'interval': 1,
+    });
+    expect(legacy.trackingLevel, RecurrenceTrackingLevel.normal);
+  });
+
   test('legacy repeat JSON defaults new lifecycle fields safely', () {
     final restored = RecurrenceRule.fromJson(<String, dynamic>{
       'frequency': 'weekly',
