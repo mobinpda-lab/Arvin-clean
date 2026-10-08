@@ -73,22 +73,6 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     await _loadLifecycle(nextSelected);
   }
 
-  void _loadRule(Task? task) {
-    final rule = task?.recurrence;
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _enabled = rule != null && rule.active;
-      _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
-      _trackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
-      _interval.text = '${rule?.interval ?? 1}';
-      _startDate = rule?.startDate;
-      _endDate = rule?.endDate;
-      _count.text = rule?.count?.toString() ?? '';
-    });
-  }
-
   Future<void> _loadLifecycle(Task? task) async {
     if (task == null || task.recurrence == null || task.reminderDate == null) {
       if (mounted) {
