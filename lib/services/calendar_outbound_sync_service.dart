@@ -59,7 +59,11 @@ class CalendarOutboundSyncService {
     final linksForPlan = integration.deleteLinkedEventWithTask
         ? managedLinks
         : managedLinks.where((link) => revisionIds.contains(link.reminderId));
-    final plan = planService.plan(revisions: revisions, links: linksForPlan);
+    final plan = planService.plan(
+      revisions: revisions,
+      links: linksForPlan,
+      targetCalendarId: targetCalendarId,
+    );
     final result = await executor.execute(
       plan: plan,
       targetCalendarId: targetCalendarId,
