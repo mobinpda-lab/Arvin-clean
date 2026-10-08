@@ -14,6 +14,10 @@ class TaskRecurrenceRepository {
   final TaskStore _store;
   final DateTime Function() _now;
 
+  /// Exposes the repository clock to the canonical Repeat UI/tests without
+  /// introducing a second time source.
+  DateTime now() => _now();
+
   Future<List<Task>> loadTasks() => _store.load();
 
   Future<Task> setRule(String taskId, RecurrenceRule? rule) {
