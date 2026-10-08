@@ -93,6 +93,10 @@ void main() {
     expect(find.text('از ساعت'), findsOneWidget);
     expect(find.text('تا ساعت'), findsOneWidget);
     expect(find.text('اعمال بازه'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.ancestor(
+      of: find.text('اعمال بازه'),
+      matching: find.byType(FilledButton),
+    ).first).onPressed, isNull);
   });
 
 }
