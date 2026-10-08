@@ -44,7 +44,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   Future<void> _reload({String? keepSelected}) async {
     final tasks = await widget.repository.loadTasks();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     final active = tasks.where((task) => !task.trashed && !task.archived && !task.completed).toList(growable: false);
     final selectedId = keepSelected ?? _selectedTaskId ?? widget.initialTaskId;
     final selected = active.where((task) => task.id == selectedId).firstOrNull;
