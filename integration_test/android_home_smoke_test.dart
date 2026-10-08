@@ -67,7 +67,7 @@ void main() {
 
     final checklistToggle = find.byKey(const ValueKey('task-editor-checklist-toggle'));
     expect(checklistToggle, findsOneWidget);
-    await tester.scrollUntilVisible(checklistToggle, 300, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(checklistToggle, 300, scrollable: find.ancestor(of: checklistToggle, matching: find.byType(Scrollable)).first);
     await tester.pump();
     await tester.tap(checklistToggle);
     await tester.pump();
