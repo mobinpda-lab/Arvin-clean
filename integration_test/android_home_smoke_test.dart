@@ -65,6 +65,10 @@ void main() {
 
     await tester.enterText(titleField, 'تست واقعی اندروید');
 
+    final checklistToggle = find.byKey(const ValueKey('task-editor-checklist-toggle'));
+    expect(checklistToggle, findsOneWidget);
+    await tester.tap(checklistToggle);
+    await tester.pump();
     final checklistBlock = find.byKey(const ValueKey('task-editor-checklist-block'));
     expect(checklistBlock, findsOneWidget);
     final checklistInput = find.byKey(const ValueKey('task-editor-checklist-input'));
