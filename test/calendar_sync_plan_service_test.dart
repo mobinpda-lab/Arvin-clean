@@ -109,6 +109,27 @@ void main() {
     expect(plan.count(CalendarSyncAction.update), 1);
   });
 
+  test('planner migrates when target calendar changes without content change', () async {
+    final revision = await CalendarSyncRevisionService().fromReminder(
+      reminder(id: 'followup:t:destination'),
+    );
+    final link = ExternalCalendarEventLink(
+      reminderId: revision.reminderId,
+      calendarId: 'calendar-old',
+      eventId: 'event-old',
+      lastSyncedFingerprint: revision.fingerprint,
+    );
+
+    final plan = const CalendarSyncPlanService().plan(
+      revisions: <CalendarSyncRevision>[revision],
+      links: <ExternalCalendarEventLink>[link],
+      targetCalendarId: 'calendar-new',
+    );
+
+    expect(plan.items.single.action, CalendarSyncAction.update);
+    expect(plan.items.single.link?.calendarId, 'calendar-old');
+  });
+
   test('planner rejects duplicate revisions and duplicate links', () async {
     final revision = await CalendarSyncRevisionService().fromReminder(
       reminder(id: 'followup:t:dup'),
