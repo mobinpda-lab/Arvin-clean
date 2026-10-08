@@ -78,7 +78,12 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(home: TaskRecurrencePage(repository: repository)),
+      MaterialApp(
+        home: TaskRecurrencePage(
+          initialTaskId: 'resume-task',
+          repository: repository,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
