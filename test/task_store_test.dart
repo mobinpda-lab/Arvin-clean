@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
@@ -168,4 +169,44 @@ void main() {
 
     expect(followUp.completed, isFalse);
   });
+  test('TaskStore preserves repeat definition and occurrence history', () async {
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save(<Task>[
+      Task(
+        id: 'repeat-history-1',
+        title: 'Recurring task',
+        reminderDate: occurrence,
+        recurrence: RecurrenceRule(
+          frequency: RecurrenceFrequency.weekly,
+          interval: 1,
+          startDate: occurrence,
+          count: 4,
+        ),
+        occurrenceHistory: <String, Map<String, dynamic>>{
+          occurrence.toIso8601String(): <String, dynamic>{
+            'scheduledDate': occurrence.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+            'completionDate': DateTime(2026, 10, 8, 9, 15).toIso8601String(),
+            'result': 'done',
+          },
+        },
+      ),
+    ]);
+
+    final loaded = await TaskStore().load();
+    final task = loaded.single;
+
+    expect(task.recurrence?.count, 4);
+    expect(task.recurrence?.startDate, occurrence);
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['result'],
+      'done',
+    );
+  });
+
 }
