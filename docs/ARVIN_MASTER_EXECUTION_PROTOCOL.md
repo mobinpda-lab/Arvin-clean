@@ -83,6 +83,18 @@ PRODUCT WINS
 FINISH THE PRODUCT
 
 
+
+## Repeat Tracking Level Contract
+
+Repeat می‌تواند دو سطح تجربه داشته باشد، بدون ساخت سیستم جدید:
+
+- **NORMAL:** برای کارهای روزمره، عادت‌ها و یادآوری‌های ساده؛ نمایش Current Status، Next Occurrence و Completion.
+- **TRACKING:** برای تعهدها، پرداخت‌های دوره‌ای، قراردادها و پیگیری‌های مهم؛ نمایش Start Date، Total Occurrences، Completed، Missed، Remaining، Next Occurrence، Last Status، History و Progress.
+
+در رابط کاربر اصطلاحات فنی مانند Recurrence، Occurrence، Lifecycle و Tracking Level نمایش داده نشود. کاربر فقط انتخابی ساده مانند «نوع پیگیری: عادی / مهم و قابل پیگیری» می‌بیند. امکانات TRACKING فقط با Progressive Disclosure و هنگام نیاز آشکار می‌شوند.
+
+**Protected:** یک Task canonical، Repeat architecture #2254، Checklist per occurrence، Backup/Restore و User Data Guard.
+
 ## 56. Autonomous Product Completion Mode
 عامل اجرایی پس از «ادامه آروین» فقط گزارش نمی‌دهد؛ Reality Snapshot می‌گیرد، تصمیم می‌گیرد، در GitHub ثبت می‌کند، اجرا می‌کند، Validate و Evidence تولید می‌کند و ادامه می‌دهد. فقط تصمیم محصولی، ریسک Data، انتخاب رفتاری مبهم یا دسترسی ضروری نیازمند توقف و سؤال از کاربر است.
 
