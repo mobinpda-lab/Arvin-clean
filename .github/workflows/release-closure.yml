@@ -40,7 +40,7 @@ jobs:
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
           test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
           mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
 
       - name: Detect pending release
         id: release_state
@@ -261,7 +261,7 @@ jobs:
           set -euo pipefail
           mkdir -p assets/fonts
           rm -rf assets/fonts/vazirharf
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
           test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
           test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
 
