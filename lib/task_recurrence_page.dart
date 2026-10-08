@@ -60,7 +60,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   void _loadRule(Task? task) {
     final rule = task?.recurrence;
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _enabled = rule != null && rule.active;
       _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
@@ -243,9 +245,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
             const Text('وضعیت تکرار', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             const SizedBox(height: 12),
             Wrap(spacing: 10, runSpacing: 10, children: [
-              _infoChip('انجام‌شده', '${completed}'),
-              _infoChip('کل', total == null ? 'نامحدود' : '${total}'),
-              if (remaining != null) _infoChip('باقی‌مانده', '${remaining}'),
+              _infoChip('انجام‌شده', '$completed'),
+              _infoChip('کل', total == null ? 'نامحدود' : '$total'),
+              if (remaining != null) _infoChip('باقی‌مانده', '$remaining'),
             ]),
             const SizedBox(height: 12),
             if (_nextOccurrence != null)

@@ -145,6 +145,8 @@ void main() {
 
     final next = find.byKey(const ValueKey('recurrence-complete-next'));
     expect(next, findsOneWidget);
+    await tester.ensureVisible(next);
+    await tester.pumpAndSettle();
     await tester.tap(next);
     await tester.pumpAndSettle();
 
