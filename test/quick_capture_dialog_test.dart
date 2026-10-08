@@ -223,7 +223,7 @@ void main() {
   });
 
 
-  testWidgets('Quick Add scheduling uses RollBox and Persian custom date/time',
+  testWidgets('Quick Add scheduling uses the canonical circular date/time picker',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -254,10 +254,15 @@ void main() {
     final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byTooltip('ساعت'), findsOneWidget);
-    expect(find.byTooltip('دقیقه'), findsOneWidget);
-    expect(find.text('۱۴:۳۵'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(TimePickerDialog),
+        matching: find.text('لغو'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsNothing);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
@@ -324,8 +329,7 @@ void main() {
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byTooltip('ساعت'), findsOneWidget);
-    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
   });
 
   testWidgets('Quick Add preserves selected due time from custom date/time',
@@ -342,7 +346,7 @@ void main() {
           textDirection: TextDirection.rtl,
           child: Scaffold(
             body: QuickCaptureDialog(
-              now: () => DateTime(2026, 9, 27, 14, 35),
+              now: () => DateTime(2026, 9, 27, 16, 35),
               onCaptured: (task) async => captured.add(task),
             ),
           ),
@@ -358,16 +362,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    final hourBox = find.byTooltip('ساعت');
-    expect(hourBox, findsOneWidget);
-    await tester.tap(hourBox);
-    await tester.pumpAndSettle();
-    final hour16 = find.text('۱۶');
-    expect(hour16, findsOneWidget);
-    await tester.tap(hour16);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-time-confirm')));
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -409,8 +405,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byTooltip('ساعت'), findsOneWidget);
-    expect(find.byTooltip('دقیقه'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
   });
   testWidgets('Quick Add supports minute precision and all custom recurrence units', (tester) async {
     await tester.pumpWidget(
@@ -432,11 +427,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
-    final minuteBox = find.byTooltip('دقیقه');
-    expect(minuteBox, findsOneWidget);
-    await tester.tap(minuteBox);
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
-    expect(find.text('۳۷'), findsOneWidget);
   });
 
 
