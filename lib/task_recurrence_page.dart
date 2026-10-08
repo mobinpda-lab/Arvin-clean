@@ -4,6 +4,7 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_recurrence_repository.dart';
+import 'widgets/persian_date_picker.dart';
 
 class TaskRecurrencePage extends StatefulWidget {
   TaskRecurrencePage({super.key, this.initialTaskId, TaskRecurrenceRepository? repository})
@@ -19,12 +20,15 @@ class TaskRecurrencePage extends StatefulWidget {
 class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   static const _dateFormatter = PersianDateFormatter();
   final _interval = TextEditingController(text: '1');
+  final _count = TextEditingController();
   List<Task> _tasks = const [];
   String? _selectedTaskId;
   bool _loading = true;
   bool _saving = false;
   bool _enabled = false;
   RecurrenceFrequency _frequency = RecurrenceFrequency.daily;
+  DateTime? _startDate;
+  DateTime? _endDate;
   Map<String, dynamic> _progress = const {};
   DateTime? _nextOccurrence;
   DateTime? _lastOccurrence;
@@ -39,6 +43,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   @override
   void dispose() {
     _interval.dispose();
+    _count.dispose();
     super.dispose();
   }
 
@@ -69,6 +74,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       _enabled = rule != null && rule.active;
       _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
       _interval.text = '${rule?.interval ?? 1}';
+      _startDate = rule?.startDate;
+      _endDate = rule?.endDate;
+      _count.text = rule?.count?.toString() ?? '';
     });
   }
 
@@ -130,8 +138,18 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     final task = _selectedTask;
     if (task == null || _saving) return;
     final interval = int.tryParse(_interval.text.trim());
+    final count = int.tryParse(_count.text.trim());
+    final startDate = _startDate ?? task.reminderDate;
     if (_enabled && (interval == null || interval < 1)) {
       _message('فاصله تکرار باید حداقل ۱ باشد');
+      return;
+    }
+    if (_enabled && count != null && count < 1) {
+      _message('تعداد اجرا باید حداقل ۱ باشد');
+      return;
+    }
+    if (_enabled && _endDate != null && startDate != null && !_endDate!.isAfter(startDate)) {
+      _message('تاریخ پایان باید بعد از تاریخ شروع باشد');
       return;
     }
     setState(() => _saving = true);
@@ -141,9 +159,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
           ? RecurrenceRule(
               frequency: _frequency,
               interval: interval!,
-              startDate: existing?.startDate,
-              endDate: existing?.endDate,
-              count: existing?.count,
+              startDate: startDate,
+              endDate: _endDate,
+              count: count,
               active: true,
             )
           : (existing == null ? null : RecurrenceRule(
@@ -195,6 +213,31 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     }
   }
 
+  Future<void> _chooseStartDate() async {
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: _startDate ?? _selectedTask?.reminderDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'تاریخ شروع تکرار',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+    );
+    if (picked != null && mounted) setState(() => _startDate = picked);
+  }
+
+  Future<void> _chooseEndDate() async {
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: _endDate ?? _startDate ?? _selectedTask?.reminderDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'تاریخ پایان تکرار',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+    );
+    if (picked != null && mounted) setState(() => _endDate = picked);
+  }
   void _message(String text) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -359,6 +402,46 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         decoration: const InputDecoration(
                           labelText: 'فاصله تکرار',
                           helperText: 'مثلاً ۲ یعنی هر دو روز/هفته/ماه/سال',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        key: const ValueKey('recurrence-start-date'),
+                        onPressed: !_enabled || _saving ? null : _chooseStartDate,
+                        icon: const Icon(Icons.event_outlined),
+                        label: Text('شروع: ${_date(_startDate ?? task?.reminderDate ?? widget.repository.now())}'),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              key: const ValueKey('recurrence-end-date'),
+                              onPressed: !_enabled || _saving ? null : _chooseEndDate,
+                              icon: const Icon(Icons.event_busy_outlined),
+                              label: Text(_endDate == null ? 'پایان: بدون پایان' : 'پایان: ${_date(_endDate!)}'),
+                            ),
+                          ),
+                          if (_endDate != null) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              key: const ValueKey('recurrence-clear-end-date'),
+                              tooltip: 'حذف تاریخ پایان',
+                              onPressed: !_enabled || _saving ? null : () => setState(() => _endDate = null),
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const ValueKey('recurrence-count'),
+                        controller: _count,
+                        enabled: _enabled && !_saving,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'تعداد اجرا',
+                          helperText: 'خالی = بدون محدودیت تعداد اجرا',
                         ),
                       ),
                       const SizedBox(height: 16),
