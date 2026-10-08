@@ -69,6 +69,7 @@ void main() {
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
+          active: true,
         ),
       ),
     ]);
