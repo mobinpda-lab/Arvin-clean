@@ -218,7 +218,7 @@ void main() {
   test('Repeat Case 2: end date bounds schedule and remaining occurrences', () {
     final start = DateTime(2026, 10, 8, 9);
     final end = DateTime(2026, 10, 11, 9);
-    const rule = RecurrenceRule(
+    final rule = RecurrenceRule(
       frequency: RecurrenceFrequency.daily,
       interval: 1,
       startDate: DateTime(2026, 10, 8, 9),
@@ -247,7 +247,7 @@ void main() {
 
   test('Repeat Case 3: count bounds total completed and remaining', () {
     final start = DateTime(2026, 10, 8, 9);
-    const rule = RecurrenceRule(
+    final rule = RecurrenceRule(
       frequency: RecurrenceFrequency.daily,
       interval: 1,
       startDate: DateTime(2026, 10, 8, 9),
