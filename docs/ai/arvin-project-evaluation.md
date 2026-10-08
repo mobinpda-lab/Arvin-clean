@@ -1,7 +1,7 @@
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
-Date: 2026-10-07
-Verified current main: 93edc53ad8619826744ff3f986c9beff86b325f7
+Date: 2026-10-08
+Verified current main: fb06823bf91a71aa7cbb4c38b684fd0b7e014a5c
 
 ## Executive status
 
@@ -26,7 +26,7 @@ Live GitHub shows substantial product progress. The remaining gap is product int
 ## Active lane
 
 ### Typography — #1860 / PR #2408
-**Status: IN PROGRESS — DEVICE/UX VERIFICATION**
+**Status: IMPLEMENTED ON CURRENT MAIN — DEVICE/UX VERIFICATION REMAINS**
 
 PR #2408 makes the existing «فونت دستگاه» selection real through the canonical AppSettingsService/AppSettings path.
 
@@ -36,9 +36,7 @@ Protected:
 - VazirHarf remains canonical default;
 - existing font-size path remains unchanged.
 
-Exact head: 1d7052e1027f9e4ece1ee36a5aef29929b344644
-
-Exact HEAD `1d7052e1027f9e4ece1ee36a5aef29929b344644` has successful Production Loop, Orchestrator, G1 lock sync and Device Smoke #3513. **Do not call #2408 Done yet.** The remaining gate is user-facing Settings acceptance: system font actual effect in light/dark, restart persistence, return to VazirHarf, restart persistence, and data-safety evidence.
+PR #2408 is closed without merge, but its intended canonical system-font implementation is present on current main `fb06823bf91a71aa7cbb4c38b684fd0b7e014a5c`: explicit `system` selection, ThemeData mapping, and existing font-size control. **Do not call Typography Done yet.** The remaining gate is user-facing Settings acceptance: system font actual effect in light/dark, restart persistence, return to VazirHarf, restart persistence, and data-safety evidence.
 
 ## P0/P1 remaining product work
 
@@ -136,6 +134,13 @@ Create Task → Date/Time → Reminder → Checklist → Repeat → Follow-up �
 
 The same user data must survive the complete flow.
 
+## Current Release Evidence
+
+- Current main `fb06823bf91a71aa7cbb4c38b684fd0b7e014a5c` has successful final-head release validation run `37818450005`.
+- Current prerelease `v0.1.0-arvin-fb06823` exists with release APK and SHA-256 evidence assets.
+- Android Device Smoke on the current release lane has been green for the recorded Home/Quick Capture/SQL/Persistence/Migration/Backup/Restore/People coverage.
+- PR #2496 remains open for Report Center filtered-flow evidence; exact-head automation is green, but real Android visual/interaction acceptance is still missing and no screenshot artifact was produced.
+
 ## Release Gate
 
 **NOT RELEASE-READY**
@@ -156,7 +161,7 @@ Emulator/device-smoke evidence does not replace required physical-phone acceptan
 
 ## Current execution order
 
-1. Finish PR #2408 Settings acceptance and reconcile its branch with current main; no duplicate Typography lane.
+1. Finish Typography Settings acceptance on current main; do not reopen PR #2408 or create a duplicate lane.
 2. Prove Golden Flow using the existing canonical Task/Date-Time/Reminder/Checklist/Repeat/Follow-up/Timeline paths.
 3. Prove Backup → Restore integrity on the same dataset.
 4. Prove Calendar E2E using the existing provider/sync/link foundation.
