@@ -464,7 +464,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         const SizedBox(height: 12),
                         Text('زمان فعلی یادآوری: ${_date(task!.reminderDate!)}'),
                       ],
-                      if (task?.recurrence != null && task?.reminderDate != null) ...[
+                      if (_enabled && task?.reminderDate != null) ...[
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           key: const ValueKey('recurrence-resume-today'),
