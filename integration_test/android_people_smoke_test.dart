@@ -89,7 +89,11 @@ void main() {
     expect(calendarBar, findsOneWidget);
     await tester.tap(find.text('بیشتر'));
     await tester.pumpAndSettle();
-    final timelineAction = find.text('خط زمانی');
+    final timelineAction = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.text('خط زمانی'),
+    );
+    expect(timelineAction, findsOneWidget);
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();
     await tester.tap(timelineAction);
