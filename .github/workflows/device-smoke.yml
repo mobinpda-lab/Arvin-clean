@@ -123,20 +123,40 @@ jobs:
           target: default
           disable-animations: true
           script: |
+            set -euo pipefail
             flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
-            # The smoke test can leave the launcher in the foreground after Flutter exits.
-            # Relaunch the canonical Arvin activity and verify it is actually resumed
-            # before capturing visual evidence. Retry because the emulator adb daemon can
-            # briefly be unavailable immediately after the integration test exits.
-            adb wait-for-device
-            for attempt in 1 2 3 4 5; do adb shell am start -n com.example.arvin/.MainActivity >/dev/null 2>&1 || true; sleep 1; if adb shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|mFocusedApp' | grep -q 'com.example.arvin'; then break; fi; done
-            adb shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|mFocusedApp' | grep -q 'com.example.arvin'
+
+            # Recover the canonical Arvin activity after Flutter exits. The emulator
+            # runner can briefly lose adb connectivity or leave the launcher focused.
+            # Keep this bounded and retry only the existing validation path.
+            activity_ready=false
+            for attempt in $(seq 1 20); do
+              if adb wait-for-device >/dev/null 2>&1 &&
+                 adb shell am start -n com.example.arvin/.MainActivity >/dev/null 2>&1 &&
+                 adb shell dumpsys activity activities 2>/dev/null |
+                   grep -E 'mResumedActivity|mFocusedApp' |
+                   grep -q 'com.example.arvin'; then
+                activity_ready=true
+                break
+              fi
+              sleep 1
+            done
+            test "$activity_ready" = true
+
             sleep 2
             mkdir -p artifacts/home
             rm -f artifacts/home/arvin-home.png
             adb shell rm -f /sdcard/arvin-home.png >/dev/null 2>&1 || true
-            adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1
-            adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1
+            for attempt in $(seq 1 10); do
+              if adb wait-for-device >/dev/null 2>&1 &&
+                 adb shell screencap -p /sdcard/arvin-home.png >/dev/null 2>&1 &&
+                 adb pull /sdcard/arvin-home.png artifacts/home/arvin-home.png >/dev/null 2>&1 &&
+                 test -s artifacts/home/arvin-home.png; then
+                break
+              fi
+              rm -f artifacts/home/arvin-home.png
+              sleep 1
+            done
             test -s artifacts/home/arvin-home.png
       - name: Upload Home screenshot evidence
         if: matrix.scenario == 'home' && success()
