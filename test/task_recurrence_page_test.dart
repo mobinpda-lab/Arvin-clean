@@ -190,6 +190,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final lifecycleCard = find.byKey(const ValueKey('recurrence-lifecycle-card'));
+    await tester.scrollUntilVisible(lifecycleCard, 500, scrollable: find.byType(Scrollable).first);
     await _pumpUntilFound(tester, lifecycleCard);
     expect(lifecycleCard, findsOneWidget);
     expect(find.textContaining('انجام‌شده: 1'), findsOneWidget);
