@@ -1151,6 +1151,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           );
                           if (constraints.maxWidth < 400) {
                             return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Row(
                                   children: [
@@ -1160,20 +1161,50 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                       SizedBox(width: 120, child: recurrenceInterval),
                                     ],
                                   ],
-                                ),                                const SizedBox(height: 10),
+                                ),
+                                const SizedBox(height: 10),
                                 priority,
+                                const SizedBox(height: 6),
+                                repeatEnabled,
+                                Row(
+                                  children: [
+                                    Expanded(child: repeatStart),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: repeatEnd),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                repeatCount,
                               ],
                             );
                           }
-                          return Row(
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(child: recurrence),
-                              if (_recurrence != null) ...[
-                                const SizedBox(width: 10),
-                                SizedBox(width: 120, child: recurrenceInterval),
-                              ],
-                              const SizedBox(width: 10),
-                              Expanded(child: priority),
+                              Row(
+                                children: [
+                                  Expanded(child: recurrence),
+                                  if (_recurrence != null) ...[
+                                    const SizedBox(width: 10),
+                                    SizedBox(width: 120, child: recurrenceInterval),
+                                  ],
+                                  const SizedBox(width: 10),
+                                  Expanded(child: priority),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              repeatEnabled,
+                              Row(
+                                children: [
+                                  Expanded(child: repeatStart),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: repeatEnd),
+                                  if (_recurrence != null) ...[
+                                    const SizedBox(width: 8),
+                                    SizedBox(width: 120, child: repeatCount),
+                                  ],
+                                ],
+                              ),
                             ],
                           );
                         },
