@@ -140,7 +140,9 @@ class CalendarSyncPlanService {
   CalendarSyncPlan plan({
     required Iterable<CalendarSyncRevision> revisions,
     required Iterable<ExternalCalendarEventLink> links,
+    String? targetCalendarId,
   }) {
+    final normalizedTarget = targetCalendarId?.trim();
     final revisionById = _indexRevisions(revisions);
     final linkById = _indexLinks(links);
     final ids = <String>{...revisionById.keys, ...linkById.keys}.toList()..sort();
@@ -154,6 +156,10 @@ class CalendarSyncPlanService {
         action = CalendarSyncAction.create;
       } else if (revision == null && link != null) {
         action = CalendarSyncAction.delete;
+      } else if (normalizedTarget != null &&
+          normalizedTarget.isNotEmpty &&
+          link!.calendarId != normalizedTarget) {
+        action = CalendarSyncAction.update;
       } else if (revision!.fingerprint == link!.lastSyncedFingerprint) {
         action = CalendarSyncAction.noOp;
       } else {

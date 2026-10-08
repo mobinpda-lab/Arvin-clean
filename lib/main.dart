@@ -1754,6 +1754,7 @@ class _HomePageState extends State<HomePage> {
       final plan = const CalendarSyncPlanService().plan(
         revisions: <CalendarSyncRevision>[revision],
         links: links,
+        targetCalendarId: targetCalendarId,
       );
       final result = await CalendarProviderSyncExecutor().execute(
         plan: plan,
