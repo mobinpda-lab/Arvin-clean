@@ -270,6 +270,55 @@ void main() {
     expect(find.text('تغییرات ذخیره نشده'), findsNothing);
   });
 
+  testWidgets('new Task keeps checklist disabled until explicitly enabled', (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-checklist-input')),
+      'کیف',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.checklist, const ['[ ] کیف']);
+  });
+
+  testWidgets('disabling an existing checklist keeps data in the editor but saves Task without checklist',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'checklist-toggle',
+      title: 'آماده‌سازی',
+      checklist: const ['[ ] کیف', '[ ] کتاب'],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.checklist, isEmpty);
+  });
+
   testWidgets('task editor checklist supports add, toggle, edit and persistence',
       (tester) async {
     Task? result;
