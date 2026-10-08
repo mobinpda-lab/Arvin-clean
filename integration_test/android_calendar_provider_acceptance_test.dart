@@ -120,8 +120,8 @@ void main() {
       final secondCalendar = writable.firstWhere((item) => item.id != calendar.id);
       final migrationRevision = CalendarReminder(
         id: reminder.id,
-        title: 'ARVIN calendar provider acceptance migrated',
-        date: start.add(const Duration(minutes: 30)),
+        title: updatedReminder.title,
+        date: updatedReminder.date,
       );
       final migration = await revisionService.fromReminder(migrationRevision);
       links = await store.load();
