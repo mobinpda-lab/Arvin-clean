@@ -27,6 +27,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   bool _saving = false;
   bool _enabled = false;
   RecurrenceFrequency _frequency = RecurrenceFrequency.daily;
+  RecurrenceTrackingLevel _trackingLevel = RecurrenceTrackingLevel.normal;
   DateTime? _startDate;
   DateTime? _endDate;
   Map<String, dynamic> _progress = const {};
@@ -73,6 +74,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     setState(() {
       _enabled = rule != null && rule.active;
       _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
+      _trackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
       _interval.text = '${rule?.interval ?? 1}';
       _startDate = rule?.startDate;
       _endDate = rule?.endDate;
@@ -163,6 +165,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
               endDate: _endDate,
               count: count,
               active: true,
+              trackingLevel: _trackingLevel,
             )
           : (existing == null ? null : RecurrenceRule(
               frequency: existing.frequency,
@@ -171,6 +174,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
               endDate: existing.endDate,
               count: existing.count,
               active: false,
+              trackingLevel: existing.trackingLevel,
             ));
       await widget.repository.setRule(task.id, rule);
       await _reload(keepSelected: task.id);
@@ -245,6 +249,15 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 
+  String _trackingLevelLabel(RecurrenceTrackingLevel value) {
+    switch (value) {
+      case RecurrenceTrackingLevel.normal:
+        return 'عادی';
+      case RecurrenceTrackingLevel.tracking:
+        return 'مهم و قابل پیگیری';
+    }
+  }
+
   String _frequencyLabel(RecurrenceFrequency value) {
     switch (value) {
       case RecurrenceFrequency.daily: return 'روزانه';
@@ -291,6 +304,11 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
           children: [
             const Text('وضعیت تکرار', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             const SizedBox(height: 12),
+            if (task?.recurrence?.trackingLevel == RecurrenceTrackingLevel.tracking) ...[
+              const SizedBox(height: 12),
+              const Text('این کار مهم و قابل پیگیری است', style: TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+            ],
             Wrap(spacing: 10, runSpacing: 10, children: [
               _infoChip('انجام‌شده', '$completed'),
               _infoChip('کل', total == null ? 'نامحدود' : '$total'),
