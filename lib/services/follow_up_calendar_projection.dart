@@ -1,4 +1,5 @@
 import '../calendar_page.dart';
+import '../models/recurrence.dart';
 import '../models/task.dart';
 
 class FollowUpCalendarTarget {
