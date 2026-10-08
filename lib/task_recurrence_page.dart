@@ -57,12 +57,19 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     final selectedId = keepSelected ?? _selectedTaskId ?? widget.initialTaskId;
     final selected = active.where((task) => task.id == selectedId).firstOrNull;
     final nextSelected = selected ?? (active.isEmpty ? null : active.first);
+    final rule = nextSelected?.recurrence;
     setState(() {
       _tasks = active;
       _selectedTaskId = nextSelected?.id;
       _loading = false;
+      _enabled = rule != null && rule.active;
+      _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
+      _trackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
+      _interval.text = '\${rule?.interval ?? 1}';
+      _startDate = rule?.startDate;
+      _endDate = rule?.endDate;
+      _count.text = rule?.count?.toString() ?? '';
     });
-    _loadRule(nextSelected);
     await _loadLifecycle(nextSelected);
   }
 
@@ -375,9 +382,18 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                             ),
                         ],
                         onChanged: _saving ? null : (value) {
-                          setState(() => _selectedTaskId = value);
-                          final selected = _selectedTask;
-                          _loadRule(selected);
+                          final selected = _tasks.where((item) => item.id == value).firstOrNull;
+                          setState(() {
+                            _selectedTaskId = value;
+                            final rule = selected?.recurrence;
+                            _enabled = rule != null && rule.active;
+                            _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
+                            _trackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
+                            _interval.text = '\${rule?.interval ?? 1}';
+                            _startDate = rule?.startDate;
+                            _endDate = rule?.endDate;
+                            _count.text = rule?.count?.toString() ?? '';
+                          });
                           _loadLifecycle(selected);
                         },
                       ),
