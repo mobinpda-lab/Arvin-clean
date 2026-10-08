@@ -151,6 +151,7 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+
   test('complete occurrence updates history without completing canonical Task', () async {
     final store = TaskStore();
     final occurrence = DateTime(2026, 10, 8, 9);
@@ -214,4 +215,139 @@ void main() {
     );
   });
 
+  test('Repeat Case 2: end date bounds schedule and remaining occurrences', () {
+    final start = DateTime(2026, 10, 8, 9);
+    final end = DateTime(2026, 10, 11, 9);
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      interval: 1,
+      startDate: DateTime(2026, 10, 8, 9),
+      endDate: DateTime(2026, 10, 11, 9),
+    );
+
+    final occurrences = rule.occurrencesBetween(
+      anchor: start,
+      from: start,
+      to: DateTime(2026, 10, 12, 9),
+    );
+
+    expect(occurrences, [
+      DateTime(2026, 10, 8, 9),
+      DateTime(2026, 10, 9, 9),
+      DateTime(2026, 10, 10, 9),
+    ]);
+    expect(occurrences.last.isBefore(end), isTrue);
+
+    final completed = {occurrences.first.toIso8601String()};
+    final remaining = occurrences
+        .where((value) => !completed.contains(value.toIso8601String()))
+        .length;
+    expect(remaining, 2);
+  });
+
+  test('Repeat Case 3: count bounds total completed and remaining', () {
+    final start = DateTime(2026, 10, 8, 9);
+    const rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      interval: 1,
+      startDate: DateTime(2026, 10, 8, 9),
+      count: 4,
+    );
+
+    final occurrences = rule.occurrencesBetween(
+      anchor: start,
+      from: start,
+      to: DateTime(2026, 10, 20, 9),
+    );
+
+    expect(occurrences, [
+      DateTime(2026, 10, 8, 9),
+      DateTime(2026, 10, 9, 9),
+      DateTime(2026, 10, 10, 9),
+      DateTime(2026, 10, 11, 9),
+    ]);
+
+    final completed = {
+      occurrences[0].toIso8601String(),
+      occurrences[1].toIso8601String(),
+    };
+    expect(occurrences.length, 4);
+    expect(completed.length, 2);
+    expect(occurrences.length - completed.length, 2);
+  });
+
+  test('Repeat Case 4: completed history remains immutable while future schedule is adjustable', () async {
+    final past = DateTime(2026, 10, 8, 9);
+    final future = DateTime(2026, 10, 9, 9);
+    final store = TaskStore();
+    await store.save([
+      Task(
+        id: 'history-adjustment',
+        title: 'تکرار با تاریخچه',
+        reminderDate: past,
+        recurrence: const RecurrenceRule(
+          frequency: RecurrenceFrequency.daily,
+          interval: 1,
+        ),
+        occurrenceHistory: {
+          past.toIso8601String(): {
+            'scheduledDate': past.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+            'completionDate': DateTime(2026, 10, 8, 9, 30).toIso8601String(),
+          },
+        },
+      ),
+    ]);
+
+    final repository = TaskRecurrenceRepository(store: store);
+    await repository.setRule(
+      'history-adjustment',
+      const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        interval: 2,
+      ),
+    );
+
+    final updated = (await store.load()).single;
+    expect(updated.occurrenceHistory[past.toIso8601String()]?['scheduledDate'], past.toIso8601String());
+    expect(updated.occurrenceHistory[past.toIso8601String()]?['status'], RecurrenceOccurrenceStatus.completed.name);
+    expect(updated.occurrenceHistory[past.toIso8601String()]?['completionDate'], DateTime(2026, 10, 8, 9, 30).toIso8601String());
+    expect(updated.recurrence?.interval, 2);
+    expect(updated.recurrence?.nextOccurrence(future), DateTime(2026, 10, 11, 9));
+  });
+
+  test('Repeat Case 5: checklist state is independent per occurrence after reload', () async {
+    final start = DateTime(2026, 10, 8, 9);
+    final next = DateTime(2026, 10, 9, 9);
+    final store = TaskStore();
+    await store.save([
+      Task(
+        id: 'checklist-evidence',
+        title: 'تکرار با چک‌لیست',
+        checklist: const ['[ ] اول', '[ ] دوم'],
+        reminderDate: start,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+
+    final repository = TaskRecurrenceRepository(store: store);
+    await repository.setChecklistForOccurrence(
+      'checklist-evidence',
+      start,
+      const ['[x] اول', '[ ] دوم'],
+    );
+
+    expect(
+      await repository.checklistForOccurrence('checklist-evidence', start),
+      const ['[x] اول', '[ ] دوم'],
+    );
+    expect(
+      await repository.checklistForOccurrence('checklist-evidence', next),
+      const ['[ ] اول', '[ ] دوم'],
+    );
+
+    final reloaded = (await TaskStore().load()).single;
+    expect(reloaded.checklistOccurrences[start.toIso8601String()], const ['[x] اول', '[ ] دوم']);
+    expect(reloaded.checklistOccurrences.containsKey(next.toIso8601String()), isFalse);
+  });
 }
