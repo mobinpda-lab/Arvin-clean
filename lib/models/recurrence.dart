@@ -6,6 +6,11 @@ enum RecurrenceOccurrenceStatus {
   cancelled,
 }
 
+enum RecurrenceTrackingLevel {
+  normal,
+  tracking,
+}
+
 enum RecurrenceFrequency {
   daily,
   weekly,
@@ -24,6 +29,7 @@ class RecurrenceRule {
     this.endDate,
     this.count,
     this.active = true,
+    this.trackingLevel = RecurrenceTrackingLevel.normal,
   })  : assert(interval > 0),
         assert(count == null || count > 0);
 
@@ -33,6 +39,7 @@ class RecurrenceRule {
   final DateTime? endDate;
   final int? count;
   final bool active;
+  final RecurrenceTrackingLevel trackingLevel;
 
   Map<String, dynamic> toJson() => {
         'frequency': frequency.name,
@@ -41,6 +48,7 @@ class RecurrenceRule {
         if (endDate != null) 'endDate': endDate!.toIso8601String(),
         if (count != null) 'count': count,
         'active': active,
+        'trackingLevel': trackingLevel.name,
       };
 
   factory RecurrenceRule.fromJson(Map<String, dynamic> json) {
@@ -51,6 +59,11 @@ class RecurrenceRule {
     );
     final interval = (json['interval'] as num?)?.toInt() ?? 1;
     final count = (json['count'] as num?)?.toInt();
+    final trackingLevelName = json['trackingLevel'] as String?;
+    final trackingLevel = RecurrenceTrackingLevel.values.firstWhere(
+      (value) => value.name == trackingLevelName,
+      orElse: () => RecurrenceTrackingLevel.normal,
+    );
     return RecurrenceRule(
       frequency: frequency,
       interval: interval > 0 ? interval : 1,
@@ -62,6 +75,7 @@ class RecurrenceRule {
           : DateTime.tryParse(json['endDate'] as String),
       count: count != null && count > 0 ? count : null,
       active: json['active'] as bool? ?? true,
+      trackingLevel: trackingLevel,
     );
   }
 
