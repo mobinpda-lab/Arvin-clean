@@ -109,6 +109,11 @@ void main() {
     expect(picker, findsOneWidget);
 
     final resume = find.byKey(const ValueKey('recurrence-resume-today'));
+    await tester.scrollUntilVisible(
+      resume,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
     await _pumpUntilFound(tester, resume);
     expect(resume, findsOneWidget);
     await tester.tap(resume);
