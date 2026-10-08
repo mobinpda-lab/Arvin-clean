@@ -259,7 +259,7 @@ void main() {
     );
   });
 
-  test('projects only the next five recurring occurrences', () {
+  test('projects only the next seven recurring occurrences', () {
     final task = Task(
       id: 'daily-task',
       title: 'کار روزانه',
@@ -274,18 +274,20 @@ void main() {
       now: DateTime(2026, 10, 8, 8),
     );
 
-    expect(reminders, hasLength(5));
+    expect(reminders, hasLength(7));
     expect(reminders.map((item) => item.date), <DateTime>[
       DateTime(2026, 10, 8, 14),
       DateTime(2026, 10, 9, 14),
       DateTime(2026, 10, 10, 14),
       DateTime(2026, 10, 11, 14),
       DateTime(2026, 10, 12, 14),
+      DateTime(2026, 10, 13, 14),
+      DateTime(2026, 10, 14, 14),
     ]);
     expect(reminders.map((item) => item.id).toSet().length, reminders.length);
   });
 
-  test('rolling repeat window adds the next occurrence as one occurrence passes', () {
+  test('rolling repeat window keeps seven upcoming occurrences as one passes', () {
     final task = Task(
       id: 'rolling-daily',
       title: 'کار چرخشی',
@@ -306,6 +308,8 @@ void main() {
       DateTime(2026, 10, 12, 14),
       DateTime(2026, 10, 13, 14),
       DateTime(2026, 10, 14, 14),
+      DateTime(2026, 10, 15, 14),
+      DateTime(2026, 10, 16, 14),
     ]);
   });
 
