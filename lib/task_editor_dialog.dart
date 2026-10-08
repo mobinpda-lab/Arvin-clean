@@ -1041,7 +1041,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             label: 'تکرار',
                             valueLabel: _recurrence == null
                                 ? 'بدون تکرار'
-                                : _recurrenceLabel(_recurrence!.frequency),
+                                : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency)),
                             icon: Icons.repeat_rounded,
                             color: ArvinColors.primary,
                             emptyLabel: 'بدون تکرار',
@@ -1059,12 +1059,20 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               final interval =
                                   int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
-                                _recurrence = frequency == null
-                                    ? null
-                                    : RecurrenceRule(
-                                        frequency: frequency,
-                                        interval: interval > 0 ? interval : 1,
-                                      );
+                                if (frequency == null) {
+                                  _recurrence = null;
+                                  _repeatEnabled = false;
+                                } else {
+                                  _recurrence = RecurrenceRule(
+                                    frequency: frequency,
+                                    interval: interval > 0 ? interval : 1,
+                                    startDate: _recurrenceStartDate,
+                                    endDate: _recurrenceEndDate,
+                                    count: int.tryParse(_recurrenceCountController.text.trim()),
+                                    active: true,
+                                  );
+                                  _repeatEnabled = true;
+                                }
                               });
                             },
                           );
