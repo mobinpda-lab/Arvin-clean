@@ -140,17 +140,42 @@ class TaskRecurrenceRepository {
     }
 
     final start = from ?? rule.startDate ?? anchor;
-    final end = to ?? rule.endDate ?? DateTime(9999, 12, 31, 23, 59, 59);
-    final occurrences = rule.occurrencesBetween(
-      anchor: anchor,
-      from: start,
-      to: end,
-    );
-    final completed = occurrences.where((occurrence) {
-      final state = task.occurrenceHistory[_occurrenceKey(occurrence)];
-      return state?['status'] == RecurrenceOccurrenceStatus.completed.name;
-    }).length;
     final total = rule.count;
+
+    // Never expand an unbounded recurrence to an artificial far-future date.
+    // For bounded repeats, inspect only the declared number of occurrences.
+    // For unbounded repeats, canonical history is already the authoritative
+    // execution source, so completed progress can be counted directly there.
+    var completed = 0;
+    if (total != null) {
+      var occurrence = start;
+      for (var index = 0; index < total; index++) {
+        if (rule.endDate != null && !occurrence.isBefore(rule.endDate!)) {
+          break;
+        }
+        final state = task.occurrenceHistory[_occurrenceKey(occurrence)];
+        if (state?['status'] == RecurrenceOccurrenceStatus.completed.name) {
+          completed++;
+        }
+        occurrence = rule.nextOccurrence(occurrence);
+      }
+    } else {
+      final end = to ?? rule.endDate;
+      for (final entry in task.occurrenceHistory.entries) {
+        if (entry.value['status'] != RecurrenceOccurrenceStatus.completed.name) {
+          continue;
+        }
+        final occurrence = DateTime.tryParse(entry.key);
+        if (occurrence == null || occurrence.isBefore(start)) {
+          continue;
+        }
+        if (end != null && !occurrence.isBefore(end)) {
+          continue;
+        }
+        completed++;
+      }
+    }
+
     return <String, dynamic>{
       'completed': completed,
       'total': total,
