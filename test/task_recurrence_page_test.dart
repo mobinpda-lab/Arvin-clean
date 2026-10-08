@@ -21,7 +21,6 @@ void main() {
     await TaskStore.resetTestDatabase();
   });
 
-
   testWidgets('UI enables recurrence and persists interval on canonical Task', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
@@ -139,6 +138,7 @@ void main() {
           frequency: RecurrenceFrequency.daily,
           interval: 1,
           count: 3,
+          active: true,
         ),
         occurrenceHistory: {
           occurrence.toIso8601String(): {
