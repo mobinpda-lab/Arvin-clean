@@ -25,9 +25,19 @@ class FollowUpCalendarProjection {
     final recurrence = task.recurrence;
     final anchor = task.dueDate;
     if (recurrence == null || anchor == null || !recurrence.active) return const [];
-    var occurrence = recurrence.resumeFromToday(scheduledFrom: recurrence.startDate ?? anchor, target: now);
-    final result = <DateTime>[];
+    var occurrence = recurrence.startDate ?? anchor;
     var index = 0;
+    while (occurrence.isBefore(now)) {
+      occurrence = recurrence.nextOccurrence(occurrence);
+      index++;
+      if (recurrence.count != null && index >= recurrence.count!) {
+        return const [];
+      }
+      if (!occurrence.isAfter(now) && !occurrence.isAfter(occurrence.subtract(const Duration(seconds: 1)))) {
+        break;
+      }
+    }
+    final result = <DateTime>[];
     while (result.length < _maxProjectedRepeatOccurrences) {
       if (recurrence.endDate != null && !occurrence.isBefore(recurrence.endDate!)) break;
       if (recurrence.count != null && index >= recurrence.count!) break;
