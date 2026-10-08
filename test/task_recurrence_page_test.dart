@@ -182,6 +182,9 @@ void main() {
     expect(repositoryTasks.single.completed, isFalse);
     expect(repositoryTasks.single.archived, isFalse);
     expect(repositoryTasks.single.trashed, isFalse);
+    expect(repositoryTasks.single.recurrence?.active, isTrue);
+    expect(repositoryTasks.single.recurrence?.interval, 1);
+    expect(repositoryTasks.single.recurrence?.count, 3);
 
     await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(initialTaskId: 'lifecycle-ui', repository: repository)));
     await tester.pumpAndSettle();
