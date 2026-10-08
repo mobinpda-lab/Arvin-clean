@@ -14,7 +14,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}"},{"id":"tomorrow","title":"فردا","dueDate":"${tomorrow.toIso8601String()}"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}"},{"id":"none","title":"بی‌زمان"}]');
+      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}"},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}"},{"id":"none","title":"بی‌زمان"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -41,7 +41,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('تاریخ‌گذشته'), findsNothing);
-    expect(find.text('فردا'), findsNothing);
+    expect(find.byKey(const ValueKey('home-group-tomorrow')), findsNothing);
     expect(find.text('آینده'), findsNothing);
     expect(find.text('فاقد زمان'), findsNothing);
   });
