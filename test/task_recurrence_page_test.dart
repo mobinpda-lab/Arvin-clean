@@ -259,10 +259,15 @@ void main() {
     );
     await repository.setRule('tracking-level-ui', trackedRule);
 
-    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(
-      initialTaskId: 'tracking-level-ui',
-      repository: repository,
-    )));
+    await tester.pumpWidget(MaterialApp(
+      home: KeyedSubtree(
+        key: const ValueKey('tracking-level-second-mount'),
+        child: TaskRecurrencePage(
+          initialTaskId: 'tracking-level-ui',
+          repository: repository,
+        ),
+      ),
+    ));
     await tester.pumpAndSettle();
 
     final card = find.byKey(const ValueKey('recurrence-lifecycle-card'));
