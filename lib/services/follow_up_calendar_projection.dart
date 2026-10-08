@@ -16,7 +16,7 @@ class FollowUpCalendarTarget {
 class FollowUpCalendarProjection {
   const FollowUpCalendarProjection();
 
-  static const int _maxProjectedRepeatOccurrences = 5;
+  static const int _maxProjectedRepeatOccurrences = 7;
 
   List<DateTime> _nextRepeatOccurrences({
     required Task task,
