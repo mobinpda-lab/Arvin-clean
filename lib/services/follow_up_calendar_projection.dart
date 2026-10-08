@@ -46,7 +46,6 @@ class FollowUpCalendarProjection {
     }
     return List<DateTime>.unmodifiable(result);
   }
-}
 
   String reminderIdFor(Task task, FollowUp followUp) =>
       'followup:${task.id}:${followUp.id}';
@@ -132,7 +131,7 @@ class FollowUpCalendarProjection {
           dueDate != null &&
           visibleFrom != null &&
           visibleTo != null) {
-        // Keep the calendar intentionally light: only the next five future
+        // Keep the calendar intentionally light: only the next seven future
         // occurrences are projected. The window is recalculated after each
         // occurrence passes; no occurrence is persisted.
         final projectionNow = now ?? DateTime.now();
