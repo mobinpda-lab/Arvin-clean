@@ -92,6 +92,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
 class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
+    super.key,
     required this.selected,
     required this.icon,
     required this.label,
