@@ -160,4 +160,36 @@ void main() {
     );
   });
 
+  testWidgets('Repeat editor persists start end and count on canonical Task', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final reminder = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'repeat-editor-contract',
+        title: 'تعهد دوره‌ای',
+        reminderDate: reminder,
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 8),
+    );
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(repository: repository)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('recurrence-enabled')));
+    await tester.pump();
+    await tester.enterText(find.byKey(const ValueKey('recurrence-interval')), '2');
+    await tester.enterText(find.byKey(const ValueKey('recurrence-count')), '5');
+    await tester.tap(find.byKey(const ValueKey('recurrence-save')));
+    await tester.pumpAndSettle();
+
+    final task = (await store.load()).single;
+    expect(task.recurrence?.startDate, reminder);
+    expect(task.recurrence?.endDate, isNull);
+    expect(task.recurrence?.count, 5);
+    expect(task.recurrence?.interval, 2);
+  });
 }
