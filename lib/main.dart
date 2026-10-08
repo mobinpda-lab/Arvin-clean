@@ -702,26 +702,27 @@ class _HomePageState extends State<HomePage> {
                 subtitle: Text(timeLabel(toTime, 'انتخاب نشده')),
                 onTap: () { selectedQuick = 'all'; pickToTime(); },
               ),
-              if (fromDate != null || toDate != null || fromTime != null || toTime != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
-                    onPressed: () {
-                      setState(() {
-                        _timeFilter = 'customRange';
-                        _specificDateFilter = null;
-                        _fromDateFilter = fromDate;
-                        _toDateFilter = toDate;
-                        _fromTimeFilter = fromTime;
-                        _toTimeFilter = toTime;
-                      });
-                      Navigator.of(sheetContext).pop();
-                    },
-                    icon: const Icon(Icons.check_rounded),
-                    label: const Text('اعمال بازه'),
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
+                  onPressed: fromDate == null && toDate == null && fromTime == null && toTime == null
+                      ? null
+                      : () {
+                          setState(() {
+                            _timeFilter = 'customRange';
+                            _specificDateFilter = null;
+                            _fromDateFilter = fromDate;
+                            _toDateFilter = toDate;
+                            _fromTimeFilter = fromTime;
+                            _toTimeFilter = toTime;
+                          });
+                          Navigator.of(sheetContext).pop();
+                        },
+                  icon: const Icon(Icons.check_rounded),
+                  label: const Text('اعمال بازه'),
                 ),
+              ),
               TextButton(
                 onPressed: () {
                   setState(() {
