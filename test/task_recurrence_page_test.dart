@@ -87,6 +87,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final picker = find.byKey(
+      const ValueKey('recurrence-task-picker-resume-task'),
+    );
+    await _pumpUntilFound(tester, picker);
+    expect(picker, findsOneWidget);
+
     final resume = find.byKey(const ValueKey('recurrence-resume-today'));
     await _pumpUntilFound(tester, resume);
     expect(resume, findsOneWidget);
