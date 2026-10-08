@@ -83,6 +83,14 @@ void main() {
     expect(stored.reminderDate, DateTime(2026, 8, 20, 9));
     expect(stored.recurrence?.active, isTrue);
     expect(stored.recurrence?.interval, 2);
+    expect(stored.completed, isFalse);
+    expect(stored.archived, isFalse);
+    expect(stored.trashed, isFalse);
+    final repositoryTasks = await repository.loadTasks();
+    expect(repositoryTasks.single.id, 'resume-task');
+    expect(repositoryTasks.single.completed, isFalse);
+    expect(repositoryTasks.single.archived, isFalse);
+    expect(repositoryTasks.single.trashed, isFalse);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -166,6 +174,14 @@ void main() {
     expect(stored.reminderDate, occurrence);
     expect(stored.recurrence?.active, isTrue);
     expect(stored.occurrenceHistory.length, 1);
+    expect(stored.completed, isFalse);
+    expect(stored.archived, isFalse);
+    expect(stored.trashed, isFalse);
+    final repositoryTasks = await repository.loadTasks();
+    expect(repositoryTasks.single.id, 'lifecycle-ui');
+    expect(repositoryTasks.single.completed, isFalse);
+    expect(repositoryTasks.single.archived, isFalse);
+    expect(repositoryTasks.single.trashed, isFalse);
 
     await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(initialTaskId: 'lifecycle-ui', repository: repository)));
     await tester.pumpAndSettle();
