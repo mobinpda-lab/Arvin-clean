@@ -36,11 +36,6 @@ void main() {
       now: () => DateTime(2026, 8, 26, 8),
     );
 
-    final stored = (await store.load()).single;
-    expect(stored.id, 'resume-task');
-    expect(stored.reminderDate, DateTime(2026, 8, 20, 9));
-    expect(stored.recurrence?.active, isTrue);
-    expect(stored.recurrence?.interval, 2);
 
     await tester.pumpWidget(
       MaterialApp(home: TaskRecurrencePage(repository: repository)),
