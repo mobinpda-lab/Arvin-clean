@@ -125,14 +125,16 @@ class RecurrenceRule {
     if (cycleEnd != null && !from.isBefore(cycleEnd)) return const [];
     if (to.isBefore(cycleStart)) return const [];
 
-    var first = cycleStart;
-    if (first.isBefore(from)) {
-      first = resumeFromToday(scheduledFrom: anchor, target: from);
-    }
-
     final result = <DateTime>[];
-    var occurrence = first;
+    var occurrence = cycleStart;
     var index = 0;
+    while (occurrence.isBefore(from)) {
+      if (count != null && index + 1 >= count) return List<DateTime>.unmodifiable(result);
+      final next = nextOccurrence(occurrence);
+      if (!next.isAfter(occurrence)) return List<DateTime>.unmodifiable(result);
+      occurrence = next;
+      index++;
+    }
     while (occurrence.isBefore(to)) {
       if (count != null && index >= count) break;
       if (cycleEnd != null && !occurrence.isBefore(cycleEnd)) break;
