@@ -24,6 +24,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   List<Task> _tasks = const [];
   String? _selectedTaskId;
   Task? _selectedTaskState;
+  Task? _lifecycleTask;
   bool _loading = true;
   bool _saving = false;
   bool _enabled = false;
@@ -63,6 +64,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       _tasks = active;
       _selectedTaskId = nextSelected?.id;
       _selectedTaskState = nextSelected;
+      _lifecycleTask = nextSelected;
       _loading = false;
       _enabled = rule != null && rule.active;
       _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
@@ -113,6 +115,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     history.sort((a, b) => b.key.compareTo(a.key));
     if (!mounted) return;
     setState(() {
+      _lifecycleTask = task;
       _progress = progress;
       _nextOccurrence = next;
       _lastOccurrence = last;
@@ -267,7 +270,8 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   );
 
   Widget _lifecycleCard(Task? task) {
-    if (task?.recurrence == null) return const SizedBox.shrink();
+    final lifecycleTask = _lifecycleTask;
+    if (lifecycleTask?.recurrence == null) return const SizedBox.shrink();
     final completed = _progress['completed'] ?? 0;
     final total = _progress['total'];
     final remaining = _progress['remaining'];
@@ -281,7 +285,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
           children: [
             const Text('وضعیت تکرار', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             const SizedBox(height: 12),
-            if (task?.recurrence?.trackingLevel == RecurrenceTrackingLevel.tracking) ...[
+            if (lifecycleTask?.recurrence?.trackingLevel == RecurrenceTrackingLevel.tracking) ...[
               const SizedBox(height: 12),
               const Text('این کار مهم و قابل پیگیری است', style: TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
@@ -365,6 +369,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                           setState(() {
                             _selectedTaskId = value;
                             _selectedTaskState = selected;
+                            _lifecycleTask = selected;
                             final rule = selected?.recurrence;
                             _enabled = rule != null && rule.active;
                             _frequency = rule?.frequency ?? RecurrenceFrequency.daily;
