@@ -82,6 +82,7 @@ class FollowUpCalendarProjection {
     Iterable<Task> tasks, {
     DateTime? visibleFrom,
     DateTime? visibleTo,
+    DateTime? now,
   }) {
     final reminders = <CalendarReminder>[];
 
@@ -126,8 +127,8 @@ class FollowUpCalendarProjection {
         // Keep the calendar intentionally light: only the next five future
         // occurrences are projected. The window is recalculated after each
         // occurrence passes; no occurrence is persisted.
-        final now = DateTime.now();
-        for (final occurrence in _nextRepeatOccurrences(task: task, now: now)) {
+        final projectionNow = now ?? DateTime.now();
+        for (final occurrence in _nextRepeatOccurrences(task: task, now: projectionNow)) {
           if (occurrence.isBefore(visibleFrom) || !occurrence.isBefore(visibleTo)) continue;
           if (taskDatesAlreadyProjected.any((date) => _sameInstant(date, occurrence))) continue;
           final state = task.occurrenceHistory[occurrence.toIso8601String()];
