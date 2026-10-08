@@ -259,7 +259,7 @@ void main() {
     );
   });
 
-  test('projects recurring daily task across a visible range without duplicate tasks', () {
+  test('projects only the next five recurring occurrences', () {
     final task = Task(
       id: 'daily-task',
       title: 'کار روزانه',
@@ -269,17 +269,44 @@ void main() {
 
     final reminders = projection.project(
       <Task>[task],
-      visibleFrom: DateTime(2026, 9, 30),
-      visibleTo: DateTime(2026, 10, 4),
+      visibleFrom: DateTime(2026, 10, 8),
+      visibleTo: DateTime(2026, 10, 20),
+      now: DateTime(2026, 10, 8, 8),
     );
 
-    expect(reminders, hasLength(3));
+    expect(reminders, hasLength(5));
     expect(reminders.map((item) => item.date), <DateTime>[
-      DateTime(2026, 10, 1, 14),
-      DateTime(2026, 10, 2, 14),
-      DateTime(2026, 10, 3, 14),
+      DateTime(2026, 10, 8, 14),
+      DateTime(2026, 10, 9, 14),
+      DateTime(2026, 10, 10, 14),
+      DateTime(2026, 10, 11, 14),
+      DateTime(2026, 10, 12, 14),
     ]);
     expect(reminders.map((item) => item.id).toSet().length, reminders.length);
+  });
+
+  test('rolling repeat window adds the next occurrence as one occurrence passes', () {
+    final task = Task(
+      id: 'rolling-daily',
+      title: 'کار چرخشی',
+      dueDate: DateTime(2026, 10, 1, 14),
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+    );
+
+    final reminders = projection.project(
+      <Task>[task],
+      visibleFrom: DateTime(2026, 10, 9),
+      visibleTo: DateTime(2026, 10, 20),
+      now: DateTime(2026, 10, 9, 15),
+    );
+
+    expect(reminders.map((item) => item.date), <DateTime>[
+      DateTime(2026, 10, 10, 14),
+      DateTime(2026, 10, 11, 14),
+      DateTime(2026, 10, 12, 14),
+      DateTime(2026, 10, 13, 14),
+      DateTime(2026, 10, 14, 14),
+    ]);
   });
 
   test('projects custom minute recurrence without creating independent tasks', () {
@@ -297,6 +324,7 @@ void main() {
       <Task>[task],
       visibleFrom: DateTime(2026, 10, 2),
       visibleTo: DateTime(2026, 10, 2, 1, 1),
+      now: DateTime(2026, 10, 2),
     );
 
     expect(reminders, hasLength(4));
