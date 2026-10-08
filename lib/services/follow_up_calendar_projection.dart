@@ -33,9 +33,7 @@ class FollowUpCalendarProjection {
       if (recurrence.count != null && index >= recurrence.count!) {
         return const [];
       }
-      if (!occurrence.isAfter(now) && !occurrence.isAfter(occurrence.subtract(const Duration(seconds: 1)))) {
-        break;
-      }
+      if (!occurrence.isAfter(now)) continue;
     }
     final result = <DateTime>[];
     while (result.length < _maxProjectedRepeatOccurrences) {
