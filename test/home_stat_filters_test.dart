@@ -88,10 +88,16 @@ void main() {
     await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
 
+    final sheetScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.text('از تاریخ'), 300, scrollable: sheetScrollable);
     expect(find.text('از تاریخ'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('تا تاریخ'), 300, scrollable: sheetScrollable);
     expect(find.text('تا تاریخ'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('از ساعت'), 300, scrollable: sheetScrollable);
     expect(find.text('از ساعت'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('تا ساعت'), 300, scrollable: sheetScrollable);
     expect(find.text('تا ساعت'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('اعمال بازه'), 300, scrollable: sheetScrollable);
     expect(find.text('اعمال بازه'), findsOneWidget);
     expect(tester.widget<FilledButton>(find.ancestor(
       of: find.text('اعمال بازه'),
