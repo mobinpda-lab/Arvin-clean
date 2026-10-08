@@ -276,6 +276,14 @@ void main() {
       checklistOccurrences: {
         '2026-10-08T09:15:00.000': const ['[x] آماده‌سازی فایل', '[x] هماهنگی'],
       },
+      occurrenceHistory: {
+        '2026-10-08T09:15:00.000': {
+          'scheduledDate': '2026-10-08T09:15:00.000',
+          'status': RecurrenceOccurrenceStatus.completed.name,
+          'completionDate': '2026-10-08T09:30:00.000',
+          'result': 'جلسه انجام شد',
+        },
+      },
       followUps: [
         FollowUp(
           id: 'golden-flow-followup',
@@ -329,6 +337,14 @@ void main() {
     expect(restored.checklist, ['[ ] آماده‌سازی فایل', '[x] هماهنگی']);
     expect(restored.checklistOccurrences, {
       '2026-10-08T09:15:00.000': const ['[x] آماده‌سازی فایل', '[x] هماهنگی'],
+    });
+    expect(restored.occurrenceHistory, {
+      '2026-10-08T09:15:00.000': {
+        'scheduledDate': '2026-10-08T09:15:00.000',
+        'status': RecurrenceOccurrenceStatus.completed.name,
+        'completionDate': '2026-10-08T09:30:00.000',
+        'result': 'جلسه انجام شد',
+      },
     });
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);

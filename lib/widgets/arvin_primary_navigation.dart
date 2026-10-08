@@ -69,6 +69,9 @@ class ArvinPrimaryNavigation extends StatelessWidget {
               for (final destination in destinations)
                 Expanded(
                   child: _NavigationItem(
+                    key: destination.$1 == ArvinPrimaryDestination.more
+                        ? const ValueKey('primary-nav-more')
+                        : null,
                     selected: selected == destination.$1,
                     icon: selected == destination.$1
                         ? destination.$3
@@ -89,6 +92,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
 class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
+    super.key,
     required this.selected,
     required this.icon,
     required this.label,

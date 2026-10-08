@@ -310,8 +310,17 @@ class TaskStore {
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
 
     final recurrence = row['recurrence_json'];
-    envelope['recurrence'] =
-        recurrence is String ? jsonDecode(recurrence) : null;
+    // Backward compatibility: older canonical rows may not have the dedicated
+    // recurrence column populated, while their preserved legacy envelope still
+    // contains the valid canonical recurrence definition. Prefer the dedicated
+    // column when present; otherwise retain the existing envelope value.
+    if (recurrence is String && recurrence.trim().isNotEmpty) {
+      envelope['recurrence'] = jsonDecode(recurrence);
+    } else if (envelope['recurrence'] is Map) {
+      envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
+    } else {
+      envelope['recurrence'] = null;
+    }
 
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
@@ -471,7 +480,7 @@ class TaskStore {
     final knownKeys = <String>{
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
+      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
       'completed', 'followUps', 'recurrence', 'people',
     };
     final preserved = <String, dynamic>{};

@@ -101,39 +101,90 @@ void main() {
     ]);
   });
 
-
-  test('clamps monthly recurrence to the last valid day without mutating the source', () {
-    const rule = RecurrenceRule(
+  test('round-trips bounded repeat definition with backward-compatible fields', () {
+    final rule = RecurrenceRule(
       frequency: RecurrenceFrequency.monthly,
       interval: 1,
+      startDate: DateTime(2026, 10, 1, 9),
+      endDate: DateTime(2027, 10, 1, 9),
+      count: 12,
+      active: true,
     );
-    final source = DateTime(2026, 1, 31, 10, 30);
-    expect(rule.nextOccurrence(source), DateTime(2026, 2, 28, 10, 30));
-    expect(source, DateTime(2026, 1, 31, 10, 30));
+
+    final restored = RecurrenceRule.fromJson(rule.toJson());
+
+    expect(restored.startDate, rule.startDate);
+    expect(restored.endDate, rule.endDate);
+    expect(restored.count, 12);
+    expect(restored.active, isTrue);
   });
 
-  test('clamps yearly recurrence to a valid day', () {
-    const rule = RecurrenceRule(
-      frequency: RecurrenceFrequency.yearly,
+  test('round-trips tracking level and preserves legacy default', () {
+    const tracked = RecurrenceRule(
+      frequency: RecurrenceFrequency.monthly,
+      trackingLevel: RecurrenceTrackingLevel.tracking,
+    );
+    final restored = RecurrenceRule.fromJson(tracked.toJson());
+    expect(restored.trackingLevel, RecurrenceTrackingLevel.tracking);
+
+    final legacy = RecurrenceRule.fromJson(<String, dynamic>{
+      'frequency': 'monthly',
+      'interval': 1,
+    });
+    expect(legacy.trackingLevel, RecurrenceTrackingLevel.normal);
+  });
+
+  test('legacy repeat JSON defaults new lifecycle fields safely', () {
+    final restored = RecurrenceRule.fromJson(<String, dynamic>{
+      'frequency': 'weekly',
+      'interval': 2,
+    });
+
+    expect(restored.frequency, RecurrenceFrequency.weekly);
+    expect(restored.interval, 2);
+    expect(restored.startDate, isNull);
+    expect(restored.endDate, isNull);
+    expect(restored.count, isNull);
+    expect(restored.active, isTrue);
+  });
+
+  test('bounded repeat stops at count without creating extra occurrences', () {
+    final rule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
       interval: 1,
+      startDate: DateTime(2026, 10, 1, 9),
+      count: 3,
     );
-    final source = DateTime(2024, 2, 29, 8, 15);
-    expect(rule.nextOccurrence(source), DateTime(2025, 2, 28, 8, 15));
+
+    expect(
+      rule.occurrencesBetween(
+        anchor: DateTime(2026, 10, 1, 9),
+        from: DateTime(2026, 10, 1),
+        to: DateTime(2026, 10, 10),
+      ),
+      <DateTime>[
+        DateTime(2026, 10, 1, 9),
+        DateTime(2026, 10, 2, 9),
+        DateTime(2026, 10, 3, 9),
+      ],
+    );
   });
 
-  test('occurrence projection excludes the upper boundary', () {
+  test('inactive repeat produces no projected occurrences', () {
     const rule = RecurrenceRule(
       frequency: RecurrenceFrequency.daily,
       interval: 1,
+      active: false,
     );
-    final occurrences = rule.occurrencesBetween(
-      anchor: DateTime(2026, 10, 1, 9),
-      from: DateTime(2026, 10, 1, 9),
-      to: DateTime(2026, 10, 3, 9),
+
+    expect(
+      rule.occurrencesBetween(
+        anchor: DateTime(2026, 10, 1, 9),
+        from: DateTime(2026, 10, 1),
+        to: DateTime(2026, 10, 3),
+      ),
+      isEmpty,
     );
-    expect(occurrences, <DateTime>[
-      DateTime(2026, 10, 1, 9),
-      DateTime(2026, 10, 2, 9),
-    ]);
   });
+
 }

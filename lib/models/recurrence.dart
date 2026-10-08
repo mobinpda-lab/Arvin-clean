@@ -1,3 +1,16 @@
+enum RecurrenceOccurrenceStatus {
+  pending,
+  completed,
+  missed,
+  skipped,
+  cancelled,
+}
+
+enum RecurrenceTrackingLevel {
+  normal,
+  tracking,
+}
+
 enum RecurrenceFrequency {
   daily,
   weekly,
@@ -12,14 +25,30 @@ class RecurrenceRule {
   const RecurrenceRule({
     required this.frequency,
     this.interval = 1,
-  }) : assert(interval > 0);
+    this.startDate,
+    this.endDate,
+    this.count,
+    this.active = true,
+    this.trackingLevel = RecurrenceTrackingLevel.normal,
+  })  : assert(interval > 0),
+        assert(count == null || count > 0);
 
   final RecurrenceFrequency frequency;
   final int interval;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int? count;
+  final bool active;
+  final RecurrenceTrackingLevel trackingLevel;
 
   Map<String, dynamic> toJson() => {
         'frequency': frequency.name,
         'interval': interval,
+        if (startDate != null) 'startDate': startDate!.toIso8601String(),
+        if (endDate != null) 'endDate': endDate!.toIso8601String(),
+        if (count != null) 'count': count,
+        'active': active,
+        'trackingLevel': trackingLevel.name,
       };
 
   factory RecurrenceRule.fromJson(Map<String, dynamic> json) {
@@ -29,9 +58,24 @@ class RecurrenceRule {
       orElse: () => RecurrenceFrequency.daily,
     );
     final interval = (json['interval'] as num?)?.toInt() ?? 1;
+    final count = (json['count'] as num?)?.toInt();
+    final trackingLevelName = json['trackingLevel'] as String?;
+    final trackingLevel = RecurrenceTrackingLevel.values.firstWhere(
+      (value) => value.name == trackingLevelName,
+      orElse: () => RecurrenceTrackingLevel.normal,
+    );
     return RecurrenceRule(
       frequency: frequency,
       interval: interval > 0 ? interval : 1,
+      startDate: json['startDate'] == null
+          ? null
+          : DateTime.tryParse(json['startDate'] as String),
+      endDate: json['endDate'] == null
+          ? null
+          : DateTime.tryParse(json['endDate'] as String),
+      count: count != null && count > 0 ? count : null,
+      active: json['active'] as bool? ?? true,
+      trackingLevel: trackingLevel,
     );
   }
 
@@ -87,25 +131,37 @@ class RecurrenceRule {
     required DateTime from,
     required DateTime to,
   }) {
-    if (!from.isBefore(to)) return const [];
-    if (to.isBefore(anchor)) {
-      return const [];
-    }
+    if (!active || !from.isBefore(to)) return const [];
 
-    var first = anchor;
-    if (first.isBefore(from)) {
-      first = resumeFromToday(scheduledFrom: anchor, target: from);
-    }
+    final cycleStart = startDate ?? anchor;
+    final cycleEnd = endDate;
+    final occurrenceCount = count;
+    if (cycleEnd != null && !cycleStart.isBefore(cycleEnd)) return const [];
+    if (cycleEnd != null && !from.isBefore(cycleEnd)) return const [];
+    if (to.isBefore(cycleStart)) return const [];
 
     final result = <DateTime>[];
-    var occurrence = first;
+    var occurrence = cycleStart;
+    var index = 0;
+    while (occurrence.isBefore(from)) {
+      if (occurrenceCount != null && index + 1 >= occurrenceCount) {
+        return List<DateTime>.unmodifiable(result);
+      }
+      final next = nextOccurrence(occurrence);
+      if (!next.isAfter(occurrence)) return List<DateTime>.unmodifiable(result);
+      occurrence = next;
+      index++;
+    }
     while (occurrence.isBefore(to)) {
+      if (occurrenceCount != null && index >= occurrenceCount) break;
+      if (cycleEnd != null && !occurrence.isBefore(cycleEnd)) break;
       if (!occurrence.isBefore(from)) {
         result.add(occurrence);
       }
       final next = nextOccurrence(occurrence);
       if (!next.isAfter(occurrence)) break;
       occurrence = next;
+      index++;
     }
     return List<DateTime>.unmodifiable(result);
   }

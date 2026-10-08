@@ -1,8 +1,13 @@
+import 'dart:convert';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 
 void main() {
   setUp(() {
@@ -168,4 +173,85 @@ void main() {
 
     expect(followUp.completed, isFalse);
   });
+  test('TaskStore preserves repeat definition and occurrence history', () async {
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save(<Task>[
+      Task(
+        id: 'repeat-history-1',
+        title: 'Recurring task',
+        reminderDate: occurrence,
+        recurrence: RecurrenceRule(
+          frequency: RecurrenceFrequency.weekly,
+          interval: 1,
+          startDate: occurrence,
+          count: 4,
+        ),
+        occurrenceHistory: <String, Map<String, dynamic>>{
+          occurrence.toIso8601String(): <String, dynamic>{
+            'scheduledDate': occurrence.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+            'completionDate': DateTime(2026, 10, 8, 9, 15).toIso8601String(),
+            'result': 'done',
+          },
+        },
+      ),
+    ]);
+
+    final loaded = await TaskStore().load();
+    final task = loaded.single;
+
+    expect(task.recurrence?.count, 4);
+    expect(task.recurrence?.startDate, occurrence);
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+    expect(
+      task.occurrenceHistory[occurrence.toIso8601String()]?['result'],
+      'done',
+    );
+  });
+
+
+  test('TaskStore recovers recurrence from preserved legacy envelope when dedicated column is null', () async {
+    final executor = NativeDatabase.memory();
+    await G1DriftSchema.install(executor);
+    await G1DriftSchema.markLegacyMigrationComplete(executor);
+    final recurrence = const RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      interval: 2,
+      active: true,
+    ).toJson();
+    final payload = <String, dynamic>{
+      'id': 'legacy-repeat',
+      'title': 'تکرار قدیمی',
+      'reminderDate': DateTime(2026, 10, 8, 9).toIso8601String(),
+      'recurrence': recurrence,
+      'archived': false,
+      'trashed': false,
+      'completed': false,
+      'followUps': <dynamic>[],
+      'tags': <String>[],
+      'checklist': <String>[],
+    };
+    await executor.runInsert(
+      '''INSERT INTO tasks (
+        id, storage_ordinal, title, description, created_at, updated_at, due_date,
+        follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
+        priority, archived, trashed, completed, recurrence_json, legacy_payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'legacy-repeat', 0, 'تکرار قدیمی', '', null, null, null,
+        0, null, null, null, DateTime(2026, 10, 8, 9).toIso8601String(),
+        'none', 0, 0, 0, null, jsonEncode(payload),
+      ],
+    );
+
+    final loaded = await TaskStore(executor: executor).load();
+    expect(loaded.single.recurrence?.active, isTrue);
+    expect(loaded.single.recurrence?.interval, 2);
+    await executor.close();
+  });
+
 }

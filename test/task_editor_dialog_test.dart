@@ -382,6 +382,47 @@ void main() {
   });
 
 
+  testWidgets('task editor exposes repeat lifecycle settings and preserves definition', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'repeat-lifecycle',
+      title: 'کار تکرارشونده',
+      recurrence: RecurrenceRule(
+        frequency: RecurrenceFrequency.weekly,
+        interval: 2,
+        startDate: DateTime(2026, 10, 10),
+        endDate: DateTime(2026, 12, 31),
+        count: 6,
+        active: true,
+      ),
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-repeat-enabled')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-repeat-start')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-repeat-end')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-recurrence-count')), findsOneWidget);
+
+    final count = find.byKey(const ValueKey('task-editor-recurrence-count'));
+    await tester.enterText(count, '6');
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-repeat-enabled')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.recurrence, isNotNull);
+    expect(result!.recurrence!.frequency, RecurrenceFrequency.weekly);
+    expect(result!.recurrence!.interval, 2);
+    expect(result!.recurrence!.startDate, DateTime(2026, 10, 10));
+    expect(result!.recurrence!.endDate, DateTime(2026, 12, 31));
+    expect(result!.recurrence!.count, 6);
+    expect(result!.recurrence!.active, isFalse);
+  });
+
   testWidgets('timed task automatically gets one reminder at the same time',
       (tester) async {
     Task? result;

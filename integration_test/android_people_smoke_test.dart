@@ -87,12 +87,13 @@ void main() {
 
     final calendarBar = find.byType(ArvinPrimaryNavigation);
     expect(calendarBar, findsOneWidget);
-    await tester.tap(find.text('بیشتر'));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
-    final timelineAction = find.descendant(
-      of: find.byType(BottomSheet),
-      matching: find.text('خط زمانی'),
-    );
+    final timelineAction = find.byKey(const ValueKey('calendar-more-timeline'));
+    for (var attempt = 0; attempt < 50; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (timelineAction.evaluate().isNotEmpty) break;
+    }
     expect(timelineAction, findsOneWidget);
     await tester.ensureVisible(timelineAction);
     await tester.pumpAndSettle();

@@ -8,11 +8,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var attempt = 0; attempt < 50; attempt++) {
+    if (finder.evaluate().length == 1) return;
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(finder, findsOneWidget);
+}
+
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
   });
-
 
   testWidgets('UI enables recurrence and persists interval on canonical Task', (tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -28,6 +35,7 @@ void main() {
       store: store,
       now: () => DateTime(2026, 8, 26, 8),
     );
+
 
     await tester.pumpWidget(
       MaterialApp(home: TaskRecurrencePage(repository: repository)),
@@ -61,6 +69,7 @@ void main() {
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
+          active: true,
         ),
       ),
     ]);
@@ -69,12 +78,43 @@ void main() {
       now: () => DateTime(2026, 8, 26, 8),
     );
 
+    final stored = (await store.load()).single;
+    expect(stored.id, 'resume-task');
+    expect(stored.reminderDate, DateTime(2026, 8, 20, 9));
+    expect(stored.recurrence?.active, isTrue);
+    expect(stored.recurrence?.interval, 2);
+    expect(stored.completed, isFalse);
+    expect(stored.archived, isFalse);
+    expect(stored.trashed, isFalse);
+    final repositoryTasks = await repository.loadTasks();
+    expect(repositoryTasks.single.id, 'resume-task');
+    expect(repositoryTasks.single.completed, isFalse);
+    expect(repositoryTasks.single.archived, isFalse);
+    expect(repositoryTasks.single.trashed, isFalse);
+
     await tester.pumpWidget(
-      MaterialApp(home: TaskRecurrencePage(repository: repository)),
+      MaterialApp(
+        home: TaskRecurrencePage(
+          initialTaskId: 'resume-task',
+          repository: repository,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
+    final picker = find.byKey(
+      const ValueKey('recurrence-task-picker-resume-task'),
+    );
+    await _pumpUntilFound(tester, picker);
+    expect(picker, findsOneWidget);
+
     final resume = find.byKey(const ValueKey('recurrence-resume-today'));
+    await tester.scrollUntilVisible(
+      resume,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await _pumpUntilFound(tester, resume);
     expect(resume, findsOneWidget);
     await tester.tap(resume);
     await tester.pumpAndSettle();
@@ -103,5 +143,171 @@ void main() {
       find.byKey(const ValueKey('recurrence-task-picker-second')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Repeat lifecycle shows progress next last and history and records the next occurrence', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'lifecycle-ui',
+        title: 'کار تکرارشونده',
+        reminderDate: occurrence,
+        recurrence: const RecurrenceRule(
+          frequency: RecurrenceFrequency.daily,
+          interval: 1,
+          count: 3,
+          active: true,
+        ),
+        occurrenceHistory: {
+          occurrence.toIso8601String(): {
+            'scheduledDate': occurrence.toIso8601String(),
+            'status': RecurrenceOccurrenceStatus.completed.name,
+            'completionDate': DateTime(2026, 10, 8, 9, 30).toIso8601String(),
+          },
+        },
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 10),
+    );
+
+    final stored = (await store.load()).single;
+    expect(stored.id, 'lifecycle-ui');
+    expect(stored.reminderDate, occurrence);
+    expect(stored.recurrence?.active, isTrue);
+    expect(stored.occurrenceHistory.length, 1);
+    expect(stored.completed, isFalse);
+    expect(stored.archived, isFalse);
+    expect(stored.trashed, isFalse);
+    final repositoryTasks = await repository.loadTasks();
+    expect(repositoryTasks.single.id, 'lifecycle-ui');
+    expect(repositoryTasks.single.completed, isFalse);
+    expect(repositoryTasks.single.archived, isFalse);
+    expect(repositoryTasks.single.trashed, isFalse);
+    expect(repositoryTasks.single.recurrence?.active, isTrue);
+    expect(repositoryTasks.single.recurrence?.interval, 1);
+    expect(repositoryTasks.single.recurrence?.count, 3);
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(initialTaskId: 'lifecycle-ui', repository: repository)));
+    await tester.pumpAndSettle();
+
+    final lifecycleCard = find.byKey(const ValueKey('recurrence-lifecycle-card'));
+    await tester.scrollUntilVisible(lifecycleCard, 500, scrollable: find.byType(Scrollable).first);
+    await _pumpUntilFound(tester, lifecycleCard);
+    expect(lifecycleCard, findsOneWidget);
+    expect(find.textContaining('انجام‌شده: 1'), findsOneWidget);
+    expect(find.byKey(const ValueKey('recurrence-next')), findsOneWidget);
+    expect(find.byKey(const ValueKey('recurrence-last')), findsOneWidget);
+    expect(find.byKey(ValueKey('recurrence-history-${occurrence.toIso8601String()}')), findsOneWidget);
+    expect(find.text('انجام‌شده'), findsWidgets);
+
+    final next = find.byKey(const ValueKey('recurrence-complete-next'));
+    expect(next, findsOneWidget);
+    await tester.ensureVisible(next);
+    await tester.pumpAndSettle();
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+
+    final updated = (await store.load()).single;
+    expect(updated.id, 'lifecycle-ui');
+    expect(updated.completed, isFalse);
+    expect(updated.occurrenceHistory.length, 2);
+    expect(
+      updated.occurrenceHistory[DateTime(2026, 10, 9, 9).toIso8601String()]?['status'],
+      RecurrenceOccurrenceStatus.completed.name,
+    );
+  });
+
+  testWidgets('Tracking Level persists and is visible on the existing Repeat lifecycle card', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final reminder = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'tracking-level-ui',
+        title: 'تعهد قابل پیگیری',
+        reminderDate: reminder,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 8),
+    );
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(
+      initialTaskId: 'tracking-level-ui',
+      repository: repository,
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.text('این کار مهم و قابل پیگیری است'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('recurrence-enabled')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('recurrence-save')));
+    await tester.pumpAndSettle();
+
+    final normalTask = (await store.load()).single;
+    expect(normalTask.recurrence?.trackingLevel, RecurrenceTrackingLevel.normal);
+
+    final trackedRule = RecurrenceRule(
+      frequency: RecurrenceFrequency.daily,
+      trackingLevel: RecurrenceTrackingLevel.tracking,
+    );
+    await repository.setRule('tracking-level-ui', trackedRule);
+
+    await tester.pumpWidget(MaterialApp(
+      home: KeyedSubtree(
+        key: const ValueKey('tracking-level-second-mount'),
+        child: TaskRecurrencePage(
+          initialTaskId: 'tracking-level-ui',
+          repository: repository,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final card = find.byKey(const ValueKey('recurrence-lifecycle-card'));
+    await tester.scrollUntilVisible(card, 500, scrollable: find.byType(Scrollable).first);
+    await _pumpUntilFound(tester, card);
+    expect(find.text('این کار مهم و قابل پیگیری است'), findsOneWidget);
+    final trackedTask = (await store.load()).single;
+    expect(trackedTask.recurrence?.trackingLevel, RecurrenceTrackingLevel.tracking);
+  });
+
+  testWidgets('Repeat editor persists start end and count on canonical Task', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final reminder = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'repeat-editor-contract',
+        title: 'تعهد دوره‌ای',
+        reminderDate: reminder,
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 8),
+    );
+
+    await tester.pumpWidget(MaterialApp(home: TaskRecurrencePage(repository: repository)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('recurrence-enabled')));
+    await tester.pump();
+    await tester.enterText(find.byKey(const ValueKey('recurrence-interval')), '2');
+    await tester.enterText(find.byKey(const ValueKey('recurrence-count')), '5');
+    await tester.tap(find.byKey(const ValueKey('recurrence-save')));
+    await tester.pumpAndSettle();
+
+    final task = (await store.load()).single;
+    expect(task.recurrence?.startDate, reminder);
+    expect(task.recurrence?.endDate, isNull);
+    expect(task.recurrence?.count, 5);
+    expect(task.recurrence?.interval, 2);
   });
 }

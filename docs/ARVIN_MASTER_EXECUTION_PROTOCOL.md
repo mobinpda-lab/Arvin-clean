@@ -81,3 +81,13 @@ EVIDENCE PROVES
 PRODUCT WINS
 
 FINISH THE PRODUCT
+
+
+## Calendar Repeat Projection Window — Product Decision
+
+تقویم برای هر Repeat فقط **۷ تکرار بعدی** را به‌صورت projection نمایش می‌دهد. این عدد عمداً برابر پنجره یک‌هفته‌ای تقویم انتخاب شده تا تکرارهای روزانه کل هفته را پوشش دهند و تقویم شلوغ نشود.
+
+- با وقوع/عبور هر تکرار، پنجره به‌صورت rolling دوباره محاسبه می‌شود و تکرار بعدی وارد می‌شود.
+- این تکرارهای تقویمی Task یا رکورد ذخیره‌سازی مستقل نیستند.
+- Count و End Date همچنان محدوده معتبر Repeat را تعیین می‌کنند.
+- Task canonical، تاریخچه، Checklist occurrence state و Backup/Restore منبع حقیقت باقی می‌مانند.

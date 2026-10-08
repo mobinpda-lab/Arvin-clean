@@ -1,4 +1,5 @@
 import '../calendar_page.dart';
+import '../models/recurrence.dart';
 import '../models/task.dart';
 
 class FollowUpCalendarTarget {
@@ -15,6 +16,37 @@ class FollowUpCalendarTarget {
 /// calendar presentation model. It owns no storage and does not mutate tasks.
 class FollowUpCalendarProjection {
   const FollowUpCalendarProjection();
+
+  static const int _maxProjectedRepeatOccurrences = 7;
+
+  List<DateTime> _nextRepeatOccurrences({
+    required Task task,
+    required DateTime now,
+  }) {
+    final recurrence = task.recurrence;
+    final anchor = task.dueDate;
+    if (recurrence == null || anchor == null || !recurrence.active) return const [];
+    var occurrence = recurrence.startDate ?? anchor;
+    var index = 0;
+    while (occurrence.isBefore(now)) {
+      occurrence = recurrence.nextOccurrence(occurrence);
+      index++;
+      if (recurrence.count != null && index >= recurrence.count!) {
+        return const [];
+      }
+      if (!occurrence.isAfter(now)) continue;
+    }
+    final result = <DateTime>[];
+    while (result.length < _maxProjectedRepeatOccurrences) {
+      if (recurrence.endDate != null && !occurrence.isBefore(recurrence.endDate!)) break;
+      if (recurrence.count != null && index >= recurrence.count!) break;
+      result.add(occurrence);
+      occurrence = recurrence.nextOccurrence(occurrence);
+      index++;
+      if (!occurrence.isAfter(result.last)) break;
+    }
+    return List<DateTime>.unmodifiable(result);
+  }
 
   String reminderIdFor(Task task, FollowUp followUp) =>
       'followup:${task.id}:${followUp.id}';
@@ -58,6 +90,7 @@ class FollowUpCalendarProjection {
     Iterable<Task> tasks, {
     DateTime? visibleFrom,
     DateTime? visibleTo,
+    DateTime? now,
   }) {
     final reminders = <CalendarReminder>[];
 
@@ -99,22 +132,21 @@ class FollowUpCalendarProjection {
           dueDate != null &&
           visibleFrom != null &&
           visibleTo != null) {
-        for (final occurrence in recurrence.occurrencesBetween(
-          anchor: dueDate,
-          from: visibleFrom,
-          to: visibleTo,
-        )) {
-          if (taskDatesAlreadyProjected.any((date) => _sameInstant(date, occurrence))) {
-            continue;
-          }
-          reminders.add(
-            CalendarReminder(
-              id: 'task-due:${task.id}:${occurrence.toIso8601String()}',
-              title: task.title,
-              date: occurrence,
-              completed: task.completed,
-            ),
-          );
+        // Keep the calendar intentionally light: only the next seven future
+        // occurrences are projected. The window is recalculated after each
+        // occurrence passes; no occurrence is persisted.
+        final projectionNow = now ?? DateTime.now();
+        for (final occurrence in _nextRepeatOccurrences(task: task, now: projectionNow)) {
+          if (occurrence.isBefore(visibleFrom) || !occurrence.isBefore(visibleTo)) continue;
+          if (taskDatesAlreadyProjected.any((date) => _sameInstant(date, occurrence))) continue;
+          final state = task.occurrenceHistory[occurrence.toIso8601String()];
+          final completed = state?['status'] == RecurrenceOccurrenceStatus.completed.name;
+          reminders.add(CalendarReminder(
+            id: 'task-due:${task.id}:${occurrence.toIso8601String()}',
+            title: task.title,
+            date: occurrence,
+            completed: completed,
+          ));
           taskDatesAlreadyProjected.add(occurrence);
         }
       } else if (dueDate != null &&
