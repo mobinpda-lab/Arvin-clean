@@ -74,12 +74,14 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   Future<void> _loadLifecycle(Task? task) async {
     if (task == null || task.recurrence == null || task.reminderDate == null) {
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _progress = const {};
         _nextOccurrence = null;
         _lastOccurrence = null;
         _history = const [];
-      });
+        });
+      }
       return;
     }
     final now = widget.repository.now();
@@ -228,7 +230,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   Widget _infoChip(String label, String value) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(color: const Color(0xFFE9EAFF), borderRadius: BorderRadius.circular(14)),
-    child: Text('${label}: ${value}'),
+    child: Text('$label: $value'),
   );
 
   Widget _lifecycleCard(Task? task) {
