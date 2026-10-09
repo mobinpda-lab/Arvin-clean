@@ -78,4 +78,44 @@ void main() {
 
     expect(result.map((task) => task.id), ['active']);
   });
+
+  test('multi-select taxonomy filters OR within each group and AND across groups', () {
+    final schoolImportant = Task(
+      id: 'school-important',
+      title: 'مدرسه مهم',
+      category: 'مدرسه',
+      tags: ['مهم'],
+    );
+    final homeImportant = Task(
+      id: 'home-important',
+      title: 'خانه مهم',
+      category: 'خانه',
+      tags: ['مهم'],
+    );
+    final schoolRoutine = Task(
+      id: 'school-routine',
+      title: 'مدرسه عادی',
+      category: 'مدرسه',
+      tags: ['عادی'],
+    );
+    final other = Task(
+      id: 'other',
+      title: 'کار دیگر',
+      category: 'خرید',
+      tags: ['مهم'],
+    );
+
+    final result = const TaskReportFilter(
+      categories: {'مدرسه', 'خانه'},
+      tags: {'مهم'},
+    ).apply(
+      [schoolImportant, homeImportant, schoolRoutine, other],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id).toSet(),
+      {'school-important', 'home-important'},
+    );
+  });
 }
