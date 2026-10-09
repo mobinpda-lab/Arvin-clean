@@ -232,6 +232,7 @@ jobs:
               `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
             );
       - name: Require explicit product release approval
+        if: steps.release_state.outputs.already_released != 'true'
         id: product_gate
         uses: actions/github-script@v7
         with:
