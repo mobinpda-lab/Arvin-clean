@@ -146,6 +146,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: CalendarPage(
+            key: ValueKey(reminder.id),
             initialSelectedDay: reminder.date,
             reminders: <CalendarReminder>[reminder],
             onEditTask: (_) async => edited++,
