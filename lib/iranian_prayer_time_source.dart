@@ -26,6 +26,7 @@ class IranianPrayerTimeSource implements OfficialCalendarReminderSource {
   Future<List<OfficialCalendarReminder>> load({required int year}) async {
     final coordinates = Coordinates(latitude, longitude);
     final output = <OfficialCalendarReminder>[];
+    var daysSinceYield = 0;
 
     for (var date = DateTime(year, 1, 1);
         date.year == year;
@@ -43,6 +44,14 @@ class IranianPrayerTimeSource implements OfficialCalendarReminderSource {
         _reminder(date, 'maghrib', 'اذان مغرب', prayerTimes.maghrib),
         _reminder(date, 'isha', 'عشا', prayerTimes.isha),
       ]);
+
+      // The official calendar requests multiple full years. Yield in bounded
+      // batches so this offline calculation cannot starve the first Calendar
+      // frame or input while canonical Task reminders are already available.
+      if (++daysSinceYield == 14) {
+        daysSinceYield = 0;
+        await Future<void>.delayed(Duration.zero);
+      }
     }
 
     return List<OfficialCalendarReminder>.unmodifiable(output);
