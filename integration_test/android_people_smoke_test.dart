@@ -136,11 +136,6 @@ void main() {
 
     expect(find.text('افراد مرتبط'), findsOneWidget);
 
-    await binding.convertFlutterSurfaceToImage();
-    await tester.pumpAndSettle();
-    await binding.takeScreenshot('people');
-    await binding.revertFlutterImage();
-    await tester.pumpAndSettle();
 
     final store = TaskStore();
 
@@ -206,5 +201,9 @@ void main() {
         .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('people');
   });
 }

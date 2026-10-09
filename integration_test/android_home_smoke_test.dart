@@ -21,11 +21,6 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await binding.convertFlutterSurfaceToImage();
-    await tester.pumpAndSettle();
-    await binding.takeScreenshot('home');
-    await binding.revertFlutterImage();
-    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
 
@@ -114,5 +109,9 @@ void main() {
     final created = persisted.where((task) => task.title == 'تست واقعی اندروید');
     expect(created, hasLength(1));
     expect(created.single.description, 'ثبت از مسیر Home روی Emulator');
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('home');
+
   });
 }

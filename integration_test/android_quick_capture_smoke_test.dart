@@ -61,11 +61,6 @@ void main() {
     }
 
     await openQuickCapture();
-    await binding.convertFlutterSurfaceToImage();
-    await tester.pumpAndSettle();
-    await binding.takeScreenshot('quick-capture');
-    await binding.revertFlutterImage();
-    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
@@ -117,5 +112,10 @@ void main() {
     final reloaded = await TaskStore().load();
     expect(reloaded.any((task) => task.title == 'تماس با علی'), isTrue);
     expect(reloaded.any((task) => task.title == 'پرونده موجود'), isTrue);
+
+    await openQuickCapture();
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('quick-capture');
   });
 }
