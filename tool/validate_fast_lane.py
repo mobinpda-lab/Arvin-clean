@@ -62,7 +62,7 @@ for scenario in [
     'people',
 ]:
     require(device, f'scenario: {scenario}', str(device_path))
-require(device, 'max-parallel: 6', str(device_path))
+require(device, 'max-parallel: 2', str(device_path))
 forbidden_device_parallel = 'max-parallel: 1'
 forbid(device, forbidden_device_parallel, str(device_path))
 
