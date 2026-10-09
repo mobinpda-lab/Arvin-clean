@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
+import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 void main() {
@@ -44,5 +45,41 @@ void main() {
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsNothing);
     expect(find.text('آینده'), findsNothing);
     expect(find.text('فاقد زمان'), findsNothing);
+  });
+
+  testWidgets('Home filter cards reduce vertical density on compact screens', (tester) async {
+    Widget buildFilter(Size size) => MediaQuery(
+      data: MediaQueryData(size: size),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Row(
+          children: [
+            HomeFilterCard(
+              dimension: HomeFilterDimension.time,
+              title: 'زمان',
+              value: 'امروز',
+              accent: const Color(0xFF4A4CAB),
+              soft: const Color(0xFFE9EAFF),
+              icon: Icons.schedule_rounded,
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(buildFilter(const Size(320, 640)));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('home-filter-card-time'))).height,
+      72,
+    );
+
+    await tester.pumpWidget(buildFilter(const Size(320, 800)));
+    // The same AnimatedContainer transitions from 72 px to 88 px.
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('home-filter-card-time'))).height,
+      88,
+    );
   });
 }
