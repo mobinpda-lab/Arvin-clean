@@ -238,24 +238,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     _replaceFollowUp(target, updated);
   }
 
-  Future<void> _snoozeReminder(CalendarReminder reminder) async {
-    final target = _targetFor(reminder);
-    if (target == null) return;
-    final current = target.followUp;
-    final updated = FollowUp(
-      id: current.id,
-      dateTime: current.dateTime.add(const Duration(minutes: 30)),
-      note: current.note,
-      result: current.result,
-      reminderDate: current.reminderDate?.add(const Duration(minutes: 30)),
-      nextFollowUp: current.nextFollowUp,
-      completed: current.completed,
-    );
-    await _followUpWriter.update(target.taskId, updated);
-    if (!mounted) return;
-    _replaceFollowUp(target, updated);
-  }
-
   Future<void> _editReminder(CalendarReminder reminder) async {
     final target = _targetFor(reminder);
     if (target == null) return;
@@ -278,51 +260,30 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   Future<void> _openExternalReminder(CalendarReminder reminder) async {
     if (!reminder.id.startsWith('external-calendar:')) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'رویداد تقویم دستگاه',
-                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(reminder.title),
-              const SizedBox(height: 8),
-              Text(reminder.isAllDay ? 'رویداد تمام‌روز' : 'زمان: ${_time(reminder.date)}'),
-              const SizedBox(height: 16),
-              const Text(
-                'این رویداد از تقویم گوشی خوانده شده و آروین آن را بدون تأیید شما تغییر نمی‌دهد.',
-              ),
-              if (reminder.description?.trim().isNotEmpty == true) ...[
-                const SizedBox(height: 8),
-                Text(reminder.description!.trim()),
-              ],
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                key: ValueKey('external-calendar-create-task-${reminder.id}'),
-                onPressed: widget.onCreateTaskFromCalendarEvent == null
-                    ? null
-                    : () async {
-                        Navigator.of(sheetContext).pop();
-                        await _createTaskFromCalendarEvent(reminder);
-                      },
-                icon: const Icon(Icons.add_task_outlined),
-                label: const Text('ثبت در آروین'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    final calendarId = reminder.externalCalendarId?.trim();
+    final eventId = reminder.externalEventId?.trim();
+    if (calendarId == null || calendarId.isEmpty || eventId == null || eventId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('شناسهٔ رویداد تقویم گوشی در دسترس نیست.')),
+      );
+      return;
+    }
+    try {
+      final opened = await SystemCalendarBridge().openDeviceCalendarEvent(
+        calendarId: calendarId,
+        eventId: eventId,
+      );
+      if (!mounted || opened) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('باز کردن رویداد در تقویم گوشی ممکن نشد.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تقویم گوشی نتوانست رویداد را برای ویرایش باز کند.')),
+      );
+    }
   }
 
   Future<void> _openTimeline(BuildContext context) async {
@@ -880,7 +841,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             reminders: reminders,
             visibleReminderProjection: projectVisible,
             onCompleteReminder: _completeReminder,
-            onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
