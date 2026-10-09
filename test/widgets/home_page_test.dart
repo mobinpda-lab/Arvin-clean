@@ -50,6 +50,12 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('کار با چک‌لیست خاموش'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
 
     expect(find.text('کار با چک‌لیست خاموش'), findsOneWidget);
     expect(
