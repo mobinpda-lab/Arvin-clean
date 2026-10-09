@@ -87,6 +87,7 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
       findsNothing,
       reason: 'Calendar no longer exposes a nonfunctional snooze action',
     );
