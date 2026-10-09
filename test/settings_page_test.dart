@@ -81,7 +81,7 @@ void main() {
 
     await tester.scrollUntilVisible(
       find.text('نمایش تاریخ فارسی'),
-      -250,
+      200,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
