@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/calendar_official_reminders.dart';
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/official_calendar_page.dart';
+import 'package:arvin/services/app_settings_service.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
@@ -27,6 +28,15 @@ class _DelayedOfficialSource implements OfficialCalendarReminderSource {
       (await result.future)
           .where((item) => item.date.year == year)
           .toList(growable: false);
+}
+
+class _FakeAppSettingsService extends AppSettingsService {
+  @override
+  Future<AppSettings> load() async => const AppSettings(
+        themeMode: ThemeMode.system,
+        usePersianDate: true,
+        fontFamily: null,
+      );
 }
 
 void main() {
@@ -192,6 +202,9 @@ void main() {
               years: const <int>[2026],
               initialSelectedDay: selectedDay,
               reminders: <CalendarReminder>[taskReminder],
+              // Keep this acceptance test focused on late official-source
+              // merging rather than the unrelated platform preferences plugin.
+              settingsService: _FakeAppSettingsService(),
             ),
           ),
         ),
@@ -209,8 +222,11 @@ void main() {
           kind: OfficialReminderKind.iranianHoliday,
         ),
       ]);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      // Let the async source merge and FutureBuilder rebuild complete without
+      // pumpAndSettle, because CalendarPage intentionally owns an active ticker.
+      for (var i = 0; i < 20 && find.text('مناسبت رسمی آزمایشی').evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
 
       expect(find.byType(CalendarPage), findsOneWidget);
       expect(find.text('کار روزانه'), findsOneWidget);
