@@ -23,6 +23,9 @@ void main() {
       contains('const tag = `v\${appVersion}-build\${buildNumber}-arvin-\${sha.slice(0,7)}`;'),
     );
     expect(workflow, contains('pull_number: 1901'));
+    expect(workflow, contains('await hideUnapprovedPrereleases();'));
+    expect(workflow, contains('draft: true'));
+    expect(workflow, contains('HIDDEN_UNAPPROVED_PRERELEASE='));
     expect(
       workflow,
       contains("if: steps.release_state.outputs.already_released != 'true'"),
