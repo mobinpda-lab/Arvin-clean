@@ -110,14 +110,20 @@ void main() {
     expect(created, hasLength(1));
     expect(created.single.description, 'ثبت از مسیر Home روی Emulator');
 
+    // Full-form save can return to the Quick Capture sheet. Close the
+    // remaining sheet deterministically before collecting Home visual evidence.
     final quickCaptureCancel =
         find.byKey(const ValueKey('quick-capture-cancel'));
-    if (quickCaptureDialog.evaluate().isNotEmpty &&
-        quickCaptureCancel.evaluate().isNotEmpty) {
+    for (var attempt = 0;
+        attempt < 10 && quickCaptureDialog.evaluate().isNotEmpty;
+        attempt++) {
+      expect(quickCaptureCancel, findsOneWidget);
       await tester.tap(quickCaptureCancel);
       await tester.pumpAndSettle();
     }
+    expect(quickCaptureDialog, findsNothing);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('home');
