@@ -37,6 +37,12 @@ void main() {
     expect(find.byKey(const ValueKey('notification-system-settings-entry')), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
     expect((await service.load()).usePersianDate, isTrue);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('swipe-left-action')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
