@@ -36,7 +36,7 @@ void main() {
     expect(workflow, contains('PNG image data'));
     expect(workflow, contains(r'stat -c %s "$temp_path"'));
     expect(workflow, contains('-ge 12000'));
-    expect(workflow, contains(r'sleep 1; done) & capture_pid=$!; if wait "$test_pid"'));
+    expect(workflow, contains(r'sleep 0.25; done) & capture_pid=$!; if wait "$test_pid"'));
     expect(workflow, contains(r'wait "$capture_pid" 2>/dev/null || true; if adb shell dumpsys activity activities'));
     expect(workflow, contains(r'exit "$test_exit"'));
     expect(workflow, contains('adb exec-out screencap -p'));
