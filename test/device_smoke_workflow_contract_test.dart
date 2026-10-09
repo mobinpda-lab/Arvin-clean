@@ -32,7 +32,15 @@ void main() {
     final quickCaptureTest = File('integration_test/android_quick_capture_smoke_test.dart').readAsStringSync();
     final peopleTest = File('integration_test/android_people_smoke_test.dart').readAsStringSync();
     expect(homeTest, contains("takeScreenshot('home')"));
-    expect(homeTest, contains("expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);\\n    await binding.convertFlutterSurfaceToImage();"));
+    final homeRouteAssertionIndex = homeTest.indexOf(
+      "expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);",
+      homeTest.indexOf('expect(created.single.description'),
+    );
+    final homeScreenshotIndex =
+        homeTest.indexOf('await binding.convertFlutterSurfaceToImage();');
+    expect(homeRouteAssertionIndex, greaterThanOrEqualTo(0));
+    expect(homeRouteAssertionIndex, lessThan(homeScreenshotIndex));
+    expect(homeTest, contains('quickCaptureCancel'));
     expect(quickCaptureTest, contains("takeScreenshot('quick-capture')"));
     expect(peopleTest, contains("takeScreenshot('people')"));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
