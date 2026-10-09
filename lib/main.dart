@@ -57,6 +57,46 @@ import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
 
+class _SettingsTextScaler extends TextScaler {
+  const _SettingsTextScaler({
+    required this.systemScaler,
+    required this.userScale,
+  });
+
+  final TextScaler systemScaler;
+  final double userScale;
+
+  @override
+  double scale(double fontSize) => systemScaler.scale(fontSize * userScale);
+
+  @override
+  double get textScaleFactor => systemScaler.textScaleFactor * userScale;
+
+  @override
+  TextScaler clamp({
+    double minScaleFactor = 0,
+    double maxScaleFactor = double.infinity,
+  }) {
+    assert(userScale > 0);
+    return _SettingsTextScaler(
+      systemScaler: systemScaler.clamp(
+        minScaleFactor: minScaleFactor / userScale,
+        maxScaleFactor: maxScaleFactor / userScale,
+      ),
+      userScale: userScale,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _SettingsTextScaler &&
+      other.systemScaler == systemScaler &&
+      other.userScale == userScale;
+
+  @override
+  int get hashCode => Object.hash(systemScaler, userScale);
+}
+
 void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
@@ -101,19 +141,29 @@ class _ArvinAppState extends State<ArvinApp> {
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: _SettingsTextScaler(
+              systemScaler: mediaQuery.textScaler,
+              userScale: settings.fontSize / 16.0,
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF4A4CAB),
         brightness: Brightness.light,
         fontFamily: settings.fontFamily == 'system' ? null : (settings.fontFamily ?? AppFonts.vazirharfFamily),
-        textTheme: ThemeData.light().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
         fontFamily: settings.fontFamily == 'system' ? null : (settings.fontFamily ?? AppFonts.vazirharfFamily),
-        textTheme: ThemeData.dark().textTheme.apply(fontSizeFactor: settings.fontSize / 16.0),
       ),
       themeMode: settings.themeMode,
       home: Directionality(
