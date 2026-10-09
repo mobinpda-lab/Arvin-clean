@@ -68,11 +68,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text('تیره'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
     expect(changed?.themeMode, ThemeMode.dark);
 
+    await tester.scrollUntilVisible(
+      find.text('نمایش تاریخ فارسی'),
+      -250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('نمایش تاریخ فارسی'));
     await tester.pumpAndSettle();
     expect((await service.load()).usePersianDate, isFalse);
