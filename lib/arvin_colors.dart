@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Canonical, high-contrast semantic palette used across Arvin.
 abstract final class ArvinColors {
-  static const primary = Color(0xFF35389B);
+  static const primary = Color(0xFF4A4CAB);
   static const primaryDark = Color(0xFF25286F);
   static const primarySoft = Color(0xFFE0E3FF);
 
