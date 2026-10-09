@@ -352,4 +352,23 @@ void main() {
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
   });
 
+  test('canonical backup and restore preserve disabled checklist rows', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final task = Task(
+      id: 'disabled-checklist-backup',
+      title: 'کار با چک‌لیست خاموش',
+      checklist: const ['[ ] کیف', '[x] کتاب'],
+      checklistEnabled: false,
+    );
+
+    await manager.backupCanonicalTasks([task]);
+    service.restoreDocument = service.writtenPayload;
+    final restored = await manager.restoreCanonicalTasks();
+
+    expect(restored, hasLength(1));
+    expect(restored!.single.checklistEnabled, isFalse);
+    expect(restored.single.checklist, const ['[ ] کیف', '[x] کتاب']);
+  });
+
 }
