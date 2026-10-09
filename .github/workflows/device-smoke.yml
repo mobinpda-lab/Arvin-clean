@@ -117,8 +117,7 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            bash -c '
-              set -eu
+            set -eu
               mkdir -p artifacts/device-smoke
               screenshot_path="artifacts/device-smoke/${{ matrix.scenario }}.png"
               temp_path="${screenshot_path}.tmp"
@@ -147,7 +146,6 @@ jobs:
               wait "$capture_pid" 2>/dev/null || true
               rm -f "$temp_path"
               exit "$test_exit"
-            '
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
