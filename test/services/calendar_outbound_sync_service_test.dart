@@ -138,6 +138,61 @@ targetCalendarId: 'calendar-7',
     expect(result?.created, 0);
   });
 
+  test('edit-only sync updates existing linked events without creating or removing other links', () async {
+    final linkedReminder = CalendarReminder(
+      id: 'followup:task-1:f1',
+      title: 'پیگیری ویرایش‌شده',
+      date: DateTime(2026, 9, 17, 11),
+    );
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: linkedReminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'event-9',
+        lastSyncedFingerprint: 'old-fingerprint',
+      ),
+      ExternalCalendarEventLink(
+        reminderId: 'followup:task-2:f2',
+        calendarId: 'calendar-7',
+        eventId: 'event-10',
+        lastSyncedFingerprint: 'other-fingerprint',
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: false,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync(
+      [
+        linkedReminder,
+        CalendarReminder(
+          id: 'followup:task-3:f3',
+          title: 'کار ثبت‌نشده',
+          date: DateTime(2026, 9, 18, 12),
+        ),
+      ],
+      force: true,
+      linkedOnly: true,
+    );
+
+    expect(result?.updated, 1);
+    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items, hasLength(1));
+    expect(executor.receivedPlan?.items.single.reminderId, linkedReminder.id);
+    expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.update);
+    expect(links.links, hasLength(2));
+    expect(links.links.map((link) => link.eventId), containsAll(['event-9', 'event-10']));
+  });
+
   test('honors per-source sync settings before planning provider writes', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
