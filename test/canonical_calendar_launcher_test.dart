@@ -10,6 +10,7 @@ import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
@@ -413,7 +414,7 @@ void main() {
   testWidgets('repeat occurrence actions resolve back to the canonical Task', (
     tester,
   ) async {
-    final now = DateTime.now().toLocal();
+    final now = IranClock.now();
     final anchor = now.add(const Duration(minutes: 2));
     final task = Task(
       id: 'repeat-task',
