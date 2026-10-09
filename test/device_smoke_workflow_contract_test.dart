@@ -22,7 +22,7 @@ void main() {
     expect(workflow, contains('adb exec-out screencap -p'));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
     expect(workflow, contains('actions/upload-artifact@v4'));
-    expect(workflow, contains('arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
+    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
     final matrixScenarios = RegExp(
       r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
