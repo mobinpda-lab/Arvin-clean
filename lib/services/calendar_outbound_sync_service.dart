@@ -29,6 +29,27 @@ class CalendarOutboundSyncService {
   final CalendarProviderSyncExecutor executor;
   final ExternalCalendarLinkStore linkStore;
 
+  String? _taskIdForReminder(String reminderId) {
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+      'task-recurrence:',
+    ]) {
+      if (reminderId.startsWith(prefix)) {
+        final value = reminderId.substring(prefix.length);
+        final separator = value.indexOf(':');
+        return separator < 0 ? value : value.substring(0, separator);
+      }
+    }
+    if (reminderId.startsWith('followup:')) {
+      final value = reminderId.substring('followup:'.length);
+      final separator = value.indexOf(':');
+      if (separator > 0) return value.substring(0, separator);
+    }
+    return null;
+  }
+
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
@@ -42,8 +63,18 @@ class CalendarOutboundSyncService {
       return null;
     }
 
+    final links = await linkStore.load();
+    final importedTaskIds = links
+        .where((link) => link.reminderId.startsWith('external-calendar:') &&
+            link.lastSyncedFingerprint.startsWith('imported-task:'))
+        .map((link) => link.lastSyncedFingerprint.substring('imported-task:'.length))
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      final taskId = _taskIdForReminder(reminder.id);
+      if (taskId != null && importedTaskIds.contains(taskId)) continue;
       if (!_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
@@ -53,7 +84,6 @@ class CalendarOutboundSyncService {
       }
     }
 
-    final links = await linkStore.load();
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final linksForPlan = integration.deleteLinkedEventWithTask

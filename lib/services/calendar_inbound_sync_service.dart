@@ -98,6 +98,10 @@ class CalendarInboundSyncService {
 
     final tasks = await taskStore.load();
     for (final link in links) {
+      if (link.reminderId.startsWith('external-calendar:')) {
+        remainingLinks.add(link);
+        continue;
+      }
       final event = eventByProviderKey[_providerKey(link.calendarId, link.eventId)];
       final current = _canonicalReminder(tasks, link.reminderId);
 
