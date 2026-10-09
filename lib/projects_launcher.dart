@@ -72,17 +72,11 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
 
   Future<void> _persist(List<ProjectPlan> projects) async {
     final snapshot = List<ProjectPlan>.of(projects);
+    // Do not publish the optimistic list as saved. The page awaits this
+    // Future and only commits its visible state after SQLite confirms success.
+    await _store.save(snapshot);
+    if (!mounted) return;
     setState(() => _projects = snapshot);
-    try {
-      await _store.save(snapshot);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ذخیره پروژه‌ها انجام نشد؛ دوباره تلاش کنید.')),
-        );
-    }
   }
 
   @override
@@ -116,9 +110,7 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
 
     return ProjectsPage(
       projects: projects,
-      onChanged: (next) {
-        _persist(next);
-      },
+      onChanged: _persist,
     );
   }
 }

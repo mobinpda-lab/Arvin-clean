@@ -48,6 +48,51 @@ class ExternalCalendarLinkStore {
     return List<ExternalCalendarEventLink>.unmodifiable(links);
   }
 
+  /// Returns whether this provider event instance was already imported.
+  Future<bool> hasImportedEvent(String reminderId) async {
+    final normalized = reminderId.trim();
+    if (normalized.isEmpty) return false;
+    return (await load()).any(
+      (link) => link.reminderId == normalized &&
+          link.lastSyncedFingerprint.startsWith('imported-task:'),
+    );
+  }
+
+  /// Records the stable provider instance identity against its canonical Task.
+  /// The existing link metadata is reused; no second Task or import store is added.
+  Future<bool> registerImportedEvent({
+    required String reminderId,
+    required String calendarId,
+    required String instanceId,
+    required String taskId,
+  }) async {
+    final normalizedReminderId = reminderId.trim();
+    final normalizedCalendarId = calendarId.trim();
+    final normalizedInstanceId = instanceId.trim();
+    final normalizedTaskId = taskId.trim();
+    if (normalizedReminderId.isEmpty ||
+        normalizedCalendarId.isEmpty ||
+        normalizedInstanceId.isEmpty ||
+        normalizedTaskId.isEmpty) {
+      throw ArgumentError('Imported event identity and Task id must not be empty.');
+    }
+
+    final existing = await load();
+    if (existing.any((link) => link.reminderId == normalizedReminderId)) {
+      return false;
+    }
+    await save([
+      ...existing,
+      ExternalCalendarEventLink(
+        reminderId: normalizedReminderId,
+        calendarId: normalizedCalendarId,
+        eventId: normalizedInstanceId,
+        lastSyncedFingerprint: 'imported-task:$normalizedTaskId',
+      ),
+    ]);
+    return true;
+  }
+
   Future<void> removeByReminderIds(Iterable<String> reminderIds) async {
     final ids = reminderIds.map((id) => id.trim()).where((id) => id.isNotEmpty).toSet();
     if (ids.isEmpty) return;

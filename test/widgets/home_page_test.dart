@@ -42,6 +42,34 @@ void main() {
     expect(find.text('توضیح'), findsNothing);
   });
 
+  testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 2));
+    final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"overdue-preserved","title":"کار عقب‌افتادهٔ مهم","completed":false,"dueDate":"$dueDate"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار عقب‌افتادهٔ مهم'), findsOneWidget);
+    expect(find.textContaining('موعد گذشته:'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار عقب‌افتادهٔ مهم'), findsOneWidget);
+    expect(find.textContaining('موعد گذشته:'), findsNothing);
+    expect(find.textContaining('موعد:'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
+      findsNothing,
+    );
+    final saved = (await TaskStore().load()).single;
+    expect(saved.id, 'overdue-preserved');
+    expect(saved.dueDate, isNotNull);
+  });
+
   testWidgets('Home hides disabled checklist progress but keeps its saved rows', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
