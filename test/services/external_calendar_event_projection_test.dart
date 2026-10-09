@@ -35,6 +35,8 @@ void main() {
 
     expect(result, hasLength(1));
     expect(result.single.id, 'external-calendar:device-calendar:instance-1');
+    expect(result.single.externalCalendarId, 'device-calendar');
+    expect(result.single.externalEventId, 'event-1');
     expect(result.single.title, 'جلسه بیرونی • تقویم شخصی');
     expect(result.single.date, DateTime(2026, 9, 14, 10));
     expect(result.single.date.hour, 10);
