@@ -10,7 +10,7 @@ class ProjectsPage extends StatefulWidget {
   });
 
   final List<ProjectPlan> projects;
-  final ValueChanged<List<ProjectPlan>> onChanged;
+  final Future<void> Function(List<ProjectPlan>) onChanged;
 
   @override
   State<ProjectsPage> createState() => _ProjectsPageState();
@@ -19,6 +19,7 @@ class ProjectsPage extends StatefulWidget {
 class _ProjectsPageState extends State<ProjectsPage> {
   static const _service = ProjectLifecycleService();
   late List<ProjectPlan> _projects;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -26,16 +27,35 @@ class _ProjectsPageState extends State<ProjectsPage> {
     _projects = List<ProjectPlan>.of(widget.projects);
   }
 
-  void _commit(List<ProjectPlan> next) {
-    setState(() => _projects = List<ProjectPlan>.of(next));
-    widget.onChanged(List<ProjectPlan>.unmodifiable(_projects));
+  Future<bool> _commit(List<ProjectPlan> next) async {
+    if (_saving) return false;
+    setState(() => _saving = true);
+    try {
+      final snapshot = List<ProjectPlan>.unmodifiable(next);
+      await widget.onChanged(snapshot);
+      if (!mounted) return true;
+      setState(() => _projects = List<ProjectPlan>.of(snapshot));
+      return true;
+    } catch (_) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('ذخیره پروژه انجام نشد؛ اطلاعات قبلی حفظ شد. دوباره تلاش کنید.'),
+          ),
+        );
+      return false;
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _addProject() async {
     final result = await _editDialog();
     if (result == null) return;
     final now = DateTime.now().microsecondsSinceEpoch.toString();
-    _commit(_service.add(
+    await _commit(_service.add(
       _projects,
       ProjectPlan(
         id: 'project-$now',
@@ -48,7 +68,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Future<void> _editProject(ProjectPlan project) async {
     final result = await _editDialog(project: project);
     if (result == null) return;
-    _commit(_service.edit(
+    await _commit(_service.edit(
       _projects,
       projectId: project.id,
       title: result.title,
@@ -57,11 +77,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void _toggleArchive(ProjectPlan project) {
-    _commit(_service.setArchived(
+    final saved = await _commit(_service.setArchived(
       _projects,
       projectId: project.id,
       isArchived: !project.isArchived,
     ));
+    if (!saved || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -167,7 +188,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       appBar: AppBar(title: const Text('پروژه‌ها')),
       floatingActionButton: FloatingActionButton.extended(
         key: const ValueKey('projects-add'),
-        onPressed: _addProject,
+        onPressed: _saving ? null : _addProject,
         icon: const Icon(Icons.add),
         label: const Text('پروژه جدید'),
       ),
@@ -214,13 +235,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         IconButton(
                           key: ValueKey('project-edit-${project.id}'),
                           tooltip: 'ویرایش',
-                          onPressed: () => _editProject(project),
+                          onPressed: _saving ? null : () => _editProject(project),
                           icon: const Icon(Icons.edit_outlined),
                         ),
                         IconButton(
                           key: ValueKey('project-archive-${project.id}'),
                           tooltip: project.isArchived ? 'فعال‌سازی دوباره' : 'بایگانی',
-                          onPressed: () => _toggleArchive(project),
+                          onPressed: _saving ? null : () => _toggleArchive(project),
                           icon: Icon(
                             project.isArchived
                                 ? Icons.unarchive_outlined
@@ -232,7 +253,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           tooltip: project.canDelete
                               ? 'حذف'
                               : 'ابتدا موارد پروژه را منتقل کنید یا پروژه را بایگانی کنید',
-                          onPressed: () => _deleteProject(project),
+                          onPressed: _saving ? null : () => _deleteProject(project),
                           icon: Icon(
                             Icons.delete_outline,
                             color: project.canDelete ? null : Colors.grey,
