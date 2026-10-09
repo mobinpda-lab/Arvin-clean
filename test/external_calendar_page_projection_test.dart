@@ -54,7 +54,7 @@ void main() {
     expect(bridge.requestedPermission, isFalse);
 
     await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
-    await tester.pumpAndSettle();
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
     await tester.pump();
     expect(opened, isTrue);
