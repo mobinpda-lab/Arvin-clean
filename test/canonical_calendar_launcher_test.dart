@@ -438,7 +438,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
 
     final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
     final card = find.byKey(ValueKey('reminder-card-$occurrenceId'));
