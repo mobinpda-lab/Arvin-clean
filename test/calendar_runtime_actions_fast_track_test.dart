@@ -74,7 +74,6 @@ void main() {
           reminders: [reminder],
           canMutateReminder: (item) => item.id.startsWith('followup:'),
           onCompleteReminder: (_) async {},
-          onSnoozeReminder: (_) async {},
           onEditReminder: (_) async {},
         ),
       ),
