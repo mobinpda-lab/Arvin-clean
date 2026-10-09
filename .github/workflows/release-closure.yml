@@ -243,12 +243,40 @@ jobs:
 
             // A green build is not product acceptance. Publication stays blocked
             // until the existing release gate and the known regression lane are closed.
+            // Hide already-published Arvin prereleases while blocked; preserve their
+            // tags/assets so this containment is reversible rather than destructive.
+            async function hideUnapprovedPrereleases() {
+              const releases = await github.paginate(github.rest.repos.listReleases, {
+                owner,
+                repo,
+                per_page: 100
+              });
+              for (const release of releases) {
+                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
+                  continue;
+                }
+                try {
+                  await github.rest.repos.updateRelease({
+                    owner,
+                    repo,
+                    release_id: release.id,
+                    draft: true,
+                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
+                  });
+                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
+                } catch (error) {
+                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
+                }
+              }
+            }
+
             const gate = await github.rest.issues.get({
               owner,
               repo,
               issue_number: 2102
             });
             if (gate.data.state !== 'closed') {
+              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
               return;
             }
@@ -259,6 +287,7 @@ jobs:
               pull_number: 1901
             });
             if (regression.data.state !== 'closed') {
+              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
               return;
             }
