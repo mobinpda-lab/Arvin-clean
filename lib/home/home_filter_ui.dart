@@ -29,6 +29,7 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = value != 'همه';
+    final compact = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
         button: true,
@@ -43,8 +44,8 @@ class HomeFilterCard extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOutCubic,
-              height: 88,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+              height: compact ? 72 : 88,
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: compact ? 4 : 7),
               decoration: BoxDecoration(
                 color: selected
                     ? Color.alphaBlend(accent.withAlpha(18), soft)
@@ -65,19 +66,19 @@ class HomeFilterCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: accent, size: 20),
-                  const SizedBox(height: 5),
+                  Icon(icon, color: accent, size: compact ? 18 : 20),
+                  SizedBox(height: compact ? 3 : 5),
                   Text(
                     title,
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: accent.withAlpha(235),
-                      fontSize: 11,
+                      fontSize: compact ? 10 : 11,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: compact ? 1 : 2),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -86,7 +87,7 @@ class HomeFilterCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: accent,
-                        fontSize: 11.5,
+                        fontSize: compact ? 10.5 : 11.5,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
