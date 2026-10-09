@@ -18,7 +18,6 @@ Future<void> _expectReadOnlyReminder(
         reminders: [reminder],
         canMutateReminder: (item) => item.id.startsWith('followup:'),
         onCompleteReminder: (_) async {},
-        onSnoozeReminder: (_) async {},
         onEditReminder: (_) async {},
       ),
     ),
@@ -29,7 +28,6 @@ Future<void> _expectReadOnlyReminder(
 
   expect(find.byKey(ValueKey('reminder-actions-$id')), findsNothing);
   expect(find.byKey(ValueKey('reminder-complete-$id')), findsNothing);
-  expect(find.byKey(ValueKey('reminder-snooze-$id')), findsNothing);
   expect(find.byKey(ValueKey('reminder-edit-$id')), findsNothing);
 }
 
@@ -90,8 +88,8 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
-      findsOneWidget,
+      findsNothing,
+      reason: 'Calendar no longer exposes a nonfunctional snooze action',
     );
     expect(
       find.byKey(ValueKey('reminder-edit-${reminder.id}')),
