@@ -38,12 +38,18 @@ void main() {
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
     expect((await service.load()).usePersianDate, isTrue);
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('swipe-left-action')),
+      find.byKey(const ValueKey('swipe-settings-title')),
       200,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('swipe-left-action')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
