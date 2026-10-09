@@ -109,6 +109,11 @@ void main() {
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('خط زمانی'), findsNothing);
     expect(find.text('تداخل‌ها'), findsNothing);
+
+    // The launcher starts offline official-calendar calculation in the
+    // background. Drain its zero-duration batch-yield timers so this UI-only
+    // test does not finish with a live fake timer after widget disposal.
+    await tester.pump(const Duration(milliseconds: 1));
   });
 
   testWidgets('timeline refreshes canonical tasks before opening People',
