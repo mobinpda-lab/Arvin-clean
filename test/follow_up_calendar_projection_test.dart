@@ -259,7 +259,7 @@ void main() {
     );
   });
 
-  test('projects only the next seven recurring occurrences', () {
+  test('projects past, today, and future occurrences in the visible range', () {
     final task = Task(
       id: 'daily-task',
       title: 'کار روزانه',
@@ -269,47 +269,78 @@ void main() {
 
     final reminders = projection.project(
       <Task>[task],
-      visibleFrom: DateTime(2026, 10, 8),
-      visibleTo: DateTime(2026, 10, 20),
-      now: DateTime(2026, 10, 8, 8),
+      visibleFrom: DateTime(2026, 10, 5),
+      visibleTo: DateTime(2026, 10, 12),
+      now: DateTime(2026, 10, 8, 15),
     );
 
-    expect(reminders, hasLength(7));
     expect(reminders.map((item) => item.date), <DateTime>[
+      DateTime(2026, 10, 5, 14),
+      DateTime(2026, 10, 6, 14),
+      DateTime(2026, 10, 7, 14),
       DateTime(2026, 10, 8, 14),
       DateTime(2026, 10, 9, 14),
       DateTime(2026, 10, 10, 14),
       DateTime(2026, 10, 11, 14),
-      DateTime(2026, 10, 12, 14),
-      DateTime(2026, 10, 13, 14),
-      DateTime(2026, 10, 14, 14),
     ]);
     expect(reminders.map((item) => item.id).toSet().length, reminders.length);
   });
 
-  test('rolling repeat window keeps seven upcoming occurrences as one passes', () {
+  test('projects a visible range beyond the next seven occurrences', () {
     final task = Task(
-      id: 'rolling-daily',
-      title: 'کار چرخشی',
+      id: 'later-range',
+      title: 'کار آینده',
       dueDate: DateTime(2026, 10, 1, 14),
       recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
     );
 
     final reminders = projection.project(
       <Task>[task],
-      visibleFrom: DateTime(2026, 10, 9),
-      visibleTo: DateTime(2026, 10, 20),
-      now: DateTime(2026, 10, 9, 15),
+      visibleFrom: DateTime(2026, 10, 15),
+      visibleTo: DateTime(2026, 10, 27),
+      now: DateTime(2026, 10, 8, 8),
     );
 
     expect(reminders.map((item) => item.date), <DateTime>[
-      DateTime(2026, 10, 10, 14),
-      DateTime(2026, 10, 11, 14),
-      DateTime(2026, 10, 12, 14),
-      DateTime(2026, 10, 13, 14),
-      DateTime(2026, 10, 14, 14),
       DateTime(2026, 10, 15, 14),
       DateTime(2026, 10, 16, 14),
+      DateTime(2026, 10, 17, 14),
+      DateTime(2026, 10, 18, 14),
+      DateTime(2026, 10, 19, 14),
+      DateTime(2026, 10, 20, 14),
+      DateTime(2026, 10, 21, 14),
+      DateTime(2026, 10, 22, 14),
+      DateTime(2026, 10, 23, 14),
+      DateTime(2026, 10, 24, 14),
+      DateTime(2026, 10, 25, 14),
+      DateTime(2026, 10, 26, 14),
+    ]);
+  });
+
+  test('respects recurrence count and end-date boundaries in visible range', () {
+    final task = Task(
+      id: 'bounded-range',
+      title: 'کار محدود',
+      dueDate: DateTime(2026, 10, 1, 14),
+      recurrence: RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        count: 7,
+        endDate: DateTime(2026, 10, 8),
+      ),
+    );
+
+    final reminders = projection.project(
+      <Task>[task],
+      visibleFrom: DateTime(2026, 10, 4),
+      visibleTo: DateTime(2026, 10, 12),
+      now: DateTime(2026, 10, 8, 15),
+    );
+
+    expect(reminders.map((item) => item.date), <DateTime>[
+      DateTime(2026, 10, 4, 14),
+      DateTime(2026, 10, 5, 14),
+      DateTime(2026, 10, 6, 14),
+      DateTime(2026, 10, 7, 14),
     ]);
   });
 
