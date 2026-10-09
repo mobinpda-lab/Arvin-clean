@@ -130,6 +130,7 @@ class SystemCalendarBridge {
   static const String createProviderEventMethod = 'createDeviceCalendarEvent';
   static const String updateProviderEventMethod = 'updateDeviceCalendarEvent';
   static const String deleteProviderEventMethod = 'deleteDeviceCalendarEvent';
+  static const String openProviderEventMethod = 'openDeviceCalendarEvent';
   static const int maxEventQueryCalendars = 20;
   static const Duration maxEventQueryWindow = Duration(days: 93);
 
@@ -250,6 +251,31 @@ class SystemCalendarBridge {
           },
         ) ??
         false;
+  }
+
+  /// Opens the selected phone-owned event in the device's calendar editor.
+  /// The native calendar app owns the edit/save flow; Arvin does not mutate the event here.
+  Future<bool> openDeviceCalendarEvent({
+    required String calendarId,
+    required String eventId,
+  }) async {
+    final normalizedCalendarId = calendarId.trim();
+    final normalizedEventId = eventId.trim();
+    if (normalizedCalendarId.isEmpty || normalizedEventId.isEmpty) {
+      throw ArgumentError('Device calendar event identifiers are required.');
+    }
+    try {
+      return await _channel.invokeMethod<bool>(
+            openProviderEventMethod,
+            <String, Object?>{
+              'calendarId': normalizedCalendarId,
+              'eventId': normalizedEventId,
+            },
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
   }
 
   Future<bool> deleteProviderEvent({
