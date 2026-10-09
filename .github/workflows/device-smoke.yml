@@ -119,14 +119,10 @@ jobs:
           script: |
             set -eu
             mkdir -p artifacts/device-smoke
-            capture_smoke_screenshot() {
-              adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true
-            }
-            trap capture_smoke_screenshot EXIT
             adb shell pm grant com.example.arvin android.permission.POST_NOTIFICATIONS || true
             adb shell pm grant com.example.arvin android.permission.READ_CALENDAR || true
             adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR || true
-            flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+            flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}; test_exit=$?; adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true; exit "$test_exit"
 
       - name: Upload Android smoke screenshot evidence
         if: always()
