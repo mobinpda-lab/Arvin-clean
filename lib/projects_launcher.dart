@@ -110,9 +110,7 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
 
     return ProjectsPage(
       projects: projects,
-      onChanged: (next) {
-        _persist(next);
-      },
+      onChanged: _persist,
     );
   }
 }
