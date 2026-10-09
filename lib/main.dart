@@ -243,6 +243,7 @@ class _HomePageState extends State<HomePage> {
   TimeOfDay? _fromTimeFilter;
   TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
+  final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
 
@@ -414,7 +415,9 @@ class _HomePageState extends State<HomePage> {
 
   bool _overdue(Task task) {
     final date = task.dueDate;
-    return date != null && !task.completed && date.isBefore(DateTime.now());
+    if (date == null || task.completed) return false;
+    if (_dismissedOverdueWarnings[task.id] == date) return false;
+    return date.isBefore(DateTime.now());
   }
 
   bool get _homeFilterActive =>
@@ -979,6 +982,25 @@ class _HomePageState extends State<HomePage> {
   );
 
   Future<Task?> _addFromCalendarEvent(CalendarReminder reminder) async {
+    if (!reminder.id.startsWith('external-calendar:')) return null;
+    final sourceParts = reminder.id
+        .substring('external-calendar:'.length)
+        .split(':');
+    if (sourceParts.length < 2 || sourceParts.first.trim().isEmpty) return null;
+    final calendarId = sourceParts.first.trim();
+    final instanceId = sourceParts.skip(1).join(':').trim();
+    if (instanceId.isEmpty) return null;
+
+    final importLinks = ExternalCalendarLinkStore();
+    if (await importLinks.hasImportedEvent(reminder.id)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('این رویداد قبلاً در آروین ثبت شده است.')));
+      }
+      return null;
+    }
+
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
     );
@@ -1002,8 +1024,35 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (task == null) return null;
+
+    final registered = await importLinks.registerImportedEvent(
+      reminderId: reminder.id,
+      calendarId: calendarId,
+      instanceId: instanceId,
+      taskId: task.id,
+    );
+    if (!registered) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('این رویداد قبلاً در آروین ثبت شده است.')));
+      }
+      return null;
+    }
+
     setState(() => tasks.add(task));
-    await _save();
+    try {
+      await _save();
+    } catch (_) {
+      await importLinks.removeByReminderIds([reminder.id]);
+      if (mounted) {
+        setState(() => tasks.removeWhere((item) => item.id == task.id));
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('ثبت کار انجام نشد؛ دوباره تلاش کنید.')));
+      }
+      return null;
+    }
     await wave2ProductFastTrack.persistProjectSelection(
       taskId: task.id,
       projectId: selectedProjectId,
@@ -1966,12 +2015,8 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
-              onRefreshTasks: _refreshCanonicalTasksForCalendar,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-              onEditTask: (task) async { await _editFromDetail(task); },
-              onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
-              onRetryCalendarSync: () => _retryCalendarSync(tasks),
             ),
           ),
         );
@@ -2540,19 +2585,26 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              key: ValueKey('task-card-clear-due-${task.id}'),
-                              tooltip: 'حذف موعد',
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              onPressed: () async {
-                                setState(() { task.dueDate = null; });
-                                await _save();
-                              },
-                              icon: const Icon(Icons.close_rounded, size: 17),
-                              color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
-                            ),
+                            if (_dismissedOverdueWarnings[task.id] != task.dueDate)
+                              IconButton(
+                                key: ValueKey('task-card-clear-due-${task.id}'),
+                                tooltip: late ? 'بستن هشدار تاریخ گذشته' : 'حذف موعد',
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                onPressed: () async {
+                                  final dueDate = task.dueDate;
+                                  if (dueDate == null) return;
+                                  if (late) {
+                                    setState(() => _dismissedOverdueWarnings[task.id] = dueDate);
+                                    return;
+                                  }
+                                  setState(() => task.dueDate = null);
+                                  await _save();
+                                },
+                                icon: const Icon(Icons.close_rounded, size: 17),
+                                color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
+                              ),
                           ],
                         ),
                       ],                      if (followUpDate != null) ...[
