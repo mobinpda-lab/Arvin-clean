@@ -122,7 +122,9 @@ jobs:
             adb shell pm grant com.example.arvin android.permission.POST_NOTIFICATIONS || true
             adb shell pm grant com.example.arvin android.permission.READ_CALENDAR || true
             adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR || true
-            flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}; test_exit=$?; adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true; exit "$test_exit"
+            if flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}; then test_exit=0; else test_exit=$?; fi
+            adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true
+            exit "$test_exit"
 
       - name: Upload Android smoke screenshot evidence
         if: always()
