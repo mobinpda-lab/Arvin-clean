@@ -45,6 +45,7 @@ void main() {
     final now = DateTime.now();
     final eventStart = DateTime(now.year, now.month, now.day, 10).add(const Duration(days: 1));
     final bridge = _CalendarBridge(permissionGranted: true, events: [DeviceCalendarEvent(instanceId: 'instance-1', eventId: 'event-1', calendarId: 'calendar-7', calendarName: 'Google شخصی', title: 'جلسه مشتری', start: eventStart, end: eventStart.add(const Duration(hours: 1)), allDay: false)]);
+    var opened = false;
     await tester.pumpWidget(MaterialApp(home: OfficialCalendarPage(service: const OfficialCalendarReminderService([]), years: <int>[now.year], initialSelectedDay: eventStart, settingsService: _SettingsService(const CalendarIntegrationSettings(enabled: true, showExternalEvents: true, visibleCalendarIds: {'calendar-7'})), calendarBridge: bridge, externalLinkStore: _LinkStore(), onOpenExternalReminder: (_) async { opened = true; })));
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('جلسه مشتری • Google شخصی'), findsOneWidget);
@@ -52,7 +53,6 @@ void main() {
     expect(bridge.queriedCalendarIds, ['calendar-7']);
     expect(bridge.requestedPermission, isFalse);
 
-    var opened = false;
     await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
