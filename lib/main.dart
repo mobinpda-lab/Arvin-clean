@@ -206,11 +206,6 @@ class _ArvinAppState extends State<ArvinApp> {
         appBarTheme: const AppBarTheme(
           backgroundColor: ArvinColors.background,
           foregroundColor: ArvinColors.textPrimary,
-          titleTextStyle: TextStyle(
-            color: ArvinColors.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
         ),
         inputDecorationTheme: const InputDecorationTheme(
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
@@ -237,12 +232,7 @@ class _ArvinAppState extends State<ArvinApp> {
         fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: Color(0xFF555B70), thickness: 1),
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        appBarTheme: const AppBarTheme(),
         inputDecorationTheme: const InputDecorationTheme(
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Color(0xFF656B80), width: 1.3),
