@@ -143,6 +143,29 @@ class MainActivity : FlutterActivity() {
                         result.error("calendar_write_failed", "Android Calendar Provider update failed", error.message)
                     }
                 }
+                METHOD_OPEN_DEVICE_CALENDAR_EVENT -> {
+                    val calendarIdText = call.argument<String>("calendarId")?.trim().orEmpty()
+                    val calendarId = calendarIdText.toLongOrNull()
+                    val eventId = call.argument<String>("eventId")?.trim()?.toLongOrNull()
+                    if (calendarId == null || eventId == null) {
+                        result.error("invalid_event", "Calendar event identifiers are invalid", null)
+                        return@setMethodCallHandler
+                    }
+                    val editIntent = Intent(Intent.ACTION_EDIT).apply {
+                        data = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+                        putExtra(CalendarContract.Events.CALENDAR_ID, calendarId)
+                    }
+                    if (editIntent.resolveActivity(packageManager) == null) {
+                        result.success(false)
+                    } else {
+                        try {
+                            startActivity(editIntent)
+                            result.success(true)
+                        } catch (error: RuntimeException) {
+                            result.error("calendar_editor_unavailable", "No calendar editor could open this event", error.message)
+                        }
+                    }
+                }
                 METHOD_DELETE_DEVICE_CALENDAR_EVENT -> {
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
@@ -531,6 +554,7 @@ class MainActivity : FlutterActivity() {
         const val METHOD_CREATE_DEVICE_CALENDAR_EVENT = "createDeviceCalendarEvent"
         const val METHOD_UPDATE_DEVICE_CALENDAR_EVENT = "updateDeviceCalendarEvent"
         const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
+        const val METHOD_OPEN_DEVICE_CALENDAR_EVENT = "openDeviceCalendarEvent"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
         const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102
