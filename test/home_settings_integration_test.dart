@@ -6,6 +6,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  testWidgets('font size preference scales explicit text across the real app shell',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.fontSize': 20.0,
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final homeContext = tester.element(find.byKey(const ValueKey('home-bismillah')));
+    final scaler = MediaQuery.textScalerOf(homeContext);
+    expect(scaler.scale(16), closeTo(20, 0.01));
+    expect(scaler.scale(17), closeTo(21.25, 0.01));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('saved dark theme is applied by the real app shell', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.settings.themeMode': 'dark',
