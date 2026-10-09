@@ -74,6 +74,7 @@ class Task {
     this.tags = const [],
     this.category,
     this.checklist = const [],
+    bool? checklistEnabled,
     this.checklistOccurrences = const {},
     this.occurrenceHistory = const {},
     this.notebookKind,
@@ -85,7 +86,9 @@ class Task {
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
-  }) : people = _normalizePeople(people);
+  }) : checklistEnabled = checklistEnabled ??
+            (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
+        people = _normalizePeople(people);
 
   final String id;
   String title;
@@ -101,6 +104,9 @@ class Task {
   List<String> tags;
   String? category;
   List<String> checklist;
+  /// Whether the Task editor checklist mode is enabled. Disabled checklists
+  /// retain their rows so toggling the feature off never deletes user data.
+  bool checklistEnabled;
   /// Per-occurrence checklist state for recurring Tasks. Keys are canonical
   /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
   Map<String, List<String>> checklistOccurrences;
@@ -131,8 +137,7 @@ class Task {
   bool get isNotebookItem => isSimpleNote || isNotebookChecklist;
 
   bool get isNotebookChecklist =>
-      notebookKind == NotebookItemKind.checklist ||
-      (notebookKind == null && checklist.isNotEmpty);
+      notebookKind == NotebookItemKind.checklist;
 
   static List<PersonReference> _normalizePeople(
     Iterable<PersonReference> values,
@@ -225,6 +230,7 @@ class Task {
         'tags': tags,
         'category': category,
         'checklist': checklist,
+        'checklistEnabled': checklistEnabled,
         if (checklistOccurrences.isNotEmpty)
           'checklistOccurrences': checklistOccurrences.map(
             (key, value) => MapEntry(key, List<String>.of(value)),
@@ -287,6 +293,7 @@ class Task {
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
+      checklistEnabled: json['checklistEnabled'] as bool?,
       checklistOccurrences: _decodeChecklistOccurrences(
         json['checklistOccurrences'],
       ),
