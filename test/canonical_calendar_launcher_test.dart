@@ -438,7 +438,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
     final card = find.byKey(ValueKey('reminder-card-$occurrenceId'));
