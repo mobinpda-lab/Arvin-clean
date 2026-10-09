@@ -2417,7 +2417,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (task.checklist.isNotEmpty) ...[
+                      if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
                         const SizedBox(height: 7),
                         _homeChecklistProgress(task),
                       ],
