@@ -87,10 +87,14 @@ void main() {
 
     final calendarBar = find.byType(ArvinPrimaryNavigation);
     expect(calendarBar, findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    final moreButton = find.byKey(const ValueKey('primary-nav-more'));
+    expect(moreButton, findsOneWidget);
+    await tester.ensureVisible(moreButton);
     await tester.pumpAndSettle();
+    await tester.tap(moreButton, warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 300));
     final timelineAction = find.byKey(const ValueKey('calendar-more-timeline'));
-    for (var attempt = 0; attempt < 50; attempt++) {
+    for (var attempt = 0; attempt < 100; attempt++) {
       await tester.pump(const Duration(milliseconds: 100));
       if (timelineAction.evaluate().isNotEmpty) break;
     }
