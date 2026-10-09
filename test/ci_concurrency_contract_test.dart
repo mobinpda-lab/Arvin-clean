@@ -57,4 +57,15 @@ void main() {
     expect(parallel, isNot(contains('surface:')));
     expect(parallel, isNot(contains('flutter test')));
   });
+  test('legacy ARVIN release dispatcher cannot cancel exact-head main validation', () {
+    expect(
+      File('.github/workflows/arvin-release-dispatcher.yml').existsSync(),
+      isFalse,
+    );
+    final build = File('.github/workflows/build.yml').readAsStringSync();
+    expect(build, contains('push:'));
+    expect(build, contains('pull_request:'));
+    expect(build, contains('workflow_dispatch:'));
+  });
+
 }
