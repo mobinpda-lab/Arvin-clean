@@ -34,7 +34,6 @@ class CalendarPage extends StatefulWidget {
     this.initialSelectedDay,
     this.dailyContentForDate,
     this.onCompleteReminder,
-    this.onSnoozeReminder,
     this.onEditReminder,
     this.onEditTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -52,7 +51,6 @@ class CalendarPage extends StatefulWidget {
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
-  final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
@@ -806,13 +804,6 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onCompleteReminder
                                 : null,
-                            onSnooze:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onSnoozeReminder
-                                : null,
                             onEdit:
                                 (widget.canMutateReminder?.call(
                                       selectedReminders[index],
@@ -919,7 +910,6 @@ class _ReminderCard extends StatefulWidget {
     required this.dateLabel,
     required this.timeLabel,
     this.onComplete,
-    this.onSnooze,
     this.onEdit,
     this.onEditTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -935,7 +925,6 @@ class _ReminderCard extends StatefulWidget {
   final String dateLabel;
   final String timeLabel;
   final Future<void> Function(CalendarReminder reminder)? onComplete;
-  final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
@@ -964,7 +953,6 @@ class _ReminderCardState extends State<_ReminderCard> {
           (widget.onEditTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
-              widget.onSnooze != null ||
               widget.onEdit != null ||
               widget.onConvertToTask != null ||
               widget.onOpenExternal != null ||
@@ -1052,6 +1040,13 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
+                  if (item.id.startsWith('external-calendar:') && widget.onOpenExternal != null)
+                    ActionChip(
+                      key: ValueKey('external-calendar-edit-${item.id}'),
+                      avatar: const Icon(Icons.edit_calendar_outlined, size: 18),
+                      label: const Text('ویرایش در تقویم گوشی'),
+                      onPressed: () => _run(widget.onOpenExternal),
+                    ),
                   if (!_isTaskCalendarItem && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
                       key: ValueKey('external-calendar-create-task-${item.id}'),
@@ -1068,16 +1063,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                       avatar: const Icon(Icons.check_circle_outline, size: 18),
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
-                    ),
-                  if (!_isTaskCalendarItem &&
-                      !widget.isPrayer &&
-                      widget.onSnooze != null &&
-                      !item.completed)
-                    ActionChip(
-                      key: ValueKey('reminder-snooze-${item.id}'),
-                      avatar: const Icon(Icons.snooze_outlined, size: 18),
-                      label: const Text('تعویق'),
-                      onPressed: () => _run(widget.onSnooze),
                     ),
                   if (_isTaskCalendarItem && widget.onEditTask != null)
                     ActionChip(
