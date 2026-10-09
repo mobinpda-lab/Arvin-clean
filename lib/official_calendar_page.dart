@@ -66,7 +66,6 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.reminders,
     super.initialSelectedDay,
     super.onCompleteReminder,
-    super.onSnoozeReminder,
     super.onEditReminder,
     super.onEditTask,
     super.onRegisterTaskToDeviceCalendar,
