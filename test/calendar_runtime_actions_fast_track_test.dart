@@ -153,6 +153,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
       await tester.pump();
