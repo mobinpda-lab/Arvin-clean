@@ -33,6 +33,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تنظیمات'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font-settings-entry')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
     final settingsContext = tester.element(
       find.byKey(const ValueKey('font-settings-entry')),
