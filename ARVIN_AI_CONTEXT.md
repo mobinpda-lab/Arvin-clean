@@ -122,3 +122,8 @@ For a high-level evaluation, produce:
 ## 9. Continuation rule
 
 A new AI conversation should begin by reading these files and then reconciling them with live GitHub. If live GitHub differs, live GitHub wins and the documentation must be updated. The next action must be the highest-value unfinished product lane, not another status-only report.
+
+
+## 10. Owner-reported feedback and execution continuity
+
+Before any continuation, read `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`, especially **“Owner-Reported Requirements & Post-Install Feedback Index — 2026-10-09”**, then reconcile every linked Issue/PR with live GitHub state. The index preserves post-install reports (Calendar actions/recurrence #2535 and PR #2533; project persistence #2151 and PR #2540; overdue warning/calendar duplicate import #2543 and PR #2544; stronger colors/Persian typography #2546 and PR #2547) and maps the owner's broader product contracts to the existing Home, Report Center, Checklist, Repeat, typography, visual, Backup/Restore and release records. These are traceability links, not assertions that the work is complete. Prefer updating existing records; do not create duplicate Issues, PRs, branches, models or storage.
