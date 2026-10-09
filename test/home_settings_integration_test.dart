@@ -16,9 +16,28 @@ void main() {
     await tester.pumpAndSettle();
 
     final homeContext = tester.element(find.byKey(const ValueKey('home-bismillah')));
-    final scaler = MediaQuery.textScalerOf(homeContext);
-    expect(scaler.scale(16), closeTo(20, 0.01));
-    expect(scaler.scale(17), closeTo(21.25, 0.01));
+    final homeScaler = MediaQuery.textScalerOf(homeContext);
+    expect(homeScaler.scale(16), closeTo(20, 0.01));
+    expect(homeScaler.scale(17), closeTo(21.25, 0.01));
+    expect((await AppSettingsService().load()).fontSize, 20.0);
+
+    // The same scaler must reach pushed routes, not only Home.
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('تنظیمات'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تنظیمات'));
+    await tester.pumpAndSettle();
+
+    final settingsContext = tester.element(
+      find.byKey(const ValueKey('font-settings-entry')),
+    );
+    final settingsScaler = MediaQuery.textScalerOf(settingsContext);
+    expect(settingsScaler.scale(16), closeTo(20, 0.01));
     expect(tester.takeException(), isNull);
   });
 
