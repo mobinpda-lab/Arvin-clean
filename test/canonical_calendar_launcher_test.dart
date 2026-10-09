@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/follow_up_repository.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_reschedule_apply_service.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
@@ -407,5 +408,55 @@ void main() {
     );
   });
 
+
+
+  testWidgets('repeat occurrence actions resolve back to the canonical Task', (
+    tester,
+  ) async {
+    final now = DateTime.now().toLocal();
+    final anchor = now.add(const Duration(minutes: 2));
+    final task = Task(
+      id: 'repeat-task',
+      title: 'کار تکرارشونده',
+      dueDate: anchor,
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        count: 5,
+      ),
+    );
+    Task? edited;
+    CalendarReminder? registered;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: <Task>[task],
+          onEditTask: (value) async => edited = value,
+          onRegisterTaskToDeviceCalendar: (value) async => registered = value,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 250));
+
+    final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
+    final card = find.byKey(ValueKey('reminder-card-$occurrenceId'));
+    expect(card, findsOneWidget);
+    await tester.tap(card);
+    await tester.pump();
+
+    final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
+    final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
+    expect(edit, findsOneWidget);
+    expect(register, findsOneWidget);
+
+    await tester.tap(edit);
+    await tester.pump();
+    expect(identical(edited, task), isTrue);
+
+    await tester.tap(register);
+    await tester.pump();
+    expect(registered?.id, occurrenceId);
+    expect(registered?.date, anchor);
+  });
 
 }
