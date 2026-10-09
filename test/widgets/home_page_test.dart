@@ -61,6 +61,10 @@ void main() {
     expect(find.text('کار عقب‌افتادهٔ مهم'), findsOneWidget);
     expect(find.textContaining('موعد گذشته:'), findsNothing);
     expect(find.textContaining('موعد:'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
+      findsNothing,
+    );
     final saved = (await TaskStore().load()).single;
     expect(saved.id, 'overdue-preserved');
     expect(saved.dueDate, isNotNull);
