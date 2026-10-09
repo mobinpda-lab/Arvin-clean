@@ -220,7 +220,6 @@ void main() {
       date: day,
     );
     var completed = 0;
-    var snoozed = 0;
     var edited = 0;
 
     await tester.pumpWidget(
@@ -229,7 +228,6 @@ void main() {
           initialSelectedDay: day,
           reminders: [reminder],
           onCompleteReminder: (_) async => completed++,
-          onSnoozeReminder: (_) async => snoozed++,
           onEditReminder: (_) async => edited++,
         ),
       ),
@@ -241,7 +239,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('انجام شد'), findsOneWidget);
-    expect(find.text('تعویق'), findsOneWidget);
+    expect(find.text('تعویق'), findsNothing);
     expect(find.text('ویرایش'), findsOneWidget);
     expect(find.text('تبدیل به کار'), findsNothing);
 
@@ -250,16 +248,11 @@ void main() {
     );
     await tester.pump();
     await tester.tap(
-      find.byKey(const ValueKey('reminder-snooze-followup:task-1:fu-1')),
-    );
-    await tester.pump();
-    await tester.tap(
       find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1')),
     );
     await tester.pump();
 
     expect(completed, 1);
-    expect(snoozed, 1);
     expect(edited, 1);
   });
   testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
