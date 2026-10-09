@@ -442,6 +442,12 @@ void main() {
 
     final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
     final card = find.byKey(ValueKey('reminder-card-$occurrenceId'));
+    // The official-calendar FutureBuilder and inbound calendar reconciliation
+    // complete asynchronously. Wait for the actual occurrence row with a
+    // bounded pump; keep the assertion strict if the projection never appears.
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(card, findsOneWidget);
     await tester.tap(card);
     await tester.pump();
