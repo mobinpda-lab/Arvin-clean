@@ -47,6 +47,8 @@ class ExternalCalendarEventProjection {
           isAllDay: event.allDay,
           description: event.description,
           end: event.end,
+          externalCalendarId: calendarId,
+          externalEventId: eventId,
         ),
       );
     }
