@@ -17,6 +17,13 @@ void main() {
     expect(workflow, contains('max-parallel: 6'));
     expect(workflow, contains('timeout-minutes: 30'));
 
+    // Keep visual evidence attached to the same canonical smoke scenarios.
+    expect(workflow, contains('capture_smoke_screenshot'));
+    expect(workflow, contains('adb exec-out screencap -p'));
+    expect(workflow, contains('Upload Android smoke screenshot evidence'));
+    expect(workflow, contains('actions/upload-artifact@v4'));
+    expect(workflow, contains('arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
+
     final matrixScenarios = RegExp(
       r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
     ).allMatches(workflow).toList();
