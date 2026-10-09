@@ -16,6 +16,7 @@ class ExternalCalendarEventProjection {
     Iterable<ExternalCalendarEventLink> linkedEvents = const [],
   }) {
     final linkedKeys = linkedEvents
+        .where((link) => !link.reminderId.startsWith('external-calendar:'))
         .map((link) => _providerKey(link.calendarId, link.eventId))
         .toSet();
 
