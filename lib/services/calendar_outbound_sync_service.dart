@@ -32,6 +32,7 @@ class CalendarOutboundSyncService {
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
+    bool linkedOnly = false,
   }) async {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
@@ -42,8 +43,11 @@ class CalendarOutboundSyncService {
       return null;
     }
 
+    final links = await linkStore.load();
+    final linkedReminderIds = links.map((link) => link.reminderId).toSet();
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
       if (!_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
@@ -52,13 +56,17 @@ class CalendarOutboundSyncService {
         // reminders are intentionally outside outbound provider sync.
       }
     }
+    // An edit-only reconciliation must never create unrelated provider events
+    // or delete stale links when a canonical row is temporarily absent.
+    if (linkedOnly && revisions.isEmpty) return null;
 
-    final links = await linkStore.load();
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
-    final linksForPlan = integration.deleteLinkedEventWithTask
-        ? managedLinks
-        : managedLinks.where((link) => revisionIds.contains(link.reminderId));
+    final linksForPlan = linkedOnly
+        ? managedLinks.where((link) => revisionIds.contains(link.reminderId))
+        : integration.deleteLinkedEventWithTask
+            ? managedLinks
+            : managedLinks.where((link) => revisionIds.contains(link.reminderId));
     final plan = planService.plan(
       revisions: revisions,
       links: linksForPlan,
