@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_official_reminders.dart';
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/official_calendar_page.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
@@ -12,6 +15,18 @@ class _FakeOfficialSource implements OfficialCalendarReminderSource {
   @override
   Future<List<OfficialCalendarReminder>> load({required int year}) async =>
       items.where((item) => item.date.year == year).toList(growable: false);
+}
+
+class _DelayedOfficialSource implements OfficialCalendarReminderSource {
+  _DelayedOfficialSource(this.result);
+
+  final Completer<List<OfficialCalendarReminder>> result;
+
+  @override
+  Future<List<OfficialCalendarReminder>> load({required int year}) async =>
+      (await result.future)
+          .where((item) => item.date.year == year)
+          .toList(growable: false);
 }
 
 void main() {
@@ -149,6 +164,57 @@ void main() {
 
       expect(completed, 1);
       expect(find.text('تعویق'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'canonical reminders stay usable while official calendar sources are delayed',
+    (tester) async {
+      final selectedDay = DateTime(2026, 10, 9, 10);
+      final officialCompleter = Completer<List<OfficialCalendarReminder>>();
+      final service = OfficialCalendarReminderService(
+        <OfficialCalendarReminderSource>[
+          _DelayedOfficialSource(officialCompleter),
+        ],
+      );
+      final taskReminder = CalendarReminder(
+        id: 'task-due:loading-task',
+        title: 'کار روزانه',
+        date: selectedDay,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: OfficialCalendarPage(
+              service: service,
+              years: const <int>[2026],
+              initialSelectedDay: selectedDay,
+              reminders: <CalendarReminder>[taskReminder],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CalendarPage), findsOneWidget);
+      expect(find.text('کار روزانه'), findsOneWidget);
+
+      officialCompleter.complete(<OfficialCalendarReminder>[
+        OfficialCalendarReminder(
+          id: 'ir-holiday-test',
+          title: 'مناسبت رسمی آزمایشی',
+          date: selectedDay,
+          kind: OfficialReminderKind.iranianHoliday,
+        ),
+      ]);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(CalendarPage), findsOneWidget);
+      expect(find.text('کار روزانه'), findsOneWidget);
+      expect(find.text('مناسبت رسمی آزمایشی'), findsOneWidget);
     },
   );
 
