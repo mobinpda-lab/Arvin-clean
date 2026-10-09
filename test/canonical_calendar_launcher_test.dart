@@ -6,6 +6,7 @@ import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_reschedule_apply_service.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
@@ -42,6 +43,35 @@ Future<void> _openMoreMenu(WidgetTester tester) async {
   await tester.tap(find.text('بیشتر'));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
+}
+
+class _RecordingCalendarProjection extends FollowUpCalendarProjection {
+  final List<String> visibleRanges = <String>[];
+  final List<String> visibleIds = <String>[];
+
+  @override
+  List<CalendarReminder> project(
+    Iterable<Task> tasks, {
+    DateTime? visibleFrom,
+    DateTime? visibleTo,
+    DateTime? now,
+  }) {
+    final result = super.project(
+      tasks,
+      visibleFrom: visibleFrom,
+      visibleTo: visibleTo,
+      now: now,
+    );
+    if (visibleFrom != null && visibleTo != null) {
+      visibleRanges
+        ..clear()
+        ..add('${visibleFrom.toIso8601String()}..${visibleTo.toIso8601String()}');
+      visibleIds
+        ..clear()
+        ..addAll(result.map((item) => item.id));
+    }
+    return result;
+  }
 }
 
 void main() {
@@ -428,11 +458,13 @@ void main() {
     );
     Task? edited;
     CalendarReminder? registered;
+    final projection = _RecordingCalendarProjection();
 
     await tester.pumpWidget(
       MaterialApp(
         home: CanonicalCalendarLauncher(
           tasks: <Task>[task],
+          projection: projection,
           onEditTask: (value) async => edited = value,
           onRegisterTaskToDeviceCalendar: (value) async => registered = value,
         ),
@@ -449,6 +481,13 @@ void main() {
     // bounded pump; keep the assertion strict if the projection never appears.
     for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
+    }
+    if (card.evaluate().isEmpty) {
+      debugPrint(
+        'Repeat occurrence diagnostic: expected=$occurrenceId '
+        'ranges=${projection.visibleRanges} visibleIds=${projection.visibleIds} '
+        'calendarPages=${find.byType(CalendarPage).evaluate().length}',
+      );
     }
     expect(card, findsOneWidget);
     await tester.tap(card);
