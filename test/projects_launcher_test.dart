@@ -49,10 +49,33 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('project-dialog-save')));
     await tester.pumpAndSettle();
 
-    final restored = await store.load();
+    var restored = await store.load();
     expect(
       restored.map((project) => project.title),
       containsAll(['پروژه موجود', 'پروژه جدید']),
     );
+
+    // Rename and recolor the newly created Project through the same Settings
+    // launcher path, then verify the committed values in canonical storage.
+    await tester.tap(find.byTooltip('ویرایش').at(1));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('project-title-input')),
+      'پروژه ویرایش‌شده',
+    );
+    await tester.tap(find.byKey(const ValueKey('project-color-4281303277')));
+    await tester.tap(find.byKey(const ValueKey('project-dialog-save')));
+    await tester.pumpAndSettle();
+
+    restored = await store.load();
+    final edited = restored.singleWhere((project) => project.title == 'پروژه ویرایش‌شده');
+    expect(edited.colorValue, 0xFF2F80ED);
+
+    // Reopen the management surface to prove it reads the durable state,
+    // rather than merely retaining the previous widget's in-memory list.
+    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+    await tester.pumpWidget(MaterialApp(home: ProjectsLauncher(store: store)));
+    await tester.pumpAndSettle();
+    expect(find.text('پروژه ویرایش‌شده'), findsOneWidget);
   });
 }

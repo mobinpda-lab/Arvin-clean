@@ -21,7 +21,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: ProjectsPage(
         projects: projects,
-        onChanged: (value) => changed = value,
+        onChanged: (value) async { changed = value; },
       ),
     ));
 
@@ -55,7 +55,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: ProjectsPage(
         projects: const [],
-        onChanged: (value) => changed = value,
+        onChanged: (value) async { changed = value; },
       ),
     ));
 
