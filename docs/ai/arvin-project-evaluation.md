@@ -1,13 +1,19 @@
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
-Date: 2026-10-07
-Verified current main: 93edc53ad8619826744ff3f986c9beff86b325f7
+Date: 2026-10-09
+Verified current main: ff2ec08a706670af5902c1eab5936d66962dd45d
 
 ## Executive status
 
 **Arvin is NOT Release-Ready yet.**
 
 Live GitHub shows substantial product progress. The remaining gap is product integration, real-device acceptance, and release evidence. Older percentage snapshots are historical and are not current status.
+
+### Fresh Reality Snapshot — 2026-10-09
+- PR #2504 merged as `e8f9c3b`: test-only Home date contract stabilization; exact PR-head Analyze, six test shards, Debug/Release builds and six Android Smoke jobs passed. Post-merge main Release Closure still needs explicit confirmation.
+- PR #2505 merged as `ff2ec08`: test-only Calendar → More → Timeline smoke synchronization repair. Exact-head Analyze, all six test shards, Debug/Release APK builds and all six Android Smoke jobs passed. This is emulator evidence, not physical-phone Calendar provider acceptance.
+- PR #2506's first current-main replacement had one unrelated `people` smoke failure because it ran against a merge ref without the Calendar smoke repair. The failure expected key `calendar-more-timeline` to exist in the old smoke flow. The Calendar repair is now merged; the Report Center test is being rerun in replacement PR #2509 on top of `ff2ec08`.
+- Release status remains **NOT RELEASE-READY**. The owner/device ledger #1901 remains the source of physical-device acceptance gaps; emulator smoke and green builds do not close it.
 
 ## Confirmed recent work
 
@@ -156,7 +162,8 @@ Emulator/device-smoke evidence does not replace required physical-phone acceptan
 
 ## Current execution order
 
-1. Finish PR #2408 Settings acceptance and reconcile its branch with current main; no duplicate Typography lane.
+0. Finish exact-head validation of Report Center combined-filter evidence PR #2509; repair only reproduced failures. Then confirm post-merge main Release Closure after #2504/#2505.
+1. Finish PR #2408 Settings acceptance and reconcile its branch with current main; no duplicate Typography lane; no duplicate Typography lane.
 2. Prove Golden Flow using the existing canonical Task/Date-Time/Reminder/Checklist/Repeat/Follow-up/Timeline paths.
 3. Prove Backup → Restore integrity on the same dataset.
 4. Prove Calendar E2E using the existing provider/sync/link foundation.
