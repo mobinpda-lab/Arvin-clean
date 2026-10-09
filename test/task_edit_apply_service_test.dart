@@ -66,6 +66,25 @@ void main() {
     expect(target.updatedAt, appliedAt);
   });
 
+  test('applies disabled checklist state while preserving checklist rows', () {
+    final target = Task(
+      id: 'checklist-apply',
+      title: 'کار',
+      checklist: const ['[ ] کیف', '[x] کتاب'],
+    );
+    final edited = Task(
+      id: 'checklist-apply',
+      title: 'کار',
+      checklist: const ['[ ] کیف', '[x] کتاب'],
+      checklistEnabled: false,
+    );
+
+    TaskEditApplyService(now: () => DateTime(2026, 10, 9)).apply(target, edited);
+
+    expect(target.checklistEnabled, isFalse);
+    expect(target.checklist, const ['[ ] کیف', '[x] کتاب']);
+  });
+
   test('preserves recurring checklist occurrence state while editing template', () {
     final occurrence = DateTime(2026, 10, 3, 6);
     final target = Task(
