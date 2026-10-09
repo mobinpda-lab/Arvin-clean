@@ -1757,7 +1757,11 @@ class _HomePageState extends State<HomePage> {
     return List<Task>.of(_searchSource);
   }
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
-    if (!reminder.id.startsWith('task-due:')) return;
+    final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
+        reminder.id.startsWith('task-reminder:') ||
+        reminder.id.startsWith('task-followup:') ||
+        reminder.id.startsWith('followup:');
+    if (!isTaskCalendarItem) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
     if (targetCalendarId == null || targetCalendarId.isEmpty) {
@@ -1781,12 +1785,36 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final taskId = reminder.id.substring('task-due:'.length);
     Task? task;
-    for (final candidate in _searchSource) {
-      if (candidate.id == taskId) {
-        task = candidate;
-        break;
+    final followUpTarget = reminder.id.startsWith('followup:')
+        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
+        : null;
+    if (followUpTarget != null) {
+      for (final candidate in _searchSource) {
+        if (candidate.id == followUpTarget.taskId) {
+          task = candidate;
+          break;
+        }
+      }
+    }
+    if (task == null) {
+      for (final prefix in const <String>[
+        'task-due:',
+        'task-reminder:',
+        'task-followup:',
+      ]) {
+        if (!reminder.id.startsWith(prefix)) continue;
+        final suffix = reminder.id.substring(prefix.length);
+        for (final candidate in _searchSource) {
+          // Repeat occurrences append an ISO timestamp to the canonical Task
+          // ID (which itself is stable). Match the Task prefix, not the entire
+          // occurrence ID, so each occurrence can still edit/register its Task.
+          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+            task = candidate;
+            break;
+          }
+        }
+        if (task != null) break;
       }
     }
     if (task == null) return;
@@ -1794,8 +1822,11 @@ class _HomePageState extends State<HomePage> {
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
-      date: task.dueDate ?? reminder.date,
+      // Keep the selected calendar row's date. For recurrence, this is the
+      // occurrence date, not the Task's original anchor date.
+      date: reminder.date,
       completed: task.completed,
+      isAllDay: reminder.isAllDay,
       description: task.description,
     );
     try {
@@ -1900,8 +1931,12 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
+              onRefreshTasks: _refreshCanonicalTasksForCalendar,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
+              onEditTask: (task) async { await _editFromDetail(task); },
+              onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
+              onRetryCalendarSync: () => _retryCalendarSync(tasks),
             ),
           ),
         );
