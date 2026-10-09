@@ -17,6 +17,11 @@ void main() {
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
+    // The emulator action runs each script line in a separate shell, so all
+    // stateful capture/wait logic must live inside one bash command.
+    expect(workflow, contains("script: |\n            bash -euo pipefail -c '"));
+    expect(workflow, isNot(contains('script: |\n            set -eu\n'));
+
     // Capture evidence only while the real app is foregrounded; never use
     // the launcher shown after the integration test exits as UI evidence.
     expect(
