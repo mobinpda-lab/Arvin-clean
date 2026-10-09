@@ -76,7 +76,7 @@ class CalendarOutboundSyncService {
       plan: plan,
       targetCalendarId: targetCalendarId,
     );
-    if (!integration.deleteLinkedEventWithTask) {
+    if (!linkedOnly && !integration.deleteLinkedEventWithTask) {
       final orphanedManagedIds = managedLinks
           .map((link) => link.reminderId)
           .where((id) => !revisionIds.contains(id))
