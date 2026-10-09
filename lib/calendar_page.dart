@@ -15,6 +15,8 @@ class CalendarReminder {
     this.isAllDay = false,
     this.description,
     this.end,
+    this.externalCalendarId,
+    this.externalEventId,
   });
   final String id;
   final String title;
@@ -23,6 +25,8 @@ class CalendarReminder {
   final bool isAllDay;
   final String? description;
   final DateTime? end;
+  final String? externalCalendarId;
+  final String? externalEventId;
 }
 
 enum _CalendarViewMode { day, week, month, year }
