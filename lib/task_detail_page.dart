@@ -296,7 +296,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
-    if (_task.checklist.isEmpty) return const SizedBox.shrink();
+    if (!_task.checklistEnabled || _task.checklist.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final items = _normalizedChecklist();
     final completed = items.where((item) => item.startsWith('[x] ')).length;
     return _card(
@@ -574,7 +576,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
           children: [
             _summaryCard(),
-            if (_task.checklist.isNotEmpty) ...[
+            if (_task.checklistEnabled && _task.checklist.isNotEmpty) ...[
               const SizedBox(height: 10),
               _checklistCard(),
             ],

@@ -42,6 +42,31 @@ void main() {
     expect(find.text('توضیح'), findsNothing);
   });
 
+  testWidgets('Home hides disabled checklist progress but keeps its saved rows', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"disabled-checklist-home","title":"کار با چک‌لیست خاموش","checklist":["[ ] کیف"],"checklistEnabled":false}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('کار با چک‌لیست خاموش'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار با چک‌لیست خاموش'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-card-checklist-progress-disabled-checklist-home')),
+      findsNothing,
+    );
+    final persisted = (await TaskStore().load()).single;
+    expect(persisted.checklist, const ['[ ] کیف']);
+    expect(persisted.checklistEnabled, isFalse);
+  });
+
   testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':

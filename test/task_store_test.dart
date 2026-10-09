@@ -35,6 +35,43 @@ void main() {
   });
 
 
+  test('TaskStore preserves disabled checklist rows without activating them', () async {
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'checklist-disabled',
+        title: 'آماده‌سازی',
+        checklist: const ['[ ] کیف', '[x] کتاب'],
+        checklistEnabled: false,
+      ),
+    ]);
+
+    final loaded = (await TaskStore().load()).single;
+    expect(loaded.checklistEnabled, isFalse);
+    expect(loaded.checklist, const ['[ ] کیف', '[x] کتاب']);
+    expect(loaded.isNotebookItem, isFalse);
+  });
+
+  test('legacy checklist payload stays enabled and Notebook membership stays explicit', () {
+    final legacyTask = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-task-checklist',
+      'title': 'کار قدیمی',
+      'checklist': <String>['[ ] کیف'],
+    });
+    expect(legacyTask.checklistEnabled, isTrue);
+    expect(legacyTask.isNotebookItem, isFalse);
+
+    final notebookChecklist = Task(
+      id: 'legacy-checklist-note',
+      title: 'چک‌لیست دفترچه',
+      checklist: const ['[ ] مورد'],
+      notebookKind: NotebookItemKind.checklist,
+    );
+    expect(notebookChecklist.isNotebookChecklist, isTrue);
+    expect(notebookChecklist.isNotebookItem, isTrue);
+  });
+
   test('TaskStore preserves explicit All-Day due-date state', () async {
     final store = TaskStore();
     await store.save(<Task>[

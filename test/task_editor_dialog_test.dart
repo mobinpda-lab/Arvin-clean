@@ -285,21 +285,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, isNotNull);
     expect(result!.checklist, const ['[ ] کیف']);
+    expect(result!.checklistEnabled, isTrue);
   });
 
-  testWidgets('disabling an existing checklist keeps data in the editor but saves Task without checklist',
+  testWidgets('disabling a checklist preserves its rows and re-enabling restores them',
       (tester) async {
-    Task? result;
+    Task? disabledResult;
     final task = Task(id: 'checklist-toggle', title: 'آماده‌سازی', checklist: const ['[ ] کیف', '[ ] کتاب']);
-    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await pumpEditor(tester, task: task, onResult: (value) => disabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
-    expect(result, isNotNull);
-    expect(result!.checklist, isEmpty);
+    expect(disabledResult, isNotNull);
+    expect(disabledResult!.checklist, const ['[ ] کیف', '[ ] کتاب']);
+    expect(disabledResult!.checklistEnabled, isFalse);
+
+    Task? enabledResult;
+    await pumpEditor(tester, task: disabledResult, onResult: (value) => enabledResult = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    expect(find.text('کیف'), findsOneWidget);
+    expect(find.text('کتاب'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(enabledResult, isNotNull);
+    expect(enabledResult!.checklist, const ['[ ] کیف', '[ ] کتاب']);
+    expect(enabledResult!.checklistEnabled, isTrue);
   });
 
   testWidgets('task editor checklist supports add, toggle, edit and persistence',

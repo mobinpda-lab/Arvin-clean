@@ -117,7 +117,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
-    _checklistEnabled = task?.checklist.isNotEmpty ?? false;
+    _checklistEnabled = task?.checklistEnabled ?? false;
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _projects = List<ProjectPlan>.of(widget.projects);
@@ -399,6 +399,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           pendingTag.isNotEmpty ||
           _tags.isNotEmpty ||
           _checklist.isNotEmpty ||
+          _checklistEnabled ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
           _followUpEnabled ||
@@ -420,6 +421,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         pendingTag.isNotEmpty ||
         !listEquals(_tags, existing.tags) ||
         !listEquals(_checklist, existing.checklist) ||
+        _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
         _followUpEnabled != initialFollowUpEnabled ||
@@ -677,7 +679,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         followUpDate: _followUpEnabled ? _followUpDateTime : null,
         tags: List<String>.of(_tags),
         category: _category,
-        checklist: _checklistEnabled ? List<String>.of(_checklist) : const [],
+        checklist: List<String>.of(_checklist),
+        checklistEnabled: _checklistEnabled,
         reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
