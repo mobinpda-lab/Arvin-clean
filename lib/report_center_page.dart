@@ -167,9 +167,12 @@ class _ActiveFilterChips extends StatelessWidget {
         children: [
           if (filter.timePreset != ReportTimePreset.all)
             Chip(label: Text(_timeLabel(filter.timePreset))),
-          if (filter.projectId != null) const Chip(label: Text('پروژه')),
-          if (filter.category != null) Chip(label: Text(filter.category!)),
-          if (filter.tag != null) Chip(label: Text(filter.tag!)),
+          if (filter.projectId != null || filter.projectIds.isNotEmpty)
+            Chip(label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}')),
+          for (final value in <String>{...filter.categories, if (filter.category != null) filter.category!})
+            Chip(label: Text(value)),
+          for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
+            Chip(label: Text(value)),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -214,9 +217,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   DateTime? _toDate;
   TimeOfDay? _fromTime;
   TimeOfDay? _toTime;
-  String? _projectId;
-  String? _category;
-  String? _tag;
+  Set<String> _projectIds = <String>{};
+  Set<String> _categories = <String>{};
+  Set<String> _tags = <String>{};
   ReportStatusFilter _status = ReportStatusFilter.all;
   TaskPriority? _priority;
   bool? _hasRepeat;
@@ -232,9 +235,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _toDate = f.toDate;
     _fromTime = f.fromTime == null ? null : _toTimeOfDay(f.fromTime!);
     _toTime = f.toTime == null ? null : _toTimeOfDay(f.toTime!);
-    _projectId = f.projectId;
-    _category = f.category;
-    _tag = f.tag;
+    _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
+    _categories = <String>{...f.categories, if (f.category != null) f.category!};
+    _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
     _status = f.status;
     _priority = f.priority;
     _hasRepeat = f.hasRepeat;
@@ -296,9 +299,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         toTime: _toTime == null
             ? null
             : Duration(hours: _toTime!.hour, minutes: _toTime!.minute),
-        projectId: _projectId,
-        category: _category,
-        tag: _tag,
+        projectIds: Set<String>.of(_projectIds),
+        categories: Set<String>.of(_categories),
+        tags: Set<String>.of(_tags),
         status: _status,
         priority: _priority,
         hasRepeat: _hasRepeat,
@@ -406,47 +409,34 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             _Section(
               title: 'پروژه',
-              child: DropdownButtonFormField<String?>(
-                initialValue: _projectId,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(value: null, child: Text('همه پروژه‌ها')),
-                  ...widget.projects.map(
-                    (project) => DropdownMenuItem<String?>(
-                      value: project.id,
-                      child: Text(project.title),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _projectId = value),
+              child: _MultiSelectChips(
+                allLabel: 'همه پروژه‌ها',
+                options: widget.projects
+                    .map((project) => MapEntry(project.id, project.title))
+                    .toList(growable: false),
+                selected: _projectIds,
+                onChanged: (value) => setState(() => _projectIds = value),
+                keyPrefix: 'report-filter-project',
               ),
             ),
             _Section(
               title: 'دسته',
-              child: DropdownButtonFormField<String?>(
-                initialValue: _category,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: [
-                  const DropdownMenuItem<String?>(value: null, child: Text('همه دسته‌ها')),
-                  ...categories.map((value) => DropdownMenuItem<String?>(value: value, child: Text(value))),
-                ],
-                onChanged: (value) => setState(() => _category = value),
+              child: _MultiSelectChips(
+                allLabel: 'همه دسته‌ها',
+                options: categories.map((value) => MapEntry(value, value)).toList(growable: false),
+                selected: _categories,
+                onChanged: (value) => setState(() => _categories = value),
+                keyPrefix: 'report-filter-category',
               ),
             ),
             _Section(
               title: 'برچسب',
-              child: DropdownButtonFormField<String?>(
-                initialValue: _tag,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: [
-                  const DropdownMenuItem<String?>(value: null, child: Text('همه برچسب‌ها')),
-                  ...tags.map((value) => DropdownMenuItem<String?>(value: value, child: Text(value))),
-                ],
-                onChanged: (value) => setState(() => _tag = value),
+              child: _MultiSelectChips(
+                allLabel: 'همه برچسب‌ها',
+                options: tags.map((value) => MapEntry(value, value)).toList(growable: false),
+                selected: _tags,
+                onChanged: (value) => setState(() => _tags = value),
+                keyPrefix: 'report-filter-tag',
               ),
             ),
             _Section(
@@ -517,9 +507,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _toDate = null;
                       _fromTime = null;
                       _toTime = null;
-                      _projectId = null;
-                      _category = null;
-                      _tag = null;
+                      _projectIds = <String>{};
+                      _categories = <String>{};
+                      _tags = <String>{};
                       _status = ReportStatusFilter.all;
                       _priority = null;
                       _hasRepeat = null;
@@ -554,6 +544,52 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
       ),
     );
   }
+}
+
+class _MultiSelectChips extends StatelessWidget {
+  const _MultiSelectChips({
+    super.key,
+    required this.allLabel,
+    required this.options,
+    required this.selected,
+    required this.onChanged,
+    required this.keyPrefix,
+  });
+
+  final String allLabel;
+  final List<MapEntry<String, String>> options;
+  final Set<String> selected;
+  final ValueChanged<Set<String>> onChanged;
+  final String keyPrefix;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: [
+          FilterChip(
+            key: ValueKey('${keyPrefix}-all'),
+            label: Text(allLabel),
+            selected: selected.isEmpty,
+            onSelected: (_) => onChanged(<String>{}),
+          ),
+          for (final option in options)
+            FilterChip(
+              key: ValueKey('${keyPrefix}-${option.key}'),
+              label: Text(option.value),
+              selected: selected.contains(option.key),
+              onSelected: (checked) {
+                final next = <String>{...selected};
+                if (checked) {
+                  next.add(option.key);
+                } else {
+                  next.remove(option.key);
+                }
+                onChanged(next);
+              },
+            ),
+        ],
+      );
 }
 
 class _Section extends StatelessWidget {
