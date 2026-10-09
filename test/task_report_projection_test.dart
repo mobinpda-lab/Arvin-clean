@@ -29,4 +29,18 @@ void main() {
     expect(entry.tags, ['مهم']);
     expect(entry.checklist, ['[x] ارسال']);
   });
+  test('disabled checklist rows remain on Task but are excluded from reports', () {
+    final task = Task(
+      id: 'disabled-report-checklist',
+      title: 'کار با چک‌لیست خاموش',
+      checklist: const ['[ ] کیف'],
+      checklistEnabled: false,
+    );
+
+    final entry = projection.project([task]).entries.single;
+
+    expect(task.checklist, const ['[ ] کیف']);
+    expect(entry.checklist, isEmpty);
+  });
+
 }
