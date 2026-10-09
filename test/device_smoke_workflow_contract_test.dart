@@ -17,29 +17,23 @@ void main() {
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
-    // The emulator action runs each script line in a separate shell, so all
-    // stateful capture/wait logic must live inside one bash command.
-    expect(workflow, contains("script: |\n            bash -euo pipefail -c '"));
-    expect(workflow, isNot(contains('script: |\n            set -eu\n')));
+    // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
+    expect(workflow, contains('script: flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(workflow, isNot(contains('adb exec-out screencap -p')));
+    expect(workflow, isNot(contains('uiautomator dump')));
 
-    // Capture evidence only while the real app is foregrounded; never use
-    // the launcher shown after the integration test exits as UI evidence.
-    expect(
-      workflow,
-      contains(r'flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT} &'),
-    );
-    expect(workflow, contains(r'test_pid=$!'));
-    expect(workflow, contains(r'while kill -0 "$test_pid"'));
-    expect(workflow, contains('dumpsys activity activities'));
-    expect(workflow, contains('topResumedActivity'));
-    expect(workflow, contains('com.example.arvin'));
-    expect(workflow, contains('PNG image data'));
-    expect(workflow, contains(r'stat -c %s "$temp_path"'));
-    expect(workflow, contains('-ge 12000'));
-    expect(workflow, contains(r'sleep 0.25; done) & capture_pid=$!; if wait "$test_pid"'));
-    expect(workflow, contains(r'wait "$capture_pid" 2>/dev/null || true; if adb shell dumpsys activity activities'));
-    expect(workflow, contains(r'exit "$test_exit"'));
-    expect(workflow, contains('adb exec-out screencap -p'));
+    final driver = File('test_driver/integration_test.dart').readAsStringSync();
+    expect(driver, contains('integrationDriver('));
+    expect(driver, contains('onScreenshot:'));
+    expect(driver, contains(r'artifacts/device-smoke/$screenshotName.png'));
+    expect(driver, contains('writeAsBytes(screenshotBytes'));
+
+    final homeTest = File('integration_test/android_home_smoke_test.dart').readAsStringSync();
+    final quickCaptureTest = File('integration_test/android_quick_capture_smoke_test.dart').readAsStringSync();
+    final peopleTest = File('integration_test/android_people_smoke_test.dart').readAsStringSync();
+    expect(homeTest, contains("takeScreenshot('home')"));
+    expect(quickCaptureTest, contains("takeScreenshot('quick-capture')"));
+    expect(peopleTest, contains("takeScreenshot('people')"));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
     expect(
       workflow,

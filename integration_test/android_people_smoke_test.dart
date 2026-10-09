@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android completes canonical Task People add cancel remove flow',
       (tester) async {
@@ -135,6 +135,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('افراد مرتبط'), findsOneWidget);
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('people');
+    await binding.revertFlutterImage();
+    await tester.pumpAndSettle();
 
     final store = TaskStore();
 

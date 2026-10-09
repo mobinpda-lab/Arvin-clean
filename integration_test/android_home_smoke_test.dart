@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android launches Persian Home and creates a canonical Task',
       (tester) async {
@@ -20,6 +20,12 @@ void main() {
       await tester.tap(skipGuide);
       await tester.pumpAndSettle();
     }
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('home');
+    await binding.revertFlutterImage();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
 
