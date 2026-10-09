@@ -265,6 +265,45 @@ targetCalendarId: 'calendar-7',
     expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.delete);
   });
 
+  test('never exports a Task that originated from a device-calendar event', () async {
+    final executor = _Executor();
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: 'external-calendar:calendar-7:instance-1',
+        calendarId: 'calendar-7',
+        eventId: 'instance-1',
+        lastSyncedFingerprint: 'imported-task:task-1',
+      ),
+    ]);
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync([
+      CalendarReminder(
+        id: 'task-due:task-1',
+        title: 'رویداد واردشده',
+        date: DateTime(2026, 9, 16, 10),
+      ),
+      CalendarReminder(
+        id: 'followup:task-1:f1',
+        title: 'پیگیری واردشده',
+        date: DateTime(2026, 9, 16, 11),
+      ),
+    ]);
+
+    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items, isEmpty);
+  });
+
   test('task reminder uses the canonical task-reminder source setting', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
