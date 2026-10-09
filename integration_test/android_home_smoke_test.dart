@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android launches Persian Home and creates a canonical Task',
       (tester) async {
@@ -20,6 +20,7 @@ void main() {
       await tester.tap(skipGuide);
       await tester.pumpAndSettle();
     }
+
 
     await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
 
@@ -108,5 +109,24 @@ void main() {
     final created = persisted.where((task) => task.title == 'تست واقعی اندروید');
     expect(created, hasLength(1));
     expect(created.single.description, 'ثبت از مسیر Home روی Emulator');
+
+    // Full-form save can return to the Quick Capture sheet. Close the
+    // remaining sheet deterministically before collecting Home visual evidence.
+    final quickCaptureCancel =
+        find.byKey(const ValueKey('quick-capture-cancel'));
+    for (var attempt = 0;
+        attempt < 10 && quickCaptureDialog.evaluate().isNotEmpty;
+        attempt++) {
+      expect(quickCaptureCancel, findsOneWidget);
+      await tester.tap(quickCaptureCancel);
+      await tester.pumpAndSettle();
+    }
+    expect(quickCaptureDialog, findsNothing);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('home');
+
   });
 }

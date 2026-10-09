@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android Quick Capture cancel is zero-write and submit persists canonical Task',
       (tester) async {
@@ -61,6 +61,7 @@ void main() {
     }
 
     await openQuickCapture();
+
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'این مورد نباید ذخیره شود #لغو',
@@ -111,5 +112,10 @@ void main() {
     final reloaded = await TaskStore().load();
     expect(reloaded.any((task) => task.title == 'تماس با علی'), isTrue);
     expect(reloaded.any((task) => task.title == 'پرونده موجود'), isTrue);
+
+    await openQuickCapture();
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('quick-capture');
   });
 }

@@ -14,15 +14,40 @@ void main() {
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    expect(workflow, contains('max-parallel: 6'));
+    expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
-    // Keep visual evidence attached to the same canonical smoke scenarios.
-    expect(workflow, contains(r'if flutter test ${{ matrix.test_file }}'));
-    expect(workflow, contains(r'then test_exit=0; else test_exit=$?; fi'));
-    expect(workflow, contains(r'exit "$test_exit"'));
-    expect(workflow, contains('adb exec-out screencap -p'));
+    // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
+    expect(workflow, contains('script: flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(workflow, isNot(contains('adb exec-out screencap -p')));
+    expect(workflow, isNot(contains('uiautomator dump')));
+
+    final driver = File('test_driver/integration_test.dart').readAsStringSync();
+    expect(driver, contains('integrationDriver('));
+    expect(driver, contains('onScreenshot:'));
+    expect(driver, contains(r'artifacts/device-smoke/$screenshotName.png'));
+    expect(driver, contains('writeAsBytes(screenshotBytes'));
+
+    final homeTest = File('integration_test/android_home_smoke_test.dart').readAsStringSync();
+    final quickCaptureTest = File('integration_test/android_quick_capture_smoke_test.dart').readAsStringSync();
+    final peopleTest = File('integration_test/android_people_smoke_test.dart').readAsStringSync();
+    expect(homeTest, contains("takeScreenshot('home')"));
+    final homeRouteAssertionIndex = homeTest.indexOf(
+      "expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);",
+      homeTest.indexOf('expect(created.single.description'),
+    );
+    final homeScreenshotIndex =
+        homeTest.indexOf('await binding.convertFlutterSurfaceToImage();');
+    expect(homeRouteAssertionIndex, greaterThanOrEqualTo(0));
+    expect(homeRouteAssertionIndex, lessThan(homeScreenshotIndex));
+    expect(homeTest, contains('quickCaptureCancel'));
+    expect(quickCaptureTest, contains("takeScreenshot('quick-capture')"));
+    expect(peopleTest, contains("takeScreenshot('people')"));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
+    expect(
+      workflow,
+      contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
+    );
     expect(workflow, contains('actions/upload-artifact@v4'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 

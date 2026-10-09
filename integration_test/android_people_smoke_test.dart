@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Android completes canonical Task People add cancel remove flow',
       (tester) async {
@@ -136,6 +136,7 @@ void main() {
 
     expect(find.text('افراد مرتبط'), findsOneWidget);
 
+
     final store = TaskStore();
 
     await tester.tap(find.byKey(const ValueKey('people-add')));
@@ -200,5 +201,9 @@ void main() {
         .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people, isEmpty);
     expect(persisted.description, 'توضیح باید محفوظ بماند');
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('people');
   });
 }

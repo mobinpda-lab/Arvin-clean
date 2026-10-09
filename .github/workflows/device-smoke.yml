@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 2
       matrix:
         include:
           - scenario: home
@@ -116,11 +116,10 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: |
-            bash -c 'set -eu; mkdir -p artifacts/device-smoke; adb shell pm grant com.example.arvin android.permission.POST_NOTIFICATIONS || true; adb shell pm grant com.example.arvin android.permission.READ_CALENDAR || true; adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR || true; if flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}; then test_exit=0; else test_exit=$?; fi; adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true; exit "$test_exit"'
+          script: flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
 
       - name: Upload Android smoke screenshot evidence
-        if: always()
+        if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
         uses: actions/upload-artifact@v4
         with:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}

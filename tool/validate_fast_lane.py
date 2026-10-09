@@ -62,7 +62,16 @@ for scenario in [
     'people',
 ]:
     require(device, f'scenario: {scenario}', str(device_path))
-require(device, 'max-parallel: 6', str(device_path))
+require(device, 'max-parallel: 2', str(device_path))
+require(device, 'flutter drive --driver=test_driver/integration_test.dart', str(device_path))
+forbid(device, 'adb exec-out screencap -p', str(device_path))
+driver_path = Path('test_driver/integration_test.dart')
+if not driver_path.is_file():
+    raise SystemExit(f'Fast Lane screenshot driver missing: {driver_path}')
+driver = driver_path.read_text(encoding='utf-8')
+require(driver, 'integrationDriver(', str(driver_path))
+require(driver, 'onScreenshot:', str(driver_path))
+require(driver, 'artifacts/device-smoke/$screenshotName.png', str(driver_path))
 forbidden_device_parallel = 'max-parallel: 1'
 forbid(device, forbidden_device_parallel, str(device_path))
 
