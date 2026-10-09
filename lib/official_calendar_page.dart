@@ -22,7 +22,6 @@ class OfficialCalendarPage extends StatefulWidget {
     this.reminders = const <CalendarReminder>[],
     this.initialSelectedDay,
     this.onCompleteReminder,
-    this.onSnoozeReminder,
     this.onEditReminder,
     this.onEditTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -43,7 +42,6 @@ class OfficialCalendarPage extends StatefulWidget {
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
-  final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
@@ -216,7 +214,6 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               reminders: snapshot.requireData,
               initialSelectedDay: widget.initialSelectedDay,
               onCompleteReminder: widget.onCompleteReminder,
-              onSnoozeReminder: widget.onSnoozeReminder,
               onEditReminder: widget.onEditReminder,
               onEditTask: widget.onEditTask,
               onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
