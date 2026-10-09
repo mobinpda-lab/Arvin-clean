@@ -109,6 +109,15 @@ void main() {
     final created = persisted.where((task) => task.title == 'تست واقعی اندروید');
     expect(created, hasLength(1));
     expect(created.single.description, 'ثبت از مسیر Home روی Emulator');
+
+    final quickCaptureCancel =
+        find.byKey(const ValueKey('quick-capture-cancel'));
+    if (quickCaptureDialog.evaluate().isNotEmpty &&
+        quickCaptureCancel.evaluate().isNotEmpty) {
+      await tester.tap(quickCaptureCancel);
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('home');
