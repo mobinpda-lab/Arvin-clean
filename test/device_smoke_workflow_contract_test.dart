@@ -34,8 +34,8 @@ void main() {
     expect(workflow, contains('topResumedActivity'));
     expect(workflow, contains('com.example.arvin'));
     expect(workflow, contains('PNG image data'));
-    expect(workflow, contains('uiautomator dump /sdcard/arvin-smoke-window.xml'));
-    expect(workflow, contains('grep -F "Test starting"'));
+    expect(workflow, contains('stat -c %s "$temp_path"'));
+    expect(workflow, contains('-ge 12000'));
     expect(workflow, contains(r'exit "$test_exit"'));
     expect(workflow, contains('adb exec-out screencap -p'));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
