@@ -53,7 +53,9 @@ class TaskReportProjection {
             title: task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
             description: task.description,
             tags: List<String>.unmodifiable(task.tags),
-            checklist: List<String>.unmodifiable(task.checklist),
+            checklist: List<String>.unmodifiable(
+              task.checklistEnabled ? task.checklist : const <String>[],
+            ),
             followUps: List<FollowUp>.unmodifiable(task.followUps),
             completed: task.completed,
             reminderDate: task.reminderDate,
