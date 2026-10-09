@@ -14,7 +14,7 @@ void main() {
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    expect(workflow, contains('max-parallel: 6'));
+    expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Capture evidence only while the real app is foregrounded; never use
