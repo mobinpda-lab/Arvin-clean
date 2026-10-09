@@ -15,6 +15,9 @@ class TaskReportFilter {
     this.projectId,
     this.category,
     this.tag,
+    this.projectIds = const <String>{},
+    this.categories = const <String>{},
+    this.tags = const <String>{},
     this.status = ReportStatusFilter.all,
     this.priority,
     this.hasRepeat,
@@ -30,6 +33,9 @@ class TaskReportFilter {
   final String? projectId;
   final String? category;
   final String? tag;
+  final Set<String> projectIds;
+  final Set<String> categories;
+  final Set<String> tags;
   final ReportStatusFilter status;
   final TaskPriority? priority;
   final bool? hasRepeat;
@@ -45,6 +51,9 @@ class TaskReportFilter {
       projectId != null ||
       category != null ||
       tag != null ||
+      projectIds.isNotEmpty ||
+      categories.isNotEmpty ||
+      tags.isNotEmpty ||
       status != ReportStatusFilter.all ||
       priority != null ||
       hasRepeat != null ||
@@ -56,9 +65,21 @@ class TaskReportFilter {
     required DateTime now,
     Iterable<ProjectPlan> projects = const [],
   }) {
-    final project = projectId == null
-        ? null
-        : projects.where((item) => item.id == projectId).firstOrNull;
+    final selectedProjectIds = <String>{
+      ...projectIds,
+      if (projectId != null) projectId!,
+    };
+    final selectedCategories = <String>{
+      ...categories,
+      if (category != null) category!,
+    };
+    final selectedTags = <String>{
+      ...tags,
+      if (tag != null) tag!,
+    };
+    final selectedProjects = projects
+        .where((item) => selectedProjectIds.contains(item.id))
+        .toList(growable: false);
     return tasks.where((task) {
       if (task.trashed) return false;
       if (!_matchesStatus(task)) return false;
@@ -73,12 +94,16 @@ class TaskReportFilter {
           (task.checklist.isNotEmpty) != hasChecklist) {
         return false;
       }
-      if (category != null && task.category?.trim() != category) return false;
-      if (tag != null && !task.tags.any((value) => value.trim() == tag)) {
+      if (selectedCategories.isNotEmpty &&
+          !selectedCategories.contains(task.category?.trim())) {
         return false;
       }
-      if (projectId != null &&
-          (project == null || !project.itemIds.contains(task.id))) {
+      if (selectedTags.isNotEmpty &&
+          !task.tags.any((value) => selectedTags.contains(value.trim()))) {
+        return false;
+      }
+      if (selectedProjectIds.isNotEmpty &&
+          !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
       if (!_matchesTime(task.dueDate, now)) return false;
@@ -143,8 +168,4 @@ class TaskReportFilter {
 
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
-}
-
-extension<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
 }

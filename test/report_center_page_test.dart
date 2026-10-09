@@ -74,10 +74,7 @@ void main() {
       await tester.drag(find.byType(ListView).last, const Offset(0, -700));
       await tester.pumpAndSettle();
 
-      final categoryField = find.byType(DropdownButtonFormField<String?>).at(1);
-      await tester.tap(categoryField);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('کار').last);
+      await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
@@ -98,3 +95,4 @@ void main() {
     },
   );
 }
+
