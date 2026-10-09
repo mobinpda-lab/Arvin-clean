@@ -31,20 +31,18 @@ Live GitHub shows substantial product progress. The remaining gap is product int
 
 ## Active lane
 
-### Typography — #1860 / PR #2408
-**Status: IN PROGRESS — DEVICE/UX VERIFICATION**
+### Typography — #1860 / canonical settings path
+**Status: IMPLEMENTATION RECONCILED — DEVICE/UX ACCEPTANCE STILL OPEN**
 
-PR #2408 makes the existing «فونت دستگاه» selection real through the canonical AppSettingsService/AppSettings path.
+PR #2413 (`fix(settings): reconcile device font selection with current main`) merged on 2026-10-07 as `d4efd86485113a711e0e0009dda266e051860ece`. It reconciles the existing system-font selection with current main: explicit `system` selection, Flutter system font at the ThemeData boundary, and legacy/unset preference remaining on VazirHarf. PR #2408 is historical implementation context, not the active unmerged lane.
 
 Protected:
 - no new storage/model/controller;
 - no new font engine;
-- VazirHarf remains canonical default;
-- existing font-size path remains unchanged.
+- VazirHarf remains the legacy/unset default;
+- existing canonical AppSettingsService/AppSettings path is reused.
 
-Exact head: 1d7052e1027f9e4ece1ee36a5aef29929b344644
-
-Exact HEAD `1d7052e1027f9e4ece1ee36a5aef29929b344644` has successful Production Loop, Orchestrator, G1 lock sync and Device Smoke #3513. **Do not call #2408 Done yet.** The remaining gate is user-facing Settings acceptance: system font actual effect in light/dark, restart persistence, return to VazirHarf, restart persistence, and data-safety evidence.
+**Still not accepted:** On the installed current-main APK, verify system font visibly applies in light and dark themes, selection persists after restart, switching back to VazirHarf persists after restart, and font-size control/behavior matches #1860. No claim of full Typography completion without this evidence.
 
 ## P0/P1 remaining product work
 
