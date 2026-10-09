@@ -411,7 +411,7 @@ void main() {
     expect(find.text('انتقال امروز'), findsOneWidget);
 
     final moved = (await TaskStore().load()).singleWhere((task) => task.id == 'move');
-    final today = DateTime.now();
+    final today = IranClock.now();
     expect(moved.dueDate?.year, today.year);
     expect(moved.dueDate?.month, today.month);
     expect(moved.dueDate?.day, today.day);
