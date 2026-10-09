@@ -567,14 +567,14 @@ class _MultiSelectChips extends StatelessWidget {
         runSpacing: 4,
         children: [
           FilterChip(
-            key: ValueKey('${keyPrefix}-all'),
+            key: ValueKey('$keyPrefix-all'),
             label: Text(allLabel),
             selected: selected.isEmpty,
             onSelected: (_) => onChanged(<String>{}),
           ),
           for (final option in options)
             FilterChip(
-              key: ValueKey('${keyPrefix}-${option.key}'),
+              key: ValueKey('$keyPrefix-${option.key}'),
               label: Text(option.value),
               selected: selected.contains(option.key),
               onSelected: (checked) {
