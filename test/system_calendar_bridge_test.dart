@@ -55,6 +55,34 @@ void main() {
     expect(calls.single.arguments, isA<Map<Object?, Object?>>());
   });
 
+  test('opens the selected phone-owned event in its native calendar editor', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return true;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    expect(
+      await SystemCalendarBridge(channel: channel).openDeviceCalendarEvent(
+        calendarId: 'calendar-7',
+        eventId: 'event-1',
+      ),
+      isTrue,
+    );
+    expect(calls, hasLength(1));
+    expect(calls.single.method, SystemCalendarBridge.openProviderEventMethod);
+    expect(calls.single.arguments, <String, Object?>{
+      'calendarId': 'calendar-7',
+      'eventId': 'event-1',
+    });
+  });
+
   test('ineligible reminder never crosses the native boundary', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];
