@@ -117,7 +117,37 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            bash -c 'set -eu; mkdir -p artifacts/device-smoke; adb shell pm grant com.example.arvin android.permission.POST_NOTIFICATIONS || true; adb shell pm grant com.example.arvin android.permission.READ_CALENDAR || true; adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR || true; if flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}; then test_exit=0; else test_exit=$?; fi; adb exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}.png" || true; exit "$test_exit"'
+            bash -c '
+              set -eu
+              mkdir -p artifacts/device-smoke
+              screenshot_path="artifacts/device-smoke/${{ matrix.scenario }}.png"
+              temp_path="${screenshot_path}.tmp"
+              adb shell pm grant com.example.arvin android.permission.POST_NOTIFICATIONS || true
+              adb shell pm grant com.example.arvin android.permission.READ_CALENDAR || true
+              adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR || true
+
+              flutter test ${{ matrix.test_file }} -d emulator-${EMULATOR_PORT} &
+              test_pid=$!
+              (
+                while kill -0 "$test_pid" 2>/dev/null; do
+                  if adb shell dumpsys activity activities 2>/dev/null | grep -E "mResumedActivity|topResumedActivity" | grep -q "com.example.arvin"; then
+                    if adb exec-out screencap -p > "$temp_path" 2>/dev/null && file "$temp_path" | grep -q "PNG image data"; then
+                      mv "$temp_path" "$screenshot_path"
+                    else
+                      rm -f "$temp_path"
+                    fi
+                  fi
+                  sleep 1
+                done
+              ) &
+              capture_pid=$!
+
+              if wait "$test_pid"; then test_exit=0; else test_exit=$?; fi
+              kill "$capture_pid" 2>/dev/null || true
+              wait "$capture_pid" 2>/dev/null || true
+              rm -f "$temp_path"
+              exit "$test_exit"
+            '
 
       - name: Upload Android smoke screenshot evidence
         if: always()
