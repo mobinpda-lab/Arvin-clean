@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   actions: write
+  issues: read
   pull-requests: read
 
 concurrency:
@@ -231,6 +232,41 @@ jobs:
             core.info(
               `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
             );
+      - name: Require explicit product release approval
+        if: steps.release_state.outputs.already_released != 'true'
+        id: product_gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // A green build is not product acceptance. Publication stays blocked
+            // until the existing release gate and the known regression lane are closed.
+            const gate = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: 2102
+            });
+            if (gate.data.state !== 'closed') {
+              core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
+              return;
+            }
+
+            const regression = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: 1901
+            });
+            if (regression.data.state !== 'closed') {
+              core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
+              return;
+            }
+
+            core.info('PRODUCT_RELEASE_GATE=approved');
+            core.info('RELEASE_GATE_ISSUE=2102:closed');
+            core.info('REGRESSION_LANE_PR=1901:closed');
+
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
@@ -340,7 +376,9 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const sha = process.env.MAIN_SHA;
-            const tag = `v0.1.0-arvin-${sha.slice(0,7)}`;
+            const appVersion = process.env.APP_VERSION.split('+')[0];
+            const buildNumber = process.env.BUILD_NUMBER;
+            const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;
             try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
