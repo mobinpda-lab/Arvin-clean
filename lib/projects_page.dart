@@ -76,7 +76,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ));
   }
 
-  void _toggleArchive(ProjectPlan project) {
+  Future<void> _toggleArchive(ProjectPlan project) async {
     final saved = await _commit(_service.setArchived(
       _projects,
       projectId: project.id,
@@ -94,7 +94,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  void _deleteProject(ProjectPlan project) {
+  Future<void> _deleteProject(ProjectPlan project) async {
     if (!project.canDelete) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -105,7 +105,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       );
       return;
     }
-    _commit(_service.delete(_projects, projectId: project.id));
+    await _commit(_service.delete(_projects, projectId: project.id));
   }
 
   Future<_ProjectDraft?> _editDialog({ProjectPlan? project}) {
