@@ -18,7 +18,9 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Keep visual evidence attached to the same canonical smoke scenarios.
-    expect(workflow, contains('capture_smoke_screenshot'));
+    expect(workflow, contains('if flutter test ${{ matrix.test_file }}'));
+    expect(workflow, contains('then test_exit=0; else test_exit=$?; fi'));
+    expect(workflow, contains('exit "$test_exit"'));
     expect(workflow, contains('adb exec-out screencap -p'));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
     expect(workflow, contains('actions/upload-artifact@v4'));
