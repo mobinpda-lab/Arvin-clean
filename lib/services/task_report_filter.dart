@@ -169,7 +169,3 @@ class TaskReportFilter {
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 }
-
-extension<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
-}
