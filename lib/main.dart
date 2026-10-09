@@ -70,6 +70,24 @@ class _SettingsTextScaler extends TextScaler {
   double scale(double fontSize) => systemScaler.scale(fontSize * userScale);
 
   @override
+  double get textScaleFactor => systemScaler.textScaleFactor * userScale;
+
+  @override
+  TextScaler clamp({
+    double minScaleFactor = 0,
+    double maxScaleFactor = double.infinity,
+  }) {
+    assert(userScale > 0);
+    return _SettingsTextScaler(
+      systemScaler: systemScaler.clamp(
+        minScaleFactor: minScaleFactor / userScale,
+        maxScaleFactor: maxScaleFactor / userScale,
+      ),
+      userScale: userScale,
+    );
+  }
+
+  @override
   bool operator ==(Object other) =>
       other is _SettingsTextScaler &&
       other.systemScaler == systemScaler &&
