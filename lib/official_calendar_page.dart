@@ -186,31 +186,14 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
     return FutureBuilder<List<CalendarReminder>>(
       future: _loadFuture,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('تقویم پیگیری')),
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('بارگذاری مناسبت‌های رسمی انجام نشد'),
-                  const SizedBox(height: 12),
-                  TextButton(onPressed: _retry, child: const Text('تلاش دوباره')),
-                ],
-              ),
-            ),
-          );
-        }
-        if (!snapshot.hasData) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('تقویم پیگیری')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+        // Canonical Task reminders must not wait for optional official sources.
+        // Keep CalendarPage at a stable tree position so late official/external
+        // data merges without resetting the user's selected date or view.
+        final reminders = snapshot.data ?? widget.reminders;
         return Stack(
           children: [
             CalendarPage(
-              reminders: snapshot.requireData,
+              reminders: reminders,
               initialSelectedDay: widget.initialSelectedDay,
               onCompleteReminder: widget.onCompleteReminder,
               onEditReminder: widget.onEditReminder,
@@ -226,6 +209,23 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               onPrayerCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
               onPrayerNotCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.notCompleted),
             ),
+            if (!snapshot.hasData)
+              PositionedDirectional(
+                top: MediaQuery.paddingOf(context).top + 8,
+                end: 8,
+                child: SafeArea(
+                  child: snapshot.hasError
+                      ? TextButton(
+                          onPressed: _retry,
+                          child: const Text('مناسبت‌ها بارگذاری نشد · تلاش دوباره'),
+                        )
+                      : const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                ),
+              ),
             PositionedDirectional(
               top: MediaQuery.paddingOf(context).top + 8,
               start: 8,
