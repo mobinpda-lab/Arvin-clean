@@ -46,6 +46,23 @@ void main() {
     expect(result.single.completed, isFalse);
   });
 
+  test('keeps imported source events visible when their import link exists', () {
+    final result = projection.project(
+      [event(instanceId: 'instance-1', eventId: 'event-1')],
+      linkedEvents: [
+        ExternalCalendarEventLink(
+          reminderId: 'external-calendar:device-calendar:instance-1',
+          calendarId: 'device-calendar',
+          eventId: 'event-1',
+          lastSyncedFingerprint: 'imported-task:task-1',
+        ),
+      ],
+    );
+
+    expect(result, hasLength(1));
+    expect(result.single.id, 'external-calendar:device-calendar:instance-1');
+  });
+
   test('filters Arvin-owned linked provider events to prevent duplicates', () {
     final result = projection.project(
       [
