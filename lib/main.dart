@@ -2521,14 +2521,19 @@ class _HomePageState extends State<HomePage> {
                             ),
                             IconButton(
                               key: ValueKey('task-card-clear-due-${task.id}'),
-                              tooltip: 'بستن هشدار تاریخ گذشته',
+                              tooltip: late ? 'بستن هشدار تاریخ گذشته' : 'حذف موعد',
                               visualDensity: VisualDensity.compact,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              onPressed: () {
+                              onPressed: () async {
                                 final dueDate = task.dueDate;
                                 if (dueDate == null) return;
-                                setState(() => _dismissedOverdueWarnings[task.id] = dueDate);
+                                if (late) {
+                                  setState(() => _dismissedOverdueWarnings[task.id] = dueDate);
+                                  return;
+                                }
+                                setState(() => task.dueDate = null);
+                                await _save();
                               },
                               icon: const Icon(Icons.close_rounded, size: 17),
                               color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
