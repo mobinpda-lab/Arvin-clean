@@ -17,6 +17,7 @@ void main() {
     expect(gateIndex, greaterThanOrEqualTo(0));
     expect(workflow, contains('issue_number: 2102'));
     expect(workflow, contains('  issues: read'));
+    expect(workflow, contains('  cancel-in-progress: true'));
     expect(
       workflow,
       contains('const tag = `v\${appVersion}-build\${buildNumber}-arvin-\${sha.slice(0,7)}`;'),
