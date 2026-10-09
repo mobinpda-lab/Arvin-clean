@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,26 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
+  test('provider acceptance runs when calendar settings contract changes', () {
+    final workflow = File(
+      '.github/workflows/calendar-provider-acceptance.yml',
+    ).readAsStringSync();
+    final pushPaths = workflow.split('  pull_request:').first;
+    final pullRequestPaths = workflow.split('  pull_request:').last.split(
+      '  workflow_dispatch:',
+    ).first;
+
+    const requiredPaths = [
+      'test/calendar_integration_settings_page_test.dart',
+      'test/services/calendar_outbound_sync_service_test.dart',
+      'test/services/calendar_integration_settings_contract_test.dart',
+    ];
+    for (final path in requiredPaths) {
+      expect(pushPaths, contains(path));
+      expect(pullRequestPaths, contains(path));
+    }
   });
 
   test('device calendar integration is opt-in and conservative by default', () async {
