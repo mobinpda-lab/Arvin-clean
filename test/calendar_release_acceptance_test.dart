@@ -113,11 +113,10 @@ void main() {
   );
 
   testWidgets(
-    'Calendar release acceptance routes complete and snooze actions without a second action engine',
+    'Calendar release acceptance routes completion without exposing ineffective snooze',
     (tester) async {
       final day = DateTime(2026, 9, 9, 10);
       var completed = 0;
-      var snoozed = 0;
       final reminder = CalendarReminder(
         id: 'followup:release-task:release-followup',
         title: 'پیگیری قرارداد',
@@ -132,7 +131,6 @@ void main() {
               initialSelectedDay: day,
               reminders: <CalendarReminder>[reminder],
               onCompleteReminder: (_) async => completed++,
-              onSnoozeReminder: (_) async => snoozed++,
             ),
           ),
         ),
@@ -148,13 +146,9 @@ void main() {
         find.byKey(const ValueKey('reminder-complete-followup:release-task:release-followup')),
       );
       await tester.pump();
-      await tester.tap(
-        find.byKey(const ValueKey('reminder-snooze-followup:release-task:release-followup')),
-      );
-      await tester.pump();
 
       expect(completed, 1);
-      expect(snoozed, 1);
+      expect(find.text('تعویق'), findsNothing);
     },
   );
 
