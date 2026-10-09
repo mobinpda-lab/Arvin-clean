@@ -438,6 +438,8 @@ void main() {
         ),
       ),
     );
+    await tester.tap(find.text('تقویم'));
+    await tester.pump();
     await _pumpRouteTransition(tester);
 
     final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
