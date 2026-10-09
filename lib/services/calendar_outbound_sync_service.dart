@@ -29,6 +29,27 @@ class CalendarOutboundSyncService {
   final CalendarProviderSyncExecutor executor;
   final ExternalCalendarLinkStore linkStore;
 
+  String? _taskIdForReminder(String reminderId) {
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+      'task-recurrence:',
+    ]) {
+      if (reminderId.startsWith(prefix)) {
+        final value = reminderId.substring(prefix.length);
+        final separator = value.indexOf(':');
+        return separator < 0 ? value : value.substring(0, separator);
+      }
+    }
+    if (reminderId.startsWith('followup:')) {
+      final value = reminderId.substring('followup:'.length);
+      final separator = value.indexOf(':');
+      if (separator > 0) return value.substring(0, separator);
+    }
+    return null;
+  }
+
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
@@ -45,9 +66,18 @@ class CalendarOutboundSyncService {
 
     final links = await linkStore.load();
     final linkedReminderIds = links.map((link) => link.reminderId).toSet();
+    final importedTaskIds = links
+        .where((link) => link.reminderId.startsWith('external-calendar:') &&
+            link.lastSyncedFingerprint.startsWith('imported-task:'))
+        .map((link) => link.lastSyncedFingerprint.substring('imported-task:'.length))
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
       if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
+      final taskId = _taskIdForReminder(reminder.id);
+      if (taskId != null && importedTaskIds.contains(taskId)) continue;
       if (!_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
@@ -56,8 +86,7 @@ class CalendarOutboundSyncService {
         // reminders are intentionally outside outbound provider sync.
       }
     }
-    // An edit-only reconciliation must never create unrelated provider events
-    // or delete stale links when a canonical row is temporarily absent.
+
     if (linkedOnly && revisions.isEmpty) return null;
 
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
