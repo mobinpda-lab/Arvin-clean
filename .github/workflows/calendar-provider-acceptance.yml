@@ -12,6 +12,7 @@ on:
       - 'lib/calendar_integration_settings_page.dart'
       - 'test/services/calendar_outbound_sync_service_test.dart'
       - 'test/services/calendar_integration_settings_contract_test.dart'
+      - 'test/calendar_integration_settings_page_test.dart'
       - 'lib/services/calendar_sync_plan_service.dart'
       - 'lib/services/system_calendar_bridge.dart'
       - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
@@ -25,6 +26,9 @@ on:
       - 'lib/services/system_calendar_bridge.dart'
       - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
       - 'test/follow_up_calendar_projection_test.dart'
+      - 'test/calendar_integration_settings_page_test.dart'
+      - 'test/services/calendar_outbound_sync_service_test.dart'
+      - 'test/services/calendar_integration_settings_contract_test.dart'
   workflow_dispatch:
 
 permissions:
