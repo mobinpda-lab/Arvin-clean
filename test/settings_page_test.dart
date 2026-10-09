@@ -32,6 +32,9 @@ void main() {
     expect(find.text('راهنمای تعاملی صفحه اصلی'), findsNothing);
 
     expect(find.text('تنظیمات'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-permission-status')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-system-settings-entry')), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
     expect((await service.load()).usePersianDate, isTrue);
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
