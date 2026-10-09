@@ -32,6 +32,10 @@ void main() {
     expect(workflow, contains(r'exit "$test_exit"'));
     expect(workflow, contains('adb exec-out screencap -p'));
     expect(workflow, contains('Upload Android smoke screenshot evidence'));
+    expect(
+      workflow,
+      contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
+    );
     expect(workflow, contains('actions/upload-artifact@v4'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
