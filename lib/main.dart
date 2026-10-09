@@ -1198,6 +1198,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
+    if (!mounted) return task;
+    // Ordinary auto-sync may be disabled even though this Task was explicitly
+    // linked to the phone calendar earlier. Reconcile only existing links so
+    // editing one Task cannot create events for unrelated Tasks.
+    await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
     return task;
   }
 
@@ -1258,6 +1263,36 @@ class _HomePageState extends State<HomePage> {
             action: SnackBarAction(
               label: 'تلاش دوباره',
               onPressed: () => _retryCalendarSync(snapshot),
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    }
+  }
+
+  Future<void> _syncLinkedCalendarAfterTaskEdit(List<Task> snapshot) async {
+    try {
+      final result = await calendarOutboundSyncService.sync(
+        calendarProjection.project(snapshot),
+        force: true,
+        linkedOnly: true,
+      );
+      if (!mounted || result == null || result.updated == 0) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('تغییرات کار در تقویم گوشی هم به‌روز شد.')),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('کار در آروین ذخیره شد، اما رویداد پیوندخوردهٔ گوشی به‌روز نشد.'),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _syncLinkedCalendarAfterTaskEdit(snapshot),
             ),
             duration: const Duration(seconds: 6),
           ),
