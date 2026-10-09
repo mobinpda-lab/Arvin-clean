@@ -75,6 +75,8 @@ void main() {
     );
 
     await tester.pumpWidget(buildFilter(const Size(320, 800)));
+    // The same AnimatedContainer transitions from 72 px to 88 px.
+    await tester.pump(const Duration(milliseconds: 200));
     expect(
       tester.getSize(find.byKey(const ValueKey('home-filter-card-time'))).height,
       88,
