@@ -185,14 +185,25 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
-    if (!reminder.id.startsWith('task-due:') || widget.onEditTask == null) return;
-    final id = reminder.id.substring('task-due:'.length);
+    if (widget.onEditTask == null) return;
     Task? task;
-    for (final candidate in _tasks) {
-      if (!candidate.trashed && candidate.id == id) {
-        task = candidate;
-        break;
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      for (final candidate in _tasks) {
+        if (candidate.trashed) continue;
+        // A repeat occurrence appends its ISO timestamp after the stable Task
+        // ID. Resolve the canonical Task while keeping the occurrence read-only.
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+          task = candidate;
+          break;
+        }
       }
+      if (task != null) break;
     }
     if (task == null) return;
     await widget.onEditTask!(task);
