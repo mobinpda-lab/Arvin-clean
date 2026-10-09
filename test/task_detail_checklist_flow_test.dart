@@ -41,6 +41,24 @@ void main() {
     expect(tester.widget<Text>(progress).data, isNotEmpty);
   });
 
+  testWidgets('task detail hides disabled checklist while retaining its rows', (tester) async {
+    final task = Task(
+      id: 'disabled-checklist-detail',
+      title: 'کار با چک‌لیست خاموش',
+      checklist: const ['[ ] کیف'],
+      checklistEnabled: false,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(task: task),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
+    expect(task.checklist, const ['[ ] کیف']);
+  });
+
   testWidgets('task detail hides checklist section when task has no checklist', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
