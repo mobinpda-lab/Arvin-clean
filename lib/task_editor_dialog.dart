@@ -884,7 +884,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       ),
                       const Expanded(
                         child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                          child: Text(editing ? 'ویرایش کار' : 'کار جدید', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                         ),
                       ),
                       FilledButton.icon(
@@ -931,6 +931,18 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       label: 'توضیحات',
                       hint: 'توضیحات را وارد کنید…',
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  _dateTimeEditor(
+                    keyPrefix: 'task-editor-due',
+                    title: 'تاریخ انجام',
+                    value: _dueDateTime,
+                    onPickDate: _pickDueDate,
+                    onPickTime: _pickDueTime,
+                    onClear: _clearDueTime,
+                    accent: ArvinColors.time,
+                    allDay: _dueAllDay,
+                    onToggleAllDay: _toggleDueAllDay,
                   ),
                   const SizedBox(height: 14),
                   Row(
@@ -1033,7 +1045,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   ],
                   const SizedBox(height: 14),                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
-                    initiallyExpanded: true,
+                    initiallyExpanded: false,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                     childrenPadding: const EdgeInsets.only(bottom: 8),
                     title: const Text(
@@ -1041,21 +1053,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: const Text(
-                      'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
+                      'یادآوری، تکرار، اولویت، چک‌لیست و پیگیری',
                     ),
                     children: [
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
-                      ),
-                      const SizedBox(height: 10),
                       _dateTimeEditor(
                         keyPrefix: 'task-editor-reminder',
                         title: 'یادآوری',
