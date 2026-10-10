@@ -1879,14 +1879,12 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      // Catalog restore is additive: keep local entries, and never make older
-      // backups delete taxonomy values that already exist on this device.
-      for (final category in candidate.categories ?? const <String>[]) {
-        await taskStore.createCategory(category);
-      }
-      for (final tag in candidate.tags ?? const <String>[]) {
-        await taskStore.createTag(tag);
-      }
+      // Catalog restore is additive and transactional: keep local entries,
+      // and never let older backups delete taxonomy values on this device.
+      await taskStore.mergeCatalogs(
+        categories: candidate.categories ?? const <String>[],
+        tags: candidate.tags ?? const <String>[],
+      );
       await taskStore.save(List<Task>.of(list));
       try {
         await AndroidFollowUpReminderScheduler().reschedule();
