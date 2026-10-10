@@ -2743,7 +2743,12 @@ class _HomePageState extends State<HomePage> {
                 alignment: AlignmentDirectional.centerEnd,
                 child: KeyedSubtree(
                   key: const ValueKey('home-canonical-add'),
-                  child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+                  child: SizedBox(
+                    key: const ValueKey('home-compact-add-bounds'),
+                    width: 56,
+                    height: 56,
+                    child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+                  ),
                 ),
               ),
             ),
