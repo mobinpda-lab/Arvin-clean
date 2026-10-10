@@ -30,6 +30,35 @@ void main() {
     expect(SystemCalendarBridge.isEligible(completed), isFalse);
   });
 
+  test('linked provider identity verification uses the native bridge and fails closed', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method == SystemCalendarBridge.verifyProviderEventIdentityMethod) {
+        return true;
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final bridge = SystemCalendarBridge();
+    expect(
+      await bridge.verifyProviderEventIdentity(calendarId: '42', eventId: '7'),
+      isTrue,
+    );
+    expect(calls.single.method, SystemCalendarBridge.verifyProviderEventIdentityMethod);
+    expect(calls.single.arguments, {'calendarId': '42', 'eventId': '7'});
+    expect(
+      await bridge.verifyProviderEventIdentity(calendarId: '', eventId: '7'),
+      isFalse,
+    );
+  });
+
   test('eligible reminder is sent through the existing platform boundary', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];
