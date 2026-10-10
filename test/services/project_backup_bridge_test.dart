@@ -4,6 +4,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,13 @@ void main() {
     await store.save([
       ProjectPlan(id: 'p1', title: 'پروژه', itemIds: ['t1']),
     ]);
+    final link = ExternalCalendarEventLink(
+      reminderId: 'task-due:t1',
+      calendarId: '42',
+      eventId: 'event-t1',
+      lastSyncedFingerprint: 'fingerprint-t1',
+    );
+    await ExternalCalendarLinkStore().save([link]);
     final manager = _RecordingBackupManager();
     final bridge = ProjectBackupBridge(
       projectStore: store,
@@ -60,6 +68,7 @@ void main() {
     expect(manager.capturedTasks?.single.id, 't1');
     expect(manager.capturedProjects?.single.id, 'p1');
     expect(manager.capturedProjects?.single.itemIds, ['t1']);
+    expect(manager.capturedCalendarLinks?.single.eventId, 'event-t1');
   });
 
   test('restore writes candidate Projects through canonical ProjectStore', () async {
