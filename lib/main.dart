@@ -1245,6 +1245,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _trashTaskFromCalendar(Task task) async {
+    if (loadFailure != null) {
+      throw StateError(
+        'Canonical task storage is unreadable; refusing Calendar write.',
+      );
+    }
+    final index = tasks.indexWhere((item) => item.id == task.id);
+    if (index < 0 || tasks[index].trashed) return;
+    setState(() {
+      final canonical = tasks[index];
+      canonical.trashed = true;
+      canonical.archived = false;
+      canonical.updatedAt = DateTime.now();
+    });
+    await _save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('کار به سطل زباله منتقل شد.')),
+      );
+  }
+
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     if (!mounted) return task;
@@ -1956,6 +1979,7 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),
         ),
