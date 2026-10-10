@@ -27,9 +27,9 @@ class CalendarSyncRevision {
 
 /// Local metadata linking one canonical Arvin reminder to one external event.
 ///
-/// This is not a second calendar source of truth. Provider adapters may persist
-/// these identifiers later so repeated sync can update the same external event
-/// instead of creating duplicates.
+/// This is not a second calendar source of truth. The same identity metadata is
+/// used for idempotent sync and preserved in portable Backup/Restore documents;
+/// every provider update must still verify the exact calendarId + eventId.
 class ExternalCalendarEventLink {
   ExternalCalendarEventLink({
     required this.reminderId,
