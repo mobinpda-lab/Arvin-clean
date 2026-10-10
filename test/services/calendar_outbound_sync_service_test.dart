@@ -290,6 +290,48 @@ targetCalendarId: 'calendar-7',
     expect(links.links, isEmpty);
   });
 
+  test('trash preserves linked event metadata when delete policy is off', () async {
+    final reminder = followUp('f1');
+    final revision = await CalendarSyncRevisionService().fromReminder(reminder);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'event-9',
+        lastSyncedFingerprint: revision.fingerprint,
+      ),
+      ExternalCalendarEventLink(
+        reminderId: 'followup:task-2:f2',
+        calendarId: 'calendar-7',
+        eventId: 'event-10',
+        lastSyncedFingerprint: 'other-fingerprint',
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          targetCalendarId: 'calendar-7',
+          deleteLinkedEventWithTask: false,
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync(
+      const <CalendarReminder>[],
+      preserveUnprojectedTaskIds: const <String>{'task-1'},
+    );
+
+    expect(result?.deleted, 0);
+    expect(executor.receivedPlan?.items, isEmpty);
+    expect(links.links.map((link) => link.reminderId), contains(reminder.id));
+    expect(links.links.map((link) => link.reminderId), isNot(contains('followup:task-2:f2')));
+  });
+
   test('delete policy on schedules deletion of a missing canonical reminder', () async {
     final reminder = followUp('f1');
     final revision = await CalendarSyncRevisionService().fromReminder(reminder);
@@ -315,7 +357,10 @@ targetCalendarId: 'calendar-7',
       linkStore: links,
     );
 
-    final result = await service.sync(const <CalendarReminder>[]);
+    final result = await service.sync(
+      const <CalendarReminder>[],
+      preserveUnprojectedTaskIds: const <String>{'task-1'},
+    );
     expect(result?.deleted, 1);
     expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.delete);
   });

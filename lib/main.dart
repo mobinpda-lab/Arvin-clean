@@ -334,6 +334,11 @@ class _HomePageState extends State<HomePage> {
     return TaskStore().createTag(name);
   }
 
+  Set<String> _trashedTaskIds(Iterable<Task> snapshot) => snapshot
+      .where((task) => task.trashed)
+      .map((task) => task.id)
+      .toSet();
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -351,6 +356,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;
@@ -374,6 +380,7 @@ class _HomePageState extends State<HomePage> {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
         force: true,
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
       final now = DateTime.now().toLocal();
       final today = DateTime(now.year, now.month, now.day);
@@ -1096,6 +1103,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;
@@ -1324,6 +1332,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;

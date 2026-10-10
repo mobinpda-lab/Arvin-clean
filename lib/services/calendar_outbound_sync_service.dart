@@ -54,6 +54,7 @@ class CalendarOutboundSyncService {
     Iterable<CalendarReminder> reminders, {
     bool force = false,
     bool linkedOnly = false,
+    Set<String> preserveUnprojectedTaskIds = const <String>{},
   }) async {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
@@ -108,7 +109,12 @@ class CalendarOutboundSyncService {
     if (!linkedOnly && !integration.deleteLinkedEventWithTask) {
       final orphanedManagedIds = managedLinks
           .map((link) => link.reminderId)
-          .where((id) => !revisionIds.contains(id))
+          .where((id) {
+            if (revisionIds.contains(id)) return false;
+            final taskId = _taskIdForReminder(id);
+            return taskId == null ||
+                !preserveUnprojectedTaskIds.contains(taskId);
+          })
           .toSet();
       if (orphanedManagedIds.isNotEmpty) {
         await linkStore.removeByReminderIds(orphanedManagedIds);
