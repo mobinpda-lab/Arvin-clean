@@ -62,10 +62,34 @@ void main() {
     expect(moreNavigation, findsOneWidget);
 
     final taskRect = tester.getRect(task);
+    final listViewportRect = tester.getRect(
+      find.byKey(const ValueKey('home-task-list-viewport')),
+    );
     final addRect = tester.getRect(add);
     final navigationRect = tester.getRect(moreNavigation);
-    expect(taskRect.bottom, lessThanOrEqualTo(addRect.top));
+    expect(taskRect.bottom, lessThanOrEqualTo(listViewportRect.bottom));
+    expect(listViewportRect.bottom, lessThanOrEqualTo(addRect.top));
     expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('normal-height Home keeps empty groups and floating add action',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.text('تاریخ‌گذشته'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('فردا'), findsOneWidget);
+    expect(find.text('آینده'), findsOneWidget);
+    expect(find.text('فاقد زمان'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
