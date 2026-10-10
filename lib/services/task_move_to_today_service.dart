@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'iran_clock.dart';
 import 'task_store.dart';
 
 /// Canonical write path for the owner-approved «انتقال به امروز» action.
@@ -6,13 +7,17 @@ import 'task_store.dart';
 /// Only [Task.dueDate] and [Task.updatedAt] are changed. The Task id, reminder,
 /// FollowUp history, checklist, category and all other canonical fields are
 /// preserved because the existing Task object is saved through [TaskStore].
+///
+/// The default date reference is Iran-local, matching the rest of Arvin's
+/// date-facing UI. Explicit [now] values remain available for deterministic
+/// tests and callers that intentionally provide a reference time.
 class TaskMoveToTodayService {
   TaskMoveToTodayService({TaskStore? store}) : _store = store ?? TaskStore();
 
   final TaskStore _store;
 
   Future<Task> move(String taskId, {DateTime? now}) async {
-    final effectiveNow = now ?? DateTime.now();
+    final effectiveNow = now ?? IranClock.now();
     final tasks = await _store.load();
     final index = tasks.indexWhere((task) => task.id == taskId);
     if (index < 0) {
