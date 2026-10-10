@@ -53,6 +53,7 @@ class _UniversalArvinTimePickerDialogState
   late int _minute;
   bool _choosingMinute = false;
   bool _manualEntry = false;
+  bool _manualValid = true;
   late final TextEditingController _manualController;
 
   @override
@@ -118,16 +119,20 @@ class _UniversalArvinTimePickerDialogState
 
   void _applyManualEntry() {
     final pieces = _manualController.text.trim().split(':');
-    if (pieces.length != 2) return;
-    final hour = _readDigits(pieces[0].trim());
-    final minute = _readDigits(pieces[1].trim());
-    if (hour == null || minute == null || hour < 0 || hour > 23 ||
-        minute < 0 || minute > 59) {
-      return;
-    }
+    final hour = pieces.length == 2 ? _readDigits(pieces[0].trim()) : null;
+    final minute = pieces.length == 2 ? _readDigits(pieces[1].trim()) : null;
+    final valid = hour != null &&
+        minute != null &&
+        hour >= 0 &&
+        hour <= 23 &&
+        minute >= 0 &&
+        minute <= 59;
     setState(() {
-      _hour = hour;
-      _minute = minute;
+      _manualValid = valid;
+      if (valid) {
+        _hour = hour;
+        _minute = minute;
+      }
     });
   }
 
@@ -216,6 +221,7 @@ class _UniversalArvinTimePickerDialogState
                       ),
                     ),
                     onChanged: (_) => _applyManualEntry(),
+                    errorText: _manualValid ? null : 'ساعت معتبر وارد کنید؛ نمونه: ۱۴:۳۷',
                   ),
                 )
               else
@@ -261,12 +267,11 @@ class _UniversalArvinTimePickerDialogState
                   Expanded(
                     child: FilledButton(
                       key: const ValueKey('universal-time-save'),
-                      onPressed: () {
-                        if (_manualEntry) _applyManualEntry();
-                        Navigator.of(context).pop(
-                          TimeOfDay(hour: _hour, minute: _minute),
-                        );
-                      },
+                      onPressed: _manualEntry && !_manualValid
+                          ? null
+                          : () => Navigator.of(context).pop(
+                                TimeOfDay(hour: _hour, minute: _minute),
+                              ),
                       style: FilledButton.styleFrom(
                         backgroundColor: ArvinColors.primary,
                         minimumSize: const Size.fromHeight(46),
@@ -342,13 +347,10 @@ class _ClockFace extends StatelessWidget {
     for (var index = 0; index < values.length; index++) {
       final value = values[index];
       final angle = (index * 2 * math.pi / 12) - math.pi / 2;
-      final isInnerHour = !choosingMinute && index >= 0;
       final isSelected = choosingMinute
           ? minute == value
-          : (value == 12 ? hour == 0 || hour == 12 : hour == value);
-      final radius = !choosingMinute && (hour == 0 || hour > 12)
-          ? (isInnerHour ? 76.0 : 110.0)
-          : 110.0;
+          : hour == value;
+      const radius = 110.0;
       final x = center + radius * math.cos(angle);
       final y = center + radius * math.sin(angle);
       final labelValue = choosingMinute
@@ -370,7 +372,7 @@ class _ClockFace extends StatelessWidget {
                 if (choosingMinute) {
                   onMinuteSelected(value);
                 } else {
-                  onHourSelected(value == 12 ? 0 : value);
+                  onHourSelected(value);
                 }
               },
               child: Container(
