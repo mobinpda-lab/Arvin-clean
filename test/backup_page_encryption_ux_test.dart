@@ -366,6 +366,79 @@ void main() {
     }
   });
 
+  testWidgets('Backup page applies Projects from a modern backup', (tester) async {
+    await ProjectStore.resetTestDatabase();
+    try {
+      final service = _FakeBackupService()
+        ..readResult = <String, dynamic>{
+          'type': ArvinBackupService.backupType,
+          'formatVersion': ArvinBackupService.backupFormatVersion,
+          'tasks': <Map<String, dynamic>>[
+            <String, dynamic>{'id': 'restored-task', 'title': 'کار بازیابی‌شده'},
+          ],
+          'projects': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 'restored-project',
+              'title': 'پروژه بازیابی‌شده',
+              'colorValue': 0xFF4A4CAB,
+              'isArchived': false,
+              'itemIds': <String>[],
+            },
+          ],
+        };
+
+      await tester.pumpWidget(_app(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.pumpAndSettle();
+
+      final projects = await ProjectStore().load();
+      expect(projects.map((project) => project.id), ['restored-project']);
+      expect(projects.single.title, 'پروژه بازیابی‌شده');
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await ProjectStore.resetTestDatabase();
+    }
+  });
+
+  testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
+    await ProjectStore.resetTestDatabase();
+    try {
+      final localProject = ProjectPlan(
+        id: 'local-project',
+        title: 'پروژه محلی',
+        itemIds: const [],
+      );
+      await ProjectStore().save([localProject]);
+      final service = _FakeBackupService()
+        ..readResult = <String, dynamic>{
+          'type': ArvinBackupService.backupType,
+          'formatVersion': ArvinBackupService.backupFormatVersion,
+          'tasks': <Map<String, dynamic>>[
+            <String, dynamic>{'id': 'legacy-task', 'title': 'کار قدیمی'},
+          ],
+        };
+
+      await tester.pumpWidget(_app(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.pumpAndSettle();
+
+      final projects = await ProjectStore().load();
+      expect(projects.map((project) => project.id), ['local-project']);
+      expect(projects.single.title, 'پروژه محلی');
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await ProjectStore.resetTestDatabase();
+    }
+  });
+
   testWidgets('passphrase is operation scoped and never persisted',
       (tester) async {
     final service = _FakeBackupService();
