@@ -72,11 +72,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   String _formatDate(DateTime value) =>
       _dateFormatter.format(value, usePersianDate: true);
 
-  String _formatTime(DateTime value) {
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return _digits(time);
-  }
+  String _formatTime(DateTime value) =>
+      _dateFormatter.formatTime(value.hour, value.minute);
 
   Future<DateTime?> _pickPersianDate({
     required DateTime initialDate,

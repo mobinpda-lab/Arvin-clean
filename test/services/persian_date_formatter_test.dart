@@ -17,4 +17,14 @@ void main() {
       '۱۴۰۵/۰۶/۰۴',
     );
   });
+
+  test('formats 24-hour time consistently with Persian digits and leading zeros', () {
+    expect(formatter.formatTime(3, 5), '۰۳:۰۵');
+    expect(formatter.formatTime(23, 0), '۲۳:۰۰');
+  });
+
+  test('rejects invalid hour and minute values', () {
+    expect(() => formatter.formatTime(24, 0), throwsRangeError);
+    expect(() => formatter.formatTime(10, 60), throwsRangeError);
+  });
 }

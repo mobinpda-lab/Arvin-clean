@@ -192,15 +192,12 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
     );
   }
 
-  String _formatTime(TimeOfDay value) => _dateFormatter.toPersianDigits(
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
-      );
+  String _formatTime(TimeOfDay value) =>
+      _dateFormatter.formatTime(value.hour, value.minute);
 
   String _formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);
-    final time = _dateFormatter.toPersianDigits(
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
-    );
+    final time = _dateFormatter.formatTime(value.hour, value.minute);
     return '$date ساعت $time';
   }
 }

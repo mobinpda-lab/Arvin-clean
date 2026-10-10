@@ -1065,9 +1065,8 @@ class _HomePageState extends State<HomePage> {
     usePersianDate: true,
   );
 
-  String _time(DateTime date) => persianDateFormatter.toPersianDigits(
-    '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
-  );
+  String _time(DateTime date) =>
+      persianDateFormatter.formatTime(date.hour, date.minute);
 
   Future<Task?> _addFromCalendarEvent(CalendarReminder reminder) async {
     if (!reminder.id.startsWith('external-calendar:')) return null;

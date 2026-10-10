@@ -688,11 +688,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   String _dateText(DateTime value) =>
       _dateFormatter.format(value, usePersianDate: true);
 
-  String _timeText(DateTime value) {
-    final raw =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return _dateFormatter.toPersianDigits(raw);
-  }
+  String _timeText(DateTime value) =>
+      _dateFormatter.formatTime(value.hour, value.minute);
 
   String _priorityLabel(TaskPriority priority) => switch (priority) {
     TaskPriority.none => 'بدون اولویت',

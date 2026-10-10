@@ -664,8 +664,7 @@ String _dateLabel(DateTime? value, String empty) {
 
 String _timeLabelOf(TimeOfDay? value, String empty) {
   if (value == null) return empty;
-  final raw = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-  return const PersianDateFormatter().toPersianDigits(raw);
+  return const PersianDateFormatter().formatTime(value.hour, value.minute);
 }
 
 TimeOfDay _toTimeOfDay(Duration value) =>

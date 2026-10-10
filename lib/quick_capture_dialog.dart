@@ -221,7 +221,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (value == null) return 'بدون موعد';
     final formatter = const PersianDateFormatter();
     final date = formatter.format(value, usePersianDate: true);
-    final time = formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
+    final time = formatter.formatTime(value.hour, value.minute);
     return '$date • $time';
   }
 
