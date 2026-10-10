@@ -43,7 +43,8 @@ class _FileBackedBackupService extends ArvinBackupService {
   final File file;
 
   @override
-  String createBackupFileName(DateTime dateTime) => file.uri.pathSegments.last;
+  String createBackupFileName(DateTime dateTime) =>
+      file.uri.pathSegments.last;
 
   @override
   Future<void> writeBackup({
@@ -175,7 +176,9 @@ void main() {
     await store.save(const <Task>[]);
   });
 
-  test('portable backup file round-trips Task and Calendar link metadata', () async {
+  test(
+    'portable backup file round-trips Task and Calendar link metadata',
+    () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       ArvinBackupManager.directoryKey: 'file-backed-runtime-smoke',
     });
@@ -230,8 +233,9 @@ void main() {
       expect(restoredLinks, hasLength(1));
       expect(restoredLinks.single.calendarId, 'calendar-file');
       expect(restoredLinks.single.eventId, 'event-file');
-    } finally {
-      await tempDirectory.delete(recursive: true);
-    }
-  });
+      } finally {
+        await tempDirectory.delete(recursive: true);
+      }
+    },
+  );
 }
