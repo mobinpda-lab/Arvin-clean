@@ -1,12 +1,15 @@
 # Task Form ↔ Canonical Task Model Mapping
 
 **Status:** Contract only; implementation audit is not yet complete.  
-**Owner issue:** [#2593](https://github.com/mobinpda-lab/Arvin-clean/issues/2593)
+**Owner issue:** [#2593](https://github.com/mobinpda-lab/Arvin-clean/issues/2593)  
+**Architecture:** [Canonical Task creation ADR](ADR/ADR-2026-10-11-ARVIN-TASK-FORM.md)
 
 This mapping deliberately does not invent model fields. Before changing code, inspect the current `Task` and related services at the target branch and document exact field names and persistence behavior.
 
 | Form concept | Canonical owner / constraint | Validation to prove |
 |---|---|---|
+| Quick Add draft | Existing QuickCaptureService and canonical Task draft | Handoff to Full Editor preserves identity and entered values; cancel does not persist or discard draft |
+| Quick Add save | Existing canonical Task writer/callback | One Task persisted once; repeated-entry behavior remains intact |
 | Title | Existing Task title | Create/edit retains same identity on update |
 | Short description | Existing description field, if semantically appropriate; otherwise audit before reuse | Must not silently overwrite Note |
 | Due date/time | Existing Task scheduling fields and shared picker/date UI | Jalali display, exact saved value, reminders/repeat/calendar compatibility |
@@ -35,4 +38,5 @@ This mapping deliberately does not invent model fields. Before changing code, in
 - Verify Tracking Level and detailed fields against current Task/Follow-up model.
 - Verify Checklist reorder persistence and per-occurrence state behavior.
 - Verify all Task editor launch points use the canonical editor and same draft identity.
+- Verify Quick Add save/handoff/cancel paths do not double-save and preserve draft identity.
 - Verify serialization, migration, backup and restore for every displayed field.
