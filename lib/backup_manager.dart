@@ -75,8 +75,8 @@ class ArvinBackupManager {
   }
 
   /// Serializes the complete canonical Task shape into the existing Arvin
-  /// backup document. Optional settings and Projects ride in the same backward-
-  /// compatible document; no second backup representation is created.
+  /// backup document. Optional settings, Projects, and Calendar link metadata
+  /// ride in the same backward-compatible document; no second backup format is created.
   Future<String?> backupCanonicalTasks(
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
