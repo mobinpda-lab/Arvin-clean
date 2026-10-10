@@ -1032,6 +1032,37 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ? Icon(_expanded ? Icons.expand_less : Icons.expand_more)
                 : null,
           ),
+          // The two most-used actions on Arvin-owned Tasks must be
+          // discoverable without requiring the user to find the expand gesture.
+          // Keep destructive/secondary actions in the existing expanded area.
+          if (!_expanded &&
+              _isTaskCalendarItem &&
+              (widget.onEditTask != null ||
+                  widget.onRegisterTaskToDeviceCalendar != null))
+            Padding(
+              key: ValueKey('reminder-primary-actions-${item.id}'),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (widget.onEditTask != null)
+                    ActionChip(
+                      key: ValueKey('task-due-edit-${item.id}'),
+                      avatar: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('ویرایش'),
+                      onPressed: () => _run(widget.onEditTask),
+                    ),
+                  if (widget.onRegisterTaskToDeviceCalendar != null)
+                    ActionChip(
+                      key: ValueKey('task-due-device-calendar-${item.id}'),
+                      avatar: const Icon(Icons.event_available_outlined, size: 18),
+                      label: const Text('ثبت در تقویم گوشی'),
+                      onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
+                    ),
+                ],
+              ),
+            ),
           if (_expanded && _hasActions)
             Padding(
               key: ValueKey('reminder-actions-${item.id}'),
