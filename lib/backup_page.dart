@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
+import 'models/task.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/project_store.dart';
 import 'services/task_store.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
@@ -308,6 +310,28 @@ class _BackupPageState extends State<BackupPage> {
         hasCalendarLinks: candidate.calendarLinks != null,
       );
       if (!confirmed || !mounted) return;
+
+      // Preserve a complete recovery point before the first restore mutation.
+      final currentTasks = (await widget.loadTasks())
+          .map((value) => Task.fromJson(Map<String, dynamic>.from(value)))
+          .toList(growable: false);
+      final emergencyBackup = await manager.backupCanonicalTasks(
+        currentTasks,
+        settings: await _portableBackupSettings(),
+        projects: await ProjectStore().load(),
+        calendarLinks: await ExternalCalendarLinkStore().load(),
+        categories: await TaskStore().loadCategories(),
+        tags: await TaskStore().loadTags(),
+      );
+      if (emergencyBackup == null) {
+        if (mounted) {
+          _message(
+            'برای حفظ اطلاعات فعلی، پشتیبان اضطراری ساخته نشد؛ بازیابی لغو شد',
+          );
+        }
+        return;
+      }
+
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
