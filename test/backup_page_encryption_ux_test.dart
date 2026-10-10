@@ -237,7 +237,7 @@ void main() {
 
     expect(replaceCount, 1);
     expect(replaced?.single['id'], 'restored-1');
-    expect(find.text('اطلاعات با موفقیت بازیابی شد'), findsOneWidget);
+    expect(find.text('اطلاعات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'), findsOneWidget);
   });
 
   testWidgets('wrong encrypted restore passphrase never mutates local tasks',
