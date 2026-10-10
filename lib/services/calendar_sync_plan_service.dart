@@ -27,9 +27,9 @@ class CalendarSyncRevision {
 
 /// Local metadata linking one canonical Arvin reminder to one external event.
 ///
-/// This is not a second calendar source of truth. Provider adapters may persist
-/// these identifiers later so repeated sync can update the same external event
-/// instead of creating duplicates.
+/// This is not a second calendar source of truth. The same identity metadata is
+/// used for idempotent sync and preserved in portable Backup/Restore documents;
+/// every provider update must still verify the exact calendarId + eventId.
 class ExternalCalendarEventLink {
   ExternalCalendarEventLink({
     required this.reminderId,
@@ -49,6 +49,38 @@ class ExternalCalendarEventLink {
   final String calendarId;
   final String eventId;
   final String lastSyncedFingerprint;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'reminderId': reminderId,
+    'calendarId': calendarId,
+    'eventId': eventId,
+    'lastSyncedFingerprint': lastSyncedFingerprint,
+  };
+
+  factory ExternalCalendarEventLink.fromJson(Map<String, dynamic> json) {
+    final reminderId = json['reminderId'];
+    final calendarId = json['calendarId'];
+    final eventId = json['eventId'];
+    final fingerprint = json['lastSyncedFingerprint'];
+    if (reminderId is! String ||
+        calendarId is! String ||
+        eventId is! String ||
+        fingerprint is! String ||
+        reminderId.trim().isEmpty ||
+        calendarId.trim().isEmpty ||
+        eventId.trim().isEmpty ||
+        fingerprint.trim().isEmpty) {
+      throw const FormatException(
+        'Arvin backup Calendar link entry is invalid',
+      );
+    }
+    return ExternalCalendarEventLink(
+      reminderId: reminderId,
+      calendarId: calendarId,
+      eventId: eventId,
+      lastSyncedFingerprint: fingerprint,
+    );
+  }
 }
 
 enum CalendarSyncAction { create, update, noOp, delete }
