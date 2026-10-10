@@ -119,6 +119,7 @@ void main() {
 
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
+    var failAfterTaskWrite = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -130,6 +131,10 @@ void main() {
             await store.save(
               rawTasks.map((raw) => Task.fromJson(raw)).toList(growable: false),
             );
+            if (failAfterTaskWrite) {
+              failAfterTaskWrite = false;
+              throw StateError('injected failure after TaskStore write');
+            }
           },
         ),
       ),
@@ -178,6 +183,38 @@ void main() {
     expect(restored.single.followUps.single.note, 'پیگیری بازیابی');
     expect(await TaskStore().loadCategories(), contains('دسته پشتیبان مستقل'));
     expect(await TaskStore().loadTags(), contains('برچسب مستقل'));
+
+    // Exercise the actual BackupPage restore orchestration, not only the
+    // rollback helper: fail immediately after the candidate Task write and
+    // prove that the pre-restore task state is restored before the UI reports
+    // failure. Later Project/link/settings-stage injection remains separate.
+    await store.save([
+      Task(id: 'old-runtime', title: 'اطلاعات قبلی'),
+    ]);
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'categories': <String>['دسته پشتیبان مستقل'],
+      'tags': <String>['برچسب مستقل'],
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'candidate-runtime', title: 'اطلاعات جایگزین').toJson(),
+      ],
+    };
+    failAfterTaskWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    final rolledBack = await TaskStore().load();
+    expect(rolledBack, hasLength(1));
+    expect(rolledBack.single.id, 'old-runtime');
+    expect(rolledBack.single.title, 'اطلاعات قبلی');
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
 
     await store.save(const <Task>[]);
   });
