@@ -4,9 +4,6 @@
 
 Exactly three taxonomy domain entities are valid throughout Arvin: **Project / پروژه**, **Category / دسته**, and **Tag / برچسب**. «گروه» is only an alternate Persian word for Category and must not be represented as an independent entity. Category and Tag are distinct. Home's Time / Project / Category / Tag controls are filters/views, not four domain entities. Display-only grouping (such as Tasks grouped by due date) remains allowed. No Group model, store, repository, migration, manager, or parallel taxonomy is allowed. This rule applies to code, persisted data, selectors, menus, filters, Notebook, Calendar, reports, help, tests and documentation.
 
-## Canonical ontology — owner decision 2026-10-10
-
-Exactly three taxonomy domain entities are valid throughout Arvin: **Project / پروژه**, **Category / دسته**, and **Tag / برچسب**. «گروه» is only an alternate Persian word for Category and must not be represented as an independent entity. Category and Tag are distinct. Home's Time / Project / Category / Tag controls are filters/views, not four domain entities. Display-only grouping (such as Tasks grouped by due date) remains allowed. No Group model, store, repository, migration, manager, or parallel taxonomy is allowed. This rule applies to code, persisted data, selectors, menus, filters, Notebook, Calendar, reports, help, tests and documentation.
 
 ## Purpose
 
