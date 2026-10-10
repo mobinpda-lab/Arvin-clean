@@ -1825,7 +1825,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلی تقویم حفظ شدند' : '؛ اطلاعات پیوند تقویم نیز بازیابی شد و پیش از همگام‌سازی بررسی می‌شود'}',
             ),
           ),
         );
