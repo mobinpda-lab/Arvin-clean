@@ -70,7 +70,9 @@ class ExternalCalendarEventLink {
         calendarId.trim().isEmpty ||
         eventId.trim().isEmpty ||
         fingerprint.trim().isEmpty) {
-      throw const FormatException('Arvin backup Calendar link entry is invalid');
+      throw const FormatException(
+        'Arvin backup Calendar link entry is invalid',
+      );
     }
     return ExternalCalendarEventLink(
       reminderId: reminderId,
