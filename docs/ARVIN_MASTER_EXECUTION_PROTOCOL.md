@@ -250,7 +250,7 @@ This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETI
 - **Calendar idempotency:** create once, retain exact provider link identity, update the same event on later sync. Never infer event identity from title/date/time. If a linked event cannot be verified, stop safely and offer explicit user choices; do not silently create a replacement duplicate.
 - **Calendar ownership UX:** identify “آروین” vs “تقویم گوشی” in user-facing Persian without exposing provider IDs or internal sync terminology.
 - **Backup/Restore:** canonical Task/Repeat/Occurrence/Checklist/Follow-up data must survive round-trip. Device-local provider IDs cannot be assumed portable across installations; link metadata handling must be explicitly tested and safely reconciled after restore, never silently discarded or blindly trusted.
-- **Snooze cleanup:** audit the existing implementation and tests before removal. Remove Snooze UI/callback/logic/dead tests only if the current product code confirms it exists; preserve Reminder, Repeat, and Follow-up.
+- **Snooze cleanup (audited):** current runtime Calendar/task surfaces inspected (`calendar_page.dart`, `canonical_calendar_launcher.dart`, `task_detail_page.dart`) contain no Snooze action/callback/logic; existing Calendar tests explicitly assert that the Snooze action is absent. Do not perform a destructive code cleanup where no runtime path remains. Legacy visual-governance/design documents still mention Snooze and are a documentation-consistency cleanup item. Preserve Reminder, Repeat, and Follow-up.
 - **UX/visual contract:** Persian RTL readability, calm hierarchy, progressive disclosure, and the canonical palette are part of completion. Important UI changes require a real screenshot and visual review, not only widget assertions.
 
 ### Calendar final acceptance matrix
@@ -277,6 +277,6 @@ This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETI
 
 1. Finish visual review of PR #2564 before merge; after merge, validate Build and all six Device Smoke lanes on the resulting exact main SHA.
 2. Continue the existing Calendar edit-sync path and add/repair only confirmed gaps in identity validation, idempotency, broken-link UX, and evidence.
-3. Audit Snooze references across code, callbacks, UI, and tests; change only if an existing implementation is confirmed.
+3. Snooze runtime removal is already reflected in inspected Calendar/task code and regression tests; reconcile stale legacy design/governance documentation so it cannot reintroduce Snooze. No runtime removal patch is currently justified.
 4. Validate backup/restore behavior and calendar-link metadata compatibility without introducing a parallel store or risking user data.
 5. Complete remaining P0 triage (including #1901), real-device acceptance, screenshot evidence, and explicit owner approval before any Release Candidate claim.
