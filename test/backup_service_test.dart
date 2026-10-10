@@ -66,6 +66,51 @@ void main() {
       });
     });
 
+    test('round-trips optional Calendar link metadata in the same v1 document', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[],
+        'calendarLinks': <Map<String, dynamic>>[
+          {
+            'reminderId': 'task-due:task-1',
+            'calendarId': 'calendar-1',
+            'eventId': 'event-1',
+            'lastSyncedFingerprint': 'fingerprint-1',
+          },
+        ],
+      });
+      final document = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(bytes)),
+      );
+
+      expect(document['calendarLinks'], [
+        {
+          'reminderId': 'task-due:task-1',
+          'calendarId': 'calendar-1',
+          'eventId': 'event-1',
+          'lastSyncedFingerprint': 'fingerprint-1',
+        },
+      ]);
+    });
+
+    test('rejects invalid Calendar link metadata shape', () {
+      expect(
+        () => ArvinBackupService.encodeBackupDocument({
+          'tasks': <dynamic>[],
+          'calendarLinks': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+          'calendarLinks': <dynamic>{},
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('rejects invalid settings payload without creating a new format', () {
       expect(
         () => ArvinBackupService.encodeBackupDocument({
