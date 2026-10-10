@@ -284,6 +284,7 @@ void main() {
     expect(candidate, isNotNull);
     expect(candidate!.tasks, hasLength(1));
     expect(candidate.settings, isNull);
+    expect(candidate.calendarLinks, isNull);
   });
 
   test('canonical restore rejects duplicate Task ids', () async {
