@@ -41,8 +41,10 @@ class ProjectBackupBridge {
     );
   }
 
-  Future<void> restoreProjects(CanonicalBackupCandidate candidate) =>
-      projectStore.save(candidate.projects);
+  Future<void> restoreProjects(CanonicalBackupCandidate candidate) async {
+    if (!candidate.hasProjects) return;
+    await projectStore.save(candidate.projects);
+  }
 
   Future<List<ProjectPlan>> loadProjects() => projectStore.load();
 }
