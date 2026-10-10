@@ -511,6 +511,7 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.projects.single.id, 'golden-flow-project');
+    expect(candidate.hasProjects, isTrue);
     expect(candidate.settings, {'themeMode': 'light'});
     expect(candidate.tasks.single.id, 'golden-flow-task');
 
@@ -539,6 +540,20 @@ void main() {
     expect(restored.recurrence?.interval, 2);
     expect(restored.followUps.single.id, 'golden-flow-followup');
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
+  });
+
+  test('legacy backup without projects is distinguished from an explicit empty catalog', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = <String, dynamic>{
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': <Map<String, dynamic>>[],
+      };
+    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.hasProjects, isFalse);
+    expect(candidate.projects, isEmpty);
   });
 
   test('canonical backup and restore preserve disabled checklist rows', () async {
