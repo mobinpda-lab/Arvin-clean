@@ -473,4 +473,34 @@ void main() {
     expect(find.text(description), findsNothing);
   });
 
+  testWidgets('compact Home keeps the add action clear of Task cards', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"compact-home-task","title":"کار جمع‌وجور"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final addAction = find.byKey(const ValueKey('home-canonical-add'));
+    final taskCard = find.byKey(const ValueKey('compact-home-task'));
+    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+
+    expect(addAction, findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(
+      find.ancestor(of: addAction, matching: find.byType(TextField)),
+      findsOneWidget,
+    );
+    expect(taskCard, findsOneWidget);
+    expect(tester.getRect(addAction).overlaps(tester.getRect(taskCard)), isFalse);
+    expect(
+      tester.getRect(taskCard).bottom,
+      lessThanOrEqualTo(tester.getRect(moreNavigation).top),
+    );
+  });
+
 }
