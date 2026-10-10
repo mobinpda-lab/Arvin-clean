@@ -4,11 +4,13 @@ import 'backup_service.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/project_plan_codec.dart';
+import 'services/calendar_sync_plan_service.dart';
 
 typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
   Map<String, dynamic>? settings,
   List<ProjectPlan> projects,
+  List<ExternalCalendarEventLink>? calendarLinks,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -51,6 +53,7 @@ class ArvinBackupManager {
     List<Map<String, dynamic>> tasks, {
     Map<String, dynamic>? settings,
     List<Map<String, dynamic>>? projects,
+    List<Map<String, dynamic>>? calendarLinks,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -63,6 +66,7 @@ class ArvinBackupManager {
         'tasks': tasks,
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
         if (projects != null) 'projects': projects,
+        if (calendarLinks != null) 'calendarLinks': calendarLinks,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -77,12 +81,14 @@ class ArvinBackupManager {
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
     Iterable<ProjectPlan>? projects,
+    Iterable<ExternalCalendarEventLink>? calendarLinks,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
       tasks.map((task) => task.toJson()).toList(growable: false),
       settings: settings,
       projects: projects == null ? null : projectCodec.encodeList(projects),
+      calendarLinks: calendarLinks?.map(_encodeCalendarLink).toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -101,6 +107,7 @@ class ArvinBackupManager {
 
     final tasks = _decodeCanonicalTasks(document);
     final projects = _decodeCanonicalProjects(document);
+    final calendarLinks = _decodeCalendarLinks(document);
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -112,6 +119,7 @@ class ArvinBackupManager {
           ? Map<String, dynamic>.from(rawSettings)
           : null,
       projects: projects,
+      calendarLinks: calendarLinks,
     );
   }
 
@@ -146,6 +154,49 @@ class ArvinBackupManager {
     }
 
     return List<Task>.unmodifiable(tasks);
+  }
+
+  Map<String, dynamic> _encodeCalendarLink(ExternalCalendarEventLink link) =>
+      <String, dynamic>{
+        'reminderId': link.reminderId,
+        'calendarId': link.calendarId,
+        'eventId': link.eventId,
+        'lastSyncedFingerprint': link.lastSyncedFingerprint,
+      };
+
+  /// Old backups may not contain Calendar link metadata. Keep that distinction
+  /// explicit so restore does not silently replace a current device's links
+  /// with an invented empty list.
+  List<ExternalCalendarEventLink>? _decodeCalendarLinks(
+    Map<String, dynamic> document,
+  ) {
+    if (!document.containsKey('calendarLinks')) return null;
+    final rawLinks = document['calendarLinks'];
+    if (rawLinks is! List) {
+      throw const FormatException('Arvin backup Calendar links are invalid');
+    }
+
+    final ids = <String>{};
+    final links = <ExternalCalendarEventLink>[];
+    for (final raw in rawLinks) {
+      if (raw is! Map) {
+        throw const FormatException('Arvin backup Calendar link entry is invalid');
+      }
+      final value = Map<String, dynamic>.from(raw);
+      final link = ExternalCalendarEventLink(
+        reminderId: value['reminderId'] as String? ?? '',
+        calendarId: value['calendarId'] as String? ?? '',
+        eventId: value['eventId'] as String? ?? '',
+        lastSyncedFingerprint: value['lastSyncedFingerprint'] as String? ?? '',
+      );
+      if (!ids.add(link.reminderId)) {
+        throw FormatException(
+          'Arvin backup contains duplicate Calendar link: ${link.reminderId}',
+        );
+      }
+      links.add(link);
+    }
+    return List<ExternalCalendarEventLink>.unmodifiable(links);
   }
 
   List<ProjectPlan> _decodeCanonicalProjects(Map<String, dynamic> document) {
