@@ -1,7 +1,7 @@
 # Component Contract — Universal Arvin Time Picker
 
 **Name:** Universal Arvin Time Picker (UATP)  
-**Status:** Required shared component contract; code implementation pending  
+**Status:** Shared component implemented and first six callers migrated in [PR #2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591); full audit and device acceptance pending  
 **Tracker:** [Issue #2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589)
 
 ## Responsibilities
@@ -49,4 +49,4 @@ Search against main SHA 72a2f4cc24df7a38eff9856ce403461615db5280 found direct pl
 This list is an initial, non-exhaustive search result. Audit TimePickerDialog, TimeOfDay, custom input widgets, and display formatting before deciding that the migration is complete.
 
 ## Implementation exit criteria
-The contract is not considered implemented until a real shared widget/API exists, every intended call site is migrated, tests pass on the exact PR head, and real-device interaction evidence is attached to #2589.
+The shared widget/API exists and the six initially discovered direct picker callers are migrated in PR #2591. Analyze, all six test shards, and Debug/Release APK builds passed at exact head `2b8ab84597e0a83527b41da61277822a1ec6296e`. The full semantic audit and every intended caller are not yet proven complete; Device Smoke was skipped, and real-device interaction evidence must still be attached to #2589.
