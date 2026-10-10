@@ -458,7 +458,7 @@ void main() {
       dueDate: anchor,
       recurrence: const RecurrenceRule(
         frequency: RecurrenceFrequency.daily,
-        count: 5,
+        count: 10,
       ),
     );
     Task? edited;
@@ -497,11 +497,16 @@ void main() {
       );
     }
     expect(card, findsOneWidget);
-    await tester.tap(card);
-    await tester.pump();
 
     final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
     final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
+    // Verify the full launcher -> projection -> Calendar card path exposes
+    // primary actions before the user expands the row.
+    expect(edit, findsOneWidget);
+    expect(register, findsOneWidget);
+
+    await tester.tap(card);
+    await tester.pump();
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
 
@@ -513,6 +518,26 @@ void main() {
     await tester.pump();
     expect(registered?.id, occurrenceId);
     expect(registered?.date, anchor);
+
+    // Move one full week forward. The occurrence is still a projection of the
+    // same canonical Task, not a separately stored Task/Reminder.
+    await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
+    await _pumpRouteTransition(tester);
+    final nextWeekDate = anchor.add(const Duration(days: 7));
+    final nextWeekId =
+        'task-due:repeat-task:${nextWeekDate.toIso8601String()}';
+    final nextWeekCard = find.byKey(ValueKey('reminder-card-$nextWeekId'));
+    for (var i = 0; i < 30 && nextWeekCard.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(nextWeekCard, findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
+    await _pumpRouteTransition(tester);
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(card, findsOneWidget);
 
     final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
