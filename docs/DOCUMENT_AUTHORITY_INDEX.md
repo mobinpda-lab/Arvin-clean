@@ -89,3 +89,7 @@ Example: August Home references placed a visible `کارهای من` section on 
 When a product requirement is deferred from one slice to another, the first slice must leave a durable pointer in `docs/PRODUCT_CONTRACT_MATRIX.md`, the indexed recovery audit, or both, with status **Missing/Partial** and an owning Issue. A domain/service/persistence merge may not silently convert the requirement to “done” when the accepted user interaction is still absent.
 
 For the current recovery program, every #845 requirement has an owner in #846–#853. A Wave cannot close merely because a class/file/old PR exists; it requires applicable exact-head implementation and acceptance evidence. Final removal from the recovery ledger is controlled by Wave #853.
+
+
+## Canonical Project / Category / Tag decision (added 2026-10-10)
+For taxonomy semantics and any change touching Task, Project, Category/Group, Tag, Filter, Search, Report, Calendar, Repeat or Backup/Restore, consult `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. This ADR is the canonical domain decision; implementation status and conformance must still be proven from current code/tests and the open audit #2580. Historical docs or PR wording must not create a fourth Group entity or override the decision.
