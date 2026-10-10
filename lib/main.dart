@@ -264,11 +264,16 @@ class HomePage extends StatefulWidget {
     ),
     this.onSettingsChanged,
     this.enableFirstRunGuide = false,
+    this.backupManager,
   });
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
   final bool enableFirstRunGuide;
+
+  /// Optional seam for exercising the existing Home restore flow in tests.
+  /// Production callers continue to use the canonical default manager.
+  final ArvinBackupManager? backupManager;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -279,7 +284,8 @@ class _HomePageState extends State<HomePage> {
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
-  final ArvinBackupManager backupManager = ArvinBackupManager();
+  late final ArvinBackupManager backupManager =
+      widget.backupManager ?? ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
