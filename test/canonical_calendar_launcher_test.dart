@@ -451,7 +451,8 @@ void main() {
     tester,
   ) async {
     final now = IranClock.now();
-    final anchor = now.add(const Duration(minutes: 2));
+    // Use a stable same-day time so this test remains valid across midnight.
+    final anchor = DateTime(now.year, now.month, now.day, 12);
     final task = Task(
       id: 'repeat-task',
       title: 'کار تکرارشونده',
