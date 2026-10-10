@@ -15,7 +15,7 @@
 - حفظ Draft هنگام خطا
 
 ## Lane B — Taxonomy
-- Project / Category / Tag / Group مطابق قرارداد
+- سه موجودیت canonical: Project / Category / Tag؛ «گروه» موجودیت مستقلی نیست و در واژگان محصول همان «دسته» است.
 - Category/Tag/Project ساخته‌شده بدون انتخاب فعلی حذف نشود
 - Refresh فوری
 - Tag چندانتخابی با checkbox
