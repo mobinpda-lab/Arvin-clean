@@ -2493,19 +2493,6 @@ class _HomePageState extends State<HomePage> {
     return 'پیگیری ثبت‌شده';
   }
 
-  Color _taskCardAccent(Task task) {
-    final palette = <Color>[
-      ArvinColors.time,
-      ArvinColors.project,
-      ArvinColors.category,
-      ArvinColors.tag,
-      ArvinColors.reminder,
-    ];
-    final key = task.id.trim().isEmpty ? task.title : task.id;
-    final hash = key.codeUnits.fold<int>(0, (value, unit) => (value * 31 + unit) & 0x7fffffff);
-    return palette[hash % palette.length];
-  }
-
   Widget _homeChecklistProgress(Task task) {
     final total = task.checklist.length;
     final completed = task.checklist
@@ -2552,10 +2539,7 @@ class _HomePageState extends State<HomePage> {
           ? _swipeBackground(TaskSwipeAction.trash)
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: Color.alphaBlend(
-          _taskCardAccent(task).withAlpha(22),
-          ArvinColors.surface,
-        ),
+        color: ArvinColors.surface,
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
