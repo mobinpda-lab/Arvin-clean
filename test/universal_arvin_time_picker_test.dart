@@ -44,6 +44,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-minute-5')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
