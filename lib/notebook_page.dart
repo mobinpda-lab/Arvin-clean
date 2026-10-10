@@ -87,7 +87,11 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _pickNotebookCategory() async {
-    final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
+    // Read the canonical taxonomy catalog, not only categories already used by
+    // visible notes. A category created in Settings must remain selectable even
+    // before it has been assigned to a Notebook item.
+    final categories = await widget.repository.loadCategories();
+    if (!mounted) return;
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
       ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, 'همه')),
       const SizedBox(height: 8),
