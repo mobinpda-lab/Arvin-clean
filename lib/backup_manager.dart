@@ -3,12 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backup_service.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'services/calendar_sync_plan_service.dart';
+import 'services/external_calendar_link_store.dart';
 import 'services/project_plan_codec.dart';
 
 typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
   Map<String, dynamic>? settings,
   List<ProjectPlan> projects,
+  List<ExternalCalendarEventLink>? calendarLinks,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -19,11 +22,14 @@ typedef CanonicalBackupCandidate = ({
 class ArvinBackupManager {
   ArvinBackupManager({
     ArvinBackupService? service,
+    ExternalCalendarLinkStore? calendarLinkStore,
     this.projectCodec = const ProjectPlanCodec(),
-  }) : service = service ?? ArvinBackupService();
+  }) : service = service ?? ArvinBackupService(),
+       calendarLinkStore = calendarLinkStore ?? ExternalCalendarLinkStore();
 
   static const String directoryKey = 'arvin.backup.directory';
   final ArvinBackupService service;
+  final ExternalCalendarLinkStore calendarLinkStore;
   final ProjectPlanCodec projectCodec;
 
   Future<void> setDirectory(String? uri) async {
@@ -57,10 +63,14 @@ class ArvinBackupManager {
     if (directory == null || directory.isEmpty) return null;
 
     final fileName = service.createBackupFileName(DateTime.now());
+    final calendarLinks = await calendarLinkStore.load();
     await service.writeBackup(
       directoryUri: directory,
       payload: <String, dynamic>{
         'tasks': tasks,
+        'calendarLinks': calendarLinks
+            .map((link) => link.toJson())
+            .toList(growable: false),
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
         if (projects != null) 'projects': projects,
       },
@@ -71,8 +81,8 @@ class ArvinBackupManager {
   }
 
   /// Serializes the complete canonical Task shape into the existing Arvin
-  /// backup document. Optional settings and Projects ride in the same backward-
-  /// compatible document; no second backup representation is created.
+  /// backup document. Optional settings, Projects, and provider-link metadata
+  /// ride in the same backward-compatible document; no second backup is created.
   Future<String?> backupCanonicalTasks(
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
@@ -106,12 +116,32 @@ class ArvinBackupManager {
       throw const FormatException('Arvin backup settings are invalid');
     }
 
+    final rawCalendarLinks = document['calendarLinks'];
+    if (rawCalendarLinks != null && rawCalendarLinks is! List) {
+      throw const FormatException('Arvin backup calendar links are invalid');
+    }
+    final calendarLinks = rawCalendarLinks is List
+        ? rawCalendarLinks.map((raw) {
+            if (raw is! Map) {
+              throw const FormatException(
+                'Arvin backup calendar link entry is invalid',
+              );
+            }
+            return ExternalCalendarEventLink.fromJson(
+              Map<String, dynamic>.from(raw),
+            );
+          }).toList(growable: false)
+        : null;
+
     return (
       tasks: tasks,
       settings: rawSettings is Map
           ? Map<String, dynamic>.from(rawSettings)
           : null,
       projects: projects,
+      calendarLinks: calendarLinks == null
+          ? null
+          : List<ExternalCalendarEventLink>.unmodifiable(calendarLinks),
     );
   }
 
