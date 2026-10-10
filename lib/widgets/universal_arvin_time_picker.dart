@@ -217,12 +217,12 @@ class _UniversalArvinTimePickerDialogState
                       labelText: 'ساعت دقیق (۲۴ ساعته)',
                       hintText: '۱۴:۳۷',
                       helperText: 'ساعت و دقیقه را با : جدا کنید',
+                      errorText: _manualValid ? null : 'ساعت معتبر وارد کنید؛ نمونه: ۱۴:۳۷',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     onChanged: (_) => _applyManualEntry(),
-                    errorText: _manualValid ? null : 'ساعت معتبر وارد کنید؛ نمونه: ۱۴:۳۷',
                   ),
                 )
               else
@@ -425,6 +425,7 @@ class _ClockFace extends StatelessWidget {
               selected: isSelected,
               label: 'ساعت $display',
               child: InkWell(
+                key: ValueKey('universal-time-hour-inner-$display'),
                 customBorder: const CircleBorder(),
                 onTap: () => onHourSelected(value),
                 child: Container(
