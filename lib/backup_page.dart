@@ -305,12 +305,14 @@ class _BackupPageState extends State<BackupPage> {
         hasCalendarLinks: candidate.calendarLinks != null,
       );
       if (!confirmed || !mounted) return;
+      final currentCalendarLinks = await ExternalCalendarLinkStore().load();
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
       await ExternalCalendarLinkStore().restoreForTasks(
         restoredTaskIds: candidate.tasks.map((task) => task.id),
         backupLinks: candidate.calendarLinks ?? const [],
+        currentLinks: currentCalendarLinks,
       );
       if (candidate.settings != null) {
         await settingsService.restorePortableJson(candidate.settings!);
