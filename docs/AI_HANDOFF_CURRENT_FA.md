@@ -149,3 +149,10 @@ Repository reality always overrides conversation memory.
 `GitHub live audit → read this handoff → verify current branch/head → inspect open PR/workflows → continue from first unfinished acceptance gate → perform real GitHub work → validate → update this handoff → short report`.
 
 این فایل یک حافظه مستقل از ChatGPT است؛ گفتگو یا حساب جدید نباید مبنای وضعیت پروژه باشد.
+
+## PCTADP — mandatory cross-conversation architecture reference (2026-10-10)
+- Canonical ADR: `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md`; tracking Issue #2582; repository-wide conformance audit #2580 remains open.
+- Exactly three taxonomy concepts: Project, Category, Tag. Category and Group are one concept; technical name `Category`, standard Persian UI term «دسته». No independent Group model/store/repository/manager.
+- Task remains the core actionable entity. A Task can have 0/1 Project, 0/1 Category and multiple Tags. Project/Category/Tag filters remain distinct and combine with AND.
+- Before changing Task/Project/Category/Group/Tag/Filter/Search/Report/Calendar/Repeat/Backup/Restore, read the ADR, inspect current main and related PRs/issues, and link the ADR in the PR. Date-based grouping is presentation-only.
+- Current-code caveat: Project membership and Category catalog are represented separately; do not claim a physical Project→Category foreign key exists. This conformance question is part of Issue #2580.
