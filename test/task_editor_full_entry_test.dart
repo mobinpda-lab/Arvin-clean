@@ -43,6 +43,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('new Task form keeps date/time in simple view and collapses advanced details',
+      (tester) async {
+    await openEditor(tester);
+
+    expect(find.text('کار جدید'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-recurrence')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-checklist-section')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-checklist-section')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('same canonical editor preserves full-entry Task fields',
       (tester) async {
     Task? result;
@@ -69,6 +89,8 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
