@@ -32,18 +32,59 @@ void main() {
     expect(find.text('راهنمای تعاملی صفحه اصلی'), findsNothing);
 
     expect(find.text('تنظیمات'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-permission-status')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-system-settings-entry')), findsOneWidget);
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
     expect((await service.load()).usePersianDate, isTrue);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('swipe-settings-title')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('swipe-right-action')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('swipe-left-action')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font-settings-entry')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text('تیره'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
     expect(changed?.themeMode, ThemeMode.dark);
 
+    await tester.scrollUntilVisible(
+      find.text('نمایش تاریخ فارسی'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('نمایش تاریخ فارسی'));
     await tester.pumpAndSettle();
     expect((await service.load()).usePersianDate, isFalse);
