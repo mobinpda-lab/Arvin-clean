@@ -49,6 +49,22 @@ class ExternalCalendarEventLink {
   final String calendarId;
   final String eventId;
   final String lastSyncedFingerprint;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'reminderId': reminderId,
+    'calendarId': calendarId,
+    'eventId': eventId,
+    'lastSyncedFingerprint': lastSyncedFingerprint,
+  };
+
+  factory ExternalCalendarEventLink.fromJson(Map<String, dynamic> json) {
+    return ExternalCalendarEventLink(
+      reminderId: json['reminderId'] as String? ?? '',
+      calendarId: json['calendarId'] as String? ?? '',
+      eventId: json['eventId'] as String? ?? '',
+      lastSyncedFingerprint: json['lastSyncedFingerprint'] as String? ?? '',
+    );
+  }
 }
 
 enum CalendarSyncAction { create, update, noOp, delete }
