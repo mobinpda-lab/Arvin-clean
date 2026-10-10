@@ -1,6 +1,8 @@
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
@@ -267,6 +269,95 @@ void main() {
     expect(service.lastReadPassphrase, 'wrong-secret');
     expect(replaceCount, 0);
     expect(find.textContaining('رمز نادرست است'), findsOneWidget);
+  });
+
+  testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
+    await ProjectStore.resetTestDatabase();
+    try {
+      final project = ProjectPlan(
+        id: 'backup-page-project',
+        title: 'پروژه پشتیبان',
+        itemIds: const [],
+      );
+      await ProjectStore().save([project]);
+      final service = _FakeBackupService();
+
+      await tester.pumpWidget(_app(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('create_backup_button')));
+      await tester.pumpAndSettle();
+
+      final projects = service.lastPayload?['projects'] as List<dynamic>?;
+      expect(projects, hasLength(1));
+      expect((projects!.single as Map)['id'], 'backup-page-project');
+      expect((projects.single as Map)['title'], 'پروژه پشتیبان');
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await ProjectStore.resetTestDatabase();
+    }
+  });
+
+  testWidgets('Backup page restores Projects and rolls them back after a late restore failure', (tester) async {
+    await ProjectStore.resetTestDatabase();
+    try {
+      final oldProject = ProjectPlan(
+        id: 'old-project',
+        title: 'پروژه قبلی',
+        itemIds: const [],
+      );
+      final restoredProject = ProjectPlan(
+        id: 'restored-project',
+        title: 'پروژه جدید',
+        itemIds: const [],
+      );
+      await ProjectStore().save([oldProject]);
+      final service = _FakeBackupService()
+        ..readResult = <String, dynamic>{
+          'type': ArvinBackupService.backupType,
+          'formatVersion': ArvinBackupService.backupFormatVersion,
+          'tasks': <Map<String, dynamic>>[
+            <String, dynamic>{'id': 'restored-task', 'title': 'کار بازیابی‌شده'},
+          ],
+          'projects': <Map<String, dynamic>>[
+            const ProjectPlanCodec().encode(restoredProject),
+          ],
+          'settings': <String, dynamic>{
+            'themeMode': 'light',
+            'backupSchedule': <String, dynamic>{'frequency': 'invalid-frequency'},
+          },
+          'calendarLinks': <Map<String, dynamic>>[],
+        };
+      var localTasks = <Map<String, dynamic>>[
+        <String, dynamic>{'id': 'old-task', 'title': 'کار قبلی'},
+      ];
+
+      await tester.pumpWidget(
+        _app(
+          service: service,
+          loadTasks: () async => localTasks,
+          replaceTasks: (tasks) async {
+            localTasks = tasks.map((task) => Map<String, dynamic>.from(task)).toList();
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.pumpAndSettle();
+
+      expect(localTasks.single['id'], 'old-task');
+      final projectsAfterRollback = await ProjectStore().load();
+      expect(projectsAfterRollback.map((project) => project.id), ['old-project']);
+      expect(
+        find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+        findsOneWidget,
+      );
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await ProjectStore.resetTestDatabase();
+    }
   });
 
   testWidgets('passphrase is operation scoped and never persisted',
