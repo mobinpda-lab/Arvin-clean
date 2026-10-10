@@ -177,19 +177,28 @@ class ArvinBackupManager {
       if (raw is! Map) {
         throw const FormatException('Arvin backup Calendar link entry is invalid');
       }
-      final value = Map<String, dynamic>.from(raw);
-      final link = ExternalCalendarEventLink(
-        reminderId: value['reminderId'] as String? ?? '',
-        calendarId: value['calendarId'] as String? ?? '',
-        eventId: value['eventId'] as String? ?? '',
-        lastSyncedFingerprint: value['lastSyncedFingerprint'] as String? ?? '',
-      );
-      if (!ids.add(link.reminderId)) {
-        throw FormatException(
-          'Arvin backup contains duplicate Calendar link: ${link.reminderId}',
+      try {
+        final value = Map<String, dynamic>.from(raw);
+        final link = ExternalCalendarEventLink(
+          reminderId: value['reminderId'] as String? ?? '',
+          calendarId: value['calendarId'] as String? ?? '',
+          eventId: value['eventId'] as String? ?? '',
+          lastSyncedFingerprint:
+              value['lastSyncedFingerprint'] as String? ?? '',
+        );
+        if (!ids.add(link.reminderId)) {
+          throw FormatException(
+            'Arvin backup contains duplicate Calendar link: ${link.reminderId}',
+          );
+        }
+        links.add(link);
+      } on FormatException {
+        rethrow;
+      } catch (_) {
+        throw const FormatException(
+          'Arvin backup Calendar link fields are invalid',
         );
       }
-      links.add(link);
     }
     return List<ExternalCalendarEventLink>.unmodifiable(links);
   }
