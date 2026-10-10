@@ -16,7 +16,7 @@ Status: **BINDING UI CONTRACT**
 Final Arvin imagery and Home acceptance must preserve:
 1. **بسم الله الرحمن الرحیم**
 2. **مدیریت کارها و پیگیری آروین**
-3. four primary grouping controls: **زمان / پروژه / دسته / برچسب**
+3. four primary filter/view controls: **زمان / پروژه / دسته / برچسب** (four views, not four domain entities)
 4. simple daily-use Home
 5. separate **Report Center**
 6. Arvin identity color centered on **#4A4CAB**
