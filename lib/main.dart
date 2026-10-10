@@ -1852,6 +1852,18 @@ class _HomePageState extends State<HomePage> {
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
       );
+      if (emergencyBackup == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'برای حفظ اطلاعات فعلی، پشتیبان اضطراری ساخته نشد؛ بازیابی لغو شد',
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
       if (!mounted) return;
       final approved = await showDialog<bool>(
@@ -1862,7 +1874,7 @@ class _HomePageState extends State<HomePage> {
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
             '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
             '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.' : 'پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.'}\n\n'
-            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
+            'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.',
           ),
           actions: [
             TextButton(
