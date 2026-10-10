@@ -24,6 +24,7 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
@@ -44,6 +45,7 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
@@ -68,6 +70,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onCompleteReminder,
     super.onEditReminder,
     super.onEditTask,
+    super.onDeleteTask,
     super.onRegisterTaskToDeviceCalendar,
     super.onConvertReminderToTask,
     super.onOpenExternalReminder,
@@ -198,6 +201,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               onCompleteReminder: widget.onCompleteReminder,
               onEditReminder: widget.onEditReminder,
               onEditTask: widget.onEditTask,
+              onDeleteTask: widget.onDeleteTask,
               onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
               onConvertReminderToTask: widget.onConvertReminderToTask,
               onOpenExternalReminder: widget.onOpenExternalReminder,
