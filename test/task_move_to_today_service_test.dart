@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_move_to_today_service.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -58,6 +59,31 @@ void main() {
     expect(reloaded.tags, <String>['مهم']);
     expect(reloaded.title, original.title);
     expect(reloaded.description, original.description);
+  });
+
+  test('default Move to Today uses the canonical Iran-local calendar day',
+      () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'iran-local-day',
+        title: 'روز جاری ایران',
+        dueDate: DateTime(2026, 8, 20, 14, 35),
+      ),
+    ]);
+
+    final moved = await TaskMoveToTodayService(store: store).move(
+      'iran-local-day',
+    );
+    final today = IranClock.now();
+
+    expect(moved.dueDate, isNotNull);
+    expect(
+      DateTime(moved.dueDate!.year, moved.dueDate!.month, moved.dueDate!.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(moved.dueDate!.hour, 14);
+    expect(moved.dueDate!.minute, 35);
   });
 
   test('undated task gets today with the current local hour and minute', () async {
