@@ -157,12 +157,7 @@ class ArvinBackupManager {
   }
 
   Map<String, dynamic> _encodeCalendarLink(ExternalCalendarEventLink link) =>
-      <String, dynamic>{
-        'reminderId': link.reminderId,
-        'calendarId': link.calendarId,
-        'eventId': link.eventId,
-        'lastSyncedFingerprint': link.lastSyncedFingerprint,
-      };
+      link.toJson();
 
   /// Old backups may not contain Calendar link metadata. Keep that distinction
   /// explicit so restore does not silently replace a current device's links
