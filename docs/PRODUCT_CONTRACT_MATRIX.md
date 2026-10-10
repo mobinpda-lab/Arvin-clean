@@ -101,3 +101,6 @@ User-facing help, onboarding, illustrations and coach-marks are product surfaces
 ## Historical-document rule
 
 Older snapshots and superseded design/architecture proposals remain useful evidence, but they cannot override this matrix, a newer explicit product decision, current canonical contracts or verified GitHub reality.
+
+## Canonical taxonomy architecture decision
+See `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. The only taxonomy concepts are Project, Category and Tag. Category/Group is one concept; the standard Persian UI term is «دسته». Home's Time / Project / Category / Tag controls are filters/views, not four taxonomy entities; date-based display grouping is presentation-only. Project, Category and Tag filters remain distinct and combine with AND. No feature-specific taxonomy model or Group entity may be added. Full conformance and legacy wording audit remains open in Issue #2580.
