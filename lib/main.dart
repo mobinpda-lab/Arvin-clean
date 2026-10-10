@@ -911,7 +911,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _groupedTaskList() {
-    final groups = _homeGroups.where((group) => !_homeFilterActive || group.items.isNotEmpty).toList(growable: false);
+    final compactHome = MediaQuery.sizeOf(context).height < 700;
+    final groups = _homeGroups
+        .where((group) => group.items.isNotEmpty || (!_homeFilterActive && !compactHome))
+        .toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
       return Center(child: Padding(
         padding: const EdgeInsets.all(24),
@@ -931,7 +934,7 @@ class _HomePageState extends State<HomePage> {
       ));
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 5, 16, 96),
+      padding: EdgeInsets.fromLTRB(16, 5, 16, MediaQuery.sizeOf(context).height < 700 ? 12 : 96),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
@@ -2723,7 +2726,7 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
-          Expanded(child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
+          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
@@ -2732,10 +2735,26 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 FilledButton.icon(key: const ValueKey('home-storage-retry'), onPressed: () { setState(() => loading = true); _load(); }, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
               ])))
-            : _groupedTaskList()),
+            : _groupedTaskList())),
+          if (compactHome && selected.isEmpty && loadFailure == null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: KeyedSubtree(
+                  key: const ValueKey('home-canonical-add'),
+                  child: SizedBox(
+                    key: const ValueKey('home-compact-add-bounds'),
+                    width: 56,
+                    height: 56,
+                    child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+                  ),
+                ),
+              ),
+            ),
         ]),
       ),
-      floatingActionButton: selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
+      floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
       bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),

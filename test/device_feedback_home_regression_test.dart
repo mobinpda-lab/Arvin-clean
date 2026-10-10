@@ -41,6 +41,69 @@ void main() {
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
+  testWidgets('compact Home keeps Task card and add action clear of navigation',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"compact-task","title":"کار جمع‌وجور"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final task = find.byKey(const ValueKey('compact-task'));
+    final taskCard = find.descendant(of: task, matching: find.byType(Padding)).first;
+    final add = find.byKey(const ValueKey('home-canonical-add'));
+    final addBounds = find.byKey(const ValueKey('home-compact-add-bounds'));
+    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+    final navigationPadding = find.descendant(
+      of: moreNavigation,
+      matching: find.byType(Padding),
+    ).first;
+    expect(task, findsOneWidget);
+    expect(taskCard, findsOneWidget);
+    expect(add, findsOneWidget);
+    expect(addBounds, findsOneWidget);
+    expect(moreNavigation, findsOneWidget);
+    expect(navigationPadding, findsOneWidget);
+
+    final taskRect = tester.getRect(taskCard);
+    final listViewportRect = tester.getRect(
+      find.byKey(const ValueKey('home-task-list-viewport')),
+    );
+    final addRect = tester.getRect(addBounds);
+    final navigationRect = tester.getRect(navigationPadding);
+    expect(taskRect.bottom, lessThanOrEqualTo(listViewportRect.bottom));
+    expect(listViewportRect.bottom, lessThanOrEqualTo(addRect.top));
+    expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('normal-height Home keeps empty groups and floating add action',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"normal-task","title":"کار عادی"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(find.text('تاریخ‌گذشته'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('فردا'), findsOneWidget);
+    expect(find.text('آینده'), findsOneWidget);
+    expect(find.text('فاقد زمان'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('RTL swipe mapping remains configurable and data-safe',
       (tester) async {
     SharedPreferences.setMockInitialValues({
