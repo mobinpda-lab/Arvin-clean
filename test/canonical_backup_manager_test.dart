@@ -277,6 +277,29 @@ void main() {
     expect((await ExternalCalendarLinkStore().load()), isEmpty);
   });
 
+  test('canonical restore rejects malformed Calendar link before mutation', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'calendarLinks': [
+          {
+            'reminderId': 'task-due:task-full',
+            'calendarId': 'calendar-1',
+            'eventId': '',
+            'lastSyncedFingerprint': 'fingerprint-1',
+          },
+        ],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
+    expect((await ExternalCalendarLinkStore().load()), isEmpty);
+  });
+
   test('legacy task-only restore candidate remains valid', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
