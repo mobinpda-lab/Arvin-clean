@@ -1,6 +1,6 @@
 # UX Specification — Universal Arvin Time Picker
 
-**Status:** Approved direction; implementation and device acceptance pending  
+**Status:** Shared implementation and first six caller migrations in PR #2591; device acceptance and full audit pending  
 **Canonical tracker:** [Issue #2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589)  
 **Architecture decision:** [ADR-2026-10-11](../ADR/ADR-2026-10-11-AUTPDS-universal-time-picker.md)
 
