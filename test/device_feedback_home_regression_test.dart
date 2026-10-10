@@ -79,7 +79,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"normal-task","title":"کار عادی"}]',
+    });
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
