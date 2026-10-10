@@ -517,16 +517,16 @@ void main() {
     final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
     await tester.tap(delete);
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
     expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
     await tester.tap(find.text('لغو'));
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
     expect(deleted, isNull);
 
     await tester.tap(delete);
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
     expect(identical(deleted, task), isTrue);
   });
 
