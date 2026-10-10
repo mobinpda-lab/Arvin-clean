@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// Canonical, high-contrast semantic palette used across Arvin.
+/// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
+/// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
   static const primary = Color(0xFF4A4CAB);
   static const primaryDark = Color(0xFF25286F);
-  static const primarySoft = Color(0xFFE0E3FF);
+  static const primarySoft = Color(0xFFE9EAFF);
 
-  static const background = Color(0xFFF4F5FB);
-  static const surface = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF171D33);
-  static const textSecondary = Color(0xFF4C536B);
-  static const border = Color(0xFFC7CCDC);
+  static const background = Color(0xFFF8F8FB);
+  static const surface = Color(0xFFFDFDFE);
+  static const textPrimary = Color(0xFF232433);
+  static const textSecondary = Color(0xFF80829C);
+  static const border = Color(0xFFE5E7ED);
 
   static const time = Color(0xFF008C74);
   static const timeDark = Color(0xFF006653);
