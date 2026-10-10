@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
+import 'models/task.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/project_store.dart';
+import 'services/task_store.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -238,6 +241,8 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: (await ExternalCalendarLinkStore().load())
             .map((link) => link.toJson())
             .toList(growable: false),
+        categories: await TaskStore().loadCategories(),
+        tags: await TaskStore().loadTags(),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -293,6 +298,9 @@ class _BackupPageState extends State<BackupPage> {
 
   Future<void> _restore({String? passphrase}) async {
     setState(() => busy = true);
+    List<Map<String, dynamic>>? previousTasks;
+    List<ExternalCalendarEventLink>? previousCalendarLinks;
+    Map<String, dynamic>? previousSettings;
     try {
       final candidate = await manager.restoreCanonicalBackup(
         passphrase: passphrase,
@@ -305,25 +313,72 @@ class _BackupPageState extends State<BackupPage> {
         hasCalendarLinks: candidate.calendarLinks != null,
       );
       if (!confirmed || !mounted) return;
-      final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      await widget.replaceTasks(
-        candidate.tasks.map((task) => task.toJson()).toList(growable: false),
+
+      // Snapshot every store this restore flow can mutate before the first write.
+      previousTasks = (await widget.loadTasks())
+          .map((value) => Map<String, dynamic>.from(value))
+          .toList(growable: false);
+      previousCalendarLinks = await ExternalCalendarLinkStore().load();
+      previousSettings = await _portableBackupSettings();
+      final currentTasks = previousTasks!
+          .map((value) => Task.fromJson(value))
+          .toList(growable: false);
+      final emergencyBackup = await manager.backupCanonicalTasks(
+        currentTasks,
+        settings: previousSettings,
+        projects: await ProjectStore().load(),
+        calendarLinks: previousCalendarLinks,
+        categories: await TaskStore().loadCategories(),
+        tags: await TaskStore().loadTags(),
       );
-      await ExternalCalendarLinkStore().restoreForTasks(
-        restoredTaskIds: candidate.tasks.map((task) => task.id),
-        backupLinks: candidate.calendarLinks ?? const [],
-        currentLinks: currentCalendarLinks,
-      );
-      if (candidate.settings != null) {
-        await settingsService.restorePortableJson(candidate.settings!);
-        final rawSchedule = candidate.settings!['backupSchedule'];
-        if (rawSchedule is Map) {
-          final restoredSchedule = BackupSchedule.decodePortableJson(
-            Map<String, dynamic>.from(rawSchedule),
+      if (emergencyBackup == null) {
+        if (mounted) {
+          _message(
+            'برای حفظ اطلاعات فعلی، پشتیبان اضطراری ساخته نشد؛ بازیابی لغو شد',
           );
-          await restoredSchedule.save();
         }
+        return;
       }
+
+      await runRestoreWithRollback<void>(
+        recoveryBackup: emergencyBackup,
+        apply: () async {
+          await widget.replaceTasks(
+            candidate.tasks.map((task) => task.toJson()).toList(growable: false),
+          );
+          await ExternalCalendarLinkStore().restoreForTasks(
+            restoredTaskIds: candidate.tasks.map((task) => task.id),
+            backupLinks: candidate.calendarLinks ?? const [],
+            currentLinks: previousCalendarLinks!,
+          );
+          if (candidate.settings != null) {
+            await settingsService.restorePortableJson(candidate.settings!);
+            final rawSchedule = candidate.settings!['backupSchedule'];
+            if (rawSchedule is Map) {
+              final restoredSchedule = BackupSchedule.decodePortableJson(
+                Map<String, dynamic>.from(rawSchedule),
+              );
+              await restoredSchedule.save();
+            }
+          }
+          // TaskStore commits both catalogs together; they are applied last.
+          await TaskStore().mergeCatalogs(
+            categories: candidate.categories ?? const <String>[],
+            tags: candidate.tags ?? const <String>[],
+          );
+        },
+        rollback: () async {
+          await widget.replaceTasks(previousTasks!);
+          await ExternalCalendarLinkStore().save(previousCalendarLinks!);
+          await settingsService.restorePortableJson(previousSettings!);
+          final oldSchedule = previousSettings!['backupSchedule'];
+          if (oldSchedule is Map) {
+            await BackupSchedule.decodePortableJson(
+              Map<String, dynamic>.from(oldSchedule),
+            ).save();
+          }
+        },
+      );
       if (mounted) {
         _message(
           candidate.calendarLinks == null
@@ -335,13 +390,21 @@ class _BackupPageState extends State<BackupPage> {
                   : 'اطلاعات، تنظیمات و پیوندهای تقویم ادغام شد',
         );
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        _message(
-          passphrase == null
-              ? 'بازیابی از فایل پشتیبان انجام نشد'
-              : 'بازیابی رمزگذاری‌شده انجام نشد؛ رمز نادرست است یا فایل معتبر نیست',
-        );
+        if (error is RestoreExecutionFailure) {
+          _message(
+            error.rolledBack
+                ? 'بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'
+                : 'بازیابی کامل نشد و بازگردانی خودکار هم کامل نشد؛ فایل پشتیبان اضطراری را نگه دارید و از همین صفحه بازیابی کنید: ${error.recoveryBackup}',
+          );
+        } else {
+          _message(
+            passphrase == null
+                ? 'بازیابی از فایل پشتیبان انجام نشد؛ اطلاعات قبلی دست‌نخورده باقی ماند.'
+                : 'بازیابی رمزگذاری‌شده انجام نشد؛ رمز نادرست است یا فایل معتبر نیست',
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => busy = false);

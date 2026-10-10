@@ -14,6 +14,8 @@ class _RecordingBackupManager extends ArvinBackupManager {
   List<ProjectPlan>? capturedProjects;
   List<Task>? capturedTasks;
   List<ExternalCalendarEventLink>? capturedCalendarLinks;
+  List<String>? capturedCategories;
+  List<String>? capturedTags;
 
   @override
   Future<String?> backupCanonicalTasks(
@@ -21,6 +23,8 @@ class _RecordingBackupManager extends ArvinBackupManager {
     Map<String, dynamic>? settings,
     Iterable<ProjectPlan>? projects,
     Iterable<ExternalCalendarEventLink>? calendarLinks,
+    Iterable<String>? categories,
+    Iterable<String>? tags,
     String? encryptionPassphrase,
   }) async {
     capturedTasks = List<Task>.of(tasks);
@@ -28,6 +32,8 @@ class _RecordingBackupManager extends ArvinBackupManager {
     capturedCalendarLinks = calendarLinks == null
         ? null
         : List<ExternalCalendarEventLink>.of(calendarLinks);
+    capturedCategories = categories == null ? null : List<String>.of(categories);
+    capturedTags = tags == null ? null : List<String>.of(tags);
     return 'arvin-test-backup.json';
   }
 }
@@ -59,6 +65,7 @@ void main() {
     final bridge = ProjectBackupBridge(
       projectStore: store,
       backupManager: manager,
+      taskStore: TaskStore(executor: database),
     );
     final task = Task(id: 't1', title: 'کار');
 
@@ -69,6 +76,8 @@ void main() {
     expect(manager.capturedProjects?.single.id, 'p1');
     expect(manager.capturedProjects?.single.itemIds, ['t1']);
     expect(manager.capturedCalendarLinks?.single.eventId, 'event-t1');
+    expect(manager.capturedCategories, isNotNull);
+    expect(manager.capturedTags, isNotNull);
   });
 
   test('restore writes candidate Projects through canonical ProjectStore', () async {
@@ -79,6 +88,8 @@ void main() {
       settings: null,
       projects: [ProjectPlan(id: 'p2', title: 'بازیابی')],
       calendarLinks: null,
+      categories: null,
+      tags: null,
     );
 
     await bridge.restoreProjects(candidate);
