@@ -929,7 +929,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    var tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    try {
+      final catalog = await taskStore.loadTags();
+      tags = <String>{
+        ...tags,
+        ...catalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      }.toList()..sort();
+    } catch (_) {
+      // Preserve task-derived options if the canonical catalog is unavailable.
+    }
+    if (!mounted) return;
     final selectedTags = <String>{..._tagFilters};
     String search = '';
     await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
