@@ -6,6 +6,7 @@ import 'backup_manager.dart';
 import 'backup_schedule.dart';
 import 'backup_scheduler_adapter.dart';
 import 'services/persian_date_formatter.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 class BackupSchedulePage extends StatefulWidget {
   const BackupSchedulePage({
@@ -50,9 +51,10 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(
+    final picked = await showUniversalArvinTimePicker(
       context: context,
       initialTime: _time ?? const TimeOfDay(hour: 3, minute: 0),
+      helpText: 'زمان پشتیبان‌گیری خودکار',
     );
     if (picked == null || _schedule == null) return;
     setState(() {
