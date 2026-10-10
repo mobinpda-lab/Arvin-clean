@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
+import 'services/external_calendar_link_store.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -234,6 +235,9 @@ class _BackupPageState extends State<BackupPage> {
       final fileName = await manager.backupTasks(
         tasks,
         settings: await _portableBackupSettings(),
+        calendarLinks: (await ExternalCalendarLinkStore().load())
+            .map((link) => link.toJson())
+            .toList(growable: false),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -257,14 +261,18 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
-  Future<bool> _confirmRestore(int taskCount, {required bool hasSettings}) async {
+  Future<bool> _confirmRestore(
+    int taskCount, {
+    required bool hasSettings,
+    required bool hasCalendarLinks,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تأیید بازیابی'),
         content: Text(
-          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود${hasSettings ? ' و تنظیمات موجود در همان فایل نیز برمی‌گردد' : ''}. این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
+          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود${hasSettings ? ' و تنظیمات موجود در همان فایل نیز برمی‌گردد' : ''}.${hasCalendarLinks ? ' اطلاعات پیوند تقویم گوشی نیز برمی‌گردد؛ پیش از همگام‌سازی، رویداد پیوندشده بررسی می‌شود.' : ' این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلی این دستگاه حفظ می‌شوند.'} این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
         ),
         actions: [
           TextButton(
@@ -294,11 +302,15 @@ class _BackupPageState extends State<BackupPage> {
       final confirmed = await _confirmRestore(
         candidate.tasks.length,
         hasSettings: candidate.settings != null,
+        hasCalendarLinks: candidate.calendarLinks != null,
       );
       if (!confirmed || !mounted) return;
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
+      if (candidate.calendarLinks != null) {
+        await ExternalCalendarLinkStore().save(candidate.calendarLinks!);
+      }
       if (candidate.settings != null) {
         await settingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
@@ -313,7 +325,9 @@ class _BackupPageState extends State<BackupPage> {
         _message(
           candidate.settings == null
               ? 'اطلاعات با موفقیت بازیابی شد'
-              : 'اطلاعات و تنظیمات با موفقیت بازیابی شد',
+              : candidate.calendarLinks == null
+                  ? 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
+                  : 'اطلاعات، تنظیمات و پیوندهای تقویم بازیابی شد',
         );
       }
     } catch (_) {
