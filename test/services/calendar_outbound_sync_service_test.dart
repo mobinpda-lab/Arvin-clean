@@ -193,6 +193,48 @@ targetCalendarId: 'calendar-7',
     expect(links.links.map((link) => link.eventId), containsAll(['event-9', 'event-10']));
   });
 
+  test('linked-only edit reconciles an existing due-date link despite source toggle off', () async {
+    final reminder = CalendarReminder(
+      id: 'task-due:task-1',
+      title: 'موعد ویرایش‌شده',
+      date: DateTime(2026, 9, 19, 12),
+    );
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'event-17',
+        lastSyncedFingerprint: 'old-fingerprint',
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: false,
+          targetCalendarId: 'calendar-7',
+          syncDueDates: false,
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync(
+      [reminder],
+      force: true,
+      linkedOnly: true,
+    );
+
+    expect(result?.updated, 1);
+    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items, hasLength(1));
+    expect(executor.receivedPlan?.items.single.reminderId, reminder.id);
+    expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.update);
+    expect(links.links.single.eventId, 'event-17');
+  });
+
   test('honors per-source sync settings before planning provider writes', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(

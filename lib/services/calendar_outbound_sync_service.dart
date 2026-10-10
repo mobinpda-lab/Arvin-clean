@@ -79,7 +79,10 @@ class CalendarOutboundSyncService {
       if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
-      if (!_enabledForReminder(integration, reminder)) continue;
+      // An explicit edit of an already-linked Task is a direct reconciliation
+      // request, not a new/background sync. Per-source toggles still gate normal
+      // sync and unlinked reminders, but must not strand an existing link.
+      if (!linkedOnly && !_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
       } on ArgumentError {
@@ -90,10 +93,12 @@ class CalendarOutboundSyncService {
 
     if (linkedOnly && revisions.isEmpty) return null;
 
-    final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
+    final managedLinks = linkedOnly
+        ? links.where((link) => revisionIds.contains(link.reminderId))
+        : links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final linksForPlan = linkedOnly
-        ? managedLinks.where((link) => revisionIds.contains(link.reminderId))
+        ? managedLinks
         : integration.deleteLinkedEventWithTask
             ? managedLinks
             : managedLinks.where((link) => revisionIds.contains(link.reminderId));
