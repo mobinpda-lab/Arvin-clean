@@ -71,7 +71,7 @@ void main() {
           itemIds: const <String>[],
         ),
       ]);
-      const localLink = ExternalCalendarEventLink(
+      final localLink = ExternalCalendarEventLink(
         reminderId: 'task-due:local-task',
         calendarId: 'local-calendar',
         eventId: 'local-event',
@@ -144,7 +144,9 @@ void main() {
         (await ProjectStore().load()).map((project) => project.id),
         ['local-project'],
       );
-      expect(await ExternalCalendarLinkStore().load(), [localLink]);
+      final restoredLinks = await ExternalCalendarLinkStore().load();
+      expect(restoredLinks, hasLength(1));
+      expect(restoredLinks.single.toJson(), localLink.toJson());
       expect((await settingsService.load()).fontSize, settingsBefore.fontSize);
       final scheduleAfter = await BackupSchedule.load();
       expect(scheduleAfter.enabled, scheduleBefore.enabled);
