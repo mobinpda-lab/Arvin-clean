@@ -156,13 +156,18 @@ If UI/navigation changes, outdated help text or illustrations keep the related a
 - timed reminders show real time as accent metadata.
 - all-day reminders show `تمام‌روز` and must not display a fabricated time.
 - collapsed and expanded cards preserve a rounded light surface and clear reminder icon/hierarchy as platform space allows.
-- expanded actions: complete, snooze, edit, convert to Task where permitted.
+- expanded actions: complete, edit, convert to Task where permitted; Snooze is not a current accepted Calendar action.
 - Lock Screen/widget behavior remains consistent with approved semantics and platform capability.
 
-Calendar-facing complete/snooze behavior reported broken by the owner is tracked as a recovery regression in #849 and cannot be treated as complete merely because reminder action services exist.
+Historical issue #849 contains legacy Calendar complete/snooze wording. The current AMP contract supersedes Snooze: runtime action code is absent and regression tests assert that Snooze is not exposed. Do not restore it without a new explicit product decision; completion and the other approved Calendar actions remain governed by current acceptance evidence.
 
 ## Migration Direction
 
 UI migration is incremental and must preserve existing working behavior while moving toward accepted canonical designs. Meaningful UI changes require appropriate widget/regression tests plus RTL and device/visual validation.
 
 A deferred user interaction is not considered delivered merely because its domain model, service, persistence, reusable page or help text exists. Recovery status is governed by #845 and Waves #846–#853 until final convergence closes the ledger.
+
+
+## AMP supersession note — Snooze (2026-10-10)
+
+Older UI requirements mentioning Snooze are historical only and are superseded by the current owner-authored AMP contract. Current Calendar/task surfaces must not expose Snooze; keep the existing regression assertions that verify its absence.

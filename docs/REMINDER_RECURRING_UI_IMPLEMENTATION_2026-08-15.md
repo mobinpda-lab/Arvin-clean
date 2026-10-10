@@ -18,3 +18,8 @@ Recurring is now part of the existing `Task`/Unified Item model and is backward-
 4. Add top menu shell.
 5. Add widget/visual tests where supported and validate on APK.
 6. Run Analyze → Test → Build → APK verification → document result.
+
+
+## Supersession note — Snooze action (2026-10-10)
+
+This file preserves historical planning/requirements context. Any wording above that lists Snooze as a current Reminder/Calendar action is superseded by the owner-approved AMP contract recorded in `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`. Current runtime Calendar/task surfaces contain no Snooze action/callback/logic, and regression tests assert its absence. Do not reintroduce Snooze without a new explicit product decision. Preserve completion, Edit, manual Calendar registration, Reminder, Repeat and Follow-up behavior.

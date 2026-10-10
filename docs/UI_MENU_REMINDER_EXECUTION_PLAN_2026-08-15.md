@@ -19,3 +19,8 @@ Use ChatGPT-style principles as a permanent inspiration: simple, calm hierarchy,
 
 ## Safety
 UI work must not bypass Unified Item, Calendar, notification, or Widget foundations. Every production slice requires audit, tests, commit, workflow validation, and status/documentation update.
+
+
+## Supersession note — Snooze action (2026-10-10)
+
+This file preserves historical planning/requirements context. Any wording above that lists Snooze as a current Reminder/Calendar action is superseded by the owner-approved AMP contract recorded in `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`. Current runtime Calendar/task surfaces contain no Snooze action/callback/logic, and regression tests assert its absence. Do not reintroduce Snooze without a new explicit product decision. Preserve completion, Edit, manual Calendar registration, Reminder, Repeat and Follow-up behavior.

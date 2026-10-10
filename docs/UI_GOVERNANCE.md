@@ -36,7 +36,7 @@ The previously approved Reminder concept is canonical:
 - Time is shown smaller beside the label when a real time exists.
 - Reminder title/content is presented beneath it.
 - Details can expand/collapse.
-- Quick actions include completion, snooze, edit and conversion to Task/Item where supported.
+- Quick actions include completion, edit and conversion to Task/Item where supported. Snooze is not part of the current accepted Calendar/task action surface; see the AMP supersession note below.
 - All-day reminders never display a fabricated clock time.
 - Lock Screen/widget presentation must remain consistent with this contract and use the same source of truth as the application.
 
@@ -54,3 +54,8 @@ Any AI or automated coding system working on Arvin must treat this document and 
 
 ## Project identity
 **بسم الله الرحمن الرحیم** is an inseparable principle of the Arvin project and must be preserved in project documentation and AI handoff context.
+
+
+## Owner-approved supersession — Snooze (2026-10-10)
+
+The current ARVIN MASTER PRODUCT COMPLETION PROTOCOL (AMP), recorded in `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`, supersedes older design wording that listed Snooze as a required quick action. Current runtime Calendar/task code has no Snooze button, callback or logic, and Calendar regression tests assert that the action remains absent. Do not reintroduce Snooze without a new explicit product decision. Preserve completion, Edit, manual Calendar registration, Reminder, Repeat and Follow-up behavior.
