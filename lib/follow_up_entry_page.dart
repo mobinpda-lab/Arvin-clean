@@ -67,8 +67,6 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.dispose();
   }
 
-  String _digits(String value) => _dateFormatter.toPersianDigits(value);
-
   String _formatDate(DateTime value) =>
       _dateFormatter.format(value, usePersianDate: true);
 
