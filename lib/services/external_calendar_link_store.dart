@@ -111,6 +111,7 @@ class ExternalCalendarLinkStore {
     required Iterable<String> restoredTaskIds,
     Iterable<ExternalCalendarEventLink> backupLinks =
         const <ExternalCalendarEventLink>[],
+    Iterable<ExternalCalendarEventLink>? currentLinks,
   }) async {
     final taskIds = restoredTaskIds.map((id) => id.trim())
         .where((id) => id.isNotEmpty).toSet();
@@ -125,7 +126,8 @@ class ExternalCalendarLinkStore {
       return taskId != null && taskIds.contains(taskId);
     }
 
-    for (final link in await load()) {
+    final existingLinks = currentLinks ?? await load();
+    for (final link in existingLinks) {
       if (belongsToRestoredTask(link)) {
         merged.putIfAbsent(link.reminderId, () => link);
       }
