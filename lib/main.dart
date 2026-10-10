@@ -137,6 +137,35 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedFontFamily = settings.fontFamily == 'system'
+        ? null
+        : (settings.fontFamily ?? AppFonts.vazirharfFamily);
+    final lightBaseTextTheme = ThemeData.light().textTheme.apply(
+      fontFamily: selectedFontFamily,
+      bodyColor: ArvinColors.textPrimary,
+      displayColor: ArvinColors.textPrimary,
+    );
+    final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
+      fontFamily: selectedFontFamily,
+    );
+    final readableLightTextTheme = lightBaseTextTheme.copyWith(
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+      titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
+      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+    );
+    final readableDarkTextTheme = darkBaseTextTheme.copyWith(
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+    );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
@@ -155,15 +184,63 @@ class _ArvinAppState extends State<ArvinApp> {
       },
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF4A4CAB),
-        brightness: Brightness.light,
-        fontFamily: settings.fontFamily == 'system' ? null : (settings.fontFamily ?? AppFonts.vazirharfFamily),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ArvinColors.primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: ArvinColors.primary,
+          onPrimary: Colors.white,
+          secondary: ArvinColors.project,
+          onSecondary: Colors.white,
+          error: ArvinColors.error,
+          onError: Colors.white,
+          surface: ArvinColors.surface,
+          onSurface: ArvinColors.textPrimary,
+          outline: ArvinColors.border,
+        ),
+        scaffoldBackgroundColor: ArvinColors.background,
+        fontFamily: selectedFontFamily,
+        textTheme: readableLightTextTheme,
+        iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
+        dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: ArvinColors.background,
+          foregroundColor: ArvinColors.textPrimary,
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
+          hintStyle: TextStyle(color: ArvinColors.textSecondary),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: ArvinColors.border, width: 1.3),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: ArvinColors.primary, width: 2),
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        brightness: Brightness.dark,
-        fontFamily: settings.fontFamily == 'system' ? null : (settings.fontFamily ?? AppFonts.vazirharfFamily),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ArvinColors.primary,
+          brightness: Brightness.dark,
+        ).copyWith(
+          primary: const Color(0xFFB7BCFF),
+          onPrimary: const Color(0xFF20236E),
+          secondary: const Color(0xFF9FC4FF),
+          error: const Color(0xFFFFB4AB),
+        ),
+        fontFamily: selectedFontFamily,
+        textTheme: readableDarkTextTheme,
+        dividerTheme: const DividerThemeData(color: Color(0xFF555B70), thickness: 1),
+        appBarTheme: const AppBarTheme(),
+        inputDecorationTheme: const InputDecorationTheme(
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.3),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 2),
+          ),
+        ),
       ),
       themeMode: settings.themeMode,
       home: Directionality(
