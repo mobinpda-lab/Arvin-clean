@@ -9,6 +9,7 @@ class _FakeBridge extends SystemCalendarBridge {
   bool failCreate = false;
   bool failUpdate = false;
   bool failDelete = false;
+  bool linkedIdentityExists = true;
   final List<String> calls = <String>[];
 
   @override
@@ -41,6 +42,12 @@ class _FakeBridge extends SystemCalendarBridge {
     calls.add('create:$calendarId:$title');
     return failCreate ? null : 'event-1';
   }
+
+  @override
+  Future<bool> verifyProviderEventIdentity({
+    required String calendarId,
+    required String eventId,
+  }) async => linkedIdentityExists;
 
   @override
   Future<bool> updateProviderEvent({
@@ -172,6 +179,70 @@ void main() {
     expect(bridge.calls.single, contains('update:42:7'));
     expect(store.links.single.eventId, '7');
     expect(store.links.single.lastSyncedFingerprint, 'new');
+  });
+
+  test('stale linked identity fails closed before update and preserves link', () async {
+    final old = ExternalCalendarEventLink(
+      reminderId: 'followup:1',
+      calendarId: '42',
+      eventId: 'stale-7',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge()..linkedIdentityExists = false;
+    final store = _MemoryLinkStore([old]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    await expectLater(
+      executor.execute(
+        plan: CalendarSyncPlan([
+          CalendarSyncPlanItem(
+            reminderId: 'followup:1',
+            action: CalendarSyncAction.update,
+            revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+            link: old,
+          ),
+        ]),
+        targetCalendarId: '42',
+      ),
+      throwsStateError,
+    );
+
+    expect(bridge.calls, isEmpty);
+    expect(store.saveCount, 0);
+    expect(store.links.single.eventId, 'stale-7');
+    expect(store.links.single.lastSyncedFingerprint, 'old');
+  });
+
+  test('stale linked identity fails closed before delete and preserves link', () async {
+    final old = ExternalCalendarEventLink(
+      reminderId: 'followup:1',
+      calendarId: '42',
+      eventId: 'stale-7',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge()..linkedIdentityExists = false;
+    final store = _MemoryLinkStore([old]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    await expectLater(
+      executor.execute(
+        plan: CalendarSyncPlan([
+          CalendarSyncPlanItem(
+            reminderId: 'followup:1',
+            action: CalendarSyncAction.delete,
+            link: old,
+          ),
+        ]),
+        targetCalendarId: '42',
+      ),
+      throwsStateError,
+    );
+
+    expect(bridge.calls, isEmpty);
+    expect(store.saveCount, 0);
+    expect(store.links.single.eventId, 'stale-7');
   });
 
   test('changing target calendar migrates the linked event without leaving a duplicate', () async {
