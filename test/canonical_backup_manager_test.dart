@@ -104,6 +104,68 @@ void main() {
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
   });
 
+  test('canonical backup preserves unassigned Category and Tag catalog entries', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+
+    await manager.backupCanonicalTasks(
+      [_completeTask()],
+      categories: const ['فروش', 'شخصی', 'بدون کار متصل'],
+      tags: const ['مهم', 'مشتری', 'بدون کار متصل'],
+    );
+
+    expect(service.writtenPayload?['categories'], [
+      'فروش',
+      'شخصی',
+      'بدون کار متصل',
+    ]);
+    expect(service.writtenPayload?['tags'], [
+      'مهم',
+      'مشتری',
+      'بدون کار متصل',
+    ]);
+  });
+
+  test('canonical restore validates and returns optional Category and Tag catalogs', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'categories': ['فروش', 'شخصی'],
+        'tags': ['مهم', 'مشتری'],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate?.categories, ['فروش', 'شخصی']);
+    expect(candidate?.tags, ['مهم', 'مشتری']);
+  });
+
+  test('canonical restore rejects duplicate Category and Tag catalog entries', () async {
+    for (final document in [
+      {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'categories': ['شخصی', 'شخصی'],
+      },
+      {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'tags': ['مهم', 'مهم'],
+      },
+    ]) {
+      final service = _FakeBackupService()..restoreDocument = document;
+      await expectLater(
+        ArvinBackupManager(service: service).restoreCanonicalBackup(),
+        throwsA(isA<FormatException>()),
+      );
+    }
+  });
+
   test('canonical backup carries projects in the same document', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -171,6 +233,8 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.calendarLinks, isNull);
+    expect(candidate.categories, isNull);
+    expect(candidate.tags, isNull);
   });
 
   test('canonical restore rejects duplicate calendar link identities', () async {
