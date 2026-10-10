@@ -309,10 +309,6 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (!confirmed || !mounted) return;
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      await TaskStore().mergeCatalogs(
-        categories: candidate.categories ?? const <String>[],
-        tags: candidate.tags ?? const <String>[],
-      );
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
@@ -331,6 +327,12 @@ class _BackupPageState extends State<BackupPage> {
           await restoredSchedule.save();
         }
       }
+      // Apply catalogs only after Task, Calendar-link, and settings writes succeed.
+      // This narrows partial effects but does not make the multi-store restore atomic.
+      await TaskStore().mergeCatalogs(
+        categories: candidate.categories ?? const <String>[],
+        tags: candidate.tags ?? const <String>[],
+      );
       if (mounted) {
         _message(
           candidate.calendarLinks == null
