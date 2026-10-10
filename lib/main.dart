@@ -18,6 +18,7 @@ import 'services/iran_clock.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/calendar_inbound_sync_service.dart';
@@ -762,11 +763,11 @@ class _HomePageState extends State<HomePage> {
             if (picked != null) setSheetState(() => toDate = picked);
           }
           Future<void> pickFromTime() async {
-            final picked = await showTimePicker(context: sheetContext, initialTime: fromTime ?? TimeOfDay.now());
+            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: fromTime ?? TimeOfDay.now(), helpText: 'از ساعت');
             if (picked != null) setSheetState(() => fromTime = picked);
           }
           Future<void> pickToTime() async {
-            final picked = await showTimePicker(context: sheetContext, initialTime: toTime ?? TimeOfDay.now());
+            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: toTime ?? TimeOfDay.now(), helpText: 'تا ساعت');
             if (picked != null) setSheetState(() => toTime = picked);
           }
           String dateLabel(DateTime? value, String empty) => value == null ? empty : _date(value);
