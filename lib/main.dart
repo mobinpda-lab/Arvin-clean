@@ -906,9 +906,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCategoryFilterSheet() async {
+    // The canonical catalog also contains categories not yet assigned to a
+    // Task. Include it so creating a category is independent of using it.
+    var categories = _homeCategories;
+    try {
+      final catalog = await taskStore.loadCategories();
+      categories = <String>{
+        ...categories,
+        ...catalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      }.toList()..sort();
+    } catch (_) {
+      // Preserve the existing task-derived options if catalog loading fails.
+    }
+    if (!mounted) return;
     final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
       ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
+      for (final category in categories)
         RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
     ]));
     if (!mounted) return;
@@ -916,7 +929,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    var tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    try {
+      final catalog = await taskStore.loadTags();
+      tags = <String>{
+        ...tags,
+        ...catalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      }.toList()..sort();
+    } catch (_) {
+      // Preserve task-derived options if the canonical catalog is unavailable.
+    }
+    if (!mounted) return;
     final selectedTags = <String>{..._tagFilters};
     String search = '';
     await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
