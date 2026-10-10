@@ -4,6 +4,7 @@ import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/task_store.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -238,6 +239,8 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: (await ExternalCalendarLinkStore().load())
             .map((link) => link.toJson())
             .toList(growable: false),
+        categories: await TaskStore().loadCategories(),
+        tags: await TaskStore().loadTags(),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -306,6 +309,13 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (!confirmed || !mounted) return;
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
+      final taskStore = TaskStore();
+      for (final category in candidate.categories ?? const <String>[]) {
+        await taskStore.createCategory(category);
+      }
+      for (final tag in candidate.tags ?? const <String>[]) {
+        await taskStore.createTag(tag);
+      }
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
