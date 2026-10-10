@@ -281,4 +281,44 @@ void main() {
   });
 
 
+  testWidgets('exposes reversible delete only for Arvin-owned task rows', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    var deleted = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(id: 'task-due:task-1', title: 'کار آروین', date: day),
+              CalendarReminder(
+                id: 'external-calendar:event-1',
+                title: 'رویداد گوشی',
+                date: day.add(const Duration(minutes: 30)),
+              ),
+            ],
+            onDeleteTask: (_) async {
+              deleted++;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-task-due:task-1')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-due-delete-task-due:task-1')));
+    await tester.pumpAndSettle();
+    expect(deleted, 1);
+
+    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:event-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-external-calendar:event-1')), findsNothing);
+  });
+
+
 }
