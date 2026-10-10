@@ -911,7 +911,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _groupedTaskList() {
-    final groups = _homeGroups.where((group) => !_homeFilterActive || group.items.isNotEmpty).toList(growable: false);
+    final compactHome = MediaQuery.sizeOf(context).height < 700;
+    final groups = _homeGroups
+        .where((group) => group.items.isNotEmpty || (!_homeFilterActive && !compactHome))
+        .toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
       return Center(child: Padding(
         padding: const EdgeInsets.all(24),
