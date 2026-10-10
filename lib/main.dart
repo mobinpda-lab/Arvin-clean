@@ -1780,7 +1780,7 @@ class _HomePageState extends State<HomePage> {
           content: Text(
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
             '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
-            '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلی این دستگاه حفظ می‌شوند.' : 'اطلاعات پیوند تقویم نیز بازیابی می‌شود؛ پیش از همگام‌سازی، شناسه رویداد باید تأیید شود.'}\n\n'
+            '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.' : 'پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.'}\n\n'
             '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
           ),
           actions: [
@@ -1805,9 +1805,10 @@ class _HomePageState extends State<HomePage> {
         // can retry on the next lifecycle/scheduler trigger.
       }
       await ProjectStore().save(candidate.projects);
-      if (candidate.calendarLinks != null) {
-        await ExternalCalendarLinkStore().save(candidate.calendarLinks!);
-      }
+      await ExternalCalendarLinkStore().restoreForTasks(
+        restoredTaskIds: list.map((task) => task.id),
+        backupLinks: candidate.calendarLinks ?? const [],
+      );
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
@@ -1825,7 +1826,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلی تقویم حفظ شدند' : '؛ اطلاعات پیوند تقویم نیز بازیابی شد و پیش از همگام‌سازی بررسی می‌شود'}',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}',
             ),
           ),
         );
