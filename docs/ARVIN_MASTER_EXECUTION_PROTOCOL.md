@@ -235,3 +235,48 @@ Feature فقط وقتی کامل است که User Flow، UX، Visual، Data، Te
 - **Evidence ledger:** Build `38025596457` is evidence for the previous PR head only and must not be used as a pass for the updated commit. Its Analyze, Debug/Release APK and five of six test shards passed; shard 2 failed one test (227 passed, 1 failed). Device Smoke `38025596442` had five successful lanes and People still in progress at last query.
 - **Do not merge #2564 yet.** Need fresh Analyze, all test shards, Debug/Release APK, all six Device Smoke lanes, and screenshot visual review.
 - **P0 / release gates unchanged:** #2535 actual installed-APK and writable Calendar Provider acceptance; real-file Backup/Restore; exact-main post-merge Build/Smoke; #1901 real-device regression triage; explicit owner approval. Release remains BLOCKED.
+
+## AMP Product Completion Addendum — 2026-10-10
+
+This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETION PROTOCOL (AMP)**. It supplements the existing execution protocol; it does not authorize duplicate systems or waive release gates.
+
+### Product and architecture decisions
+
+- **Product-first acceptance:** a green build is necessary but not sufficient. Release requires validated user flows, visual review, data-safety evidence, installed-artifact/device acceptance, and explicit product-owner approval.
+- **Canonical ownership:** Task Store remains the source of truth for Arvin Tasks; Calendar remains a projection and integration surface. Device Calendar events remain device-owned unless an explicit stable link ties an event to an Arvin Task.
+- **No parallel architecture:** reuse the existing Task, recurrence, checklist, follow-up, Calendar Provider bridge, link store, backup/restore, reporting, sharing, and printing foundations. No new engine/store/entity for a feature already represented by the canonical Task model.
+- **Repeat and checklist:** one canonical Task owns the repeat definition; occurrences are projected, not persisted as independent Tasks. Occurrence execution/checklist state must remain independent; historical occurrence state must not be rewritten by future repeat edits.
+- **Tracking level:** ordinary vs important/followable is a UX distinction over existing Task/Repeat data, not a new domain entity. Do not add a separate loan/payment/habit/contract/customer system.
+- **Calendar idempotency:** create once, retain exact provider link identity, update the same event on later sync. Never infer event identity from title/date/time. If a linked event cannot be verified, stop safely and offer explicit user choices; do not silently create a replacement duplicate.
+- **Calendar ownership UX:** identify “آروین” vs “تقویم گوشی” in user-facing Persian without exposing provider IDs or internal sync terminology.
+- **Backup/Restore:** canonical Task/Repeat/Occurrence/Checklist/Follow-up data must survive round-trip. Device-local provider IDs cannot be assumed portable across installations; link metadata handling must be explicitly tested and safely reconciled after restore, never silently discarded or blindly trusted.
+- **Snooze cleanup:** audit the existing implementation and tests before removal. Remove Snooze UI/callback/logic/dead tests only if the current product code confirms it exists; preserve Reminder, Repeat, and Follow-up.
+- **UX/visual contract:** Persian RTL readability, calm hierarchy, progressive disclosure, and the canonical palette are part of completion. Important UI changes require a real screenshot and visual review, not only widget assertions.
+
+### Calendar final acceptance matrix
+
+1. Task action chips remain reachable in the expanded calendar task row; edit and manual phone-calendar registration both work.
+2. Editing a linked Arvin Task updates the same verified provider event and reports success/failure in plain Persian.
+3. Repeating sync is idempotent; no duplicate provider event is created.
+4. Broken/missing links stop safely and expose an explicit recovery choice.
+5. Recurrence projection covers past/today/future visible dates, including daily, end-date, count-limited, and repeat-plus-checklist cases, without creating independent Task records.
+6. Provider permissions, create/update/delete, and event ownership are validated against a real installed Android build and writable device Calendar Provider.
+7. Backup/Restore round-trip verifies canonical data and the safe state/reconciliation of device-calendar links.
+
+### Live evidence ledger — 2026-10-10
+
+- PR #2564 head: `36fed0513c6058fb87533f31acefcebe516ee184`.
+- Build run [38026475878](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38026475878): Analyze, all six test shards, Debug APK, and Release APK passed.
+- Device Smoke run [38026475972](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38026475972): all six lanes passed (Home, People, Quick Capture, SQL persistence, SQL migration, Backup/Restore).
+- APK artifacts exist for the tested PR head. Smoke artifacts exist for Home, People, and Quick Capture.
+- These runs validate the tested PR head only; they do not constitute exact-main post-merge validation, real-phone writable Calendar Provider acceptance, real-file Backup/Restore evidence, screenshot visual acceptance, or release approval.
+- PR #2564 remains open pending screenshot-based visual review and required merge/release checks.
+- Release issue #2102 and Calendar P0 issue #2535 contain the registered owner-contract sync and ordered next steps. Release remains **BLOCKED**.
+
+### Required next sequence
+
+1. Finish visual review of PR #2564 before merge; after merge, validate Build and all six Device Smoke lanes on the resulting exact main SHA.
+2. Continue the existing Calendar edit-sync path and add/repair only confirmed gaps in identity validation, idempotency, broken-link UX, and evidence.
+3. Audit Snooze references across code, callbacks, UI, and tests; change only if an existing implementation is confirmed.
+4. Validate backup/restore behavior and calendar-link metadata compatibility without introducing a parallel store or risking user data.
+5. Complete remaining P0 triage (including #1901), real-device acceptance, screenshot evidence, and explicit owner approval before any Release Candidate claim.
