@@ -80,7 +80,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('taxonomy-hub-categories-tags')));
     await tester.pumpAndSettle();
-    expect(find.text('دسته‌ها و گروه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('taxonomy-create-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('taxonomy-create-tag')), findsOneWidget);
 
