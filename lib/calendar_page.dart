@@ -40,6 +40,7 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
@@ -57,6 +58,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
@@ -820,6 +822,11 @@ class _CalendarPageState extends State<CalendarPage> {
                                 )
                                 ? widget.onEditTask
                                 : null,
+                            onDeleteTask: _isTaskCalendarItemId(
+                                  selectedReminders[index].id,
+                                )
+                                ? widget.onDeleteTask
+                                : null,
                             onRegisterTaskToDeviceCalendar:
                                 _isTaskCalendarItemId(selectedReminders[index].id)
                                 ? widget.onRegisterTaskToDeviceCalendar
@@ -916,6 +923,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onEdit,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
     this.onOpenExternal,
@@ -931,6 +939,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
@@ -955,6 +964,7 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
           (widget.onEditTask != null ||
+              widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
               widget.onEdit != null ||
@@ -1074,6 +1084,13 @@ class _ReminderCardState extends State<_ReminderCard> {
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEditTask),
+                    ),
+                  if (_isTaskCalendarItem && widget.onDeleteTask != null)
+                    ActionChip(
+                      key: ValueKey('task-due-delete-${item.id}'),
+                      avatar: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('حذف'),
+                      onPressed: () => _run(widget.onDeleteTask),
                     ),
                   if (_isTaskCalendarItem && widget.onRegisterTaskToDeviceCalendar != null)
                     ActionChip(
