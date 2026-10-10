@@ -323,10 +323,12 @@ class _BackupPageState extends State<BackupPage> {
       }
       if (mounted) {
         _message(
-          candidate.settings == null
-              ? 'اطلاعات با موفقیت بازیابی شد'
-              : candidate.calendarLinks == null
-                  ? 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
+          candidate.calendarLinks == null
+              ? candidate.settings == null
+                  ? 'اطلاعات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
+                  : 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
+              : candidate.settings == null
+                  ? 'اطلاعات و پیوندهای تقویم بازیابی شد'
                   : 'اطلاعات، تنظیمات و پیوندهای تقویم بازیابی شد',
         );
       }
