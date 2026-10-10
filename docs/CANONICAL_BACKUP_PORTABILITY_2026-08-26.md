@@ -43,3 +43,13 @@ The feature remains incomplete until its final exact head passes Arvin Parallel 
 - No legacy projection used as the portability source.
 - Restore candidate parsing is read-only until explicit user confirmation.
 - Existing SAF/Dropbox foundation is reused.
+
+## Calendar-link portability addendum — 2026-10-10
+
+The existing portable v1 document now carries an optional `calendarLinks` list from the canonical `ExternalCalendarLinkStore`. Each record preserves the reminder/Task mapping, External Calendar ID, External Event ID, and last-synced fingerprint. This is link metadata only; it does not create a second Task or Calendar source of truth.
+
+- Existing backups without `calendarLinks` remain valid.
+- Restore parses the candidate without provider writes and applies archived links only after the existing user confirmation.
+- A restored provider ID is not assumed valid on another device. Before an update, the existing provider executor must verify the exact `calendarId + eventId`; if missing or stale, it must stop rather than update the wrong event or silently create a duplicate.
+- The additive path requires tests for serialization, candidate decode, malformed metadata, legacy compatibility, and the normal build/test/device-smoke gates.
+- Real-file Backup/Restore and writable phone Calendar Provider behavior remain separate acceptance evidence; this documentation does not claim those manual/device gates have passed.
