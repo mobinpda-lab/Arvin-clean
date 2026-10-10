@@ -4,6 +4,7 @@ import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 import 'models/task.dart';
+import 'models/goal_project.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/project_store.dart';
