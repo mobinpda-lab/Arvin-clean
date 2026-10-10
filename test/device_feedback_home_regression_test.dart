@@ -55,18 +55,30 @@ void main() {
     await tester.pumpAndSettle();
 
     final task = find.byKey(const ValueKey('compact-task'));
+    final taskCard = find.descendant(of: task, matching: find.byType(Padding)).first;
     final add = find.byKey(const ValueKey('home-canonical-add'));
+    final addButton = find.descendant(
+      of: add,
+      matching: find.byType(FloatingActionButton),
+    );
     final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+    final navigationItem = find.descendant(
+      of: moreNavigation,
+      matching: find.byType(AnimatedContainer),
+    );
     expect(task, findsOneWidget);
+    expect(taskCard, findsOneWidget);
     expect(add, findsOneWidget);
+    expect(addButton, findsOneWidget);
     expect(moreNavigation, findsOneWidget);
+    expect(navigationItem, findsOneWidget);
 
-    final taskRect = tester.getRect(task);
+    final taskRect = tester.getRect(taskCard);
     final listViewportRect = tester.getRect(
       find.byKey(const ValueKey('home-task-list-viewport')),
     );
-    final addRect = tester.getRect(add);
-    final navigationRect = tester.getRect(moreNavigation);
+    final addRect = tester.getRect(addButton);
+    final navigationRect = tester.getRect(navigationItem);
     expect(taskRect.bottom, lessThanOrEqualTo(listViewportRect.bottom));
     expect(listViewportRect.bottom, lessThanOrEqualTo(addRect.top));
     expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
