@@ -324,7 +324,7 @@ class _ClockFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const size = 280.0;
+    const size = 240.0;
     const center = size / 2;
     final values = choosingMinute
         ? List<int>.generate(12, (index) => index * 5)
@@ -349,7 +349,7 @@ class _ClockFace extends StatelessWidget {
       final isSelected = choosingMinute
           ? minute == value
           : hour == value;
-      const radius = 110.0;
+      const radius = 94.0;
       final x = center + radius * math.cos(angle);
       final y = center + radius * math.sin(angle);
       final labelValue = _formatter.toPersianDigits(
@@ -407,16 +407,16 @@ class _ClockFace extends StatelessWidget {
       for (var index = 0; index < innerValues.length; index++) {
         final value = innerValues[index];
         final angle = (index * 2 * math.pi / 12) - math.pi / 2;
-        final x = center + 76 * math.cos(angle);
-        final y = center + 76 * math.sin(angle);
+        final x = center + 64 * math.cos(angle);
+        final y = center + 64 * math.sin(angle);
         final isSelected = hour == value;
         final display = _formatter.toPersianDigits(
           value == 0 ? '24' : value.toString(),
         );
         children.add(
           Positioned(
-            left: x - 16,
-            top: y - 16,
+            left: x - 15,
+            top: y - 15,
             child: Semantics(
               button: true,
               selected: isSelected,
