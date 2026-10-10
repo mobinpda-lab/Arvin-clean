@@ -1912,7 +1912,9 @@ class _HomePageState extends State<HomePage> {
             // Canonical Task storage already succeeded; the existing alarm foundation
             // can retry on the next lifecycle/scheduler trigger.
           }
-          await ProjectStore().save(candidate.projects);
+          if (candidate.hasProjects) {
+        await ProjectStore().save(candidate.projects);
+      }
           await ExternalCalendarLinkStore().restoreForTasks(
             restoredTaskIds: list.map((task) => task.id),
             backupLinks: candidate.calendarLinks ?? const [],
