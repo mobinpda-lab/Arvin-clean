@@ -522,7 +522,8 @@ void main() {
 
     // Move one full week forward. The occurrence is still a projection of the
     // same canonical Task, not a separately stored Task/Reminder.
-    await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
+    final calendarSurface = find.byKey(const ValueKey('calendar-swipe-surface'));
+    await tester.fling(calendarSurface, const Offset(-500, 0), 1000);
     await _pumpRouteTransition(tester);
     final nextWeekDate = anchor.add(const Duration(days: 7));
     final nextWeekId =
@@ -533,7 +534,7 @@ void main() {
     }
     expect(nextWeekCard, findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('calendar-period-previous')));
+    await tester.fling(calendarSurface, const Offset(500, 0), 1000);
     await _pumpRouteTransition(tester);
     for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
