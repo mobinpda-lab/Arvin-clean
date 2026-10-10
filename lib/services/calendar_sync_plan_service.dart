@@ -6,7 +6,8 @@ import '../calendar_page.dart';
 import 'system_calendar_bridge.dart';
 
 /// Resolves the canonical Task ID from an existing reminder projection ID.
-/// Shared by sync and backup reconciliation so identity parsing stays consistent.
+/// Kept shared so backup reconciliation and outbound sync use the same identity
+/// contract rather than maintaining separate parsers.
 String? calendarTaskIdForReminderId(String reminderId) {
   for (final prefix in const <String>[
     'task-due:',
