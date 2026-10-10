@@ -3,6 +3,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,6 +113,85 @@ void main() {
 
     expect(service.writtenPayload?['projects'], isNotEmpty);
     expect((service.writtenPayload?['projects'] as List).single['id'], 'project-1');
+  });
+
+  test('canonical backup carries calendar link metadata in the same document', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final link = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-full',
+      calendarId: '42',
+      eventId: 'event-1',
+      lastSyncedFingerprint: 'fingerprint-1',
+    );
+
+    await manager.backupCanonicalTasks([_completeTask()], calendarLinks: [link]);
+
+    expect(service.writtenPayload?['calendarLinks'], [link.toJson()]);
+  });
+
+  test('canonical restore returns validated calendar link metadata', () async {
+    final link = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-full',
+      calendarId: '42',
+      eventId: 'event-1',
+      lastSyncedFingerprint: 'fingerprint-1',
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'calendarLinks': [link.toJson()],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate?.calendarLinks, hasLength(1));
+    expect(candidate?.calendarLinks?.single.reminderId, link.reminderId);
+    expect(candidate?.calendarLinks?.single.calendarId, link.calendarId);
+    expect(candidate?.calendarLinks?.single.eventId, link.eventId);
+    expect(
+      candidate?.calendarLinks?.single.lastSyncedFingerprint,
+      link.lastSyncedFingerprint,
+    );
+  });
+
+  test('legacy backup without calendar links is distinguished from an empty link list', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.calendarLinks, isNull);
+  });
+
+  test('canonical restore rejects duplicate calendar link identities', () async {
+    final link = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-full',
+      calendarId: '42',
+      eventId: 'event-1',
+      lastSyncedFingerprint: 'fingerprint-1',
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'calendarLinks': [link.toJson(), link.toJson()],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
   });
 
   test('canonical backup carries settings in the same document', () async {
