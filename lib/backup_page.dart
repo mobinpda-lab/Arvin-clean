@@ -308,9 +308,10 @@ class _BackupPageState extends State<BackupPage> {
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
-      if (candidate.calendarLinks != null) {
-        await ExternalCalendarLinkStore().save(candidate.calendarLinks!);
-      }
+      await ExternalCalendarLinkStore().restoreForTasks(
+        restoredTaskIds: candidate.tasks.map((task) => task.id),
+        backupLinks: candidate.calendarLinks ?? const [],
+      );
       if (candidate.settings != null) {
         await settingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
@@ -325,11 +326,11 @@ class _BackupPageState extends State<BackupPage> {
         _message(
           candidate.calendarLinks == null
               ? candidate.settings == null
-                  ? 'اطلاعات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
-                  : 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلی تقویم حفظ شدند'
+                  ? 'اطلاعات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'
+                  : 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'
               : candidate.settings == null
-                  ? 'اطلاعات و پیوندهای تقویم بازیابی شد'
-                  : 'اطلاعات، تنظیمات و پیوندهای تقویم بازیابی شد',
+                  ? 'اطلاعات و پیوندهای تقویم ادغام شد؛ پیوندهای فعلی این دستگاه حفظ شدند'
+                  : 'اطلاعات، تنظیمات و پیوندهای تقویم ادغام شد',
         );
       }
     } catch (_) {
