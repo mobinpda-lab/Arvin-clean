@@ -1,48 +1,46 @@
 import 'package:flutter/material.dart';
 
-/// Canonical Arvin semantic color tokens.
-///
-/// Every product concept has one stable semantic family across Home, Quick
-/// Entry, Task Detail, editors, filters and management surfaces.
+/// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
+/// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
   static const primary = Color(0xFF4A4CAB);
-  static const primaryDark = Color(0xFF373982);
+  static const primaryDark = Color(0xFF25286F);
   static const primarySoft = Color(0xFFE9EAFF);
 
-  static const background = Color(0xFFF7F7FC);
-  static const surface = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF1F2740);
-  static const textSecondary = Color(0xFF737A91);
-  static const border = Color(0xFFE5E7EF);
+  static const background = Color(0xFFF8F8FB);
+  static const surface = Color(0xFFFDFDFE);
+  static const textPrimary = Color(0xFF232433);
+  static const textSecondary = Color(0xFF80829C);
+  static const border = Color(0xFFE5E7ED);
 
-  static const time = Color(0xFF16B89A);
-  static const timeDark = Color(0xFF087C69);
-  static const timeSoft = Color(0xFFE9F9F5);
+  static const time = Color(0xFF008C74);
+  static const timeDark = Color(0xFF006653);
+  static const timeSoft = Color(0xFFD8F5EC);
 
-  static const reminder = Color(0xFFD58A24);
-  static const reminderDark = Color(0xFF7A4B00);
-  static const reminderSoft = Color(0xFFFFF3DE);
+  static const reminder = Color(0xFFB96A00);
+  static const reminderDark = Color(0xFF794400);
+  static const reminderSoft = Color(0xFFFFE9C2);
 
-  static const project = Color(0xFF3478E5);
-  static const projectDark = Color(0xFF2557B5);
-  static const projectSoft = Color(0xFFEEF4FF);
+  static const project = Color(0xFF185CC7);
+  static const projectDark = Color(0xFF154596);
+  static const projectSoft = Color(0xFFDDEAFF);
 
-  static const category = Color(0xFFF27638);
-  static const categoryDark = Color(0xFFB84E19);
-  static const categorySoft = Color(0xFFFFF2EA);
+  static const category = Color(0xFFD84D0C);
+  static const categoryDark = Color(0xFF9E3505);
+  static const categorySoft = Color(0xFFFFE5D8);
 
-  static const tag = Color(0xFF8B4DE8);
-  static const tagDark = Color(0xFF6530B8);
-  static const tagSoft = Color(0xFFF5EEFF);
+  static const tag = Color(0xFF7133C6);
+  static const tagDark = Color(0xFF542296);
+  static const tagSoft = Color(0xFFEBDDFF);
 
-  static const error = Color(0xFFE53935);
-  static const errorDark = Color(0xFFA8323A);
-  static const errorSoft = Color(0xFFFFF0F1);
+  static const error = Color(0xFFC62828);
+  static const errorDark = Color(0xFF922020);
+  static const errorSoft = Color(0xFFFFE0E2);
 
-  static const neutral = Color(0xFF596174);
-  static const neutralDark = Color(0xFF626679);
-  static const neutralSoft = Color(0xFFF3F4F7);
+  static const neutral = Color(0xFF454D63);
+  static const neutralDark = Color(0xFF30374B);
+  static const neutralSoft = Color(0xFFE7EAF1);
 
-  static const disabledText = Color(0xFF85889A);
-  static const disabledBorder = Color(0xFFD9DBE5);
+  static const disabledText = Color(0xFF62697C);
+  static const disabledBorder = Color(0xFFB9BECD);
 }

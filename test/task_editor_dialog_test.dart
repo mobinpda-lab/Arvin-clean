@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/task_editor_dialog.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,7 @@ void main() {
     final save = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-editor-header-save')),
     );
-    expect(save.style?.backgroundColor?.resolve({}), const Color(0xFF4A4CAB));
+    expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
   });
 
   testWidgets('editing and saving preserves the exact existing follow-up time',
