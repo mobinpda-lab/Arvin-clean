@@ -323,7 +323,7 @@ void main() {
     expect(dateConfirm, findsOneWidget);
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('زمان انجام کار'), findsWidgets);
     expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
   });
 
@@ -358,7 +358,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
-    await tester.tap(find.text('تأیید'));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -399,7 +400,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.text('انتخاب ساعت'), findsWidgets);
+    expect(find.text('زمان یادآوری'), findsOneWidget);
     expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
   });
   testWidgets('Quick Add supports minute precision and all custom recurrence units', (tester) async {
@@ -423,7 +424,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
-    await tester.tap(find.text('تأیید'));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
   });
 
