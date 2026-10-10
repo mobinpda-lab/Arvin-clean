@@ -5,6 +5,8 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -601,6 +603,106 @@ void main() {
                 'emergency-backup.json'),
       ),
     );
+  });
+
+
+  test('late restore failure rolls back durable stores and preserves catalogs', () async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      ArvinBackupManager.directoryKey: 'content://arvin-backups',
+      'restore-test.settings': 'old-settings',
+    });
+    final taskStore = TaskStore();
+    final projectStore = ProjectStore();
+    final linkStore = ExternalCalendarLinkStore(
+      preferencesKey: 'restore-test.calendar-links',
+    );
+    final oldTask = Task(id: 'old-task', title: 'کار قبلی');
+    final restoredTask = Task(id: 'restored-task', title: 'کار بازیابی‌شده');
+    final oldProject = ProjectPlan(
+      id: 'old-project',
+      title: 'پروژه قبلی',
+      itemIds: const [],
+    );
+    final restoredProject = ProjectPlan(
+      id: 'restored-project',
+      title: 'پروژه بازیابی‌شده',
+      itemIds: const [],
+    );
+    final oldLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:old-task',
+      calendarId: 'calendar-old',
+      eventId: 'event-old',
+      lastSyncedFingerprint: 'old-fingerprint',
+    );
+    final restoredLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:restored-task',
+      calendarId: 'calendar-new',
+      eventId: 'event-new',
+      lastSyncedFingerprint: 'new-fingerprint',
+    );
+
+    try {
+      await taskStore.save([oldTask]);
+      await taskStore.createCategory('دسته قبلی');
+      await taskStore.createTag('برچسب قبلی');
+      await projectStore.save([oldProject]);
+      await linkStore.save([oldLink]);
+
+      final prefs = await SharedPreferences.getInstance();
+      final oldSettings = prefs.getString('restore-test.settings');
+
+      await expectLater(
+        runRestoreWithRollback<void>(
+          recoveryBackup: 'emergency-backup.json',
+          apply: () async {
+            await taskStore.save([restoredTask]);
+            await projectStore.save([restoredProject]);
+            await linkStore.save([restoredLink]);
+            await prefs.setString('restore-test.settings', 'new-settings');
+            // Simulates a late restore-stage failure before the final catalog
+            // merge, matching the production ordering where catalogs are last.
+            throw StateError('injected after durable store writes');
+          },
+          rollback: () async {
+            await taskStore.save([oldTask]);
+            await projectStore.save([oldProject]);
+            await linkStore.save([oldLink]);
+            if (oldSettings == null) {
+              await prefs.remove('restore-test.settings');
+            } else {
+              await prefs.setString('restore-test.settings', oldSettings);
+            }
+          },
+        ),
+        throwsA(
+          isA<RestoreExecutionFailure>()
+              .having((error) => error.rolledBack, 'rolledBack', isTrue)
+              .having(
+                (error) => error.recoveryBackup,
+                'recoveryBackup',
+                'emergency-backup.json',
+              ),
+        ),
+      );
+
+      expect((await taskStore.load()).map((task) => task.id), ['old-task']);
+      expect((await projectStore.load()).map((project) => project.id), [
+        'old-project',
+      ]);
+      expect((await linkStore.load()).map((link) => link.eventId), [
+        'event-old',
+      ]);
+      expect(prefs.getString('restore-test.settings'), 'old-settings');
+      expect(await taskStore.loadCategories(), contains('دسته قبلی'));
+      expect(await taskStore.loadTags(), contains('برچسب قبلی'));
+      expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
+      expect(await taskStore.loadTags(), isNot(contains('برچسب بازیابی‌شده')));
+    } finally {
+      await TaskStore.resetTestDatabase();
+      await ProjectStore.resetTestDatabase();
+    }
   });
 
 }
