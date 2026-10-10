@@ -1813,6 +1813,8 @@ class _HomePageState extends State<HomePage> {
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
+        categories: await taskStore.loadCategories(),
+        tags: await taskStore.loadTags(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1847,6 +1849,8 @@ class _HomePageState extends State<HomePage> {
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
+        categories: await taskStore.loadCategories(),
+        tags: await taskStore.loadTags(),
       );
 
       if (!mounted) return;
@@ -1875,6 +1879,14 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
+      // Catalog restore is additive: keep local entries, and never make older
+      // backups delete taxonomy values that already exist on this device.
+      for (final category in candidate.categories ?? const <String>[]) {
+        await taskStore.createCategory(category);
+      }
+      for (final tag in candidate.tags ?? const <String>[]) {
+        await taskStore.createTag(tag);
+      }
       await taskStore.save(List<Task>.of(list));
       try {
         await AndroidFollowUpReminderScheduler().reschedule();
