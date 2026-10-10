@@ -931,7 +931,7 @@ class _HomePageState extends State<HomePage> {
       ));
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 5, 16, 96),
+      padding: EdgeInsets.fromLTRB(16, 5, 16, MediaQuery.sizeOf(context).height < 700 ? 12 : 96),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
@@ -2733,9 +2733,20 @@ class _HomePageState extends State<HomePage> {
                 FilledButton.icon(key: const ValueKey('home-storage-retry'), onPressed: () { setState(() => loading = true); _load(); }, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
               ])))
             : _groupedTaskList()),
+          if (compactHome && selected.isEmpty && loadFailure == null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: KeyedSubtree(
+                  key: const ValueKey('home-canonical-add'),
+                  child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+                ),
+              ),
+            ),
         ]),
       ),
-      floatingActionButton: selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
+      floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
       bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
