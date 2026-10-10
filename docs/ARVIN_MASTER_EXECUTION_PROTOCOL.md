@@ -280,3 +280,49 @@ This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETI
 3. Snooze runtime removal is already reflected in inspected Calendar/task code and regression tests; reconcile stale legacy design/governance documentation so it cannot reintroduce Snooze. No runtime removal patch is currently justified.
 4. Validate backup/restore behavior and calendar-link metadata compatibility without introducing a parallel store or risking user data.
 5. Complete remaining P0 triage (including #1901), real-device acceptance, screenshot evidence, and explicit owner approval before any Release Candidate claim.
+
+## AMP Product Completion Sync — 2026-10-10
+
+This addendum registers the current owner-provided AMP contract against the existing architecture. It is an acceptance and execution contract, not authorization to create parallel systems.
+
+### DEC-AMP-20261010 — accepted scope
+
+- **Goal:** finish Arvin as a daily-usable product, with priority on existing release blockers and evidence gaps.
+- **Problem:** source presence and green CI do not prove the full user flow; Calendar event identity, edit-sync, recurrence/checklist occurrence state, and backup/restore link integrity need explicit validation.
+- **Solution:** complete existing Task Store, Repeat Definition/Occurrence projection, Calendar Provider sync executor, external-link store, and existing Backup/Restore paths. Search and extend existing tests before adding any new abstraction.
+- **Impact:** Calendar edit/save synchronization, idempotency and broken-link UX; repeat occurrence and checklist state; tracking-level presentation; backup/restore relationship integrity; Snooze audit; search/report consistency where these existing paths intersect.
+- **Protected:** canonical Task ownership; one Task engine; no duplicate recurrence, checklist, report, calendar, or storage engine; user data and backups; immutable past occurrence history; stable external Calendar IDs and Event IDs.
+- **Status:** IN PROGRESS. Calendar and release acceptance are not closed.
+
+### Calendar ownership and sync acceptance
+
+1. An Arvin Task remains owned by the Arvin Task Store. A linked phone-calendar event is a synchronized representation, not a second Task.
+2. A phone-owned external event remains owned by the device Calendar; Arvin must not present it as an editable Arvin Task.
+3. For linked Arvin Tasks, edits must save the Task, resolve the existing link by External Calendar ID + External Event ID, validate the target, update the same event, persist the sync result, and give the user clear feedback.
+4. Repeat sync must be idempotent. If a linked event no longer exists, do not silently create a duplicate; present a recoverable broken-link path.
+5. User-facing ownership labels must be plain language (Arvin / phone Calendar), not internal IDs or sync jargon.
+6. Snooze is not part of the accepted Calendar interaction. Preserve Reminder, Repeat, and Follow-up behavior while keeping Snooze out of the runtime UI and callbacks; current source audit found runtime removal already represented, so only fix verified regressions or stale governance documentation.
+
+### Repeat, tracking, checklist, and backup acceptance
+
+- Reuse the canonical Repeat Definition → Occurrence → Calendar projection path. Do not create a Task for each recurrence.
+- Validate daily repeat, end date, count, past and future occurrences, and Repeat + Checklist. Checklist execution state must be occurrence-specific; editing a repeat must not rewrite immutable history.
+- Tracking level has two user-facing modes: ordinary repeat for routine habits, and important/trackable repeat for obligations. The latter should summarize total, completed, overdue, remaining, next occurrence, last status, and history without exposing technical terminology. Implement only by extending existing Task/Repeat UI and data; no separate loan/payment/contract entities.
+- Backup/Restore acceptance must preserve Task, repeat definition/history, occurrence checklist state, Follow-up, and Calendar link metadata. Restore must not create duplicate external events or silently discard links. Any data-model change requires old-data compatibility, backup, and rollback evidence before implementation.
+
+### Evidence ledger and current state
+
+- Earlier PR #2564 head `36fed0513c6058fb87533f31acefcebe516ee184`: Analyze, six test shards, Debug/Release APK, and all six Device Smoke lanes passed.
+- PR #2564 has since advanced to `d1e920c2b07b3589490333019a9f51eda55f5246`; its Device Smoke run `38028919910` was still running at last inspection. Earlier-head success must not be used as current-head proof.
+- Current screenshot review exists for tested merge SHA `ae073b5dffa30bde2ed3394b9646e84b0eb22aac`; visual acceptance must be tied to the final tested PR head.
+- Real writable phone Calendar Provider behavior is **NOT VERIFIED** with current tool access. Follow owner policy in issue #358: physical-only checks may be marked Deferred / Not Verified where unavailable; never mark them Passed by inference.
+- Release issue #2102 remains the controlling release gate. No Release Candidate or Release Ready claim is allowed until exact-head validation, all applicable product/data gates, evidence recording, and explicit owner approval are complete.
+
+### Execution order
+
+1. Complete exact-head CI, Device Smoke, and screenshot review for the current existing UI PR.
+2. Inspect and test the existing Calendar edit-sync/idempotency and broken-link path; register a focused DEC before any core behavior change.
+3. Validate repeat/checklist occurrence semantics and tracking-level UX using existing models.
+4. Validate backup/restore of calendar link metadata and duplicate prevention with non-production test data.
+5. Triage remaining P0 issues, then run the final release evidence pass. Keep physical-device-only evidence explicitly deferred if unavailable.
+
