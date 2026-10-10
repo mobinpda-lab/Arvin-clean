@@ -1735,6 +1735,7 @@ class _HomePageState extends State<HomePage> {
         await taskStore.load(),
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
+        calendarLinks: await ExternalCalendarLinkStore().load(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1768,6 +1769,7 @@ class _HomePageState extends State<HomePage> {
         await taskStore.load(),
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
+        calendarLinks: await ExternalCalendarLinkStore().load(),
       );
 
       if (!mounted) return;
@@ -1777,7 +1779,8 @@ class _HomePageState extends State<HomePage> {
           title: const Text('بازیابی اطلاعات'),
           content: Text(
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
-            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n\n'
+            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
+            '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلی این دستگاه حفظ می‌شوند.' : 'اطلاعات پیوند تقویم نیز بازیابی می‌شود؛ پیش از همگام‌سازی، شناسه رویداد باید تأیید شود.'}\n\n'
             '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
           ),
           actions: [
@@ -1802,6 +1805,9 @@ class _HomePageState extends State<HomePage> {
         // can retry on the next lifecycle/scheduler trigger.
       }
       await ProjectStore().save(candidate.projects);
+      if (candidate.calendarLinks != null) {
+        await ExternalCalendarLinkStore().save(candidate.calendarLinks!);
+      }
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
