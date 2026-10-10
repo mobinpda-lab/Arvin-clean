@@ -87,6 +87,7 @@ void main() {
       tasks: <Task>[],
       settings: null,
       projects: [ProjectPlan(id: 'p2', title: 'بازیابی')],
+      hasProjects: true,
       calendarLinks: null,
       categories: null,
       tags: null,
