@@ -91,6 +91,43 @@ void main() {
     expect(result, const TimeOfDay(hour: 23, minute: 47));
   });
 
+  testWidgets('selects inner-ring late hours in the 24-hour clock', (tester) async {
+    TimeOfDay? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                key: const ValueKey('open-time-picker'),
+                onPressed: () async {
+                  result = await showUniversalArvinTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(hour: 8, minute: 0),
+                    helpText: 'زمان انجام کار',
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('open-time-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-inner-۲۳')));
+    await tester.pumpAndSettle();
+    expect(find.text('۲۳:۰۰'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, const TimeOfDay(hour: 23, minute: 0));
+  });
+
   testWidgets('cancel returns null and does not commit the selected time',
       (tester) async {
     TimeOfDay? result = const TimeOfDay(hour: 4, minute: 30);
