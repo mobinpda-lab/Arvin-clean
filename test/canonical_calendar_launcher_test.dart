@@ -462,6 +462,7 @@ void main() {
       ),
     );
     Task? edited;
+    Task? deleted;
     CalendarReminder? registered;
     final projection = _RecordingCalendarProjection();
 
@@ -471,6 +472,7 @@ void main() {
           tasks: <Task>[task],
           projection: projection,
           onEditTask: (value) async => edited = value,
+          onDeleteTask: (value) async => deleted = value,
           onRegisterTaskToDeviceCalendar: (value) async => registered = value,
         ),
       ),
@@ -511,6 +513,21 @@ void main() {
     await tester.pump();
     expect(registered?.id, occurrenceId);
     expect(registered?.date, anchor);
+
+    final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
+    expect(delete, findsOneWidget);
+    await tester.tap(delete);
+    await tester.pumpAndSettle();
+    expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
+    await tester.tap(find.text('لغو'));
+    await tester.pumpAndSettle();
+    expect(deleted, isNull);
+
+    await tester.tap(delete);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتقال به سطل زباله'));
+    await tester.pumpAndSettle();
+    expect(identical(deleted, task), isTrue);
   });
 
 }
