@@ -542,18 +542,34 @@ void main() {
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
   });
 
-  test('legacy backup without projects is distinguished from an explicit empty catalog', () async {
-    final service = _FakeBackupService()
-      ..restoreDocument = <String, dynamic>{
-        'type': ArvinBackupService.backupType,
-        'formatVersion': ArvinBackupService.backupFormatVersion,
-        'tasks': <Map<String, dynamic>>[],
-      };
-    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+  test('restore distinguishes omitted, null, and explicit empty Projects fields', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final base = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'tasks': <Map<String, dynamic>>[],
+    };
 
-    expect(candidate, isNotNull);
-    expect(candidate!.hasProjects, isFalse);
-    expect(candidate.projects, isEmpty);
+    service.restoreDocument = Map<String, dynamic>.of(base);
+    final legacy = await manager.restoreCanonicalBackup();
+    expect(legacy, isNotNull);
+    expect(legacy!.hasProjects, isFalse);
+    expect(legacy.projects, isEmpty);
+
+    service.restoreDocument = <String, dynamic>{...base, 'projects': null};
+    final nullField = await manager.restoreCanonicalBackup();
+    expect(nullField, isNotNull);
+    expect(nullField!.hasProjects, isFalse);
+
+    service.restoreDocument = <String, dynamic>{
+      ...base,
+      'projects': <Map<String, dynamic>>[],
+    };
+    final explicitEmpty = await manager.restoreCanonicalBackup();
+    expect(explicitEmpty, isNotNull);
+    expect(explicitEmpty!.hasProjects, isTrue);
+    expect(explicitEmpty.projects, isEmpty);
   });
 
   test('canonical backup and restore preserve disabled checklist rows', () async {
