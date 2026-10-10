@@ -1797,6 +1797,7 @@ class _HomePageState extends State<HomePage> {
       );
       if (approved != true) return;
 
+      final currentCalendarLinks = await ExternalCalendarLinkStore().load();
       await taskStore.save(List<Task>.of(list));
       try {
         await AndroidFollowUpReminderScheduler().reschedule();
@@ -1808,6 +1809,7 @@ class _HomePageState extends State<HomePage> {
       await ExternalCalendarLinkStore().restoreForTasks(
         restoredTaskIds: list.map((task) => task.id),
         backupLinks: candidate.calendarLinks ?? const [],
+        currentLinks: currentCalendarLinks,
       );
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
