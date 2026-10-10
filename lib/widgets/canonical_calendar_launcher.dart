@@ -252,7 +252,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       ),
     );
     if (approved != true || !mounted) return;
-    await widget.onDeleteTask!(task!);
+    await widget.onDeleteTask!(task);
     if (!mounted) return;
     final refreshed = await widget.onRefreshTasks?.call();
     if (refreshed != null && mounted) {
