@@ -319,7 +319,13 @@ void main() {
             <String, dynamic>{'id': 'restored-task', 'title': 'کار بازیابی‌شده'},
           ],
           'projects': <Map<String, dynamic>>[
-            const ProjectPlanCodec().encode(restoredProject),
+            <String, dynamic>{
+              'id': restoredProject.id,
+              'title': restoredProject.title,
+              'colorValue': restoredProject.colorValue,
+              'isArchived': restoredProject.isArchived,
+              'itemIds': restoredProject.itemIds,
+            },
           ],
           'settings': <String, dynamic>{
             'themeMode': 'light',
