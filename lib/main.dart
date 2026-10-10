@@ -2726,7 +2726,7 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
-          Expanded(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
+          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
@@ -2735,7 +2735,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 FilledButton.icon(key: const ValueKey('home-storage-retry'), onPressed: () { setState(() => loading = true); _load(); }, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
               ])))
-            : _groupedTaskList()),
+            : _groupedTaskList())),
           if (compactHome && selected.isEmpty && loadFailure == null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
