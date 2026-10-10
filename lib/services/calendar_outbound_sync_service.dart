@@ -29,6 +29,27 @@ class CalendarOutboundSyncService {
   final CalendarProviderSyncExecutor executor;
   final ExternalCalendarLinkStore linkStore;
 
+  String? _taskIdForReminder(String reminderId) {
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+      'task-recurrence:',
+    ]) {
+      if (reminderId.startsWith(prefix)) {
+        final value = reminderId.substring(prefix.length);
+        final separator = value.indexOf(':');
+        return separator < 0 ? value : value.substring(0, separator);
+      }
+    }
+    if (reminderId.startsWith('followup:')) {
+      final value = reminderId.substring('followup:'.length);
+      final separator = value.indexOf(':');
+      if (separator > 0) return value.substring(0, separator);
+    }
+    return null;
+  }
+
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
@@ -56,7 +77,7 @@ class CalendarOutboundSyncService {
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
       if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
-      final taskId = calendarTaskIdForReminderId(reminder.id);
+      final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
       // An explicit edit of an already-linked Task is a direct reconciliation
       // request, not a new/background sync. Per-source toggles still gate normal
@@ -77,7 +98,7 @@ class CalendarOutboundSyncService {
         ? links.where((link) => revisionIds.contains(link.reminderId))
         : links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final linksForPlan = linkedOnly
-        ? managedLinks.where((link) => revisionIds.contains(link.reminderId))
+        ? managedLinks
         : integration.deleteLinkedEventWithTask
             ? managedLinks
             : managedLinks.where((link) => revisionIds.contains(link.reminderId));
@@ -95,7 +116,7 @@ class CalendarOutboundSyncService {
           .map((link) => link.reminderId)
           .where((id) {
             if (revisionIds.contains(id)) return false;
-            final taskId = calendarTaskIdForReminderId(id);
+            final taskId = _taskIdForReminder(id);
             return taskId == null ||
                 !preserveUnprojectedTaskIds.contains(taskId);
           })
