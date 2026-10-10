@@ -133,6 +133,18 @@ void main() {
     expect(find.text('دسته مستقل از کار'), findsOneWidget);
   });
 
+  testWidgets('Home tag filter includes unused canonical tags', (tester) async {
+    await TaskStore().createTag('برچسب مستقل از کار');
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('برچسب مستقل از کار'), findsOneWidget);
+  });
+
   testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
