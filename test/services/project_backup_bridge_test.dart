@@ -3,6 +3,7 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,16 +12,21 @@ import 'package:drift/native.dart';
 class _RecordingBackupManager extends ArvinBackupManager {
   List<ProjectPlan>? capturedProjects;
   List<Task>? capturedTasks;
+  List<ExternalCalendarEventLink>? capturedCalendarLinks;
 
   @override
   Future<String?> backupCanonicalTasks(
     Iterable<Task> tasks, {
     Map<String, dynamic>? settings,
     Iterable<ProjectPlan>? projects,
+    Iterable<ExternalCalendarEventLink>? calendarLinks,
     String? encryptionPassphrase,
   }) async {
     capturedTasks = List<Task>.of(tasks);
     capturedProjects = projects == null ? null : List<ProjectPlan>.of(projects);
+    capturedCalendarLinks = calendarLinks == null
+        ? null
+        : List<ExternalCalendarEventLink>.of(calendarLinks);
     return 'arvin-test-backup.json';
   }
 }
@@ -63,6 +69,7 @@ void main() {
       tasks: <Task>[],
       settings: null,
       projects: [ProjectPlan(id: 'p2', title: 'بازیابی')],
+      calendarLinks: null,
     );
 
     await bridge.restoreProjects(candidate);
