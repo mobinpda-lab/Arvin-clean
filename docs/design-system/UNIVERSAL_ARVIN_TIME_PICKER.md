@@ -13,7 +13,7 @@
 - Text #232433
 - Secondary #80829C
 
-These tokens define the required direction for this component. Before implementation, reconcile them with existing theme tokens and reference the canonical theme values in code instead of introducing a parallel palette.
+These tokens define the required direction for this component. The first implementation wave is in [PR #2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591); verify against the existing theme tokens during visual review and reference canonical theme values in code rather than introducing a parallel palette. Screenshot and real-device visual review remain pending.
 
 ## Component states
 1. Hour selection.
