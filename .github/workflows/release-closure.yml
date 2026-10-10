@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: arvin-release-closure
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   RELEASE_EVIDENCE: .github/release-evidence
@@ -22,7 +22,7 @@ env:
 
 jobs:
   release-closure:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
