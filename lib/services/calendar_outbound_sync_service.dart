@@ -72,10 +72,10 @@ class CalendarOutboundSyncService {
 
     if (linkedOnly && revisions.isEmpty) return null;
 
+    final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final managedLinks = linkedOnly
         ? links.where((link) => revisionIds.contains(link.reminderId))
         : links.where((link) => _enabledForReminderId(integration, link.reminderId));
-    final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final linksForPlan = linkedOnly
         ? managedLinks.where((link) => revisionIds.contains(link.reminderId))
         : integration.deleteLinkedEventWithTask
