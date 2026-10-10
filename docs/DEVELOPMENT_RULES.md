@@ -21,3 +21,6 @@ Reports and AI answers must be compact, non-technical where possible, copyable, 
 `«بسم الله الرحمن الرحیم»` is an inseparable project principle and must remain in project identity and continuity context.
 ## Rule 11 — Continuation
 The command `ادامه` means audit live state and continue the nearest real unfinished work. It never authorizes unsafe or unverified action.
+
+## Canonical taxonomy decision (2026-10-10)
+Before any change touching Task, Project, Category/Group, Tag, Filter, Search, Report, Calendar, Repeat or Backup/Restore, read `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. Project, Category and Tag are distinct concepts; Category and Group are one concept, with `Category` as the technical name and «دسته» as the standard Persian UI term. A separate Group model/store/repository/manager or parallel taxonomy is prohibited. Link the ADR in every related Issue/PR and validate affected surfaces, filter AND semantics, persistence and backup/restore.
