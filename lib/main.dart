@@ -2726,7 +2726,7 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
-          Expanded(child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
+          Expanded(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
