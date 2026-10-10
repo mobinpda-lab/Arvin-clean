@@ -35,6 +35,8 @@ void main() {
 
     expect(result, hasLength(1));
     expect(result.single.id, 'external-calendar:device-calendar:instance-1');
+    expect(result.single.externalCalendarId, 'device-calendar');
+    expect(result.single.externalEventId, 'event-1');
     expect(result.single.title, 'جلسه بیرونی • تقویم شخصی');
     expect(result.single.date, DateTime(2026, 9, 14, 10));
     expect(result.single.date.hour, 10);
@@ -42,6 +44,23 @@ void main() {
     expect(result.single.end, DateTime(2026, 9, 14, 11));
     expect(result.single.description, isNull);
     expect(result.single.completed, isFalse);
+  });
+
+  test('keeps imported source events visible when their import link exists', () {
+    final result = projection.project(
+      [event(instanceId: 'instance-1', eventId: 'event-1')],
+      linkedEvents: [
+        ExternalCalendarEventLink(
+          reminderId: 'external-calendar:device-calendar:instance-1',
+          calendarId: 'device-calendar',
+          eventId: 'event-1',
+          lastSyncedFingerprint: 'imported-task:task-1',
+        ),
+      ],
+    );
+
+    expect(result, hasLength(1));
+    expect(result.single.id, 'external-calendar:device-calendar:instance-1');
   });
 
   test('filters Arvin-owned linked provider events to prevent duplicates', () {

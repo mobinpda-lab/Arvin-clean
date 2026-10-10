@@ -32,6 +32,9 @@ void main() {
     expect(mainActivity, contains('createDeviceCalendarEvent'));
     expect(mainActivity, contains('updateDeviceCalendarEvent'));
     expect(mainActivity, contains('deleteDeviceCalendarEvent'));
+    expect(mainActivity, contains('openDeviceCalendarEvent'));
+    expect(mainActivity, contains('verifyDeviceCalendarEvent'));
+    expect(mainActivity, contains('Intent.ACTION_EDIT'));
     expect(mainActivity, contains('ContentUris.withAppendedId'));
     expect(mainActivity, contains('CalendarContract.Events.CALENDAR_ID'));
     expect(mainActivity, contains('onRequestPermissionsResult'));

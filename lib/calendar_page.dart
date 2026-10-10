@@ -15,6 +15,8 @@ class CalendarReminder {
     this.isAllDay = false,
     this.description,
     this.end,
+    this.externalCalendarId,
+    this.externalEventId,
   });
   final String id;
   final String title;
@@ -23,6 +25,8 @@ class CalendarReminder {
   final bool isAllDay;
   final String? description;
   final DateTime? end;
+  final String? externalCalendarId;
+  final String? externalEventId;
 }
 
 enum _CalendarViewMode { day, week, month, year }
@@ -34,9 +38,9 @@ class CalendarPage extends StatefulWidget {
     this.initialSelectedDay,
     this.dailyContentForDate,
     this.onCompleteReminder,
-    this.onSnoozeReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
@@ -52,9 +56,9 @@ class CalendarPage extends StatefulWidget {
   final List<CalendarReminder> reminders;
   final DateTime? initialSelectedDay;
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
-  final Future<void> Function(CalendarReminder reminder)? onSnoozeReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
   onConvertReminderToTask;
@@ -806,13 +810,6 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onCompleteReminder
                                 : null,
-                            onSnooze:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onSnoozeReminder
-                                : null,
                             onEdit:
                                 (widget.canMutateReminder?.call(
                                       selectedReminders[index],
@@ -820,11 +817,18 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onEditReminder
                                 : null,
-                            onEditTask: selectedReminders[index].id.startsWith('task-due:')
+                            onEditTask: _isTaskCalendarItemId(
+                                  selectedReminders[index].id,
+                                )
                                 ? widget.onEditTask
                                 : null,
+                            onDeleteTask: _isTaskCalendarItemId(
+                                  selectedReminders[index].id,
+                                )
+                                ? widget.onDeleteTask
+                                : null,
                             onRegisterTaskToDeviceCalendar:
-                                selectedReminders[index].id.startsWith('task-due:')
+                                _isTaskCalendarItemId(selectedReminders[index].id)
                                 ? widget.onRegisterTaskToDeviceCalendar
                                 : null,
                             onConvertToTask: widget.onConvertReminderToTask,
@@ -876,6 +880,11 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
+bool _isTaskCalendarItemId(String id) =>
+    id.startsWith('task-due:') ||
+    id.startsWith('task-reminder:') ||
+    id.startsWith('task-followup:');
+
 enum _CalendarItemVisualKind { ordinary, arvinReminder, importedPhoneCalendar, prayer }
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
@@ -912,9 +921,9 @@ class _ReminderCard extends StatefulWidget {
     required this.dateLabel,
     required this.timeLabel,
     this.onComplete,
-    this.onSnooze,
     this.onEdit,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
     this.onOpenExternal,
@@ -928,9 +937,9 @@ class _ReminderCard extends StatefulWidget {
   final String dateLabel;
   final String timeLabel;
   final Future<void> Function(CalendarReminder reminder)? onComplete;
-  final Future<void> Function(CalendarReminder reminder)? onSnooze;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternal;
@@ -947,7 +956,7 @@ class _ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<_ReminderCard> {
   bool _expanded = false;
 
-  bool get _isTaskDue => widget.item.id.startsWith('task-due:');
+  bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
 
   bool get _hasActions =>
       (widget.isPrayer &&
@@ -955,9 +964,9 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
           (widget.onEditTask != null ||
+              widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
-              widget.onSnooze != null ||
               widget.onEdit != null ||
               widget.onConvertToTask != null ||
               widget.onOpenExternal != null ||
@@ -1045,14 +1054,21 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (!_isTaskDue && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
+                  if (item.id.startsWith('external-calendar:') && widget.onOpenExternal != null)
+                    ActionChip(
+                      key: ValueKey('external-calendar-edit-${item.id}'),
+                      avatar: const Icon(Icons.edit_calendar_outlined, size: 18),
+                      label: const Text('ویرایش در تقویم گوشی'),
+                      onPressed: () => _run(widget.onOpenExternal),
+                    ),
+                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
                     ActionChip(
                       key: ValueKey('external-calendar-create-task-${item.id}'),
                       avatar: const Icon(Icons.add_task_outlined, size: 18),
                       label: const Text('ثبت در آروین'),
                       onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
                     ),
-                  if (!_isTaskDue &&
+                  if (!_isTaskCalendarItem &&
                       !widget.isPrayer &&
                       widget.onComplete != null &&
                       !item.completed)
@@ -1062,38 +1078,35 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('انجام شد'),
                       onPressed: () => _run(widget.onComplete),
                     ),
-                  if (!_isTaskDue &&
-                      !widget.isPrayer &&
-                      widget.onSnooze != null &&
-                      !item.completed)
-                    ActionChip(
-                      key: ValueKey('reminder-snooze-${item.id}'),
-                      avatar: const Icon(Icons.snooze_outlined, size: 18),
-                      label: const Text('تعویق'),
-                      onPressed: () => _run(widget.onSnooze),
-                    ),
-                  if (_isTaskDue && widget.onEditTask != null)
+                  if (_isTaskCalendarItem && widget.onEditTask != null)
                     ActionChip(
                       key: ValueKey('task-due-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEditTask),
                     ),
-                  if (_isTaskDue && widget.onRegisterTaskToDeviceCalendar != null)
+                  if (_isTaskCalendarItem && widget.onDeleteTask != null)
+                    ActionChip(
+                      key: ValueKey('task-due-delete-${item.id}'),
+                      avatar: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('حذف'),
+                      onPressed: () => _run(widget.onDeleteTask),
+                    ),
+                  if (_isTaskCalendarItem && widget.onRegisterTaskToDeviceCalendar != null)
                     ActionChip(
                       key: ValueKey('task-due-device-calendar-${item.id}'),
                       avatar: const Icon(Icons.event_available_outlined, size: 18),
                       label: const Text('ثبت در تقویم گوشی'),
                       onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
                     ),
-                  if (!_isTaskDue && !widget.isPrayer && widget.onEdit != null)
+                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onEdit != null)
                     ActionChip(
                       key: ValueKey('reminder-edit-${item.id}'),
                       avatar: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('ویرایش'),
                       onPressed: () => _run(widget.onEdit),
                     ),
-                  if (!_isTaskDue && !widget.isPrayer && widget.onConvertToTask != null)
+                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onConvertToTask != null)
                     ActionChip(
                       key: ValueKey('reminder-convert-${item.id}'),
                       avatar: const Icon(Icons.task_alt_outlined, size: 18),

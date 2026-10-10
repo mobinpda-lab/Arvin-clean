@@ -116,6 +116,19 @@ class CalendarProviderSyncExecutor {
             throw StateError('Update plan item is missing revision/link data.');
           }
 
+          // Provider IDs are installation-local and may be stale after restore,
+          // calendar edits, or provider-side deletion. Never mutate or replace an
+          // event until the exact (calendarId, eventId) identity is verified.
+          final linkedEventExists = await bridge.verifyProviderEventIdentity(
+            calendarId: link.calendarId,
+            eventId: link.eventId,
+          );
+          if (!linkedEventExists) {
+            throw StateError(
+              'رویداد پیوندخورده در تقویم گوشی قابل تأیید نیست؛ برای جلوگیری از تغییر رویداد اشتباه، همگام‌سازی متوقف شد. ثبت دوباره فقط با اقدام صریح کاربر انجام شود.',
+            );
+          }
+
           if (link.calendarId == calendarId) {
             final ok = await bridge.updateProviderEvent(
               calendarId: link.calendarId,
@@ -180,6 +193,15 @@ class CalendarProviderSyncExecutor {
           final link = item.link ?? links[item.reminderId];
           if (link == null) {
             throw StateError('Delete plan item is missing linked event data.');
+          }
+          final linkedEventExists = await bridge.verifyProviderEventIdentity(
+            calendarId: link.calendarId,
+            eventId: link.eventId,
+          );
+          if (!linkedEventExists) {
+            throw StateError(
+              'رویداد پیوندخورده در تقویم گوشی قابل تأیید نیست؛ برای جلوگیری از حذف رویداد اشتباه، پیوند حفظ شد.',
+            );
           }
           final ok = await bridge.deleteProviderEvent(
             calendarId: link.calendarId,

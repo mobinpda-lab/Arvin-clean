@@ -53,6 +53,8 @@ class CalendarOutboundSyncService {
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
+    bool linkedOnly = false,
+    Set<String> preserveUnprojectedTaskIds = const <String>{},
   }) async {
     final integration = (await settingsService.load()).calendarIntegration;
     final targetCalendarId = integration.targetCalendarId?.trim();
@@ -64,6 +66,7 @@ class CalendarOutboundSyncService {
     }
 
     final links = await linkStore.load();
+    final linkedReminderIds = links.map((link) => link.reminderId).toSet();
     final importedTaskIds = links
         .where((link) => link.reminderId.startsWith('external-calendar:') &&
             link.lastSyncedFingerprint.startsWith('imported-task:'))
@@ -73,6 +76,7 @@ class CalendarOutboundSyncService {
 
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
       if (!_enabledForReminder(integration, reminder)) continue;
@@ -84,11 +88,15 @@ class CalendarOutboundSyncService {
       }
     }
 
+    if (linkedOnly && revisions.isEmpty) return null;
+
     final managedLinks = links.where((link) => _enabledForReminderId(integration, link.reminderId));
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
-    final linksForPlan = integration.deleteLinkedEventWithTask
-        ? managedLinks
-        : managedLinks.where((link) => revisionIds.contains(link.reminderId));
+    final linksForPlan = linkedOnly
+        ? managedLinks.where((link) => revisionIds.contains(link.reminderId))
+        : integration.deleteLinkedEventWithTask
+            ? managedLinks
+            : managedLinks.where((link) => revisionIds.contains(link.reminderId));
     final plan = planService.plan(
       revisions: revisions,
       links: linksForPlan,
@@ -98,10 +106,15 @@ class CalendarOutboundSyncService {
       plan: plan,
       targetCalendarId: targetCalendarId,
     );
-    if (!integration.deleteLinkedEventWithTask) {
+    if (!linkedOnly && !integration.deleteLinkedEventWithTask) {
       final orphanedManagedIds = managedLinks
           .map((link) => link.reminderId)
-          .where((id) => !revisionIds.contains(id))
+          .where((id) {
+            if (revisionIds.contains(id)) return false;
+            final taskId = _taskIdForReminder(id);
+            return taskId == null ||
+                !preserveUnprojectedTaskIds.contains(taskId);
+          })
           .toSet();
       if (orphanedManagedIds.isNotEmpty) {
         await linkStore.removeByReminderIds(orphanedManagedIds);

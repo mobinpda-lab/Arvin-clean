@@ -18,7 +18,6 @@ Future<void> _expectReadOnlyReminder(
         reminders: [reminder],
         canMutateReminder: (item) => item.id.startsWith('followup:'),
         onCompleteReminder: (_) async {},
-        onSnoozeReminder: (_) async {},
         onEditReminder: (_) async {},
       ),
     ),
@@ -29,7 +28,6 @@ Future<void> _expectReadOnlyReminder(
 
   expect(find.byKey(ValueKey('reminder-actions-$id')), findsNothing);
   expect(find.byKey(ValueKey('reminder-complete-$id')), findsNothing);
-  expect(find.byKey(ValueKey('reminder-snooze-$id')), findsNothing);
   expect(find.byKey(ValueKey('reminder-edit-$id')), findsNothing);
 }
 
@@ -76,7 +74,6 @@ void main() {
           reminders: [reminder],
           canMutateReminder: (item) => item.id.startsWith('followup:'),
           onCompleteReminder: (_) async {},
-          onSnoozeReminder: (_) async {},
           onEditReminder: (_) async {},
         ),
       ),
@@ -91,7 +88,8 @@ void main() {
     );
     expect(
       find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
-      findsOneWidget,
+      findsNothing,
+      reason: 'Calendar no longer exposes a nonfunctional snooze action',
     );
     expect(
       find.byKey(ValueKey('reminder-edit-${reminder.id}')),
@@ -122,4 +120,62 @@ void main() {
 
     expect(requestedDate, DateTime(2026, 9, 15));
   });
+
+  testWidgets('Arvin Task rows keep edit and phone-calendar actions visible after tap', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 9, 15, 9);
+    var edited = 0;
+    var registered = 0;
+    final reminders = <CalendarReminder>[
+      CalendarReminder(
+        id: 'task-reminder:task-1',
+        title: 'یادآوری کار',
+        date: day,
+      ),
+      CalendarReminder(
+        id: 'task-due:task-1:2026-09-16T09:00:00.000',
+        title: 'تکرار کار',
+        date: day.add(const Duration(days: 1)),
+      ),
+    ];
+
+    for (final reminder in reminders) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CalendarPage(
+            key: ValueKey(reminder.id),
+            initialSelectedDay: reminder.date,
+            reminders: <CalendarReminder>[reminder],
+            onEditTask: (_) async => edited++,
+            onRegisterTaskToDeviceCalendar: (_) async => registered++,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      await tester.pump();
+
+      expect(
+        find.byKey(ValueKey('task-due-edit-${reminder.id}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('task-due-device-calendar-${reminder.id}')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(ValueKey('task-due-edit-${reminder.id}')));
+      await tester.pump();
+      await tester.tap(
+        find.byKey(ValueKey('task-due-device-calendar-${reminder.id}')),
+      );
+      await tester.pump();
+    }
+
+    expect(edited, 2);
+    expect(registered, 2);
+  });
+
 }

@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_official_reminders.dart';
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/official_calendar_page.dart';
+import 'package:arvin/services/app_settings_service.dart';
 
 class _FakeOfficialSource implements OfficialCalendarReminderSource {
   const _FakeOfficialSource(this.items);
@@ -12,6 +16,27 @@ class _FakeOfficialSource implements OfficialCalendarReminderSource {
   @override
   Future<List<OfficialCalendarReminder>> load({required int year}) async =>
       items.where((item) => item.date.year == year).toList(growable: false);
+}
+
+class _DelayedOfficialSource implements OfficialCalendarReminderSource {
+  _DelayedOfficialSource(this.result);
+
+  final Completer<List<OfficialCalendarReminder>> result;
+
+  @override
+  Future<List<OfficialCalendarReminder>> load({required int year}) async =>
+      (await result.future)
+          .where((item) => item.date.year == year)
+          .toList(growable: false);
+}
+
+class _FakeAppSettingsService extends AppSettingsService {
+  @override
+  Future<AppSettings> load() async => const AppSettings(
+        themeMode: ThemeMode.system,
+        usePersianDate: true,
+        fontFamily: null,
+      );
 }
 
 void main() {
@@ -113,11 +138,10 @@ void main() {
   );
 
   testWidgets(
-    'Calendar release acceptance routes complete and snooze actions without a second action engine',
+    'Calendar release acceptance routes completion without exposing ineffective snooze',
     (tester) async {
       final day = DateTime(2026, 9, 9, 10);
       var completed = 0;
-      var snoozed = 0;
       final reminder = CalendarReminder(
         id: 'followup:release-task:release-followup',
         title: 'پیگیری قرارداد',
@@ -132,7 +156,6 @@ void main() {
               initialSelectedDay: day,
               reminders: <CalendarReminder>[reminder],
               onCompleteReminder: (_) async => completed++,
-              onSnoozeReminder: (_) async => snoozed++,
             ),
           ),
         ),
@@ -148,13 +171,66 @@ void main() {
         find.byKey(const ValueKey('reminder-complete-followup:release-task:release-followup')),
       );
       await tester.pump();
-      await tester.tap(
-        find.byKey(const ValueKey('reminder-snooze-followup:release-task:release-followup')),
+
+      expect(completed, 1);
+      expect(find.text('تعویق'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'canonical reminders stay usable while official calendar sources are delayed',
+    (tester) async {
+      final selectedDay = DateTime(2026, 10, 9, 10);
+      final officialCompleter = Completer<List<OfficialCalendarReminder>>();
+      final service = OfficialCalendarReminderService(
+        <OfficialCalendarReminderSource>[
+          _DelayedOfficialSource(officialCompleter),
+        ],
+      );
+      final taskReminder = CalendarReminder(
+        id: 'task-due:loading-task',
+        title: 'کار روزانه',
+        date: selectedDay,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: OfficialCalendarPage(
+              service: service,
+              years: const <int>[2026],
+              initialSelectedDay: selectedDay,
+              reminders: <CalendarReminder>[taskReminder],
+              // Keep this acceptance test focused on late official-source
+              // merging rather than the unrelated platform preferences plugin.
+              settingsService: _FakeAppSettingsService(),
+            ),
+          ),
+        ),
       );
       await tester.pump();
 
-      expect(completed, 1);
-      expect(snoozed, 1);
+      expect(find.byType(CalendarPage), findsOneWidget);
+      expect(find.text('کار روزانه'), findsOneWidget);
+
+      officialCompleter.complete(<OfficialCalendarReminder>[
+        OfficialCalendarReminder(
+          id: 'ir-holiday-test',
+          title: 'مناسبت رسمی آزمایشی',
+          date: selectedDay,
+          kind: OfficialReminderKind.iranianHoliday,
+        ),
+      ]);
+      // Let the async source merge and FutureBuilder rebuild complete without
+      // pumpAndSettle, because CalendarPage intentionally owns an active ticker.
+      for (var i = 0; i < 20 && find.text('مناسبت رسمی آزمایشی').evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+
+      expect(find.byType(CalendarPage), findsOneWidget);
+      expect(find.text('کار روزانه'), findsOneWidget);
+      expect(find.text('مناسبت رسمی آزمایشی'), findsOneWidget);
     },
   );
 

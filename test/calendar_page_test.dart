@@ -220,7 +220,6 @@ void main() {
       date: day,
     );
     var completed = 0;
-    var snoozed = 0;
     var edited = 0;
 
     await tester.pumpWidget(
@@ -229,7 +228,6 @@ void main() {
           initialSelectedDay: day,
           reminders: [reminder],
           onCompleteReminder: (_) async => completed++,
-          onSnoozeReminder: (_) async => snoozed++,
           onEditReminder: (_) async => edited++,
         ),
       ),
@@ -241,7 +239,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('انجام شد'), findsOneWidget);
-    expect(find.text('تعویق'), findsOneWidget);
+    expect(find.text('تعویق'), findsNothing);
     expect(find.text('ویرایش'), findsOneWidget);
     expect(find.text('تبدیل به کار'), findsNothing);
 
@@ -250,16 +248,11 @@ void main() {
     );
     await tester.pump();
     await tester.tap(
-      find.byKey(const ValueKey('reminder-snooze-followup:task-1:fu-1')),
-    );
-    await tester.pump();
-    await tester.tap(
       find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1')),
     );
     await tester.pump();
 
     expect(completed, 1);
-    expect(snoozed, 1);
     expect(edited, 1);
   });
   testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
@@ -285,6 +278,46 @@ void main() {
     expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
     expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+  });
+
+
+  testWidgets('exposes reversible delete only for Arvin-owned task rows', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    var deleted = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(id: 'task-due:task-1', title: 'کار آروین', date: day),
+              CalendarReminder(
+                id: 'external-calendar:event-1',
+                title: 'رویداد گوشی',
+                date: day.add(const Duration(minutes: 30)),
+              ),
+            ],
+            onDeleteTask: (_) async {
+              deleted++;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-task-due:task-1')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-due-delete-task-due:task-1')));
+    await tester.pumpAndSettle();
+    expect(deleted, 1);
+
+    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:event-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-external-calendar:event-1')), findsNothing);
   });
 
 

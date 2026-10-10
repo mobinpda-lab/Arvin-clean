@@ -30,6 +30,35 @@ void main() {
     expect(SystemCalendarBridge.isEligible(completed), isFalse);
   });
 
+  test('linked provider identity verification uses the native bridge and fails closed', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method == SystemCalendarBridge.verifyProviderEventIdentityMethod) {
+        return true;
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final bridge = SystemCalendarBridge();
+    expect(
+      await bridge.verifyProviderEventIdentity(calendarId: '42', eventId: '7'),
+      isTrue,
+    );
+    expect(calls.single.method, SystemCalendarBridge.verifyProviderEventIdentityMethod);
+    expect(calls.single.arguments, {'calendarId': '42', 'eventId': '7'});
+    expect(
+      await bridge.verifyProviderEventIdentity(calendarId: '', eventId: '7'),
+      isFalse,
+    );
+  });
+
   test('eligible reminder is sent through the existing platform boundary', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];
@@ -53,6 +82,34 @@ void main() {
     expect(calls, hasLength(1));
     expect(calls.single.method, SystemCalendarBridge.insertMethod);
     expect(calls.single.arguments, isA<Map<Object?, Object?>>());
+  });
+
+  test('opens the selected phone-owned event in its native calendar editor', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return true;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    expect(
+      await SystemCalendarBridge(channel: channel).openDeviceCalendarEvent(
+        calendarId: 'calendar-7',
+        eventId: 'event-1',
+      ),
+      isTrue,
+    );
+    expect(calls, hasLength(1));
+    expect(calls.single.method, SystemCalendarBridge.openProviderEventMethod);
+    expect(calls.single.arguments, <String, Object?>{
+      'calendarId': 'calendar-7',
+      'eventId': 'event-1',
+    });
   });
 
   test('ineligible reminder never crosses the native boundary', () async {

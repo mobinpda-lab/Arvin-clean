@@ -32,6 +32,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
     this.onEditTask,
+    this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onRetryCalendarSync,
   });
@@ -46,6 +47,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
+  final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function()? onRetryCalendarSync;
 
@@ -185,20 +187,77 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
-    if (!reminder.id.startsWith('task-due:') || widget.onEditTask == null) return;
-    final id = reminder.id.substring('task-due:'.length);
+    if (widget.onEditTask == null) return;
     Task? task;
-    for (final candidate in _tasks) {
-      if (!candidate.trashed && candidate.id == id) {
-        task = candidate;
-        break;
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      for (final candidate in _tasks) {
+        if (candidate.trashed) continue;
+        // A repeat occurrence appends its ISO timestamp after the stable Task
+        // ID. Resolve the canonical Task while keeping the occurrence read-only.
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+          task = candidate;
+          break;
+        }
       }
+      if (task != null) break;
     }
     if (task == null) return;
     await widget.onEditTask!(task);
     if (!mounted) return;
     final refreshed = await widget.onRefreshTasks?.call();
     if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
+  }
+
+  Future<void> _deleteTaskFromCalendar(CalendarReminder reminder) async {
+    if (widget.onDeleteTask == null) return;
+    Task? task;
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder:',
+      'task-followup:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      for (final candidate in _tasks) {
+        if (candidate.trashed) continue;
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+          task = candidate;
+          break;
+        }
+      }
+      if (task != null) break;
+    }
+    if (task == null) return;
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('انتقال کار به سطل زباله؟'),
+        content: Text('«${task!.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('انتقال به سطل زباله'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+    await widget.onDeleteTask!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null && mounted) {
+      setState(() => _tasks = List<Task>.of(refreshed));
+    }
   }
 
   FollowUpCalendarTarget? _targetFor(CalendarReminder reminder) =>
@@ -227,24 +286,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     _replaceFollowUp(target, updated);
   }
 
-  Future<void> _snoozeReminder(CalendarReminder reminder) async {
-    final target = _targetFor(reminder);
-    if (target == null) return;
-    final current = target.followUp;
-    final updated = FollowUp(
-      id: current.id,
-      dateTime: current.dateTime.add(const Duration(minutes: 30)),
-      note: current.note,
-      result: current.result,
-      reminderDate: current.reminderDate?.add(const Duration(minutes: 30)),
-      nextFollowUp: current.nextFollowUp,
-      completed: current.completed,
-    );
-    await _followUpWriter.update(target.taskId, updated);
-    if (!mounted) return;
-    _replaceFollowUp(target, updated);
-  }
-
   Future<void> _editReminder(CalendarReminder reminder) async {
     final target = _targetFor(reminder);
     if (target == null) return;
@@ -267,51 +308,30 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   Future<void> _openExternalReminder(CalendarReminder reminder) async {
     if (!reminder.id.startsWith('external-calendar:')) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'رویداد تقویم دستگاه',
-                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(reminder.title),
-              const SizedBox(height: 8),
-              Text(reminder.isAllDay ? 'رویداد تمام‌روز' : 'زمان: ${_time(reminder.date)}'),
-              const SizedBox(height: 16),
-              const Text(
-                'این رویداد از تقویم گوشی خوانده شده و آروین آن را بدون تأیید شما تغییر نمی‌دهد.',
-              ),
-              if (reminder.description?.trim().isNotEmpty == true) ...[
-                const SizedBox(height: 8),
-                Text(reminder.description!.trim()),
-              ],
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                key: ValueKey('external-calendar-create-task-${reminder.id}'),
-                onPressed: widget.onCreateTaskFromCalendarEvent == null
-                    ? null
-                    : () async {
-                        Navigator.of(sheetContext).pop();
-                        await _createTaskFromCalendarEvent(reminder);
-                      },
-                icon: const Icon(Icons.add_task_outlined),
-                label: const Text('ثبت در آروین'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    final calendarId = reminder.externalCalendarId?.trim();
+    final eventId = reminder.externalEventId?.trim();
+    if (calendarId == null || calendarId.isEmpty || eventId == null || eventId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('شناسهٔ رویداد تقویم گوشی در دسترس نیست.')),
+      );
+      return;
+    }
+    try {
+      final opened = await SystemCalendarBridge().openDeviceCalendarEvent(
+        calendarId: calendarId,
+        eventId: eventId,
+      );
+      if (!mounted || opened) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('باز کردن رویداد در تقویم گوشی ممکن نشد.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تقویم گوشی نتوانست رویداد را برای ویرایش باز کند.')),
+      );
+    }
   }
 
   Future<void> _openTimeline(BuildContext context) async {
@@ -869,9 +889,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             reminders: reminders,
             visibleReminderProjection: projectVisible,
             onCompleteReminder: _completeReminder,
-            onSnoozeReminder: _snoozeReminder,
             onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
+            onDeleteTask: _deleteTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: _canMutateReminder,

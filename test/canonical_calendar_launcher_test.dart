@@ -1,14 +1,18 @@
 import 'dart:convert';
 
 import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
+import 'package:arvin/calendar_page.dart';
 import 'package:arvin/follow_up_repository.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_reschedule_apply_service.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
@@ -39,6 +43,35 @@ Future<void> _openMoreMenu(WidgetTester tester) async {
   await tester.tap(find.text('بیشتر'));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
+}
+
+class _RecordingCalendarProjection extends FollowUpCalendarProjection {
+  final List<String> visibleRanges = <String>[];
+  final List<String> visibleIds = <String>[];
+
+  @override
+  List<CalendarReminder> project(
+    Iterable<Task> tasks, {
+    DateTime? visibleFrom,
+    DateTime? visibleTo,
+    DateTime? now,
+  }) {
+    final result = super.project(
+      tasks,
+      visibleFrom: visibleFrom,
+      visibleTo: visibleTo,
+      now: now,
+    );
+    if (visibleFrom != null && visibleTo != null) {
+      visibleRanges
+        ..clear()
+        ..add('${visibleFrom.toIso8601String()}..${visibleTo.toIso8601String()}');
+      visibleIds
+        ..clear()
+        ..addAll(result.map((item) => item.id));
+    }
+    return result;
+  }
 }
 
 void main() {
@@ -76,6 +109,11 @@ void main() {
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('خط زمانی'), findsNothing);
     expect(find.text('تداخل‌ها'), findsNothing);
+
+    // The launcher starts offline official-calendar calculation in the
+    // background. Drain its zero-duration batch-yield timers so this UI-only
+    // test does not finish with a live fake timer after widget disposal.
+    await tester.pump(const Duration(milliseconds: 1));
   });
 
   testWidgets('timeline refreshes canonical tasks before opening People',
@@ -407,5 +445,89 @@ void main() {
     );
   });
 
+
+
+  testWidgets('repeat occurrence actions resolve back to the canonical Task', (
+    tester,
+  ) async {
+    final now = IranClock.now();
+    final anchor = now.add(const Duration(minutes: 2));
+    final task = Task(
+      id: 'repeat-task',
+      title: 'کار تکرارشونده',
+      dueDate: anchor,
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        count: 5,
+      ),
+    );
+    Task? edited;
+    Task? deleted;
+    CalendarReminder? registered;
+    final projection = _RecordingCalendarProjection();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: <Task>[task],
+          projection: projection,
+          onEditTask: (value) async => edited = value,
+          onDeleteTask: (value) async => deleted = value,
+          onRegisterTaskToDeviceCalendar: (value) async => registered = value,
+        ),
+      ),
+    );
+    await tester.tap(find.text('تقویم'));
+    await tester.pump();
+    await _pumpRouteTransition(tester);
+
+    final occurrenceId = 'task-due:repeat-task:${anchor.toIso8601String()}';
+    final card = find.byKey(ValueKey('reminder-card-$occurrenceId'));
+    // The official-calendar FutureBuilder and inbound calendar reconciliation
+    // complete asynchronously. Wait for the actual occurrence row with a
+    // bounded pump; keep the assertion strict if the projection never appears.
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    if (card.evaluate().isEmpty) {
+      debugPrint(
+        'Repeat occurrence diagnostic: expected=$occurrenceId '
+        'ranges=${projection.visibleRanges} visibleIds=${projection.visibleIds} '
+        'calendarPages=${find.byType(CalendarPage).evaluate().length}',
+      );
+    }
+    expect(card, findsOneWidget);
+    await tester.tap(card);
+    await tester.pump();
+
+    final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
+    final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
+    expect(edit, findsOneWidget);
+    expect(register, findsOneWidget);
+
+    await tester.tap(edit);
+    await tester.pump();
+    expect(identical(edited, task), isTrue);
+
+    await tester.tap(register);
+    await tester.pump();
+    expect(registered?.id, occurrenceId);
+    expect(registered?.date, anchor);
+
+    final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
+    expect(delete, findsOneWidget);
+    await tester.tap(delete);
+    await _pumpRouteTransition(tester);
+    expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
+    await tester.tap(find.text('لغو'));
+    await _pumpRouteTransition(tester);
+    expect(deleted, isNull);
+
+    await tester.tap(delete);
+    await _pumpRouteTransition(tester);
+    await tester.tap(find.text('انتقال به سطل زباله'));
+    await _pumpRouteTransition(tester);
+    expect(identical(deleted, task), isTrue);
+  });
 
 }

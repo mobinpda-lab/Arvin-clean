@@ -334,6 +334,11 @@ class _HomePageState extends State<HomePage> {
     return TaskStore().createTag(name);
   }
 
+  Set<String> _trashedTaskIds(Iterable<Task> snapshot) => snapshot
+      .where((task) => task.trashed)
+      .map((task) => task.id)
+      .toSet();
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -351,6 +356,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;
@@ -374,6 +380,7 @@ class _HomePageState extends State<HomePage> {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
         force: true,
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
       final now = DateTime.now().toLocal();
       final today = DateTime(now.year, now.month, now.day);
@@ -1096,6 +1103,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;
@@ -1245,8 +1253,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _trashTaskFromCalendar(Task task) async {
+    if (loadFailure != null) {
+      throw StateError(
+        'Canonical task storage is unreadable; refusing Calendar write.',
+      );
+    }
+    final index = tasks.indexWhere((item) => item.id == task.id);
+    if (index < 0 || tasks[index].trashed) return;
+    setState(() {
+      final canonical = tasks[index];
+      canonical.trashed = true;
+      canonical.archived = false;
+      canonical.updatedAt = DateTime.now();
+    });
+    await _save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('کار به سطل زباله منتقل شد.')),
+      );
+  }
+
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
+    if (!mounted) return task;
+    // Ordinary auto-sync may be disabled even though this Task was explicitly
+    // linked to the phone calendar earlier. Reconcile only existing links so
+    // editing one Task cannot create events for unrelated Tasks.
+    await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
     return task;
   }
 
@@ -1296,6 +1332,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
+        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
     } catch (_) {
       if (!mounted) return;
@@ -1307,6 +1344,36 @@ class _HomePageState extends State<HomePage> {
             action: SnackBarAction(
               label: 'تلاش دوباره',
               onPressed: () => _retryCalendarSync(snapshot),
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    }
+  }
+
+  Future<void> _syncLinkedCalendarAfterTaskEdit(List<Task> snapshot) async {
+    try {
+      final result = await calendarOutboundSyncService.sync(
+        calendarProjection.project(snapshot),
+        force: true,
+        linkedOnly: true,
+      );
+      if (!mounted || result == null || result.updated == 0) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('تغییرات کار در تقویم گوشی هم به‌روز شد.')),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('کار در آروین ذخیره شد، اما رویداد پیوندخوردهٔ گوشی به‌روز نشد.'),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _syncLinkedCalendarAfterTaskEdit(snapshot),
             ),
             duration: const Duration(seconds: 6),
           ),
@@ -1806,7 +1873,11 @@ class _HomePageState extends State<HomePage> {
     return List<Task>.of(_searchSource);
   }
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
-    if (!reminder.id.startsWith('task-due:')) return;
+    final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
+        reminder.id.startsWith('task-reminder:') ||
+        reminder.id.startsWith('task-followup:') ||
+        reminder.id.startsWith('followup:');
+    if (!isTaskCalendarItem) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
     if (targetCalendarId == null || targetCalendarId.isEmpty) {
@@ -1830,12 +1901,36 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final taskId = reminder.id.substring('task-due:'.length);
     Task? task;
-    for (final candidate in _searchSource) {
-      if (candidate.id == taskId) {
-        task = candidate;
-        break;
+    final followUpTarget = reminder.id.startsWith('followup:')
+        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
+        : null;
+    if (followUpTarget != null) {
+      for (final candidate in _searchSource) {
+        if (candidate.id == followUpTarget.taskId) {
+          task = candidate;
+          break;
+        }
+      }
+    }
+    if (task == null) {
+      for (final prefix in const <String>[
+        'task-due:',
+        'task-reminder:',
+        'task-followup:',
+      ]) {
+        if (!reminder.id.startsWith(prefix)) continue;
+        final suffix = reminder.id.substring(prefix.length);
+        for (final candidate in _searchSource) {
+          // Repeat occurrences append an ISO timestamp to the canonical Task
+          // ID (which itself is stable). Match the Task prefix, not the entire
+          // occurrence ID, so each occurrence can still edit/register its Task.
+          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+            task = candidate;
+            break;
+          }
+        }
+        if (task != null) break;
       }
     }
     if (task == null) return;
@@ -1843,8 +1938,11 @@ class _HomePageState extends State<HomePage> {
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
-      date: task.dueDate ?? reminder.date,
+      // Keep the selected calendar row's date. For recurrence, this is the
+      // occurrence date, not the Task's original anchor date.
+      date: reminder.date,
       completed: task.completed,
+      isAllDay: reminder.isAllDay,
       description: task.description,
     );
     try {
@@ -1890,6 +1988,7 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),
         ),

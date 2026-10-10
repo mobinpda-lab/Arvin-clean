@@ -39,5 +39,15 @@ void main() {
     expect(restoreSource, contains('decodePortableJson(candidate.settings!)'));
     expect(restoreSource, isNot(contains('ArvinTask.fromJson(')));
     expect(restoreSource, isNot(contains('migrationWriter.save(')));
+    // Restoring portable data must not silently recreate installation-local
+    // calendar events. Event registration remains an explicit sync operation.
+    expect(
+      restoreSource,
+      isNot(contains('calendarOutboundSyncService.sync(')),
+    );
+    expect(
+      restoreSource,
+      isNot(contains('calendarOutboundSyncService.syncLinkedOnly(')),
+    );
   });
 }

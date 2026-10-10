@@ -440,7 +440,7 @@ void main() {
         interval: 2,
         startDate: DateTime(2026, 10, 10),
         endDate: DateTime(2026, 12, 31),
-        count: 6,
+        count: 7,
         active: true,
       ),
     );
@@ -453,7 +453,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-recurrence-count')), findsOneWidget);
 
     final count = find.byKey(const ValueKey('task-editor-recurrence-count'));
-    await tester.enterText(count, '6');
+    await tester.enterText(count, '7');
 
     await tester.tap(find.byKey(const ValueKey('task-editor-repeat-enabled')));
     await tester.pump();
@@ -467,7 +467,7 @@ void main() {
     expect(result!.recurrence!.interval, 2);
     expect(result!.recurrence!.startDate, DateTime(2026, 10, 10));
     expect(result!.recurrence!.endDate, DateTime(2026, 12, 31));
-    expect(result!.recurrence!.count, 6);
+    expect(result!.recurrence!.count, 7);
     expect(result!.recurrence!.active, isFalse);
   });
 
