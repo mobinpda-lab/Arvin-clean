@@ -1879,12 +1879,6 @@ class _HomePageState extends State<HomePage> {
       if (approved != true) return;
 
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      // Catalog restore is additive and transactional: keep local entries,
-      // and never let older backups delete taxonomy values on this device.
-      await taskStore.mergeCatalogs(
-        categories: candidate.categories ?? const <String>[],
-        tags: candidate.tags ?? const <String>[],
-      );
       await taskStore.save(List<Task>.of(list));
       try {
         await AndroidFollowUpReminderScheduler().reschedule();
@@ -1910,6 +1904,13 @@ class _HomePageState extends State<HomePage> {
         final appliedSettings = await appSettingsService.load();
         if (mounted) widget.onSettingsChanged?.call(appliedSettings);
       }
+      // Apply catalogs last: a failure in Task/Project/Calendar/settings restore
+      // must not also leave newly merged Category/Tag values behind. This
+      // ordering reduces partial effects; it is not cross-store atomicity.
+      await taskStore.mergeCatalogs(
+        categories: candidate.categories ?? const <String>[],
+        tags: candidate.tags ?? const <String>[],
+      );
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
