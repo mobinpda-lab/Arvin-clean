@@ -6,18 +6,26 @@
 
 ## Direct picker entry points
 
-Repository code search for showTimePicker, TimePicker, and TimeOfDay found six direct picker-owning files on the baseline:
+Repository code search for showTimePicker, TimePicker, and TimeOfDay found six direct picker-owning files on the baseline. The first migration wave is recorded in [PR #2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591); all six rows below are migrated on that branch. This is not the complete semantic audit.
 
 | File | Observed use | Initial classification | Migration status |
 |---|---|---|---|
-| lib/quick_capture_dialog.dart | _pickPersianTime, direct platform picker, dial mode | Quick Capture task time/reminder | Not migrated |
-| lib/task_editor_dialog.dart | contextual helper calling direct platform picker | Task create/edit date-time fields | Not migrated |
-| lib/follow_up_entry_page.dart | _pickClock, direct platform picker | Follow-up time | Not migrated |
-| lib/backup_schedule_page.dart | _pickTime, direct platform picker | Automatic backup schedule time | Not migrated |
+| lib/quick_capture_dialog.dart | _pickPersianTime, direct platform picker, dial mode | Quick Capture task time/reminder | Migrated in #2591 |
+| lib/task_editor_dialog.dart | contextual helper calling direct platform picker | Task create/edit date-time fields | Migrated in #2591 |
+| lib/follow_up_entry_page.dart | _pickClock, direct platform picker | Follow-up time | Migrated in #2591 |
+| lib/backup_schedule_page.dart | _pickTime, direct platform picker | Automatic backup schedule time | Migrated in #2591 |
 | lib/report_center_page.dart | _pickTime(bool from), direct platform picker | Report time range | Not migrated |
-| lib/main.dart | pickFromTime and pickToTime | Home time-range filters | Not migrated |
+| lib/main.dart | pickFromTime and pickToTime | Home time-range filters | Migrated in #2591 |
 
-The same search found a test that is coupled to the platform TimePickerDialog: test/quick_capture_dialog_test.dart. It must be migrated to assert the UATP contract rather than the framework dialog type.
+The same search found a test coupled to the platform TimePickerDialog: `test/quick_capture_dialog_test.dart`. PR #2591 updates it to assert the shared picker contract rather than the framework dialog type.
+
+## Exact-head evidence
+
+- Implementation PR: [#2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591)
+- Head: `2b8ab84597e0a83527b41da61277822a1ec6296e`
+- Analyze, test shards 0–5, Debug APK, Release APK: passed ([Build run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38093948369)).
+- Device Smoke: skipped by workflow policy; no device acceptance claimed.
+- Remaining: full semantic audit, screenshots/visual review, and real-device validation.
 
 ## Time-display and formatting hotspots
 
