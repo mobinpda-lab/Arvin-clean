@@ -41,6 +41,34 @@ void main() {
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
+  testWidgets('compact Home keeps Task card and add action clear of navigation',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"compact-task","title":"کار جمع‌وجور"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final task = find.byKey(const ValueKey('compact-task'));
+    final add = find.byKey(const ValueKey('home-canonical-add'));
+    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+    expect(task, findsOneWidget);
+    expect(add, findsOneWidget);
+    expect(moreNavigation, findsOneWidget);
+
+    final taskRect = tester.getRect(task);
+    final addRect = tester.getRect(add);
+    final navigationRect = tester.getRect(moreNavigation);
+    expect(taskRect.bottom, lessThanOrEqualTo(addRect.top));
+    expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('RTL swipe mapping remains configurable and data-safe',
       (tester) async {
     SharedPreferences.setMockInitialValues({
