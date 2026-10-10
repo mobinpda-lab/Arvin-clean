@@ -5,6 +5,28 @@ import 'package:cryptography/cryptography.dart';
 import '../calendar_page.dart';
 import 'system_calendar_bridge.dart';
 
+/// Resolves the canonical Task ID from an existing reminder projection ID.
+/// Shared by sync and backup reconciliation so identity parsing stays consistent.
+String? calendarTaskIdForReminderId(String reminderId) {
+  for (final prefix in const <String>[
+    'task-due:',
+    'task-reminder:',
+    'task-followup:',
+    'task-recurrence:',
+  ]) {
+    if (!reminderId.startsWith(prefix)) continue;
+    final value = reminderId.substring(prefix.length);
+    final separator = value.indexOf(':');
+    return separator < 0 ? value : value.substring(0, separator);
+  }
+  if (reminderId.startsWith('followup:')) {
+    final value = reminderId.substring('followup:'.length);
+    final separator = value.indexOf(':');
+    if (separator > 0) return value.substring(0, separator);
+  }
+  return null;
+}
+
 class CalendarSyncRevision {
   const CalendarSyncRevision({
     required this.reminderId,
