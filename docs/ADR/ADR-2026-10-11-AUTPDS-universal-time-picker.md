@@ -1,6 +1,6 @@
 # ADR-2026-10-11 — Universal Arvin Time Picker
 
-- **Status:** Accepted product/UX direction; implementation pending
+- **Status:** Accepted; first implementation/migration wave validated by CI; full rollout and device acceptance pending
 - **Date:** 2026-10-11
 - **Owner issue:** [#2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589)
 - **Related contracts:** [#1934](https://github.com/mobinpda-lab/Arvin-clean/issues/1934), [#1851](https://github.com/mobinpda-lab/Arvin-clean/issues/1851)
@@ -36,4 +36,4 @@ Audit and migrate time entry points for Create Task, Edit Task, Task Detail, Rem
 - Do not claim full rollout until source audit, automated validation, visual evidence, and real-device acceptance are complete.
 
 ## Acceptance evidence
-Required evidence is tracked in [#2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589). At decision-record creation, the implementation PR, screenshots, exact-head validation, and physical-device evidence are **pending**. This ADR records the decision; it is not proof that the component has shipped.
+Required evidence is tracked in [#2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589). Implementation PR [#2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591) now provides the shared picker and migrates six existing selection paths. Exact head `2b8ab84597e0a83527b41da61277822a1ec6296e` passed Analyze, all six test shards, and Debug/Release APK builds ([run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38093948369)). Device Smoke was skipped; screenshots, full display-format audit, and real-device acceptance remain pending. This ADR records the decision and current evidence; it is not proof that the component is release-ready.
