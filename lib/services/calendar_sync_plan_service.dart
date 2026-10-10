@@ -58,11 +58,25 @@ class ExternalCalendarEventLink {
   };
 
   factory ExternalCalendarEventLink.fromJson(Map<String, dynamic> json) {
+    final reminderId = json['reminderId'];
+    final calendarId = json['calendarId'];
+    final eventId = json['eventId'];
+    final fingerprint = json['lastSyncedFingerprint'];
+    if (reminderId is! String ||
+        calendarId is! String ||
+        eventId is! String ||
+        fingerprint is! String ||
+        reminderId.trim().isEmpty ||
+        calendarId.trim().isEmpty ||
+        eventId.trim().isEmpty ||
+        fingerprint.trim().isEmpty) {
+      throw const FormatException('Arvin backup Calendar link entry is invalid');
+    }
     return ExternalCalendarEventLink(
-      reminderId: json['reminderId'] as String? ?? '',
-      calendarId: json['calendarId'] as String? ?? '',
-      eventId: json['eventId'] as String? ?? '',
-      lastSyncedFingerprint: json['lastSyncedFingerprint'] as String? ?? '',
+      reminderId: reminderId,
+      calendarId: calendarId,
+      eventId: eventId,
+      lastSyncedFingerprint: fingerprint,
     );
   }
 }
