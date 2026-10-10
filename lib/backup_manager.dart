@@ -68,7 +68,9 @@ class ArvinBackupManager {
       directoryUri: directory,
       payload: <String, dynamic>{
         'tasks': tasks,
-        'calendarLinks': calendarLinks.map((link) => link.toJson()).toList(growable: false),
+        'calendarLinks': calendarLinks
+            .map((link) => link.toJson())
+            .toList(growable: false),
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
         if (projects != null) 'projects': projects,
       },
@@ -121,7 +123,9 @@ class ArvinBackupManager {
     final calendarLinks = rawCalendarLinks is List
         ? rawCalendarLinks.map((raw) {
             if (raw is! Map) {
-              throw const FormatException('Arvin backup calendar link entry is invalid');
+              throw const FormatException(
+                'Arvin backup calendar link entry is invalid',
+              );
             }
             return ExternalCalendarEventLink.fromJson(
               Map<String, dynamic>.from(raw),
