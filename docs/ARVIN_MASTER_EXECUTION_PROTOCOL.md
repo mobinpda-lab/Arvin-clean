@@ -280,3 +280,7 @@ This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETI
 3. Snooze runtime removal is already reflected in inspected Calendar/task code and regression tests; reconcile stale legacy design/governance documentation so it cannot reintroduce Snooze. No runtime removal patch is currently justified.
 4. Validate backup/restore behavior and calendar-link metadata compatibility without introducing a parallel store or risking user data.
 5. Complete remaining P0 triage (including #1901), real-device acceptance, screenshot evidence, and explicit owner approval before any Release Candidate claim.
+
+
+## 2026-10-10 — PCTADP mandatory architecture gate
+Before any change to Task, Project, Category/Group, Tag, Filter, Search, Report, Calendar, Repeat or Backup/Restore, read `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. No registration in GitHub = no implementation. Canonical concepts are Project, Category and Tag; Task remains the core actionable entity. Category and Group are synonyms, technical name `Category`, Persian UI term «دسته». Do not add a Group entity or parallel taxonomy. Filters for Project/Category/Tag remain distinct and combine with AND. Date-based Home grouping is display-only. Verify actual current model/schema, all impacted surfaces and backup/restore; do not infer a physical Category-to-Project foreign key from the conceptual hierarchy. Link the ADR from the related Issue/PR and require focused regression tests plus exact-head CI evidence.

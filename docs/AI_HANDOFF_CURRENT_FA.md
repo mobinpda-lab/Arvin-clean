@@ -120,8 +120,8 @@ Repository reality always overrides conversation memory.
 
 ### Current authoritative UI/product requirements
 - Home باید داشبورد حرفه‌ای مدیریت چرخه زندگی کار باشد، نه فهرست ساده.
-- Home: عنوان «مدیریت کارها و پیگیری آروین»، اعلان در سمت فیزیکی چپ، منو در سمت فیزیکی راست، جست‌وجو، و دقیقاً چهار گروه اصلی: زمان / پروژه‌ها / دسته‌ها / برچسب‌ها.
-- گروه‌ها باید باز و بسته شوند و فیلترهای مرتبط داشته باشند.
+- Home: عنوان «مدیریت کارها و پیگیری آروین»، اعلان در سمت فیزیکی چپ، منو در سمت فیزیکی راست، جست‌وجو، و دقیقاً چهار فیلتر/نمای اصلی: زمان / پروژه‌ها / دسته‌ها / برچسب‌ها؛ این چهار مورد چهار موجودیت نیستند و موجودیت‌های این حوزه فقط پروژه، دسته و برچسب‌اند.
+- رفتار باز/بسته‌شدن بخش‌های نمایشی Home مطابق قرارداد حفظ شود؛ «گروه‌بندی» در اینجا فقط چیدمان نمایشی است، نه موجودیت مستقل.
 - کارت کار باید تا حد امکان خلاصه کامل مدیریت کار را نشان دهد: عنوان، پروژه، دسته، برچسب، اهمیت، وضعیت، آخرین FollowUp و موعد.
 - آخرین FollowUp باید از `Task.followUps[]` و `lastFollowUp` canonical بیاید؛ تاریخ legacy نباید به‌عنوان تاریخ واقعی پیگیری نمایش داده شود.
 - Task Detail باید یک داشبورد مسیر پیگیری باشد: خلاصه، وضعیت، آخرین پیگیری، Timeline، فاصله بین پیگیری‌ها، اقدام بعدی، یادآوری و دو اقدام روشن «افزودن پیگیری» و «انجام کار».
@@ -140,7 +140,7 @@ Repository reality always overrides conversation memory.
 1. بررسی compile/analyze/test روی Head فعلی.
 2. Build واقعی APK.
 3. Device/UI evidence برای Home، Quick Entry، Task Editor و Task Detail.
-4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار گروه Home.
+4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار فیلتر/نمای Home (زمان، پروژه، دسته، برچسب).
 5. فقط پس از exact-head evidence، PR/merge و سپس post-merge validation.
 6. هر تغییر بعدی باید در همین handoff ثبت شود تا ادامه کار به گفتگو وابسته نباشد.
 
@@ -149,3 +149,10 @@ Repository reality always overrides conversation memory.
 `GitHub live audit → read this handoff → verify current branch/head → inspect open PR/workflows → continue from first unfinished acceptance gate → perform real GitHub work → validate → update this handoff → short report`.
 
 این فایل یک حافظه مستقل از ChatGPT است؛ گفتگو یا حساب جدید نباید مبنای وضعیت پروژه باشد.
+
+## PCTADP — mandatory cross-conversation architecture reference (2026-10-10)
+- Canonical ADR: `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md`; tracking Issue #2582; repository-wide conformance audit #2580 remains open.
+- Exactly three taxonomy concepts: Project, Category, Tag. Category and Group are one concept; technical name `Category`, standard Persian UI term «دسته». No independent Group model/store/repository/manager.
+- Task remains the core actionable entity. A Task can have 0/1 Project, 0/1 Category and multiple Tags. Project/Category/Tag filters remain distinct and combine with AND.
+- Before changing Task/Project/Category/Group/Tag/Filter/Search/Report/Calendar/Repeat/Backup/Restore, read the ADR, inspect current main and related PRs/issues, and link the ADR in the PR. Date-based grouping is presentation-only.
+- Current-code caveat: Project membership and Category catalog are represented separately; do not claim a physical Project→Category foreign key exists. This conformance question is part of Issue #2580.

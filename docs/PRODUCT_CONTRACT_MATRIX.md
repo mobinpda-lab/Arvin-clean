@@ -1,5 +1,10 @@
 # Arvin Product Contract Matrix
 
+## Canonical ontology — owner decision 2026-10-10
+
+Exactly three taxonomy domain entities are valid throughout Arvin: **Project / پروژه**, **Category / دسته**, and **Tag / برچسب**. «گروه» is only an alternate Persian word for Category and must not be represented as an independent entity. Category and Tag are distinct. Home's Time / Project / Category / Tag controls are filters/views, not four domain entities. Display-only grouping (such as Tasks grouped by due date) remains allowed. No Group model, store, repository, migration, manager, or parallel taxonomy is allowed. This rule applies to code, persisted data, selectors, menus, filters, Notebook, Calendar, reports, help, tests and documentation.
+
+
 ## Purpose
 
 This matrix prevents accepted product behavior from disappearing when implementation is split across migration, parallel or infrastructure slices.
@@ -26,7 +31,7 @@ The following is a non-removable Arvin brand requirement and must be preserved b
 - stable identity/header area at the top of primary pages, with Home mandatory;
 - **بسم الله الرحمن الرحیم** in a calm, respectful RTL presentation with generous whitespace and harmony with **#4A4CAB**;
 - this identity placement is brand identity, not decorative copy, and may not be removed, hidden, replaced or relocated;
-- Home must preserve **مدیریت کارها و پیگیری آروین**, the four primary grouping controls **زمان / پروژه / دسته / برچسب**, simple daily-use hierarchy, Arvin indigo identity, custom Bottom Navigation and Persian personal-assistant character;
+- Home must preserve **مدیریت کارها و پیگیری آروین**, the four primary filter/view controls **زمان / پروژه / دسته / برچسب**, simple daily-use hierarchy, Arvin indigo identity, custom Bottom Navigation and Persian personal-assistant character;
 - **Report Center remains a separate surface** and must not be absorbed into Home;
 - final screenshots/APK visual acceptance must explicitly check this brand gate.
 
@@ -36,7 +41,7 @@ Canonical detail: `docs/ARVIN_UI_CANONICAL.md` and `docs/HOME_STYLE_LOCK.md`.
 
 | Surface / capability | Binding behavior | Binding source | Canonical foundation | Current main entry point | Acceptance evidence required | Current status | Owner issue / next gap |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Home visual identity | Current owner-approved Home target: Bismillah + centered product title, approved utility icons, rounded search, exactly four grouping controls (`زمان`, `پروژه‌ها`, `دسته‌ها`, `برچسب‌ها`) without counters, canonical task content, compact add action and bottom navigation; indigo-led colors are part of the contract. The older visible `کارهای من`/stat-card placement is superseded. Microsoft To Do is secondary inspiration only, not the Home authority. | `docs/OWNER_UI_DECISION_HOME_WIDGET_NOTEBOOK_2026-08-28.md` + `docs/HOME_STYLE_LOCK.md` | canonical Task projections | `lib/main.dart` | widget filters + short/normal viewport + **real-device screenshot comparison to owner reference** | **Implemented** | canonical Home structure and grouping path are present; real-device screenshot/visual closure remains |
+| Home visual identity | Current owner-approved Home target: Bismillah + centered product title, approved utility icons, rounded search, exactly four filter/view controls (`زمان`, `پروژه‌ها`, `دسته‌ها`, `برچسب‌ها`) without counters, canonical task content, compact add action and bottom navigation; indigo-led colors are part of the contract. The older visible `کارهای من`/stat-card placement is superseded. Microsoft To Do is secondary inspiration only, not the Home authority. | `docs/OWNER_UI_DECISION_HOME_WIDGET_NOTEBOOK_2026-08-28.md` + `docs/HOME_STYLE_LOCK.md` | canonical Task projections | `lib/main.dart` | widget filters + short/normal viewport + **real-device screenshot comparison to owner reference** | **Implemented** | canonical Home structure and grouping path are present; real-device screenshot/visual closure remains |
 | Home header actions | notification + navigation hierarchy must preserve the approved identity block; Backup is not a Home-header action; Quick Capture/selection utilities must not displace identity | owner UI decision + `docs/HOME_STYLE_LOCK.md` | Home action routing | `lib/main.dart` | header regression + real screenshot | **Implemented** | current main keeps notification/menu hierarchy and removes Backup from the header; real-device visual closure remains |
 | Quick Capture | fast minimal entry into the same canonical Task path; later detail/edit uses normal Task flow; no second model/storage; discoverable without replacing approved Home identity | owner conversation + Quick Capture contract/scorecard evidence + Home Style Lock | `QuickCaptureDialog`, `TaskMigrationWriter`, canonical Task | Home quick-capture action | parser/widget/persistence regression + Home visual placement + device | **Implemented** | add final visual/discoverability acceptance; keep no-duplicate-path guard |
 | Task create/edit | title, description, tags; explicit `کار پیگیری‌دار` control for follow-up-enabled work | Issue #357 | `Task`, `TaskStore/arvin.tasks` | `lib/task_editor_dialog.dart` | toggle regression + migration/history preservation | **Validated** | #357 completed; preserve canonical same-Task conversion regression |
@@ -96,3 +101,6 @@ User-facing help, onboarding, illustrations and coach-marks are product surfaces
 ## Historical-document rule
 
 Older snapshots and superseded design/architecture proposals remain useful evidence, but they cannot override this matrix, a newer explicit product decision, current canonical contracts or verified GitHub reality.
+
+## Canonical taxonomy architecture decision
+See `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. The only taxonomy concepts are Project, Category and Tag. Category/Group is one concept; the standard Persian UI term is «دسته». Home's Time / Project / Category / Tag controls are filters/views, not four taxonomy entities; date-based display grouping is presentation-only. Project, Category and Tag filters remain distinct and combine with AND. No feature-specific taxonomy model or Group entity may be added. Full conformance and legacy wording audit remains open in Issue #2580.
