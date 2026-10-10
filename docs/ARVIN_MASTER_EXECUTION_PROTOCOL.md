@@ -43,7 +43,7 @@ Visual Reference: Primary #4A4CAB; Light #E9EAFF; Background #F8F8FB; Card #FDFD
 Home, Task Form/Detail, Follow-up, Calendar, Date/Time و Report Center مشمول Visual Gate هستند.
 
 ## Home Contract
-Home = Daily Command Center، نه Report. چهار فیلتر واقعی: Time / Project / Category / Tag؛ هرکدام Card/State/Active State و Bottom Sheet اختصاصی آروین دارد. Time: Today/Tomorrow/This Week/Past/Future/No Date/From Date/To Date/From Time/To Time. ترکیب فیلترها AND است. گروه‌ها: Past/Today/Tomorrow/Future/No Date با Header/Icon/Count/Expand-Collapse.
+Home = Daily Command Center، نه Report. چهار فیلتر/نمای واقعی: Time / Project / Category / Tag؛ هرکدام Card/State/Active State و Bottom Sheet اختصاصی آروین دارد. موجودیت‌های taxonomy فقط Project / Category / Tag هستند؛ «گروه» موجودیت مستقل نیست و Category را دوباره نام‌گذاری نمی‌کند. Time: Today/Tomorrow/This Week/Past/Future/No Date/From Date/To Date/From Time/To Time. ترکیب فیلترها AND است. گروه‌های Past/Today/Tomorrow/Future/No Date صرفاً گروه‌بندی نمایشی کارها هستند و مدل داده‌ای مستقلی ندارند.
 
 ## Report Filter Center
 Report Center مستقل است و Home را تغییر نمی‌دهد. Filter/Analysis/View/Share/Print/Export. فیلترها: Time/Project/Category/Tag/Status/Priority/Repeat/Follow-up/Checklist/Date Range/Time Range. ترکیب چند فیلتر الزامی؛ Share/Print موجود استفاده شود؛ Report Engine جدید ممنوع.
