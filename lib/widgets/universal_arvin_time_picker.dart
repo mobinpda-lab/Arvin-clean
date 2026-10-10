@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 
@@ -309,6 +310,7 @@ class _UniversalArvinTimePickerDialogState
 }
 
 class _ClockFace extends StatelessWidget {
+  static const _formatter = PersianDateFormatter();
   const _ClockFace({
     required this.choosingMinute,
     required this.hour,
@@ -353,9 +355,11 @@ class _ClockFace extends StatelessWidget {
       const radius = 110.0;
       final x = center + radius * math.cos(angle);
       final y = center + radius * math.sin(angle);
-      final labelValue = choosingMinute
-          ? value.toString().padLeft(2, '0')
-          : value.toString();
+      final labelValue = _formatter.toPersianDigits(
+        choosingMinute
+            ? value.toString().padLeft(2, '0')
+            : value.toString(),
+      );
       children.add(
         Positioned(
           left: x - 19,
@@ -367,6 +371,9 @@ class _ClockFace extends StatelessWidget {
                 ? 'دقیقه ${value.toString().padLeft(2, '0')}'
                 : 'ساعت $labelValue',
             child: InkWell(
+              key: ValueKey(choosingMinute
+                  ? 'universal-time-minute-$value'
+                  : 'universal-time-hour-outer-$value'),
               customBorder: const CircleBorder(),
               onTap: () {
                 if (choosingMinute) {
@@ -406,7 +413,9 @@ class _ClockFace extends StatelessWidget {
         final x = center + 76 * math.cos(angle);
         final y = center + 76 * math.sin(angle);
         final isSelected = hour == value;
-        final display = value == 0 ? '24' : value.toString();
+        final display = _formatter.toPersianDigits(
+          value == 0 ? '24' : value.toString(),
+        );
         children.add(
           Positioned(
             left: x - 16,
