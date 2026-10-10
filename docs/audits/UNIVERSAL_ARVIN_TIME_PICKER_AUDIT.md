@@ -2,10 +2,11 @@
 
 **Baseline:** main at 72a2f4cc24df7a38eff9856ce403461615db5280  
 **Tracker:** [#2589](https://github.com/mobinpda-lab/Arvin-clean/issues/2589)  
-**Status:** Initial inventory only; audit is not complete.
+**Status:** Expanded initial inventory; audit is not complete.
 
-## Search findings
-Repository code search for showTimePicker, TimePicker, and TimeOfDay found these direct picker entry points on the baseline:
+## Direct picker entry points
+
+Repository code search for showTimePicker, TimePicker, and TimeOfDay found six direct picker-owning files on the baseline:
 
 | File | Observed use | Initial classification | Migration status |
 |---|---|---|---|
@@ -16,19 +17,54 @@ Repository code search for showTimePicker, TimePicker, and TimeOfDay found these
 | lib/report_center_page.dart | _pickTime(bool from), direct platform picker | Report time range | Not migrated |
 | lib/main.dart | pickFromTime and pickToTime | Home time-range filters | Not migrated |
 
+The same search found a test that is coupled to the platform TimePickerDialog: test/quick_capture_dialog_test.dart. It must be migrated to assert the UATP contract rather than the framework dialog type.
+
+## Time-display and formatting hotspots
+
+A search for manually assembled HH:mm strings found repeated display formatting. These are **formatting hotspots**, not necessarily picker implementations; review each before deciding whether it belongs to the shared display formatter or remains a storage/export representation.
+
+| File | Observed role | Initial action |
+|---|---|---|
+| lib/quick_capture_dialog.dart | Persian date + time label | Review/reuse shared formatter |
+| lib/task_editor_dialog.dart | Task editor time label | Review/reuse shared formatter |
+| lib/follow_up_entry_page.dart | Follow-up time label | Review/reuse shared formatter |
+| lib/backup_schedule_page.dart | Backup schedule time and date-time labels | Review/reuse shared formatter |
+| lib/report_center_page.dart | Report filter time labels | Review/reuse shared formatter |
+| lib/main.dart | Calendar event and task time labels | Review/reuse shared formatter |
+| lib/task_timeline_page.dart | Timeline date-time label | Review/reuse shared formatter |
+| lib/task_next_action_page.dart | Next-action date-time label | Review/reuse shared formatter |
+| lib/services/task_report_text_renderer.dart | Text report date-time output | Preserve report semantics; centralize if safe |
+| lib/services/task_report_pdf_renderer.dart | PDF report date-time output | Preserve export semantics; centralize if safe |
+| lib/services/home_follow_up_presentation_service.dart | Follow-up presentation | Review/reuse shared formatter |
+| lib/work_agenda_page.dart | Agenda event time | Review/reuse shared formatter |
+| lib/calendar_page.dart | Calendar time label | Review/reuse shared formatter |
+| lib/follow_up_office_page.dart | Follow-up date-time label | Review/reuse shared formatter |
+| lib/task_detail_page.dart | Task detail date/time | Review/reuse shared formatter |
+| lib/task_recurrence_page.dart | Recurrence date-time label | Check Persian digit consistency |
+| lib/notebook_page.dart | Timestamp display | Review whether in-scope user-facing time |
+| lib/widgets/canonical_calendar_launcher.dart | Calendar event time | Review/reuse shared formatter |
+| lib/backup_service.dart | Backup filename timestamp | Storage/export naming; likely exception, document explicitly |
+
+Search results indicate Persian digit formatting is already available through PersianDateFormatter in many surfaces. Reuse the existing helper rather than creating a competing formatter. The audit has not yet inspected every occurrence or verified whether a single canonical display formatter already exists.
+
 ## Audit gaps
-This search is not exhaustive. Follow-up audit must search for:
-- showTimePicker, TimePickerDialog, TimeOfDay, and direct CupertinoDatePicker/custom clock controls.
-- DateTime fields that combine date and time but display time separately.
-- Display-only time strings, notification/schedule formatting, calendar event editors, and occurrence-specific controls.
-- Shared formatting and Persian digit utilities that should be reused rather than duplicated.
-- Tests that depend on TimePickerDialog and must be updated to test the shared component.
+
+This remains a search-based inventory, not a complete semantic audit. Follow-up work must:
+- Search all source and tests for showTimePicker, TimePickerDialog, TimeOfDay, direct CupertinoDatePicker/custom clock controls, and other clock-selection implementations.
+- Inspect DateTime fields that combine date/time and all notification, calendar event, reminder, repeat/occurrence, follow-up, schedule, and report flows.
+- Distinguish user-facing time selection, user-facing time display, internal calculations, and backup/export formats.
+- Identify existing Persian digit/formatting helpers and avoid duplicating them.
+- Update tests that depend on TimePickerDialog to test the shared component.
+- Document each remaining exception with a reason and owner.
 
 ## Architecture rule
-Every direct time-picker entry point must be migrated to UATP or have a specific documented architectural exception. A Roll Box may launch UATP but may not become a second clock-selection implementation. Do not change persistence or scheduling semantics as part of visual migration.
+
+Every direct user-facing time-picker entry point must be migrated to UATP or have a specific documented architectural exception. A Roll Box may launch UATP but may not become a second clock-selection implementation. Do not change persistence or scheduling semantics as part of visual migration.
 
 ## Evidence state
-- Initial search inventory: recorded.
+
+- Direct-picker search: six source files found; not migrated.
+- Display-formatting search: 19 source hotspots listed for review; semantic classification pending.
 - Full repository audit: pending.
 - Shared widget implementation: pending.
 - Per-caller migration: pending.
@@ -37,4 +73,5 @@ Every direct time-picker entry point must be migrated to UATP or have a specific
 - Real-device acceptance: pending.
 
 ## Exit criteria
+
 Update this document with each discovered call site, its migration PR, test coverage, and any approved exception. Mark the audit complete only after a final search against the implementation PR's exact head and review of all remaining hits.
