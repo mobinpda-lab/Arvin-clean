@@ -994,10 +994,10 @@ class _HomePageState extends State<HomePage> {
         .toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
       return Center(child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(compactHome ? 16 : 24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.search_off_rounded, size: 38, color: ArvinColors.neutral),
-          const SizedBox(height: 10),
+          Icon(Icons.search_off_rounded, size: compactHome ? 32 : 38, color: ArvinColors.neutral),
+          SizedBox(height: compactHome ? 6 : 10),
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
