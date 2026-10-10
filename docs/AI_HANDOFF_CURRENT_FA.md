@@ -140,7 +140,7 @@ Repository reality always overrides conversation memory.
 1. بررسی compile/analyze/test روی Head فعلی.
 2. Build واقعی APK.
 3. Device/UI evidence برای Home، Quick Entry، Task Editor و Task Detail.
-4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار گروه Home.
+4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار فیلتر/نمای Home (زمان، پروژه، دسته، برچسب).
 5. فقط پس از exact-head evidence، PR/merge و سپس post-merge validation.
 6. هر تغییر بعدی باید در همین handoff ثبت شود تا ادامه کار به گفتگو وابسته نباشد.
 
