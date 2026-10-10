@@ -9,6 +9,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
   const ArvinTaskEditorDialog({
@@ -213,21 +214,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     required String helpText,
   }) async {
     final base = _baseDateTime(current);
-    final picked = await showTimePicker(
+    final picked = await showUniversalArvinTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(base),
       helpText: helpText,
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-      hourLabelText: 'ساعت',
-      minuteLabelText: 'دقیقه',
-      builder: (dialogContext, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: MediaQuery(
-          data: MediaQuery.of(dialogContext).copyWith(alwaysUse24HourFormat: true),
-          child: child ?? const SizedBox.shrink(),
-        ),
-      ),
     );
     if (picked == null) return null;
     return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
