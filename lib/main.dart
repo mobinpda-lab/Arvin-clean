@@ -2635,6 +2635,17 @@ class _HomePageState extends State<HomePage> {
                 hintText: 'جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...',
                 hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                 prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: compactHome && selected.isEmpty && loadFailure == null
+                    ? KeyedSubtree(
+                        key: const ValueKey('home-canonical-add'),
+                        child: IconButton(
+                          key: const ValueKey('home-primary-add-compact'),
+                          tooltip: 'افزودن کار جدید',
+                          onPressed: _quickCapture,
+                          icon: const Icon(Icons.add_rounded),
+                        ),
+                      )
+                    : null,
                 filled: true, fillColor: ArvinColors.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
@@ -2657,7 +2668,15 @@ class _HomePageState extends State<HomePage> {
             : _groupedTaskList()),
         ]),
       ),
-      floatingActionButton: selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
+      floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: KeyedSubtree(
+                key: const ValueKey('home-canonical-add'),
+                child: ArvinHomePrimaryAddButton(onPressed: _quickCapture),
+              ),
+            )
+          : null,
       bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
