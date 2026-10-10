@@ -121,7 +121,7 @@ void main() {
     expect(requestedDate, DateTime(2026, 9, 15));
   });
 
-  testWidgets('Arvin Task rows keep edit and phone-calendar actions visible after tap', (
+  testWidgets('Arvin Task primary actions are visible before expansion', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
@@ -148,30 +148,33 @@ void main() {
             initialSelectedDay: reminder.date,
             reminders: <CalendarReminder>[reminder],
             onEditTask: (_) async => edited++,
+            onDeleteTask: (_) async {},
             onRegisterTaskToDeviceCalendar: (_) async => registered++,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      final edit = find.byKey(ValueKey('task-due-edit-${reminder.id}'));
+      final register = find.byKey(
+        ValueKey('task-due-device-calendar-${reminder.id}'),
+      );
+      final delete = find.byKey(ValueKey('task-due-delete-${reminder.id}'));
+
+      // The primary actions are discoverable in the collapsed card.
+      expect(edit, findsOneWidget);
+      expect(register, findsOneWidget);
+      expect(delete, findsNothing);
+
+      await tester.tap(edit);
+      await tester.pump();
+      await tester.tap(register);
+      await tester.pump();
+
+      // Destructive actions remain behind the existing expand interaction.
       await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
       await tester.pump();
-
-      expect(
-        find.byKey(ValueKey('task-due-edit-${reminder.id}')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(ValueKey('task-due-device-calendar-${reminder.id}')),
-        findsOneWidget,
-      );
-
-      await tester.tap(find.byKey(ValueKey('task-due-edit-${reminder.id}')));
-      await tester.pump();
-      await tester.tap(
-        find.byKey(ValueKey('task-due-device-calendar-${reminder.id}')),
-      );
-      await tester.pump();
+      expect(delete, findsOneWidget);
     }
 
     expect(edited, 2);
