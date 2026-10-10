@@ -1879,6 +1879,12 @@ class _HomePageState extends State<HomePage> {
         // can retry on the next lifecycle/scheduler trigger.
       }
       await ProjectStore().save(candidate.projects);
+      // A legacy backup has no link field; preserve current local links for
+      // backward compatibility. When present, restore exactly the archived
+      // link metadata. No Calendar Provider write is performed during restore.
+      if (candidate.calendarLinks != null) {
+        await ExternalCalendarLinkStore().save(candidate.calendarLinks!);
+      }
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
