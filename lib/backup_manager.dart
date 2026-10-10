@@ -10,6 +10,7 @@ typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
   Map<String, dynamic>? settings,
   List<ProjectPlan> projects,
+  bool hasProjects,
   List<ExternalCalendarEventLink>? calendarLinks,
   List<String>? categories,
   List<String>? tags,
@@ -177,6 +178,7 @@ class ArvinBackupManager {
           ? Map<String, dynamic>.from(rawSettings)
           : null,
       projects: projects,
+      hasProjects: document.containsKey('projects'),
       calendarLinks: calendarLinks,
       categories: categories,
       tags: tags,
