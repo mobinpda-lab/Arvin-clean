@@ -6,8 +6,9 @@ import 'calendar_sync_plan_service.dart';
 
 /// Persists only provider-link metadata needed for idempotent external sync.
 ///
-/// This store is intentionally separate from canonical Task data and is not
-/// part of portable backup/export state.
+/// This store remains separate from canonical Task data, but its link metadata
+/// is serialized into the existing portable backup document. Provider identity
+/// must still be verified before any restored link authorizes a write/delete.
 class ExternalCalendarLinkStore {
   ExternalCalendarLinkStore({
     this.preferencesKey = 'arvin.calendar.externalLinks',
