@@ -115,11 +115,16 @@ void main() {
     );
     await ExternalCalendarLinkStore().save([link]);
 
-    await ArvinBackupManager(service: service).backupCanonicalTasks([_completeTask()]);
+    await ArvinBackupManager(
+      service: service,
+    ).backupCanonicalTasks([_completeTask()]);
 
     final links = service.writtenPayload?['calendarLinks'] as List<dynamic>;
     expect(links, hasLength(1));
-    expect(ExternalCalendarEventLink.fromJson(Map<String, dynamic>.from(links.single as Map)).eventId, 'event-9');
+    final restoredLink = ExternalCalendarEventLink.fromJson(
+      Map<String, dynamic>.from(links.single as Map),
+    );
+    expect(restoredLink.eventId, 'event-9');
   });
 
   test('canonical backup carries projects in the same document', () async {
@@ -261,7 +266,9 @@ void main() {
         ],
       };
 
-    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+    final candidate = await ArvinBackupManager(
+      service: service,
+    ).restoreCanonicalBackup();
 
     expect(candidate, isNotNull);
     expect(candidate!.calendarLinks, hasLength(1));
