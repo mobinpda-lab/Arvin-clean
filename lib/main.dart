@@ -1919,8 +1919,8 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-        await ProjectStore().save(candidate.projects);
-      }
+            await ProjectStore().save(candidate.projects);
+          }
           await ExternalCalendarLinkStore().restoreForTasks(
             restoredTaskIds: list.map((task) => task.id),
             backupLinks: candidate.calendarLinks ?? const [],
