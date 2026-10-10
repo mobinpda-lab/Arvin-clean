@@ -309,13 +309,10 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (!confirmed || !mounted) return;
       final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      final taskStore = TaskStore();
-      for (final category in candidate.categories ?? const <String>[]) {
-        await taskStore.createCategory(category);
-      }
-      for (final tag in candidate.tags ?? const <String>[]) {
-        await taskStore.createTag(tag);
-      }
+      await TaskStore().mergeCatalogs(
+        categories: candidate.categories ?? const <String>[],
+        tags: candidate.tags ?? const <String>[],
+      );
       await widget.replaceTasks(
         candidate.tasks.map((task) => task.toJson()).toList(growable: false),
       );
