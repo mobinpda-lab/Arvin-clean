@@ -1,13 +1,22 @@
-# Arvin Task Form — Product Contract
+# Arvin Task Creation — Product Contract
 
 **Status:** Decision accepted; project-wide implementation and acceptance remain in progress.  
-**Canonical issue:** [#2593](https://github.com/mobinpda-lab/Arvin-clean/issues/2593)
+**Canonical issue:** [#2593](https://github.com/mobinpda-lab/Arvin-clean/issues/2593)  
+**Architecture decision:** [ADR-2026-10-11-ARVIN-TASK-FORM](../ADR/ADR-2026-10-11-ARVIN-TASK-FORM.md)
 
 ## User outcome
-A user can create a simple Task quickly, or expand the same form to manage repeat schedules, checklist, project/category/tags and important commitments without learning technical concepts.
+A user can record a simple Task quickly, or expand into the full editor to manage repeat schedules, checklist, project/category/tags and important commitments without learning technical concepts. Both paths operate on the same canonical Task.
 
-## Canonical form
-- Title; optional short description; date and time.
+## Two entry experiences
+### Quick Add — speed
+- Title and importance; optional date, time, repeat and reminder.
+- Clear «جزئیات بیشتر» transition and primary «ثبت» action.
+- Simple save creates one canonical Task.
+- Full-editor continuation must pass the existing draft/identity; no pre-save and no second Task.
+- Cancel from the full editor preserves the unsaved Quick Add draft and does not mutate stored data.
+
+### Full Task Editor — depth
+- Title; optional short description; Jalali date and shared time picker.
 - Repeat and Checklist.
 - Project (0..1), Category (canonical single concept), Tags (0..n).
 - Tracking level: ordinary or important-and-trackable.
@@ -18,7 +27,7 @@ A user can create a simple Task quickly, or expand the same form to manage repea
 
 ## Architecture invariants
 - Task remains the central entity and source of truth.
-- Create/Edit reuses `ArvinTaskEditorDialog`, canonical Task model and existing Task persistence path.
+- Quick Add and Full Editor reuse existing widgets/services, canonical Task model and Task persistence path.
 - Checklist remains inside Task; recurring occurrence checklist state is independent.
 - Repeat is a Task capability; occurrences are projections/execution state under existing architecture.
 - Category and Group are not separate entities.
@@ -30,7 +39,8 @@ A user can create a simple Task quickly, or expand the same form to manage repea
 Form changes must preserve canonical identity, history, Project/Category/Tag assignments, recurrence, checklist definition/state, follow-up/next action, reminder semantics, calendar links and backup/restore compatibility.
 
 ## Definition of Done
-Do not call the form complete until:
+Do not call the experience complete until:
+- Quick Add and Full Editor flows are audited, including draft identity, cancel, single save and repeated entry;
 - each related surface is audited and exceptions are documented;
 - required scenarios in #2593 pass;
 - exact-head Analyze, full tests, Debug and Release builds pass;
