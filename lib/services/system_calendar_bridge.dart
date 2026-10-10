@@ -130,6 +130,7 @@ class SystemCalendarBridge {
   static const String createProviderEventMethod = 'createDeviceCalendarEvent';
   static const String updateProviderEventMethod = 'updateDeviceCalendarEvent';
   static const String deleteProviderEventMethod = 'deleteDeviceCalendarEvent';
+  static const String verifyProviderEventIdentityMethod = 'verifyDeviceCalendarEvent';
   static const String openProviderEventMethod = 'openDeviceCalendarEvent';
   static const int maxEventQueryCalendars = 20;
   static const Duration maxEventQueryWindow = Duration(days: 93);
@@ -267,6 +268,29 @@ class SystemCalendarBridge {
     try {
       return await _channel.invokeMethod<bool>(
             openProviderEventMethod,
+            <String, Object?>{
+              'calendarId': normalizedCalendarId,
+              'eventId': normalizedEventId,
+            },
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  /// Fails closed unless the exact provider row still belongs to the linked calendar.
+  /// This protects against stale local IDs before an update or delete.
+  Future<bool> verifyProviderEventIdentity({
+    required String calendarId,
+    required String eventId,
+  }) async {
+    final normalizedCalendarId = calendarId.trim();
+    final normalizedEventId = eventId.trim();
+    if (normalizedCalendarId.isEmpty || normalizedEventId.isEmpty) return false;
+    try {
+      return await _channel.invokeMethod<bool>(
+            verifyProviderEventIdentityMethod,
             <String, Object?>{
               'calendarId': normalizedCalendarId,
               'eventId': normalizedEventId,
