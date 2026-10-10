@@ -242,6 +242,7 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: (await ExternalCalendarLinkStore().load())
             .map((link) => link.toJson())
             .toList(growable: false),
+        projects: manager.projectCodec.encodeList(await ProjectStore().load()),
         categories: await TaskStore().loadCategories(),
         tags: await TaskStore().loadTags(),
         encryptionPassphrase: passphrase,
@@ -300,6 +301,7 @@ class _BackupPageState extends State<BackupPage> {
   Future<void> _restore({String? passphrase}) async {
     setState(() => busy = true);
     List<Map<String, dynamic>>? previousTasks;
+    List<ProjectPlan>? previousProjects;
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     Map<String, dynamic>? previousSettings;
     try {
@@ -320,6 +322,7 @@ class _BackupPageState extends State<BackupPage> {
           .map((value) => Map<String, dynamic>.from(value))
           .toList(growable: false);
       previousTasks = tasksBeforeRestore;
+      previousProjects = await ProjectStore().load();
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
       previousSettings = await _portableBackupSettings();
       final currentTasks = tasksBeforeRestore
@@ -348,6 +351,9 @@ class _BackupPageState extends State<BackupPage> {
           await widget.replaceTasks(
             candidate.tasks.map((task) => task.toJson()).toList(growable: false),
           );
+          if (candidate.hasProjects) {
+            await ProjectStore().save(candidate.projects);
+          }
           await ExternalCalendarLinkStore().restoreForTasks(
             restoredTaskIds: candidate.tasks.map((task) => task.id),
             backupLinks: candidate.calendarLinks ?? const [],
@@ -371,6 +377,7 @@ class _BackupPageState extends State<BackupPage> {
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
+          await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
