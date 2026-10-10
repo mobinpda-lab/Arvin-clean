@@ -1812,6 +1812,7 @@ class _HomePageState extends State<HomePage> {
         await taskStore.load(),
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
+        calendarLinks: await ExternalCalendarLinkStore().load(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1845,6 +1846,7 @@ class _HomePageState extends State<HomePage> {
         await taskStore.load(),
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
+        calendarLinks: await ExternalCalendarLinkStore().load(),
       );
 
       if (!mounted) return;
@@ -1854,7 +1856,8 @@ class _HomePageState extends State<HomePage> {
           title: const Text('بازیابی اطلاعات'),
           content: Text(
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
-            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n\n'
+            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
+            '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.' : 'پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.'}\n\n'
             '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
           ),
           actions: [
@@ -1871,6 +1874,7 @@ class _HomePageState extends State<HomePage> {
       );
       if (approved != true) return;
 
+      final currentCalendarLinks = await ExternalCalendarLinkStore().load();
       await taskStore.save(List<Task>.of(list));
       try {
         await AndroidFollowUpReminderScheduler().reschedule();
@@ -1879,6 +1883,11 @@ class _HomePageState extends State<HomePage> {
         // can retry on the next lifecycle/scheduler trigger.
       }
       await ProjectStore().save(candidate.projects);
+      await ExternalCalendarLinkStore().restoreForTasks(
+        restoredTaskIds: list.map((task) => task.id),
+        backupLinks: candidate.calendarLinks ?? const [],
+        currentLinks: currentCalendarLinks,
+      );
       if (restoredSettings != null) {
         await appSettingsService.restorePortableJson(candidate.settings!);
         final rawSchedule = candidate.settings!['backupSchedule'];
@@ -1896,7 +1905,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}',
             ),
           ),
         );

@@ -1,6 +1,8 @@
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
+import 'package:arvin/services/calendar_sync_plan_service.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +13,7 @@ class _FakeBackupService extends ArvinBackupService {
   String? lastEncryptionPassphrase;
   String? lastReadPassphrase;
   Map<String, dynamic>? readResult;
+  Map<String, dynamic>? lastPayload;
   Object? readError;
 
   @override
@@ -25,6 +28,7 @@ class _FakeBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writeCount += 1;
+    lastPayload = payload;
     lastEncryptionPassphrase = encryptionPassphrase;
   }
 
@@ -65,6 +69,13 @@ void main() {
   testWidgets('plaintext backup remains default and does not prompt',
       (tester) async {
     final service = _FakeBackupService();
+    final link = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-1',
+      calendarId: '42',
+      eventId: 'event-1',
+      lastSyncedFingerprint: 'fingerprint-1',
+    );
+    await ExternalCalendarLinkStore().save([link]);
     await tester.pumpWidget(_app(service: service));
     await tester.pumpAndSettle();
 
@@ -81,6 +92,7 @@ void main() {
 
     expect(service.writeCount, 1);
     expect(service.lastEncryptionPassphrase, isNull);
+    expect(service.lastPayload?['calendarLinks'], [link.toJson()]);
     expect(find.textContaining('پشتیبان ساخته شد'), findsOneWidget);
   });
 
@@ -225,7 +237,7 @@ void main() {
 
     expect(replaceCount, 1);
     expect(replaced?.single['id'], 'restored-1');
-    expect(find.text('اطلاعات با موفقیت بازیابی شد'), findsOneWidget);
+    expect(find.text('اطلاعات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'), findsOneWidget);
   });
 
   testWidgets('wrong encrypted restore passphrase never mutates local tasks',

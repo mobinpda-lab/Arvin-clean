@@ -2,6 +2,7 @@ import '../backup_manager.dart';
 import '../models/goal_project.dart';
 import '../models/task.dart';
 import 'project_store.dart';
+import 'external_calendar_link_store.dart';
 
 /// Thin bridge that keeps Home/backup UI from duplicating Project persistence
 /// rules. Tasks remain owned by the existing backup document; Projects are
@@ -22,10 +23,12 @@ class ProjectBackupBridge {
     String? encryptionPassphrase,
   }) async {
     final projects = await projectStore.load();
+    final calendarLinks = await ExternalCalendarLinkStore().load();
     return backupManager.backupCanonicalTasks(
       tasks,
       settings: settings,
       projects: projects,
+      calendarLinks: calendarLinks,
       encryptionPassphrase: encryptionPassphrase,
     );
   }

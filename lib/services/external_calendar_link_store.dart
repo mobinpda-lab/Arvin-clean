@@ -6,8 +6,9 @@ import 'calendar_sync_plan_service.dart';
 
 /// Persists only provider-link metadata needed for idempotent external sync.
 ///
-/// This store is intentionally separate from canonical Task data and is not
-/// part of portable backup/export state.
+/// This store remains separate from canonical Task data, but its link metadata
+/// is serialized into the existing portable backup document. Provider identity
+/// must still be verified before any restored link authorizes a write/delete.
 class ExternalCalendarLinkStore {
   ExternalCalendarLinkStore({
     this.preferencesKey = 'arvin.calendar.externalLinks',
@@ -98,6 +99,45 @@ class ExternalCalendarLinkStore {
     if (ids.isEmpty) return;
     final existing = await load();
     await save(existing.where((link) => !ids.contains(link.reminderId)));
+  }
+
+  /// Reconciles link metadata after an explicitly confirmed Task restore.
+  ///
+  /// Current-device links win for the same reminder identity, preventing an
+  /// older backup from replacing a valid local provider ID. Backup links fill
+  /// missing mappings only. Links for Tasks absent from the restored canonical
+  /// Task set are detached without deleting provider events.
+  Future<void> restoreForTasks({
+    required Iterable<String> restoredTaskIds,
+    Iterable<ExternalCalendarEventLink> backupLinks =
+        const <ExternalCalendarEventLink>[],
+    Iterable<ExternalCalendarEventLink>? currentLinks,
+  }) async {
+    final taskIds = restoredTaskIds.map((id) => id.trim())
+        .where((id) => id.isNotEmpty).toSet();
+    final merged = <String, ExternalCalendarEventLink>{};
+
+    bool belongsToRestoredTask(ExternalCalendarEventLink link) {
+      var taskId = calendarTaskIdForReminderId(link.reminderId);
+      if (taskId == null &&
+          link.lastSyncedFingerprint.startsWith('imported-task:')) {
+        taskId = link.lastSyncedFingerprint.substring('imported-task:'.length);
+      }
+      return taskId != null && taskIds.contains(taskId);
+    }
+
+    final existingLinks = currentLinks ?? await load();
+    for (final link in existingLinks) {
+      if (belongsToRestoredTask(link)) {
+        merged.putIfAbsent(link.reminderId, () => link);
+      }
+    }
+    for (final link in backupLinks) {
+      if (belongsToRestoredTask(link)) {
+        merged.putIfAbsent(link.reminderId, () => link);
+      }
+    }
+    await save(merged.values);
   }
 
   Future<void> save(Iterable<ExternalCalendarEventLink> links) async {

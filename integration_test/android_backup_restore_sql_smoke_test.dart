@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/calendar_sync_plan_service.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +35,40 @@ class _RuntimeBackupService extends ArvinBackupService {
   @override
   Future<Map<String, dynamic>?> readBackup({String? passphrase}) async =>
       document;
+}
+
+class _FileBackedBackupService extends ArvinBackupService {
+  _FileBackedBackupService(this.file);
+
+  final File file;
+
+  @override
+  String createBackupFileName(DateTime dateTime) =>
+      file.uri.pathSegments.last;
+
+  @override
+  Future<void> writeBackup({
+    required String directoryUri,
+    required Map<String, dynamic> payload,
+    required String fileName,
+    bool uploadToCloud = true,
+    String? encryptionPassphrase,
+  }) async {
+    final bytes = await prepareBackupBytes(
+      payload,
+      passphrase: encryptionPassphrase,
+    );
+    await file.writeAsBytes(bytes, flush: true);
+  }
+
+  @override
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async {
+    if (!await file.exists()) return null;
+    return decodeBackupBytes(
+      await file.readAsBytes(),
+      passphrase: passphrase,
+    );
+  }
 }
 
 void main() {
@@ -138,4 +175,70 @@ void main() {
 
     await store.save(const <Task>[]);
   });
+
+  test(
+    'portable backup file round-trips Task and Calendar link metadata',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        ArvinBackupManager.directoryKey: 'file-backed-runtime-smoke',
+      });
+      final tempDirectory = await Directory.systemTemp.createTemp(
+        'arvin-backup-link-roundtrip-',
+      );
+      try {
+        final file = File(
+          '${tempDirectory.path}/arvin-calendar-link-backup.json',
+        );
+        final link = ExternalCalendarEventLink(
+          reminderId: 'task-due:file-task',
+          calendarId: 'calendar-file',
+          eventId: 'event-file',
+          lastSyncedFingerprint: 'fingerprint-file',
+        );
+        final linkStore = ExternalCalendarLinkStore();
+        await linkStore.save([link]);
+        final task = Task(
+          id: 'file-task',
+          title: 'کار در پشتیبان واقعی',
+          checklist: const <String>['مرحله ذخیره‌شده'],
+        );
+        final manager = ArvinBackupManager(
+          service: _FileBackedBackupService(file),
+        );
+
+        final backupName = await manager.backupCanonicalTasks(
+          [task],
+          calendarLinks: [link],
+        );
+        expect(backupName, file.uri.pathSegments.last);
+        expect(await file.exists(), isTrue);
+        expect(await file.length(), greaterThan(0));
+
+        // Simulate a fresh installation's empty local link store, then read
+        // the actual file bytes through the existing backup document decoder.
+        await linkStore.save(const <ExternalCalendarEventLink>[]);
+        final candidate = await manager.restoreCanonicalBackup();
+        expect(candidate, isNotNull);
+        expect(candidate!.tasks.single.id, 'file-task');
+        expect(
+          candidate.tasks.single.checklist,
+          <String>['مرحله ذخیره‌شده'],
+        );
+        expect(candidate.calendarLinks, hasLength(1));
+        expect(candidate.calendarLinks!.single.eventId, 'event-file');
+        expect(await linkStore.load(), isEmpty);
+
+        await linkStore.restoreForTasks(
+          restoredTaskIds: candidate.tasks.map((item) => item.id),
+          backupLinks: candidate.calendarLinks!,
+        );
+        final restoredLinks = await linkStore.load();
+        expect(restoredLinks, hasLength(1));
+        expect(restoredLinks.single.calendarId, 'calendar-file');
+        expect(restoredLinks.single.eventId, 'event-file');
+      } finally {
+        await tempDirectory.delete(recursive: true);
+      }
+    },
+  );
 }

@@ -15,6 +15,7 @@ void main() {
     expect(source, isNot(contains('backupManager.backupCanonicalTasks(\n        _searchSource,')));
     expect(source, contains("'backupSchedule': schedule.toPortableJson()"));
     expect(source, contains('settings: await _portableBackupSettings()'));
+    expect(source, contains('calendarLinks: await ExternalCalendarLinkStore().load()'));
     expect(source, contains('BackupSchedule.decodePortableJson('));
     expect(source, contains('backupManager.restoreCanonicalBackup()'));
     expect(source, contains('await taskStore.save(List<Task>.of(list));'));
@@ -37,6 +38,8 @@ void main() {
     final restoreSource = source.substring(restoreStart, restoreEnd);
     expect(restoreSource, contains('candidate.settings == null'));
     expect(restoreSource, contains('decodePortableJson(candidate.settings!)'));
+    expect(restoreSource, contains('candidate.calendarLinks ?? const []'));
+    expect(restoreSource, contains('await ExternalCalendarLinkStore().restoreForTasks('));
     expect(restoreSource, isNot(contains('ArvinTask.fromJson(')));
     expect(restoreSource, isNot(contains('migrationWriter.save(')));
     // Restoring portable data must not silently recreate installation-local
