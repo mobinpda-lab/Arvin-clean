@@ -166,6 +166,39 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                 }
+                METHOD_VERIFY_DEVICE_CALENDAR_EVENT -> {
+                    if (!hasCalendarReadPermission()) {
+                        result.error("calendar_read_permission_denied", "Calendar read permission is required to verify a linked event", null)
+                        return@setMethodCallHandler
+                    }
+                    val calendarIdText = call.argument<String>("calendarId")?.trim().orEmpty()
+                    val calendarId = calendarIdText.toLongOrNull()
+                    val eventId = call.argument<String>("eventId")?.trim()?.toLongOrNull()
+                    if (calendarId == null || eventId == null) {
+                        result.error("invalid_event", "Calendar event identity is incomplete", null)
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+                        var exists = false
+                        contentResolver.query(
+                            uri,
+                            arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
+                            CalendarContract.Events.CALENDAR_ID + " = ?",
+                            arrayOf(calendarIdText),
+                            null,
+                        )?.use { cursor ->
+                            exists = cursor.moveToFirst() &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) == eventId &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId
+                        }
+                        result.success(exists)
+                    } catch (error: SecurityException) {
+                        result.error("calendar_read_denied", "Android Calendar Provider denied linked-event verification", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_query_failed", "Android Calendar Provider linked-event verification failed", error.message)
+                    }
+                }
                 METHOD_DELETE_DEVICE_CALENDAR_EVENT -> {
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
@@ -553,6 +586,7 @@ class MainActivity : FlutterActivity() {
         const val METHOD_REQUEST_CALENDAR_ACCESS_PERMISSIONS = "requestCalendarAccessPermissions"
         const val METHOD_CREATE_DEVICE_CALENDAR_EVENT = "createDeviceCalendarEvent"
         const val METHOD_UPDATE_DEVICE_CALENDAR_EVENT = "updateDeviceCalendarEvent"
+        const val METHOD_VERIFY_DEVICE_CALENDAR_EVENT = "verifyDeviceCalendarEvent"
         const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
         const val METHOD_OPEN_DEVICE_CALENDAR_EVENT = "openDeviceCalendarEvent"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
