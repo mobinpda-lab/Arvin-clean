@@ -11,6 +11,8 @@ typedef CanonicalBackupCandidate = ({
   Map<String, dynamic>? settings,
   List<ProjectPlan> projects,
   List<ExternalCalendarEventLink>? calendarLinks,
+  List<String>? categories,
+  List<String>? tags,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -54,6 +56,8 @@ class ArvinBackupManager {
     Map<String, dynamic>? settings,
     List<Map<String, dynamic>>? projects,
     List<Map<String, dynamic>>? calendarLinks,
+    List<String>? categories,
+    List<String>? tags,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -67,6 +71,8 @@ class ArvinBackupManager {
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
         if (projects != null) 'projects': projects,
         if (calendarLinks != null) 'calendarLinks': calendarLinks,
+        if (categories != null) 'categories': categories,
+        if (tags != null) 'tags': tags,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -82,6 +88,8 @@ class ArvinBackupManager {
     Map<String, dynamic>? settings,
     Iterable<ProjectPlan>? projects,
     Iterable<ExternalCalendarEventLink>? calendarLinks,
+    Iterable<String>? categories,
+    Iterable<String>? tags,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
@@ -89,6 +97,8 @@ class ArvinBackupManager {
       settings: settings,
       projects: projects == null ? null : projectCodec.encodeList(projects),
       calendarLinks: calendarLinks?.map(_encodeCalendarLink).toList(growable: false),
+      categories: categories?.toList(growable: false),
+      tags: tags?.toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -108,6 +118,8 @@ class ArvinBackupManager {
     final tasks = _decodeCanonicalTasks(document);
     final projects = _decodeCanonicalProjects(document);
     final calendarLinks = _decodeCalendarLinks(document);
+    final categories = _decodeCatalog(document, 'categories', 'Category');
+    final tags = _decodeCatalog(document, 'tags', 'Tag');
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -120,6 +132,8 @@ class ArvinBackupManager {
           : null,
       projects: projects,
       calendarLinks: calendarLinks,
+      categories: categories,
+      tags: tags,
     );
   }
 
@@ -201,6 +215,34 @@ class ArvinBackupManager {
       }
     }
     return List<ExternalCalendarEventLink>.unmodifiable(links);
+  }
+
+  /// Catalogs are optional so older backup documents remain valid. When
+  /// present, validate the entire list before the UI mutates any local store.
+  List<String>? _decodeCatalog(
+    Map<String, dynamic> document,
+    String key,
+    String label,
+  ) {
+    if (!document.containsKey(key)) return null;
+    final rawValues = document[key];
+    if (rawValues is! List) {
+      throw FormatException('Arvin backup $label catalog is invalid');
+    }
+
+    final seen = <String>{};
+    final values = <String>[];
+    for (final raw in rawValues) {
+      if (raw is! String || raw.trim().isEmpty) {
+        throw FormatException('Arvin backup $label catalog entry is invalid');
+      }
+      final value = raw.trim();
+      if (!seen.add(value)) {
+        throw FormatException('Arvin backup contains duplicate $label: $value');
+      }
+      values.add(value);
+    }
+    return List<String>.unmodifiable(values);
   }
 
   List<ProjectPlan> _decodeCanonicalProjects(Map<String, dynamic> document) {
