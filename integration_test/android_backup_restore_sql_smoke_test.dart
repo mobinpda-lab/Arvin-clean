@@ -140,10 +140,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.writes, 1);
     expect(service.document?['tasks'], isNotEmpty);
+    expect(service.document?['categories'], contains('فروش'));
+    expect(service.document?['tags'], contains('مهم'));
 
     service.document = <String, dynamic>{
       'type': ArvinBackupService.backupType,
       'formatVersion': ArvinBackupService.backupFormatVersion,
+      'categories': <String>['دسته پشتیبان مستقل'],
+      'tags': <String>['برچسب مستقل'],
       'tasks': <Map<String, dynamic>>[
         Task(
           id: 'legacy-runtime',
@@ -172,6 +176,8 @@ void main() {
     expect(restored.single.title, 'بازیابی‌شده');
     expect(restored.single.followUps.single.id, 'fu-runtime');
     expect(restored.single.followUps.single.note, 'پیگیری بازیابی');
+    expect(await TaskStore().loadCategories(), contains('دسته پشتیبان مستقل'));
+    expect(await TaskStore().loadTags(), contains('برچسب مستقل'));
 
     await store.save(const <Task>[]);
   });
