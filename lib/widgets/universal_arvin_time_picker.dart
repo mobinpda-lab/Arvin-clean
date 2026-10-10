@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 
@@ -75,8 +74,6 @@ class _UniversalArvinTimePickerDialogState
       '${_hour.toString().padLeft(2, '0')}:${_minute.toString().padLeft(2, '0')}';
 
   String get _persianClockText => _formatter.toPersianDigits(_clockText);
-
-  String _displayNumber(int value) => _formatter.toPersianDigits('$value');
 
   int? _readDigits(String value) {
     final normalized = value
