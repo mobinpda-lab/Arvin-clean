@@ -1,5 +1,9 @@
 # Arvin Canonical UI Reference
 
+## Canonical ontology — owner decision 2026-10-10
+
+The only domain entities in this taxonomy are **Project / پروژه**, **Category / دسته** and **Tag / برچسب**. In Persian product language, «گروه» is a synonym for «دسته», not a fourth entity. Category and Tag remain distinct. Home's Time / Project / Category / Tag controls are four filters/views, not four domain entities. «گروه‌بندی» is allowed only for presentation/layout (for example, grouping Tasks by date), never as a separate data model. No Group model/store/repository or parallel management path may be introduced.
+
 ## Permanent Brand Requirement — NON-REMOVABLE
 
 This is a binding, cross-surface Arvin UI/UX requirement. It survives UI redesigns, refactors, migrations, parallel implementation waves and future conversations.
@@ -16,7 +20,7 @@ This is a binding, cross-surface Arvin UI/UX requirement. It survives UI redesig
 The final/reference imagery and release acceptance must preserve:
 - **بسم الله الرحمن الرحیم**
 - **مدیریت کارها و پیگیری آروین**
-- exactly four primary Home grouping controls: **زمان / پروژه / دسته / برچسب**
+- exactly four primary Home filter/view controls: **زمان / پروژه / دسته / برچسب** (four filters/views, not four domain entities)
 - a simple, calm daily-use Home
 - a separate **Report Center**
 - Arvin's indigo identity centered on **#4A4CAB**
