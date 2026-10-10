@@ -32,3 +32,10 @@ Reports and answers are compact, simple and understandable without programming k
 DeepSeek may be used as an independent second reviewer for major architecture, migration, storage, CI or other high-risk decisions. It does not replace GitHub evidence or owner approval.
 ## Historical State
 Older status files and dated reports remain historical records. They must not be interpreted as current status when they conflict with verified GitHub reality.
+
+## Canonical Project / Category / Tag Architecture
+- Domain decision: `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` (accepted 2026-10-10; conformance audit remains open in Issue #2580).
+- Canonical concepts: Project, Category, Tag; Task remains the core actionable entity.
+- Category and Group are synonyms, not separate entities. Standard Persian UI term: «دسته».
+- Do not introduce parallel models/stores or a separate Group concept. Review the ADR before changes to Task, filters, search, reports, calendar, repeat or backup/restore.
+- The semantic Project → Category → Task diagram does not prove a database Category-to-Project foreign key; that relationship remains an explicit audit question until evidenced and decided.
