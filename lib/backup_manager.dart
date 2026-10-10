@@ -178,7 +178,7 @@ class ArvinBackupManager {
           ? Map<String, dynamic>.from(rawSettings)
           : null,
       projects: projects,
-      hasProjects: document.containsKey('projects'),
+      hasProjects: document['projects'] is List,
       calendarLinks: calendarLinks,
       categories: categories,
       tags: tags,
