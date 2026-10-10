@@ -57,28 +57,25 @@ void main() {
     final task = find.byKey(const ValueKey('compact-task'));
     final taskCard = find.descendant(of: task, matching: find.byType(Padding)).first;
     final add = find.byKey(const ValueKey('home-canonical-add'));
-    final addButton = find.descendant(
-      of: add,
-      matching: find.byType(FloatingActionButton),
-    );
+    final addBounds = find.byKey(const ValueKey('home-compact-add-bounds'));
     final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
-    final navigationItem = find.descendant(
+    final navigationPadding = find.descendant(
       of: moreNavigation,
-      matching: find.byType(AnimatedContainer),
-    );
+      matching: find.byType(Padding),
+    ).first;
     expect(task, findsOneWidget);
     expect(taskCard, findsOneWidget);
     expect(add, findsOneWidget);
-    expect(addButton, findsOneWidget);
+    expect(addBounds, findsOneWidget);
     expect(moreNavigation, findsOneWidget);
-    expect(navigationItem, findsOneWidget);
+    expect(navigationPadding, findsOneWidget);
 
     final taskRect = tester.getRect(taskCard);
     final listViewportRect = tester.getRect(
       find.byKey(const ValueKey('home-task-list-viewport')),
     );
-    final addRect = tester.getRect(addButton);
-    final navigationRect = tester.getRect(navigationItem);
+    final addRect = tester.getRect(addBounds);
+    final navigationRect = tester.getRect(navigationPadding);
     expect(taskRect.bottom, lessThanOrEqualTo(listViewportRect.bottom));
     expect(listViewportRect.bottom, lessThanOrEqualTo(addRect.top));
     expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
