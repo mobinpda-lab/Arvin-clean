@@ -126,6 +126,49 @@ void main() {
     ]);
   });
 
+  test('TaskStore merges Category and Tag catalogs additively', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      await store.createCategory('دسته محلی');
+      await store.createTag('برچسب محلی');
+
+      await store.mergeCatalogs(
+        categories: const ['دسته پشتیبان'],
+        tags: const ['برچسب پشتیبان'],
+      );
+
+      expect(
+        await store.loadCategories(),
+        containsAll(['دسته محلی', 'دسته پشتیبان']),
+      );
+      expect(
+        await store.loadTags(),
+        containsAll(['برچسب محلی', 'برچسب پشتیبان']),
+      );
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+  test('TaskStore validates catalogs before making any catalog changes', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      await expectLater(
+        store.mergeCatalogs(
+          categories: const ['دسته جدید', 'دسته جدید'],
+          tags: const ['برچسب جدید'],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(await store.loadCategories(), isNot(contains('دسته جدید')));
+      expect(await store.loadTags(), isNot(contains('برچسب جدید')));
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
   test('canonical restore validates and returns optional Category and Tag catalogs', () async {
     final service = _FakeBackupService()
       ..restoreDocument = {
