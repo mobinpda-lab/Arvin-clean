@@ -472,3 +472,12 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Correction to prior time-picker note:** the earlier claim that current PR #2607 still used generic Flutter `showTimePicker` was true for head `0ef03757ee869a49f7d36cfcad05f2d09751a31c` but became stale after later commits. PR comments confirm the current branch reuses `showUniversalArvinTimePicker` and includes a regression test. However, the shared picker source is also changed in PR #2607 and is byte-identical to the implementation in PR #2591; reconcile that overlapping path before merging so only one canonical implementation remains.
 
 **Current status:** Report Center test-only fix committed; exact-head validation pending. **Next action:** query workflow runs for the new head; if no run appears, inspect the PR's current run state before considering any rerun. No merge, release, or acceptance claim.
+
+
+## Exact-head validation restarted — Report Center (2026-10-11)
+
+- After the test-only fix commit `8d3d60a1b321fa4ceb9f5da779a144d3705b9103`, the PR-triggered Build run [38166678767](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678767) appeared for that exact commit.
+- Live job snapshot: Analyze, all six test shards and Debug/Release APK jobs were in progress or queued at the time checked. No artifacts had been uploaded yet. This is **pending**, not a pass.
+- Device Smoke [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708) was skipped because PR #2607 remains Draft; that does not validate UI/device behavior.
+- Continue monitoring this existing run; do not trigger duplicate CI. If the test shard 4 failure is resolved, wait for every remaining shard and both APK jobs to finish successfully on the same head. Then request/run Device Smoke and perform small-screen RTL/physical-device review. Shared time picker source overlap with PR #2591 still needs reconciliation before any merge.
+- Release gate #2102 remains open; no merge, publish, or Release Ready claim.
