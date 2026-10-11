@@ -1,6 +1,6 @@
 # Arvin Evidence Map
 
-Updated: 2026-10-11
+Updated: 2026-10-11 (latest smoke recheck)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 
 | Feature / gate | Evidence | Latest status | Limitation / next proof |
@@ -11,10 +11,10 @@ Repository: https://github.com/mobinpda-lab/Arvin-clean
 | Release APK | [Job 114424045355](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036/job/114424045355) | Success | Does not establish physical-device acceptance |
 | Android smoke: Home | [Device Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | Success | Emulator lane only |
 | Android smoke: Quick Capture | Same Device Smoke run | Success | Emulator lane only |
-| Android smoke: SQL migration | Same Device Smoke run | In progress | Need successful conclusion |
-| Android smoke: SQL persistence | Same Device Smoke run | In progress | Need successful conclusion |
-| Android smoke: Backup/Restore | Same Device Smoke run | Queued | Must pass to validate this change's critical path |
-| Android smoke: People | Same Device Smoke run | Queued | Need all six lanes green |
+| Android smoke: SQL migration | Same Device Smoke run | Success | Exact-head emulator lane; physical acceptance still required |
+| Android smoke: SQL persistence | Same Device Smoke run | Success | Exact-head emulator lane; physical acceptance still required |
+| Android smoke: Backup/Restore | Same Device Smoke run | In progress | Must pass to validate this change's critical path |
+| Android smoke: People | Same Device Smoke run | In progress | Need all six lanes green |
 | Production Loop | [Run #38123874039](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874039) | Success | Automation status only |
 | Orchestrator | [Run #38123874049](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874049) | Success | Automation status only |
 | Orchestrator PR Wakeup | [Run #38123874082](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874082) | Success | Automation status only |
@@ -26,3 +26,12 @@ Repository: https://github.com/mobinpda-lab/Arvin-clean
 | Calendar event identity/no duplicates | No post-restore evidence linked | Not verified | Record Task ID, external event ID and event count before/after edit/re-sync |
 | Golden Flow | Release checklist | Not verified end-to-end | Create Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore |
 | Release handover | No completed package evidence | Pending | Release notes, install guide, user guide, known issues, architecture summary and evidence report |
+
+
+## Calendar callback trace — Issue #2535
+- Main route `lib/main.dart` wires `onEditTask` and `onRegisterTaskToDeviceCalendar` into `CanonicalCalendarLauncher`.
+- `lib/widgets/canonical_calendar_launcher.dart` passes these callbacks and `visibleReminderProjection` into `IranianOfficialCalendarPage`.
+- `lib/official_calendar_page.dart` forwards callbacks and visible-range projection to `CalendarPage`.
+- `test/canonical_calendar_launcher_test.dart` already contains recurring-task callback coverage; `test/calendar_runtime_actions_fast_track_test.dart` already asserts Edit and phone-calendar actions in a widget scenario.
+- These checks establish a callback path in source/tests, not installed-device acceptance or root cause. Next inspect task-row action conditions and recurrence range projection before changing code.
+- Latest exact-head smoke recheck: Home, Quick Capture, SQL migration, SQL persistence = success; Backup/Restore and People = in progress.
