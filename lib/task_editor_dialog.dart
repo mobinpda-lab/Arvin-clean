@@ -1293,6 +1293,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            const Text(
+                              'نوع پیگیری',
+                              style: TextStyle(
+                                color: Color(0xFF232433),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
                             Material(
                               color: Colors.transparent,
                               child: CheckboxListTile(
@@ -1304,7 +1313,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 controlAffinity: ListTileControlAffinity.leading,
                                 activeColor: _brand,
                                 title: const Text(
-                                  'کار پیگیری‌دار',
+                                  'مهم و قابل پیگیری',
                                   style: TextStyle(
                                     color: _brand,
                                     fontWeight: FontWeight.w800,
@@ -1312,7 +1321,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                   ),
                                 ),
                                 subtitle: const Text(
-                                  'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                                  'خاموش: عادی؛ روشن: نگهداری زمان و سابقهٔ پیگیری',
                                 ),
                               ),
                             ),
