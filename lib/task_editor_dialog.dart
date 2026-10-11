@@ -1279,96 +1279,95 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         title: const Text('انجام‌شده'),
                         subtitle: const Text('وضعیت فعلی این کار'),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _checklistEditor(),
-                  const SizedBox(height: 12),
-                  Container(
-                    key: const ValueKey('task-editor-followup-block'),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F7FF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE8E6F7)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: CheckboxListTile(
-                            key: const ValueKey('task-editor-followup-enabled'),
-                            value: _followUpEnabled,
-                            onChanged: (value) =>
-                                _setFollowUpEnabled(value ?? false),
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            activeColor: _brand,
-                            title: const Text(
-                              'کار پیگیری‌دار',
-                              style: TextStyle(
-                                color: _brand,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                            subtitle: const Text(
-                              'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
-                            ),
-                          ),
+                      const SizedBox(height: 12),
+                      _checklistEditor(),
+                      const SizedBox(height: 12),
+                      Container(
+                        key: const ValueKey('task-editor-followup-block'),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F7FF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE8E6F7)),
                         ),
-                        if (!_followUpEnabled && hasHistory)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4, bottom: 6),
-                            child: Text(
-                              'سوابق پیگیری قبلی حفظ می‌شوند.',
-                              style: TextStyle(
-                                color: Color(0xFF77778A),
-                                fontSize: 12,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                key: const ValueKey('task-editor-followup-enabled'),
+                                value: _followUpEnabled,
+                                onChanged: (value) =>
+                                    _setFollowUpEnabled(value ?? false),
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                activeColor: _brand,
+                                title: const Text(
+                                  'کار پیگیری‌دار',
+                                  style: TextStyle(
+                                    color: _brand,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                subtitle: const Text(
+                                  'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
+                                ),
                               ),
                             ),
-                          ),
-                        if (_followUpEnabled) ...[
-                          Row(
-                            children: [
-                              const Expanded(
+                            if (!_followUpEnabled && hasHistory)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 4, bottom: 6),
                                 child: Text(
-                                  'زمان پیگیری',
+                                  'سوابق پیگیری قبلی حفظ می‌شوند.',
                                   style: TextStyle(
                                     color: Color(0xFF77778A),
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
-                              if (followUp != null)
-                                TextButton.icon(
-                                  key: const ValueKey(
-                                    'task-editor-clear-followup',
+                            if (_followUpEnabled) ...[
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'زمان پیگیری',
+                                      style: TextStyle(
+                                        color: Color(0xFF77778A),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
-                                  onPressed: _clearFollowUpTime,
-                                  icon: const Icon(Icons.close, size: 17),
-                                  label: const Text('حذف زمان'),
-                                ),
+                                  if (followUp != null)
+                                    TextButton.icon(
+                                      key: const ValueKey(
+                                        'task-editor-clear-followup',
+                                      ),
+                                      onPressed: _clearFollowUpTime,
+                                      icon: const Icon(Icons.close, size: 17),
+                                      label: const Text('حذف زمان'),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _dateTimeEditor(
+                                keyPrefix: 'task-editor-followup',
+                                title: 'زمان پیگیری',
+                                value: followUp,
+                                onPickDate: _pickFollowUpDate,
+                                onPickTime: _pickFollowUpTime,
+                                onClear: _clearFollowUpTime,
+                                accent: ArvinColors.primary,
+                              ),
                             ],
-                          ),
-                          const SizedBox(height: 8),
-                          _dateTimeEditor(
-                            keyPrefix: 'task-editor-followup',
-                            title: 'زمان پیگیری',
-                            value: followUp,
-                            onPickDate: _pickFollowUpDate,
-                            onPickTime: _pickFollowUpTime,
-                            onClear: _clearFollowUpTime,
-                            accent: ArvinColors.primary,
-                          ),
-                        ],
-                      ],
-                    ),
+                          ],
+                        ),
+                      ),
+    
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                ],
-              ),
             ),
           ),
       ],
