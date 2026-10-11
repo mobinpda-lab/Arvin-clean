@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
+import 'services/daily_content_preferences_service.dart';
 import 'models/task.dart';
 import 'models/goal_project.dart';
 import 'services/external_calendar_link_store.dart';
@@ -221,9 +222,12 @@ class _BackupPageState extends State<BackupPage> {
   Future<Map<String, dynamic>> _portableBackupSettings() async {
     final settings = await settingsService.load();
     final schedule = await BackupSchedule.load();
+    final dailyContentService = DailyContentPreferencesService();
+    final dailyContent = await dailyContentService.load();
     return <String, dynamic>{
       ...settingsService.toPortableJson(settings),
       'backupSchedule': schedule.toPortableJson(),
+      'dailyContentPreferences': dailyContentService.toPortableJson(dailyContent),
     };
   }
 
@@ -328,6 +332,15 @@ class _BackupPageState extends State<BackupPage> {
             Map<String, dynamic>.from(rawSchedule),
           );
         }
+        final rawDailyContent = candidate.settings!['dailyContentPreferences'];
+        if (rawDailyContent != null && rawDailyContent is! Map) {
+          throw const FormatException('Daily Content preferences are invalid');
+        }
+        if (rawDailyContent is Map) {
+          DailyContentPreferencesService.validatePortableJson(
+            Map<String, dynamic>.from(rawDailyContent),
+          );
+        }
       }
       if (!mounted) return;
       final confirmed = await _confirmRestore(
@@ -414,6 +427,12 @@ class _BackupPageState extends State<BackupPage> {
               );
               await restoredSchedule.save();
             }
+            final rawDailyContent = mergedSettings['dailyContentPreferences'];
+            if (rawDailyContent is Map) {
+              await DailyContentPreferencesService().restorePortableJson(
+                Map<String, dynamic>.from(rawDailyContent),
+              );
+            }
           }
           await widget.restoreStageHook?.call('settings');
           // TaskStore commits both catalogs together; they are applied last.
@@ -433,6 +452,12 @@ class _BackupPageState extends State<BackupPage> {
             await BackupSchedule.decodePortableJson(
               Map<String, dynamic>.from(oldSchedule),
             ).save();
+          }
+          final oldDailyContent = previousSettings!['dailyContentPreferences'];
+          if (oldDailyContent is Map) {
+            await DailyContentPreferencesService().restorePortableJson(
+              Map<String, dynamic>.from(oldDailyContent),
+            );
           }
           for (final category in (candidate.categories ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
