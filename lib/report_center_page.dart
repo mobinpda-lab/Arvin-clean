@@ -240,7 +240,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
-  ReportStatusFilter _status = ReportStatusFilter.all;
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -265,7 +264,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
-    _status = f.status;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -423,6 +421,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'زمان',
               icon: Icons.schedule_outlined,
+              accentColor: ArvinColors.time,
               selectedCount: (_timePreset != ReportTimePreset.all ? 1 : 0) +
                   (_fromDate != null || _toDate != null ? 1 : 0) +
                   (_fromTime != null || _toTime != null ? 1 : 0),
@@ -443,6 +442,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'بازه دقیق',
               icon: Icons.date_range_outlined,
+              accentColor: ArvinColors.time,
               selectedCount: (_fromDate != null ? 1 : 0) +
                   (_toDate != null ? 1 : 0) +
                   (_fromTime != null ? 1 : 0) +
@@ -490,6 +490,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'پروژه',
               icon: Icons.folder_open_outlined,
+              accentColor: ArvinColors.project,
               selectedCount: _projectIds.length,
               child: _MultiSelectChips(
                 allLabel: 'همه پروژه‌ها',
@@ -504,6 +505,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'دسته',
               icon: Icons.category_outlined,
+              accentColor: ArvinColors.category,
               selectedCount: _categories.length,
               child: _MultiSelectChips(
                 allLabel: 'همه دسته‌ها',
@@ -516,6 +518,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'برچسب',
               icon: Icons.sell_outlined,
+              accentColor: ArvinColors.tag,
               selectedCount: _tags.length,
               child: _MultiSelectChips(
                 allLabel: 'همه برچسب‌ها',
@@ -528,6 +531,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'یادداشت',
               icon: Icons.sticky_note_2_outlined,
+              accentColor: ArvinColors.primary,
               selectedCount: _noteKinds.length +
                   (_noteQueryController.text.trim().isNotEmpty ? 1 : 0) +
                   (_noteFromDate != null || _noteToDate != null ? 1 : 0),
@@ -611,6 +615,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'وضعیت کار',
               icon: Icons.flag_outlined,
+              accentColor: ArvinColors.reminder,
               selectedCount: _statuses.length,
               child: Wrap(
                 spacing: 6,
@@ -637,6 +642,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'Tracking',
               icon: Icons.track_changes_outlined,
+              accentColor: ArvinColors.reminder,
               selectedCount: _trackingLevels.length,
               child: Wrap(
                 spacing: 6,
@@ -674,6 +680,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'Follow-up',
               icon: Icons.notifications_active_outlined,
+              accentColor: ArvinColors.time,
               selectedCount: _hasFollowUp == null ? 0 : 1,
               child: Wrap(
                 spacing: 6,
@@ -689,6 +696,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'اهمیت',
               icon: Icons.star_border_rounded,
+              accentColor: ArvinColors.tag,
               selectedCount: _priority == null ? 0 : 1,
               child: Wrap(
                 spacing: 6,
@@ -710,6 +718,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
+              accentColor: ArvinColors.category,
               selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
               child: Wrap(
                 spacing: 6,
@@ -742,7 +751,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _projectIds = <String>{};
                       _categories = <String>{};
                       _tags = <String>{};
-                      _status = ReportStatusFilter.all;
                       _statuses.clear();
                       _trackingLevels.clear();
                       _noteKinds.clear();
@@ -835,6 +843,7 @@ class _Section extends StatefulWidget {
     required this.title,
     required this.child,
     this.icon = Icons.tune_outlined,
+    this.accentColor,
     this.selectedCount = 0,
     this.initiallyExpanded = false,
   });
@@ -842,6 +851,7 @@ class _Section extends StatefulWidget {
   final String title;
   final Widget child;
   final IconData icon;
+  final Color? accentColor;
   final int selectedCount;
   final bool initiallyExpanded;
 
@@ -855,14 +865,15 @@ class _SectionState extends State<_Section> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final accent = widget.accentColor ?? colors.primary;
     return Card(
       key: ValueKey('report-filter-section-${widget.title}'),
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
-      color: colors.surfaceContainerLow,
+      color: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colors.outlineVariant.withValues(alpha: .45)),
+        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withOpacity(.18)),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -870,7 +881,7 @@ class _SectionState extends State<_Section> {
         onExpansionChanged: (value) => setState(() => _expanded = value),
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        leading: Icon(widget.icon, color: colors.primary),
+        leading: Icon(widget.icon, color: accent),
         title: Row(
           children: [
             Expanded(
@@ -883,13 +894,13 @@ class _SectionState extends State<_Section> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: colors.primaryContainer,
+                  color: accent.withOpacity(.12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
                   widget.selectedCount.toString(),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.onPrimaryContainer,
+                    color: accent,
                   ),
                 ),
               ),
