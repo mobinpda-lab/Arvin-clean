@@ -135,3 +135,15 @@ No RTLC application code, tests, APK, screenshot, or device validation was produ
 | First Analyze attempt | [Run 38158589426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158589426), job 114526628385 | Failed: Notebook test referenced helper functions before their local declarations | Test was moved after helper declarations in commit `571e5ed7c6751bcf56ba042a02ed6081e7023b0f`; verify new exact-head Analyze |
 | New exact-head build | [Run 38158724999](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158724999), head `571e5ed7c6751bcf56ba042a02ed6081e7023b0f` | In progress at last check | Wait for Analyze, all test shards and Debug/Release APK results |
 | Device Smoke | [Run 38158725094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158725094) | Skipped | Physical-device acceptance required |
+
+
+## Report filter interaction validation — 2026-10-11
+
+| Feature / gate | Evidence | Current status | Limitation / next proof |
+|---|---|---|---|
+| Report Center combined time + category filters | Failed run [38161588760](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38161588760); correction commit [9ae99714](https://github.com/mobinpda-lab/Arvin-clean/commit/9ae99714e3cc36fe73814b1c0af0c3611adff2d4) | Test correction committed; exact-head validation pending | Confirm the Apply control remains present after selections and the resulting report contains only the matching canonical Task. |
+| Report filter accordion preserves selection | Failed run [38161588760](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38161588760); correction commit [9ae99714](https://github.com/mobinpda-lab/Arvin-clean/commit/9ae99714e3cc36fe73814b1c0af0c3611adff2d4) | Test correction committed; exact-head validation pending | Confirm category header tap hits the sheet, then selected FilterChip state survives collapse/reopen. |
+| Persian report time picker | [PR #2607](https://github.com/mobinpda-lab/Arvin-clean/pull/2607), `lib/report_center_page.dart` at prior exact head | Source uses shared `showUniversalArvinTimePicker`; code integration verified by source inspection only | Exact-head CI, Persian digit/RTL behavior and physical Android validation still required. |
+| PR #2607 exact-head CI | [Run 38162419144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38162419144) on commit `9ae99714e3cc36fe73814b1c0af0c3611adff2d4` | QUEUED at checkpoint; no pass/fail evidence yet | Inspect all jobs/shards and Device Smoke after run completes; PR remains Draft. |
+
+No APK, device screenshot, physical-device result, merge or release was produced by this step. Automated source/test evidence is not owner acceptance.
