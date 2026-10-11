@@ -68,6 +68,8 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
@@ -99,6 +101,7 @@ void main() {
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
 
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
     await tester.pumpAndSettle();
 
@@ -191,6 +194,9 @@ void main() {
   testWidgets('date-only due date persists as explicit All-Day without a time', (tester) async {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
 
     final dateBox = find.byKey(const ValueKey('task-editor-due-date-rollbox'));
     await tester.ensureVisible(dateBox);
