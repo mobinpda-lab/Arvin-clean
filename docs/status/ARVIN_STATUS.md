@@ -6,6 +6,8 @@
 **Main commit reviewed:** `72a2f4cc24df7a38eff9856ce403461615db5280`  
 **Overall status:** IN PROGRESS — release is not approved.
 
+**Governance note:** AMPOP v5.0 is proposed in open draft PR #2598; it is not active on `main` until review and merge. The status below describes repository/product evidence, not approval of the protocol or release.
+
 ## Current Phase
 Product completion, integration and acceptance. Priority is to close existing UX, calendar, backup/restore and validation gaps rather than add parallel systems.
 
