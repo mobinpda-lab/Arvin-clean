@@ -1,9 +1,18 @@
 # Arvin Execution State
 
-Updated: 2026-10-11 (restore reconciliation and portable settings implementation; exact-head validation in progress)
+Updated: 2026-10-11 (live GitHub recheck; exact-head Build passed, Device Smoke partially complete)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 GitHub access: Read/Write verified by live operations.
 Authority: live GitHub refs, source, tests and workflow evidence.
+
+## Live recheck — 2026-10-11 13:40 Iran time
+
+- Re-read this state and evidence map on the existing memory branch; confirmed PR #2600 is the intended documentation-only continuation path. The file is not yet on `main`.
+- Main remains `72a2f4cc24df7a38eff9856ce403461615db5280`.
+- PR #2585 exact head checked: `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`. Build run [38130522723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38130522723) is complete and successful: Analyze, all six test shards, Debug APK and Release APK.
+- Device Smoke run [38130522703](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38130522703) is still in progress. Home, Quick Capture and SQL Persistence passed; SQL Migration and Backup/Restore are in progress; People is queued. Do not call the full smoke suite passed.
+- No physical-device or actual Android system file-picker/provider acceptance was found. Release remains blocked; PR #2585 and #2587 remain unmerged.
+- The live Build/Smoke runs above supersede the older pending status recorded below where they conflict.
 
 ## Current release state
 **IN PROGRESS — RELEASE BLOCKED.** No physical-device acceptance has been provided.
