@@ -12,32 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Notebook note and checklist cards use distinct soft colors', (tester) async {
-    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
-    await repository.createNote(id: 'pastel-note', title: 'یادداشت رنگی');
-    await repository.createNote(
-      id: 'pastel-checklist',
-      title: 'چک‌لیست رنگی',
-      notebookKind: NotebookItemKind.checklist,
-      checklist: const ['مورد اول'],
-    );
-
-    await pumpNotebook(tester, repository);
-
-    expect(
-      tester.widget<Card>(
-        find.byKey(const ValueKey('notebook-note-card-pastel-note')),
-      ).color,
-      ArvinColors.primarySoft,
-    );
-    expect(
-      tester.widget<Card>(
-        find.byKey(const ValueKey('notebook-note-card-pastel-checklist')),
-      ).color,
-      ArvinColors.timeSoft,
-    );
-  });
-
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await TaskStore.resetTestDatabase();
@@ -76,6 +50,32 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('Notebook note and checklist cards use distinct soft colors', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await repository.createNote(id: 'pastel-note', title: 'یادداشت رنگی');
+    await repository.createNote(
+      id: 'pastel-checklist',
+      title: 'چک‌لیست رنگی',
+      notebookKind: NotebookItemKind.checklist,
+      checklist: const ['مورد اول'],
+    );
+
+    await pumpNotebook(tester, repository);
+
+    expect(
+      tester.widget<Card>(
+        find.byKey(const ValueKey('notebook-note-card-pastel-note')),
+      ).color,
+      ArvinColors.primarySoft,
+    );
+    expect(
+      tester.widget<Card>(
+        find.byKey(const ValueKey('notebook-note-card-pastel-checklist')),
+      ).color,
+      ArvinColors.timeSoft,
+    );
+  });
 
   testWidgets('approved Notebook reference controls are present', (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
