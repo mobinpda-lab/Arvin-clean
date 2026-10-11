@@ -29,12 +29,12 @@ Authority: live GitHub refs, source, tests and workflow evidence.
 - `lib/models/goal_project.dart`: Project membership stores canonical Task IDs in `itemIds`; this model does not declare a Category relation.
 - `lib/home/grouping/home_grouping_service.dart`: `HomeGroup<Task>` is a presentation grouping abstraction, not proof of a fourth domain entity.
 - `lib/services/task_store.dart`: canonical Category catalog uses SQL `taxonomy_categories`; canonical Tag catalog uses SQL `tags`; Task assignments are stored on canonical Task / task-tag persistence.
-- `lib/services/tag_store.dart` still defines SharedPreferences key `arvin.tags`. Default-branch code search found no caller beyond this file. `SqlTaskMigrationWriter` reads legacy `arvin.tasks` and creates SQL Tag rows from each Task's `task.tags`, not from `arvin.tags`. If an older shipped UI stored unassigned/catalog-only tags there, they may not be carried into SQL. This is an **unverified migration risk**, not proof that data was lost. Historical use, backup behavior and migration tests must be checked before changing or removing anything.
+- `lib/services/tag_store.dart` defines SharedPreferences key `arvin.tags`, but the only path-specific historical commit found is `3073cb8` (“Add tag storage”), which added only this file; no caller is found in current code search. Current migration reads `arvin.tasks` and derives SQL Tag rows from each Task's `task.tags`, not `arvin.tags`. Disposition: **legacy orphan candidate / low-confidence data risk**, not a confirmed shipped migration gap. No code change is justified without evidence of historical shipped use; preserve the key/file until then.
 - Do not infer a physical Category-to-Project foreign key from the semantic hierarchy. Do not mass-replace “group”; classify domain, user-facing, presentation, generic technical and historical uses first.
 
 ## In progress
-1. Verify whether legacy `TagStore` / `arvin.tags` was ever used in a shipped path by inspecting Git history and old UI wiring.
-2. Inspect backup/export/import behavior for catalog-only Tags and add focused migration coverage if the legacy contract is confirmed.
+1. If new historical evidence appears, verify whether legacy `TagStore` / `arvin.tags` was ever used in a shipped path; current history shows only the unreferenced file addition.
+2. Inspect backup/export/import behavior for catalog-only Tags as part of the broader conformance audit; do not change migration solely on speculation.
 3. Continue Issue #2580 audit across persistence, Task assignment, filters/search, UI copy, serialization and restore.
 4. Keep PR #2585 and #2587 unmerged until real-device acceptance is evidenced.
 5. Recheck PR #2600 exact head and Build after this update; keep draft pending review.
