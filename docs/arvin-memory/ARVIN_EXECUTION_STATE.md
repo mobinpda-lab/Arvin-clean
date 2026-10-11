@@ -374,3 +374,12 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Verified repository releases after Release Closure #38163384915 ran. Two Arvin prerelease records (`v0.1.0-arvin-dd95132` and `v0.1.0-arvin-33ed363`) are now Draft prereleases; their tags/assets were preserved. The workflow appended an explicit “UNAPPROVED — NOT A RELEASE CANDIDATE” notice while issue #2102 remains open. This is reversible containment, not a release approval.
 - Exact-head Build #38163500776 remains IN_PROGRESS at latest poll; no terminal result is available. Device Smoke #38163500919 remains SKIPPED due to the PR Draft condition.
 - Keep publication blocked until issue #2102 is closed after evidence and owner acceptance, and P0/P1 regression PR #1901 is resolved. Do not publish or close these gates automatically.
+
+
+### Poll checkpoint — 2026-10-11 18:24 UTC
+
+- Re-read this execution state and rechecked live PR #2607, exact-head Build #38163500776, Device Smoke #38163500919, release gate issue #2102, and regression PR #1901.
+- Build #38163500776 is still IN_PROGRESS on commit `c2a1b2ff57465e0e0b393b1e6d28fa010dadc439`. Analyze is SUCCESS; Debug/Release APK and test shards 0–5 remain IN_PROGRESS. A log request for running shard 4 returned NOT_FOUND, so no new test outcome can be inferred.
+- Device Smoke #38163500919 is SKIPPED due to Draft PR gating. The available GitHub tool set has no workflow-dispatch action, so I did not claim to launch a manual smoke run. Do not mark this as passed.
+- Issue #2102 and PR #1901 remain OPEN. Main is still `a6ced27660d34cd87dd8915aff68d3a7555fd57a`; no release/merge or owner-facing PR state change performed.
+- Next action remains: poll the exact-head Build run for terminal results; inspect fresh failed-job logs once available. Device Smoke requires an authorized non-Draft/manual path; physical-device and owner acceptance remain outstanding.
