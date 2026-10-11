@@ -201,9 +201,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryHeader);
     await tester.pumpAndSettle();
-    // ExpansionTile keeps its child subtree alive while collapsed; the selected
-    // value must remain intact when the section is reopened.
-    expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
+    // The collapsed ExpansionTile may unmount its child subtree. Verify the
+    // selection after reopening, when the chip is mounted again.
     await tester.ensureVisible(categoryHeader);
     await tester.pumpAndSettle();
     await tester.tap(categoryHeader);
