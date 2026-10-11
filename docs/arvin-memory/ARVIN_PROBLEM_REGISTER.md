@@ -167,3 +167,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - #830 P0/P1 release execution board remains open and should be reconciled with current gate #2102 and acceptance ledger #1139.
 - #2535 P0 installed-APK acceptance remains open: Calendar actions and all scheduled repeat days need validation on the installed product.
 - #1843 Home visual/clipping/phone-calendar action, #1860 typography scaling, #1851 Quick Capture Persian date/time, #1852 taxonomy refresh, #1068 final QA checklist and #1067 Calendar/Jalali acceptance remain open. They overlap newer PRs/issues but are not closed by PR existence alone.
+
+
+### 2026-10-11 — workflow churn and release gate refresh
+- **P0 — repeated release/orchestrator activity:** live exact-main runs around 18:38–18:42 UTC show repeated Production Orchestrator / Production Loop / Promotion Bridge runs, with Release Closure failures/cancellations and Final Head Release Validation skips. This is not release evidence.
+- Main release closure still cancels in-progress executions and accepts any successful Production Orchestrator completion. Existing PR #2531 proposes trigger isolation and non-cancelling concurrency; validate its exact-head checks and review before integration.
+- **Release remains blocked:** #2102 OPEN, #1901 OPEN, #1139 OPEN; owner-installed-device acceptance incomplete; two Draft prereleases explicitly unapproved.
+- **P1 — recovery auto-close:** #866 remains open; prior issue evidence shows Recovery Wave #847 closed after a partial child PR, then required manual reopening. Worker/parent closure must be acceptance-complete and evidence-based.
+- **P1 — provider pressure:** #866 comments include repeated HTTP 429 cooldown/retry events. Do not classify provider rate limiting as an Arvin product defect or bypass the cooldown.
+- **P1 — migration proof:** #1324 remains open for SQL/Drift lossless migration boundary and round-trip acceptance; current main architecture presence alone does not satisfy issue acceptance.
