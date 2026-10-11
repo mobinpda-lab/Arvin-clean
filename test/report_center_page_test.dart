@@ -188,5 +188,29 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
+  testWidgets('Report time range uses the shared Persian-digit Arvin time picker', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final rangeSection = find.byKey(const ValueKey('report-filter-section-بازه دقیق'));
+    await tester.ensureVisible(rangeSection);
+    await tester.tap(rangeSection);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('از ساعت'));
+    await tester.tap(find.text('از ساعت'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsNothing);
+    expect(find.text('از ساعت گزارش'), findsOneWidget);
+  });
+
 }
 
