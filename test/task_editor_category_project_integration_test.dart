@@ -59,6 +59,33 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('advanced fields start collapsed and taxonomy selectors share RTL row', (tester) async {
+    await openEditor(tester);
+
+    final project = find.byTooltip('پروژه');
+    final category = find.byTooltip('دسته');
+    final tag = find.byTooltip('برچسب');
+
+    expect(project, findsOneWidget);
+    expect(category, findsOneWidget);
+    expect(tag, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-taxonomy-row')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsNothing);
+
+    final projectCenter = tester.getCenter(project);
+    final categoryCenter = tester.getCenter(category);
+    final tagCenter = tester.getCenter(tag);
+    expect(projectCenter.dx, greaterThan(categoryCenter.dx));
+    expect(categoryCenter.dx, greaterThan(tagCenter.dx));
+    expect((projectCenter.dy - categoryCenter.dy).abs(), lessThan(1));
+    expect((categoryCenter.dy - tagCenter.dy).abs(), lessThan(1));
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('new task saves typed category without an extra apply step',
       (tester) async {
     Task? result;
