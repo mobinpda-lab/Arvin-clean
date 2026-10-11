@@ -319,3 +319,18 @@ Product acceptance and proof on the current exact head—not another parallel ar
 2. If tests pass, review complete workflow result and confirm Device Smoke status; do not confuse skipped smoke with device acceptance.
 3. If either test still fails, extract the new exact stack trace and diagnose before editing again.
 4. Update the problem register and evidence map only with this commit and confirmed CI results; keep PR #2607 Draft until the complete acceptance gate passes.
+
+
+## CONTINUATION — Report filter test fix follow-up — 2026-10-11
+
+- Re-read the execution state and refreshed PR #2607 / exact-head CI before acting. GitHub Read/Write access verified.
+- New exact-head result for prior test correction commit `9ae99714e3cc36fe73814b1c0af0c3611adff2d4`: [Build run #38162419144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38162419144) FAILED. Analyze, Debug APK, Release APK and test shards 0, 1, 3, 5 passed; test shards 2 and 4 failed; Device Smoke run #38162419065 was skipped.
+- Extracted fresh logs for both failed shards. The failure was caused by the test helper argument, not the product widget: `scrollUntilVisible` requires a `Scrollable` finder but the previous test-only fix passed `find.byType(ListView)`, yielding `type 'ListView' is not a subtype of type 'Scrollable'` at test lines 104 and 178.
+- Safe follow-up correction committed to the same PR branch: replace all five scrollable targets in `test/report_center_page_test.dart` with `find.byType(Scrollable).last`. Commit: [45caa5a3](https://github.com/mobinpda-lab/Arvin-clean/commit/45caa5a3d7c7b3b29264f0197d6affd2b1798df5). No production code or data contract changed.
+- New exact-head Actions batch: [Arvin Build #38163195995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195995), [Device Smoke #38163195983](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195983), plus orchestrator/parallel automation. At checkpoint, Build and several automation runs were queued; Device Smoke was in progress. No validation result for commit `45caa5a...` yet.
+- Completed: failure root cause precisely identified and corrected; new CI batch observed; no test assertions weakened.
+- In progress: verify exact-head test shards and build results; inspect Device Smoke after it completes.
+- Blocked: PR #2607 must remain Draft until exact-head Analyze, all test shards, Debug/Release builds, Device Smoke and owner/physical-device UX acceptance are all confirmed. No merge, release, APK handover or physical-device validation claim.
+
+### Next action
+Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs before another edit. If all automated checks pass, review smoke artifacts/results and then request the owner to verify Persian RTL, compact filter layout, date/time and selected-filter retention on a real small-screen Android device.
