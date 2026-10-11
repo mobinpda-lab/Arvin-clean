@@ -100,3 +100,19 @@ No RTLC application code, tests, APK, screenshot, or device validation was produ
 - Code head: PR #2595 branch head `cc8180575bb50087283c43a444d54af05de9bc81`.
 - Evidence: source read-back confirms root Task.note/controller/input removed; test includes legacy root-note ignored / description preserved assertion; backup and TaskStore test root-note assumptions removed.
 - Validation: GitHub workflow runs queued at readback. Analyze, test shards, Debug/Release APK and device smoke are not yet verified. Status = IMPLEMENTED, VALIDATION PENDING.
+
+
+
+## 2026-10-11 — Recurrence defaults
+- Feature: Task repeat editor.
+- Branch/PR: `fix/repeat-seven-default-date-time-20261011`, Draft PR #2606.
+- Latest known commit: `323b5a6afddd7977450ead87467e5d9dac206b04`.
+- Code change: date/time autofill on recurrence activation for unscheduled tasks; automatic reminder aligned; count defaults to 7 and remains editable.
+- Test added: widget test for current local date/time, timed (not all-day) task, aligned reminder, active recurrence and count=7.
+- Validation: exact latest-head Analyze/tests/build not yet verified; earlier-head CI was still running and is not evidence for latest commit. Device Smoke not accepted.
+
+
+## 2026-10-11 — Calendar sync after edit
+- Existing #2248 architecture gate remains open.
+- Evidence: `FollowUpCalendarProjection.project` emits recurring instances only when visible range is supplied; main outbound sync passes no range. Recurrence reminder IDs include occurrence timestamp; edit-only sync uses linkedOnly matching by ID. This explains a concrete recurrence-edit failure mode; full device/provider root cause still needs validation.
+- Status: ROOT CAUSE IDENTIFIED FOR RECURRING EDIT PATH; FIX BLOCKED pending stable identity contract review; no code fix or acceptance claim.
