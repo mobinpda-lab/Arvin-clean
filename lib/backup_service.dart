@@ -138,11 +138,23 @@ class ArvinBackupService {
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
     final rawSettings = payload['settings'];
     final rawProjects = payload['projects'];
+    final rawCalendarLinks = payload['calendarLinks'];
+    final rawCategories = payload['categories'];
+    final rawTags = payload['tags'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
     }
     if (rawProjects != null && rawProjects is! List) {
       throw const FormatException('Arvin backup projects are invalid');
+    }
+    if (rawCalendarLinks != null && rawCalendarLinks is! List) {
+      throw const FormatException('Arvin backup Calendar links are invalid');
+    }
+    if (rawCategories != null && rawCategories is! List) {
+      throw const FormatException('Arvin backup Category catalog is invalid');
+    }
+    if (rawTags != null && rawTags is! List) {
+      throw const FormatException('Arvin backup Tag catalog is invalid');
     }
 
     final document = <String, dynamic>{
@@ -154,6 +166,11 @@ class ArvinBackupService {
         'settings': Map<String, dynamic>.from(rawSettings),
       if (rawProjects is List)
         'projects': List<dynamic>.from(rawProjects),
+      if (rawCalendarLinks is List)
+        'calendarLinks': List<dynamic>.from(rawCalendarLinks),
+      if (rawCategories is List)
+        'categories': List<dynamic>.from(rawCategories),
+      if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
     };
 
     return Uint8List.fromList(
@@ -190,6 +207,27 @@ class ArvinBackupService {
     }
     if (rawProjects is List) {
       document['projects'] = List<dynamic>.from(rawProjects);
+    }
+    final rawCalendarLinks = document['calendarLinks'];
+    if (rawCalendarLinks != null && rawCalendarLinks is! List) {
+      throw const FormatException('Arvin backup Calendar links are invalid');
+    }
+    if (rawCalendarLinks is List) {
+      document['calendarLinks'] = List<dynamic>.from(rawCalendarLinks);
+    }
+    final rawCategories = document['categories'];
+    if (rawCategories != null && rawCategories is! List) {
+      throw const FormatException('Arvin backup Category catalog is invalid');
+    }
+    if (rawCategories is List) {
+      document['categories'] = List<dynamic>.from(rawCategories);
+    }
+    final rawTags = document['tags'];
+    if (rawTags != null && rawTags is! List) {
+      throw const FormatException('Arvin backup Tag catalog is invalid');
+    }
+    if (rawTags is List) {
+      document['tags'] = List<dynamic>.from(rawTags);
     }
 
     return document;

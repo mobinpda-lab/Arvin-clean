@@ -9,7 +9,7 @@ void main() {
     expect(source, contains('backupManager.backupCanonicalTasks('));
     expect(source, contains('_portableBackupSettings()'));
     expect(source, contains('backupManager.restoreCanonicalBackup()'));
-    expect(source, contains('appSettingsService.restorePortableJson(candidate.settings!)'));
+    expect(source, contains('appSettingsService.restorePortableJson(mergedSettings)'));
     expect(source, contains('widget.onSettingsChanged?.call(appliedSettings)'));
   });
 }

@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'backup_notification_service.dart';
+import 'backup_schedule.dart';
 import 'backup_service.dart';
 import 'services/app_settings_service.dart';
+import 'services/daily_content_preferences_service.dart';
+import 'services/external_calendar_link_store.dart';
 import 'services/project_plan_codec.dart';
 import 'services/project_store.dart';
 import 'services/task_store.dart';
@@ -66,11 +69,27 @@ class BackupBackgroundRunner {
       final tasks = await taskStore.load();
       final projects = await projectStore.load();
       final settings = await settingsService.load();
+      final schedule = await BackupSchedule.load();
+      final dailyContentService = DailyContentPreferencesService();
+      final dailyContent = await dailyContentService.load();
+      final calendarLinks = await ExternalCalendarLinkStore().load();
+      final categories = await taskStore.loadCategories();
+      final tags = await taskStore.loadTags();
       final codec = const ProjectPlanCodec();
       final payload = <String, dynamic>{
         'tasks': tasks.map((task) => task.toJson()).toList(growable: false),
         'projects': projects.map(codec.encode).toList(growable: false),
-        'settings': settingsService.toPortableJson(settings),
+        'settings': <String, dynamic>{
+          ...settingsService.toPortableJson(settings),
+          'backupSchedule': schedule.toPortableJson(),
+          'dailyContentPreferences':
+              dailyContentService.toPortableJson(dailyContent),
+        },
+        'calendarLinks': calendarLinks.map((link) => link.toJson()).toList(
+              growable: false,
+            ),
+        'categories': categories,
+        'tags': tags,
       };
 
       final service = _backupService ?? ArvinBackupService();

@@ -4,7 +4,11 @@ import 'dart:io';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
+import 'package:arvin/backup_schedule.dart';
+import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/task_store.dart';
@@ -119,17 +123,34 @@ void main() {
 
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
+    var failAfterTaskWrite = false;
+    var failAfterCalendarLinkWrite = false;
+    var failAfterSettingsWrite = false;
 
     await tester.pumpWidget(
       MaterialApp(
         home: BackupPage(
           manager: manager,
+          restoreStageHook: (stage) async {
+            if (failAfterCalendarLinkWrite && stage == 'calendar-links') {
+              failAfterCalendarLinkWrite = false;
+              throw StateError('injected failure after Calendar-link write');
+            }
+            if (failAfterSettingsWrite && stage == 'settings') {
+              failAfterSettingsWrite = false;
+              throw StateError('injected failure after settings write');
+            }
+          },
           loadTasks: () async =>
               (await freshStore.load()).map((task) => task.toJson()).toList(),
           replaceTasks: (rawTasks) async {
             await store.save(
               rawTasks.map((raw) => Task.fromJson(raw)).toList(growable: false),
             );
+            if (failAfterTaskWrite) {
+              failAfterTaskWrite = false;
+              throw StateError('injected failure after TaskStore write');
+            }
           },
         ),
       ),
@@ -140,10 +161,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.writes, 1);
     expect(service.document?['tasks'], isNotEmpty);
+    expect(service.document?['categories'], contains('فروش'));
+    expect(service.document?['tags'], contains('مهم'));
 
     service.document = <String, dynamic>{
       'type': ArvinBackupService.backupType,
       'formatVersion': ArvinBackupService.backupFormatVersion,
+      'categories': <String>['دسته پشتیبان مستقل'],
+      'tags': <String>['برچسب مستقل'],
       'tasks': <Map<String, dynamic>>[
         Task(
           id: 'legacy-runtime',
@@ -172,6 +197,182 @@ void main() {
     expect(restored.single.title, 'بازیابی‌شده');
     expect(restored.single.followUps.single.id, 'fu-runtime');
     expect(restored.single.followUps.single.note, 'پیگیری بازیابی');
+    expect(await TaskStore().loadCategories(), contains('دسته پشتیبان مستقل'));
+    expect(await TaskStore().loadTags(), contains('برچسب مستقل'));
+
+    // The preceding successful restore shows a SnackBar. Clear it before the
+    // independent failure scenario so its message cannot queue behind success.
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+
+    // Exercise the actual BackupPage restore orchestration, not only the
+    // rollback helper: fail immediately after the candidate Task write and
+    // prove that the pre-restore task state is restored before the UI reports
+    // failure. Later Project/link/settings-stage injection remains separate.
+    await store.save([
+      Task(id: 'old-runtime', title: 'اطلاعات قبلی'),
+    ]);
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'categories': <String>['دسته پشتیبان مستقل'],
+      'tags': <String>['برچسب مستقل'],
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'candidate-runtime', title: 'اطلاعات جایگزین').toJson(),
+      ],
+    };
+    failAfterTaskWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    final rolledBack = await TaskStore().load();
+    expect(rolledBack, hasLength(1));
+    expect(rolledBack.single.id, 'old-runtime');
+    expect(rolledBack.single.title, 'اطلاعات قبلی');
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
+
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+
+    // Exercise a later real mutation boundary: Task and Project writes plus
+    // Calendar-link restoration must all roll back if that stage fails.
+    await store.save([Task(id: 'old-late-runtime', title: 'کار قبلی مرحله دیرهنگام')]);
+    final localProject = ProjectPlan(
+      id: 'old-project-runtime',
+      title: 'پروژه قبلی',
+      itemIds: const <String>[],
+    );
+    await ProjectStore().save([localProject]);
+    final localCalendarLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:old-late-runtime',
+      calendarId: 'old-calendar',
+      eventId: 'old-event',
+      lastSyncedFingerprint: 'old-fingerprint',
+    );
+    await ExternalCalendarLinkStore().save([localCalendarLink]);
+
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'projects': manager.projectCodec.encodeList([
+        ProjectPlan(
+          id: 'candidate-project-runtime',
+          title: 'پروژه جایگزین',
+          itemIds: const <String>[],
+        ),
+      ]),
+      'calendarLinks': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'reminderId': 'task-due:candidate-runtime',
+          'calendarId': 'candidate-calendar',
+          'eventId': 'candidate-event',
+          'lastSyncedFingerprint': 'candidate-fingerprint',
+        },
+      ],
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'candidate-runtime', title: 'کار جایگزین').toJson(),
+      ],
+    };
+    failAfterCalendarLinkWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    final lateRolledBackTasks = await TaskStore().load();
+    expect(lateRolledBackTasks, hasLength(1));
+    expect(lateRolledBackTasks.single.id, 'old-late-runtime');
+    expect(
+      (await ProjectStore().load()).map((project) => project.id),
+      ['old-project-runtime'],
+    );
+    final lateRolledBackLinks = await ExternalCalendarLinkStore().load();
+    expect(lateRolledBackLinks, hasLength(1));
+    expect(lateRolledBackLinks.single.toJson(), localCalendarLink.toJson());
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
+
+    // Inject a failure after settings and backup-schedule mutations have
+    // actually occurred. This closes the final late-stage boundary for the
+    // BackupPage entry point and verifies all previously written stores roll
+    // back together, including settings and schedule.
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+    final settingsBeforeFinalFailure = await AppSettingsService().load();
+    final scheduleBeforeFinalFailure = await BackupSchedule.load();
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'projects': manager.projectCodec.encodeList([
+        ProjectPlan(
+          id: 'settings-candidate-project',
+          title: 'پروژه تنظیمات جایگزین',
+          itemIds: const <String>[],
+        ),
+      ]),
+      'calendarLinks': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'reminderId': 'task-due:settings-candidate-task',
+          'calendarId': 'settings-candidate-calendar',
+          'eventId': 'settings-candidate-event',
+          'lastSyncedFingerprint': 'settings-candidate-fingerprint',
+        },
+      ],
+      'settings': <String, dynamic>{
+        'themeMode': 'dark',
+        'usePersianDate': false,
+        'fontSize': 22.0,
+        'backupSchedule': <String, dynamic>{
+          'enabled': true,
+          'hour': 6,
+          'minute': 15,
+          'frequency': 'daily',
+        },
+      },
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'settings-candidate-task', title: 'کار جایگزین تنظیمات').toJson(),
+      ],
+    };
+    failAfterSettingsWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect((await TaskStore().load()).map((task) => task.id), ['old-late-runtime']);
+    expect(
+      (await ProjectStore().load()).map((project) => project.id),
+      ['old-project-runtime'],
+    );
+    final settingsRolledBackLinks = await ExternalCalendarLinkStore().load();
+    expect(settingsRolledBackLinks, hasLength(1));
+    expect(settingsRolledBackLinks.single.toJson(), localCalendarLink.toJson());
+    expect(
+      (await AppSettingsService().load()).fontSize,
+      settingsBeforeFinalFailure.fontSize,
+    );
+    final scheduleAfterFinalFailure = await BackupSchedule.load();
+    expect(scheduleAfterFinalFailure.enabled, scheduleBeforeFinalFailure.enabled);
+    expect(scheduleAfterFinalFailure.hour, scheduleBeforeFinalFailure.hour);
+    expect(scheduleAfterFinalFailure.minute, scheduleBeforeFinalFailure.minute);
+    expect(
+      scheduleAfterFinalFailure.frequency,
+      scheduleBeforeFinalFailure.frequency,
+    );
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
 
     await store.save(const <Task>[]);
   });

@@ -47,6 +47,41 @@ void main() {
     );
   });
 
+  test('portable preferences round-trip and preserve omitted legacy fields', () async {
+    final service = DailyContentPreferencesService();
+    await service.restorePortableJson({
+      'enabled': false,
+      'notificationEnabled': true,
+      'notificationHour': 6,
+      'notificationMinute': 45,
+      'enabledKinds': ['quran'],
+    });
+    var value = await service.load();
+    expect(value.enabled, isFalse);
+    expect(value.notificationEnabled, isTrue);
+    expect(value.notificationHour, 6);
+    expect(value.notificationMinute, 45);
+    expect(value.enabledKinds, {DailyContentKind.quran});
+
+    await service.restorePortableJson({'enabled': true});
+    value = await service.load();
+    expect(value.enabled, isTrue);
+    expect(value.notificationEnabled, isTrue);
+    expect(value.notificationHour, 6);
+    expect(value.notificationMinute, 45);
+    expect(value.enabledKinds, {DailyContentKind.quran});
+  });
+
+  test('portable preferences validate before changing values', () async {
+    final service = DailyContentPreferencesService();
+    await service.saveEnabled(true);
+    expect(
+      () => service.restorePortableJson({'notificationHour': 25}),
+      throwsFormatException,
+    );
+    expect((await service.load()).enabled, isTrue);
+  });
+
   test('unknown stored kinds fail closed without breaking known kinds', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.dailyContent.enabledKinds': ['quran', 'futureUnknownKind'],

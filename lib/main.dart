@@ -19,6 +19,7 @@ import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
 import 'services/app_settings_service.dart';
+import 'services/daily_content_preferences_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/calendar_inbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
@@ -264,11 +265,18 @@ class HomePage extends StatefulWidget {
     ),
     this.onSettingsChanged,
     this.enableFirstRunGuide = false,
+    this.backupManager,
+    this.restoreStageHook,
   });
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
   final bool enableFirstRunGuide;
+
+  /// Optional seam for exercising the existing Home restore flow in tests.
+  /// Production callers continue to use the canonical default manager.
+  final ArvinBackupManager? backupManager;
+  final Future<void> Function(String stage)? restoreStageHook;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -279,7 +287,8 @@ class _HomePageState extends State<HomePage> {
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
-  final ArvinBackupManager backupManager = ArvinBackupManager();
+  late final ArvinBackupManager backupManager =
+      widget.backupManager ?? ArvinBackupManager();
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
@@ -1785,9 +1794,12 @@ class _HomePageState extends State<HomePage> {
   Future<Map<String, dynamic>> _portableBackupSettings() async {
     final settings = await appSettingsService.load();
     final schedule = await BackupSchedule.load();
+    final dailyContentService = DailyContentPreferencesService();
+    final dailyContent = await dailyContentService.load();
     return <String, dynamic>{
       ...appSettingsService.toPortableJson(settings),
       'backupSchedule': schedule.toPortableJson(),
+      'dailyContentPreferences': dailyContentService.toPortableJson(dailyContent),
     };
   }
 
@@ -1813,6 +1825,8 @@ class _HomePageState extends State<HomePage> {
         settings: await _portableBackupSettings(),
         projects: await ProjectStore().load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
+        categories: await taskStore.loadCategories(),
+        tags: await taskStore.loadTags(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1834,6 +1848,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _restoreFromFile() async {
+    List<Task>? previousTasks;
+    List<ProjectPlan>? previousProjects;
+    List<ExternalCalendarEventLink>? previousCalendarLinks;
+    List<String>? previousCategories;
+    List<String>? previousTags;
+    Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
       if (candidate == null) return;
@@ -1842,12 +1862,56 @@ class _HomePageState extends State<HomePage> {
       final restoredSettings = candidate.settings == null
           ? null
           : appSettingsService.decodePortableJson(candidate.settings!);
+      if (candidate.settings != null) {
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule != null && rawSchedule is! Map) {
+          throw const FormatException('Arvin backup schedule settings are invalid');
+        }
+        if (rawSchedule is Map) {
+          BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+        }
+        final rawDailyContent = candidate.settings!['dailyContentPreferences'];
+        if (rawDailyContent != null && rawDailyContent is! Map) {
+          throw const FormatException('Daily Content preferences are invalid');
+        }
+        if (rawDailyContent is Map) {
+          DailyContentPreferencesService.validatePortableJson(
+            Map<String, dynamic>.from(rawDailyContent),
+          );
+        }
+      }
+      final tasksBeforeRestore = await taskStore.load();
+      previousTasks = tasksBeforeRestore;
+      final projectsBeforeRestore = await ProjectStore().load();
+      previousProjects = projectsBeforeRestore;
+      final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
+      previousCalendarLinks = calendarLinksBeforeRestore;
+      previousCategories = await taskStore.loadCategories();
+      previousTags = await taskStore.loadTags();
+      final settingsBeforeRestore = await _portableBackupSettings();
+      previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
-        await taskStore.load(),
-        settings: await _portableBackupSettings(),
-        projects: await ProjectStore().load(),
-        calendarLinks: await ExternalCalendarLinkStore().load(),
+        tasksBeforeRestore,
+        settings: settingsBeforeRestore,
+        projects: projectsBeforeRestore,
+        calendarLinks: calendarLinksBeforeRestore,
+        categories: previousCategories,
+        tags: previousTags,
       );
+      if (emergencyBackup == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'برای حفظ اطلاعات فعلی، پشتیبان اضطراری ساخته نشد؛ بازیابی لغو شد',
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
       if (!mounted) return;
       final approved = await showDialog<bool>(
@@ -1855,10 +1919,10 @@ class _HomePageState extends State<HomePage> {
         builder: (dialogContext) => AlertDialog(
           title: const Text('بازیابی اطلاعات'),
           content: Text(
-            'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
-            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
+            'تعداد ${list.length} کار از پشتیبان بررسی می‌شود؛ موارد هم‌شناسه به‌روز، موارد پشتیبان اضافه و موارد فقط-محلی حفظ می‌شوند.\n'
+            '${restoredSettings == null ? 'این پشتیبان تنظیمات ندارد و تنظیمات فعلی حفظ می‌شوند.' : 'فقط تنظیمات موجود در فایل پشتیبان به‌روز می‌شوند.'}\n'
             '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.' : 'پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.'}\n\n'
-            '${emergencyBackup == null ? '' : 'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.'}',
+            'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.',
           ),
           actions: [
             TextButton(
@@ -1874,32 +1938,108 @@ class _HomePageState extends State<HomePage> {
       );
       if (approved != true) return;
 
-      final currentCalendarLinks = await ExternalCalendarLinkStore().load();
-      await taskStore.save(List<Task>.of(list));
-      try {
-        await AndroidFollowUpReminderScheduler().reschedule();
-      } catch (_) {
-        // Canonical Task storage already succeeded; the existing alarm foundation
-        // can retry on the next lifecycle/scheduler trigger.
-      }
-      await ProjectStore().save(candidate.projects);
-      await ExternalCalendarLinkStore().restoreForTasks(
-        restoredTaskIds: list.map((task) => task.id),
-        backupLinks: candidate.calendarLinks ?? const [],
-        currentLinks: currentCalendarLinks,
+      final backupTaskIds = list.map((task) => task.id).toSet();
+      final localOnlyTaskIds = tasksBeforeRestore
+          .map((task) => task.id)
+          .where((id) => !backupTaskIds.contains(id))
+          .toSet();
+      final reconciledTasks = ArvinBackupManager.reconcileTasksById(
+        current: tasksBeforeRestore,
+        backup: list,
       );
-      if (restoredSettings != null) {
-        await appSettingsService.restorePortableJson(candidate.settings!);
-        final rawSchedule = candidate.settings!['backupSchedule'];
-        if (rawSchedule is Map) {
-          final restoredSchedule = BackupSchedule.decodePortableJson(
-            Map<String, dynamic>.from(rawSchedule),
+      final reconciledProjects = candidate.hasProjects
+          ? ArvinBackupManager.reconcileProjectsById(
+              current: projectsBeforeRestore,
+              backup: candidate.projects,
+              localOnlyTaskIds: localOnlyTaskIds,
+            )
+          : projectsBeforeRestore;
+
+      await runRestoreWithRollback<void>(
+        recoveryBackup: emergencyBackup,
+        apply: () async {
+          await taskStore.save(List<Task>.of(reconciledTasks));
+          await widget.restoreStageHook?.call('tasks');
+          try {
+            await AndroidFollowUpReminderScheduler().reschedule();
+          } catch (_) {
+            // Canonical Task storage already succeeded; the existing alarm foundation
+            // can retry on the next lifecycle/scheduler trigger.
+          }
+          if (candidate.hasProjects) {
+            await ProjectStore().save(reconciledProjects);
+          }
+          await widget.restoreStageHook?.call('projects');
+          await ExternalCalendarLinkStore().restoreForTasks(
+            restoredTaskIds: list.map((task) => task.id),
+            backupLinks: candidate.calendarLinks ?? const [],
+            currentLinks: previousCalendarLinks!,
           );
-          await restoredSchedule.save();
-        }
-        final appliedSettings = await appSettingsService.load();
-        if (mounted) widget.onSettingsChanged?.call(appliedSettings);
-      }
+          await widget.restoreStageHook?.call('calendar-links');
+          if (restoredSettings != null) {
+            final mergedSettings = AppSettingsService.mergePortableJson(
+              current: settingsBeforeRestore,
+              incoming: candidate.settings!,
+            );
+            await appSettingsService.restorePortableJson(mergedSettings);
+            final rawSchedule = mergedSettings['backupSchedule'];
+            if (rawSchedule is Map) {
+              final restoredSchedule = BackupSchedule.decodePortableJson(
+                Map<String, dynamic>.from(rawSchedule),
+              );
+              await restoredSchedule.save();
+            }
+            final rawDailyContent = mergedSettings['dailyContentPreferences'];
+            if (rawDailyContent is Map) {
+              await DailyContentPreferencesService().restorePortableJson(
+                Map<String, dynamic>.from(rawDailyContent),
+              );
+            }
+            final appliedSettings = await appSettingsService.load();
+            if (mounted) widget.onSettingsChanged?.call(appliedSettings);
+          }
+          await widget.restoreStageHook?.call('settings');
+          // Catalog writes are last and transactional within TaskStore.
+          await taskStore.mergeCatalogs(
+            categories: candidate.categories ?? const <String>[],
+            tags: candidate.tags ?? const <String>[],
+          );
+          await widget.restoreStageHook?.call('catalogs');
+        },
+        rollback: () async {
+          await taskStore.save(previousTasks!);
+          await ProjectStore().save(previousProjects!);
+          await ExternalCalendarLinkStore().save(previousCalendarLinks!);
+          await appSettingsService.restorePortableJson(previousSettings!);
+          final oldSchedule = previousSettings!['backupSchedule'];
+          if (oldSchedule is Map) {
+            await BackupSchedule.decodePortableJson(
+              Map<String, dynamic>.from(oldSchedule),
+            ).save();
+          }
+          final oldDailyContent = previousSettings!['dailyContentPreferences'];
+          if (oldDailyContent is Map) {
+            await DailyContentPreferencesService().restorePortableJson(
+              Map<String, dynamic>.from(oldDailyContent),
+            );
+          }
+          for (final category in (candidate.categories ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousCategories!.contains(category)) {
+              await taskStore.deleteCategoryCatalog(category);
+            }
+          }
+          for (final tag in (candidate.tags ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousTags!.contains(tag)) {
+              await taskStore.deleteTagCatalog(tag);
+            }
+          }
+          final appliedSettings = await appSettingsService.load();
+          if (mounted) widget.onSettingsChanged?.call(appliedSettings);
+          await _load();
+        },
+      );
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1912,9 +2052,14 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('بازیابی ناموفق بود: $error')));
+        final message = error is RestoreExecutionFailure
+            ? error.rolledBack
+                ? 'بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'
+                : 'بازیابی کامل نشد و بازگردانی خودکار هم کامل نشد؛ فایل پشتیبان اضطراری را نگه دارید و از صفحه پشتیبان بازیابی کنید: ${error.recoveryBackup}'
+            : 'بازیابی ناموفق بود؛ اطلاعات فعلی بدون تغییر عمدی حفظ شدند.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
       }
     }
   }

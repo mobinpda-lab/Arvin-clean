@@ -254,13 +254,14 @@ class AppSettingsService {
       'fontSize': _normalizeFontSize(settings.fontSize),
       'swipeRightAction': settings.swipeRightAction.name,
       'swipeLeftAction': settings.swipeLeftAction.name,
-      if (family != null) 'fontFamily': family,
+      // Explicit null means the portable setting was intentionally left at
+      // the app default; old backups that omit the key remain distinguishable.
+      'fontFamily': family,
       'calendarIntegration': <String, dynamic>{
         'enabled': calendar.enabled,
         'showExternalEvents': calendar.showExternalEvents,
           'visibleCalendarIds': calendar.visibleCalendarIds.toList()..sort(),
-        if (calendar.targetCalendarId != null)
-          'targetCalendarId': calendar.targetCalendarId,
+        'targetCalendarId': calendar.targetCalendarId,
         'syncDueDates': calendar.syncDueDates,
         'syncTaskReminders': calendar.syncTaskReminders,
         'syncFollowUps': calendar.syncFollowUps,
@@ -270,6 +271,33 @@ class AppSettingsService {
         'deleteLinkedEventWithTask': calendar.deleteLinkedEventWithTask,
       },
     };
+  }
+
+  /// Applies only settings keys actually present in the backup. Legacy
+  /// backups may omit newer fields, so absent values must keep the current
+  /// device's settings rather than falling back to defaults.
+  static Map<String, dynamic> mergePortableJson({
+    required Map<String, dynamic> current,
+    required Map<String, dynamic> incoming,
+  }) {
+    final merged = Map<String, dynamic>.from(current);
+    for (final entry in incoming.entries) {
+      final value = entry.value;
+      if ((entry.key == 'calendarIntegration' ||
+              entry.key == 'backupSchedule' ||
+              entry.key == 'dailyContentPreferences') &&
+          value is Map) {
+        final existingNested = merged[entry.key];
+        merged[entry.key] = <String, dynamic>{
+          if (existingNested is Map)
+            ...Map<String, dynamic>.from(existingNested),
+          ...Map<String, dynamic>.from(value),
+        };
+      } else {
+        merged[entry.key] = value;
+      }
+    }
+    return merged;
   }
 
   AppSettings decodePortableJson(Map<String, dynamic> json) {

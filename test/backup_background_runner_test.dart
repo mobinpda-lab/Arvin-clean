@@ -113,6 +113,13 @@ void main() {
     expect(backedUpTasks.single['tags'], ['کار']);
     expect(service.writtenPayload?['projects'], isA<List>());
     expect(service.writtenPayload?['settings'], isA<Map>());
+    final portableSettings =
+        service.writtenPayload?['settings'] as Map<String, dynamic>;
+    expect(portableSettings['backupSchedule'], isA<Map>());
+    expect(portableSettings['dailyContentPreferences'], isA<Map>());
+    expect(service.writtenPayload?['calendarLinks'], isA<List>());
+    expect(service.writtenPayload?['categories'], isA<List>());
+    expect(service.writtenPayload?['tags'], isA<List>());
     expect(notifications.successes, ['test-backup.json']);
   });
 

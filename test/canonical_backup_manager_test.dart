@@ -5,6 +5,8 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/external_calendar_link_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -104,6 +106,111 @@ void main() {
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
   });
 
+  test('canonical backup preserves unassigned Category and Tag catalog entries', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+
+    await manager.backupCanonicalTasks(
+      [_completeTask()],
+      categories: const ['فروش', 'شخصی', 'بدون کار متصل'],
+      tags: const ['مهم', 'مشتری', 'بدون کار متصل'],
+    );
+
+    expect(service.writtenPayload?['categories'], [
+      'فروش',
+      'شخصی',
+      'بدون کار متصل',
+    ]);
+    expect(service.writtenPayload?['tags'], [
+      'مهم',
+      'مشتری',
+      'بدون کار متصل',
+    ]);
+  });
+
+  test('TaskStore merges Category and Tag catalogs additively', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      await store.createCategory('دسته محلی');
+      await store.createTag('برچسب محلی');
+
+      await store.mergeCatalogs(
+        categories: const ['دسته پشتیبان'],
+        tags: const ['برچسب پشتیبان'],
+      );
+
+      expect(
+        await store.loadCategories(),
+        containsAll(['دسته محلی', 'دسته پشتیبان']),
+      );
+      expect(
+        await store.loadTags(),
+        containsAll(['برچسب محلی', 'برچسب پشتیبان']),
+      );
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+  test('TaskStore validates catalogs before making any catalog changes', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      await expectLater(
+        store.mergeCatalogs(
+          categories: const ['دسته جدید', 'دسته جدید'],
+          tags: const ['برچسب جدید'],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(await store.loadCategories(), isNot(contains('دسته جدید')));
+      expect(await store.loadTags(), isNot(contains('برچسب جدید')));
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+  test('canonical restore validates and returns optional Category and Tag catalogs', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'categories': ['فروش', 'شخصی'],
+        'tags': ['مهم', 'مشتری'],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate?.categories, ['فروش', 'شخصی']);
+    expect(candidate?.tags, ['مهم', 'مشتری']);
+  });
+
+  test('canonical restore rejects duplicate Category and Tag catalog entries', () async {
+    for (final document in [
+      {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'categories': ['شخصی', 'شخصی'],
+      },
+      {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'tags': ['مهم', 'مهم'],
+      },
+    ]) {
+      final service = _FakeBackupService()..restoreDocument = document;
+      await expectLater(
+        ArvinBackupManager(service: service).restoreCanonicalBackup(),
+        throwsA(isA<FormatException>()),
+      );
+    }
+  });
+
   test('canonical backup carries projects in the same document', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -171,6 +278,8 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.calendarLinks, isNull);
+    expect(candidate.categories, isNull);
+    expect(candidate.tags, isNull);
   });
 
   test('canonical restore rejects duplicate calendar link identities', () async {
@@ -402,6 +511,7 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.projects.single.id, 'golden-flow-project');
+    expect(candidate.hasProjects, isTrue);
     expect(candidate.settings, {'themeMode': 'light'});
     expect(candidate.tasks.single.id, 'golden-flow-task');
 
@@ -432,6 +542,36 @@ void main() {
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
   });
 
+  test('restore distinguishes omitted, null, and explicit empty Projects fields', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final base = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'tasks': <Map<String, dynamic>>[],
+    };
+
+    service.restoreDocument = Map<String, dynamic>.of(base);
+    final legacy = await manager.restoreCanonicalBackup();
+    expect(legacy, isNotNull);
+    expect(legacy!.hasProjects, isFalse);
+    expect(legacy.projects, isEmpty);
+
+    service.restoreDocument = <String, dynamic>{...base, 'projects': null};
+    final nullField = await manager.restoreCanonicalBackup();
+    expect(nullField, isNotNull);
+    expect(nullField!.hasProjects, isFalse);
+
+    service.restoreDocument = <String, dynamic>{
+      ...base,
+      'projects': <Map<String, dynamic>>[],
+    };
+    final explicitEmpty = await manager.restoreCanonicalBackup();
+    expect(explicitEmpty, isNotNull);
+    expect(explicitEmpty!.hasProjects, isTrue);
+    expect(explicitEmpty.projects, isEmpty);
+  });
+
   test('canonical backup and restore preserve disabled checklist rows', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -449,6 +589,151 @@ void main() {
     expect(restored, hasLength(1));
     expect(restored!.single.checklistEnabled, isFalse);
     expect(restored.single.checklist, const ['[ ] کیف', '[x] کتاب']);
+  });
+
+  test('restore failure rolls the user state back before reporting failure', () async {
+    var tasks = <String>['old task'];
+    var catalogs = <String>['old category'];
+
+    await expectLater(
+      runRestoreWithRollback<void>(
+        recoveryBackup: 'emergency-backup.json',
+        apply: () async {
+          tasks = <String>['partially restored task'];
+          catalogs = <String>['partially restored category'];
+          throw StateError('injected later-stage failure');
+        },
+        rollback: () async {
+          tasks = <String>['old task'];
+          catalogs = <String>['old category'];
+        },
+      ),
+      throwsA(
+        isA<RestoreExecutionFailure>()
+            .having((error) => error.rolledBack, 'rolledBack', isTrue)
+            .having((error) => error.recoveryBackup, 'recoveryBackup',
+                'emergency-backup.json'),
+      ),
+    );
+
+    expect(tasks, <String>['old task']);
+    expect(catalogs, <String>['old category']);
+  });
+
+  test('restore failure preserves emergency backup reference if rollback fails', () async {
+    await expectLater(
+      runRestoreWithRollback<void>(
+        recoveryBackup: 'emergency-backup.json',
+        apply: () async => throw StateError('restore failed'),
+        rollback: () async => throw StateError('rollback failed'),
+      ),
+      throwsA(
+        isA<RestoreExecutionFailure>()
+            .having((error) => error.rolledBack, 'rolledBack', isFalse)
+            .having((error) => error.recoveryBackup, 'recoveryBackup',
+                'emergency-backup.json'),
+      ),
+    );
+  });
+
+
+  test('late restore failure rolls back durable stores and preserves catalogs', () async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      ArvinBackupManager.directoryKey: 'content://arvin-backups',
+      'restore-test.settings': 'old-settings',
+    });
+    final taskStore = TaskStore();
+    final projectStore = ProjectStore();
+    final linkStore = ExternalCalendarLinkStore(
+      preferencesKey: 'restore-test.calendar-links',
+    );
+    final oldTask = Task(id: 'old-task', title: 'کار قبلی');
+    final restoredTask = Task(id: 'restored-task', title: 'کار بازیابی‌شده');
+    final oldProject = ProjectPlan(
+      id: 'old-project',
+      title: 'پروژه قبلی',
+      itemIds: const [],
+    );
+    final restoredProject = ProjectPlan(
+      id: 'restored-project',
+      title: 'پروژه بازیابی‌شده',
+      itemIds: const [],
+    );
+    final oldLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:old-task',
+      calendarId: 'calendar-old',
+      eventId: 'event-old',
+      lastSyncedFingerprint: 'old-fingerprint',
+    );
+    final restoredLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:restored-task',
+      calendarId: 'calendar-new',
+      eventId: 'event-new',
+      lastSyncedFingerprint: 'new-fingerprint',
+    );
+
+    try {
+      await taskStore.save([oldTask]);
+      await taskStore.createCategory('دسته قبلی');
+      await taskStore.createTag('برچسب قبلی');
+      await projectStore.save([oldProject]);
+      await linkStore.save([oldLink]);
+
+      final prefs = await SharedPreferences.getInstance();
+      final oldSettings = prefs.getString('restore-test.settings');
+
+      await expectLater(
+        runRestoreWithRollback<void>(
+          recoveryBackup: 'emergency-backup.json',
+          apply: () async {
+            await taskStore.save([restoredTask]);
+            await projectStore.save([restoredProject]);
+            await linkStore.save([restoredLink]);
+            await prefs.setString('restore-test.settings', 'new-settings');
+            // Simulates a late restore-stage failure before the final catalog
+            // merge, matching the production ordering where catalogs are last.
+            throw StateError('injected after durable store writes');
+          },
+          rollback: () async {
+            await taskStore.save([oldTask]);
+            await projectStore.save([oldProject]);
+            await linkStore.save([oldLink]);
+            if (oldSettings == null) {
+              await prefs.remove('restore-test.settings');
+            } else {
+              await prefs.setString('restore-test.settings', oldSettings);
+            }
+          },
+        ),
+        throwsA(
+          isA<RestoreExecutionFailure>()
+              .having((error) => error.rolledBack, 'rolledBack', isTrue)
+              .having(
+                (error) => error.recoveryBackup,
+                'recoveryBackup',
+                'emergency-backup.json',
+              ),
+        ),
+      );
+
+      expect((await taskStore.load()).map((task) => task.id), ['old-task']);
+      expect((await projectStore.load()).map((project) => project.id), [
+        'old-project',
+      ]);
+      expect((await linkStore.load()).map((link) => link.eventId), [
+        'event-old',
+      ]);
+      expect(prefs.getString('restore-test.settings'), 'old-settings');
+      expect(await taskStore.loadCategories(), contains('دسته قبلی'));
+      expect(await taskStore.loadTags(), contains('برچسب قبلی'));
+      expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
+      expect(await taskStore.loadTags(), isNot(contains('برچسب بازیابی‌شده')));
+    } finally {
+      await TaskStore.resetTestDatabase();
+      await ProjectStore.resetTestDatabase();
+    }
   });
 
 }

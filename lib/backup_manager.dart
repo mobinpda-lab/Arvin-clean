@@ -10,7 +10,10 @@ typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
   Map<String, dynamic>? settings,
   List<ProjectPlan> projects,
+  bool hasProjects,
   List<ExternalCalendarEventLink>? calendarLinks,
+  List<String>? categories,
+  List<String>? tags,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -18,6 +21,52 @@ typedef CanonicalBackupCandidate = ({
 /// This class deliberately keeps the backup document independent from the UI,
 /// so the same format can later be used by scheduled backups and restore on a
 /// different device.
+/// Wraps a multi-store restore so a failed later stage triggers restoration
+/// of the pre-restore snapshot. The emergency backup remains available if that
+/// restoration itself fails.
+class RestoreExecutionFailure implements Exception {
+  const RestoreExecutionFailure({
+    required this.recoveryBackup,
+    required this.restoreError,
+    this.rollbackError,
+  });
+
+  final String recoveryBackup;
+  final Object restoreError;
+  final Object? rollbackError;
+
+  bool get rolledBack => rollbackError == null;
+
+  @override
+  String toString() => rolledBack
+      ? 'Restore failed; the previous state was restored.'
+      : 'Restore and automatic rollback failed; recovery backup: $recoveryBackup';
+}
+
+Future<T> runRestoreWithRollback<T>({
+  required String recoveryBackup,
+  required Future<T> Function() apply,
+  required Future<void> Function() rollback,
+}) async {
+  try {
+    return await apply();
+  } catch (restoreError) {
+    try {
+      await rollback();
+    } catch (rollbackError) {
+      throw RestoreExecutionFailure(
+        recoveryBackup: recoveryBackup,
+        restoreError: restoreError,
+        rollbackError: rollbackError,
+      );
+    }
+    throw RestoreExecutionFailure(
+      recoveryBackup: recoveryBackup,
+      restoreError: restoreError,
+    );
+  }
+}
+
 class ArvinBackupManager {
   ArvinBackupManager({
     ArvinBackupService? service,
@@ -27,6 +76,62 @@ class ArvinBackupManager {
   static const String directoryKey = 'arvin.backup.directory';
   final ArvinBackupService service;
   final ProjectPlanCodec projectCodec;
+
+  /// Reconciles backup records by canonical Task ID. Matching records are
+  /// updated from the backup; backup-only records are appended; local-only
+  /// records remain untouched. Titles and dates are never used as identity.
+  static List<Task> reconcileTasksById({
+    required Iterable<Task> current,
+    required Iterable<Task> backup,
+  }) {
+    final result = List<Task>.of(current);
+    final indexById = <String, int>{};
+    for (var index = 0; index < result.length; index++) {
+      indexById[result[index].id] = index;
+    }
+    for (final incoming in backup) {
+      final existingIndex = indexById[incoming.id];
+      if (existingIndex == null) {
+        indexById[incoming.id] = result.length;
+        result.add(incoming);
+      } else {
+        result[existingIndex] = incoming;
+      }
+    }
+    return List<Task>.unmodifiable(result);
+  }
+
+  /// Merges Projects by canonical ID while retaining local-only Projects.
+  /// For a matching Project, backup fields win, but memberships of local-only
+  /// Tasks are retained so importing another device cannot orphan local work.
+  static List<ProjectPlan> reconcileProjectsById({
+    required Iterable<ProjectPlan> current,
+    required Iterable<ProjectPlan> backup,
+    required Set<String> localOnlyTaskIds,
+  }) {
+    final currentById = <String, ProjectPlan>{
+      for (final project in current) project.id: project,
+    };
+    final result = <ProjectPlan>[];
+    final seen = <String>{};
+    for (final incoming in backup) {
+      final existing = currentById[incoming.id];
+      final merged = existing == null
+          ? incoming
+          : incoming.copyWith(
+              itemIds: <String>{
+                ...incoming.itemIds,
+                ...existing.itemIds.where(localOnlyTaskIds.contains),
+              },
+            );
+      result.add(merged);
+      seen.add(incoming.id);
+    }
+    for (final existing in current) {
+      if (seen.add(existing.id)) result.add(existing);
+    }
+    return List<ProjectPlan>.unmodifiable(result);
+  }
 
   Future<void> setDirectory(String? uri) async {
     final prefs = await SharedPreferences.getInstance();
@@ -54,6 +159,8 @@ class ArvinBackupManager {
     Map<String, dynamic>? settings,
     List<Map<String, dynamic>>? projects,
     List<Map<String, dynamic>>? calendarLinks,
+    List<String>? categories,
+    List<String>? tags,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -67,6 +174,8 @@ class ArvinBackupManager {
         if (settings != null) 'settings': Map<String, dynamic>.from(settings),
         if (projects != null) 'projects': projects,
         if (calendarLinks != null) 'calendarLinks': calendarLinks,
+        if (categories != null) 'categories': categories,
+        if (tags != null) 'tags': tags,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -82,6 +191,8 @@ class ArvinBackupManager {
     Map<String, dynamic>? settings,
     Iterable<ProjectPlan>? projects,
     Iterable<ExternalCalendarEventLink>? calendarLinks,
+    Iterable<String>? categories,
+    Iterable<String>? tags,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
@@ -89,6 +200,8 @@ class ArvinBackupManager {
       settings: settings,
       projects: projects == null ? null : projectCodec.encodeList(projects),
       calendarLinks: calendarLinks?.map(_encodeCalendarLink).toList(growable: false),
+      categories: categories?.toList(growable: false),
+      tags: tags?.toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -108,6 +221,8 @@ class ArvinBackupManager {
     final tasks = _decodeCanonicalTasks(document);
     final projects = _decodeCanonicalProjects(document);
     final calendarLinks = _decodeCalendarLinks(document);
+    final categories = _decodeCatalog(document, 'categories', 'Category');
+    final tags = _decodeCatalog(document, 'tags', 'Tag');
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -119,7 +234,10 @@ class ArvinBackupManager {
           ? Map<String, dynamic>.from(rawSettings)
           : null,
       projects: projects,
+      hasProjects: document['projects'] is List,
       calendarLinks: calendarLinks,
+      categories: categories,
+      tags: tags,
     );
   }
 
@@ -201,6 +319,34 @@ class ArvinBackupManager {
       }
     }
     return List<ExternalCalendarEventLink>.unmodifiable(links);
+  }
+
+  /// Catalogs are optional so older backup documents remain valid. When
+  /// present, validate the entire list before the UI mutates any local store.
+  List<String>? _decodeCatalog(
+    Map<String, dynamic> document,
+    String key,
+    String label,
+  ) {
+    if (!document.containsKey(key)) return null;
+    final rawValues = document[key];
+    if (rawValues is! List) {
+      throw FormatException('Arvin backup $label catalog is invalid');
+    }
+
+    final seen = <String>{};
+    final values = <String>[];
+    for (final raw in rawValues) {
+      if (raw is! String || raw.trim().isEmpty) {
+        throw FormatException('Arvin backup $label catalog entry is invalid');
+      }
+      final value = raw.trim();
+      if (!seen.add(value)) {
+        throw FormatException('Arvin backup contains duplicate $label: $value');
+      }
+      values.add(value);
+    }
+    return List<String>.unmodifiable(values);
   }
 
   List<ProjectPlan> _decodeCanonicalProjects(Map<String, dynamic> document) {

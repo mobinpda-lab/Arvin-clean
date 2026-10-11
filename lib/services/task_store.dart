@@ -87,6 +87,51 @@ class TaskStore {
     });
   }
 
+  /// Adds portable taxonomy catalog entries without deleting any local
+  /// entries. Both catalogs are written in one transaction so a failed restore
+  /// cannot leave only half of the incoming catalog applied.
+  Future<void> mergeCatalogs({
+    Iterable<String> categories = const <String>[],
+    Iterable<String> tags = const <String>[],
+  }) async {
+    final normalizedCategories = categories.map((value) => value.trim()).toList();
+    final normalizedTags = tags.map((value) => value.trim()).toList();
+    if (normalizedCategories.any((value) => value.isEmpty) ||
+        normalizedTags.any((value) => value.isEmpty)) {
+      throw ArgumentError('Catalog entries must not be empty');
+    }
+    if (normalizedCategories.toSet().length != normalizedCategories.length ||
+        normalizedTags.toSet().length != normalizedTags.length) {
+      throw ArgumentError('Catalog entries must be unique');
+    }
+
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        for (final category in normalizedCategories) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+            <Object?>[category, DateTime.now().toIso8601String()],
+          );
+        }
+        for (final tag in normalizedTags) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+            <Object?>[_tagId(tag), tag],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try {
+          await executor.runCustom('ROLLBACK');
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
   Future<void> renameCategoryCatalog(String from, String to) async {
     final source = from.trim();
     final target = to.trim();
