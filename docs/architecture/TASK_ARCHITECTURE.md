@@ -1,6 +1,6 @@
 # Task Architecture
 
-**Authority:** [Master Execution Command](../constitution/ARVIN_MASTER_EXECUTION_COMMAND.md), [taxonomy ADR](../ADR/ADR-2026-10-10-PCTADP-project-category-tag.md), [execution protocol](../ARVIN_MASTER_EXECUTION_PROTOCOL.md).
+**Authority:** [Master Product Operating Protocol (AMPOP)](../constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md), [taxonomy ADR](../ADR/ADR-2026-10-10-PCTADP-project-category-tag.md), [execution protocol](../ARVIN_MASTER_EXECUTION_PROTOCOL.md).
 
 ## Canonical ownership
 Task is the only canonical actionable entity. Existing source paths include `lib/models/task.dart` and `lib/services/task_store.dart`. UI entry paths, Home, Search, Notifications, Reports, Checklist, Repeat and Follow-up must reuse canonical Task identity and persistence.
