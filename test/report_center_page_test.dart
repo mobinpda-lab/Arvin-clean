@@ -101,13 +101,26 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.byKey(const ValueKey('report-filter-section-دسته')));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-section-دسته')),
+        200,
+        scrollable: find.byType(ListView).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const ValueKey('report-filter-category-کار')));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-category-کار')),
+        200,
+        scrollable: find.byType(ListView).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-apply')),
+        200,
+        scrollable: find.byType(ListView).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
       await tester.pumpAndSettle();
 
@@ -162,11 +175,19 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final categorySection = find.byKey(const ValueKey('report-filter-section-دسته'));
-    await tester.ensureVisible(categorySection);
+    await tester.scrollUntilVisible(
+      categorySection,
+      200,
+      scrollable: find.byType(ListView).last,
+    );
     await tester.tap(categorySection);
     await tester.pumpAndSettle();
     final categoryChip = find.byKey(const ValueKey('report-filter-category-کار'));
-    await tester.ensureVisible(categoryChip);
+    await tester.scrollUntilVisible(
+      categoryChip,
+      200,
+      scrollable: find.byType(ListView).last,
+    );
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
 
