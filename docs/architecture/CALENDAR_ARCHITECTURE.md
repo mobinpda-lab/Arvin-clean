@@ -1,6 +1,6 @@
 # Calendar Architecture
 
-**Decision:** Calendar is a projection/bridge; canonical Task remains the owner of task identity and scheduling. See [Master Execution Command](../constitution/ARVIN_MASTER_EXECUTION_COMMAND.md), Issue #2535 and provider umbrella #516.
+**Decision:** Calendar is a projection/bridge; canonical Task remains the owner of task identity and scheduling. See [Master Product Operating Protocol (AMPOP)](../constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md), Issue #2535 and provider umbrella #516.
 
 ## Ownership and mapping
 - Task remains canonical.
