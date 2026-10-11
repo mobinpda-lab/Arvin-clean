@@ -21,7 +21,7 @@ This mapping deliberately does not invent model fields. Before changing code, in
 | Tags | Canonical Tag list/catalog | Multi-select and persistence; distinct from Category |
 | Tracking level | Existing Task field/behavior, to be verified in code | Conditional UX without a parallel Tracking entity |
 | Follow-up / Next Action | Existing Follow-up contract and Task integration | History, next action and reminders remain intact |
-| Note | Existing note/attachment relationship, to be verified | Distinct semantics; no accidental replacement of description |
+| Note | **No distinct `Task.note` field exists in the current canonical `Task` model.** `Task.description` is present; `FollowUp.note` belongs to an individual follow-up and is not a Task Note. | Do not alias Note to description or follow-up note. Any separate Task Note requires an explicit data-model/architecture decision plus migration, serialization, Backup/Restore, legacy-read and rollback evidence. |
 | Cancel / Save | Existing editor state and canonical Task write path | Cancel is non-mutating; edit preserves Task ID and unrelated fields |
 | Calendar link | Existing Task↔device-event link metadata | Update same event when linked; no duplicate event creation |
 | Backup/Restore | Existing backup schema and migration path | Round-trip preserves all fields and relationships |
@@ -34,7 +34,7 @@ This mapping deliberately does not invent model fields. Before changing code, in
 
 ## Open audit items
 - Inspect actual model field semantics and editor save/load wiring.
-- Verify whether short description and Note are distinct in current schema; preserve both meanings.
+- **Confirmed on main `72a2f4cc24df7a38eff9856ce403461615db5280`:** `Task` has `description` but no distinct `note` field; `FollowUp.note` is a different concept. Safe resolution requires a separate data-model/architecture review. No model/storage change is authorized by the UX decision alone.
 - Verify Tracking Level and detailed fields against current Task/Follow-up model.
 - Verify Checklist reorder persistence and per-occurrence state behavior.
 - Verify all Task editor launch points use the canonical editor and same draft identity.
