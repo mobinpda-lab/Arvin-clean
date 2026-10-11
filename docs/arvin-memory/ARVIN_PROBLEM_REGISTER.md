@@ -123,3 +123,39 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - Open: PR #2607 report-filter regression test can fail when the test scrolls to a selected category chip then taps the section header outside the modal bottom-sheet viewport. Test-only fix committed as `c2a1b2ff57465e0e0b393b1e6d28fa010dadc439`; awaiting exact-head CI.
 - Open: Device Smoke is skipped for Draft PR #2607 by the workflow's explicit Draft gate. This is missing validation evidence, not a successful smoke test.
 - Release blocker: Release Closure run #38163384915 reports issue #2102 must be closed only after exact-main CI, device evidence and product acceptance, and PR #1901 (P0/P1 real-device regression lane) must also be closed before publication. Neither was closed automatically. Preserve these gates.
+
+
+## Repository-wide audit additions — 2026-10-11
+
+### P0 — Release orchestration storm
+- Evidence: current main SHA has 1,535 Actions runs; recent history contains repeated Release Closure failures/cancellations and Final Head Release Validation skips. Current runs #38164393875 (failure) and #38164416537 (skipped).
+- Root cause: release-closure.yml listens to every completed Production Orchestrator run, which itself wakes from Build/Device Smoke/Parallel Wave and a five-minute schedule.
+- Existing solution lane: PR #2531; currently stale/behind main and must be reconciled and validated. Do not create duplicate workflow fixes.
+
+### P0 — Release gate and bypass risk
+- Issue #2102 and PR #1901 remain open; owner ledger #1139 has unchecked installed-device acceptance.
+- Manual release.yml has a direct workflow_dispatch release-creation path separate from the gated release-closure path. Review/guard it before release use.
+- pubspec is 1.0.1+2, but existing Draft tags use v0.1.0-arvin-<sha>; release-closure expects a version/build/main-SHA tag. Issue #2135 is stale and open.
+
+### P1 — Report date/time still Gregorian on main
+- Main lib/report_center_page.dart uses showDatePicker/showTimePicker. PR #2607 exact-head Build passed but Device Smoke was skipped because it remains Draft; #2591/#2607 share files and need sequencing.
+- Do not call the report-filter request done until Persian/Jalali date, Persian-digit time, RTL layout and user acceptance are verified.
+
+### P1 — Governance/memory drift
+- ARVIN_STATUS and ARVIN_PROJECT_STATE retain PR #135/v49.0-era state while the operating package is v49.1.
+- Package v49.1 references AMPOP v5, which is only on unmerged #2598. Owner command v8 is now recorded in the memory branch, not main.
+- #2598/#2599/#2600/#2601 have old merge base 72a2f4cc...; #2598/#2599 overlap docs/ARVIN_STATUS.md. #2600 contains 11 memory files; consolidate canonical vs historical memory documents before merge.
+- Official scorecards use August baseline dates and old main SHAs.
+
+### P1 — Task Note contract not reflected by current PR source
+- Issue #2593/PR #2594 accepts optional Task Note distinct from Description. Current PR #2595 source has no root Task.note or editor Note input, while its PR body claims otherwise and cites an old head. Reconcile source, tests, persistence and description before merge.
+
+### P1 — Queue noise and unsafe recovery close
+- 876 open AUTO-FIX search results; classify by exact failing SHA/root cause and supersession evidence, not mass-close.
+- Issue #866 remains open for premature Recovery Wave auto-close; add/verify parent-wave acceptance regression before considering it fixed.
+- Issue #1324 remains open despite SQL/Drift TaskStore on main; refresh current-main migration/round-trip evidence before closure.
+- Issues #2248 (calendar target identity), #2254/#2605 (repeat cycle/history), #2580 (taxonomy conformance) remain important product/architecture acceptance lanes.
+
+### P2 — branch/history scale
+- 1,248 branches were enumerated across 13 pages. Inventory active PR branches, historical branches and orphan candidates; do not bulk-delete without dependency checks.
+- 1,096 open Issues were not individually read in this pass; 19 open PRs and targeted P0/P1 issues were inspected. Continue bounded, evidence-led history passes.

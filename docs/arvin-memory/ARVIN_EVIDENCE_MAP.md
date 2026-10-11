@@ -164,3 +164,15 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - New exact-head run #38163500776 is pending; evidence not yet available.
 - Device Smoke #38163500919 is skipped because PR #2607 is Draft; no device smoke pass is evidenced.
 - Release Closure #38163384915 failed at the policy gate because issue #2102 and PR #1901 remain open. This blocks publication.
+
+
+## Repository-wide audit evidence — 2026-10-11
+- Current main: a6ced27660d34cd87dd8915aff68d3a7555fd57a.
+- Main inventory: recursive tree 740 paths; 21 workflows; 190 docs; 249 test/integration-test files; 1,248 branches; 19 open PRs; 1,096 open Issues.
+- Open AUTO-FIX search count: 876; priority:core: 16; factory:blocked: 4; release-labelled: 3.
+- PR #2607 exact head 7526dc186a26d099368fb288fdc7891ed57222ce: [Build #38163761104](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163761104) SUCCESS (Analyze, test-0..5, Debug APK, Release APK). [Device Smoke #38163760935](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163760935) SKIPPED due Draft condition.
+- Main report filter source evidence: lib/report_center_page.dart calls showDatePicker at about line 249 and showTimePicker at about line 270. Current main has no corresponding Jalali picker test in test/report_center_page_test.dart; the branch adds it.
+- Release gate evidence: [Release Closure #38164393875](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38164393875) FAILURE; [Final Head Release Validation #38164416537](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38164416537) SKIPPED. Issue #2102 and PR #1901 are open.
+- Current Draft prereleases: v0.1.0-arvin-dd95132 and v0.1.0-arvin-33ed363, both carry APK/checksum/evidence assets but are marked unapproved Draft prereleases.
+- Key records: #2531 release trigger isolation; #866 recovery-wave auto-close; #1139 owner acceptance ledger; #1324 SQL migration evidence; #2135 semantic versioning; #2248 calendar target identity; #2254/#2605 repeat contract; #2580 taxonomy conformance.
+- Limitation: the first 300 recent commit API entries were sampled but not each historical diff reviewed; open Issues were inventoried by count/search and targeted high-priority reads rather than reading all 1,096 bodies.
