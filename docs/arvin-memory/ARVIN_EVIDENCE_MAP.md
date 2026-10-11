@@ -6,7 +6,7 @@ GitHub access: Read/Write
 
 | Feature / gate | Evidence | Latest status | Limitation / next proof |
 |---|---|---|---|
-| Restore rollback: Category/Tag catalogs + multi-store orchestration | [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585); [latest test commit 5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) | BackupPage now injects failure after Task, Calendar-link and settings/schedule stages; asserts Task/Project/link/settings/schedule rollback | Exact-head Build #38124942112 SUCCESS: Analyze, six test shards, Debug and Release APK. Smoke #38124941815 partial: Home/Quick Capture passed; SQL lanes in progress; Backup/Restore and People queued. Physical device remains required |
+| Restore rollback: Category/Tag catalogs + multi-store orchestration | [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585); [latest test commit 5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) | BackupPage now injects failure after Task, Calendar-link and settings/schedule stages; asserts Task/Project/link/settings/schedule rollback | Exact-head Build #38124942112 SUCCESS: Analyze, six test shards, Debug and Release APK. Smoke #38124941815 partial: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People in progress. Physical device remains required |
 | Restore Build / Analyze / tests / APKs | [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) | SUCCESS on exact head 05c080e: Analyze, six test shards, Debug APK, Release APK | Does not prove physical-device acceptance |
 | Restore Device Smoke | [Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | ALL SIX LANES SUCCESS on exact head 05c080e: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore | Emulator lane only; physical file-provider still required |
 | Calendar primary actions + recurrence test | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587); [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) | Latest validated head recorded in PR conversation: 4442ce450e4295e500a9db6d5dc5b4d9657b3770 | PR open; physical-device acceptance still required |
@@ -38,11 +38,16 @@ GitHub access: Read/Write
 - Commit: [`5e0ad6d`](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27).
 - Read-back of the changed integration test succeeded (blob `46571a56323ccbce8fa8d1c8f70272cec026c0c4`).
 - Exact-head Build [#38124942112](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124942112) completed SUCCESS: Analyze, six test shards, Debug APK and Release APK all passed.
-- Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) remains partial: Home and Quick Capture passed; SQL Migration and SQL Persistence are in progress; Backup/Restore and People are queued. Do not describe the full smoke suite as passed.
+- Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) remains partial: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People are in progress. Do not describe the full smoke suite as passed.
 - The new test is automated emulator/integration coverage, not physical file-provider acceptance.
 
 
 ## Exact-head Build completion — 2026-10-11
 - PR #2585 commit `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` Build #38124942112 succeeded for Analyze, all six test shards, Debug APK and Release APK.
-- Smoke #38124941815 remains incomplete: Home/Quick Capture passed; SQL Migration/SQL Persistence in progress; Backup/Restore/People queued.
+- Smoke #38124941815 remains incomplete: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People are in progress.
 - The successful build is not physical-device validation; file-picker/provider restore and data-integrity acceptance remain open.
+
+
+## Device Smoke progress — 2026-10-11
+- Current run [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People remain in progress.
+- Do not mark PR #2585's full emulator smoke suite green until both remaining lanes finish successfully. Physical system file-picker/provider restore remains unverified.
