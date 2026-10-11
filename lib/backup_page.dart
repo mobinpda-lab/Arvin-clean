@@ -285,7 +285,7 @@ class _BackupPageState extends State<BackupPage> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('تأیید بازیابی'),
         content: Text(
-          'با ادامه، اطلاعات فعلی آروین با $taskCount مورد موجود در فایل پشتیبان جایگزین می‌شود${hasSettings ? ' و تنظیمات موجود در همان فایل نیز برمی‌گردد' : ''}.${hasCalendarLinks ? ' پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.' : ' این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.'} این عملیات را فقط زمانی انجام دهید که از فایل انتخاب‌شده مطمئن هستید.',
+          'ابتدا اطلاعات فعلی با فایل پشتیبان بر اساس شناسه‌های اصلی مقایسه می‌شود. موارد هم‌شناسه به‌روز می‌شوند، موارد موجود در پشتیبان اضافه می‌شوند و مواردی که فقط روی این دستگاه هستند حفظ می‌شوند؛ عنوان یا تاریخ مبنای تطبیق نیست.${hasSettings ? ' فقط تنظیمات موجود در فایل پشتیبان به‌روز می‌شوند.' : ' چون این فایل تنظیمات ندارد، تنظیمات فعلی حفظ می‌شوند.'}${hasCalendarLinks ? ' پیوندهای تقویم ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند.' : ' پیوندهای فعلیِ تقویم حفظ می‌شوند.'} پیش از تغییر، از اطلاعات فعلی پشتیبان اضطراری ساخته می‌شود.',
         ),
         actions: [
           TextButton(
@@ -317,6 +317,18 @@ class _BackupPageState extends State<BackupPage> {
         passphrase: passphrase,
       );
       if (candidate == null) return;
+      if (candidate.settings != null) {
+        settingsService.decodePortableJson(candidate.settings!);
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule != null && rawSchedule is! Map) {
+          throw const FormatException('Arvin backup schedule settings are invalid');
+        }
+        if (rawSchedule is Map) {
+          BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+        }
+      }
       if (!mounted) return;
       final confirmed = await _confirmRestore(
         candidate.tasks.length,
@@ -355,15 +367,32 @@ class _BackupPageState extends State<BackupPage> {
         return;
       }
 
+      final backupTaskIds = candidate.tasks.map((task) => task.id).toSet();
+      final localOnlyTaskIds = currentTasks
+          .map((task) => task.id)
+          .where((id) => !backupTaskIds.contains(id))
+          .toSet();
+      final reconciledTasks = ArvinBackupManager.reconcileTasksById(
+        current: currentTasks,
+        backup: candidate.tasks,
+      );
+      final reconciledProjects = candidate.hasProjects
+          ? ArvinBackupManager.reconcileProjectsById(
+              current: previousProjects!,
+              backup: candidate.projects,
+              localOnlyTaskIds: localOnlyTaskIds,
+            )
+          : previousProjects!;
+
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
         apply: () async {
           await widget.replaceTasks(
-            candidate.tasks.map((task) => task.toJson()).toList(growable: false),
+            reconciledTasks.map((task) => task.toJson()).toList(growable: false),
           );
           await widget.restoreStageHook?.call('tasks');
           if (candidate.hasProjects) {
-            await ProjectStore().save(candidate.projects);
+            await ProjectStore().save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -373,8 +402,12 @@ class _BackupPageState extends State<BackupPage> {
           );
           await widget.restoreStageHook?.call('calendar-links');
           if (candidate.settings != null) {
-            await settingsService.restorePortableJson(candidate.settings!);
-            final rawSchedule = candidate.settings!['backupSchedule'];
+            final mergedSettings = AppSettingsService.mergePortableJson(
+              current: previousSettings!,
+              incoming: candidate.settings!,
+            );
+            await settingsService.restorePortableJson(mergedSettings);
+            final rawSchedule = mergedSettings['backupSchedule'];
             if (rawSchedule is Map) {
               final restoredSchedule = BackupSchedule.decodePortableJson(
                 Map<String, dynamic>.from(rawSchedule),
@@ -417,13 +450,7 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (mounted) {
         _message(
-          candidate.calendarLinks == null
-              ? candidate.settings == null
-                  ? 'اطلاعات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'
-                  : 'اطلاعات و تنظیمات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'
-              : candidate.settings == null
-                  ? 'اطلاعات و پیوندهای تقویم ادغام شد؛ پیوندهای فعلی این دستگاه حفظ شدند'
-                  : 'اطلاعات، تنظیمات و پیوندهای تقویم ادغام شد',
+          'بازیابی انجام شد: اطلاعات هم‌شناسه به‌روز شد، موارد پشتیبان اضافه شد و اطلاعات فقط-محلی حفظ شد${candidate.settings == null ? '؛ تنظیمات فعلی حفظ شدند' : '؛ تنظیمات موجود در پشتیبان اعمال شدند'}${candidate.calendarLinks == null ? '؛ پیوندهای فعلی تقویم حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند'}',
         );
       }
     } catch (error) {
