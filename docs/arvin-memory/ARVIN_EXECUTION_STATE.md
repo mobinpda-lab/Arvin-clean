@@ -31,7 +31,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - No code PR was merged; a stale-head merge attempt was rejected by GitHub.
 
 ## In Progress
-- PR #2585: added BackupPage restore test that injects failure after settings + backup-schedule mutation and asserts Task/Project/Calendar-link/settings/schedule rollback. Exact-head Build #38124942112 is SUCCESS (Analyze, six test shards, Debug APK, Release APK). Device Smoke #38124941815 remains incomplete: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People are in progress.
+- PR #2585: added BackupPage restore test that injects failure after settings + backup-schedule mutation and asserts Task/Project/Calendar-link/settings/schedule rollback. Exact-head Build #38124942112 is SUCCESS (Analyze, six test shards, Debug APK, Release APK). Device Smoke #38124941815 remains incomplete: all six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
 - Review PR #2587 current exact head and acceptance notes; preserve the collapsed-card action and seven-occurrence regressions.
 - Physical Android file-provider backup/restore, restored Calendar-link identity/no-duplicate behavior, recurrence/checklist acceptance and visual review.
 - Continue taxonomy audit #2580.
@@ -48,7 +48,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 ### A. Restore PR #2585
 - [x] Exact-head Build and all six emulator smoke lanes passed on `05c080e`.
 - [x] Rechecked current PR head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` and exact-head Build #38124942112; Analyze, all six test shards, Debug APK and Release APK passed.
-- [ ] Finish exact-head Device Smoke #38124941815; Home and Quick Capture passed, SQL Migration and SQL Persistence are in progress, Backup/Restore and People are queued.
+- [x] Exact-head Device Smoke #38124941815 completed SUCCESS across all six lanes: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
 - [x] BackupPage integration test injects failures after Task, Calendar-link and settings writes; settings-stage test asserts rollback of Task, Project, Calendar-link, settings and schedule. Exact-head Build passed on `5e0ad6d`; exact-head Device Smoke is not yet complete.
 - [ ] Perform physical Android system file-picker/provider backup and restore; verify Task, Projects, Categories/Tags, settings, occurrence/history and Calendar-link metadata.
 - [ ] Verify failed restore recovery, emergency-backup reference and legacy backup compatibility.
@@ -65,7 +65,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - [ ] Complete Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report.
 
 ## Current bottleneck
-Physical-device data-safety and Calendar acceptance, not CI/build. PR #2587 has green exact-head automated Build and emulator-smoke evidence. PR #2585 now has a green exact-head Build, while its current exact-head Device Smoke remains incomplete: four lanes passed, Backup/Restore and People are still running. Both remain intentionally unmerged pending acceptance.
+Physical-device data-safety and Calendar acceptance, not CI/build. PR #2587 has green exact-head automated Build and emulator-smoke evidence. PR #2585 has green exact-head Build and all six exact-head emulator smoke lanes. The remaining release bottleneck is physical-device/file-provider and data-integrity acceptance. Both remain intentionally unmerged pending acceptance.
 
 ## Risk rules
 Task remains the only source of truth; Calendar is a projection; Repeat must not create copied Tasks; preserve stable Task ID and external event ID. No merge/release based on CI alone. Do not claim user/device acceptance without direct evidence.
@@ -74,17 +74,17 @@ Task remains the only source of truth; Calendar is a projection; Repeat must not
 ## Continuation checkpoint — 2026-10-11
 - GitHub Read/Write confirmed by live PR, file and workflow operations.
 - PR #2585 current exact head is `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`. Added failure injection after BackupPage settings/schedule writes and rollback assertions across Task, Project, Calendar-link, settings and schedule. Read-back verified the file at blob `46571a56323ccbce8fa8d1c8f70272cec026c0c4`.
-- Exact-head Build #38124942112 is in progress; Device Smoke #38124941815 is queued. Previous green runs on `05c080e` do not validate this new head.
+- Exact-head Build #38124942112 and Device Smoke #38124941815 both completed SUCCESS on `5e0ad6d`; all six smoke lanes passed. This is automated emulator evidence; physical Android file-provider acceptance remains unverified.
 - PR #2585 remains open/unmerged. Physical Android file-provider acceptance remains unverified.
 
 
 ## Exact-head Build completion — 2026-10-11
 - PR #2585 head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`: Build run [#38124942112](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124942112) completed SUCCESS. Job evidence: Analyze, test-0 through test-5, Debug APK and Release APK all succeeded.
-- Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) is not complete: Home and Quick Capture passed; SQL Migration and SQL Persistence in progress; Backup/Restore and People queued at last check.
+- Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) completed SUCCESS on the exact head: all six lanes passed — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People. This remains emulator smoke evidence, not physical-device acceptance.
 - PR #2585 remains OPEN / NOT MERGED. Physical Android system file-picker/provider acceptance remains unverified.
 
 
 ## Device Smoke progress — 2026-10-11
-- Latest recheck of run [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): Home, Quick Capture, SQL Migration and SQL Persistence are SUCCESS. Backup/Restore and People are IN PROGRESS. The run is not complete; no full-suite pass is claimed.
+- Latest recheck of run [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): all six lanes are SUCCESS — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People. Exact-head emulator smoke is complete; physical device/file-provider validation remains separate.
 - Exact-head Build #38124942112 remains SUCCESS on PR #2585 head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`.
 - Next: recheck the two running smoke lanes, then record final exact-head results. Physical device/file-picker validation remains an independent release gate.
