@@ -945,7 +945,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     onToggleAllDay: _toggleDueAllDay,
                   ),
                   const SizedBox(height: 14),
-                  const SizedBox(height: 14),                  ExpansionTile(
+                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
                     initiallyExpanded: false,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -955,12 +955,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: const Text(
-                      'یادآوری، تکرار، اولویت، چک‌لیست و پیگیری',
+                      'پروژه، دسته، برچسب، یادآوری، تکرار، چک‌لیست و پیگیری',
                     ),
                     children: [
                       Row(
                         children: [
-                          Expanded(                        child: ArvinRollBox<String>(
+                          Expanded(
+                            child: ArvinRollBox<String>(
                               label: 'دسته',
                               valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
                               icon: Icons.grid_view_rounded,
@@ -1056,7 +1057,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           )).toList(),
                         ),
                       ],
-    
+                      const SizedBox(height: 10),
                       _dateTimeEditor(
                         keyPrefix: 'task-editor-reminder',
                         title: 'یادآوری',
