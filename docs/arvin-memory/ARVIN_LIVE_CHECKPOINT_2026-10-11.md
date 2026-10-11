@@ -37,3 +37,10 @@ This checkpoint is additive. It does not replace earlier evidence or imply produ
 4. Continue physical-device acceptance and capture genuine evidence for Calendar, backup/restore, Repeat/Checklist, RTL and time picker.
 5. Resolve the Task Note data-contract gate before any model/storage/backup change.
 6. Keep release gate [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) open until P0/P1 proof and explicit owner approval are recorded.
+
+
+## PR overlap audit — same live recheck
+Changed-file lists were fetched from GitHub for #2591, #2607 and #2595. Confirmed overlapping implementation paths:
+- #2591 + #2607: `lib/main.dart`, `lib/report_center_page.dart`, `lib/widgets/universal_arvin_time_picker.dart`.
+- #2591 + #2595: `lib/follow_up_entry_page.dart`, `lib/quick_capture_dialog.dart`, `lib/task_editor_dialog.dart`, `test/quick_capture_dialog_test.dart`.
+This confirms that independent merges risk overwriting integration work or duplicating the shared picker. Preserve one canonical time-picker implementation; reconcile the report/home filter integration and Task Editor/Quick Add integration against current main before merging. Current PR metadata still shows all three OPEN/DRAFT. No merge was attempted.
