@@ -1,5 +1,7 @@
 # Arvin Data Model
 
+**Governance:** [AMPOP v5.0](../constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md) governs product-wide data invariants; accepted ADRs define their specific decision scope.
+
 **Canonical source:** [ADR-2026-10-10-PCTADP](../ADR/ADR-2026-10-10-PCTADP-project-category-tag.md) and [existing implementation-oriented data model](../DATA_MODEL_PROJECT_CATEGORY_TAG.md).
 
 ## Canonical concepts
