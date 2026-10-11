@@ -458,3 +458,17 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Release gate #2102 remains OPEN/BLOCKED. No merge, publication, or Release Ready claim was made.
 
 **Completed this continuation:** revalidated memory, fetched exact-head CI jobs/artifacts, inspected the failing shard log, and recorded the new evidence here. **Next action:** inspect `test/report_center_page_test.dart` around line 107 and the current Report Center filter widget on PR #2607; correct the actual target/behavior mismatch, then rerun the affected shard before full exact-head validation.
+
+
+## Superseding live correction — Report Center test follow-up (2026-10-11)
+
+This entry supersedes the immediately preceding Report Center next-action note where later branch commits had already moved beyond the inspected SHA.
+
+- PR #2607 evolved after Build run #38160581498. Its earlier shard-2 failure was in `report_center_page_test.dart` line 107: fixed-offset drag scrolled past a lazily built category section, making `ensureVisible` fail with `Bad state: No element`. Subsequent test-only commits corrected the scroll strategy.
+- Latest observed run before this update: [Build #38163500776](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163500776) on the then-current branch failed only quality test shard 4; Analyze and shards 0, 1, 2, 5 succeeded. Debug/Release APK jobs were cancelled when newer commits superseded that run. Device Smoke was not run because the PR is Draft.
+- Shard-4 failure: test `report filter sections collapse and expand without losing selections`, line 206, `Bad state: No element`. Root cause in test interaction: after collapsing, the category section may be outside the lazy ListView's built range; calling `ensureVisible(categoryHeader)` cannot find it. Do not alter production behavior or weaken the persistence assertion to mask this.
+- **Fix committed to the existing PR branch** `feat/calendar-pastel-compact-cards-20261011`: commit [8d3d60a1b321fa4ceb9f5da779a144d3705b9103](https://github.com/mobinpda-lab/Arvin-clean/commit/8d3d60a1b321fa4ceb9f5da779a144d3705b9103). The test now scrolls the category section back into the lazy ListView's viewport before reopening it, then retains the selection assertion. No production code, model, storage, or architecture was changed by this fix.
+- Workflow lookup immediately after this commit returned no associated run/status yet; this is **missing validation**, not a pass. Re-check exact-head CI shortly. Required: Analyze, all test shards, Debug/Release APKs, Android Device Smoke, small-screen RTL visual review, and owner acceptance. Keep PR #2607 Draft and release blocked until these gates pass.
+- **Correction to prior time-picker note:** the earlier claim that current PR #2607 still used generic Flutter `showTimePicker` was true for head `0ef03757ee869a49f7d36cfcad05f2d09751a31c` but became stale after later commits. PR comments confirm the current branch reuses `showUniversalArvinTimePicker` and includes a regression test. However, the shared picker source is also changed in PR #2607 and is byte-identical to the implementation in PR #2591; reconcile that overlapping path before merging so only one canonical implementation remains.
+
+**Current status:** Report Center test-only fix committed; exact-head validation pending. **Next action:** query workflow runs for the new head; if no run appears, inspect the PR's current run state before considering any rerun. No merge, release, or acceptance claim.
