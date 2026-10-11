@@ -50,6 +50,10 @@ void main() {
     final titleField = find.byKey(const ValueKey('task-editor-title'));
     final descriptionField =
         find.byKey(const ValueKey('task-editor-description'));
+    final details = find.byKey(const ValueKey('task-editor-more-details'));
+    await tester.ensureVisible(details);
+    await tester.tap(details);
+    await tester.pumpAndSettle();
     final tagRollBox = find.byTooltip('برچسب').last;
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
