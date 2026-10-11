@@ -30,3 +30,22 @@
 - Feedback: recurring Tasks fail to generate the promised 7 occurrences; recurrence activation should automatically fill today's date and current time but allow edits; automatic Calendar sync still has problems after changing a Task.
 - Action: opened Draft PR #2606 for safe recurrence-editor defaults and regression coverage; recorded Calendar recurrence identity/projection defect in existing architecture issue #2248.
 - Device reproduction/result: not yet captured in this session. Do not mark the user-facing defect resolved until exact-head CI and appropriate Android Calendar Provider validation are complete.
+
+## 2026-10-11 — Calendar sync scope and state-change boundary
+- Environment: product-owner clarification; device/build not specified.
+- Decision: sync only Task title, date, time, description, recurrence details and reminder to the phone calendar. Marking Done or moving to Archive alone does not require calendar synchronization.
+- Existing owner record: [#2248 comment](https://github.com/mobinpda-lab/Arvin-clean/pull/2248#issuecomment-6111402411).
+- Acceptance: update the same linked external event; no duplicates; do not trigger calendar work solely for Done/Archive. Device/provider validation remains pending.
+
+## 2026-10-11 — Report Center bottom navigation correction
+- Environment: owner inspected the installed Arvin UI.
+- Feedback: the Reports icon already exists; the missing change is placement in the bottom navigation row.
+- Acceptance: move/reuse the existing icon and route to the existing Report Center. Do not create another reports screen, renderer, model or store.
+- Record: [#2385](https://github.com/mobinpda-lab/Arvin-clean/issues/2385#issuecomment-6111105369). Code/device acceptance remains pending.
+
+## 2026-10-11 — Notebook toolbar and checklist interaction defect
+- Environment: owner inspected Notebook UI; exact device/build not provided.
+- Feedback: labels associated with numbered-list, tick and checklist icons are clipped/incomplete; checklist appears as literal `[ ]` and tapping does not toggle it.
+- Acceptance: full labels visible in supported RTL phone widths; render a real compact interactive checkbox; toggle and persist state after save/reopen through canonical Task.checklist/Notebook path.
+- Records: [#850](https://github.com/mobinpda-lab/Arvin-clean/issues/850#issuecomment-6111078741), [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139#issuecomment-6111079224).
+- Status: reported defect, not fixed or accepted yet.
