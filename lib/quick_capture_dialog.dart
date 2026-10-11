@@ -59,6 +59,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   String? _error;
   bool _backHandling = false;
   bool _saving = false;
+  String? _draftId;
+  TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
@@ -66,21 +68,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _recurrenceIntervalController =
       TextEditingController(text: '1');
   String? _projectId;
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
-  final List<String> _selectedTags = <String>[];
-  late List<ProjectPlan> _knownProjects;
-  late List<String> _knownCategories;
-  late List<String> _knownTags;
 
   @override
   void initState() {
     super.initState();
     _projectId = widget.initialProjectId;
-    _knownCategories = List<String>.of(widget.knownCategories);
-    _knownTags = List<String>.of(widget.knownTags);
-    _knownProjects = List<ProjectPlan>.of(widget.projects);
   }
 
   Future<void> _handleBack() async {
@@ -104,9 +96,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   void dispose() {
     _controller.dispose();
     _titleFocus.dispose();
-    _descriptionController.dispose();
-    _categoryController.dispose();
-    _tagsController.dispose();
     _recurrenceIntervalController.dispose();
     super.dispose();
   }
@@ -129,25 +118,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   Task? _buildDraft() {
     final createdAt = widget.now?.call() ?? DateTime.now();
+    _draftId ??= widget.idFactory?.call() ?? createdAt.microsecondsSinceEpoch.toString();
     final task = widget.service.capture(
       _controller.text,
-      id: widget.idFactory?.call() ?? createdAt.microsecondsSinceEpoch.toString(),
+      id: _draftId!,
       createdAt: createdAt,
     );
     if (task == null) return null;
-    task.description = _descriptionController.text.trim();
+    task.priority = _priority;
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    final category = _categoryController.text.trim();
-    task.category = category.isEmpty ? null : category;
-    final manualTags = _tagsController.text
-        .split(RegExp(r'[,،#\\s]+'))
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toSet();
-    task.tags = {...task.tags, ..._selectedTags, ...manualTags}.toList(growable: false);
     return task;
   }
 
@@ -172,8 +154,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       await onCaptured(task);
       if (!mounted) return;
       _controller.clear();
-      _descriptionController.clear();
-      setState(() => _saving = false);
+      _draftId = null;
+      setState(() {
+        _saving = false;
+        _priority = TaskPriority.none;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
       });
@@ -205,7 +190,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       if (saved) {
         _controller.clear();
-        _descriptionController.clear();
+        _draftId = null;
+        _priority = TaskPriority.none;
       }
       setState(() => _saving = false);
     } catch (_) {
