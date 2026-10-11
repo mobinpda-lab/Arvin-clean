@@ -57,3 +57,16 @@ Arvin should manage tasks first, then add scheduling, reminders, and calendar in
 ## Supersession note — Snooze action (2026-10-10)
 
 This file preserves historical planning/requirements context. Any wording above that lists Snooze as a current Reminder/Calendar action is superseded by the owner-approved AMP contract recorded in `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`. Current runtime Calendar/task surfaces contain no Snooze action/callback/logic, and regression tests assert its absence. Do not reintroduce Snooze without a new explicit product decision. Preserve completion, Edit, manual Calendar registration, Reminder, Repeat and Follow-up behavior.
+
+
+## Continuity Addendum — 2026-10-11 (Owner requirements; preserve until explicitly superseded)
+
+- Report Center time/date filters must use Persian/Jalali dates and Persian-facing time/date controls, not Gregorian-facing calendar/time UI. The filter panel itself must be redesigned as compact, expandable Arvin RollBox/accordion sections; each section preserves its selection when collapsed.
+- Report filters must support multi-select for Project, Category, Tag, task status and note type; show selected chips, selected counts, icons, expandable indicators, and domain identity colors. Required filter areas: Time, Project, Category, Tag, Note, Task Status, Tracking, Follow-up.
+- Reports are read-only consumers of canonical domain data, not owners of parallel data. Sources to integrate as available: Task, Project, Category, Tag, Tracking, Follow-up, Calendar, Notes.
+- Note filters/reporting should cover title, body text, note category/tag, creation/modified dates and Task association. Notebook must not become a parallel Task store; use existing canonical relationships and repositories.
+- Extend the approved pastel visual language consistently across Home, Calendar, Notebook, Reports, forms, settings and detail pages. Preserve Persian RTL, VazirHarf v34.003, approved Arvin palette and existing interactions; colors must convey status/domain rather than be decoration.
+- Preserve other open owner requirements recorded in the 2026-10-11 continuity checkpoint: phone-calendar events visible on Home; Calendar actions appear in one horizontal row after selecting an item; move the existing Reports icon into bottom navigation (do not create another report destination); fix Project settings add/edit persistence; Notebook Category/Tag/Project controls share one RTL row; Notebook tick/number/checklist toolbar labels must not clip and checklist must be a real persistent interactive checkbox.
+- Calendar sync scope: title, date, time, description, recurrence details and reminder only. Done/Archive alone must not sync as calendar operations. Editing an unregistered phone-calendar event already works on the installed app per owner report; do not reimplement it.
+- Owner decision: root Task.description remains the only root Task text field; do not add root Task.note. Existing scoped FollowUp.note and Notebook note concepts remain unchanged.
+- These are owner requirements, not proof of implementation. Track each separately through code, regression tests, exact-head CI, Android/device validation and owner acceptance. Never mark complete from documentation or orchestration-only success.
