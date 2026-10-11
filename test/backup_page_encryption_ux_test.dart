@@ -198,7 +198,7 @@ void main() {
     expect(find.text('اطلاعات با موفقیت بازیابی شد'), findsNothing);
   });
 
-  testWidgets('encrypted restore confirms then replaces tasks once',
+  testWidgets('encrypted restore reconciles backup and local tasks by ID',
       (tester) async {
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
@@ -241,8 +241,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(replaceCount, 1);
-    expect(replaced?.single['id'], 'restored-1');
-    expect(find.text('اطلاعات بازیابی شد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند'), findsOneWidget);
+    expect(replaced, hasLength(2));
+    expect(replaced!.map((task) => task['id']), containsAll(['task-1', 'restored-1']));
+    expect(find.textContaining('بازیابی انجام شد'), findsOneWidget);
   });
 
   testWidgets('wrong encrypted restore passphrase never mutates local tasks',
