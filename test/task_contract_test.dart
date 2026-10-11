@@ -27,7 +27,8 @@ void main() {
     final original = Task(
       id: 'round-trip-1',
       title: 'عنوان',
-      description: 'توضیحات',
+      description: 'توضیح کوتاه',
+      note: 'یادداشت مستقل',
       createdAt: DateTime.parse('2026-08-01T08:00:00.000'),
       updatedAt: DateTime.parse('2026-08-02T09:00:00.000'),
       dueDate: DateTime.parse('2026-08-02T18:30:00.000'),
@@ -59,6 +60,7 @@ void main() {
     expect(restored.id, original.id);
     expect(restored.title, original.title);
     expect(restored.description, original.description);
+    expect(restored.note, original.note);
     expect(restored.createdAt, original.createdAt);
     expect(restored.updatedAt, original.updatedAt);
     expect(restored.dueDate, original.dueDate);
@@ -86,6 +88,7 @@ void main() {
     });
 
     expect(task.description, '');
+    expect(task.note, '');
     expect(task.tags, isEmpty);
     expect(task.checklist, isEmpty);
     expect(task.followUps, isEmpty);
