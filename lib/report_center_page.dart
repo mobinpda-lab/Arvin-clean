@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 
 import 'models/goal_project.dart';
+import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
 import 'task_report_page.dart';
+import 'widgets/persian_date_picker.dart';
 
 class ReportCenterPage extends StatefulWidget {
   const ReportCenterPage({
@@ -239,6 +241,13 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
   ReportStatusFilter _status = ReportStatusFilter.all;
+  Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
+  Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
+  Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
+  final TextEditingController _noteQueryController = TextEditingController();
+  ReportNoteDateField? _noteDateField;
+  DateTime? _noteFromDate;
+  DateTime? _noteToDate;
   TaskPriority? _priority;
   bool? _hasRepeat;
   bool? _hasFollowUp;
@@ -257,22 +266,35 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
     _status = f.status;
+    _statuses = <ReportStatusFilter>{...f.statuses};
+    if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
+      _statuses.add(f.status);
+    }
+    _trackingLevels = <RecurrenceTrackingLevel>{...f.trackingLevels};
+    _noteKinds = <NotebookItemKind>{...f.noteKinds};
+    _noteQueryController.text = f.noteQuery;
+    _noteDateField = f.noteDateField;
+    _noteFromDate = f.noteFromDate;
+    _noteToDate = f.noteToDate;
     _priority = f.priority;
     _hasRepeat = f.hasRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
   }
 
+  @override
+  void dispose() {
+    _noteQueryController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickDate(bool from) async {
-    final picked = await showDatePicker(
+    final picked = await showPersianDatePicker(
       context: context,
       initialDate: from ? (_fromDate ?? widget.now) : (_toDate ?? _fromDate ?? widget.now),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      builder: (_, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
-      ),
+      helpText: from ? 'انتخاب تاریخ شروع گزارش' : 'انتخاب تاریخ پایان گزارش',
     );
     if (picked == null) return;
     setState(() {
@@ -281,6 +303,28 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
       } else {
         _toDate = picked;
       }
+    });
+  }
+
+
+  Future<void> _pickNoteDate(bool from) async {
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: from
+          ? (_noteFromDate ?? widget.now)
+          : (_noteToDate ?? _noteFromDate ?? widget.now),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: from ? 'شروع بازه یادداشت' : 'پایان بازه یادداشت',
+    );
+    if (picked == null) return;
+    setState(() {
+      if (from) {
+        _noteFromDate = picked;
+      } else {
+        _noteToDate = picked;
+      }
+      _noteDateField ??= ReportNoteDateField.created;
     });
   }
 
@@ -320,7 +364,14 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
-        status: _status,
+        status: ReportStatusFilter.all,
+        statuses: Set<ReportStatusFilter>.of(_statuses),
+        trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
+        noteKinds: Set<NotebookItemKind>.of(_noteKinds),
+        noteQuery: _noteQueryController.text.trim(),
+        noteDateField: _noteDateField,
+        noteFromDate: _noteFromDate,
+        noteToDate: _noteToDate,
         priority: _priority,
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
@@ -371,8 +422,14 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             const SizedBox(height: 8),
             _Section(
               title: 'زمان',
+              icon: Icons.schedule_outlined,
+              selectedCount: (_timePreset != ReportTimePreset.all ? 1 : 0) +
+                  (_fromDate != null || _toDate != null ? 1 : 0) +
+                  (_fromTime != null || _toTime != null ? 1 : 0),
+              initiallyExpanded: true,
               child: Wrap(
                 spacing: 6,
+                runSpacing: 4,
                 children: [
                   for (final preset in ReportTimePreset.values)
                     ChoiceChip(
@@ -385,6 +442,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             _Section(
               title: 'بازه دقیق',
+              icon: Icons.date_range_outlined,
+              selectedCount: (_fromDate != null ? 1 : 0) +
+                  (_toDate != null ? 1 : 0) +
+                  (_fromTime != null ? 1 : 0) +
+                  (_toTime != null ? 1 : 0),
               child: Column(
                 children: [
                   Row(
@@ -427,6 +489,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             _Section(
               title: 'پروژه',
+              icon: Icons.folder_open_outlined,
+              selectedCount: _projectIds.length,
               child: _MultiSelectChips(
                 allLabel: 'همه پروژه‌ها',
                 options: widget.projects
@@ -439,6 +503,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             _Section(
               title: 'دسته',
+              icon: Icons.category_outlined,
+              selectedCount: _categories.length,
               child: _MultiSelectChips(
                 allLabel: 'همه دسته‌ها',
                 options: categories.map((value) => MapEntry(value, value)).toList(growable: false),
@@ -449,6 +515,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             _Section(
               title: 'برچسب',
+              icon: Icons.sell_outlined,
+              selectedCount: _tags.length,
               child: _MultiSelectChips(
                 allLabel: 'همه برچسب‌ها',
                 options: tags.map((value) => MapEntry(value, value)).toList(growable: false),
@@ -458,21 +526,170 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'وضعیت',
+              title: 'یادداشت',
+              icon: Icons.sticky_note_2_outlined,
+              selectedCount: _noteKinds.length +
+                  (_noteQueryController.text.trim().isNotEmpty ? 1 : 0) +
+                  (_noteFromDate != null || _noteToDate != null ? 1 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    key: const ValueKey('report-filter-note-query'),
+                    controller: _noteQueryController,
+                    decoration: const InputDecoration(
+                      labelText: 'عنوان یا متن یادداشت',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      FilterChip(
+                        key: const ValueKey('report-filter-note-kind-note'),
+                        label: const Text('یادداشت'),
+                        selected: _noteKinds.contains(NotebookItemKind.note),
+                        onSelected: (selected) => setState(() {
+                          selected
+                              ? _noteKinds.add(NotebookItemKind.note)
+                              : _noteKinds.remove(NotebookItemKind.note);
+                        }),
+                      ),
+                      FilterChip(
+                        key: const ValueKey('report-filter-note-kind-checklist'),
+                        label: const Text('چک‌لیست'),
+                        selected: _noteKinds.contains(NotebookItemKind.checklist),
+                        onSelected: (selected) => setState(() {
+                          selected
+                              ? _noteKinds.add(NotebookItemKind.checklist)
+                              : _noteKinds.remove(NotebookItemKind.checklist);
+                        }),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<ReportNoteDateField>(
+                    key: const ValueKey('report-filter-note-date-field'),
+                    initialValue: _noteDateField ?? ReportNoteDateField.created,
+                    decoration: const InputDecoration(labelText: 'مبنای تاریخ یادداشت'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ReportNoteDateField.created,
+                        child: Text('تاریخ ایجاد'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReportNoteDateField.updated,
+                        child: Text('تاریخ تغییر'),
+                      ),
+                    ],
+                    onChanged: (value) => setState(() => _noteDateField = value),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _pickNoteDate(true),
+                          child: Text(_dateLabel(_noteFromDate, 'از تاریخ')),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _pickNoteDate(false),
+                          child: Text(_dateLabel(_noteToDate, 'تا تاریخ')),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            _Section(
+              title: 'وضعیت کار',
+              icon: Icons.flag_outlined,
+              selectedCount: _statuses.length,
               child: Wrap(
                 spacing: 6,
+                runSpacing: 4,
                 children: [
-                  for (final value in ReportStatusFilter.values)
-                    ChoiceChip(
+                  FilterChip(
+                    key: const ValueKey('report-filter-status-all'),
+                    label: const Text('همه'),
+                    selected: _statuses.isEmpty,
+                    onSelected: (_) => setState(() => _statuses.clear()),
+                  ),
+                  for (final value in ReportStatusFilter.values.where((v) => v != ReportStatusFilter.all))
+                    FilterChip(
+                      key: ValueKey('report-filter-status-${value.name}'),
                       label: Text(_statusLabel(value)),
-                      selected: _status == value,
-                      onSelected: (_) => setState(() => _status = value),
+                      selected: _statuses.contains(value),
+                      onSelected: (selected) => setState(() {
+                        selected ? _statuses.add(value) : _statuses.remove(value);
+                      }),
                     ),
                 ],
               ),
             ),
             _Section(
+              title: 'Tracking',
+              icon: Icons.track_changes_outlined,
+              selectedCount: _trackingLevels.length,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  FilterChip(
+                    key: const ValueKey('report-filter-tracking-all'),
+                    label: const Text('همه'),
+                    selected: _trackingLevels.isEmpty,
+                    onSelected: (_) => setState(() => _trackingLevels.clear()),
+                  ),
+                  FilterChip(
+                    key: const ValueKey('report-filter-tracking-normal'),
+                    label: const Text('عادی'),
+                    selected: _trackingLevels.contains(RecurrenceTrackingLevel.normal),
+                    onSelected: (selected) => setState(() {
+                      selected
+                          ? _trackingLevels.add(RecurrenceTrackingLevel.normal)
+                          : _trackingLevels.remove(RecurrenceTrackingLevel.normal);
+                    }),
+                  ),
+                  FilterChip(
+                    key: const ValueKey('report-filter-tracking-important'),
+                    label: const Text('مهم و قابل پیگیری'),
+                    selected: _trackingLevels.contains(RecurrenceTrackingLevel.tracking),
+                    onSelected: (selected) => setState(() {
+                      selected
+                          ? _trackingLevels.add(RecurrenceTrackingLevel.tracking)
+                          : _trackingLevels.remove(RecurrenceTrackingLevel.tracking);
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            _Section(
+              title: 'Follow-up',
+              icon: Icons.notifications_active_outlined,
+              selectedCount: _hasFollowUp == null ? 0 : 1,
+              child: Wrap(
+                spacing: 6,
+                children: [
+                  _TriStateChip(
+                    label: 'پیگیری',
+                    value: _hasFollowUp,
+                    onChanged: (value) => setState(() => _hasFollowUp = value),
+                  ),
+                ],
+              ),
+            ),
+            _Section(
               title: 'اهمیت',
+              icon: Icons.star_border_rounded,
+              selectedCount: _priority == null ? 0 : 1,
               child: Wrap(
                 spacing: 6,
                 children: [
@@ -491,7 +708,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'نوع',
+              title: 'ویژگی‌های کار',
+              icon: Icons.checklist_outlined,
+              selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
               child: Wrap(
                 spacing: 6,
                 children: [
@@ -499,11 +718,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     label: 'تکرار',
                     value: _hasRepeat,
                     onChanged: (value) => setState(() => _hasRepeat = value),
-                  ),
-                  _TriStateChip(
-                    label: 'پیگیری',
-                    value: _hasFollowUp,
-                    onChanged: (value) => setState(() => _hasFollowUp = value),
                   ),
                   _TriStateChip(
                     label: 'Checklist',
@@ -529,6 +743,13 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _categories = <String>{};
                       _tags = <String>{};
                       _status = ReportStatusFilter.all;
+                      _statuses.clear();
+                      _trackingLevels.clear();
+                      _noteKinds.clear();
+                      _noteQueryController.clear();
+                      _noteDateField = null;
+                      _noteFromDate = null;
+                      _noteToDate = null;
                       _priority = null;
                       _hasRepeat = null;
                       _hasFollowUp = null;
@@ -609,26 +830,75 @@ class _MultiSelectChips extends StatelessWidget {
       );
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+class _Section extends StatefulWidget {
+  const _Section({
+    required this.title,
+    required this.child,
+    this.icon = Icons.tune_outlined,
+    this.selectedCount = 0,
+    this.initiallyExpanded = false,
+  });
 
   final String title;
   final Widget child;
+  final IconData icon;
+  final int selectedCount;
+  final bool initiallyExpanded;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  State<_Section> createState() => _SectionState();
+}
+
+class _SectionState extends State<_Section> {
+  late bool _expanded = widget.initiallyExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      key: ValueKey('report-filter-section-${widget.title}'),
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant.withValues(alpha: .45)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        initiallyExpanded: _expanded,
+        onExpansionChanged: (value) => setState(() => _expanded = value),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(widget.icon, color: colors.primary),
+        title: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+            Expanded(
+              child: Text(
+                widget.title,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
             ),
-            child,
+            if (widget.selectedCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  widget.selectedCount.toString(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onPrimaryContainer,
+                  ),
+                ),
+              ),
           ],
         ),
-      );
+        children: [widget.child],
+      ),
+    );
+  }
 }
 
 class _TriStateChip extends StatelessWidget {
