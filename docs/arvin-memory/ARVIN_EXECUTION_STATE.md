@@ -494,3 +494,13 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - Compared shared file blob SHAs at exact PR heads. `lib/widgets/universal_arvin_time_picker.dart` is byte-identical on #2607 and #2591 (blob `caacc5539c5f2304a1a060f5e3610a25987a6619`). `lib/main.dart` and `lib/report_center_page.dart` differ because each PR carries additional integration changes. Reconcile these overlapping integration paths before merge; do not blindly merge either PR.
 - No production-code change or merge was made in this continuation. The prior test-only fix remains validated by the passing exact-head CI above.
 - **Next action:** use the successful APK artifacts for installed-device acceptance through an authorized device path; if device access is unavailable in this session, keep that gate explicitly blocked. Continue reviewing the overlapping #2607/#2591 patches and release gate #2102 without changing Draft state or claiming Release Ready.
+
+
+## Release-closure workflow correction merged — 2026-10-11
+
+- Reviewed and merged PR [#2531](https://github.com/mobinpda-lab/Arvin-clean/pull/2531) after exact-head checks passed. Merge commit: [d8afc717eaf02d6d0bedf92e800c7f93209c97bd](https://github.com/mobinpda-lab/Arvin-clean/commit/d8afc717eaf02d6d0bedf92e800c7f93209c97bd).
+- Scope was limited to `.github/workflows/release-closure.yml` and `test/release_closure_product_gate_test.dart`: stop cancelling an active release-closure run, and only allow workflow_run-triggered closure when the successful upstream Production Orchestrator was explicitly started via `workflow_dispatch`.
+- Exact-head Build #38165128162 passed Analyze, all six test shards, Debug APK and Release APK. Device Smoke #38165128170 passed all six lanes (backup-restore, home, SQL migration, quick-capture, SQL persistence, people). This validates that PR head only; it does not replace current-main post-merge validation or full owner acceptance.
+- PR #2531 is merged. Issue #2102 remains OPEN/BLOCKED. No release was published; the #2102 approval gate remains intact.
+- Report Center PR #2607 remains OPEN/Draft with exact-head Build #38166678767 green; Device Smoke #38166678708 skipped because Draft. PR #2591 remains OPEN/Draft; shared picker source is identical, but `lib/main.dart` and `lib/report_center_page.dart` integrations differ and must be reconciled.
+- **Next action:** verify post-merge workflow behavior on main, then continue P0 issue #2102 evidence recovery and Report Center device/RTL acceptance. Do not claim Release Ready until current-main P0/P1 evidence and owner approval are complete.
