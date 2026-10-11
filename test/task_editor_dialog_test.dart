@@ -448,6 +448,9 @@ void main() {
 
     await pumpEditor(tester, task: task, onResult: (value) => result = value);
 
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+
     expect(find.byKey(const ValueKey('task-editor-repeat-enabled')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-repeat-start')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-repeat-end')), findsOneWidget);
@@ -476,6 +479,9 @@ void main() {
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-title')),
@@ -514,6 +520,9 @@ void main() {
     );
 
     await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
 
     await tester.ensureVisible(
       find.byKey(const ValueKey('task-editor-due-time-rollbox')),
