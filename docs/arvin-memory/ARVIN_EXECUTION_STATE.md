@@ -272,3 +272,17 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - **In Progress:** #2606 awaits Android/provider regression; Task form PRs #2591/#2595/#2602 overlap and require live head/diff reconciliation; Notebook fix and bottom-nav Reports placement require code changes and evidence.
 - **Blocked:** Physical-device acceptance, full Calendar provider/two-way/no-duplicate acceptance, restore/file-provider round-trip, Golden Flow and explicit release-owner approval remain unproven.
 - **Next action:** Refresh live heads/statuses. Continue canonical branches; prioritize data/calendar correctness and exact-head evidence, fix Notebook rendering/toggle in its existing path, and move the existing Report Center entry to bottom navigation without a second report path. Keep CI evidence distinct from device/owner acceptance.
+
+## 2026-10-11 — Pastel visual language expansion
+
+- Owner requested extending the Home/Calendar pastel look across all Arvin sections, explicitly including Notebook and Reports.
+- Extended existing PR [#2607](https://github.com/mobinpda-lab/Arvin-clean/pull/2607) instead of creating a parallel branch/system. New title: `feat(ui): extend pastel visual language across Arvin`.
+- Current PR head at checkpoint: `f526389e2058263af308f714bce49d7c4033000f`.
+- Changes on the PR branch: shared light/dark CardTheme with rounded borders/subtle shadows/compact vertical spacing; rounded filled light/dark form fields; Notebook note cards lavender and checklist cards soft green; Report Center cards green when complete, red when overdue, amber for follow-up and blue for planned; Next Action cards red/blue/amber by reason. Calendar/Home visual refinements remain in the same PR.
+- Regression coverage added for report status colors, Notebook note/checklist colors and Next Action status colors. Existing Task/Notebook storage paths are retained.
+- GitHub Read/Write used. PR metadata updated; owner scope/guardrails added to the existing acceptance ledger [#1139 comment](https://github.com/mobinpda-lab/Arvin-clean/issues/1139#issuecomment-6111556987).
+- Exact-head CI for `f526389e2058263af308f714bce49d7c4033000f`: Build run [38158589426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158589426) was pending/queued at last check; Device Smoke [38158589424](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158589424) was skipped. Orchestrator success is not code/test/build proof.
+- PR #2607 remains Draft and unmerged. No physical-device screenshot/visual acceptance is available. The separate Notebook inline checklist `[ ]` toggle bug is NOT fixed by this visual pass and remains open.
+
+### Next action
+- Refresh exact-head CI. Fix any Analyze/test/build failures without weakening tests. Review all affected screens at narrow phone widths and RTL, then request owner/device acceptance. Keep the PR Draft until evidence and owner acceptance are complete.
