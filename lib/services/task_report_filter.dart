@@ -76,7 +76,7 @@ class TaskReportFilter {
       trackingLevels.isNotEmpty ||
       noteKinds.isNotEmpty ||
       noteQuery.trim().isNotEmpty ||
-      noteDateField != null ||
+      ((noteFromDate != null || noteToDate != null) && noteDateField != null) ||
       noteFromDate != null ||
       noteToDate != null ||
       priority != null ||
