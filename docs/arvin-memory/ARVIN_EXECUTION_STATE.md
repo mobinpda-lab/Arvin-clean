@@ -18,7 +18,7 @@ Authority: live GitHub refs, source, tests and workflow evidence.
   - Daily Content preferences are included in foreground and scheduled backup payloads and validated before restore writes.
   - Scheduled backups now include Calendar-link metadata and canonical Category/Tag catalogs in addition to Tasks, Projects and portable settings.
   - Added tests for Task/Project reconciliation, local-only Notebook/checklist retention, partial legacy settings, explicit nullable settings and scheduled-backup payload contents.
-- Current code PR #2585 head: `254b86c0937c43633f6754b4877106f24676d88a`. Exact-head Analyze is SUCCESS. Build's test shards and Debug/Release APK jobs are still running; Device Smoke is queued. A previous head failed Analyze only on two unnecessary null assertions; those assertions were removed before the current head.
+- Current code PR #2585 head: `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`. Exact-head Analyze is SUCCESS; all six test shards and Debug/Release APK jobs are running, and Device Smoke is queued. Previous exact heads exposed a settings expectation and three stale test contracts for replace-only restore; those expectations were updated to the approved ID-reconciliation contract before the current head.
 - PR #2585 remains OPEN / NOT MERGED. CI and emulator results do not prove real Android system file-picker/provider acceptance.
 - Main base observed for PR #2585: `72a2f4cc24df7a38eff9856ce403461615db5280` (documentation-only PCTADP decision registration).
 - Calendar linked-event edit [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is merged at [`34a6cee`](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128); physical-device proof remains absent.
@@ -57,7 +57,7 @@ Authority: live GitHub refs, source, tests and workflow evidence.
 - Full taxonomy conformance inventory and final release handover/owner acceptance.
 
 ## Next actions
-- Poll exact-head Actions for `254b86c0937c43633f6754b4877106f24676d88a`; use only evidence attached to that exact head.
+- Poll exact-head Actions for `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`; use only evidence attached to that exact head.
 - If any job fails, inspect its log, fix the root cause in the same PR, and rerun validation on the new head.
 - Update the evidence map after Build/Smoke settles, then continue physical-device acceptance and remaining taxonomy audit.
 - Keep PRs open/unmerged; never claim release readiness from CI alone.
