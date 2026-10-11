@@ -444,3 +444,17 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Change is narrowly limited to release trigger isolation and a matching regression assertion. PR conversation records the rebase and warns that exact-head CI is pending.
 - At latest poll, 21 checks exist: 6 completed, 9 in progress, 6 queued; Build #38165128162 and Device Smoke #38165128170 are queued. No failures observed yet. Do not merge until exact-head Build and Device Smoke complete successfully and the PR's required checks are satisfied.
 - No main change or release occurred. Keep issue #2102 and PR #1901 open until actual product/device acceptance is complete.
+
+
+## Live continuation update — Report Center validation (2026-10-11)
+
+- Re-read this execution state from the existing memory branch before continuing; no new memory branch or duplicate issue was created.
+- Reviewed PR #2607 current reported head `0ef03757ee869a49f7d36cfcad05f2d09751a31c` and its Build run [38160581498](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38160581498).
+- Exact-head Build evidence: Analyze succeeded; Debug APK and Release APK builds succeeded and artifacts were uploaded; test shards 0, 1, 3, and 4 succeeded; test shards 2 and 5 failed. Therefore Build is NOT green and PR #2607 remains unaccepted. Device Smoke was skipped because the PR is Draft; no device acceptance is implied.
+- Retrieved failure log for shard 2: `test/report_center_page_test.dart`, test “Report Center combines time and category filters and opens that exact report scope” failed at line 107 with `Bad state: No element` from `WidgetController.ensureVisible`. This is likely a test/widget target mismatch after filter UI restructuring; inspect the exact widget tree and intended user path before changing the test. Do not weaken the assertion or treat the test as flaky without evidence.
+- PR #2607 adds the Report Filter & Memory Extension: Jalali date-range picker, expandable roll-box filter sections, multi-select Project/Category/Tag/Status/Tracking, and canonical Task-backed Notebook note/checklist/date filters. The decision file was read back from the PR head. These changes are on a PR branch, not accepted on main.
+- Remaining Report Center gate: resolve shard failures on the current head; re-run Analyze, all test shards and APKs on the resulting exact head; run Android Device Smoke and small-screen RTL visual acceptance; reconcile shared time picker with existing Draft PR #2591 rather than adding a second picker. Current `_pickTime` still uses Flutter `showTimePicker`, so Persian/Jalali date selection alone does not satisfy the universal Persian 24-hour time-picker requirement.
+- Data/architecture boundary remains: Report Center consumes canonical Task/Notebook records; no separate report store or invented Note-to-Task relation. External phone-calendar-only events are not proven report inputs.
+- Release gate #2102 remains OPEN/BLOCKED. No merge, publication, or Release Ready claim was made.
+
+**Completed this continuation:** revalidated memory, fetched exact-head CI jobs/artifacts, inspected the failing shard log, and recorded the new evidence here. **Next action:** inspect `test/report_center_page_test.dart` around line 107 and the current Report Center filter widget on PR #2607; correct the actual target/behavior mismatch, then rerun the affected shard before full exact-head validation.
