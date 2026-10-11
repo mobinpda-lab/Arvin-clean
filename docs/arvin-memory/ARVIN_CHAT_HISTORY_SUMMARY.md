@@ -13,3 +13,12 @@ The owner reiterated that “ادامه آروین”, “اجرای فرمان 
 
 ## Continue from here
 Re-fetch live PR #2585 head and main SHA; check exact-head CI. If CI passes, proceed to real-device backup/restore and Calendar identity checks. Do not merge/release without evidence.
+
+## 2026-10-11 — Autonomous Delivery Command v8 / RTLC continuation
+- Owner supplied Command v8 and explicitly requires continuation from GitHub memory, safe execution, validation and evidence; no restart/repetition.
+- Main latest commit search returned `a6ced27660d34cd87dd8915aff68d3a7555fd57a`. Memory PR #2600 remains OPEN/DRAFT on branch `docs/arvin-autonomous-memory-20261011` and is based on old main `72a2f4cc...`; reconcile with overlapping docs PRs #2598/#2599 before merge.
+- Registered RTLC decision as [Issue #2605](https://github.com/mobinpda-lab/Arvin-clean/issues/2605), with related comments on #2254 and #2593.
+- Read-only audit found existing tracking-level enum/JSON persistence in `lib/models/recurrence.dart`, canonical Task history/checklist occurrence fields in `lib/models/task.dart`, and partial progress/history UI in `lib/task_recurrence_page.dart`. Main form/Home/Report integration remains unverified. Keep Follow-up distinct from Repeat tracking.
+- No application code or APK was changed in this session segment; RTLC tests/build/device acceptance remain pending.
+- Continue by verifying these memory-branch commits, updating PR #2600's blockers, then work on the smallest missing existing path: Task Create/Edit tracking selector and tests, followed by Home/Report audit. No release claim until full evidence and owner acceptance.
+
