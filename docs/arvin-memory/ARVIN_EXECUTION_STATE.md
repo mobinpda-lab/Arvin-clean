@@ -213,3 +213,12 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - Confirmed failures: repeat lifecycle control key missing; recurrence RollBox key missing; automatic/manual reminder tests failed; date-only All-Day persistence failed; custom due-time Clock Dial test failed; RTL taxonomy row width expected >270 px but actual 99.33 px.
 - Recorded exact evidence in PR #2602 comment [#6109904220](https://github.com/mobinpda-lab/Arvin-clean/pull/2602#issuecomment-6109904220). Do not merge or weaken tests; fix reachability/date-time/layout root causes and rerun all shards + Device Smoke.
 
+
+
+## OWNER DECISION UPDATE — 2026-10-11
+
+### Completed: Task Description vs Note decision
+- Owner selected **Option 1**: retain only the existing root Task `description`; do not add a separate root `Task.note`.
+- This supersedes the earlier “Blocked: ask owner” next-action text in historical checkpoints. The product decision is resolved; implementation cleanup and validation remain outstanding.
+- Required follow-through: comment on #2595 and #2602; remove/revert root `Task.note` plus serialization/TaskStore/backup changes that exist only to support it; preserve existing Notebook/FollowUp note behavior; run exact-head tests/build and inspect backup/restore compatibility. Do not weaken tests or merge/release without evidence.
+- GitHub Read/Write access used for recording this decision. App code has not yet been changed by this decision-recording step.
