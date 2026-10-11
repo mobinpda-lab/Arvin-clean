@@ -15,6 +15,8 @@ QUALITY + SPEED
 
 GitHub حافظه رسمی پروژه است. Factory، CI و Automation ابزار هستند؛ معیار موفقیت، استفاده واقعی و روزانه کاربر از محصول است.
 
+**Conversation decision history:** [docs/arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md](arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md) — historical owner decisions and installed-app acceptance findings; always re-check live GitHub status and evidence.
+
 ## GitHub Source of Truth
 تصمیم‌ها و وضعیت‌های مهم باید در GitHub ثبت شوند: ARC, UXD, VR, BUG, SOL, STATUS, EV, REL.
 
