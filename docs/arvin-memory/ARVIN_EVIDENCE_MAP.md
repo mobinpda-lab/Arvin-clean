@@ -1,6 +1,6 @@
 # Arvin Evidence Map
 
-Updated: 2026-10-11 (owner-approved backup expansion; reconciliation and portable settings implementation)
+Updated: 2026-10-11 (live exact-head Build passed; Device Smoke partially complete)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 GitHub access: Read/Write verified.
 
@@ -22,6 +22,13 @@ GitHub access: Read/Write verified.
 | Calendar identity/no duplicates after restore | No linked physical-device evidence | NOT VERIFIED | Record Task ID, external event ID and event count before/after edit/re-sync and restore |
 | Golden Flow | No complete end-to-end evidence | NOT VERIFIED | Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore |
 | Release handover | No complete handover package evidenced | PENDING | Release notes, installation guide, user guide, known issues, architecture summary, evidence report and owner acceptance |
+
+## Live recheck — 2026-10-11 13:40 Iran time
+
+- Main is `72a2f4cc24df7a38eff9856ce403461615db5280`.
+- PR #2585 head `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`: Build [38130522723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38130522723) succeeded for Analyze, six test shards, Debug APK and Release APK.
+- Device Smoke [38130522703](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38130522703): Home, Quick Capture and SQL Persistence passed; SQL Migration and Backup/Restore are in progress; People queued. Full smoke is not yet complete.
+- Physical-device file-picker/provider restore integrity, same-event Calendar edit, full Golden Flow and product-owner release acceptance remain unverified. No merge or release.
 
 ## Backup/restore owner contract — Issue #2580 / PR #2585
 
