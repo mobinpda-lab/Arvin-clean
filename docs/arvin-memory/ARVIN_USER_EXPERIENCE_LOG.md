@@ -49,3 +49,10 @@
 - Acceptance: full labels visible in supported RTL phone widths; render a real compact interactive checkbox; toggle and persist state after save/reopen through canonical Task.checklist/Notebook path.
 - Records: [#850](https://github.com/mobinpda-lab/Arvin-clean/issues/850#issuecomment-6111078741), [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139#issuecomment-6111079224).
 - Status: reported defect, not fixed or accepted yet.
+
+## 2026-10-11 — Pastel visual language expansion
+- Environment: owner requested extending the soft, color-coded Home/Calendar experience to every existing Arvin section, explicitly including Notes/Notebook and Reports.
+- Work staged in [PR #2607](https://github.com/mobinpda-lab/Arvin-clean/pull/2607): consistent rounded card style and form-field shape; soft status colors in Calendar, Reports and Next Action; lavender note cards and green checklist cards in Notebook.
+- Expected outcome: one coherent personal-assistant visual language, semantic color meaning, compact cards, readable RTL labels, and no clipping at small phone widths.
+- Acceptance: compare Home, Calendar, Notebook list/editor, Report Center, Next Action, Task details/forms, settings and other card-based surfaces on an installed Android build. Ensure text remains readable and existing interactions/data remain unchanged.
+- Status: code staged; CI was pending and Device Smoke skipped at last check. No owner/device acceptance claimed. Separate Notebook checklist toggle defect remains open.
