@@ -59,6 +59,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
 
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _noteController;
   late final TextEditingController _tagController;
   late final TextEditingController _checklistController;
   late final FocusNode _tagFocusNode;
@@ -99,6 +100,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _descriptionController = TextEditingController(
       text: task?.description ?? widget.initialDescription ?? '',
     );
+    _noteController = TextEditingController(text: task?.note ?? '');
     _tagController = TextEditingController();
     _checklistController = TextEditingController();
     _tagFocusNode = FocusNode();
@@ -141,6 +143,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _noteController.dispose();
     _tagController.dispose();
     _checklistController.dispose();
     _recurrenceIntervalController.dispose();
@@ -663,6 +666,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ? 'بدون عنوان'
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
+        note: _noteController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
         followUpEnabled: _followUpEnabled,
@@ -1057,6 +1061,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           )).toList(),
                         ),
                       ],
+                      const SizedBox(height: 10),
+                      TextField(
+                        key: const ValueKey('task-editor-note'),
+                        controller: _noteController,
+                        style: const TextStyle(color: Color(0xFF232433)),
+                        cursorColor: _brand,
+                        minLines: 3,
+                        maxLines: 5,
+                        decoration: _fieldDecoration(
+                          label: 'یادداشت',
+                          hint: 'یادداشت‌های تکمیلی را بنویسید…',
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       _dateTimeEditor(
                         keyPrefix: 'task-editor-reminder',
