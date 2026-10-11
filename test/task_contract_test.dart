@@ -28,7 +28,6 @@ void main() {
       id: 'round-trip-1',
       title: 'عنوان',
       description: 'توضیح کوتاه',
-      note: 'یادداشت مستقل',
       createdAt: DateTime.parse('2026-08-01T08:00:00.000'),
       updatedAt: DateTime.parse('2026-08-02T09:00:00.000'),
       dueDate: DateTime.parse('2026-08-02T18:30:00.000'),
@@ -60,7 +59,6 @@ void main() {
     expect(restored.id, original.id);
     expect(restored.title, original.title);
     expect(restored.description, original.description);
-    expect(restored.note, original.note);
     expect(restored.createdAt, original.createdAt);
     expect(restored.updatedAt, original.updatedAt);
     expect(restored.dueDate, original.dueDate);
@@ -88,7 +86,6 @@ void main() {
     });
 
     expect(task.description, '');
-    expect(task.note, '');
     expect(task.tags, isEmpty);
     expect(task.checklist, isEmpty);
     expect(task.followUps, isEmpty);
@@ -98,6 +95,18 @@ void main() {
     expect(task.trashed, isFalse);
     expect(task.completed, isFalse);
     expect(task.recurrence, isNull);
+  });
+
+  test('legacy root note is ignored; Description remains the only Task text field', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-root-note',
+      'title': 'کار قدیمی',
+      'description': 'توضیح اصلی',
+      'note': 'یادداشت ریشه‌ای غیرمجاز',
+    });
+
+    expect(task.description, 'توضیح اصلی');
+    expect(task.toJson().containsKey('note'), isFalse);
   });
 
   test('due date stays independent from reminder and follow-up timestamps', () {
