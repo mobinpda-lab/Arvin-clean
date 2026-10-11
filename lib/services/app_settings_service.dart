@@ -272,6 +272,32 @@ class AppSettingsService {
     };
   }
 
+  /// Applies only settings keys actually present in the backup. Legacy
+  /// backups may omit newer fields, so absent values must keep the current
+  /// device's settings rather than falling back to defaults.
+  static Map<String, dynamic> mergePortableJson({
+    required Map<String, dynamic> current,
+    required Map<String, dynamic> incoming,
+  }) {
+    final merged = Map<String, dynamic>.from(current);
+    for (final entry in incoming.entries) {
+      final value = entry.value;
+      if ((entry.key == 'calendarIntegration' ||
+              entry.key == 'backupSchedule') &&
+          value is Map) {
+        final existingNested = merged[entry.key];
+        merged[entry.key] = <String, dynamic>{
+          if (existingNested is Map)
+            ...Map<String, dynamic>.from(existingNested),
+          ...Map<String, dynamic>.from(value),
+        };
+      } else {
+        merged[entry.key] = value;
+      }
+    }
+    return merged;
+  }
+
   AppSettings decodePortableJson(Map<String, dynamic> json) {
     final rawThemeMode = json['themeMode'];
     final rawPersianDate = json['usePersianDate'];
