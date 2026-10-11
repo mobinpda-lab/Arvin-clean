@@ -141,3 +141,8 @@ This section supersedes earlier next-action text where it conflicts. Do not rest
 ### Current bottleneck
 Product acceptance and proof on the current exact head—not another parallel architecture or factory. Keep Task as source of truth, Repeat as Task behavior, occurrence checklist state independent, past history immutable and future settings adjustable.
 
+## Fresh CI checkpoint — PR #2602 exact head (2026-10-11)
+- Checked workflow run [#38139809938](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38139809938) for PR #2602 head `15c40a81ec7e45fe690de40ebbd9cf005e57af80`: Debug and Release APK jobs passed, but overall Build failed because three quality test shards failed. Device Smoke [#38139809930](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38139809930) was skipped.
+- Confirmed failures: repeat lifecycle control key missing; recurrence RollBox key missing; automatic/manual reminder tests failed; date-only All-Day persistence failed; custom due-time Clock Dial test failed; RTL taxonomy row width expected >270 px but actual 99.33 px.
+- Recorded exact evidence in PR #2602 comment [#6109904220](https://github.com/mobinpda-lab/Arvin-clean/pull/2602#issuecomment-6109904220). Do not merge or weaken tests; fix reachability/date-time/layout root causes and rerun all shards + Device Smoke.
+
