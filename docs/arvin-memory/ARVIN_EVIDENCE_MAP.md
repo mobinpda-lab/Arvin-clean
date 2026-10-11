@@ -248,3 +248,12 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - APK evidence: Debug artifact 11712873761, SHA-256 `a6c6be99448d9160e2ddee09b8d6b03e198c9999fb8f48f6d31ec26a528806a5`; Release artifact 11712389980, SHA-256 `4c9b5deb4d84a8a097b42ca42594e1edf7b0e16657083fb91402ad8d5794f7a4`.
 - Smoke artifacts: Home 11712218995; Quick Capture 11713050656; People 11713400184. No Backup/Restore artifact is listed. Lane success proves automation only, not real Android file-provider or physical-device data integrity.
 - Remaining acceptance evidence: physical-device Calendar edit updates the same event without duplicates; real file-provider backup/restore round-trip, rollback and Calendar-link integrity; recurrence/occurrence/checklist golden flow; compact-screen RTL and Quick Capture label review; explicit owner approval. Release remains BLOCKED until these are reviewed and accepted.
+
+
+## Live exact-main evidence recheck — 2026-10-11 (additive correction)
+
+- Confirmed symbolic `main` is identical to `d8afc717eaf02d6d0bedf92e800c7f93209c97bd` using GitHub commit comparison.
+- Build: [run 38167835381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835381). Analyze, all six test shards, Debug APK and Release APK: SUCCESS.
+- Device Smoke: [run 38167835426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835426). Backup/Restore, Quick Capture, Home, People, SQL Migration and SQL Persistence: SUCCESS.
+- Scope limitation: this is automated/emulator evidence. It does not prove physical-device same-event Calendar updates, real system file-provider Backup/Restore/rollback integrity, restored Calendar-link integrity, compact-screen RTL visual acceptance, full Repeat/Occurrence + Checklist Golden Flow, or owner release acceptance.
+- No physical-device proof or owner acceptance is claimed. Keep release gate [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN.
