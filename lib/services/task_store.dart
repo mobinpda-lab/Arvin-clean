@@ -478,7 +478,7 @@ class TaskStore {
     Map<String, dynamic>? previousPayload,
   }) {
     final knownKeys = <String>{
-      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+      'id', 'title', 'description', 'note', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
       'completed', 'followUps', 'recurrence', 'people',
