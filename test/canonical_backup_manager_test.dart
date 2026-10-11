@@ -41,7 +41,6 @@ Task _completeTask() {
     id: 'task-full',
     title: 'کار کامل',
     description: 'توضیح کوتاه',
-    note: 'یادداشت مستقل',
     createdAt: DateTime(2026, 8, 20, 8),
     updatedAt: DateTime(2026, 8, 26, 12),
     followUpEnabled: true,
@@ -91,7 +90,6 @@ void main() {
     expect(restored.id, 'task-full');
     expect(restored.category, 'فروش');
     expect(restored.description, 'توضیح کوتاه');
-    expect(restored.note, 'یادداشت مستقل');
     expect(restored.checklist, ['تماس', 'ارسال فایل']);
     expect(restored.reminderDate, DateTime(2026, 8, 28, 10, 30));
     expect(restored.followUps, hasLength(1));
