@@ -299,3 +299,23 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - GitHub Read/Write: read current branch sources and memory docs; wrote application/test changes on the feature branch and appended the decision to Decision Log, Project Knowledge and User Experience Log on docs/arvin-autonomous-memory-20261011. No merge to main.
 - Validation status: not yet verified for this exact head. Run Analyze, focused and full tests, Debug/Release APK, then Android small-screen RTL visual checks. Device Smoke and owner acceptance remain required.
 - Explicit boundaries: no separate Note-to-Task relation exists in the current canonical model; external phone-calendar-only events are not confirmed Report Center inputs. Do not claim either capability.
+
+
+## LIVE CONTINUATION CHECKPOINT — 2026-10-11 18:06 UTC / PR #2607
+
+- Re-read the current execution checkpoint before continuing. Audited PR #2607 exact head and workflow failures for Report Center filter tests.
+- Current application PR: #2607 remains OPEN/DRAFT, head `9ae99714e3cc36fe73814b1c0af0c3611adff2d4`, based on current main `a6ced27660d34cd87dd8915aff68d3a7555fd57a`.
+- Exact failure evidence from previous run #38161588760: shard 2 failed because `report-filter-apply` was absent at test line 111 after prior interactions; shard 4 showed the category header's tap offset hit the modal barrier at test line 173, then `Bad state: No element` at line 180.
+- Safe test-only correction committed to the PR branch: replace `ensureVisible` with `scrollUntilVisible` using the filter sheet ListView, and scroll the Apply button into view before tapping. Commit: https://github.com/mobinpda-lab/Arvin-clean/commit/9ae99714e3cc36fe73814b1c0af0c3611adff2d4.
+- Exact-head Build workflow `38162419144` is QUEUED at checkpoint time: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38162419144. No pass/fail result exists yet. Do not treat this as validated.
+- Correction to prior note: Report Center `_pickTime` already uses `showUniversalArvinTimePicker`, and the test checks `universal-time-selected-value`. The earlier claim that the generic Flutter time picker remained in Report Center was stale and has been corrected in the existing PR comment.
+- Completed this step: root failure evidence extracted; test-only correction committed; PR comment updated; memory checkpoint being recorded.
+- In progress: exact-head CI result, especially shards 2 and 4; if still failing, inspect fresh logs and fix the actual UI/test root cause without weakening assertions.
+- Blocked: merge/release acceptance until exact-head Analyze, all test shards, Debug/Release builds, Device Smoke, small-screen Android RTL visual validation, and owner acceptance are complete. No APK/device evidence has been produced by this step.
+- GitHub Read/Write access verified. No write to `main`, no merge, no release, and no claim of successful validation.
+
+### Next action
+1. Poll workflow run #38162419144 and inspect all test shard conclusions.
+2. If tests pass, review complete workflow result and confirm Device Smoke status; do not confuse skipped smoke with device acceptance.
+3. If either test still fails, extract the new exact stack trace and diagnose before editing again.
+4. Update the problem register and evidence map only with this commit and confirmed CI results; keep PR #2607 Draft until the complete acceptance gate passes.
