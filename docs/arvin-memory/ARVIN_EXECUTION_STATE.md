@@ -383,3 +383,14 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Device Smoke #38163500919 is SKIPPED due to Draft PR gating. The available GitHub tool set has no workflow-dispatch action, so I did not claim to launch a manual smoke run. Do not mark this as passed.
 - Issue #2102 and PR #1901 remain OPEN. Main is still `a6ced27660d34cd87dd8915aff68d3a7555fd57a`; no release/merge or owner-facing PR state change performed.
 - Next action remains: poll the exact-head Build run for terminal results; inspect fresh failed-job logs once available. Device Smoke requires an authorized non-Draft/manual path; physical-device and owner acceptance remain outstanding.
+
+
+### Exact-head test diagnosis and follow-up — 2026-10-11 18:26 UTC
+
+- Build #38163500776 on `c2a1b2ff57465e0e0b393b1e6d28fa010dadc439` progressed far enough to expose a fresh shard-4 failure in `test/report_center_page_test.dart`, test `report filter sections collapse and expand without losing selections`. The log reports 181 tests passed and 1 failed.
+- Root cause is now concrete: after collapsing the filter section, the test immediately called `tester.widget<FilterChip>(categoryChip)` at line 206. The collapsed `ExpansionTile` unmounts its child subtree, so the finder has no mounted element (`Bad state: No element`). This is a test assertion/lifecycle assumption, not evidence of a production report-filter failure.
+- Applied a narrow test-only correction: remove the invalid assertion while collapsed and verify the selected chip after reopening, when it is mounted again. No production source, Task model, storage, or architecture changed.
+- Commit: [`7526dc186a26d099368fb288fdc7891ed57222ce`](https://github.com/mobinpda-lab/Arvin-clean/commit/7526dc186a26d099368fb288fdc7891ed57222ce).
+- Exact-head Build run #38163761104 is PENDING for the new commit. Device Smoke #38163760935 is SKIPPED because PR #2607 remains Draft. This correction is not validated until the new run reaches terminal success.
+- PR #2607 remains OPEN/Draft. Release gate issue #2102 and regression PR #1901 remain open; no merge, release, or Draft-state change was made.
+- Next action: inspect exact-head Build #38163761104 and its shard-4 result; if it fails, read the new log before making any further change. Device Smoke, physical-device checks, and owner acceptance remain required.
