@@ -1858,6 +1858,17 @@ class _HomePageState extends State<HomePage> {
       final restoredSettings = candidate.settings == null
           ? null
           : appSettingsService.decodePortableJson(candidate.settings!);
+      if (candidate.settings != null) {
+        final rawSchedule = candidate.settings!['backupSchedule'];
+        if (rawSchedule != null && rawSchedule is! Map) {
+          throw const FormatException('Arvin backup schedule settings are invalid');
+        }
+        if (rawSchedule is Map) {
+          BackupSchedule.decodePortableJson(
+            Map<String, dynamic>.from(rawSchedule),
+          );
+        }
+      }
       final tasksBeforeRestore = await taskStore.load();
       previousTasks = tasksBeforeRestore;
       final projectsBeforeRestore = await ProjectStore().load();
@@ -1896,7 +1907,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text('بازیابی اطلاعات'),
           content: Text(
             'تعداد ${list.length} کار از پشتیبان آماده بازیابی است.\n'
-            '${restoredSettings == null ? 'این پشتیبان تنظیمات برنامه ندارد.' : 'تنظیمات برنامه نیز همراه این پشتیبان بازیابی می‌شود.'}\n'
+            '${restoredSettings == null ? 'این پشتیبان تنظیمات ندارد و تنظیمات فعلی حفظ می‌شوند.' : 'فقط تنظیمات موجود در فایل پشتیبان به‌روز می‌شوند.'}\n'
             '${candidate.calendarLinks == null ? 'این فایل قدیمی اطلاعات پیوند تقویم گوشی را ندارد؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ می‌شوند.' : 'پیوندهای فایل با پیوندهای فعلی ادغام می‌شوند؛ پیوندهای این دستگاه اولویت دارند و پیش از همگام‌سازی بررسی می‌شوند.'}\n\n'
             'قبل از بازیابی، یک پشتیبان اضطراری کامل نیز ساخته شد.',
           ),
@@ -1953,8 +1964,12 @@ class _HomePageState extends State<HomePage> {
           );
           await widget.restoreStageHook?.call('calendar-links');
           if (restoredSettings != null) {
-            await appSettingsService.restorePortableJson(candidate.settings!);
-            final rawSchedule = candidate.settings!['backupSchedule'];
+            final mergedSettings = AppSettingsService.mergePortableJson(
+              current: settingsBeforeRestore,
+              incoming: candidate.settings!,
+            );
+            await appSettingsService.restorePortableJson(mergedSettings);
+            final rawSchedule = mergedSettings['backupSchedule'];
             if (rawSchedule is Map) {
               final restoredSchedule = BackupSchedule.decodePortableJson(
                 Map<String, dynamic>.from(rawSchedule),
