@@ -39,14 +39,30 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - PR #2585 is not merged; review final diff and PR status checks before deciding merge.
 - Release remains blocked despite Build success.
 
-## Next Action
-1. Recheck all six Device Smoke jobs and exact-head run conclusion for `05c080e`.
-2. Investigate/fix any failing smoke lane; rerun required checks for any changed head.
-3. Review #2585 final diff, exact-head checks and PR status; only then consider merge under established gates.
-4. Continue #2580 read-only taxonomy audit and keep Project/Category/Tag distinct; no schema change without an explicit owner decision.
-5. Triage P0 Calendar issue #2535 in parallel, but coordinate overlapping source files and do not claim fixed without installed-device acceptance.
-6. Perform physical-device/file-provider restore and Calendar identity/no-duplicate acceptance.
-7. Finish Golden Flow and release handover documents.
+## Next Action — tracked checklist
+
+### A. CI and PR #2585
+- [ ] A1. Recheck all six jobs in [Android Device Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041).
+- [ ] A2. Record final SQL migration and SQL persistence results.
+- [ ] A3. Record Backup/Restore and People outcomes; if a lane fails, inspect logs, make a minimal safe fix, and rerun required checks on the new exact head.
+- [ ] A4. Review final diff, exact head, mergeability and required checks on [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585). Do not merge before acceptance gates.
+
+### B. Calendar P0 #2535
+- [ ] B1. Trace callbacks from main.dart through OfficialCalendarPage to CalendarPage; identify where Edit/device-calendar actions are lost.
+- [ ] B2. Trace visible-range recurrence projection and identify why dates beyond today are missing.
+- [ ] B3. Reconcile the requested count up to 7 with architecture gate #2254; do not change recurrence semantics without approval.
+- [ ] B4. Add/fix focused regression tests only for an evidenced gap; preserve canonical Task identity and stable external-event mapping.
+- [ ] B5. Run focused tests, Analyze, full tests, Debug/Release and exact-head Device Smoke on any fix.
+- [ ] B6. Verify on a real installed Android build: Edit, register/edit phone-calendar event, all scheduled recurrence dates through seven occurrences, and no duplicate Task/event.
+- [ ] B7. Attach commit, test results and device evidence to Issue #2535; close only after acceptance.
+
+### C. Physical acceptance and handover
+- [ ] C1. Exercise restore using the real Android system file picker/provider and record evidence.
+- [ ] C2. Verify Task, Category/Tag, Repeat, History and Calendar Link survive successful and failed restore paths.
+- [ ] C3. Complete Golden Flow across Task, Calendar, Repeat, Checklist, Tracking, Backup and Restore.
+- [ ] C4. Complete Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report.
+
+Done criteria: commit + tests + build + risk-appropriate acceptance evidence. Green CI alone is not physical-device acceptance.
 
 ## Current Bottleneck
 **Android Device Smoke completion**, followed by physical-device backup/restore and Calendar acceptance.
