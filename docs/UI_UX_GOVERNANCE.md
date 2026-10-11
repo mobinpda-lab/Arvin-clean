@@ -43,3 +43,10 @@ A feature is not visually complete merely because its logic and CI pass. Relevan
 
 ## Relationship to existing documentation
 `docs/contracts/UI_VISUAL_ACCEPTANCE.md` remains the detailed visual acceptance contract. This document adds governance: it protects that direction from accidental or unauthorized drift during future development.
+
+
+## Cross-screen visual and report-filter continuity — owner direction 2026-10-11
+
+The approved soft-pastel visual language from Home and Calendar is to be extended consistently to Notebook, Reports, forms, settings, details and other existing screens. Preserve Persian RTL, VazirHarf v34.003, the approved Arvin palette, canonical data flows and existing navigation. Color must communicate status/domain identity; do not add duplicate screens or parallel components.
+
+Report filters must be compact expandable RollBoxes/accordions rather than a long always-expanded page. Preserve selection while collapsed; display icon, title, selected count, expansion indicator, selected chips and multi-select choices. Date/time UI must be Persian/Jalali-facing. See `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md` for the complete contract and `docs/arvin-memory/ARVIN_CONVERSATION_CONTINUITY_2026-10-11.md` for outstanding owner-reported requirements. These are not implementation acceptance.

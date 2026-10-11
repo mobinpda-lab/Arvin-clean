@@ -39,3 +39,8 @@ Older status files and dated reports remain historical records. They must not be
 - Category and Group are synonyms, not separate entities. Standard Persian UI term: «دسته».
 - Do not introduce parallel models/stores or a separate Group concept. Review the ADR before changes to Task, filters, search, reports, calendar, repeat or backup/restore.
 - The semantic Project → Category → Task diagram does not prove a database Category-to-Project foreign key; that relationship remains an explicit audit question until evidenced and decided.
+
+
+## Owner continuity checkpoint — 2026-10-11
+
+The owner is explicitly concerned that requirements raised earlier in conversations may be forgotten. Treat `docs/arvin-memory/ARVIN_CONVERSATION_CONTINUITY_2026-10-11.md` as the compact handoff checklist to read before future Arvin work, and `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md` as the report-filter decision contract. They preserve owner requests and distinguish requested behavior from verified implementation. Before any related change, refresh live GitHub state, inspect overlapping PRs/branches, avoid duplicate work, and report exact evidence; do not infer completion from memory documentation.
