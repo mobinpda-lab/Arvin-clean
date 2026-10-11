@@ -1,9 +1,39 @@
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/report_center_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Report Center uses pastel colors for task status cards', (tester) async {
+    final now = DateTime(2026, 10, 7, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: now,
+          tasks: [
+            Task(id: 'done', title: 'انجام‌شده', completed: true),
+            Task(id: 'late', title: 'عقب‌افتاده', dueDate: DateTime(2026, 10, 6, 9)),
+            Task(id: 'planned', title: 'برنامه‌ریزی‌شده', dueDate: DateTime(2026, 10, 8, 9)),
+          ],
+        ),
+      ),
+    );
+
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-done'))).color,
+      ArvinColors.timeSoft,
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-late'))).color,
+      ArvinColors.errorSoft,
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-planned'))).color,
+      ArvinColors.projectSoft,
+    );
+  });
+
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
