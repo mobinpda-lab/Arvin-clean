@@ -18,7 +18,7 @@ Authority: live GitHub refs, source, tests and workflow evidence.
   - Daily Content preferences are included in foreground and scheduled backup payloads and validated before restore writes.
   - Scheduled backups now include Calendar-link metadata and canonical Category/Tag catalogs in addition to Tasks, Projects and portable settings.
   - Added tests for Task/Project reconciliation, local-only Notebook/checklist retention, partial legacy settings, explicit nullable settings and scheduled-backup payload contents.
-- Current code PR #2585 head: `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`. Exact-head Analyze is SUCCESS; all six test shards and Debug/Release APK jobs are running, and Device Smoke is queued. Previous exact heads exposed a settings expectation and three stale test contracts for replace-only restore; those expectations were updated to the approved ID-reconciliation contract before the current head.
+- Current code PR #2585 head: `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`. Exact-head Analyze and all six test shards are SUCCESS; Debug APK is SUCCESS; Release APK is still IN_PROGRESS. Device Smoke: Home and Quick Capture are SUCCESS; SQL Migration and SQL Persistence are IN_PROGRESS; Backup/Restore and People are QUEUED. These are emulator/CI results, not physical-device acceptance. Previous exact heads exposed stale settings/replace-only test expectations; these were updated to the approved ID-reconciliation contract before the current head.
 - PR #2585 remains OPEN / NOT MERGED. CI and emulator results do not prove real Android system file-picker/provider acceptance.
 - Main base observed for PR #2585: `72a2f4cc24df7a38eff9856ce403461615db5280` (documentation-only PCTADP decision registration).
 - Calendar linked-event edit [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is merged at [`34a6cee`](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128); physical-device proof remains absent.
@@ -27,7 +27,7 @@ Authority: live GitHub refs, source, tests and workflow evidence.
 
 ## Current GitHub reality
 - [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) remains open for the repository-wide Project/Category/Tag ontology audit. Owner approval for unused Category/Tag portability is recorded.
-- [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585) is the sole implementation path for backup/restore changes. Current head `254b86c`; exact-head Analyze succeeded, full Build and Device Smoke remain pending at this checkpoint.
+- [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585) is the sole implementation path for backup/restore changes. Current head `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`; exact-head Analyze and all six test shards succeeded, Debug APK succeeded, Release APK and four Device Smoke lanes remain pending/in progress at the latest live check.
 - Existing canonical storage remains authoritative: Tasks/Notebook items use TaskStore; Projects use ProjectStore; Category/Tag catalogs use TaskStore; Calendar-link identity uses ExternalCalendarLinkStore. No duplicate storage or restore engine was added.
 - Notes and Notebook checklists are canonical Task records; backup paths load the full TaskStore rather than a filtered Home projection.
 - Portable settings currently include AppSettingsService values, backup schedule and Daily Content preferences. Device-bound folder/provider URIs, secrets and transient encryption passphrases are not portable settings.
@@ -50,14 +50,14 @@ Authority: live GitHub refs, source, tests and workflow evidence.
 5. Continue the repository-wide Project/Category/Tag audit and keep PR #2585 and #2587 open until physical acceptance is evidenced.
 
 ## Blocked / unproven
-- Exact-head Build and Device Smoke for `254b86c` are still running/queued at this update.
+- Exact-head Release APK and Device Smoke for `5f59d7c7edb12217a2aa3f7a139a042676dc0e76` are still running/queued at the latest live check.
 - Physical Android file-picker/provider backup and restore, failed-restore recovery and real data-integrity acceptance.
 - Physical-device Calendar same-ID edit/no-duplicate behavior, action visibility, recurrence/checklist acceptance.
 - Full Golden Flow: Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore.
 - Full taxonomy conformance inventory and final release handover/owner acceptance.
 
 ## Next actions
-- Poll exact-head Actions for `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`; use only evidence attached to that exact head.
+- Poll exact-head Actions for `5f59d7c7edb12217a2aa3f7a139a042676dc0e76`; use only evidence attached to that exact head. If Release APK and Device Smoke settle, refresh this checkpoint and the evidence map.
 - If any job fails, inspect its log, fix the root cause in the same PR, and rerun validation on the new head.
 - Update the evidence map after Build/Smoke settles, then continue physical-device acceptance and remaining taxonomy audit.
 - Keep PRs open/unmerged; never claim release readiness from CI alone.
