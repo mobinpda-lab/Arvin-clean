@@ -292,3 +292,10 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - Corrected the test placement in commit `571e5ed7c6751bcf56ba042a02ed6081e7023b0f` so helper declarations precede the test. This is a test-order fix, not a weakening of assertions.
 - Latest PR head refreshed via GitHub: `571e5ed7c6751bcf56ba042a02ed6081e7023b0f`. New Build run [38158724999](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158724999) is running; exact-head Analyze/tests/APK results are not yet final. Device Smoke [38158725094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158725094) skipped.
 - Keep PR #2607 Draft. Next: inspect the new Analyze/test/build conclusions, repair root causes if needed, and only then arrange installed Android visual review.
+
+## Report filter extension — 2026-10-11
+- Owner reported the Report Center date filter still showed the Gregorian calendar and requested a compact, pastel, multi-select filter experience.
+- Product implementation is in progress on PR #2607 / branch feat/calendar-pastel-compact-cards-20261011: switched report date selection to the existing Jalali picker; converted filter sections to expandable roll boxes; added multi-select status and Tracking filters; added canonical Notebook title/description, kind and created/updated date filtering; added regression tests.
+- GitHub Read/Write: read current branch sources and memory docs; wrote application/test changes on the feature branch and appended the decision to Decision Log, Project Knowledge and User Experience Log on docs/arvin-autonomous-memory-20261011. No merge to main.
+- Validation status: not yet verified for this exact head. Run Analyze, focused and full tests, Debug/Release APK, then Android small-screen RTL visual checks. Device Smoke and owner acceptance remain required.
+- Explicit boundaries: no separate Note-to-Task relation exists in the current canonical model; external phone-calendar-only events are not confirmed Report Center inputs. Do not claim either capability.
