@@ -77,6 +77,62 @@ class ArvinBackupManager {
   final ArvinBackupService service;
   final ProjectPlanCodec projectCodec;
 
+  /// Reconciles backup records by canonical Task ID. Matching records are
+  /// updated from the backup; backup-only records are appended; local-only
+  /// records remain untouched. Titles and dates are never used as identity.
+  static List<Task> reconcileTasksById({
+    required Iterable<Task> current,
+    required Iterable<Task> backup,
+  }) {
+    final result = List<Task>.of(current);
+    final indexById = <String, int>{};
+    for (var index = 0; index < result.length; index++) {
+      indexById[result[index].id] = index;
+    }
+    for (final incoming in backup) {
+      final existingIndex = indexById[incoming.id];
+      if (existingIndex == null) {
+        indexById[incoming.id] = result.length;
+        result.add(incoming);
+      } else {
+        result[existingIndex] = incoming;
+      }
+    }
+    return List<Task>.unmodifiable(result);
+  }
+
+  /// Merges Projects by canonical ID while retaining local-only Projects.
+  /// For a matching Project, backup fields win, but memberships of local-only
+  /// Tasks are retained so importing another device cannot orphan local work.
+  static List<ProjectPlan> reconcileProjectsById({
+    required Iterable<ProjectPlan> current,
+    required Iterable<ProjectPlan> backup,
+    required Set<String> localOnlyTaskIds,
+  }) {
+    final currentById = <String, ProjectPlan>{
+      for (final project in current) project.id: project,
+    };
+    final result = <ProjectPlan>[];
+    final seen = <String>{};
+    for (final incoming in backup) {
+      final existing = currentById[incoming.id];
+      final merged = existing == null
+          ? incoming
+          : incoming.copyWith(
+              itemIds: <String>{
+                ...incoming.itemIds,
+                ...existing.itemIds.where(localOnlyTaskIds.contains),
+              },
+            );
+      result.add(merged);
+      seen.add(incoming.id);
+    }
+    for (final existing in current) {
+      if (seen.add(existing.id)) result.add(existing);
+    }
+    return List<ProjectPlan>.unmodifiable(result);
+  }
+
   Future<void> setDirectory(String? uri) async {
     final prefs = await SharedPreferences.getInstance();
     if (uri == null || uri.isEmpty) {
