@@ -237,3 +237,10 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - Latest branch head observed: `cc8180575bb50087283c43a444d54af05de9bc81`. GitHub workflow runs associated with this exact head were queued at last check (ARVIN Orchestrator PR Wakeup, ARVIN Production Loop, ARVIN Orchestrator). Therefore code is changed, but Analyze/tests/build/device validation are **PENDING**, not passed.
 - Read-back checks: Task class has no root note field; Task Editor has no note controller or root note input; Task contract regression test is present; TaskStore known Task keys no longer add root note. No merge, main write, APK build, or release occurred.
 - Next action: inspect workflow/job status for exact head `cc8180575bb50087283c43a444d54af05de9bc81`; fix any real failures without weakening assertions. Recheck PR #2602 for the same forbidden root field and resolve its previously failing shards separately. Keep #2595/#2602 Draft until evidence passes.
+
+
+## Validation read-back correction — 2026-10-11
+- Exact latest code head remains `cc8180575bb50087283c43a444d54af05de9bc81` for the Task Description-only correction.
+- Associated runs `38150519178` (PR Wakeup), `38150519183` (Production Loop), and `38150519223` (Orchestrator) completed successfully, but they are orchestration jobs only. Combined commit status returned no statuses. This is **not** Analyze/test/build evidence; product validation remains pending.
+- Read-only inspection of current `main/lib/notebook_page.dart` confirms Notebook notes are handled through the Notebook repository/editor and `description`; that code was not changed. `FollowUp.note` remains in its own nested model and storage.
+- PR #2595 progress comment posted: https://github.com/mobinpda-lab/Arvin-clean/pull/2595#issuecomment-6110XXXXXXX (GitHub returned comment ID 6110488803).
