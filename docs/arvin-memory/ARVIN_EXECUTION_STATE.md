@@ -481,3 +481,16 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - Device Smoke [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708) was skipped because PR #2607 remains Draft; that does not validate UI/device behavior.
 - Continue monitoring this existing run; do not trigger duplicate CI. If the test shard 4 failure is resolved, wait for every remaining shard and both APK jobs to finish successfully on the same head. Then request/run Device Smoke and perform small-screen RTL/physical-device review. Shared time picker source overlap with PR #2591 still needs reconciliation before any merge.
 - Release gate #2102 remains open; no merge, publish, or Release Ready claim.
+
+
+## Exact-head validation result — Report Center (2026-10-11)
+
+- Rechecked PR #2607 head commit `8d3d60a1b321fa4ceb9f5da779a144d3705b9103` and Build run [38166678767](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678767).
+- **PASS on this exact head:** Analyze, all six quality test shards (0–5), Debug APK build, and Release APK build. Both APK artifacts were uploaded:
+  - `arvin-debug-apk`, artifact ID `11712403085`, SHA-256 `78566ec458aed40fa36cc43d58c1cd3fd94bb8be18f501d0b8010942bdd8893b`.
+  - `arvin-release-apk`, artifact ID `11712088044`, SHA-256 `ff8acc7c4a30e9178ca22d08eebc60b85b4789b4af9657740bd02069ca2de53c`.
+- Device Smoke [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708) remains `skipped` because PR #2607 is Draft. This is not a device acceptance pass; installed-device, small-screen Persian/RTL visual review, and owner acceptance remain outstanding.
+- Current PR states rechecked: #2607 remains open/Draft; #2591 remains open/Draft. Release gate issue #2102 remains OPEN/BLOCKED.
+- Compared shared file blob SHAs at exact PR heads. `lib/widgets/universal_arvin_time_picker.dart` is byte-identical on #2607 and #2591 (blob `caacc5539c5f2304a1a060f5e3610a25987a6619`). `lib/main.dart` and `lib/report_center_page.dart` differ because each PR carries additional integration changes. Reconcile these overlapping integration paths before merge; do not blindly merge either PR.
+- No production-code change or merge was made in this continuation. The prior test-only fix remains validated by the passing exact-head CI above.
+- **Next action:** use the successful APK artifacts for installed-device acceptance through an authorized device path; if device access is unavailable in this session, keep that gate explicitly blocked. Continue reviewing the overlapping #2607/#2591 patches and release gate #2102 without changing Draft state or claiming Release Ready.
