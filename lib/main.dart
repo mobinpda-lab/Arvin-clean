@@ -19,6 +19,7 @@ import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
 import 'services/app_settings_service.dart';
+import 'services/daily_content_preferences_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/calendar_inbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
@@ -1793,9 +1794,12 @@ class _HomePageState extends State<HomePage> {
   Future<Map<String, dynamic>> _portableBackupSettings() async {
     final settings = await appSettingsService.load();
     final schedule = await BackupSchedule.load();
+    final dailyContentService = DailyContentPreferencesService();
+    final dailyContent = await dailyContentService.load();
     return <String, dynamic>{
       ...appSettingsService.toPortableJson(settings),
       'backupSchedule': schedule.toPortableJson(),
+      'dailyContentPreferences': dailyContentService.toPortableJson(dailyContent),
     };
   }
 
@@ -1866,6 +1870,15 @@ class _HomePageState extends State<HomePage> {
         if (rawSchedule is Map) {
           BackupSchedule.decodePortableJson(
             Map<String, dynamic>.from(rawSchedule),
+          );
+        }
+        final rawDailyContent = candidate.settings!['dailyContentPreferences'];
+        if (rawDailyContent != null && rawDailyContent is! Map) {
+          throw const FormatException('Daily Content preferences are invalid');
+        }
+        if (rawDailyContent is Map) {
+          DailyContentPreferencesService.validatePortableJson(
+            Map<String, dynamic>.from(rawDailyContent),
           );
         }
       }
@@ -1976,6 +1989,12 @@ class _HomePageState extends State<HomePage> {
               );
               await restoredSchedule.save();
             }
+            final rawDailyContent = mergedSettings['dailyContentPreferences'];
+            if (rawDailyContent is Map) {
+              await DailyContentPreferencesService().restorePortableJson(
+                Map<String, dynamic>.from(rawDailyContent),
+              );
+            }
             final appliedSettings = await appSettingsService.load();
             if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           }
@@ -1997,6 +2016,12 @@ class _HomePageState extends State<HomePage> {
             await BackupSchedule.decodePortableJson(
               Map<String, dynamic>.from(oldSchedule),
             ).save();
+          }
+          final oldDailyContent = previousSettings!['dailyContentPreferences'];
+          if (oldDailyContent is Map) {
+            await DailyContentPreferencesService().restorePortableJson(
+              Map<String, dynamic>.from(oldDailyContent),
+            );
           }
           for (final category in (candidate.categories ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
