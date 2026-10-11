@@ -66,3 +66,11 @@ Owner requirements:
 - Multi-select must support several projects, categories, tags, task statuses and note kinds at once.
 - Notes are reportable through the existing canonical Task/Notebook representation, including title/text and created/updated dates; no separate note/report data store.
 Current implementation pointer: PR #2607. Automated validation, small-screen RTL visual check, and owner acceptance are still pending. Note-to-another-Task linkage and external-calendar-only report ingestion remain explicit model/integration gaps, not claimed as implemented.
+
+
+## 2026-10-11 — Exact-main Device Smoke screenshot review
+- Environment: GitHub Actions Device Smoke artifacts for exact `main` SHA `d8afc717eaf02d6d0bedf92e800c7f93209c97bd`; screenshots are automation/emulator captures, not a user-reported physical-device session.
+- Home screenshot: primary task card, pastel quick filters and bottom navigation appear legible in the captured RTL viewport.
+- People screenshot: empty-state message and add-person action are visible; no user data is shown.
+- Quick Capture screenshot: selection controls use a compact three-column layout; several Persian labels are visibly clipped/truncated (e.g. project/category/tag and date/time-related chips). This is a P2 readability/UX issue to fix or explicitly validate at small phone widths.
+- Status: screenshot review completed for these three artifacts only. Backup/Restore and People jobs were not yet complete at the checkpoint; full exact-main Device Smoke and physical-device acceptance remain pending.
