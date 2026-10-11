@@ -101,9 +101,6 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
-      await tester.pumpAndSettle();
-
       await tester.ensureVisible(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
@@ -173,12 +170,21 @@ void main() {
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
 
-    await tester.tap(categorySection);
+    await tester.tap(find.descendant(
+      of: categorySection,
+      matching: find.text('دسته'),
+    ));
     await tester.pumpAndSettle();
-    expect(categoryChip, findsNothing);
-    await tester.tap(categorySection);
+    // ExpansionTile keeps its child subtree alive while collapsed; the selected
+    // value must remain intact when the section is reopened.
+    expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
+    await tester.tap(find.descendant(
+      of: categorySection,
+      matching: find.text('دسته'),
+    ));
     await tester.pumpAndSettle();
     expect(categoryChip, findsOneWidget);
+    expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
     expect(find.text('1'), findsOneWidget);
   });
 
