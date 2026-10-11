@@ -58,3 +58,11 @@ GitHub access: Read/Write
 - [PR #2587 Build #38089112669](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112669): all nine jobs succeeded. [Device Smoke #38089112675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112675): all six emulator lanes succeeded. Current validated head: `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
 - [Memory PR #2600 Build #38126050114](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126050114): all nine jobs succeeded. Device Smoke was skipped by workflow trigger; not applicable evidence for docs-only change. PR head: `1f96f8115bf11ecdd6f8a1acbaf69336120101de`.
 - No physical-device proof is available in these runs. Backup file-provider integrity and Calendar event identity/no-duplicate checks remain NOT VERIFIED.
+
+
+## Mainline and Calendar sync update — 2026-10-11
+- Current main commit: [72a2f4c](https://github.com/mobinpda-lab/Arvin-clean/commit/72a2f4cc24df7a38eff9856ce403461615db5280), a docs-only ontology decision registration.
+- Calendar linked-event edit fix [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is merged. Commit [34a6cee](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128) and its regression test assert an existing linked Task event is updated (one update, zero creates) even if the per-source auto-sync toggle is off during an explicit edit. Physical-device event identity/no-duplicate acceptance remains NOT VERIFIED.
+- Calendar collapsed-card action visibility is a separate unresolved issue tracked by open PR #2587; current-main UI still needs the fix and real-device acceptance.
+- Backup/restore latest code head [5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) has green Build and all six emulator lanes, but physical file-provider and user-data integrity acceptance remains NOT VERIFIED.
+- Memory docs PR #2600's current head is [09904f3](https://github.com/mobinpda-lab/Arvin-clean/commit/09904f30b6f955c034324d491df46cf6f98db3be); Build run #38126587378 was queued/in progress at the last check, while Device Smoke was skipped as docs-only.
