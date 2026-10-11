@@ -1,36 +1,34 @@
 # Arvin Evidence Map
 
-Updated: 2026-10-11 (live recheck)
+Updated: 2026-10-11 (fast-path live recheck)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 GitHub access: Read/Write
 
 | Feature / gate | Evidence | Latest status | Limitation / next proof |
 |---|---|---|---|
-| Restore rollback: Category/Tag catalogs | [Commit 05c080e](https://github.com/mobinpda-lab/Arvin-clean/commit/05c080e706690dd3eb6a96fc5c070971a43d1354); [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585) | Code and failure-injection tests committed; PR open | Smoke backup/restore still running; review current head/checks before merge |
-| Analyze + tests + APKs | [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) | Analyze, six test shards, Debug APK and Release APK succeeded on exact head 05c080e | Does not prove physical-device acceptance |
-| Android smoke: Home | [Device Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | Success | Emulator lane only |
-| Android smoke: Quick Capture | Same Device Smoke run | Success | Emulator lane only |
-| Android smoke: SQL migration | Same Device Smoke run | Success | Emulator lane only |
-| Android smoke: SQL persistence | Same Device Smoke run | Success | Emulator lane only |
-| Android smoke: Backup/Restore | Same Device Smoke run | In progress at latest live recheck | Must finish successfully |
-| Android smoke: People | Same Device Smoke run | In progress at latest live recheck | Must finish successfully |
-| Calendar task actions | [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535); [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587) | Source inspection confirms Edit and phone-calendar registration actions are present but only rendered inside the expanded card action area on main; PR #2587 specifically exposes primary actions on collapsed Task cards | PR #2587 has historical green CI on its own earlier head, is open/unmerged; verify current head/checks and real installed Android behavior |
-| Calendar recurrence | [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535), [architecture gate #2254](https://github.com/mobinpda-lab/Arvin-clean/issues/2254) | Existing launcher resolves occurrence IDs back to the canonical Task; no root cause for all scheduled dates has yet been proven by this recheck | Inspect current projection and count contract up to seven; do not create copied Tasks or change recurrence semantics without approval |
+| Restore rollback: Category/Tag catalogs | [Commit 05c080e](https://github.com/mobinpda-lab/Arvin-clean/commit/05c080e706690dd3eb6a96fc5c070971a43d1354); [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585) | Code and failure-injection tests committed; PR open | Recheck latest Backup/Restore smoke lane; then review exact head/checks |
+| Restore Build / Analyze / tests / APKs | [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) | Successful on exact head 05c080e | Does not prove physical-device acceptance |
+| Restore Device Smoke | [Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | Home, Quick Capture, SQL migration, SQL persistence and People succeeded; Backup/Restore was still in progress at last live query | Recheck until final result |
+| Calendar primary actions + recurrence test | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587); [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) | Latest documented head 4442ce450e4295e500a9db6d5dc5b4d9657b3770; Build #38089112669 and all six Smoke lanes in #38089112675 succeeded | PR remains open; physical-device acceptance is still required |
+| Calendar exact-head Build | [Build #38089112669](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112669) | Analyze, all six test shards, Debug APK and Release APK succeeded | CI only |
+| Calendar exact-head Smoke | [Smoke #38089112675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112675) | All six lanes succeeded: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore | Emulator lane only; no physical-device event-provider proof |
+| Seven-occurrence limit | [Commit 4442ce4](https://github.com/mobinpda-lab/Arvin-clean/commit/4442ce450e4295e500a9db6d5dc5b4d9657b3770); PR #2587 | Regression test checks a daily Task with count=7 and asserts the eighth scheduled date is absent; separate later-occurrence navigation test retained | Runtime/installed-device acceptance remains open |
+| Calendar action visibility root cause | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587) | Current main source renders Task action chips only when the card is expanded; PR exposes primary actions on collapsed cards | PR not merged; stale-head merge attempt was rejected by GitHub; re-fetch current head before any retry |
 | Taxonomy architecture | [ADR](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md), [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) | Contract accepted; audit open | Verify remaining UI/docs/surfaces and physical Category↔Project behavior |
-| Home grouping | [HomeGroupingService](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/home/grouping/home_grouping_service.dart) | Read-only inspection confirms grouping is a presentation projection over canonical Tasks; Category and Tag are separate grouping modes | Repository-wide audit remains |
+| Home grouping | [HomeGroupingService](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/home/grouping/home_grouping_service.dart) | Grouping is a presentation projection over canonical Tasks; Category and Tag are separate modes | Repository-wide audit remains |
 | Physical Android backup/restore | No linked device evidence | Not verified | Real system file picker/provider and before/after integrity record required |
-| Calendar event identity/no duplicates | No post-restore evidence linked | Not verified | Record Task ID, external event ID and event count before/after edit/re-sync |
+| Calendar event identity/no duplicates | No post-restore device evidence | Not verified | Record Task ID, external event ID and event count before/after edit/re-sync |
 | Golden Flow | Release checklist | Not verified end-to-end | Create Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore |
 | Release handover | No completed package evidence | Pending | Release notes, installation guide, user guide, known issues, architecture summary and evidence report |
 
 ## Calendar callback and visibility trace — Issue #2535
 
-- lib/main.dart wires onEditTask and onRegisterTaskToDeviceCalendar into CanonicalCalendarLauncher.
-- lib/widgets/canonical_calendar_launcher.dart passes these callbacks and the visible-range projection into IranianOfficialCalendarPage; the occurrence edit path resolves the occurrence suffix to the stable canonical Task ID.
-- lib/official_calendar_page.dart forwards callbacks and visible-range projection to CalendarPage.
-- lib/calendar_page.dart passes Edit and phone-calendar registration callbacks to _ReminderCard for recognized Task IDs (task-due:, task-reminder:, task-followup:).
-- In the current main card UI, those action chips are rendered only when _expanded && _hasActions; the Task Edit and phone-calendar registration chips are therefore hidden until the card is expanded. This is concrete source evidence consistent with the user's discoverability report.
-- Existing PR #2587 targets this precise visibility problem by exposing primary Task actions on collapsed cards. Keep it open until its current exact-head checks and physical-device acceptance are reviewed.
-- This source trace does not yet prove why all repeat dates are not displayed in the installed APK. Recurrence projection/count remains a separate unresolved acceptance item.
-- Latest exact-head smoke recheck for PR #2585: Home, Quick Capture, SQL migration, SQL persistence = success; Backup/Restore and People = in progress. Build/Analyze/test shards/Debug/Release APK passed on exact head 05c080e.
+- `lib/main.dart` wires `onEditTask` and `onRegisterTaskToDeviceCalendar` into `CanonicalCalendarLauncher`.
+- `lib/widgets/canonical_calendar_launcher.dart` passes callbacks and visible-range projection into `IranianOfficialCalendarPage`; occurrence editing resolves the occurrence suffix to the stable canonical Task ID.
+- `lib/official_calendar_page.dart` forwards callbacks and visible-range projection to `CalendarPage`.
+- `lib/calendar_page.dart` passes Edit and phone-calendar registration callbacks to `_ReminderCard` for recognized Task IDs.
+- On current main, the action chips are inside the `_expanded && _hasActions` conditional. This is source evidence consistent with the user's discoverability report.
+- PR #2587 already targets this issue. A merge attempt with stale expected head `e416f48` was rejected because the branch had changed; no merge occurred. Latest recorded validated head is `4442ce4`; all build and smoke lanes passed for that exact head.
+- The seven-occurrence regression test is recorded in `4442ce450e4295e500a9db6d5dc5b4d9657b3770`; it asserts the eighth date is not shown for count=7 and retains a separate later-occurrence navigation test.
+- Physical-device same-event edit/sync/no-duplicate, recurrence/checklist behavior, link recovery after restore, screenshot review and owner acceptance remain open. Keep PR #2587 unmerged until those gates are satisfied.
 - CI/emulator success is not physical-device acceptance or release approval.
