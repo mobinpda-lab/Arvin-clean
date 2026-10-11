@@ -195,6 +195,9 @@ void main() {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
 
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+
     final dateBox = find.byKey(const ValueKey('task-editor-due-date-rollbox'));
     await tester.ensureVisible(dateBox);
     await tester.tap(dateBox);
