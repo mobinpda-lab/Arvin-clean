@@ -254,13 +254,14 @@ class AppSettingsService {
       'fontSize': _normalizeFontSize(settings.fontSize),
       'swipeRightAction': settings.swipeRightAction.name,
       'swipeLeftAction': settings.swipeLeftAction.name,
-      if (family != null) 'fontFamily': family,
+      // Explicit null means the portable setting was intentionally left at
+      // the app default; old backups that omit the key remain distinguishable.
+      'fontFamily': family,
       'calendarIntegration': <String, dynamic>{
         'enabled': calendar.enabled,
         'showExternalEvents': calendar.showExternalEvents,
           'visibleCalendarIds': calendar.visibleCalendarIds.toList()..sort(),
-        if (calendar.targetCalendarId != null)
-          'targetCalendarId': calendar.targetCalendarId,
+        'targetCalendarId': calendar.targetCalendarId,
         'syncDueDates': calendar.syncDueDates,
         'syncTaskReminders': calendar.syncTaskReminders,
         'syncFollowUps': calendar.syncFollowUps,
