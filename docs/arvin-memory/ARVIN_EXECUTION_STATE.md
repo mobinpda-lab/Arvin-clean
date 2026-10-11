@@ -1,6 +1,6 @@
 # Arvin Execution State
 
-Updated: 2026-10-11
+Updated: 2026-10-11 (live recheck)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 GitHub access: Read/Write
 Authority: live GitHub refs, code, tests and exact-head workflow evidence.
@@ -9,63 +9,59 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 **IN PROGRESS — RELEASE BLOCKED.**
 
 ## Current GitHub reality
-- `main`: `72a2f4cc24df7a38eff9856ce403461615db5280`.
-- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; head `05c080e706690dd3eb6a96fc5c070971a43d1354`. PR metadata still displays base SHA `34a6cee9ae05ad1cf632960b96e98f2a5448e128`, but GitHub compare confirms current main `72a2f4c` is an ancestor of the PR head: head is 44 commits ahead, 0 behind. Do not blindly rebase; review actual diff and mergeability before any merge.
-- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT; latest head `8de11b2264658b137b348e2031be9e906842ea4d`; base `72a2f4cc24df7a38eff9856ce403461615db5280`.
-- Exact-head Build [#38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036): **SUCCESS** on `05c080e`; Analyze, all six test shards (0–5), Debug APK and Release APK jobs succeeded.
-- Exact-head Android Device Smoke [#38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041): still running. Latest recheck: Home, Quick Capture, SQL migration and SQL persistence succeeded; Backup/Restore and People remain in progress.
-- Production Loop [#38123874039], Orchestrator [#38123874049], Orchestrator PR Wakeup [#38123874082] and G1 lock sync [#38123874063] succeeded on exact head. These do not substitute for full device smoke or physical device acceptance.
-- Older green checkpoint `07b571057c4682128d78ab2c1f39e85890041713` remains historical only.
+- main: 72a2f4cc24df7a38eff9856ce403461615db5280.
+- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; exact head 05c080e706690dd3eb6a96fc5c070971a43d1354.
+- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT. Evidence map updated in commit [ac1eaf7](https://github.com/mobinpda-lab/Arvin-clean/commit/ac1eaf72d2416d3577b6b506b4aadeed34cb45f8); recheck branch head and docs PR checks before merge.
+- Calendar actions [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587): OPEN / NOT MERGED; its documented purpose is to expose Edit and phone-calendar registration on collapsed Task cards. Historical exact-head CI was green, but current head/checks and physical-device acceptance must be rechecked.
+- Exact-head Build [#38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036): SUCCESS on 05c080e; Analyze, all six test shards, Debug APK and Release APK succeeded.
+- Exact-head Android Device Smoke [#38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041): Home, Quick Capture, SQL migration and SQL persistence succeeded. Backup/Restore and People remain IN PROGRESS at the latest live recheck.
+- Green automation/orchestration runs are not a substitute for product tests or physical-device acceptance.
 
-## Completed
-- Rechecked execution state, current main, PRs, open issues, ADR, data model, Home grouping code, restore patch and exact-head workflow jobs.
-- Found restore rollback gap for Category/Tag catalog values after a late restore failure.
-- Committed fix and failure-injection tests in [05c080e](https://github.com/mobinpda-lab/Arvin-clean/commit/05c080e706690dd3eb6a96fc5c070971a43d1354).
-- Build/test/Analyze/Debug/Release exact-head gate now passes.
-- Home grouping inspection confirms `HomeGroup<T>`/`HomeGroupingService` are presentation projections over canonical Tasks; category and tag grouping are separate, with no separate taxonomy persistence in these files.
-- Updated memory PR #2600 with all required v8 memory documents and current exact-head evidence.
+## Completed in this execution
+- Read this execution state and evidence map before continuing.
+- Rechecked open PRs, P0 Calendar issue #2535, restore issue #2584, and current exact-head Android Smoke jobs.
+- Inspected Calendar card action conditions in main. Source evidence shows Task Edit and phone-calendar registration chips are inside the expanded-only action area; this matches the user's discoverability report.
+- Confirmed existing PR #2587 is already aimed at exposing primary Task actions on collapsed cards. Avoid duplicate implementation; review that PR's current head/checks and acceptance.
+- Updated ARVIN_EVIDENCE_MAP.md on the memory branch in commit ac1eaf72d2416d3577b6b506b4aadeed34cb45f8 with source evidence and limitations.
 
 ## In Progress
-- Finish all six Android emulator smoke lanes on `05c080e`, especially backup/restore, SQL migration and SQL persistence.
-- Taxonomy conformance audit [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580).
-- Backup/restore catalog acceptance [Issue #2584](https://github.com/mobinpda-lab/Arvin-clean/issues/2584).
-- P0 Calendar user-reported regression [Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535): task Edit / phone-calendar actions missing in installed APK and recurrence occurrences not all shown. Open; real installed-device validation required.
+- Finish Android Smoke Backup/Restore and People lanes on exact head 05c080e.
+- Review PR #2585 current diff/head/checks; preserve legacy backup compatibility and canonical Task/Project/Calendar-link/settings/history data.
+- Review PR #2587 current diff/head/checks; verify collapsed primary actions and recurrence navigation tests.
+- Trace recurrence projection/count contract for issue #2535; source evidence for the action visibility problem is stronger now, but the root cause for all scheduled recurrence dates is still unproven.
+- Continue taxonomy audit #2580 and backup acceptance #2584.
 
 ## Blocked / unproven
-- Device Smoke workflow not complete; Backup/Restore and People lanes are still running.
-- No physical Android device + actual system file picker/provider backup/restore evidence.
+- Two Android emulator smoke lanes are still running; no final all-six-lanes pass yet for head 05c080e.
+- No physical Android device + actual system file-picker/provider backup/restore evidence.
 - No verified Calendar external-event identity/no-duplicate test after restore.
 - No full Golden Flow evidence.
-- PR #2585 is not merged; review final diff and PR status checks before deciding merge.
-- Release remains blocked despite Build success.
+- PR #2585 and PR #2587 are not merged.
+- Release remains blocked despite successful Build/Analyze/tests/APKs.
 
-## Next Action — tracked checklist
+## Next Action — dependency-ordered checklist
 
-### A. CI and PR #2585
-- [ ] A1. Recheck all six jobs in [Android Device Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041).
-- [ ] A2. Record final SQL migration and SQL persistence results.
-- [ ] A3. Record Backup/Restore and People outcomes; if a lane fails, inspect logs, make a minimal safe fix, and rerun required checks on the new exact head.
-- [ ] A4. Review final diff, exact head, mergeability and required checks on [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585). Do not merge before acceptance gates.
+### A. CI and restore PR #2585
+- [ ] Recheck all six jobs in Android Device Smoke #38123874041.
+- [ ] Record final Backup/Restore and People outcomes; inspect logs and fix minimally if either fails.
+- [ ] Review PR #2585 exact head, complete diff, mergeability and required checks. Do not merge before critical acceptance gates.
 
-### B. Calendar P0 #2535
-- [ ] B1. Trace callbacks from main.dart through OfficialCalendarPage to CalendarPage; identify where Edit/device-calendar actions are lost.
-- [ ] B2. Trace visible-range recurrence projection and identify why dates beyond today are missing.
-- [ ] B3. Reconcile the requested count up to 7 with architecture gate #2254; do not change recurrence semantics without approval.
-- [ ] B4. Add/fix focused regression tests only for an evidenced gap; preserve canonical Task identity and stable external-event mapping.
-- [ ] B5. Run focused tests, Analyze, full tests, Debug/Release and exact-head Device Smoke on any fix.
-- [ ] B6. Verify on a real installed Android build: Edit, register/edit phone-calendar event, all scheduled recurrence dates through seven occurrences, and no duplicate Task/event.
-- [ ] B7. Attach commit, test results and device evidence to Issue #2535; close only after acceptance.
+### B. Calendar P0 #2535 / PR #2587
+- [ ] Review current PR #2587 head and required checks; do not duplicate its collapsed-card action fix.
+- [ ] Trace visible-range recurrence projection and prove why planned dates may be missing.
+- [ ] Reconcile the requested count up to seven with architecture gate #2254; do not change recurrence semantics without approval.
+- [ ] Run focused regression tests, Analyze, full tests, Debug/Release and exact-head Device Smoke for any code change.
+- [ ] On a real installed Android build verify Edit, phone-calendar register/edit, scheduled recurrence dates through seven occurrences, and no duplicate Task/event.
+- [ ] Attach evidence to #2535; close only after acceptance.
 
 ### C. Physical acceptance and handover
-- [ ] C1. Exercise restore using the real Android system file picker/provider and record evidence.
-- [ ] C2. Verify Task, Category/Tag, Repeat, History and Calendar Link survive successful and failed restore paths.
-- [ ] C3. Complete Golden Flow across Task, Calendar, Repeat, Checklist, Tracking, Backup and Restore.
-- [ ] C4. Complete Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report.
+- [ ] Use the real Android system file picker/provider for backup/restore.
+- [ ] Verify Task, Category/Tag, Repeat, History and Calendar Link across successful and failed restore.
+- [ ] Complete Golden Flow: Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore.
+- [ ] Complete Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report.
 
-Done criteria: commit + tests + build + risk-appropriate acceptance evidence. Green CI alone is not physical-device acceptance.
+## Current bottleneck
+Android Device Smoke completion, followed by physical-device backup/restore and Calendar acceptance.
 
-## Current Bottleneck
-**Android Device Smoke completion**, followed by physical-device backup/restore and Calendar acceptance.
-
-## Risks
-Partial restore; loss of unused Category/Tag catalog entries; Task/Project/settings/repeat/history/Calendar-link loss; duplicate external Calendar events; regression in Calendar task actions/recurrence projection; treating emulator CI as physical-device proof.
+## Risk rules
+Task remains the only source of truth; Calendar is a projection; Repeat must not create copied Tasks; preserve stable Task ID and external event ID. No merge/release based on CI alone. Do not claim user/device acceptance without direct evidence.
