@@ -56,3 +56,23 @@
 - Required implementation on the canonical Task-form lane: remove only the newly introduced root `Task.note` from the Task model, JSON serialization/deserialization, TaskStore known-key handling, editor UI/state, and backup/restore test changes. Preserve legacy payload safety and existing Description values; add/retain regression tests proving legacy JSON and backup/restore round-trip still work without a second root field.
 - PR #2595 must remain Draft until this correction and exact-head Analyze, all test shards, Debug/Release APK and relevant device smoke are verified. PR #2602 must not reintroduce the root field and its previously failing test shards must be fixed at root cause; never weaken assertions.
 - Current execution result: decision resolved and documented; implementation patch not yet applied or validated in this step. No merge, main write, APK build, or release occurred.
+
+## 2026-10-11 — Calendar sync field scope and Done/Archive boundary
+- **Decision:** Only Task title, date, time, description, recurrence details and reminder sync with the phone calendar.
+- **Non-trigger:** marking a Task Done or moving it to Archive alone must not trigger calendar synchronization.
+- **Reason/impact:** keep phone calendar as a projection of the canonical Task, avoid unrelated event updates and duplicates, and preserve stable Task↔external-event identity.
+- **Acceptance:** update the same linked event for eligible field edits; no title/date matching; automated regression plus provider/device acceptance.
+- **Record:** [#2248 comment](https://github.com/mobinpda-lab/Arvin-clean/pull/2248#issuecomment-6111402411).
+- **Status:** owner contract recorded; implementation and device acceptance not yet proven.
+
+## 2026-10-11 — Reports icon placement, not a new Report Center
+- **Decision:** reuse the existing Reports icon and existing Report Center; place the icon in the bottom navigation row.
+- **Forbidden:** creating a second reports page, renderer, projection, store or engine.
+- **Status:** owner clarification recorded at [#2385](https://github.com/mobinpda-lab/Arvin-clean/issues/2385#issuecomment-6111105369); code/visual acceptance pending.
+
+## 2026-10-11 — Notebook toolbar and interactive checklist defect
+- **Problem:** numbered/tick/checklist labels clip in RTL; checklist shows literal `[ ]` and tapping does not toggle.
+- **Decision:** repair the existing Notebook UI and canonical checklist path; preserve Task.checklist/Notebook storage and persistence. Do not add a parallel checklist representation.
+- **Acceptance:** labels visible at supported phone widths; real compact checkbox toggles and persists after save/reopen; tests plus installed Android validation.
+- **Records:** [#850](https://github.com/mobinpda-lab/Arvin-clean/issues/850#issuecomment-6111078741), [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139#issuecomment-6111079224).
+- **Status:** defect registered; not yet fixed or accepted.
