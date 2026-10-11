@@ -1,15 +1,16 @@
 # Arvin Roadmap — Release Completion
 
-## Gate 0 — Evidence baseline
-- Re-fetch PR #2585 head, main SHA, latest commit and current workflow jobs.
-- If any code changes after the last green run, require fresh exact-head Build and all relevant smoke lanes.
+## Gate 0 — Exact-head evidence baseline
+- Current PR #2585 head at checkpoint: `05c080e706690dd3eb6a96fc5c070971a43d1354`.
+- Check [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) and [Device Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041). They were not yet green/complete at last inspection.
+- Re-check head/main before any merge decision.
 
 ## Gate 1 — Restore safety (blocking)
-- Review both Home and BackupPage restore orchestration tests.
-- Ensure late failure after Task, Project, Calendar-link and settings mutations returns data to its prior state.
-- Verify rollback-failure messaging and emergency-backup reference.
+- Validate new failure-injection tests at the real Home and BackupPage restore orchestration boundaries.
+- Confirm failure after Category/Tag catalog merge removes only newly introduced entries and preserves prior catalogs.
+- Validate late failure after Task, Project, Calendar-link and settings mutations; rollback-failure messaging and emergency-backup reference.
 - Verify assigned/unassigned Category and Tag catalog round-trip.
-- Preserve legacy semantics for missing/null Project fields vs explicit empty list.
+- Verify legacy semantics for missing/null Project fields vs explicit empty list.
 - Run focused tests and exact-head full CI.
 
 ## Gate 2 — Real Android file-provider/device test
@@ -27,4 +28,4 @@
 - No schema or backup semantics changes without coordinating with Gate 1.
 
 ## Release gate
-No merge/release/RC claim until all three gates, the remaining ontology acceptance, Golden Flow and exact-head CI are reviewed with evidence. Keep user-reported Calendar actions issue in scope until verified.
+No merge/release/RC claim until all three gates, remaining ontology acceptance, Golden Flow and exact-head CI are reviewed with evidence. Keep the owner-reported Calendar actions issue in scope until verified.

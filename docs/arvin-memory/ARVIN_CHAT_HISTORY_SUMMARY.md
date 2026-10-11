@@ -1,12 +1,15 @@
 # Arvin Chat History Summary
 
-## 2026-10-11 — Autonomous execution command v6.0
-The owner reiterated that “ادامه آروین”, “اجرای فرمان آروین” or “Continue” means continue from GitHub's recorded execution state, not restart or provide suggestions only. Each run should check live GitHub, inspect the latest commit/branch/issues/PRs/docs/tests/builds, select the release bottleneck, execute safe work, validate, record evidence, and update execution state.
+## 2026-10-11 — Autonomous execution command v6.0 continuation
+The owner reiterated that “ادامه آروین”, “اجرای فرمان آروین” or “Continue” means continue from GitHub's recorded execution state, not restart or provide suggestions only. Each run checks live GitHub, inspects current refs/issues/PRs/docs/tests/builds, selects the release bottleneck, performs safe work, validates, records evidence, and updates execution state.
 
-## Current work at checkpoint
-- Main inspected: `72a2f4cc24df7a38eff9856ce403461615db5280`.
-- PR #2585 inspected at head `07b571057c4682128d78ab2c1f39e85890041713`; OPEN / NOT MERGED.
-- Exact-head Build and six emulator smoke lanes succeeded at that checkpoint.
-- Still unproven: real physical-device/file-provider backup/restore and Calendar duplicate-event acceptance.
-- #2580 taxonomy consistency audit remains open.
-- This summary records a checkpoint; always re-read live GitHub before acting.
+## Current session actions
+- Rechecked live main, PR #2585, Issues #2580/#2584, code patches and current workflow runs.
+- Found a rollback gap: Category/Tag catalogs were merged at the end of restore, but not rolled back if a failure occurred immediately afterward.
+- Committed fix and failure-injection tests on PR #2585: `05c080e706690dd3eb6a96fc5c070971a43d1354`.
+- Exact-head Build #38123874036 and Device Smoke #38123874041 were still running/queued at the last check; validation remains pending.
+- PR #2585 remains open/unmerged; physical-device/file-provider and Calendar no-duplicate acceptance remain unproven.
+- Persistent memory PR #2600 remains open/draft and is being updated with this checkpoint.
+
+## Continue from here
+Re-fetch live PR #2585 head and main SHA; check exact-head CI. If CI passes, proceed to real-device backup/restore and Calendar identity checks. Do not merge/release without evidence.

@@ -1,10 +1,15 @@
 # Arvin Problems and Open Risks
 
+## P0 — Restore rollback must cover taxonomy catalogs
+- Found in PR #2585: after `mergeCatalogs`, both Home and BackupPage rollback restored Tasks, Projects, Calendar links and settings but did not remove newly added Category/Tag entries.
+- A failure after the catalog stage could leave partial taxonomy state behind while the UI reported rollback.
+- Proposed fix is now committed at [05c080e](https://github.com/mobinpda-lab/Arvin-clean/commit/05c080e706690dd3eb6a96fc5c070971a43d1354); exact-head CI pending.
+- Acceptance: failure injection after catalog writes must restore pre-existing catalogs and remove only entries introduced by the failed restore.
+
 ## P0 — Backup/Restore acceptance
-- PR #2585 is open and unmerged.
-- Although current inspected head's Build and six emulator smoke lanes passed, real physical-device/file-provider restore remains unverified.
-- Failure rollback coverage must be reviewed at both existing restore entry points; do not confuse store-level rollback tests with end-to-end UI orchestration.
-- Catalog values not assigned to Tasks must survive backup/restore.
+- PR #2585 remains open and unmerged.
+- Physical-device/file-provider restore remains unverified.
+- Validate catalog values not assigned to Tasks, Task assignments, Project membership, settings, recurrence/history, Calendar-link metadata and legacy backup behavior.
 
 ## P0 — Calendar event identity
 - After restoring a Task with a Calendar link, edit/re-sync must update the same external event and must not create a duplicate.
