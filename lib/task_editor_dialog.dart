@@ -675,6 +675,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         category: _category,
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
+        checklistOccurrences: existing?.checklistOccurrences.map(
+              (key, value) => MapEntry(key, List<String>.of(value)),
+            ) ??
+            const <String, List<String>>{},
+        occurrenceHistory: existing?.occurrenceHistory.map(
+              (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
+            ) ??
+            const <String, Map<String, dynamic>>{},
+        notebookKind: existing?.notebookKind,
         reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
