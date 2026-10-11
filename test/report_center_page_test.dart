@@ -1,6 +1,7 @@
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/report_center_page.dart';
+import 'package:arvin/services/task_report_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -104,6 +105,10 @@ void main() {
       await tester.drag(find.byType(ListView).last, const Offset(0, -700));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const ValueKey('report-filter-section-دسته')));
+      await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
@@ -124,5 +129,59 @@ void main() {
       expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
     },
   );
+
+  testWidgets('Report date range opens the Jalali picker rather than Gregorian calendar', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final rangeSection = find.byKey(const ValueKey('report-filter-section-بازه دقیق'));
+    await tester.ensureVisible(rangeSection);
+    await tester.tap(rangeSection);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('از تاریخ'));
+    await tester.tap(find.text('از تاریخ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انتخاب تاریخ شروع گزارش'), findsOneWidget);
+    expect(find.text('مهر'), findsOneWidget);
+    expect(find.byType(CalendarDatePicker), findsNothing);
+  });
+
+  testWidgets('report filter sections collapse and expand without losing selections', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول', category: 'کار')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final categorySection = find.byKey(const ValueKey('report-filter-section-دسته'));
+    await tester.ensureVisible(categorySection);
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    final categoryChip = find.byKey(const ValueKey('report-filter-category-کار'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
+    await tester.pumpAndSettle();
+
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    expect(categoryChip, findsNothing);
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    expect(categoryChip, findsOneWidget);
+    expect(find.text('۱'), findsOneWidget);
+  });
+
 }
 
