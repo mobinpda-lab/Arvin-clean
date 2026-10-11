@@ -391,11 +391,11 @@ class _BackupPageState extends State<BackupPage> {
       );
       final reconciledProjects = candidate.hasProjects
           ? ArvinBackupManager.reconcileProjectsById(
-              current: previousProjects!,
+              current: previousProjects,
               backup: candidate.projects,
               localOnlyTaskIds: localOnlyTaskIds,
             )
-          : previousProjects!;
+          : previousProjects;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
