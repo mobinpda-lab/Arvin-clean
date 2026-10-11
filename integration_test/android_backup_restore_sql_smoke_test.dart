@@ -184,6 +184,11 @@ void main() {
     expect(await TaskStore().loadCategories(), contains('دسته پشتیبان مستقل'));
     expect(await TaskStore().loadTags(), contains('برچسب مستقل'));
 
+    // The preceding successful restore shows a SnackBar. Clear it before the
+    // independent failure scenario so its message cannot queue behind success.
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+
     // Exercise the actual BackupPage restore orchestration, not only the
     // rollback helper: fail immediately after the candidate Task write and
     // prove that the pre-restore task state is restored before the UI reports
