@@ -3,6 +3,7 @@ import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,7 @@ Widget _app({
   required _FakeBackupService service,
   Future<List<Map<String, dynamic>>> Function()? loadTasks,
   Future<void> Function(List<Map<String, dynamic>> tasks)? replaceTasks,
+  Future<void> Function(String stage)? restoreStageHook,
 }) {
   return MaterialApp(
     home: BackupPage(
@@ -57,6 +59,7 @@ Widget _app({
                 <String, dynamic>{'id': 'task-1', 'title': 'کار نمونه'},
               ],
       replaceTasks: replaceTasks ?? (_) async {},
+      restoreStageHook: restoreStageHook,
     ),
   );
 }
@@ -297,7 +300,8 @@ void main() {
     }
   });
 
-  testWidgets('Backup page restores Projects and rolls them back after a late restore failure', (tester) async {
+  testWidgets('Backup page restores Projects and rolls back taxonomy after a late restore failure', (tester) async {
+    await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
     try {
       final oldProject = ProjectPlan(
@@ -311,6 +315,8 @@ void main() {
         itemIds: const [],
       );
       await ProjectStore().save([oldProject]);
+      await TaskStore().createCategory('دسته محلی');
+      await TaskStore().createTag('برچسب محلی');
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -329,9 +335,16 @@ void main() {
           ],
           'settings': <String, dynamic>{
             'themeMode': 'light',
-            'backupSchedule': <String, dynamic>{'frequency': 'invalid-frequency'},
+            'backupSchedule': <String, dynamic>{
+              'enabled': true,
+              'hour': 6,
+              'minute': 15,
+              'frequency': 'daily',
+            },
           },
           'calendarLinks': <Map<String, dynamic>>[],
+          'categories': <String>['دسته بازیابی‌شده'],
+          'tags': <String>['برچسب بازیابی‌شده'],
         };
       var localTasks = <Map<String, dynamic>>[
         <String, dynamic>{'id': 'old-task', 'title': 'کار قبلی'},
@@ -344,6 +357,9 @@ void main() {
           replaceTasks: (tasks) async {
             localTasks = tasks.map((task) => Map<String, dynamic>.from(task)).toList();
           },
+          restoreStageHook: (stage) async {
+            if (stage == 'catalogs') throw StateError('injected after catalogs');
+          },
         ),
       );
       await tester.pumpAndSettle();
@@ -354,6 +370,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(localTasks.single['id'], 'old-task');
+      expect(await TaskStore().loadCategories(), contains('دسته محلی'));
+      expect(await TaskStore().loadCategories(), isNot(contains('دسته بازیابی‌شده')));
+      expect(await TaskStore().loadTags(), contains('برچسب محلی'));
+      expect(await TaskStore().loadTags(), isNot(contains('برچسب بازیابی‌شده')));
       final projectsAfterRollback = await ProjectStore().load();
       expect(projectsAfterRollback.map((project) => project.id), ['old-project']);
       expect(
@@ -362,6 +382,7 @@ void main() {
       );
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
+      await TaskStore.resetTestDatabase();
       await ProjectStore.resetTestDatabase();
     }
   });

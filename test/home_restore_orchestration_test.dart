@@ -79,6 +79,8 @@ void main() {
         lastSyncedFingerprint: 'local-fingerprint',
       );
       await ExternalCalendarLinkStore().save([localLink]);
+      await taskStore.createCategory('دسته محلی');
+      await taskStore.createTag('برچسب محلی');
 
       final settingsService = AppSettingsService();
       final settingsBefore = await settingsService.load();
@@ -114,15 +116,25 @@ void main() {
           'usePersianDate': false,
           'fontSize': 22.0,
           'backupSchedule': <String, dynamic>{
-            'enabled': 'invalid-late-stage-value',
+            'enabled': true,
+            'hour': 6,
+            'minute': 15,
+            'frequency': 'daily',
           },
         },
+        'categories': <String>['دسته بازیابی‌شده'],
+        'tags': <String>['برچسب بازیابی‌شده'],
       });
       final manager = ArvinBackupManager(service: backupService);
 
       await tester.pumpWidget(
         MaterialApp(
-          home: HomePage(backupManager: manager),
+          home: HomePage(
+            backupManager: manager,
+            restoreStageHook: (stage) async {
+              if (stage == 'catalogs') throw StateError('injected after catalogs');
+            },
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -141,6 +153,10 @@ void main() {
       expect(backupService.readCount, 1);
       expect(backupService.writeCount, 1);
       expect((await taskStore.load()).map((task) => task.id), ['local-task']);
+      expect(await taskStore.loadCategories(), contains('دسته محلی'));
+      expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
+      expect(await taskStore.loadTags(), contains('برچسب محلی'));
+      expect(await taskStore.loadTags(), isNot(contains('برچسب بازیابی‌شده')));
       expect(
         (await ProjectStore().load()).map((project) => project.id),
         ['local-project'],

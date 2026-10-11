@@ -309,6 +309,8 @@ class _BackupPageState extends State<BackupPage> {
     List<Map<String, dynamic>>? previousTasks;
     List<ProjectPlan>? previousProjects;
     List<ExternalCalendarEventLink>? previousCalendarLinks;
+    List<String>? previousCategories;
+    List<String>? previousTags;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await manager.restoreCanonicalBackup(
@@ -330,6 +332,8 @@ class _BackupPageState extends State<BackupPage> {
       previousTasks = tasksBeforeRestore;
       previousProjects = await ProjectStore().load();
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
+      previousCategories = await TaskStore().loadCategories();
+      previousTags = await TaskStore().loadTags();
       previousSettings = await _portableBackupSettings();
       final currentTasks = tasksBeforeRestore
           .map((value) => Task.fromJson(value))
@@ -339,8 +343,8 @@ class _BackupPageState extends State<BackupPage> {
         settings: previousSettings,
         projects: await ProjectStore().load(),
         calendarLinks: previousCalendarLinks,
-        categories: await TaskStore().loadCategories(),
-        tags: await TaskStore().loadTags(),
+        categories: previousCategories,
+        tags: previousTags,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -396,6 +400,18 @@ class _BackupPageState extends State<BackupPage> {
             await BackupSchedule.decodePortableJson(
               Map<String, dynamic>.from(oldSchedule),
             ).save();
+          }
+          for (final category in (candidate.categories ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousCategories!.contains(category)) {
+              await TaskStore().deleteCategoryCatalog(category);
+            }
+          }
+          for (final tag in (candidate.tags ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousTags!.contains(tag)) {
+              await TaskStore().deleteTagCatalog(tag);
+            }
           }
         },
       );

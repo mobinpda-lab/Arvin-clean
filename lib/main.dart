@@ -265,6 +265,7 @@ class HomePage extends StatefulWidget {
     this.onSettingsChanged,
     this.enableFirstRunGuide = false,
     this.backupManager,
+    this.restoreStageHook,
   });
 
   final AppSettings settings;
@@ -274,6 +275,7 @@ class HomePage extends StatefulWidget {
   /// Optional seam for exercising the existing Home restore flow in tests.
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
+  final Future<void> Function(String stage)? restoreStageHook;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -1845,6 +1847,8 @@ class _HomePageState extends State<HomePage> {
     List<Task>? previousTasks;
     List<ProjectPlan>? previousProjects;
     List<ExternalCalendarEventLink>? previousCalendarLinks;
+    List<String>? previousCategories;
+    List<String>? previousTags;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
@@ -1860,6 +1864,8 @@ class _HomePageState extends State<HomePage> {
       previousProjects = projectsBeforeRestore;
       final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
       previousCalendarLinks = calendarLinksBeforeRestore;
+      previousCategories = await taskStore.loadCategories();
+      previousTags = await taskStore.loadTags();
       final settingsBeforeRestore = await _portableBackupSettings();
       previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
@@ -1867,8 +1873,8 @@ class _HomePageState extends State<HomePage> {
         settings: settingsBeforeRestore,
         projects: projectsBeforeRestore,
         calendarLinks: calendarLinksBeforeRestore,
-        categories: await taskStore.loadCategories(),
-        tags: await taskStore.loadTags(),
+        categories: previousCategories,
+        tags: previousTags,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -1912,6 +1918,7 @@ class _HomePageState extends State<HomePage> {
         recoveryBackup: emergencyBackup,
         apply: () async {
           await taskStore.save(List<Task>.of(list));
+          await widget.restoreStageHook?.call('tasks');
           try {
             await AndroidFollowUpReminderScheduler().reschedule();
           } catch (_) {
@@ -1921,11 +1928,13 @@ class _HomePageState extends State<HomePage> {
           if (candidate.hasProjects) {
             await ProjectStore().save(candidate.projects);
           }
+          await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
             restoredTaskIds: list.map((task) => task.id),
             backupLinks: candidate.calendarLinks ?? const [],
             currentLinks: previousCalendarLinks!,
           );
+          await widget.restoreStageHook?.call('calendar-links');
           if (restoredSettings != null) {
             await appSettingsService.restorePortableJson(candidate.settings!);
             final rawSchedule = candidate.settings!['backupSchedule'];
@@ -1938,11 +1947,13 @@ class _HomePageState extends State<HomePage> {
             final appliedSettings = await appSettingsService.load();
             if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           }
+          await widget.restoreStageHook?.call('settings');
           // Catalog writes are last and transactional within TaskStore.
           await taskStore.mergeCatalogs(
             categories: candidate.categories ?? const <String>[],
             tags: candidate.tags ?? const <String>[],
           );
+          await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
@@ -1954,6 +1965,18 @@ class _HomePageState extends State<HomePage> {
             await BackupSchedule.decodePortableJson(
               Map<String, dynamic>.from(oldSchedule),
             ).save();
+          }
+          for (final category in (candidate.categories ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousCategories!.contains(category)) {
+              await taskStore.deleteCategoryCatalog(category);
+            }
+          }
+          for (final tag in (candidate.tags ?? const <String>[])
+              .map((value) => value.trim()).toSet()) {
+            if (!previousTags!.contains(tag)) {
+              await taskStore.deleteTagCatalog(tag);
+            }
           }
           final appliedSettings = await appSettingsService.load();
           if (mounted) widget.onSettingsChanged?.call(appliedSettings);
