@@ -104,3 +104,8 @@ Older snapshots and superseded design/architecture proposals remain useful evide
 
 ## Canonical taxonomy architecture decision
 See `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. The only taxonomy concepts are Project, Category and Tag. Category/Group is one concept; the standard Persian UI term is «دسته». Home's Time / Project / Category / Tag controls are filters/views, not four taxonomy entities; date-based display grouping is presentation-only. Project, Category and Tag filters remain distinct and combine with AND. No feature-specific taxonomy model or Group entity may be added. Full conformance and legacy wording audit remains open in Issue #2580.
+
+
+## Owner continuity requirements — 2026-10-11
+
+Report Center remains a read-only projection over canonical Task and related domain data; it must not introduce a parallel report/note store. Report filters must use Persian/Jalali date presentation, compact expandable Arvin RollBoxes, persistent selection on collapse, and multi-select for Project, Category, Tag, task status and note type. Required sections: Time, Project, Category, Tag, Note, Task Status, Tracking and Follow-up. Notes must be reportable by title/body, category/tag, creation/modified date and Task relationship using existing canonical storage. The complete owner checklist and outstanding acceptance state is in `docs/arvin-memory/ARVIN_CONVERSATION_CONTINUITY_2026-10-11.md` and `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md`.
