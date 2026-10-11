@@ -286,3 +286,9 @@ Product acceptance and proof on the current exact head—not another parallel ar
 
 ### Next action
 - Refresh exact-head CI. Fix any Analyze/test/build failures without weakening tests. Review all affected screens at narrow phone widths and RTL, then request owner/device acceptance. Keep the PR Draft until evidence and owner acceptance are complete.
+
+## 2026-10-11 — Pastel UI validation follow-up
+- First exact-head Analyze on `f526389e2058263af308f714bce49d7c4033000f` failed because the new Notebook pastel-card test was placed before local helpers `repositoryAt` and `pumpNotebook` (Analyze run [38158589426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158589426), job 114526628385).
+- Corrected the test placement in commit `571e5ed7c6751bcf56ba042a02ed6081e7023b0f` so helper declarations precede the test. This is a test-order fix, not a weakening of assertions.
+- Latest PR head refreshed via GitHub: `571e5ed7c6751bcf56ba042a02ed6081e7023b0f`. New Build run [38158724999](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158724999) is running; exact-head Analyze/tests/APK results are not yet final. Device Smoke [38158725094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38158725094) skipped.
+- Keep PR #2607 Draft. Next: inspect the new Analyze/test/build conclusions, repair root causes if needed, and only then arrange installed Android visual review.
