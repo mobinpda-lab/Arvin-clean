@@ -10,7 +10,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 
 ## Current GitHub reality
 - Main has moved since the previous checkpoint; latest fetched blob for `lib/calendar_page.dart` is `bca61696309f809dc9640da001fe45aabc262a65`. Re-read live branch and PR refs before any merge.
-- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; validated code head `05c080e706690dd3eb6a96fc5c070971a43d1354`.
+- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; current head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` adds BackupPage settings-stage rollback failure injection. Validation is in progress; previous green evidence on `05c080e` is historical for that older head.
 - Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT. Execution state/evidence map have been updated on the memory branch; check exact branch head and docs PR checks before merge.
 - Calendar actions [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587): OPEN / NOT MERGED; latest validated head recorded in its conversation is `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
 - Restore Build [#38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036): SUCCESS on `05c080e` — Analyze, six test shards, Debug APK and Release APK.
@@ -31,7 +31,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - No code PR was merged; a stale-head merge attempt was rejected by GitHub.
 
 ## In Progress
-- Review PR #2585 exact current head/diff and confirm end-to-end restore rollback coverage at actual orchestration stages.
+- PR #2585: added BackupPage restore test that injects failure after settings + backup-schedule mutation and asserts Task/Project/Calendar-link/settings/schedule rollback. Current exact-head Build #38124942112 is in progress; Device Smoke #38124941815 is queued. Do not claim pass until both complete.
 - Review PR #2587 current exact head and acceptance notes; preserve the collapsed-card action and seven-occurrence regressions.
 - Physical Android file-provider backup/restore, restored Calendar-link identity/no-duplicate behavior, recurrence/checklist acceptance and visual review.
 - Continue taxonomy audit #2580.
@@ -48,7 +48,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 ### A. Restore PR #2585
 - [x] Exact-head Build and all six emulator smoke lanes passed on `05c080e`.
 - [ ] Recheck current PR head, complete diff and required checks.
-- [ ] Verify failure injection after Task, Project, Calendar-link and settings writes at the actual restore orchestration boundary.
+- [x] BackupPage integration test now injects failures after Task, Calendar-link and settings writes; settings-stage test asserts rollback of Task, Project, Calendar-link, settings and schedule. Exact-head CI validation pending on `5e0ad6d`.
 - [ ] Perform physical Android system file-picker/provider backup and restore; verify Task, Projects, Categories/Tags, settings, occurrence/history and Calendar-link metadata.
 - [ ] Verify failed restore recovery, emergency-backup reference and legacy backup compatibility.
 
@@ -68,3 +68,10 @@ Physical-device data-safety and Calendar acceptance, not CI/build. The two relev
 
 ## Risk rules
 Task remains the only source of truth; Calendar is a projection; Repeat must not create copied Tasks; preserve stable Task ID and external event ID. No merge/release based on CI alone. Do not claim user/device acceptance without direct evidence.
+
+
+## Continuation checkpoint — 2026-10-11
+- GitHub Read/Write confirmed by live PR, file and workflow operations.
+- PR #2585 current exact head is `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`. Added failure injection after BackupPage settings/schedule writes and rollback assertions across Task, Project, Calendar-link, settings and schedule. Read-back verified the file at blob `46571a56323ccbce8fa8d1c8f70272cec026c0c4`.
+- Exact-head Build #38124942112 is in progress; Device Smoke #38124941815 is queued. Previous green runs on `05c080e` do not validate this new head.
+- PR #2585 remains open/unmerged. Physical Android file-provider acceptance remains unverified.
