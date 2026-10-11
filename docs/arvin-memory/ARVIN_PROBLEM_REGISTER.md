@@ -144,7 +144,7 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 ### P1 — Governance/memory drift
 - ARVIN_STATUS and ARVIN_PROJECT_STATE retain PR #135/v49.0-era state while the operating package is v49.1.
 - Package v49.1 references AMPOP v5, which is only on unmerged #2598. Owner command v8 is now recorded in the memory branch, not main.
-- #2598/#2599/#2600/#2601 have old merge base 72a2f4cc...; #2598/#2599 overlap docs/ARVIN_STATUS.md. #2600 contains 11 memory files; consolidate canonical vs historical memory documents before merge.
+- #2598/#2599/#2600/#2601 have old merge base 72a2f4cc...; #2598/#2599 overlap docs/ARVIN_STATUS.md. #2600 contained 11 memory files before the audit; the current branch has 13 after adding the exact owner Command v8 and repository-wide audit. Consolidate canonical vs historical memory documents before merge.
 - Official scorecards use August baseline dates and old main SHAs.
 
 ### P1 — Task Note contract not reflected by current PR source
