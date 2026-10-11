@@ -230,6 +230,9 @@ void main() {
       findsOneWidget,
     );
 
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+
     // Exercise a later real mutation boundary: Task and Project writes plus
     // Calendar-link restoration must all roll back if that stage fails.
     await store.save([Task(id: 'old-late-runtime', title: 'کار قبلی مرحله دیرهنگام')]);
