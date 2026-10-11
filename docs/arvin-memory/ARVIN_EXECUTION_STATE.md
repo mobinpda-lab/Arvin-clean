@@ -334,3 +334,12 @@ Product acceptance and proof on the current exact head—not another parallel ar
 
 ### Next action
 Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs before another edit. If all automated checks pass, review smoke artifacts/results and then request the owner to verify Persian RTL, compact filter layout, date/time and selected-filter retention on a real small-screen Android device.
+
+
+## CI status refresh — 2026-10-11
+
+- After the previous checkpoint, refreshed exact-head run states for commit `45caa5a3d7c7b3b29264f0197d6affd2b1798df5`.
+- Build run [#38163195995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195995) remains IN_PROGRESS; all six test shards plus Analyze and Debug/Release APK jobs are still running at this refresh. No test/build conclusion is available yet.
+- Device Smoke run [#38163195983](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195983) concluded SKIPPED, not passed. Physical-device visual acceptance remains unverified.
+- The orchestration/parallel/production-loop/G1-lock-sync runs completed successfully; these do not substitute for Build tests or Device Smoke.
+- Current state remains BLOCKED on exact-head Build and Device Smoke/owner validation. PR #2607 remains Draft. Next action: poll Build #38163195995, inspect shards 2 and 4 especially, and determine why Device Smoke is skipped before release decisions.
