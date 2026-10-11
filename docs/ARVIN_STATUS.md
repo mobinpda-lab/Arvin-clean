@@ -15,7 +15,8 @@
 - **Tests / Build / Release:** UNKNOWN until current run completion. The main-branch Final Head Release Validation run #8799 was `in_progress` at the audit snapshot. Workflow files and test files are not proof that all gates passed.
 - **Product UI:** PARTIAL. Automated widget/integration coverage exists; this audit did not perform screenshot review or physical-device acceptance.
 
-## Current audit documents
+## Current audit and execution documents
+- [Execution roadmap](status/ARVIN_ROADMAP.md)
 - [Repository map](audit/ARVIN_REPOSITORY_MAP.md)
 - [Task core status](audit/TASK_CORE_STATUS.md)
 - [Gap analysis](audit/ARVIN_GAP_ANALYSIS.md)
