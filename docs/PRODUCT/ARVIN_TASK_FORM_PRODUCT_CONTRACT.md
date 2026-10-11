@@ -21,12 +21,12 @@ A user can record a simple Task quickly, or expand into the full editor to manag
 - Project (0..1), Category (canonical single concept), Tags (0..n).
 - Tracking level: ordinary or important-and-trackable.
 - Conditional follow-up/tracking details.
-- Optional Note.
+- Optional Note, stored separately from short description. Older Tasks without a Note show an empty Note field; saving must not overwrite description.
 - Explicit Cancel and Save actions.
 - Existing Reminder and other supported capabilities remain available and must not regress.
 
 ## Architecture invariants
-- Task remains the central entity and source of truth.
+- Task remains the central entity and source of truth.\n- `Task.description` and `Task.note` are distinct fields; `FollowUp.note` remains specific to one follow-up. Store Task Note as an additive field in the existing canonical Task JSON envelope, not a separate entity/store or dedicated SQL column. Legacy records missing the key default to empty.
 - Quick Add and Full Editor reuse existing widgets/services, canonical Task model and Task persistence path.
 - Checklist remains inside Task; recurring occurrence checklist state is independent.
 - Repeat is a Task capability; occurrences are projections/execution state under existing architecture.
@@ -36,7 +36,7 @@ A user can record a simple Task quickly, or expand into the full editor to manag
 - No duplicate model, storage, repository, editor, scheduling engine or workflow.
 
 ## Cross-feature integrity
-Form changes must preserve canonical identity, history, Project/Category/Tag assignments, recurrence, checklist definition/state, follow-up/next action, reminder semantics, calendar links and backup/restore compatibility.
+Form changes must preserve canonical identity, history, Project/Category/Tag assignments, recurrence, checklist definition/state, follow-up/next action, reminder semantics, calendar links and backup/restore compatibility. Task description and Task Note must remain independent through edit, TaskStore save/load and Backup/Restore.
 
 ## Definition of Done
 Do not call the experience complete until:
