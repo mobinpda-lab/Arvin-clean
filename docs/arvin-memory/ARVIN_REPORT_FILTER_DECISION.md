@@ -1,42 +1,57 @@
-# ARVIN REPORT FILTER DECISION
-Updated: 2026-10-11
-Repository: https://github.com/mobinpda-lab/Arvin-clean
+# Arvin Report Filter & Memory Extension Decision
+
+**Date:** 2026-10-11  
+**Status:** Owner-approved product direction; implementation and acceptance pending  
+**Repository:** `mobinpda-lab/Arvin-clean`
 
 ## Goal
-Make Report Center filters Persian-first, compact, discoverable, multi-select, and visually consistent with Arvin Home and Calendar while keeping reports read-only consumers of canonical data.
+Allow users to build accurate reports by combining the main Arvin information domains while keeping the filter UI compact, Persian-first, visually consistent and easy to operate.
 
-## Decisions
-- Report date selection must use Arvin's existing Jalali/Persian date picker. Gregorian dates remain the internal DateTime representation only; Gregorian calendar UI is not acceptable in the Persian RTL product.
-- The filter panel is a bottom sheet of expandable roll-box/accordion sections. Each section retains its local expanded state while the sheet remains open and shows a selected-count indicator.
-- Project, Category, Tag, status, and Tracking selectors support multiple simultaneous selections. Values within one filter group use OR semantics; different filter groups combine with AND semantics.
-- Use semantic pastel colors aligned with the Home/Calendar palette. Colors identify domain and state rather than acting as decoration.
-- Note filters operate on existing canonical Task records that are Notebook items. Search covers title and description; note kind distinguishes simple notes from checklists; date filtering supports created and updated timestamps. Existing Category/Tag/Project filters also apply to these canonical note records.
-- Task remains the source of truth. Notebook items are not copied into a separate report store, and no parallel report engine or data model is introduced.
-- Calendar remains a projection of canonical Task data. External phone-calendar-only records are not silently treated as Task or Note records.
+## Non-negotiable data ownership
+Report is a read-only consumer/projection. It does not own domain data and must not create parallel Task, Note, Calendar, Tracking, Follow-up or report storage. Reuse canonical models, repositories, IDs and relations. Root Task text remains `Task.description`; do not add root `Task.note`. Existing Notebook and FollowUp note concepts remain as they are.
 
-## Filter structure
-1. Time preset and precise date/time.
-2. Project (multi-select).
-3. Category (multi-select).
-4. Tag (multi-select).
-5. Note: title/text, note/checklist kind, created/updated date range.
-6. Task status (multi-select).
-7. Tracking level (normal/tracking; based on the existing RecurrenceRule field).
-8. Follow-up (existing followUpEnabled state).
-9. Existing importance and repeat/checklist refinements remain available as additional collapsed sections.
+## Sources and filter sections
+The intended report sources are Task, Project, Category, Tag, Tracking, Follow-up, Calendar and Notes. The filter panel contains these expandable sections:
+1. Time
+2. Project
+3. Category
+4. Tag
+5. Note
+6. Task Status
+7. Tracking
+8. Follow-up
 
-## UX rules
-- Compact cards with rounded corners, subtle borders, clear iconography, visible selected counts, and collapsed sections by default except the primary Time section.
-- Persian/Jalali date labels and Persian digits are used for visible date/time labels.
-- Preserve current selections when a section is collapsed and reopened.
-- Clear and Apply remain reachable at the bottom of the filter sheet.
-- Selected values in each group are OR'ed; active filter groups are AND'ed.
+Each section is an Arvin RollBox/accordion: icon, title, selected count and expand/collapse indicator in the header; selected chips and available options in the body. Collapse must not clear the section's selection. Avoid a long always-expanded filter page.
 
-## Known boundary / not to fake
-- The current canonical Notebook representation is a Task with NotebookItemKind; there is no independent Note-to-another-Task relation field. A future explicit linked-Task filter must wait for an approved domain contract rather than inventing a parallel relation.
-- ReportCenterPage currently receives canonical tasks and projects. Calendar projections represented by those Tasks are reportable; phone-calendar-only external events are not proven to be included in the report input.
-- These changes are not accepted until exact-head Analyze, tests, Debug/Release APK builds, Android visual checks, and product-owner acceptance are recorded.
+## Persian date and time
+All user-facing report date/time filters must use Arvin's Persian/Jalali presentation and Persian digits consistent with the existing calendar/date-picker conventions. In PR #2607, the date range has been changed to `showPersianDatePicker`, but `_pickTime` still uses Flutter's generic `showTimePicker`; therefore the date/time requirement is not fully accepted yet. The shared `showUniversalArvinTimePicker` exists in draft PR #2591. Reconcile/stack these overlapping changes so Report Center uses that existing shared picker without duplicating it. Preserve unambiguous underlying DateTime semantics; this is a presentation/input UX requirement, not permission to alter stored timestamps.
 
-## Execution status
-- Implemented on branch `feat/calendar-pastel-compact-cards-20261011`: Persian/Jalali picker for report date ranges; expandable filter sections; multi-select status and Tracking filters; canonical Notebook note query/kind/created-or-updated date filters; regression tests added.
-- Pending: exact-head CI/device validation, review of small-screen RTL layout, and owner acceptance. Do not merge or call release-ready before evidence.
+## Multi-select
+Project, Category, Tag, task status and note type must support selecting multiple values simultaneously. Show removable selected chips and counts. A single selection remains valid but must not be the only supported mode. Time, Tracking and Follow-up filters must also allow meaningful combinations wherever their domain semantics support it.
+
+## Color and visual system
+Extend the approved Home/Calendar pastel visual language to Reports and all other existing Arvin screens, including Notebook, forms, settings and details. Use semantic/domain identity colors (Project, Category, Tag, Note, Status), restrained backgrounds, rounded surfaces, subtle elevation and compact spacing. Color supports fast recognition, not decoration. Preserve Persian RTL, VazirHarf v34.003, the existing approved palette and current product identity.
+
+## Note reporting
+Where the canonical Notebook data makes it available, support filtering/reporting by:
+- note title and body text;
+- note category and tag;
+- creation date and last-modified date;
+- relation to a Task.
+Notes remain in their existing canonical storage and relationship model. Do not introduce a parallel Note system to satisfy reporting. Reportable/searchable note fields should be exposed to the report projection through existing repositories and tested for correct identity and relationship preservation.
+
+## Acceptance checklist
+- [ ] Report date/time filter uses Persian/Jalali user-facing controls and Persian digits.
+- [ ] Filter panel is compact; sections expand/collapse and preserve selections.
+- [ ] Multi-select works for projects, categories, tags, task statuses and note types.
+- [ ] Selected chips can be removed; selected counts stay correct.
+- [ ] Semantic colors match Home/Calendar and remain readable in RTL.
+- [ ] Report data reflects canonical Task and related data accurately.
+- [ ] Note title/body/category/tag/dates/Task relationship are filterable when available from canonical data.
+- [ ] No parallel domain model, store or duplicate report engine is introduced.
+- [ ] Regression tests, Analyze, full tests and Debug/Release builds pass for the exact PR head.
+- [ ] Android visual/device validation confirms no clipping and correct Persian/Jalali controls.
+- [ ] Owner reviews and accepts the installed build.
+
+## Anti-forget / status discipline
+This document records the decision, not proof of implementation. Keep the continuity checkpoint and product/UI governance references in sync. Before work, audit current main, open PRs, branches and CI to avoid duplicate or conflicting work. Report what changed, exact commit/PR, checks, device evidence and remaining blockers. Do not mark any acceptance item complete without evidence.
