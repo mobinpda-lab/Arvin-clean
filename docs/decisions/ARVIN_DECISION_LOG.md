@@ -62,3 +62,11 @@ For each future important decision, record **Decision, Reason, Impact, Implement
 - **Evidence:** Documentation-only edits on PR #2598 branch. No app code, schema, migration or user data is changed.
 - **Status:** PROPOSED IN OPEN DRAFT PR; not merged or approved for release.
 - **Owner approval:** Release approval is separate and is not inferred from this documentation change.
+
+
+## GOV-002 — AMPOP v5.0 supersedes AMOC as the top-level protocol
+- **Decision:** `docs/constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md` is the governing product-operating protocol. `ARVIN_PROJECT_OPERATING_PACKAGE.md` is the detailed execution standard beneath it; `ARVIN_MASTER_OPERATING_COMMAND.md` is a compatibility bridge only.
+- **Reason:** Incorporate the product owner's explicit AMPOP v5.0 protocol without maintaining two competing top-level commands.
+- **Impact:** README and the operating package authority model now point to AMPOP. Existing AMOC links remain valid through the bridge. Product invariants include Tracking as a core identity dimension, all 24 protocol sections, approval/evidence gates and the Golden User Flow.
+- **Validation:** Files read back from the open PR branch; docs-only. No app code, schema, migration or user data changed.
+- **Status:** PROPOSED IN OPEN DRAFT PR #2598; not active on main until reviewed and merged. Product/device acceptance and release approval remain open.
