@@ -2722,7 +2722,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(7, 7, 7, 7),
+            padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2765,7 +2765,7 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                           color: const Color(0xFF232433),
                           fontWeight: FontWeight.w700,
-                          fontSize: 14.5,
+                          fontSize: 14,
                           decoration: task.completed
                               ? TextDecoration.lineThrough
                               : null,
@@ -2784,11 +2784,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 4),
                         _homeChecklistProgress(task),
                       ],
                       if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         TaxonomyIconRow(
                           project: _projectTitleForTask(task),
                           category: task.category,
@@ -2815,7 +2815,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.dueDate != null) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             Icon(
