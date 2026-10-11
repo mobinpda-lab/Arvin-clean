@@ -516,3 +516,14 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - Issue [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) remains OPEN/BLOCKED. Existing evidence still requires real-device Android proof for Calendar same-event/no-duplicate sync, system file-provider backup/restore integrity, link retention, Home RTL/compact-screen review, full Golden Flow, and explicit product-owner acceptance.
 - Version on main is `1.0.1+2`; no release publication or Release Ready claim is supported.
 - **Next action:** obtain fresh current-main Build and Device Smoke evidence through an authorized workflow path; then refresh/reconcile the existing product PRs and collect physical-device acceptance. If workflow dispatch access is not exposed, record the limitation and keep release blocked. No app source change made in this checkpoint.
+
+
+## P0 evidence recovery — Device Smoke and Calendar lane (2026-10-11)
+
+- Rechecked the previously stale Device Smoke run [38037275973](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38037275973) rather than launching duplicate CI. The job API now reports all six lanes completed/success: Home (114175727462), Backup/Restore (114175727752), SQL migration (114175727913), Quick Capture (114175728065), People (114175728105), SQL persistence (114175752538).
+- Artifacts available from that run: Home `11665410659`, People `11665011600`, Quick Capture `11664318029`. No Backup/Restore artifact is listed despite its successful job result. Automated lane success is recorded; backup evidence review/data-integrity acceptance is not.
+- Calendar edit PR #2570 is already merged at `34a6cee9ae05ad1cf632960b96e98f2a5448e128`; do not duplicate the implementation.
+- Added a factual checkpoint comment to release gate [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) (comment ID `6112823569`) documenting lane results and missing Backup/Restore artifact.
+- Post-merge status check lookup for current main merge commit `d8afc717eaf02d6d0bedf92e800c7f93209c97bd` returned no status entries; this connector response is insufficient to claim current-main CI passed. The merged workflow file and contract test are present on main, but current-main workflow execution is still unverified.
+- Release gate #2102 remains OPEN/BLOCKED; PR #1901 remains OPEN. Physical-device/product-owner acceptance remains outstanding.
+- **Next action:** review available Home/People/Quick Capture artifacts; recover or explicitly document missing Backup/Restore artifact; obtain exact-current-main validation and validate same-event Calendar edit plus restore link integrity. Keep the release gate closed until P0/P1 evidence and owner acceptance are complete.
