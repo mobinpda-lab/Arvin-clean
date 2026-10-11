@@ -1914,10 +1914,27 @@ class _HomePageState extends State<HomePage> {
       );
       if (approved != true) return;
 
+      final backupTaskIds = list.map((task) => task.id).toSet();
+      final localOnlyTaskIds = tasksBeforeRestore
+          .map((task) => task.id)
+          .where((id) => !backupTaskIds.contains(id))
+          .toSet();
+      final reconciledTasks = ArvinBackupManager.reconcileTasksById(
+        current: tasksBeforeRestore,
+        backup: list,
+      );
+      final reconciledProjects = candidate.hasProjects
+          ? ArvinBackupManager.reconcileProjectsById(
+              current: projectsBeforeRestore,
+              backup: candidate.projects,
+              localOnlyTaskIds: localOnlyTaskIds,
+            )
+          : projectsBeforeRestore;
+
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
         apply: () async {
-          await taskStore.save(List<Task>.of(list));
+          await taskStore.save(List<Task>.of(reconciledTasks));
           await widget.restoreStageHook?.call('tasks');
           try {
             await AndroidFollowUpReminderScheduler().reschedule();
@@ -1926,7 +1943,7 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(candidate.projects);
+            await ProjectStore().save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
