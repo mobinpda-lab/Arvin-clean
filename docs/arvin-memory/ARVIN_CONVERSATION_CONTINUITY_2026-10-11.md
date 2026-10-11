@@ -46,8 +46,11 @@
 - Owner decision: root Task.description only; no root Task.note. Keep scoped FollowUp.note and Notebook notes unchanged.
 - Repeat/tracking history and calendar sync need immutable past occurrences, future-only recurrence changes and canonical IDs; never create copied Tasks per recurrence.
 
-### F. Current visual refinement PR
-- PR #2607, branch `feat/calendar-pastel-compact-cards-20261011`, introduced pastel/compact Calendar cards and tighter Home spacing. It was a draft, not merged; exact-head CI was in progress in the last checkpoint and Device Smoke was skipped. Existing tap behavior still expands actions rather than confirmed navigation to the same Task editor; this must be resolved/validated before acceptance. Refresh live status first.
+### F. Current visual refinement and Report Filter PRs
+- PR #2607, branch `feat/calendar-pastel-compact-cards-20261011`, is open Draft at head `0ef03757ee869a49f7d36cfcad05f2d09751a31c`, based on `main`; not merged. It now includes cross-screen pastel styling, compact expandable report filters, multi-select, canonical Notebook-as-Task report filtering, and a Persian date picker. The discovered Build run `38160581498` failed test shards 2 and 5 on an earlier head; a fresh run tied to the exact current head must be confirmed. Device Smoke was skipped. Do not claim exact-head validation based on a different branch's successful run.
+- Important integration gap: PR #2607's `_pickTime` still calls generic Flutter `showTimePicker`, while the shared Persian-digit 24-hour `showUniversalArvinTimePicker` is in PR #2591. Reconcile the overlap; do not duplicate the picker. Keep both PRs Draft until the combined exact head passes.
+- Existing Calendar item tap behavior still needs verification against the owner requirement to open/edit the same canonical Task; do not accept the visual change alone as proof of correct navigation.
+- PR #2608, branch `docs/report-filter-memory-20261011`, is the documentation/anti-forget PR at head `b2e922a0ebce98c93339a6aeb1d0b14de52607b8`, not merged. It overlaps on `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md` with #2607, so reconcile the duplicate document before merging either PR.
 
 ### G. Other known release/acceptance gates
 - Backup/restore needs real Android file-picker/provider and round-trip checks, including IDs, relations, settings, Notebook checklists and calendar links; do not equate merged code with device acceptance.
