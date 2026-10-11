@@ -1,6 +1,6 @@
 # Arvin Execution State
 
-Updated: 2026-10-11 (backup/restore taxonomy gap found)
+Updated: 2026-10-11 (catalog portability gate and exact-head CI recheck)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 GitHub access: Read/Write verified by live read/write operations.
 Authority: live GitHub refs, source, tests and workflow evidence.
@@ -12,16 +12,17 @@ Authority: live GitHub refs, source, tests and workflow evidence.
 - Read the saved execution state and evidence map first.
 - Rechecked main, PR #2585, #2587, #2600, Issue #2580, canonical ADR and taxonomy source files.
 - Confirmed main head is `72a2f4cc24df7a38eff9856ce403461615db5280`; latest main commit is documentation-only.
-- Verified Memory PR #2600 head before this memory update: `0b5b6a90c3fb30988528baf85bcc2ee4c914d9f9`. Exact-head Build [#38126660822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126660822) SUCCESS (Analyze, test shards 0–5, Debug APK, Release APK). Device Smoke [#38126660831](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126660831) SKIPPED because the change was docs-only. These results predate the current memory commit and are not exact-head checks for the new head.
+- Memory PR #2600 current head before this state refresh was `f276ed70c7d0bdfb22548dd2d34b7d5843a93ea3`. Exact-head Build [#38127838095](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38127838095) was IN PROGRESS at last poll; Device Smoke [#38127838161](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38127838161) was SKIPPED due docs-only trigger. Orchestrator, Production Loop, Parallel Wave and G1 lock-sync runs completed successfully; these do not substitute for Build or device acceptance.
 - Confirmed PR #2585 is OPEN / NOT MERGED at code head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`; PR #2587 is OPEN / NOT MERGED at code head `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
 - Continued the taxonomy audit and posted a source-backed backup/restore catalog gap to [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580). Independent unused Category/Tag catalog entries are supported by TaskStore/UI, but the current canonical backup payload only includes Tasks, settings and Projects. No code/data mutation was made because preserving catalog-only values is a product data-integrity decision.
 
 ## Current GitHub reality
+- Data-integrity owner gate: [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) records the source-level backup/restore gap for unused Category/Tag catalog entries. Recommendation is to preserve them as portable user data. No owner approval has been received in this execution context; no backup format, schema or restore code was changed.
 - Main: [72a2f4c](https://github.com/mobinpda-lab/Arvin-clean/commit/72a2f4cc24df7a38eff9856ce403461615db5280), documentation-only PCTADP decision registration.
 - Calendar linked-event edit fix [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is merged in [34a6cee](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128). Automated regression expects update=1/create=0 and stable external event ID; physical-device proof remains absent.
 - Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): open/unmerged at `5e0ad6d`; exact-head Build #38124942112 and Device Smoke #38124941815 succeeded, all six emulator lanes. Actual Android system file-picker/provider and data-integrity acceptance remain unverified.
 - Calendar action visibility [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587): open/unmerged at `4442ce4`; exact-head Build #38089112669 and Device Smoke #38089112675 succeeded, all six emulator lanes. Physical-device action visibility, recurrence/checklist and provider behavior remain unverified.
-- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): open/draft. Its previously checked head passed Build #38126660822, but the current head changed with this memory update; exact-head CI must be rechecked.
+- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): open/draft at `f276ed70c7d0bdfb22548dd2d34b7d5843a93ea3` before this state refresh. Exact-head Build #38127838095 was still running at last poll; Device Smoke #38127838161 was skipped because the PR is docs-only. Any further memory commit creates a new head and requires a fresh exact-head check.
 - Taxonomy audit [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) remains open.
 
 ## Taxonomy audit findings (partial)
