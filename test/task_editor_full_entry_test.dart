@@ -78,6 +78,8 @@ void main() {
     final task = Task(
       id: 'full-entry',
       title: 'کار کامل',
+      description: 'توضیح کوتاه',
+      note: 'یادداشت قبلی',
       dueDate: due,
       reminderDate: reminder,
       recurrence: const RecurrenceRule(
@@ -102,6 +104,10 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
+    final noteField = find.byKey(const ValueKey('task-editor-note'));
+    expect(noteField, findsOneWidget);
+    await tester.ensureVisible(noteField);
+    await tester.enterText(noteField, 'یادداشت ویرایش‌شده');
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
@@ -110,6 +116,8 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, 'full-entry');
+    expect(result!.description, 'توضیح کوتاه');
+    expect(result!.note, 'یادداشت ویرایش‌شده');
     expect(result!.dueDate, due);
     expect(result!.reminderDate, reminder);
     expect(result!.recurrence?.frequency, RecurrenceFrequency.weekly);
