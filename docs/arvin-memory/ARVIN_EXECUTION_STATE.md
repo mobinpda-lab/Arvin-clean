@@ -9,7 +9,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 **IN PROGRESS — RELEASE BLOCKED.**
 
 ## Current GitHub reality
-- Main has moved since the previous checkpoint; latest fetched blob for `lib/calendar_page.dart` is `bca61696309f809dc9640da001fe45aabc262a65`. Re-read live branch and PR refs before any merge.
+- Current main head confirmed by latest repository commit search: `72a2f4cc24df7a38eff9856ce403461615db5280` (PCTADP documentation-only commit). Latest Calendar UI action PR #2587 targets this head. Re-read live branch and PR refs before any merge.
 - Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; current head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` adds BackupPage settings-stage rollback failure injection. Exact-head Build #38124942112 is SUCCESS; current Device Smoke #38124941815 is SUCCESS across all six emulator lanes. Previous green evidence on `05c080e` is historical for that older head.
 - Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT. Execution state/evidence map have been updated on the memory branch; check exact branch head and docs PR checks before merge.
 - Calendar actions [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587): OPEN / NOT MERGED; latest validated head recorded in its conversation is `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
@@ -96,3 +96,11 @@ Task remains the only source of truth; Calendar is a projection; Repeat must not
 - PR #2587 exact head `4442ce450e4295e500a9db6d5dc5b4d9657b3770`: Build #38089112669 SUCCESS; Device Smoke #38089112675 SUCCESS across all six lanes. PR remains open pending physical Android Calendar and recurrence acceptance.
 - Memory PR #2600 exact head `1f96f8115bf11ecdd6f8a1acbaf69336120101de`: Build #38126050114 SUCCESS (Analyze, tests 0–5, Debug and Release APK). Device Smoke workflow was skipped by its current trigger; this is documentation-only and not a product validation signal. PR remains draft/open pending memory review.
 - PR #2585 and #2587 remain OPEN / NOT MERGED. Release remains BLOCKED pending real-device acceptance and full Golden Flow.
+
+
+## Mainline refresh — 2026-10-11
+- Latest main commit confirmed: [72a2f4c](https://github.com/mobinpda-lab/Arvin-clean/commit/72a2f4cc24df7a38eff9856ce403461615db5280), documenting the accepted Project/Category/Tag ontology. This commit is documentation-only; no app code, schema, migration or user data changed.
+- Existing Calendar sync repair [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is MERGED. Its source commit [34a6cee](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128) changes explicit edits of already-linked Tasks to reconcile the existing event even if that source's automatic-sync toggle is off, and tests expect update=1/create=0 with the same external event ID. This is automated/provider-test evidence; physical device remains required.
+- PR #2587 still targets current main head 72a2f4c; its action-visibility change remains unmerged pending device acceptance.
+- PR #2585 remains open at exact code head 5e0ad6d; Build and all six emulator smoke lanes passed. Do not merge based on those results alone; physical file-provider/data integrity gate remains open.
+- Current documentation PR #2600 head is 09904f30b6f955c034324d491df46cf6f98db3be; its new Build run [#38126587378](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126587378) was queued/in progress at last check. Device Smoke was skipped because this is a docs-only change. Recheck before merge.
