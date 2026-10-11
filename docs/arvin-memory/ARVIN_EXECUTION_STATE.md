@@ -10,7 +10,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 
 ## Current GitHub reality
 - Main has moved since the previous checkpoint; latest fetched blob for `lib/calendar_page.dart` is `bca61696309f809dc9640da001fe45aabc262a65`. Re-read live branch and PR refs before any merge.
-- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; current head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` adds BackupPage settings-stage rollback failure injection. Exact-head Build #38124942112 is SUCCESS; current Device Smoke #38124941815 is still incomplete. Previous green evidence on `05c080e` is historical for that older head.
+- Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; current head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` adds BackupPage settings-stage rollback failure injection. Exact-head Build #38124942112 is SUCCESS; current Device Smoke #38124941815 is SUCCESS across all six emulator lanes. Previous green evidence on `05c080e` is historical for that older head.
 - Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT. Execution state/evidence map have been updated on the memory branch; check exact branch head and docs PR checks before merge.
 - Calendar actions [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587): OPEN / NOT MERGED; latest validated head recorded in its conversation is `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
 - Restore Build [#38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036): SUCCESS on `05c080e` — Analyze, six test shards, Debug APK and Release APK.
@@ -31,7 +31,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - No code PR was merged; a stale-head merge attempt was rejected by GitHub.
 
 ## In Progress
-- PR #2585: added BackupPage restore test that injects failure after settings + backup-schedule mutation and asserts Task/Project/Calendar-link/settings/schedule rollback. Exact-head Build #38124942112 is SUCCESS (Analyze, six test shards, Debug APK, Release APK). Device Smoke #38124941815 remains incomplete: all six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
+- PR #2585: added BackupPage restore test that injects failure after settings + backup-schedule mutation and asserts Task/Project/Calendar-link/settings/schedule rollback. Exact-head Build #38124942112 is SUCCESS (Analyze, six test shards, Debug APK, Release APK). Device Smoke #38124941815 is SUCCESS: all six lanes passed — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
 - Review PR #2587 current exact head and acceptance notes; preserve the collapsed-card action and seven-occurrence regressions.
 - Physical Android file-provider backup/restore, restored Calendar-link identity/no-duplicate behavior, recurrence/checklist acceptance and visual review.
 - Continue taxonomy audit #2580.
@@ -88,3 +88,11 @@ Task remains the only source of truth; Calendar is a projection; Repeat must not
 - Latest recheck of run [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): all six lanes are SUCCESS — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People. Exact-head emulator smoke is complete; physical device/file-provider validation remains separate.
 - Exact-head Build #38124942112 remains SUCCESS on PR #2585 head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`.
 - Next: recheck the two running smoke lanes, then record final exact-head results. Physical device/file-picker validation remains an independent release gate.
+
+
+## Consolidated live status — 2026-10-11 12:25 Iran time
+- GitHub Read/Write verified by live read/write operations.
+- PR #2585 exact head `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`: Build #38124942112 SUCCESS (Analyze, tests 0–5, Debug and Release APK); Device Smoke #38124941815 SUCCESS (all six lanes). Comment #6107340751 records this evidence on the PR. Automated emulator evidence only; real device file-picker/provider acceptance is still open.
+- PR #2587 exact head `4442ce450e4295e500a9db6d5dc5b4d9657b3770`: Build #38089112669 SUCCESS; Device Smoke #38089112675 SUCCESS across all six lanes. PR remains open pending physical Android Calendar and recurrence acceptance.
+- Memory PR #2600 exact head `1f96f8115bf11ecdd6f8a1acbaf69336120101de`: Build #38126050114 SUCCESS (Analyze, tests 0–5, Debug and Release APK). Device Smoke workflow was skipped by its current trigger; this is documentation-only and not a product validation signal. PR remains draft/open pending memory review.
+- PR #2585 and #2587 remain OPEN / NOT MERGED. Release remains BLOCKED pending real-device acceptance and full Golden Flow.
