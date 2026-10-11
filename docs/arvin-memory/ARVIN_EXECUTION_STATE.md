@@ -539,3 +539,11 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - PR #2585 (Backup/Restore) is already merged at `a6ced27660d34cd87dd8915aff68d3a7555fd57a`; Calendar sync #2570 and Calendar-link backup/restore #2569 are also already merged. Do not duplicate those implementations.
 - PR #2607 remains Draft and its Build pass is on a head predating current main; PR #2591 remains Draft and its base is stale. Refresh/reconcile rather than merge blindly.
 - **Next action:** monitor exact-main Device Smoke #38167835426 to completion, inspect Backup/Restore result/artifact and People screenshot; then refresh/reconcile PR #2607/#2591 integration. Release remains blocked on physical-device Calendar/Backup-Restore, recurrence, RTL, Golden Flow and explicit owner acceptance.
+
+
+## Device Smoke progress correction — exact main SHA (2026-10-11)
+
+- Rechecked run [38167835426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835426) on `d8afc717eaf02d6d0bedf92e800c7f93209c97bd`.
+- SQL migration and SQL persistence have now completed successfully. Home and Quick Capture remain successful.
+- Backup/Restore and People have moved from queued to in progress. Full run is still `in_progress`; neither lane is yet accepted and neither artifact is listed at this checkpoint.
+- Continue waiting on this exact run; do not start duplicate Device Smoke. Release gate remains open/blocked.
