@@ -286,3 +286,8 @@ This addendum records the current owner-authored **ARVIN MASTER PRODUCT COMPLETI
 
 ## 2026-10-10 — PCTADP mandatory architecture gate
 Before any change to Task, Project, Category/Group, Tag, Filter, Search, Report, Calendar, Repeat or Backup/Restore, read `docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md` and Issue #2582. No registration in GitHub = no implementation. Canonical concepts are Project, Category and Tag; Task remains the core actionable entity. Category and Group are synonyms, technical name `Category`, Persian UI term «دسته». Do not add a Group entity or parallel taxonomy. Filters for Project/Category/Tag remain distinct and combine with AND. Date-based Home grouping is display-only. Verify actual current model/schema, all impacted surfaces and backup/restore; do not infer a physical Category-to-Project foreign key from the conceptual hierarchy. Link the ADR from the related Issue/PR and require focused regression tests plus exact-head CI evidence.
+
+## Mandatory Conversation Decision History Gate
+
+Before any meaningful Arvin action—including code edits, PR/Issue changes, build/release decisions or proposing a new architecture—read `docs/arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md` and the relevant governing ADR/Issue/PR. Then re-check live GitHub status and continue from the latest verified checkpoint. Do not restart settled analysis or recreate existing work. Record newly reported installation/device/user-experience findings in the relevant existing Issue and the established user-experience log (first verify its path/existence). This history is a durable decision index, not evidence that an implementation passed acceptance.
+
