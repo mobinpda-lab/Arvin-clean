@@ -201,9 +201,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryHeader);
     await tester.pumpAndSettle();
-    // The collapsed ExpansionTile may unmount its child subtree. Verify the
-    // selection after reopening, when the chip is mounted again.
-    await tester.ensureVisible(categoryHeader);
+    // The collapsed section may be outside the lazy ListView's built range.
+    // Scroll the section back into the sheet before reopening it.
+    await tester.scrollUntilVisible(
+      categorySection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.pumpAndSettle();
     await tester.tap(categoryHeader);
     await tester.pumpAndSettle();
