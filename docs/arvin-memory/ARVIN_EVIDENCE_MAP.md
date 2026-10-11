@@ -186,3 +186,10 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - Release evidence: #2102 OPEN; #1901 OPEN; #1139 OPEN; both available prereleases are Draft and not release candidates. No physical-device acceptance is evidenced here.
 - #866 is still OPEN; comments show AI-provider HTTP 429 cooldown/retry. #1324 remains OPEN for migration acceptance. Do not infer closure from code presence.
 - Audit coverage boundary: 740 repository paths, 21 workflow files, 190 docs, 249 test/integration-test files, 1,248 branches, 19 open PRs, 1,096 open Issues; 876 open AUTO-FIX search results. These are inventory/search counts, not individually reviewed artifacts. Continue bounded passes over all PRs, issues, branches, commits, docs and workflows.
+
+
+## PR #2531 exact-main refresh — 2026-10-11
+- Existing PR #2531 branch was 18 commits behind main. Rebuilt its branch from exact main `a6ced27660d34cd87dd8915aff68d3a7555fd57a`, preserving only the original release-closure workflow and its focused test.
+- New exact head: `4505c759a8338e91c596d9b031d16d29080a339c`; comparison: ahead 1, behind 0; changed files = 2.
+- Exact-head checks at poll: 21 total, 6 completed, 9 in progress, 6 queued; Build #38165128162 and Device Smoke #38165128170 queued. Outcome pending.
+- PR comment posted to explain the rebase, exact scope, and pending evidence. Not merged; no release side effect.
