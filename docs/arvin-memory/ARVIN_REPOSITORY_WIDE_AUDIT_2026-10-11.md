@@ -63,3 +63,18 @@ GitHub access: Read/Write verified. No application code, schema, migration, rele
 4. Reconcile #2593/#2594/#2595/#2602 Task Note and form contracts, then validate same-Task draft identity, persistence, backup/restore and all relevant tests.
 5. Refresh exact-main Build/Device Smoke evidence, resolve #2102/#1901/#1139 and only then evaluate the release tag/artifact contract.
 6. Continue targeted issue/branch/commit history passes; do not declare the whole repository audit complete until remaining history and stale queue records are reconciled.
+
+
+## Additional P0/P1 issue sweep — 2026-10-11
+A second targeted search for open P0/P1 and bug-labelled issues found additional active acceptance records that must remain visible alongside the current PR work:
+- #1608 (open, P0): final product verification / Release-Ready evidence across Home, Quick Capture, Keyboard/Back, FollowUp, Swipe, Notebook, Calendar, Settings, Backup/Restore, search, notifications/widgets and exact final SHA evidence.
+- #1602 (open, P0): Keyboard/Back, Swipe, Notebook and Calendar UX gaps; parallel closure is expected, but no parallel models/stores.
+- #830 (open, P0/P1 release execution board): old release audit/quality gate remains open and should be reconciled with #2102 and #1139 rather than silently forgotten.
+- #2535 (open, title P0 acceptance): installed-APK report says Calendar phone-calendar action and Task Edit action disappeared and recurring tasks show only today rather than all scheduled days. PR #2587 may restore some actions, but #2535 remains open and requires installed-product verification.
+- #1843 (open): Home visual contract, clipped card text and phone-calendar action; overlap with #2607/#2535 requires cross-linking, not a second visual engine.
+- #1860 (open): Home typography scaling, font-size and device-font fallback; real screenshot/device verification remains needed.
+- #1851 (open): Quick Capture Persian date/time and picker behavior; overlaps shared picker PR #2591.
+- #1852 (open): newly created Category/Tag persistence and immediate Roll Box refresh; overlaps taxonomy PRs #2577/#2578/#2579.
+- #1068 (open): final QA checklist explicitly blocks release on Gregorian date/time, filters and main-button behavior; current main report date/time selectors still violate that acceptance.
+- #1067 (open): Calendar architecture and Persian/Jalali rules; six unchecked acceptance items remain in the issue body.
+Search counts: open issues labelled P0 = 3 (#1608, #1602, #830); labelled P1 = 1 (#830); bug-labelled = 8. These are not necessarily eight distinct defects: several overlap newer canonical work and must be reconciled by root cause and evidence before closure.

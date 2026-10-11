@@ -159,3 +159,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 ### P2 — branch/history scale
 - 1,248 branches were enumerated across 13 pages. Inventory active PR branches, historical branches and orphan candidates; do not bulk-delete without dependency checks.
 - 1,096 open Issues were not individually read in this pass; 19 open PRs and targeted P0/P1 issues were inspected. Continue bounded, evidence-led history passes.
+
+
+### Additional P0/P1 product acceptance records — 2026-10-11
+- #1608 P0 Release-Ready evidence board remains open.
+- #1602 P0 parallel product closure for Keyboard/Back, Swipe, Notebook and Calendar remains open.
+- #830 P0/P1 release execution board remains open and should be reconciled with current gate #2102 and acceptance ledger #1139.
+- #2535 P0 installed-APK acceptance remains open: Calendar actions and all scheduled repeat days need validation on the installed product.
+- #1843 Home visual/clipping/phone-calendar action, #1860 typography scaling, #1851 Quick Capture Persian date/time, #1852 taxonomy refresh, #1068 final QA checklist and #1067 Calendar/Jalali acceptance remain open. They overlap newer PRs/issues but are not closed by PR existence alone.
