@@ -78,3 +78,8 @@ Purpose: durable index of owner requirements, decisions, reported installed-app 
 4. Complete calendar and physical backup/restore installed-device acceptance.
 5. Reconcile documentation PRs and rebase to current main.
 6. Only then close release gate with exact artifact, test/build/device evidence, complete handover package and explicit owner acceptance.
+
+
+## 2026-10-11 — Owner decision recorded
+- User explicitly chose Option 1: keep only the existing root Task `Description`/`description`; no separate root `Task.note` field.
+- This decision resolves the data-model question, but does not authorize weakening tests or claiming the overlapping PRs are ready. The implementation must be reconciled to this contract and validated.
