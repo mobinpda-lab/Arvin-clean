@@ -1,3 +1,24 @@
+# LIVE CONTINUATION CHECKPOINT — 2026-10-11 18:27 Iran time
+
+This checkpoint supersedes older PR-head snapshots and "Next action" entries below. Refresh all live GitHub state before future operations.
+
+## Latest completed step
+- Re-read this execution state first, then refreshed live PR #2591/#2595/#2600/#2601/#2602 and accepted RTLC issue #2605.
+- Compared patches for #2591, #2595 and #2602 to identify shared files and data-contract risk. All three are still OPEN; #2591 and #2595/#2602 are Draft, #2595 is stacked on #2591. PR #2600 remains OPEN/DRAFT. Current reported heads: #2591 `eae0394163a958223b79fc3b7aa914f79b664b8a`; #2595 `0786a2e067594d92b35c6a3028c633e8abc9bb3d`; #2600 `0413c5a7b862d4e0718f67a2587ec8dc36b04429`; #2601 `b832aeb6e0f55c78db0b1814adc0d5bd63447c23`; #2602 `15c40a81ec7e45fe690de40ebbd9cf005e57af80`. Refresh before relying on them.
+- Verified current main `a6ced27660d34cd87dd8915aff68d3a7555fd57a` and read `lib/models/task.dart`: canonical root Task has `description`, but no root `note`; it already has Notebook item-kind and scoped note concepts.
+- Found a new unapproved data-contract change in #2595: adds root `Task.note`, modifies Task serialization/deserialization and TaskStore known keys, and changes backup/restore test expectations. Command v8 lists Task Description but does not authorize a second root field. This is a data/architecture gate, so do not silently approve it or propagate it.
+- Posted review comments on #2595 and #2602 to keep both Draft and reconcile the overlapping form lane; comments: https://github.com/mobinpda-lab/Arvin-clean/pull/2595#issuecomment-6110326453 and https://github.com/mobinpda-lab/Arvin-clean/pull/2602#issuecomment-6110326886.
+- Recorded the finding in `ARVIN_PROBLEM_REGISTER.md` (commit `4fa06f3f2feb3e368ef55116320e76ad235ee216`) and `ARVIN_DECISION_LOG.md` (commit `53a35664b40b1ab64ba9a8642663013056953fe3`) on the existing documentation branch. GitHub Read/Write access was used; no app code, main, APK, merge, or release was changed.
+
+## Current status
+- **Completed:** Cross-PR overlap/data-contract audit; comments posted; data-risk gate recorded in memory.
+- **In Progress:** Universal time picker rollout and Task form reconciliation; RTLC integration remains accepted direction but not implemented/accepted; product and release evidence.
+- **Blocked:** Approval of root `Task.note` vs existing `description` semantics and legacy data/backup mapping requires explicit product-owner decision. This is the stop condition defined by Command v8 (data risk/architecture change).
+- **Current bottleneck:** Several Task Editor PRs overlap and #2595 introduces an unapproved Task data-contract change; #2602 previously failed three test shards and Device Smoke was skipped.
+- **Next action:** Ask owner whether a separate root Task Note is intended in addition to Description. Until decided, continue only safe read-only patch/CI evidence work and documentation reconciliation; do not merge #2595/#2602 or propagate `Task.note`. After decision, consolidate to one canonical form/time-picker branch, fix test root causes without weakening tests, then integrate RTLC once and run exact-head CI + Device Smoke + physical-device acceptance.
+
+---
+
 ## Documentation audit writeback — 2026-10-11
 
 - Conversation-decision history was added at `docs/arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md`, commit `cef2a03e7d4f0dd73cbefad796e0393c8723267d`; read-back verified time-picker and checklist requirements are present.
