@@ -95,6 +95,26 @@ void main() {
       expect(result.last.itemIds, ['local-task']);
     });
 
+    test('explicit nullable defaults overwrite current custom settings', () {
+      final merged = AppSettingsService.mergePortableJson(
+        current: {
+          'fontFamily': 'VazirHarf',
+          'calendarIntegration': {'targetCalendarId': 'local-calendar'},
+        },
+        incoming: {
+          'fontFamily': null,
+          'calendarIntegration': {'targetCalendarId': null},
+        },
+      );
+
+      expect(merged.containsKey('fontFamily'), isTrue);
+      expect(merged['fontFamily'], isNull);
+      expect(
+        (merged['calendarIntegration'] as Map)['targetCalendarId'],
+        isNull,
+      );
+    });
+
     test('legacy settings only update keys present in backup', () {
       final merged = AppSettingsService.mergePortableJson(
         current: {
