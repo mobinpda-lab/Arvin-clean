@@ -200,6 +200,16 @@ class _ArvinAppState extends State<ArvinApp> {
           outline: ArvinColors.border,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
+        cardTheme: const CardThemeData(
+          color: ArvinColors.surface,
+          elevation: 1,
+          shadowColor: Color(0x12000000),
+          margin: EdgeInsets.symmetric(vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            side: BorderSide(color: ArvinColors.border),
+          ),
+        ),
         fontFamily: selectedFontFamily,
         textTheme: readableLightTextTheme,
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
@@ -229,6 +239,16 @@ class _ArvinAppState extends State<ArvinApp> {
           onPrimary: const Color(0xFF20236E),
           secondary: const Color(0xFF9FC4FF),
           error: const Color(0xFFFFB4AB),
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF25283A),
+          elevation: 1,
+          shadowColor: Color(0x40000000),
+          margin: EdgeInsets.symmetric(vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            side: BorderSide(color: Color(0xFF41465B)),
+          ),
         ),
         fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
