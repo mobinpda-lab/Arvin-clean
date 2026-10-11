@@ -66,6 +66,56 @@ void main() {
       });
     });
 
+    test('round-trips optional Calendar links and Category/Tag catalogs', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[
+          <String, dynamic>{'id': 'task-1', 'title': 'کار نمونه'},
+        ],
+        'calendarLinks': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'reminderId': 'task-due:task-1',
+            'calendarId': 'calendar-1',
+            'eventId': 'event-1',
+            'lastSyncedFingerprint': 'fingerprint-1',
+          },
+        ],
+        'categories': <String>['خانه', 'مالی'],
+        'tags': <String>['مهم', 'پیگیری'],
+      });
+      final document = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(bytes)),
+      );
+
+      expect(document['calendarLinks'], hasLength(1));
+      expect(
+        (document['calendarLinks'] as List).single['eventId'],
+        'event-1',
+      );
+      expect(document['categories'], <String>['خانه', 'مالی']);
+      expect(document['tags'], <String>['مهم', 'پیگیری']);
+    });
+
+    test('rejects malformed optional Calendar link and taxonomy containers', () {
+      for (final key in ['calendarLinks', 'categories', 'tags']) {
+        expect(
+          () => ArvinBackupService.encodeBackupDocument({
+            'tasks': <dynamic>[],
+            key: 'not-a-list',
+          }),
+          throwsA(isA<FormatException>()),
+        );
+        expect(
+          () => ArvinBackupService.validateBackupDocument({
+            'type': 'arvin_backup',
+            'formatVersion': 1,
+            'tasks': <dynamic>[],
+            key: 'not-a-list',
+          }),
+          throwsA(isA<FormatException>()),
+        );
+      }
+    });
+
     test('rejects invalid settings payload without creating a new format', () {
       expect(
         () => ArvinBackupService.encodeBackupDocument({
