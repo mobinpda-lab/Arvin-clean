@@ -843,7 +843,7 @@ class _MultiSelectChips extends StatelessWidget {
             key: ValueKey('$keyPrefix-all'),
             label: Text(allLabel),
             selected: selected.isEmpty,
-            selectedColor: accentColor.withOpacity(.16),
+            selectedColor: accentColor.withValues(alpha: .16),
             checkmarkColor: accentColor,
             onSelected: (_) => onChanged(<String>{}),
           ),
@@ -852,7 +852,7 @@ class _MultiSelectChips extends StatelessWidget {
               key: ValueKey('$keyPrefix-${option.key}'),
               label: Text(option.value),
               selected: selected.contains(option.key),
-              selectedColor: accentColor.withOpacity(.16),
+              selectedColor: accentColor.withValues(alpha: .16),
               checkmarkColor: accentColor,
               onSelected: (checked) {
                 final next = <String>{...selected};
@@ -903,7 +903,7 @@ class _SectionState extends State<_Section> {
       color: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withOpacity(.18)),
+        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withValues(alpha: .18)),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -924,7 +924,7 @@ class _SectionState extends State<_Section> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(.12),
+                  color: accent.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
