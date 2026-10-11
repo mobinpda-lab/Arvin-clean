@@ -1,3 +1,10 @@
+## Documentation audit writeback — 2026-10-11
+
+- Conversation-decision history was added at `docs/arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md`, commit `cef2a03e7d4f0dd73cbefad796e0393c8723267d`; read-back verified time-picker and checklist requirements are present.
+- `ARVIN_PROBLEM_REGISTER.md` addendum committed at `abfe3d719eed8ec134c26fd82ba8d432bd83e315`; `ARVIN_EVIDENCE_MAP.md` addendum committed at `7933bf44f36fdfed1da9b4e918acd0218a28bbb6`.
+- PR #2600 audit comment posted: https://github.com/mobinpda-lab/Arvin-clean/pull/2600#issuecomment-6109981897.
+- Current memory branch has been updated but is still not main; re-fetch current head before any later write. No application code, APK, merge or release change was made.
+
 # DEEP CONVERSATION AUDIT CHECKPOINT — 2026-10-11 (supersedes stale next-action notes below)
 
 ## Owner request
