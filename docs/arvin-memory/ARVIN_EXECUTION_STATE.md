@@ -394,3 +394,12 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Exact-head Build run #38163761104 is PENDING for the new commit. Device Smoke #38163760935 is SKIPPED because PR #2607 remains Draft. This correction is not validated until the new run reaches terminal success.
 - PR #2607 remains OPEN/Draft. Release gate issue #2102 and regression PR #1901 remain open; no merge, release, or Draft-state change was made.
 - Next action: inspect exact-head Build #38163761104 and its shard-4 result; if it fails, read the new log before making any further change. Device Smoke, physical-device checks, and owner acceptance remain required.
+
+
+### Continuation poll — 2026-10-11 18:27 UTC
+
+- Re-read execution state and polled exact-head Build #38163761104 for commit `7526dc186a26d099368fb288fdc7891ed57222ce`.
+- Current state: Build IN_PROGRESS; `quality (analyze)` SUCCESS; test shards 0–5 and Debug/Release APK jobs still IN_PROGRESS. No terminal conclusion is available yet.
+- PR #2607 is still OPEN/Draft at the expected head. Issue #2102 and regression PR #1901 remain OPEN. Main remains `a6ced27660d34cd87dd8915aff68d3a7555fd57a`.
+- No new code change made during this poll because there is no new failure evidence. Device Smoke remains skipped under Draft gating; physical-device validation and owner acceptance remain outstanding.
+- Next action: continue polling this exact run and inspect logs only after a job reports failure.
