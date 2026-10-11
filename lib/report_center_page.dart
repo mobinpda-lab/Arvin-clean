@@ -434,6 +434,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ChoiceChip(
                       label: Text(_timeLabel(preset)),
                       selected: _timePreset == preset,
+                      selectedColor: ArvinColors.timeSoft,
                       onSelected: (_) => setState(() => _timePreset = preset),
                     ),
                 ],
@@ -494,6 +495,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               selectedCount: _projectIds.length,
               child: _MultiSelectChips(
                 allLabel: 'همه پروژه‌ها',
+                accentColor: ArvinColors.project,
                 options: widget.projects
                     .map((project) => MapEntry(project.id, project.title))
                     .toList(growable: false),
@@ -509,6 +511,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               selectedCount: _categories.length,
               child: _MultiSelectChips(
                 allLabel: 'همه دسته‌ها',
+                accentColor: ArvinColors.category,
                 options: categories.map((value) => MapEntry(value, value)).toList(growable: false),
                 selected: _categories,
                 onChanged: (value) => setState(() => _categories = value),
@@ -522,6 +525,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               selectedCount: _tags.length,
               child: _MultiSelectChips(
                 allLabel: 'همه برچسب‌ها',
+                accentColor: ArvinColors.tag,
                 options: tags.map((value) => MapEntry(value, value)).toList(growable: false),
                 selected: _tags,
                 onChanged: (value) => setState(() => _tags = value),
@@ -556,6 +560,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         key: const ValueKey('report-filter-note-kind-note'),
                         label: const Text('یادداشت'),
                         selected: _noteKinds.contains(NotebookItemKind.note),
+                        selectedColor: ArvinColors.primarySoft,
+                        checkmarkColor: ArvinColors.primary,
                         onSelected: (selected) => setState(() {
                           selected
                               ? _noteKinds.add(NotebookItemKind.note)
@@ -566,6 +572,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         key: const ValueKey('report-filter-note-kind-checklist'),
                         label: const Text('چک‌لیست'),
                         selected: _noteKinds.contains(NotebookItemKind.checklist),
+                        selectedColor: ArvinColors.timeSoft,
+                        checkmarkColor: ArvinColors.time,
                         onSelected: (selected) => setState(() {
                           selected
                               ? _noteKinds.add(NotebookItemKind.checklist)
@@ -632,6 +640,18 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: ValueKey('report-filter-status-${value.name}'),
                       label: Text(_statusLabel(value)),
                       selected: _statuses.contains(value),
+                      selectedColor: switch (value) {
+                        ReportStatusFilter.open => ArvinColors.projectSoft,
+                        ReportStatusFilter.completed => ArvinColors.timeSoft,
+                        ReportStatusFilter.archived => ArvinColors.neutralSoft,
+                        ReportStatusFilter.all => ArvinColors.primarySoft,
+                      },
+                      checkmarkColor: switch (value) {
+                        ReportStatusFilter.open => ArvinColors.project,
+                        ReportStatusFilter.completed => ArvinColors.time,
+                        ReportStatusFilter.archived => ArvinColors.neutral,
+                        ReportStatusFilter.all => ArvinColors.primary,
+                      },
                       onSelected: (selected) => setState(() {
                         selected ? _statuses.add(value) : _statuses.remove(value);
                       }),
@@ -658,6 +678,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     key: const ValueKey('report-filter-tracking-normal'),
                     label: const Text('عادی'),
                     selected: _trackingLevels.contains(RecurrenceTrackingLevel.normal),
+                    selectedColor: ArvinColors.neutralSoft,
+                    checkmarkColor: ArvinColors.neutral,
                     onSelected: (selected) => setState(() {
                       selected
                           ? _trackingLevels.add(RecurrenceTrackingLevel.normal)
@@ -668,6 +690,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     key: const ValueKey('report-filter-tracking-important'),
                     label: const Text('مهم و قابل پیگیری'),
                     selected: _trackingLevels.contains(RecurrenceTrackingLevel.tracking),
+                    selectedColor: ArvinColors.reminderSoft,
+                    checkmarkColor: ArvinColors.reminder,
                     onSelected: (selected) => setState(() {
                       selected
                           ? _trackingLevels.add(RecurrenceTrackingLevel.tracking)
@@ -797,12 +821,14 @@ class _MultiSelectChips extends StatelessWidget {
   const _MultiSelectChips({
     required this.allLabel,
     required this.options,
+    this.accentColor = ArvinColors.primary,
     required this.selected,
     required this.onChanged,
     required this.keyPrefix,
   });
 
   final String allLabel;
+  final Color accentColor;
   final List<MapEntry<String, String>> options;
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
@@ -817,6 +843,8 @@ class _MultiSelectChips extends StatelessWidget {
             key: ValueKey('$keyPrefix-all'),
             label: Text(allLabel),
             selected: selected.isEmpty,
+            selectedColor: accentColor.withOpacity(.16),
+            checkmarkColor: accentColor,
             onSelected: (_) => onChanged(<String>{}),
           ),
           for (final option in options)
@@ -824,6 +852,8 @@ class _MultiSelectChips extends StatelessWidget {
               key: ValueKey('$keyPrefix-${option.key}'),
               label: Text(option.value),
               selected: selected.contains(option.key),
+              selectedColor: accentColor.withOpacity(.16),
+              checkmarkColor: accentColor,
               onSelected: (checked) {
                 final next = <String>{...selected};
                 if (checked) {
