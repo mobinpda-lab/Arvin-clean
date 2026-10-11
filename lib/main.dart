@@ -204,7 +204,7 @@ class _ArvinAppState extends State<ArvinApp> {
           color: ArvinColors.surface,
           elevation: 1,
           shadowColor: Color(0x12000000),
-          margin: EdgeInsets.symmetric(vertical: 4),
+          margin: EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
             side: BorderSide(color: ArvinColors.border),
@@ -219,13 +219,21 @@ class _ArvinAppState extends State<ArvinApp> {
           foregroundColor: ArvinColors.textPrimary,
         ),
         inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: ArvinColors.surface,
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
           hintStyle: TextStyle(color: ArvinColors.textSecondary),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ArvinColors.border, width: 1.3),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ArvinColors.primary, width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.primary, width: 1.8),
           ),
         ),
       ),
@@ -255,11 +263,19 @@ class _ArvinAppState extends State<ArvinApp> {
         dividerTheme: const DividerThemeData(color: Color(0xFF555B70), thickness: 1),
         appBarTheme: const AppBarTheme(),
         inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFF25283A),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.3),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 1.8),
           ),
         ),
       ),
