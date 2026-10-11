@@ -283,7 +283,8 @@ class AppSettingsService {
     for (final entry in incoming.entries) {
       final value = entry.value;
       if ((entry.key == 'calendarIntegration' ||
-              entry.key == 'backupSchedule') &&
+              entry.key == 'backupSchedule' ||
+              entry.key == 'dailyContentPreferences') &&
           value is Map) {
         final existingNested = merged[entry.key];
         merged[entry.key] = <String, dynamic>{
