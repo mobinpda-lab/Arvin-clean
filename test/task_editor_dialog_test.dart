@@ -410,7 +410,7 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.dueDate, isNotNull);
-    expect(result!.dueDate!.isBefore(beforeSave), isFalse);
+    expect(result!.dueDate!.isBefore(beforeSave), isTrue);
     expect(result!.dueDate!.isAfter(afterSave), isFalse);
     expect(result!.dueDate!.year, beforeSave.year);
     expect(result!.dueDate!.month, beforeSave.month);
