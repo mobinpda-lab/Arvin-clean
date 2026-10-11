@@ -176,3 +176,13 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - Current Draft prereleases: v0.1.0-arvin-dd95132 and v0.1.0-arvin-33ed363, both carry APK/checksum/evidence assets but are marked unapproved Draft prereleases.
 - Key records: #2531 release trigger isolation; #866 recovery-wave auto-close; #1139 owner acceptance ledger; #1324 SQL migration evidence; #2135 semantic versioning; #2248 calendar target identity; #2254/#2605 repeat contract; #2580 taxonomy conformance.
 - Limitation: the first 300 recent commit API entries were sampled but not each historical diff reviewed; open Issues were inventoried by count/search and targeted high-priority reads rather than reading all 1,096 bodies.
+
+
+## 2026-10-11 live audit checkpoint — workflow and release state
+- Exact main SHA: `a6ced27660d34cd87dd8915aff68d3a7555fd57a`.
+- Workflow source: `.github/workflows/release-closure.yml` still has `cancel-in-progress: true` and runs after successful `Arvin Production Orchestrator` completion; `.github/workflows/production-orchestrator.yml` also has a five-minute schedule and workflow_run triggers for Parallel Wave, Build and Device Smoke; `.github/workflows/factory-rest-promotion-bridge.yml` has its own five-minute schedule and the same worker/build/smoke workflow_run sources.
+- Run evidence around 18:38–18:42 UTC: repeated Production Orchestrator / Production Loop / Promotion Bridge runs; multiple Release Closure failure/cancelled/skipped conclusions; Final Head Release Validation repeatedly skipped. This establishes churn, not a proven unique root cause. The cross-trigger graph still needs controlled attribution.
+- PR #2531 patch proposes two exact changes: `cancel-in-progress: false` and a guard requiring a successful upstream orchestrator run whose own event is `workflow_dispatch`. It is OPEN/non-draft, not merged. Its exact-head CI/review must be checked before promotion.
+- Release evidence: #2102 OPEN; #1901 OPEN; #1139 OPEN; both available prereleases are Draft and not release candidates. No physical-device acceptance is evidenced here.
+- #866 is still OPEN; comments show AI-provider HTTP 429 cooldown/retry. #1324 remains OPEN for migration acceptance. Do not infer closure from code presence.
+- Audit coverage boundary: 740 repository paths, 21 workflow files, 190 docs, 249 test/integration-test files, 1,248 branches, 19 open PRs, 1,096 open Issues; 876 open AUTO-FIX search results. These are inventory/search counts, not individually reviewed artifacts. Continue bounded passes over all PRs, issues, branches, commits, docs and workflows.
