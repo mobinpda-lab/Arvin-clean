@@ -243,4 +243,4 @@ Product acceptance and proof on the current exact head—not another parallel ar
 - Exact latest code head remains `cc8180575bb50087283c43a444d54af05de9bc81` for the Task Description-only correction.
 - Associated runs `38150519178` (PR Wakeup), `38150519183` (Production Loop), and `38150519223` (Orchestrator) completed successfully, but they are orchestration jobs only. Combined commit status returned no statuses. This is **not** Analyze/test/build evidence; product validation remains pending.
 - Read-only inspection of current `main/lib/notebook_page.dart` confirms Notebook notes are handled through the Notebook repository/editor and `description`; that code was not changed. `FollowUp.note` remains in its own nested model and storage.
-- PR #2595 progress comment posted: https://github.com/mobinpda-lab/Arvin-clean/pull/2595#issuecomment-6110XXXXXXX (GitHub returned comment ID 6110488803).
+- PR #2595 progress comment posted: https://github.com/mobinpda-lab/Arvin-clean/pull/2595#issuecomment-6110488803.
