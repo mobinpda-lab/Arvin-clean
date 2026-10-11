@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
@@ -112,10 +114,26 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (_, index) {
                         final task = tasks[index];
+                        final cardColor = task.completed
+                            ? ArvinColors.timeSoft
+                            : task.dueDate != null &&
+                                  DateUtils.dateOnly(task.dueDate!).isBefore(
+                                    DateUtils.dateOnly(_now),
+                                  )
+                            ? ArvinColors.errorSoft
+                            : task.followUpEnabled
+                            ? ArvinColors.reminderSoft
+                            : ArvinColors.projectSoft;
                         return Card(
+                          key: ValueKey('report-task-card-${task.id}'),
+                          color: cardColor,
                           child: ListTile(
+                            dense: true,
+                            visualDensity: const VisualDensity(vertical: -1),
                             title: Text(
                               task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
                               [
