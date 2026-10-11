@@ -270,3 +270,15 @@ No APK, device screenshot, physical-device result, merge or release was produced
 | Persian RTL / compact screen / golden flow | Issue #2102 | No current owner/device acceptance | Blocked |
 
 A missing workflow log/BlobNotFound is not a success or failure result. Emulator evidence does not replace physical-device acceptance.
+
+
+## Artifact recheck correction — 2026-10-12
+| Feature / gate | Exact evidence | Result | Status |
+|---|---|---|---|
+| Main Debug APK artifact | Build run [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), artifact 11717311531, 92,487,308 bytes | Artifact exists and is non-expired; overall run remains reported in progress | Artifact available; workflow not accepted as passed |
+| Main Release APK artifact | Build run [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), artifact 11716328109, 32,681,865 bytes | Artifact exists and is non-expired; overall run remains reported in progress | Artifact available; not a published/accepted release |
+| Main Home screenshot | Device Smoke run [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), artifact 11717201884 | Artifact exists | Partial emulator evidence only |
+| Main Quick Capture screenshot | Device Smoke run [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), artifact 11716972463 | Artifact exists | Partial emulator evidence only |
+| Other Device Smoke lanes | Same run; no listed artifact for People, SQL persistence, Backup/Restore or SQL migration | Evidence incomplete | Not accepted |
+
+Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114324441). Artifact existence must not be conflated with workflow conclusion, full smoke completion, physical-device acceptance or owner approval.
