@@ -207,7 +207,10 @@ void main() {
 
     expect(find.text('ثبت سریع کار'), findsOneWidget);
     expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
-    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-priority')), findsOneWidget);
+    expect(find.text('پروژه'), findsNothing);
+    expect(find.text('دسته'), findsNothing);
+    expect(find.text('برچسب'), findsNothing);
     expect(find.text('یادآور'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
 
