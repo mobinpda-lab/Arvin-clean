@@ -51,6 +51,9 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
+    expect(find.text('دسته'), findsNothing);
+    expect(find.text('پروژه'), findsNothing);
+    expect(find.text('برچسب'), findsNothing);
     final details = tester.widget<ExpansionTile>(
       find.byKey(const ValueKey('task-editor-more-details')),
     );
@@ -58,6 +61,9 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
     await tester.pumpAndSettle();
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه'), findsWidgets);
+    expect(find.text('برچسب'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-checklist-section')), findsOneWidget);
