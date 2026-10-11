@@ -68,6 +68,8 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
@@ -99,6 +101,7 @@ void main() {
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
 
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
     await tester.pumpAndSettle();
 
