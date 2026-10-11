@@ -65,6 +65,7 @@ class Task {
     required this.id,
     required this.title,
     this.description = '',
+    this.note = '',
     this.createdAt,
     this.updatedAt,
     this.dueDate,
@@ -93,6 +94,7 @@ class Task {
   final String id;
   String title;
   String description;
+  String note;
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? dueDate;
@@ -221,6 +223,7 @@ class Task {
         'id': id,
         'title': title,
         'description': description,
+        'note': note,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
@@ -273,6 +276,7 @@ class Task {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      note: json['note'] as String? ?? '',
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.tryParse(json['createdAt'] as String),
