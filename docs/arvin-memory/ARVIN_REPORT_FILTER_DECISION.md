@@ -59,3 +59,7 @@ This document records the decision, not proof of implementation. Keep the contin
 
 ## Live status override — 2026-10-12
 This is a product direction/acceptance contract, not proof of implementation. PR #2591 (shared time picker) and #2607 (visual/report filter) overlap and remain open drafts. Confirm current diffs and exact-head tests before merging. At last live check, #2607 and #2591 were not accepted for release; Persian/Jalali time controls and physical-device RTL/compact-screen acceptance remain open. Preserve root `Task.description`; do not introduce root `Task.note` or parallel report/note storage.
+
+
+## Source audit correction — 2026-10-12
+An earlier note in this document says PR #2607 still uses Flutter's generic `showTimePicker` in Report Center. That statement is **stale for the currently inspected PR head**. Live source fetch of branch `feat/calendar-pastel-compact-cards-20261011` confirms `lib/report_center_page.dart` calls `showUniversalArvinTimePicker` and has no generic `showTimePicker` call. The shared picker file has the same Git blob SHA `caacc5539c5f2304a1a060f5e3610a25987a6619` in PR #2591 and #2607. Remaining work is to reconcile the overlapping `main.dart`, Report Center and picker file changes into one exact-head-tested integration; source inspection does not establish passing tests or physical-device acceptance. See PR comments [#2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591#issuecomment-6114333837) and [#2607](https://github.com/mobinpda-lab/Arvin-clean/pull/2607#issuecomment-6114334281).
