@@ -343,3 +343,14 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Device Smoke run [#38163195983](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195983) concluded SKIPPED, not passed. Physical-device visual acceptance remains unverified.
 - The orchestration/parallel/production-loop/G1-lock-sync runs completed successfully; these do not substitute for Build tests or Device Smoke.
 - Current state remains BLOCKED on exact-head Build and Device Smoke/owner validation. PR #2607 remains Draft. Next action: poll Build #38163195995, inspect shards 2 and 4 especially, and determine why Device Smoke is skipped before release decisions.
+
+
+## CONTINUATION — Device Smoke skip root cause — 2026-10-11
+
+- GitHub Read/Write access verified. Re-read the latest execution checkpoint before continuing.
+- Exact-head Build run [#38163195995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195995), commit `45caa5a3d7c7b3b29264f0197d6affd2b1798df5`, is still IN_PROGRESS. Analyze has succeeded; all six test shards and Debug/Release APK jobs are still running. No final build/test result is available yet.
+- Investigated Device Smoke skip instead of treating it as a pass. Workflow `.github/workflows/device-smoke.yml` defines job condition `github.event_name != 'pull_request' || github.event.pull_request.draft == false`. Because PR #2607 remains Draft, the PR-triggered Device Smoke job is intentionally skipped. This is workflow gating, not evidence that the smoke tests passed or failed.
+- PR #2607 remains OPEN/DRAFT. Do not change Draft status automatically because that is a review/owner-facing product workflow decision. No merge or release.
+- Completed: identified the exact reason Device Smoke was skipped; confirmed Analyze success and current unresolved test/build jobs.
+- Blocked: full automated acceptance pending; Device Smoke evidence unavailable for this draft PR; physical-device/owner visual acceptance not completed.
+- Next action: poll Build #38163195995 until terminal. If all jobs pass, obtain Device Smoke evidence through an authorized non-draft/manual run path without implying physical-device acceptance; if any job fails, inspect that exact job's logs before changing code. Keep PR Draft until acceptance criteria are met.
