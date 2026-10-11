@@ -1,68 +1,36 @@
 # Arvin Evidence Map
 
-Updated: 2026-10-11 (exact-head Build result recorded)
+Updated: 2026-10-11 (live exact-head revalidation)
 Repository: https://github.com/mobinpda-lab/Arvin-clean
-GitHub access: Read/Write
+GitHub access: Read/Write verified.
 
-| Feature / gate | Evidence | Latest status | Limitation / next proof |
+| Feature / gate | Evidence | Current status | Limitation / next proof |
 |---|---|---|---|
-| Restore rollback: Category/Tag catalogs + multi-store orchestration | [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585); [latest test commit 5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) | BackupPage now injects failure after Task, Calendar-link and settings/schedule stages; asserts Task/Project/link/settings/schedule rollback | Exact-head Build #38124942112 SUCCESS: Analyze, six test shards, Debug and Release APK. Smoke #38124941815 SUCCESS on exact head: all six lanes passed — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People. Physical-device file-provider acceptance remains required |
-| Restore Build / Analyze / tests / APKs | [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) | SUCCESS on exact head 05c080e: Analyze, six test shards, Debug APK, Release APK | Does not prove physical-device acceptance |
-| Restore Device Smoke | [Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | ALL SIX LANES SUCCESS on exact head 05c080e: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore | Emulator lane only; physical file-provider still required |
-| Calendar primary actions + recurrence test | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587); [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) | Latest validated head recorded in PR conversation: 4442ce450e4295e500a9db6d5dc5b4d9657b3770 | PR open; physical-device acceptance still required |
-| Calendar exact-head Build | [Build #38089112669](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112669) | SUCCESS: Analyze, all six test shards, Debug APK, Release APK | CI only |
-| Calendar exact-head Smoke | [Smoke #38089112675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112675) | ALL SIX LANES SUCCESS: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore | Emulator lane only; no physical-device event-provider proof |
-| Seven-occurrence limit | [Commit 4442ce4](https://github.com/mobinpda-lab/Arvin-clean/commit/4442ce450e4295e500a9db6d5dc5b4d9657b3770); PR #2587 | Regression test checks count=7 and asserts the eighth scheduled date is absent; separate later-occurrence navigation test retained | Installed-device behavior remains unproven |
-| Calendar action visibility root cause | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587) | Current main source renders Task action chips only while the card is expanded; PR exposes primary actions on collapsed cards | Stale-head merge attempt rejected; no merge occurred |
-| Taxonomy architecture | [ADR](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md), [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) | Contract accepted; audit open | Verify remaining UI/docs/surfaces and physical Category↔Project behavior |
-| Home grouping | [HomeGroupingService](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/home/grouping/home_grouping_service.dart) | Grouping is a presentation projection over canonical Tasks; Category and Tag are separate modes | Repository-wide audit remains |
-| Physical Android backup/restore | No linked device evidence | NOT VERIFIED | Real system file picker/provider and before/after integrity record required |
-| Calendar event identity/no duplicates | No physical-device evidence after restore | NOT VERIFIED | Record Task ID, external event ID and event count before/after edit/re-sync |
-| Golden Flow | Release checklist | NOT VERIFIED end-to-end | Create Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore |
-| Release handover | No completed package evidence | PENDING | Release notes, installation guide, user guide, known issues, architecture summary and evidence report |
+| Mainline | [main commit 72a2f4c](https://github.com/mobinpda-lab/Arvin-clean/commit/72a2f4cc24df7a38eff9856ce403461615db5280) | Current main head confirmed; documentation-only PCTADP ontology decision | Recheck live base/head before any merge |
+| Calendar linked-event edit | [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570); [commit 34a6cee](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128) | Merged; automated/provider regression expects update=1, create=0 and stable external event ID | Physical-device same-event/no-duplicate proof remains NOT VERIFIED |
+| Backup/restore rollback | [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585); [head 5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) | OPEN / NOT MERGED. Injected failure at Task, Calendar-link and settings/schedule stages; rollback assertions cover Task, Project, link, settings and schedule | Exact-head Build #38124942112 SUCCESS; Device Smoke #38124941815 SUCCESS across all six emulator lanes. Actual Android system file-picker/provider and data-integrity acceptance remains required |
+| Calendar actions and recurrence | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587); [head 4442ce4](https://github.com/mobinpda-lab/Arvin-clean/commit/4442ce450e4295e500a9db6d5dc5b4d9657b3770); [P0 #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) | OPEN / NOT MERGED. Exposes Edit and phone-calendar register actions on collapsed cards; regression checks count=7 excludes the eighth date | Build #38089112669 SUCCESS; Device Smoke #38089112675 SUCCESS across six emulator lanes. Physical-device visibility, recurrence/checklist and provider behavior remain NOT VERIFIED |
+| Memory documentation | [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600); [head 0b5b6a9](https://github.com/mobinpda-lab/Arvin-clean/commit/0b5b6a90c3fb30988528baf85bcc2ee4c914d9f9) | OPEN / DRAFT. Exact-head Build [#38126660822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126660822) SUCCESS: Analyze, test shards 0–5, Debug APK and Release APK | Device Smoke [#38126660831](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126660831) SKIPPED by docs-only trigger; not a product validation signal |
+| Taxonomy architecture | [Canonical ADR](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/ADR/ADR-2026-10-10-PCTADP-project-category-tag.md); [Issue #2580](https://github.com/mobinpda-lab/Arvin-clean/issues/2580) | Contract accepted; conformance audit OPEN | Finish code/UI/docs/persistence inventory; resolve Category↔Project semantics only after evidence and owner decision if needed |
+| Task model separation | [task.dart](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/models/task.dart) | Source shows distinct `Task.category` and `Task.tags` fields | Inspect full catalog persistence, serialization, filters and restore paths |
+| Project membership | [goal_project.dart](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/models/goal_project.dart) | Project stores references to canonical Task IDs (`itemIds`); model itself does not declare a Category relation | Do not infer a database Category→Project foreign key from the semantic hierarchy |
+| Home grouping | [HomeGroupingService](https://github.com/mobinpda-lab/Arvin-clean/blob/main/lib/home/grouping/home_grouping_service.dart) | `HomeGroup<Task>` is a presentation grouping abstraction; name alone is not a domain Group entity | Complete repository-wide classification of terms and historical docs |
+| Physical Android backup/restore | No linked physical-device evidence | NOT VERIFIED | Test real system file picker/provider, failed-restore recovery, legacy backup compatibility and before/after data integrity |
+| Calendar identity/no duplicates after restore | No linked physical-device evidence | NOT VERIFIED | Record Task ID, external event ID and event count before/after edit/re-sync and restore |
+| Golden Flow | No complete end-to-end evidence | NOT VERIFIED | Task → time → Project → Checklist → Repeat → Tracking → Calendar → Backup → Restore |
+| Release handover | No complete handover package evidenced | PENDING | Release notes, installation guide, user guide, known issues, architecture summary, evidence report and owner acceptance |
 
 ## Calendar callback and visibility trace — Issue #2535
+- Current-main trace recorded in prior source inspection: `lib/main.dart` → `CanonicalCalendarLauncher` → `IranianOfficialCalendarPage` → `CalendarPage` → `_ReminderCard`.
+- On main, action chips are inside the expanded-card conditional, matching the reported discoverability problem. PR #2587 changes this behavior on its branch.
+- The PR's automated test covers the seven-occurrence limit; it does not replace installed-device acceptance.
+- A prior merge attempt with a stale expected head was rejected by GitHub; no merge occurred. Recheck exact current head before any future merge.
 
-- `lib/main.dart` wires `onEditTask` and `onRegisterTaskToDeviceCalendar` into `CanonicalCalendarLauncher`.
-- `lib/widgets/canonical_calendar_launcher.dart` passes callbacks and visible-range projection into `IranianOfficialCalendarPage`; occurrence editing resolves the occurrence suffix to the stable canonical Task ID.
-- `lib/official_calendar_page.dart` forwards callbacks and visible-range projection to `CalendarPage`.
-- `lib/calendar_page.dart` passes Edit and phone-calendar registration callbacks to `_ReminderCard` for recognized Task IDs.
-- On current main, action chips are inside the `_expanded && _hasActions` conditional. This is source evidence consistent with the user's discoverability report.
-- PR #2587 targets the visibility issue. A merge attempt with stale expected head `e416f48` was rejected because the PR branch had changed; no merge occurred. The latest validated head recorded in PR comments is `4442ce4`; all Build and Smoke lanes passed for that head.
-- The seven-occurrence regression test is recorded in commit `4442ce450e4295e500a9db6d5dc5b4d9657b3770`; it asserts the eighth date is not shown for count=7 and retains separate later-occurrence navigation coverage.
-- PR #2585 exact head `05c080e` now has green Build and all six Device Smoke lanes. This is automated evidence only; physical device and actual file-provider validation remain open.
-- Physical-device same-event edit/sync/no-duplicate, recurrence/checklist behavior, link recovery after restore, screenshot review and owner acceptance remain open. Keep both PRs unmerged until their respective acceptance gates are satisfied.
+## Taxonomy audit checkpoint — Issue #2580
+- Canonical concepts: Project, Category and Tag. Category/Group is one concept; standard Persian UI term is «دسته». Time and date grouping are views, not taxonomy entities.
+- `Task.category` and `Task.tags` are separate fields in the current Task model.
+- `ProjectPlan.itemIds` references canonical Task IDs and does not itself declare Category ownership. The current ADR explicitly treats a physical Category-to-Project relation as an open conformance question; do not change schema or data until actual persistence/assignment paths are fully inspected.
+- Classify findings before editing: domain model, user-facing wording, presentation grouping, generic technical term, or historical document. Avoid broad replacements that could corrupt history or generic UI constructs.
 
-
-## Continuation checkpoint — BackupPage settings-stage failure
-- Commit: [`5e0ad6d`](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27).
-- Read-back of the changed integration test succeeded (blob `46571a56323ccbce8fa8d1c8f70272cec026c0c4`).
-- Exact-head Build [#38124942112](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124942112) completed SUCCESS: Analyze, six test shards, Debug APK and Release APK all passed.
-- Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) remains partial: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People are in progress. Do not describe the full smoke suite as passed.
-- The new test is automated emulator/integration coverage, not physical file-provider acceptance.
-
-
-## Exact-head Build completion — 2026-10-11
-- PR #2585 commit `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27` Build #38124942112 succeeded for Analyze, all six test shards, Debug APK and Release APK.
-- Smoke #38124941815 remains incomplete: Home, Quick Capture, SQL Migration and SQL Persistence passed; Backup/Restore and People are in progress.
-- The successful build is not physical-device validation; file-picker/provider restore and data-integrity acceptance remain open.
-
-
-## Device Smoke progress — 2026-10-11
-- Current run [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): all six lanes completed SUCCESS — Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People. This is emulator smoke, not physical-device file-provider acceptance.
-- Do not mark PR #2585's full emulator smoke suite green until both remaining lanes finish successfully. Physical system file-picker/provider restore remains unverified.
-
-
-## Live revalidation — 2026-10-11 12:25 Iran time
-- [PR #2585 Build #38124942112](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124942112): all nine jobs succeeded (Analyze, test-0 through test-5, Debug APK, Release APK). [Device Smoke #38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815): all six emulator lanes succeeded. Current exact head: `5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27`.
-- [PR #2587 Build #38089112669](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112669): all nine jobs succeeded. [Device Smoke #38089112675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38089112675): all six emulator lanes succeeded. Current validated head: `4442ce450e4295e500a9db6d5dc5b4d9657b3770`.
-- [Memory PR #2600 Build #38126050114](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38126050114): all nine jobs succeeded. Device Smoke was skipped by workflow trigger; not applicable evidence for docs-only change. PR head: `1f96f8115bf11ecdd6f8a1acbaf69336120101de`.
-- No physical-device proof is available in these runs. Backup file-provider integrity and Calendar event identity/no-duplicate checks remain NOT VERIFIED.
-
-
-## Mainline and Calendar sync update — 2026-10-11
-- Current main commit: [72a2f4c](https://github.com/mobinpda-lab/Arvin-clean/commit/72a2f4cc24df7a38eff9856ce403461615db5280), a docs-only ontology decision registration.
-- Calendar linked-event edit fix [PR #2570](https://github.com/mobinpda-lab/Arvin-clean/pull/2570) is merged. Commit [34a6cee](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128) and its regression test assert an existing linked Task event is updated (one update, zero creates) even if the per-source auto-sync toggle is off during an explicit edit. Physical-device event identity/no-duplicate acceptance remains NOT VERIFIED.
-- Calendar collapsed-card action visibility is a separate unresolved issue tracked by open PR #2587; current-main UI still needs the fix and real-device acceptance.
-- Backup/restore latest code head [5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) has green Build and all six emulator lanes, but physical file-provider and user-data integrity acceptance remains NOT VERIFIED.
-- Memory docs PR #2600's current head is [09904f3](https://github.com/mobinpda-lab/Arvin-clean/commit/09904f30b6f955c034324d491df46cf6f98db3be); Build run #38126587378 was queued/in progress at the last check, while Device Smoke was skipped as docs-only.
+## Release gate
+All listed CI/emulator successes are automated evidence only. Physical-device/file-provider data integrity, Calendar provider identity/no-duplicate behavior, full Golden Flow and explicit acceptance remain unproven. Keep PR #2585 and #2587 unmerged until their respective acceptance gates are satisfied.
