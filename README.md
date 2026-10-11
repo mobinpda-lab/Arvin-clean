@@ -17,7 +17,8 @@
 - آماده‌سازی برای اتصال Dropbox
 
 ## Project Governance and Architecture
-- [Master Operating Command (AMOC)](docs/constitution/ARVIN_MASTER_OPERATING_COMMAND.md) — governing product and architecture invariants
+- [Master Product Operating Protocol (AMPOP v5.0)](docs/constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md) — highest product-operating authority
+- [Master Operating Command (AMOC)](docs/constitution/ARVIN_MASTER_OPERATING_COMMAND.md) — compatibility bridge to AMPOP
 - [Detailed Operating Package](docs/ARVIN_PROJECT_OPERATING_PACKAGE.md) — canonical execution, validation and release procedure
 - [Master Execution Command](docs/constitution/ARVIN_MASTER_EXECUTION_COMMAND.md) — canonical project rules
 - [Current Project Status](docs/status/ARVIN_STATUS.md) — evidence-based snapshot and blockers
