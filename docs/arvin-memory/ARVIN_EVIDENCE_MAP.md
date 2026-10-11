@@ -193,3 +193,13 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - New exact head: `4505c759a8338e91c596d9b031d16d29080a339c`; comparison: ahead 1, behind 0; changed files = 2.
 - Exact-head checks at poll: 21 total, 6 completed, 9 in progress, 6 queued; Build #38165128162 and Device Smoke #38165128170 queued. Outcome pending.
 - PR comment posted to explain the rebase, exact scope, and pending evidence. Not merged; no release side effect.
+
+
+## Report Center exact-head evidence — 2026-10-11
+- PR #2607 head commit: [8d3d60a1b321fa4ceb9f5da779a144d3705b9103](https://github.com/mobinpda-lab/Arvin-clean/commit/8d3d60a1b321fa4ceb9f5da779a144d3705b9103).
+- Exact-head Build run [38166678767](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678767): Analyze PASS; quality shards 0–5 PASS; Debug APK PASS; Release APK PASS.
+- Artifact `arvin-debug-apk` ID `11712403085`, SHA-256 `78566ec458aed40fa36cc43d58c1cd3fd94bb8be18f501d0b8010942bdd8893b`.
+- Artifact `arvin-release-apk` ID `11712088044`, SHA-256 `ff8acc7c4a30e9178ca22d08eebc60b85b4789b4af9657740bd02069ca2de53c`.
+- Device Smoke run [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708): SKIPPED because PR #2607 is Draft. No physical-device/small-screen RTL evidence is established by this run.
+- PR #2607 and #2591 remain OPEN/Draft. Shared picker widget file is identical at both heads; `lib/main.dart` and `lib/report_center_page.dart` contain different PR-specific integration changes and need deliberate reconciliation.
+- Release gate [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) remains OPEN/BLOCKED. CI success is not product-owner acceptance or release approval.
