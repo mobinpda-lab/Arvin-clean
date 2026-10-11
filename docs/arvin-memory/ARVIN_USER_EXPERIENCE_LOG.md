@@ -56,3 +56,13 @@
 - Expected outcome: one coherent personal-assistant visual language, semantic color meaning, compact cards, readable RTL labels, and no clipping at small phone widths.
 - Acceptance: compare Home, Calendar, Notebook list/editor, Report Center, Next Action, Task details/forms, settings and other card-based surfaces on an installed Android build. Ensure text remains readable and existing interactions/data remain unchanged.
 - Status: code staged; CI was pending and Device Smoke skipped at last check. No owner/device acceptance claimed. Separate Notebook checklist toggle defect remains open.
+
+## 2026-10-11 — Report filter usability and Persian date correction
+Owner requirements:
+- Report filter dates must use the Jalali/Persian calendar, not Gregorian calendar UI.
+- Replace the long crowded filter sheet with collapsible roll-box sections for Time, Project, Category, Tag, Note, Task Status, Tracking and Follow-up.
+- Show each section's icon, title, selected count, expand/collapse indicator, selected chips and multi-select options.
+- Use Arvin's soft semantic pastel palette to distinguish project, category, tag, note and status filters.
+- Multi-select must support several projects, categories, tags, task statuses and note kinds at once.
+- Notes are reportable through the existing canonical Task/Notebook representation, including title/text and created/updated dates; no separate note/report data store.
+Current implementation pointer: PR #2607. Automated validation, small-screen RTL visual check, and owner acceptance are still pending. Note-to-another-Task linkage and external-calendar-only report ingestion remain explicit model/integration gaps, not claimed as implemented.
