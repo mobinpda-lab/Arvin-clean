@@ -180,7 +180,7 @@ void main() {
     await tester.tap(categorySection);
     await tester.pumpAndSettle();
     expect(categoryChip, findsOneWidget);
-    expect(find.text('۱'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
   });
 
 }
