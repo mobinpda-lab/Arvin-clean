@@ -1,9 +1,12 @@
 import '../models/task.dart';
 import '../models/goal_project.dart';
+import '../models/recurrence.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
 
 enum ReportStatusFilter { all, open, completed, archived }
+
+enum ReportNoteDateField { created, updated }
 
 class TaskReportFilter {
   const TaskReportFilter({
@@ -19,6 +22,13 @@ class TaskReportFilter {
     this.categories = const <String>{},
     this.tags = const <String>{},
     this.status = ReportStatusFilter.all,
+    this.statuses = const <ReportStatusFilter>{},
+    this.trackingLevels = const <RecurrenceTrackingLevel>{},
+    this.noteKinds = const <NotebookItemKind>{},
+    this.noteQuery = '',
+    this.noteDateField,
+    this.noteFromDate,
+    this.noteToDate,
     this.priority,
     this.hasRepeat,
     this.hasFollowUp,
@@ -37,6 +47,13 @@ class TaskReportFilter {
   final Set<String> categories;
   final Set<String> tags;
   final ReportStatusFilter status;
+  final Set<ReportStatusFilter> statuses;
+  final Set<RecurrenceTrackingLevel> trackingLevels;
+  final Set<NotebookItemKind> noteKinds;
+  final String noteQuery;
+  final ReportNoteDateField? noteDateField;
+  final DateTime? noteFromDate;
+  final DateTime? noteToDate;
   final TaskPriority? priority;
   final bool? hasRepeat;
   final bool? hasFollowUp;
@@ -55,6 +72,13 @@ class TaskReportFilter {
       categories.isNotEmpty ||
       tags.isNotEmpty ||
       status != ReportStatusFilter.all ||
+      statuses.isNotEmpty ||
+      trackingLevels.isNotEmpty ||
+      noteKinds.isNotEmpty ||
+      noteQuery.trim().isNotEmpty ||
+      noteDateField != null ||
+      noteFromDate != null ||
+      noteToDate != null ||
       priority != null ||
       hasRepeat != null ||
       hasFollowUp != null ||
@@ -83,6 +107,12 @@ class TaskReportFilter {
     return tasks.where((task) {
       if (task.trashed) return false;
       if (!_matchesStatus(task)) return false;
+      if (trackingLevels.isNotEmpty &&
+          (task.recurrence == null ||
+              !trackingLevels.contains(task.recurrence!.trackingLevel))) {
+        return false;
+      }
+      if (!_matchesNote(task)) return false;
       if (priority != null && task.priority != priority) return false;
       if (hasRepeat != null && (task.recurrence != null) != hasRepeat) {
         return false;
@@ -112,6 +142,14 @@ class TaskReportFilter {
   }
 
   bool _matchesStatus(Task task) {
+    final selected = statuses.where((value) => value != ReportStatusFilter.all).toSet();
+    if (selected.isNotEmpty) {
+      return selected.any((value) => _statusMatches(task, value));
+    }
+    return _statusMatches(task, status);
+  }
+
+  bool _statusMatches(Task task, ReportStatusFilter status) {
     switch (status) {
       case ReportStatusFilter.all:
         return true;
@@ -122,6 +160,43 @@ class TaskReportFilter {
       case ReportStatusFilter.archived:
         return task.archived;
     }
+  }
+
+
+  bool _matchesNote(Task task) {
+    final query = noteQuery.trim().toLowerCase();
+    final hasNoteFilter = noteKinds.isNotEmpty ||
+        query.isNotEmpty ||
+        noteDateField != null ||
+        noteFromDate != null ||
+        noteToDate != null;
+    if (!hasNoteFilter) return true;
+    if (!task.isNotebookItem) return false;
+
+    final kind = task.isNotebookChecklist
+        ? NotebookItemKind.checklist
+        : NotebookItemKind.note;
+    if (noteKinds.isNotEmpty && !noteKinds.contains(kind)) return false;
+    if (query.isNotEmpty &&
+        !task.title.toLowerCase().contains(query) &&
+        !task.description.toLowerCase().contains(query)) {
+      return false;
+    }
+
+    if (noteFromDate != null || noteToDate != null) {
+      final value = noteDateField == ReportNoteDateField.updated
+          ? task.updatedAt
+          : task.createdAt;
+      if (value == null) return false;
+      final day = _dateOnly(value.toLocal());
+      if (noteFromDate != null && day.isBefore(_dateOnly(noteFromDate!))) {
+        return false;
+      }
+      if (noteToDate != null && day.isAfter(_dateOnly(noteToDate!))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   bool _matchesTime(DateTime? value, DateTime now) {
