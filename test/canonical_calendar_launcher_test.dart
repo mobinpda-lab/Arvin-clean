@@ -451,14 +451,15 @@ void main() {
     tester,
   ) async {
     final now = IranClock.now();
-    final anchor = now.add(const Duration(minutes: 2));
+    // Use a stable same-day time so this test remains valid across midnight.
+    final anchor = DateTime(now.year, now.month, now.day, 12);
     final task = Task(
       id: 'repeat-task',
       title: 'کار تکرارشونده',
       dueDate: anchor,
       recurrence: const RecurrenceRule(
         frequency: RecurrenceFrequency.daily,
-        count: 5,
+        count: 10,
       ),
     );
     Task? edited;
@@ -497,11 +498,16 @@ void main() {
       );
     }
     expect(card, findsOneWidget);
-    await tester.tap(card);
-    await tester.pump();
 
     final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
     final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
+    // Verify the full launcher -> projection -> Calendar card path exposes
+    // primary actions before the user expands the row.
+    expect(edit, findsOneWidget);
+    expect(register, findsOneWidget);
+
+    await tester.tap(card);
+    await tester.pump();
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
 
@@ -513,6 +519,27 @@ void main() {
     await tester.pump();
     expect(registered?.id, occurrenceId);
     expect(registered?.date, anchor);
+
+    // Move one full week forward. The occurrence is still a projection of the
+    // same canonical Task, not a separately stored Task/Reminder.
+    final calendarSurface = find.byKey(const ValueKey('calendar-swipe-surface'));
+    await tester.fling(calendarSurface, const Offset(-500, 0), 1000);
+    await _pumpRouteTransition(tester);
+    final nextWeekDate = anchor.add(const Duration(days: 7));
+    final nextWeekId =
+        'task-due:repeat-task:${nextWeekDate.toIso8601String()}';
+    final nextWeekCard = find.byKey(ValueKey('reminder-card-$nextWeekId'));
+    for (var i = 0; i < 30 && nextWeekCard.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(nextWeekCard, findsOneWidget);
+
+    await tester.fling(calendarSurface, const Offset(500, 0), 1000);
+    await _pumpRouteTransition(tester);
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(card, findsOneWidget);
 
     final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
@@ -528,6 +555,62 @@ void main() {
     await tester.tap(find.text('انتقال به سطل زباله'));
     await _pumpRouteTransition(tester);
     expect(identical(deleted, task), isTrue);
+  });
+
+
+  testWidgets('launcher does not render an eighth occurrence when count is seven', (
+    tester,
+  ) async {
+    final now = IranClock.now();
+    final anchor = DateTime(now.year, now.month, now.day, 12);
+    final task = Task(
+      id: 'repeat-count-seven',
+      title: 'کار هفت‌نوبتی',
+      dueDate: anchor,
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        count: 7,
+      ),
+    );
+    final projection = _RecordingCalendarProjection();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: <Task>[task],
+          projection: projection,
+        ),
+      ),
+    );
+    await tester.tap(find.text('تقویم'));
+    await tester.pump();
+    await _pumpRouteTransition(tester);
+
+    final firstOccurrenceId =
+        'task-due:repeat-count-seven:${anchor.toIso8601String()}';
+    final firstCard =
+        find.byKey(ValueKey('reminder-card-$firstOccurrenceId'));
+    for (var i = 0; i < 30 && firstCard.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(firstCard, findsOneWidget);
+
+    // Count is inclusive of the start date: the eighth date must not appear
+    // after moving to the following week in the real launcher -> projection ->
+    // Calendar path.
+    final calendarSurface = find.byKey(
+      const ValueKey('calendar-swipe-surface'),
+    );
+    await tester.fling(calendarSurface, const Offset(-500, 0), 1000);
+    await _pumpRouteTransition(tester);
+
+    final eighthDate = anchor.add(const Duration(days: 7));
+    final eighthOccurrenceId =
+        'task-due:repeat-count-seven:${eighthDate.toIso8601String()}';
+    expect(
+      find.byKey(ValueKey('reminder-card-$eighthOccurrenceId')),
+      findsNothing,
+    );
   });
 
 }
