@@ -60,6 +60,7 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
+      'fontFamily': null,
       'fontSize': 16.0,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
@@ -67,6 +68,7 @@ void main() {
         'enabled': false,
         'showExternalEvents': false,
         'visibleCalendarIds': <String>[],
+        'targetCalendarId': null,
         'syncDueDates': true,
         'syncTaskReminders': true,
         'syncFollowUps': true,
