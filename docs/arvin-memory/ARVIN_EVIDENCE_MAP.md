@@ -237,3 +237,7 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - Release Closure [38167799987](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167799987) failed closed at explicit product approval on prior SHA. No release authorized.
 - Merged fixes already on main: Backup/Restore PR #2585 (merge SHA a6ced276...), Calendar edit-sync PR #2570 (34a6cee9...), Calendar-link backup/restore PR #2569 (598fe651...). Do not recreate them.
 - Remaining acceptance gaps: current-main full Device Smoke, actual file-provider/device restore integrity, same-event/no-duplicate calendar verification, recurring occurrence coverage, physical-device RTL and full Golden Flow, owner approval.
+
+
+## Device Smoke progress — exact main SHA (2026-10-11)
+- Run [38167835426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835426), SHA `d8afc717eaf02d6d0bedf92e800c7f93209c97bd`: Home, Quick Capture, SQL migration and SQL persistence PASS; Backup/Restore and People IN_PROGRESS. Run has not completed; no final smoke pass claim.
