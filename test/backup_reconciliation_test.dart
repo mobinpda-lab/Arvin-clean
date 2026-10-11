@@ -33,6 +33,26 @@ void main() {
       expect(result.last.title, 'فقط در پشتیبان');
     });
 
+    test('keeps local-only notebook notes and their checklists', () {
+      final note = Task(
+        id: 'note-local',
+        title: 'یادداشت شخصی',
+        description: 'متن یادداشت',
+        notebookKind: NotebookItemKind.checklist,
+        checklist: const ['مورد اول', 'مورد دوم'],
+      );
+
+      final result = ArvinBackupManager.reconcileTasksById(
+        current: [note],
+        backup: [task('backup-only', 'کار پشتیبان')],
+      );
+
+      final retained = result.singleWhere((item) => item.id == 'note-local');
+      expect(retained.isNotebookItem, isTrue);
+      expect(retained.description, 'متن یادداشت');
+      expect(retained.checklist, ['مورد اول', 'مورد دوم']);
+    });
+
     test('updates matching Projects and retains local-only memberships', () {
       final current = [
         ProjectPlan(
