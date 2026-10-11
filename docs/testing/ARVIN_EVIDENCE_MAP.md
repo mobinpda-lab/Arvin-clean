@@ -2,6 +2,8 @@
 
 **Snapshot date:** 2026-10-11. Refresh exact heads and workflow results before release decisions. “CI success” is scoped to the cited commit/run and is not equivalent to physical-device acceptance.
 
+**Governance note:** [AMPOP v5.0](../constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md) is proposed in open draft PR #2598. This map is evidence tracking only; protocol text and CI status do not themselves prove product acceptance or release readiness.
+
 | Feature | Implementation location (current known path) | Test / validation path | Evidence | Status |
 |---|---|---|---|---|
 | Canonical Task | `lib/models/task.dart`; `lib/services/task_store.dart` | `test/task_contract_test.dart`; `test/task_store_test.dart` | Existing source/tests; exact release-flow evidence not consolidated | IN PROGRESS |
