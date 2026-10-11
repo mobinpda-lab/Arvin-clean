@@ -210,3 +210,12 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - Change: `.github/workflows/release-closure.yml` now avoids cancelling an active closure run and guards workflow_run execution so only a successful upstream `workflow_dispatch` run can invoke closure; contract test updated accordingly.
 - Exact PR-head evidence before merge: Build [38165128162](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38165128162) passed Analyze, six test shards and both APK builds; Device Smoke [38165128170](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38165128170) passed all six lanes.
 - Current-main post-merge workflow confirmation is still pending. Issue #2102 remains OPEN/BLOCKED; merge does not authorize a release.
+
+
+## Post-merge current-main gate — 2026-10-11
+- Latest commit: [d8afc717eaf02d6d0bedf92e800c7f93209c97bd](https://github.com/mobinpda-lab/Arvin-clean/commit/d8afc717eaf02d6d0bedf92e800c7f93209c97bd), merge of PR #2531.
+- Verified on main: `.github/workflows/release-closure.yml` contains `cancel-in-progress: false` and the successful `workflow_dispatch` guard; corresponding contract test exists.
+- Post-merge Build/Device Smoke status is **NOT ESTABLISHED**: connector returned no PR-triggered workflow runs for the merge SHA and combined status had zero checks. This is missing evidence, not pass/fail.
+- PR #2607 exact head `8d3d60a1...`: Build [38166678767](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678767) PASS (Analyze, shards 0–5, Debug/Release APK); Device Smoke [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708) SKIPPED because Draft. This head predates the new main merge.
+- PR #2591 remains Draft and stale-base; shared picker widget file identical across both PRs, integration files differ. Reconcile before merge.
+- Issue #2102 remains OPEN/BLOCKED; physical-device Calendar sync and backup/restore acceptance, RTL review, Golden Flow and owner approval are still required.
