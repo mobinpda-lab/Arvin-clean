@@ -227,3 +227,13 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - Calendar edit PR #2570 merged at [34a6cee9ae05ad1cf632960b96e98f2a5448e128](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128).
 - Main release-closure workflow contains the merged `cancel-in-progress: false` and explicit successful `workflow_dispatch` guard. Combined-status lookup for merge commit `d8afc717eaf02d6d0bedf92e800c7f93209c97bd` returned no entries; do not claim current-main post-merge CI from this result.
 - Release gate #2102 remains OPEN/BLOCKED and regression PR #1901 remains OPEN.
+
+
+## Exact current-main validation — 2026-10-11
+- Main SHA verified from `/branches/main`: [d8afc717eaf02d6d0bedf92e800c7f93209c97bd](https://github.com/mobinpda-lab/Arvin-clean/commit/d8afc717eaf02d6d0bedf92e800c7f93209c97bd).
+- Build [38167835381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835381) PASS on exact main: Analyze, test shards 0–5, Debug APK, Release APK. Debug artifact 11712873761 SHA-256 `a6c6be99448d9160e2ddee09b8d6b03e198c9999fb8f48f6d31ec26a528806a5`; Release artifact 11712389980 SHA-256 `4c9b5deb4d84a8a097b42ca42594e1edf7b0e16657083fb91402ad8d5794f7a4`.
+- Device Smoke [38167835426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835426) same SHA is not complete at checkpoint: Home/Quick Capture PASS, SQL migration/SQL persistence IN_PROGRESS, Backup/Restore/People QUEUED. Current artifacts: Home 11712218995 and Quick Capture 11713050656. No full-smoke PASS claim.
+- Visual review of smoke screenshots: Home RTL captured view legible; People empty state/add action visible; Quick Capture has visibly truncated labels in compact three-column chips. Captures do not establish physical-device acceptance.
+- Release Closure [38167799987](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167799987) failed closed at explicit product approval on prior SHA. No release authorized.
+- Merged fixes already on main: Backup/Restore PR #2585 (merge SHA a6ced276...), Calendar edit-sync PR #2570 (34a6cee9...), Calendar-link backup/restore PR #2569 (598fe651...). Do not recreate them.
+- Remaining acceptance gaps: current-main full Device Smoke, actual file-provider/device restore integrity, same-event/no-duplicate calendar verification, recurring occurrence coverage, physical-device RTL and full Golden Flow, owner approval.
