@@ -557,3 +557,34 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - Together with exact-main Build [38167835381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835381), Analyze, six quality test shards, Debug APK and Release APK all pass on the same SHA. Debug SHA-256: `a6c6be99448d9160e2ddee09b8d6b03e198c9999fb8f48f6d31ec26a528806a5`; Release SHA-256: `4c9b5deb4d84a8a097b42ca42594e1edf7b0e16657083fb91402ad8d5794f7a4`.
 - This closes the **current-main automated Build + Device Smoke evidence** step only. It does not close product release acceptance: physical-device same-event Calendar update/no-duplicate proof, real Android file-provider Backup/Restore and restored-link integrity, recurrence/Checklist/Golden Flow, compact-screen RTL visual acceptance, Quick Capture clipped-label UX follow-up, and explicit owner approval remain outstanding. Release Closure approval gate stays intact; no release authorized.
 - **Completed:** exact-main Build and all six Device Smoke lanes validated. **In progress/blocked:** product/device acceptance and owner approval. **Next:** inspect the newly available People artifact; continue existing PR reconciliation without duplicate implementations.
+
+
+# LIVE CONTINUATION ADDENDUM — 2026-10-11 (revalidated after checkpoint)
+
+## CHECK — branch and evidence revalidation
+- A GitHub compare of `d8afc717eaf02d6d0bedf92e800c7f93209c97bd` against `main` returned `identical`; current main is therefore confirmed at that exact SHA for this check.
+- Exact-main Build run [38167835381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835381): Analyze, test shards 0–5, Debug APK and Release APK all completed successfully.
+- Exact-main Device Smoke run [38167835426](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38167835426): Backup/Restore, Quick Capture, Home, People, SQL Migration and SQL Persistence all completed successfully.
+- Combined commit status API returned an empty status list; it is not used as a substitute for the explicit completed workflow-job results above.
+- Current PR metadata rechecked: #2591, #2595, #2600, #2607 and #2608 remain OPEN / DRAFT. No merge occurred.
+
+## Latest completed step
+- Re-read this file before acting.
+- Confirmed current main by comparing the recorded SHA with the symbolic `main` ref.
+- Revalidated all Build and Device Smoke jobs on that exact main SHA.
+- Rechecked live PR state and preserved the prior Task Note data-contract gate.
+- Added a new live evidence checkpoint and PR-overlap audit in [ARVIN_LIVE_CHECKPOINT_2026-10-11.md](https://github.com/mobinpda-lab/Arvin-clean/blob/docs/arvin-autonomous-memory-20261011/docs/arvin-memory/ARVIN_LIVE_CHECKPOINT_2026-10-11.md), with verified read-back.
+
+## Decisions / guardrails
+- The green automated mainline runs are accepted as evidence only for the paths they exercised. They do not prove physical-device Calendar provider identity, real-file Backup/Restore integrity, full golden-flow acceptance, visual acceptance, or product-owner release approval.
+- Do not merge #2591, #2595 or #2607 independently: their changed-file lists overlap in the shared time picker, main routing, report filter, Quick Capture and Task Editor paths. Reconcile one integrated head, then run full exact-head validation.
+- Do not add or propagate root `Task.note` until the product owner explicitly decides whether it is distinct from `Task.description`; legacy serialization, SQL envelope, backup/restore and migration consequences must be specified and tested.
+- Documentation PRs #2600 and #2608 overlap in memory/requirements scope. Reconcile against current main into one authority hierarchy; do not merge stale-base documentation blindly.
+- No application code, main branch, schema, migration, APK publication, merge or release was changed in this execution.
+
+## Current status
+- **Completed:** current-main Build + six-lane Device Smoke revalidated; PR states rechecked; checkpoint recorded and read back.
+- **In Progress:** safe consolidation plan for shared time-picker/report-filter/task-form changes; documentation hierarchy reconciliation; real-device/product acceptance.
+- **Blocked:** Task Note data-contract change pending explicit owner decision; final release pending physical-device evidence and explicit owner acceptance.
+- **Current bottleneck:** overlapping draft PRs plus missing physical-device/user-data acceptance. The mainline automated baseline is green, so do not rerun it without a new commit or evidence-driven reason.
+- **Next action:** compare and reconcile the live PR diffs into one integration sequence without merging overlapping drafts independently; continue collecting non-destructive device acceptance evidence; update the release gate only from actual evidence. Keep #2102 open and fail-closed.
