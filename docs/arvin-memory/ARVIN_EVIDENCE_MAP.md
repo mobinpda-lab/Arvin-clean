@@ -155,3 +155,12 @@ No APK, device screenshot, physical-device result, merge or release was produced
 |---|---|---|---|
 | Report Center combined time/category filter interaction | Failed run [38162419144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38162419144) exposed test helper type mismatch (`ListView` supplied where `Scrollable` is required); correction [45caa5a3](https://github.com/mobinpda-lab/Arvin-clean/commit/45caa5a3d7c7b3b29264f0197d6affd2b1798df5) | Test correction committed; validation pending | Fresh exact-head tests must prove both filter application and accordion selection persistence. |
 | Exact-head CI and Android smoke for commit `45caa5a3d7c7b3b29264f0197d6affd2b1798df5` | [Build #38163195995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195995); [Device Smoke #38163195983](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195983) | Build queued; Device Smoke in progress at checkpoint | Recheck final job conclusions and artifacts; automated smoke is not physical owner acceptance. |
+
+
+## 2026-10-11 — Report filter exact-head CI follow-up
+
+- PR #2607 test-only fix: commit `c2a1b2ff57465e0e0b393b1e6d28fa010dadc439` updates the report filter accordion test to bring its header into view before collapse/reopen.
+- Prior exact-head run #38163195995: Analyze and shards 0/1/2/3/5 passed; shard 4 failed due header tap outside modal sheet viewport; Debug/Release jobs were still running at the last job inspection. Do not treat the whole run as passed.
+- New exact-head run #38163500776 is pending; evidence not yet available.
+- Device Smoke #38163500919 is skipped because PR #2607 is Draft; no device smoke pass is evidenced.
+- Release Closure #38163384915 failed at the policy gate because issue #2102 and PR #1901 remain open. This blocks publication.
