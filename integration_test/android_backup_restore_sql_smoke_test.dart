@@ -5,6 +5,8 @@ import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/task_store.dart';
@@ -120,11 +122,18 @@ void main() {
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
     var failAfterTaskWrite = false;
+    var failAfterCalendarLinkWrite = false;
 
     await tester.pumpWidget(
       MaterialApp(
         home: BackupPage(
           manager: manager,
+          restoreStageHook: (stage) async {
+            if (failAfterCalendarLinkWrite && stage == 'calendar-links') {
+              failAfterCalendarLinkWrite = false;
+              throw StateError('injected failure after Calendar-link write');
+            }
+          },
           loadTasks: () async =>
               (await freshStore.load()).map((task) => task.toJson()).toList(),
           replaceTasks: (rawTasks) async {
@@ -216,6 +225,67 @@ void main() {
     expect(rolledBack, hasLength(1));
     expect(rolledBack.single.id, 'old-runtime');
     expect(rolledBack.single.title, 'اطلاعات قبلی');
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
+
+    // Exercise a later real mutation boundary: Task and Project writes plus
+    // Calendar-link restoration must all roll back if that stage fails.
+    await store.save([Task(id: 'old-late-runtime', title: 'کار قبلی مرحله دیرهنگام')]);
+    final localProject = ProjectPlan(
+      id: 'old-project-runtime',
+      title: 'پروژه قبلی',
+      itemIds: const <String>[],
+    );
+    await ProjectStore().save([localProject]);
+    final localCalendarLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:old-late-runtime',
+      calendarId: 'old-calendar',
+      eventId: 'old-event',
+      lastSyncedFingerprint: 'old-fingerprint',
+    );
+    await ExternalCalendarLinkStore().save([localCalendarLink]);
+
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'projects': manager.projectCodec.encodeList([
+        ProjectPlan(
+          id: 'candidate-project-runtime',
+          title: 'پروژه جایگزین',
+          itemIds: const <String>[],
+        ),
+      ]),
+      'calendarLinks': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'reminderId': 'task-due:candidate-runtime',
+          'calendarId': 'candidate-calendar',
+          'eventId': 'candidate-event',
+          'lastSyncedFingerprint': 'candidate-fingerprint',
+        },
+      ],
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'candidate-runtime', title: 'کار جایگزین').toJson(),
+      ],
+    };
+    failAfterCalendarLinkWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    final lateRolledBackTasks = await TaskStore().load();
+    expect(lateRolledBackTasks, hasLength(1));
+    expect(lateRolledBackTasks.single.id, 'old-late-runtime');
+    expect(
+      (await ProjectStore().load()).map((project) => project.id),
+      ['old-project-runtime'],
+    );
+    final lateRolledBackLinks = await ExternalCalendarLinkStore().load();
+    expect(lateRolledBackLinks, hasLength(1));
+    expect(lateRolledBackLinks.single.toJson(), localCalendarLink.toJson());
     expect(
       find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
       findsOneWidget,
