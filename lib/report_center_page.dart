@@ -9,6 +9,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 class ReportCenterPage extends StatefulWidget {
   const ReportCenterPage({
@@ -327,15 +328,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   }
 
   Future<void> _pickTime(bool from) async {
-    final picked = await showTimePicker(
+    final picked = await showUniversalArvinTimePicker(
       context: context,
       initialTime: from
           ? (_fromTime ?? const TimeOfDay(hour: 8, minute: 0))
           : (_toTime ?? const TimeOfDay(hour: 17, minute: 0)),
-      builder: (_, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
-      ),
+      helpText: from ? 'از ساعت گزارش' : 'تا ساعت گزارش',
     );
     if (picked == null) return;
     setState(() {
