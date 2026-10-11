@@ -11,9 +11,9 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 ## Current GitHub reality
 - `main`: `72a2f4cc24df7a38eff9856ce403461615db5280`.
 - Backup/restore [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585): OPEN / NOT MERGED; head `05c080e706690dd3eb6a96fc5c070971a43d1354`. PR metadata still displays base SHA `34a6cee9ae05ad1cf632960b96e98f2a5448e128`, but GitHub compare confirms current main `72a2f4c` is an ancestor of the PR head: head is 44 commits ahead, 0 behind. Do not blindly rebase; review actual diff and mergeability before any merge.
-- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT; head `121bc2bfc3bdc232e0b0ce36aa4ddb802700893d`; base `72a2f4cc24df7a38eff9856ce403461615db5280`.
+- Memory [PR #2600](https://github.com/mobinpda-lab/Arvin-clean/pull/2600): OPEN / DRAFT; latest head `8de11b2264658b137b348e2031be9e906842ea4d`; base `72a2f4cc24df7a38eff9856ce403461615db5280`.
 - Exact-head Build [#38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036): **SUCCESS** on `05c080e`; Analyze, all six test shards (0–5), Debug APK and Release APK jobs succeeded.
-- Exact-head Android Device Smoke [#38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041): still running/queued. Home and Quick Capture succeeded; SQL migration and SQL persistence in progress; backup/restore and people queued.
+- Exact-head Android Device Smoke [#38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041): still running. Latest recheck: Home, Quick Capture, SQL migration and SQL persistence succeeded; Backup/Restore and People remain in progress.
 - Production Loop [#38123874039], Orchestrator [#38123874049], Orchestrator PR Wakeup [#38123874082] and G1 lock sync [#38123874063] succeeded on exact head. These do not substitute for full device smoke or physical device acceptance.
 - Older green checkpoint `07b571057c4682128d78ab2c1f39e85890041713` remains historical only.
 
@@ -32,7 +32,7 @@ Authority: live GitHub refs, code, tests and exact-head workflow evidence.
 - P0 Calendar user-reported regression [Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535): task Edit / phone-calendar actions missing in installed APK and recurrence occurrences not all shown. Open; real installed-device validation required.
 
 ## Blocked / unproven
-- Device Smoke workflow not complete; backup/restore lane has not yet reported a result.
+- Device Smoke workflow not complete; Backup/Restore and People lanes are still running.
 - No physical Android device + actual system file picker/provider backup/restore evidence.
 - No verified Calendar external-event identity/no-duplicate test after restore.
 - No full Golden Flow evidence.
