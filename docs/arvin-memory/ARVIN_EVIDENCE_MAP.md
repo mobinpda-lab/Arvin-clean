@@ -93,3 +93,10 @@ No RTLC application code, tests, APK, screenshot, or device validation was produ
 ## Owner decision — 2026-10-11
 - Root Task data contract: Option 1. Use the existing `Task.description` only; do not introduce an independent root `Task.note` field.
 - Keep existing canonical Task data, Notebook and FollowUp note semantics, storage and backup/restore compatibility. Decision is accepted; implementation and test evidence are still pending.
+
+## 2026-10-11 — Root Task text field correction
+- Feature: Task form canonical text field.
+- Decision: only root `Task.description`; no root `Task.note`. Scoped FollowUp.note remains.
+- Code head: PR #2595 branch head `cc8180575bb50087283c43a444d54af05de9bc81`.
+- Evidence: source read-back confirms root Task.note/controller/input removed; test includes legacy root-note ignored / description preserved assertion; backup and TaskStore test root-note assumptions removed.
+- Validation: GitHub workflow runs queued at readback. Analyze, test shards, Debug/Release APK and device smoke are not yet verified. Status = IMPLEMENTED, VALIDATION PENDING.
