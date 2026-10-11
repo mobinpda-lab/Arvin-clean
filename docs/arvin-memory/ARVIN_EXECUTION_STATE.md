@@ -15,8 +15,8 @@
 5. Started a documentation-only consolidation branch from this exact main commit to restore the canonical memory package without direct writes to main.
 
 ## Current exact-main validation
-- Build: [run 38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `in_progress`; Analyze passed, and a later artifact query found non-expired Debug APK artifact 11717311531 (92,487,308 bytes) and Release APK artifact 11716328109 (32,681,865 bytes). Test shards/workflow conclusions remain incomplete or inconsistent, and the run update timestamp is stale (2026-10-11 21:57 UTC); artifact presence does not mean the workflow passed or the APK is release-accepted.
-- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `queued`; later artifact query found Home screenshot artifact 11717201884 and Quick Capture screenshot artifact 11716972463. No artifacts were listed for People, SQL persistence, Backup/Restore or SQL migration. Run update timestamp is stale (2026-10-11 21:56 UTC); full smoke remains unaccepted. A log retrieval returned BlobNotFound, which proves neither success nor failure.
+- Build: [run 38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Fresh API query confirms overall conclusion `success`; Analyze, all six test shards, Debug APK and Release APK jobs are completed successfully. Non-expired artifacts: Debug APK 11717311531 (92,487,308 bytes), Release APK 11716328109 (32,681,865 bytes). This is exact-main CI evidence, not physical-device acceptance or release approval.
+- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Fresh job query still reports overall `queued`: Home and Quick Capture passed; SQL Persistence and Backup/Restore are `in_progress`; People is `queued`; SQL Migration passed. Only Home screenshot artifact 11717201884 and Quick Capture screenshot artifact 11716972463 are currently listed. Full smoke remains unaccepted; recover/finish this existing run before triggering duplicates.
 - Recover/inspect the existing runs and artifacts before triggering duplicate workflows. If recovery is impossible, document the failure and start one controlled fresh validation batch only after checking workflow state.
 
 ## Completed
@@ -26,7 +26,7 @@
 
 ## In progress
 - Restore the required project-memory package to main through a reviewed documentation-only PR. The required files currently live in overlapping draft PRs #2600 and #2608; do not merge either stale branch blindly.
-- Recover exact-main Build/Device Smoke status and review any artifacts.
+- Exact-main Build is now confirmed successful; Device Smoke remains queued/incomplete and is the immediate CI bottleneck.
 - Reconcile shared implementation files in #2591, #2595, #2602 and #2607 before integration. Their diffs overlap in Task Editor, Quick Capture, main routing, Report Center and Universal Arvin Time Picker.
 - Preserve the report-filter owner requirements and Persian/Jalali time controls; implementation/combined-head acceptance is still open.
 
@@ -39,10 +39,10 @@
 - The `Task.note` vs `Task.description` data-contract issue remains owner-decision sensitive; do not add a root `Task.note`, alter schema, migration or backup semantics without an explicit decision. Existing recorded direction says root `Task.description` remains canonical.
 
 ## Next action
-Finish the current documentation consolidation PR, verify its exact file list and current checkpoint, then recover the existing exact-main workflow evidence. Continue safe independent work in parallel, but do not merge overlapping code PRs, publish an APK as a release, or claim Release Ready.
+Finish the current documentation consolidation PR, verify its exact file list and current checkpoint, then recover/finish the existing exact-main Device Smoke run and review its evidence. Continue safe independent work in parallel, but do not merge overlapping code PRs, publish an APK as a release, or claim Release Ready.
 
 ## Current bottleneck
-Project memory is not present on main, while exact-main validation appears stale/incomplete and release acceptance still lacks physical-device proof.
+Project memory is not present on main; exact-main Build now passes, but Device Smoke is stalled/incomplete and release acceptance still lacks physical-device proof.
 
 ## Product invariants
 - Task is the sole source of truth; Quick Add and Full Form must preserve the same Task ID.
