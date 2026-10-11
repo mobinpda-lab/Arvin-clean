@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
+import 'package:arvin/backup_schedule.dart';
+import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
@@ -123,6 +125,7 @@ void main() {
     final manager = ArvinBackupManager(service: service);
     var failAfterTaskWrite = false;
     var failAfterCalendarLinkWrite = false;
+    var failAfterSettingsWrite = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -132,6 +135,10 @@ void main() {
             if (failAfterCalendarLinkWrite && stage == 'calendar-links') {
               failAfterCalendarLinkWrite = false;
               throw StateError('injected failure after Calendar-link write');
+            }
+            if (failAfterSettingsWrite && stage == 'settings') {
+              failAfterSettingsWrite = false;
+              throw StateError('injected failure after settings write');
             }
           },
           loadTasks: () async =>
@@ -289,6 +296,79 @@ void main() {
     final lateRolledBackLinks = await ExternalCalendarLinkStore().load();
     expect(lateRolledBackLinks, hasLength(1));
     expect(lateRolledBackLinks.single.toJson(), localCalendarLink.toJson());
+    expect(
+      find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
+      findsOneWidget,
+    );
+
+    // Inject a failure after settings and backup-schedule mutations have
+    // actually occurred. This closes the final late-stage boundary for the
+    // BackupPage entry point and verifies all previously written stores roll
+    // back together, including settings and schedule.
+    ScaffoldMessenger.of(tester.element(find.byType(BackupPage))).clearSnackBars();
+    await tester.pump();
+    final settingsBeforeFinalFailure = await AppSettingsService().load();
+    final scheduleBeforeFinalFailure = await BackupSchedule.load();
+    service.document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'projects': manager.projectCodec.encodeList([
+        ProjectPlan(
+          id: 'settings-candidate-project',
+          title: 'پروژه تنظیمات جایگزین',
+          itemIds: const <String>[],
+        ),
+      ]),
+      'calendarLinks': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'reminderId': 'task-due:settings-candidate-task',
+          'calendarId': 'settings-candidate-calendar',
+          'eventId': 'settings-candidate-event',
+          'lastSyncedFingerprint': 'settings-candidate-fingerprint',
+        },
+      ],
+      'settings': <String, dynamic>{
+        'themeMode': 'dark',
+        'usePersianDate': false,
+        'fontSize': 22.0,
+        'backupSchedule': <String, dynamic>{
+          'enabled': true,
+          'hour': 6,
+          'minute': 15,
+          'frequency': 'daily',
+        },
+      },
+      'tasks': <Map<String, dynamic>>[
+        Task(id: 'settings-candidate-task', title: 'کار جایگزین تنظیمات').toJson(),
+      ],
+    };
+    failAfterSettingsWrite = true;
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('تأیید بازیابی'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect((await TaskStore().load()).map((task) => task.id), ['old-late-runtime']);
+    expect(
+      (await ProjectStore().load()).map((project) => project.id),
+      ['old-project-runtime'],
+    );
+    final settingsRolledBackLinks = await ExternalCalendarLinkStore().load();
+    expect(settingsRolledBackLinks, hasLength(1));
+    expect(settingsRolledBackLinks.single.toJson(), localCalendarLink.toJson());
+    expect(
+      (await AppSettingsService().load()).fontSize,
+      settingsBeforeFinalFailure.fontSize,
+    );
+    final scheduleAfterFinalFailure = await BackupSchedule.load();
+    expect(scheduleAfterFinalFailure.enabled, scheduleBeforeFinalFailure.enabled);
+    expect(scheduleAfterFinalFailure.hour, scheduleBeforeFinalFailure.hour);
+    expect(scheduleAfterFinalFailure.minute, scheduleBeforeFinalFailure.minute);
+    expect(
+      scheduleAfterFinalFailure.frequency,
+      scheduleBeforeFinalFailure.frequency,
+    );
     expect(
       find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
       findsOneWidget,
