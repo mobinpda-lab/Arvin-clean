@@ -1,3 +1,42 @@
+# DEEP CONVERSATION AUDIT CHECKPOINT — 2026-10-11 (supersedes stale next-action notes below)
+
+## Owner request
+The owner explicitly asked for a meticulous review of this conversation so no requirement, prior finding, or dependency is missed. This checkpoint records that audit and corrects earlier stale notes below; use live GitHub before every subsequent action.
+
+## GitHub Read/Write and live repository reality
+- Read/Write access verified in this run. All writes are limited to the existing documentation branch `docs/arvin-autonomous-memory-20261011`; no write to `main`, no app code edit, no APK build, and no release/merge performed.
+- Latest main commit confirmed by commit search: `a6ced27660d34cd87dd8915aff68d3a7555fd57a`. `main` does not yet contain this `docs/arvin-memory/` checkpoint.
+- PR #2600 is OPEN/DRAFT, branch `docs/arvin-autonomous-memory-20261011`, head `40963f0fe54ba8d34375c1c6c7fc62c01f27b627`, base SHA `72a2f4cc24df7a38eff9856ce403461615db5280` (stale versus main). Do not merge until rebase/reconciliation and validation.
+- Documentation PRs #2598 (`32860ad0a07778d210ba1dac4caf2dc68effccc5`), #2599 (`bd03c61749f4cf093f25251330a54ca773f48c7f`) and #2600 overlap and are all based on old main `72a2f4c...`. Reconcile into one consistent authority hierarchy; do not create competing status/roadmap/memory sources.
+- #2590 is OPEN (not merged), head `1810e454a20e29eec837be9ac446e222795d79f8`; #2591 is OPEN/DRAFT, head `eae0394163a958223b79fc3b7aa914f79b664b8a`; #2595 is OPEN/DRAFT, head `0786a2e067594d92b35c6a3028c633e8abc9bb3d`, stacked on #2591; #2602 is OPEN/DRAFT, head `15c40a81ec7e45fe690de40ebbd9cf005e57af80`; #2601 is OPEN, head `b832aeb6e0f55c78db0b1814adc0d5bd63447c23`. Each still has stale base `72a2f4c...` except #2595's base is the earlier #2591 head `0c43dfbe3c0f7188cea6e03614300be81271e158`.
+- Latest recorded #2602 CI: Build #38139809938 passed Analyze and Debug/Release APK jobs but failed three test shards; Device Smoke #38139809930 was skipped. Failures include missing repeat control keys, automatic/manual reminder behavior, date-only All-Day persistence, custom Clock Dial test, and taxonomy row width 99.33px vs >270px expectation. Do not merge or weaken tests.
+- RTLC decision #2605 is OPEN and explicitly accepted as product direction, not implemented/accepted. Existing `RecurrenceTrackingLevel` JSON field and history/checklist foundations must be reused; keep `followUpEnabled` distinct.
+- Release gate #2102 and owner acceptance ledger #1139 remain open. Main-head workflow/status lookup previously returned no PR-associated runs/statuses; that is missing evidence, not a pass. Physical-device acceptance and owner release approval remain unverified.
+
+## Audit findings: important items that must not be lost
+1. **Universal time picker (P0 product consistency):** #2589 is accepted UX direction, implementation PR #2591 and docs PR #2590 remain open. Audit all direct/custom time pickers and passive time formatting, including Home filters, Backup Schedule, Follow-up, Reports, Task Editor and Quick Capture. Preserve canonical Task times, reminder/follow-up/repeat/calendar/backup behavior; Persian digits, RTL, 24-hour dial, exact-minute entry, contextual title, cancel/save safety, and real-device proof are required. Existing audit says six direct `showTimePicker` call sites remained on main; recheck current source before action.
+2. **Task form overlap and acceptance:** #2595 and #2602 touch the same form; #2595 depends on #2591. Choose one canonical branch only after comparing live diffs/heads. Keep quick entry minimal and Full Form editing the same Task; do not duplicate Tasks. Progressive disclosure must not hide or break date/time, All-Day, reminder, repeat, priority or checklist.
+3. **Repeat Tracking Level (RTLC):** after Repeat, selector «نوع پیگیری» → «عادی» default / «مهم و قابل پیگیری»; use existing `recurrence.trackingLevel`. Then separately audit Home's restrained cue and Report Center filters/metrics. Preserve Task ID, occurrence history immutability, per-occurrence checklist isolation, and backup compatibility. Do not conflate with Follow-up.
+4. **Calendar installed-app regression:** owner reported missing «ویرایش» and «ثبت در تقویم گوشی», and recurrence showing only current day rather than planned days (up to seven). #2587 and #2570 are merged in current mainline, but this is code status only; #2535 and #1139 remain acceptance gates. Test action visibility, all scheduled dates, stable linked-event update/no duplicates on physical device.
+5. **Backup/restore P0:** #2585 is merged at current main SHA, and #2587 is merged at `c57606c...`. Still unverified: physical Android system file-picker/provider, export/restore round-trip, late-stage rollback, preservation of IDs/relations/settings/notebook checklists/catalogs/calendar links, and before/after integrity.
+6. **Reports:** #2385 remains open. Extend existing canonical report/filter/print/share/PDF paths; do not create a second report model/engine. RTLC report filtering/metrics are an additional acceptance gate.
+7. **Taxonomy:** Project, Category, Tag are canonical; Category = Group synonym, no fourth Group entity/store. Verify actual schema; do not infer a Project foreign key. RTL selector order and width must be genuinely usable at target phone viewport.
+8. **Visual/product contract:** preserve Persian RTL and VazirHarf v34.003 (do not replace with Vazirmatn), approved palette (#4A4CAB, #E9EAFF, #F8F8FB, #FDFDFE, #232433, #80829C), Home's four axes Time/Project/Category/Tag, no obsolete stats cards/title/dropdown, clock + calendar icons side-by-side in every create/edit form, and approved reminder widget/lock-screen actions. Color-only changes do not satisfy redesign acceptance.
+9. **Checklist requirement:** checklist remains part of Task. The owner requested a high-priority checklist directly under the full/edit Task form, generic for all Tasks (example: daily school checklist active at 06:00 with کیف/خوراکی/لباس). Recurrence occurrence state must remain independent; do not create a separate checklist subsystem.
+10. **Release handover:** before final handover, require release notes, installation guide, user guide, known issues, architecture summary and evidence report, tied to an exact candidate artifact and explicit owner acceptance.
+
+## Completed audit step
+Compared the current Command v8 against the existing memory documents, decision records, live issues and overlapping PR state. Found that earlier snapshots contain contradictory/stale claims and that the conversation decision-history file is not present on this memory branch. The new decision-history document is being added on this existing branch to close that memory gap; it is an index of decisions, not implementation evidence.
+
+## Next action
+1. Read back the new conversation decision-history file and this updated state from this exact branch.
+2. Comment on #2600 with the audited gaps and stale-base/documentation hierarchy.
+3. Select one canonical task-form implementation lane after diff/test comparison; repair #2602 root causes without weakening tests, then integrate RTLC once.
+4. Recover/run exact-current-main Build + Device Smoke evidence; continue physical-device and owner acceptance gates.
+5. Reconcile/rebase docs PRs before any merge. Do not claim final/release-ready until product evidence and owner acceptance exist.
+
+---
+
 # LIVE CONTINUATION CHECKPOINT — 2026-10-11
 
 This section supersedes conflicting older snapshots below. The detailed earlier notes are historical context and must not be treated as current status without rechecking.
