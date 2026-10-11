@@ -43,15 +43,57 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('new Task form keeps date/time in simple view and collapses advanced details',
+      (tester) async {
+    await openEditor(tester);
+
+    expect(find.text('کار جدید'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsOneWidget);
+    expect(find.text('دسته'), findsNothing);
+    expect(find.text('پروژه'), findsNothing);
+    expect(find.text('برچسب'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-checklist-section')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-block')), findsNothing);
+    final details = tester.widget<ExpansionTile>(
+      find.byKey(const ValueKey('task-editor-more-details')),
+    );
+    expect(details.initiallyExpanded, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه'), findsWidgets);
+    expect(find.text('برچسب'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-checklist-section')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('same canonical editor preserves full-entry Task fields',
       (tester) async {
     Task? result;
     final due = DateTime(2026, 9, 20, 14, 30);
     final reminder = DateTime(2026, 9, 20, 13, 45);
+    final occurrenceKey = due.toIso8601String();
     final task = Task(
       id: 'full-entry',
       title: 'کار کامل',
+      description: 'توضیح کوتاه',
       dueDate: due,
+      notebookKind: NotebookItemKind.note,
+      checklistOccurrences: <String, List<String>>{
+        occurrenceKey: <String>['[x] مورد انجام‌شده'],
+      },
+      occurrenceHistory: <String, Map<String, dynamic>>{
+        occurrenceKey: <String, dynamic>{
+          'status': 'completed',
+          'result': 'نتیجه قبلی',
+        },
+      },
       reminderDate: reminder,
       recurrence: const RecurrenceRule(
         frequency: RecurrenceFrequency.weekly,
@@ -69,11 +111,12 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
-
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.tap(save);
@@ -81,7 +124,18 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, 'full-entry');
+    expect(result!.description, 'توضیح کوتاه');
     expect(result!.dueDate, due);
+    expect(result!.notebookKind, NotebookItemKind.note);
+    expect(result!.checklistOccurrences, <String, List<String>>{
+      occurrenceKey: <String>['[x] مورد انجام‌شده'],
+    });
+    expect(result!.occurrenceHistory, <String, Map<String, dynamic>>{
+      occurrenceKey: <String, dynamic>{
+        'status': 'completed',
+        'result': 'نتیجه قبلی',
+      },
+    });
     expect(result!.reminderDate, reminder);
     expect(result!.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(result!.recurrence?.interval, 2);

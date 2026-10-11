@@ -5,7 +5,6 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
-import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
@@ -59,6 +58,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   String? _error;
   bool _backHandling = false;
   bool _saving = false;
+  String? _draftId;
+  TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
@@ -66,21 +67,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _recurrenceIntervalController =
       TextEditingController(text: '1');
   String? _projectId;
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
-  final List<String> _selectedTags = <String>[];
-  late List<ProjectPlan> _knownProjects;
-  late List<String> _knownCategories;
-  late List<String> _knownTags;
 
   @override
   void initState() {
     super.initState();
     _projectId = widget.initialProjectId;
-    _knownCategories = List<String>.of(widget.knownCategories);
-    _knownTags = List<String>.of(widget.knownTags);
-    _knownProjects = List<ProjectPlan>.of(widget.projects);
   }
 
   Future<void> _handleBack() async {
@@ -104,9 +95,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   void dispose() {
     _controller.dispose();
     _titleFocus.dispose();
-    _descriptionController.dispose();
-    _categoryController.dispose();
-    _tagsController.dispose();
     _recurrenceIntervalController.dispose();
     super.dispose();
   }
@@ -129,25 +117,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   Task? _buildDraft() {
     final createdAt = widget.now?.call() ?? DateTime.now();
+    _draftId ??= widget.idFactory?.call() ?? createdAt.microsecondsSinceEpoch.toString();
     final task = widget.service.capture(
       _controller.text,
-      id: widget.idFactory?.call() ?? createdAt.microsecondsSinceEpoch.toString(),
+      id: _draftId!,
       createdAt: createdAt,
     );
     if (task == null) return null;
-    task.description = _descriptionController.text.trim();
+    task.priority = _priority;
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    final category = _categoryController.text.trim();
-    task.category = category.isEmpty ? null : category;
-    final manualTags = _tagsController.text
-        .split(RegExp(r'[,،#\\s]+'))
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toSet();
-    task.tags = {...task.tags, ..._selectedTags, ...manualTags}.toList(growable: false);
     return task;
   }
 
@@ -172,8 +153,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       await onCaptured(task);
       if (!mounted) return;
       _controller.clear();
-      _descriptionController.clear();
-      setState(() => _saving = false);
+      _draftId = null;
+      setState(() {
+        _saving = false;
+        _priority = TaskPriority.none;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
       });
@@ -205,14 +189,15 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       if (saved) {
         _controller.clear();
-        _descriptionController.clear();
+        _draftId = null;
+        _priority = TaskPriority.none;
       }
       setState(() => _saving = false);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = 'باز کردن فرم کامل انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
+        _error = 'باز کردن جزئیات بیشتر انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
       });
     }
   }
@@ -497,207 +482,61 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                 ),
               ),
               const SizedBox(height: 14),
-              TextField(
-                key: const ValueKey('quick-capture-input'),
-                controller: _controller,
-                focusNode: _titleFocus,
-                autofocus: true,
-                enabled: !_saving,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: 'عنوان',
-                  hintText: 'عنوان کار را وارد کنید',
-                  helperText: 'عنوان برای ثبت کافی است',
-                  errorText: _error,
-                  filled: true,
-                  fillColor: const Color(0xFFFDFDFE),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const ValueKey('quick-capture-input'),
+                      controller: _controller,
+                      focusNode: _titleFocus,
+                      autofocus: true,
+                      enabled: !_saving,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: 'عنوان کار',
+                        hintText: 'عنوان کار را بنویسید',
+                        helperText: 'عنوان برای ثبت کافی است',
+                        errorText: _error,
+                        filled: true,
+                        fillColor: const Color(0xFFFDFDFE),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: const ValueKey('quick-capture-priority'),
+                    tooltip: _priority == TaskPriority.high
+                        ? 'حذف اهمیت'
+                        : 'مهم کردن کار',
+                    onPressed: _saving
+                        ? null
+                        : () => setState(() {
+                              _priority = _priority == TaskPriority.high
+                                  ? TaskPriority.none
+                                  : TaskPriority.high;
+                            }),
+                    icon: Icon(
+                      _priority == TaskPriority.high
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      color: _priority == TaskPriority.high
+                          ? const Color(0xFF4A4CAB)
+                          : const Color(0xFF80829C),
+                      size: 28,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
-              if (widget.onCaptured == null)
-                TextField(
-                  key: const ValueKey('quick-capture-description'),
-                controller: _descriptionController,
-                enabled: !_saving,
-                minLines: 2,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'توضیحات (اختیاری)',
-                  filled: true,
-                  fillColor: const Color(0xFFFDFDFE),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-              ),
-              if (widget.onCaptured == null) const SizedBox(height: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(child: ArvinRollBox<String>(
-                    label: 'پروژه',
-                    valueLabel: _projectId == null                        ? 'پروژه'
-                        : _knownProjects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .isEmpty
-                            ? 'پروژه'
-                            : _knownProjects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .first,
-                    icon: Icons.folder_outlined,
-                    color: const Color(0xFF3568D4),
-                    emptyLabel: 'بدون پروژه',
-                    createLabel: 'ایجاد جدید',
-                    items: _knownProjects
-                        .where((project) =>
-                            !project.isArchived || project.id == _projectId)
-                        .map(
-                          (project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived
-                                ? '${project.title} (بایگانی‌شده)'
-                                : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived
-                                ? const Color(0xFF7D8298)
-                                : const Color(0xFF3568D4),
-                          ),
-                        )
-                        .toList(),
-                    onSelected: (value) => setState(() {
-                      _projectId = value;
-                    }),
-                    onCreate: () async {
-                      var draftName = '';
-                      final value = await showModalBottomSheet<String>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            16,
-                            16,
-                            16 + MediaQuery.viewInsetsOf(ctx).bottom,
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('پروژه جدید'),
-                                TextField(
-                                  autofocus: false,
-                                  onChanged: (text) => draftName = text,
-                                  decoration: const InputDecoration(labelText: 'نام پروژه'),
-                                ),
-                                FilledButton(
-                                  onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                  child: const Text('افزودن'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                      if (value == null || value.isEmpty) return null;
-                      final createProject = widget.onCreateProject;
-                      final createdId = createProject != null
-                          ? await createProject(value)
-                          : await TaskProjectAssignmentService()
-                              .createProject(title: value)
-                              .then((project) => project.id);
-                      if (!mounted || createdId == null) return createdId;
-                      final existing = _knownProjects
-                          .where((project) => project.id == createdId)
-                          .toList(growable: false);
-                      if (existing.isEmpty) {
-                        final refreshed =
-                            await TaskProjectAssignmentService().loadProjects();
-                        _knownProjects = List<ProjectPlan>.of(refreshed);
-                      }
-                      setState(() => _projectId = createdId);
-                      return createdId;
-                    },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinRollBox<String>(
-                    label: 'دسته',
-                    valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
-                    icon: Icons.grid_view_rounded,
-                    color: const Color(0xFF7650C8),
-                    emptyLabel: 'بدون دسته',
-                    items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
-                      value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
-                    )).toList(),
-                    onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('دسته جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      final created = await widget.onCreateCategory?.call(value) ?? value;
-                      if (!mounted) return created;
-                      setState(() {
-                        _categoryController.text = created;
-                        if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                      });
-                      return created;
-                    },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinTagRollBox(
-                    tags: _knownTags,
-                    selectedTags: _selectedTags,
-                    onChanged: (values) => setState(() {
-                      _selectedTags
-                        ..clear()
-                        ..addAll(values);
-                      _tagsController.text = _selectedTags.join('، ');
-                    }),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('برچسب جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      final created = await widget.onCreateTag?.call(value) ?? value;
-                      if (!mounted) return created;
-                      setState(() {
-                        if (!_selectedTags.contains(created)) _selectedTags.add(created);
-                        if (!_knownTags.contains(created)) _knownTags.add(created);
-                        _tagsController.text = _selectedTags.join('، ');
-                      });
-                      return created;
-                    },
-                  ),),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
@@ -788,7 +627,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     child: OutlinedButton(
                       key: const ValueKey('quick-capture-full-form'),
                       onPressed: _saving ? null : _openFullForm,
-                      child: const Text('فرم کامل'),
+                      child: const Text('جزئیات بیشتر'),
                     ),
                   ),
                   const SizedBox(width: 8),

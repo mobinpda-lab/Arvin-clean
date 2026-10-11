@@ -40,7 +40,7 @@ Task _completeTask() {
   return Task(
     id: 'task-full',
     title: 'کار کامل',
-    description: 'همه داده‌های canonical باید منتقل شوند',
+    description: 'توضیح کوتاه',
     createdAt: DateTime(2026, 8, 20, 8),
     updatedAt: DateTime(2026, 8, 26, 12),
     followUpEnabled: true,
@@ -89,6 +89,7 @@ void main() {
 
     expect(restored.id, 'task-full');
     expect(restored.category, 'فروش');
+    expect(restored.description, 'توضیح کوتاه');
     expect(restored.checklist, ['تماس', 'ارسال فایل']);
     expect(restored.reminderDate, DateTime(2026, 8, 28, 10, 30));
     expect(restored.followUps, hasLength(1));

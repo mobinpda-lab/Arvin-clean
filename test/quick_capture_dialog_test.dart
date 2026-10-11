@@ -207,7 +207,10 @@ void main() {
 
     expect(find.text('ثبت سریع کار'), findsOneWidget);
     expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
-    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-priority')), findsOneWidget);
+    expect(find.text('پروژه'), findsNothing);
+    expect(find.text('دسته'), findsNothing);
+    expect(find.text('برچسب'), findsNothing);
     expect(find.text('یادآور'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
 
@@ -222,6 +225,80 @@ void main() {
     expect(captured.single.title, 'کار فقط با عنوان');
   });
 
+
+  testWidgets('Quick Add star saves priority on the same canonical Task', (tester) async {
+    final captured = <Task>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'important-quick-task',
+              now: () => DateTime(2026, 10, 11, 9),
+              onCaptured: (task) async => captured.add(task),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار مهم',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-priority')));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('حذف اهمیت'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, hasLength(1));
+    expect(captured.single.priority, TaskPriority.high);
+    expect(find.byTooltip('مهم کردن کار'), findsOneWidget);
+  });
+
+  testWidgets('Quick Add cancel/retry keeps the same unsaved draft identity',
+      (tester) async {
+    final drafts = <Task>[];
+    var nextId = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'draft-${++nextId}',
+              now: () => DateTime(2026, 10, 11, 9),
+              onCaptured: (_) async {},
+              onFullForm: (draft) async {
+                drafts.add(draft);
+                return false;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'پیش‌نویس حفظ شود',
+    );
+    final fullForm = find.byKey(const ValueKey('quick-capture-full-form'));
+    await tester.tap(fullForm);
+    await tester.pumpAndSettle();
+    await tester.tap(fullForm);
+    await tester.pumpAndSettle();
+
+    expect(drafts, hasLength(2));
+    expect(drafts.map((task) => task.id), ['draft-1', 'draft-1']);
+    expect(drafts.map((task) => task.title), ['پیش‌نویس حفظ شود', 'پیش‌نویس حفظ شود']);
+    expect(find.text('ثبت سریع کار'), findsOneWidget);
+  });
 
   testWidgets('Quick Add scheduling uses the canonical circular date/time picker',
       (tester) async {

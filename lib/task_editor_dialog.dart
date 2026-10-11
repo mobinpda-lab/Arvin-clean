@@ -671,6 +671,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         category: _category,
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
+        checklistOccurrences: existing?.checklistOccurrences.map(
+              (key, value) => MapEntry(key, List<String>.of(value)),
+            ) ??
+            const <String, List<String>>{},
+        occurrenceHistory: existing?.occurrenceHistory.map(
+              (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
+            ) ??
+            const <String, Map<String, dynamic>>{},
+        notebookKind: existing?.notebookKind,
         reminderDate: reminderDate,
         priority: _priority,
         archived: existing?.archived ?? false,
@@ -879,9 +888,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         onPressed: _requestClose,
                         icon: const Icon(Icons.close_rounded),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                          child: Text(editing ? 'ویرایش کار' : 'کار جدید', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                         ),
                       ),
                       FilledButton.icon(
@@ -930,107 +939,21 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(                        child: ArvinRollBox<String>(
-                          label: 'دسته',
-                          valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
-                          icon: Icons.grid_view_rounded,
-                          color: ArvinColors.category,
-                          emptyLabel: 'بدون دسته',
-                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
-                              .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
-                          onSelected: (value) => setState(() => _category = value),
-                          onCreate: () async {
-                            final value = await _promptNewName('دسته جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateCategory?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              _category = created;
-                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<String>(
-                          label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
-                          icon: Icons.folder_outlined,
-                          color: ArvinColors.project,
-                          emptyLabel: 'بدون پروژه',
-                          items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
-                          )).toList(),
-                          onSelected: (value) => setState(() => _selectedProjectId = value),
-                          onCreate: () async {
-                            final title = await _promptNewName('پروژه جدید');
-                            if (title == null || widget.onCreateProject == null) return null;
-                            final createdId = await widget.onCreateProject!(title);
-                            if (!mounted || createdId == null || createdId.trim().isEmpty) {
-                              return createdId;
-                            }
-                            final existing = _projects.indexWhere((project) => project.id == createdId);
-                            setState(() {
-                              if (existing >= 0) {
-                                _projects[existing] = _projects[existing].copyWith(title: title);
-                              } else {
-                                _projects = [
-                                  ..._projects,
-                                  ProjectPlan(id: createdId, title: title),
-                                ];
-                              }
-                              _selectedProjectId = createdId;
-                            });
-                            widget.onProjectChanged?.call(createdId);
-                            return createdId;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinTagRollBox(
-                          tags: _knownTags,
-                          selectedTags: _tags,
-                          onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () async {
-                            final value = await _promptNewName('برچسب جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateTag?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              if (!_tags.contains(created)) _tags.add(created);
-                              if (!_knownTags.contains(created)) _knownTags.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                    ],
+                  _dateTimeEditor(
+                    keyPrefix: 'task-editor-due',
+                    title: 'تاریخ انجام',
+                    value: _dueDateTime,
+                    onPickDate: _pickDueDate,
+                    onPickTime: _pickDueTime,
+                    onClear: _clearDueTime,
+                    accent: ArvinColors.time,
+                    allDay: _dueAllDay,
+                    onToggleAllDay: _toggleDueAllDay,
                   ),
-                  if (_tags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: _tags.map((tag) => InputChip(
-                        label: Text(tag),
-                        backgroundColor: ArvinColors.tagSoft,
-                        side: BorderSide.none,
-                        deleteIconColor: ArvinColors.tagDark,
-                        onDeleted: () => setState(() => _tags.remove(tag)),
-                      )).toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 14),                  ExpansionTile(
+                  const SizedBox(height: 14),
+                  ExpansionTile(
                     key: const ValueKey('task-editor-more-details'),
-                    initiallyExpanded: true,
+                    initiallyExpanded: false,
                     tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                     childrenPadding: const EdgeInsets.only(bottom: 8),
                     title: const Text(
@@ -1038,20 +961,108 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: const Text(
-                      'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
+                      'پروژه، دسته، برچسب، یادآوری، تکرار، چک‌لیست و پیگیری',
                     ),
                     children: [
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              label: 'دسته',
+                              valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
+                              icon: Icons.grid_view_rounded,
+                              color: ArvinColors.category,
+                              emptyLabel: 'بدون دسته',
+                              items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
+                                  .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
+                              onSelected: (value) => setState(() => _category = value),
+                              onCreate: () async {
+                                final value = await _promptNewName('دسته جدید');
+                                if (value == null) return null;
+                                final created = await widget.onCreateCategory?.call(value) ?? value;
+                                if (!mounted) return created;
+                                setState(() {
+                                  _category = created;
+                                  if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              label: 'پروژه',
+                              valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
+                              icon: Icons.folder_outlined,
+                              color: ArvinColors.project,
+                              emptyLabel: 'بدون پروژه',
+                              items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
+                                value: project.id,
+                                label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
+                                icon: Icons.folder_outlined,
+                                color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
+                              )).toList(),
+                              onSelected: (value) => setState(() => _selectedProjectId = value),
+                              onCreate: () async {
+                                final title = await _promptNewName('پروژه جدید');
+                                if (title == null || widget.onCreateProject == null) return null;
+                                final createdId = await widget.onCreateProject!(title);
+                                if (!mounted || createdId == null || createdId.trim().isEmpty) {
+                                  return createdId;
+                                }
+                                final existing = _projects.indexWhere((project) => project.id == createdId);
+                                setState(() {
+                                  if (existing >= 0) {
+                                    _projects[existing] = _projects[existing].copyWith(title: title);
+                                  } else {
+                                    _projects = [
+                                      ..._projects,
+                                      ProjectPlan(id: createdId, title: title),
+                                    ];
+                                  }
+                                  _selectedProjectId = createdId;
+                                });
+                                widget.onProjectChanged?.call(createdId);
+                                return createdId;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ArvinTagRollBox(
+                              tags: _knownTags,
+                              selectedTags: _tags,
+                              onChanged: (value) => setState(() => _tags = List<String>.of(value)),
+                              onCreate: () async {
+                                final value = await _promptNewName('برچسب جدید');
+                                if (value == null) return null;
+                                final created = await widget.onCreateTag?.call(value) ?? value;
+                                if (!mounted) return created;
+                                setState(() {
+                                  if (!_tags.contains(created)) _tags.add(created);
+                                  if (!_knownTags.contains(created)) _knownTags.add(created);
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
+                      if (_tags.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: _tags.map((tag) => InputChip(
+                            label: Text(tag),
+                            backgroundColor: ArvinColors.tagSoft,
+                            side: BorderSide.none,
+                            deleteIconColor: ArvinColors.tagDark,
+                            onDeleted: () => setState(() => _tags.remove(tag)),
+                          )).toList(),
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       _dateTimeEditor(
                         keyPrefix: 'task-editor-reminder',
@@ -1257,96 +1268,104 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         title: const Text('انجام‌شده'),
                         subtitle: const Text('وضعیت فعلی این کار'),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _checklistEditor(),
-                  const SizedBox(height: 12),
-                  Container(
-                    key: const ValueKey('task-editor-followup-block'),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F7FF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE8E6F7)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: CheckboxListTile(
-                            key: const ValueKey('task-editor-followup-enabled'),
-                            value: _followUpEnabled,
-                            onChanged: (value) =>
-                                _setFollowUpEnabled(value ?? false),
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            activeColor: _brand,
-                            title: const Text(
-                              'کار پیگیری‌دار',
-                              style: TextStyle(
-                                color: _brand,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                            subtitle: const Text(
-                              'برای این کار زمان و سابقهٔ پیگیری نگه‌داری می‌شود',
-                            ),
-                          ),
+                      const SizedBox(height: 12),
+                      _checklistEditor(),
+                      const SizedBox(height: 12),
+                      Container(
+                        key: const ValueKey('task-editor-followup-block'),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F7FF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE8E6F7)),
                         ),
-                        if (!_followUpEnabled && hasHistory)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4, bottom: 6),
-                            child: Text(
-                              'سوابق پیگیری قبلی حفظ می‌شوند.',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'نوع پیگیری',
                               style: TextStyle(
-                                color: Color(0xFF77778A),
-                                fontSize: 12,
+                                color: Color(0xFF232433),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
                               ),
                             ),
-                          ),
-                        if (_followUpEnabled) ...[
-                          Row(
-                            children: [
-                              const Expanded(
+                            const SizedBox(height: 6),
+                            Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                key: const ValueKey('task-editor-followup-enabled'),
+                                value: _followUpEnabled,
+                                onChanged: (value) =>
+                                    _setFollowUpEnabled(value ?? false),
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                activeColor: _brand,
+                                title: const Text(
+                                  'مهم و قابل پیگیری',
+                                  style: TextStyle(
+                                    color: _brand,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                subtitle: const Text(
+                                  'خاموش: عادی؛ روشن: نگهداری زمان و سابقهٔ پیگیری',
+                                ),
+                              ),
+                            ),
+                            if (!_followUpEnabled && hasHistory)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 4, bottom: 6),
                                 child: Text(
-                                  'زمان پیگیری',
+                                  'سوابق پیگیری قبلی حفظ می‌شوند.',
                                   style: TextStyle(
                                     color: Color(0xFF77778A),
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
-                              if (followUp != null)
-                                TextButton.icon(
-                                  key: const ValueKey(
-                                    'task-editor-clear-followup',
+                            if (_followUpEnabled) ...[
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'زمان پیگیری',
+                                      style: TextStyle(
+                                        color: Color(0xFF77778A),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
-                                  onPressed: _clearFollowUpTime,
-                                  icon: const Icon(Icons.close, size: 17),
-                                  label: const Text('حذف زمان'),
-                                ),
+                                  if (followUp != null)
+                                    TextButton.icon(
+                                      key: const ValueKey(
+                                        'task-editor-clear-followup',
+                                      ),
+                                      onPressed: _clearFollowUpTime,
+                                      icon: const Icon(Icons.close, size: 17),
+                                      label: const Text('حذف زمان'),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _dateTimeEditor(
+                                keyPrefix: 'task-editor-followup',
+                                title: 'زمان پیگیری',
+                                value: followUp,
+                                onPickDate: _pickFollowUpDate,
+                                onPickTime: _pickFollowUpTime,
+                                onClear: _clearFollowUpTime,
+                                accent: ArvinColors.primary,
+                              ),
                             ],
-                          ),
-                          const SizedBox(height: 8),
-                          _dateTimeEditor(
-                            keyPrefix: 'task-editor-followup',
-                            title: 'زمان پیگیری',
-                            value: followUp,
-                            onPickDate: _pickFollowUpDate,
-                            onPickTime: _pickFollowUpTime,
-                            onClear: _clearFollowUpTime,
-                            accent: ArvinColors.primary,
-                          ),
-                        ],
-                      ],
-                    ),
+                          ],
+                        ),
+                      ),
+    
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                ],
-              ),
             ),
           ),
       ],

@@ -43,6 +43,10 @@ void main() {
 
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
+    final details = find.byKey(const ValueKey('task-editor-more-details'));
+    await tester.ensureVisible(details);
+    await tester.tap(details);
+    await tester.pumpAndSettle();
   }
 
   testWidgets('existing follow-up task shows explicit toggle and date plus time',
@@ -59,7 +63,7 @@ void main() {
     await pumpEditor(tester, task: task);
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
-    expect(find.text('کار پیگیری‌دار'), findsOneWidget);
+    expect(find.text('مهم و قابل پیگیری'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsOneWidget);

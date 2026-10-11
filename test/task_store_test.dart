@@ -20,7 +20,7 @@ void main() {
       Task(
         id: 'completed-1',
         title: 'Completed task',
-        description: 'Must survive scheduled backup',
+        description: 'Short description',
         tags: <String>['backup'],
         completed: true,
       ),
@@ -31,6 +31,7 @@ void main() {
     expect(loaded, hasLength(1));
     expect(loaded.single.id, 'completed-1');
     expect(loaded.single.title, 'Completed task');
+    expect(loaded.single.description, 'Short description');
     expect(loaded.single.completed, isTrue);
   });
 
