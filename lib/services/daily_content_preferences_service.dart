@@ -79,9 +79,8 @@ class DailyContentPreferencesService {
           ..sort(),
       };
 
-  /// Validates first, then applies only keys present in the backup. Missing
-  /// keys from older backups never reset this device's current preferences.
-  Future<void> restorePortableJson(Map<String, dynamic> json) async {
+  /// Validates the complete portable preference object before any restore writes.
+  static void validatePortableJson(Map<String, dynamic> json) {
     final enabled = json['enabled'];
     final notificationEnabled = json['notificationEnabled'];
     final hour = json['notificationHour'];
@@ -107,6 +106,17 @@ class DailyContentPreferencesService {
     if (rawKinds is List && rawKinds.any((item) => !validKinds.contains(item))) {
       throw const FormatException('Daily Content contains an unsupported kind');
     }
+  }
+
+  /// Applies only keys present in the backup. Missing keys from older backups
+  /// never reset this device's current preferences.
+  Future<void> restorePortableJson(Map<String, dynamic> json) async {
+    validatePortableJson(json);
+    final enabled = json['enabled'];
+    final notificationEnabled = json['notificationEnabled'];
+    final hour = json['notificationHour'];
+    final minute = json['notificationMinute'];
+    final rawKinds = json['enabledKinds'];
 
     final preferences = await SharedPreferences.getInstance();
     if (enabled is bool) await preferences.setBool(_enabledKey, enabled);
