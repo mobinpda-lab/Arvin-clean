@@ -80,12 +80,23 @@ void main() {
     Task? result;
     final due = DateTime(2026, 9, 20, 14, 30);
     final reminder = DateTime(2026, 9, 20, 13, 45);
+    final occurrenceKey = due.toIso8601String();
     final task = Task(
       id: 'full-entry',
       title: 'کار کامل',
       description: 'توضیح کوتاه',
       note: 'یادداشت قبلی',
       dueDate: due,
+      notebookKind: NotebookItemKind.note,
+      checklistOccurrences: <String, List<String>>{
+        occurrenceKey: <String>['[x] مورد انجام‌شده'],
+      },
+      occurrenceHistory: <String, Map<String, dynamic>>{
+        occurrenceKey: <String, dynamic>{
+          'status': 'completed',
+          'result': 'نتیجه قبلی',
+        },
+      },
       reminderDate: reminder,
       recurrence: const RecurrenceRule(
         frequency: RecurrenceFrequency.weekly,
@@ -124,6 +135,16 @@ void main() {
     expect(result!.description, 'توضیح کوتاه');
     expect(result!.note, 'یادداشت ویرایش‌شده');
     expect(result!.dueDate, due);
+    expect(result!.notebookKind, NotebookItemKind.note);
+    expect(result!.checklistOccurrences, <String, List<String>>{
+      occurrenceKey: <String>['[x] مورد انجام‌شده'],
+    });
+    expect(result!.occurrenceHistory, <String, Map<String, dynamic>>{
+      occurrenceKey: <String, dynamic>{
+        'status': 'completed',
+        'result': 'نتیجه قبلی',
+      },
+    });
     expect(result!.reminderDate, reminder);
     expect(result!.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(result!.recurrence?.interval, 2);
