@@ -354,3 +354,16 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Completed: identified the exact reason Device Smoke was skipped; confirmed Analyze success and current unresolved test/build jobs.
 - Blocked: full automated acceptance pending; Device Smoke evidence unavailable for this draft PR; physical-device/owner visual acceptance not completed.
 - Next action: poll Build #38163195995 until terminal. If all jobs pass, obtain Device Smoke evidence through an authorized non-draft/manual run path without implying physical-device acceptance; if any job fails, inspect that exact job's logs before changing code. Keep PR Draft until acceptance criteria are met.
+
+
+## CONTINUATION — Report filter regression follow-up — 2026-10-11
+
+- GitHub Read/Write verified; continued from the last checkpoint and checked live PR #2607, exact-head Build jobs, recent workflow runs and the report-filter test source.
+- Exact-head run [#38163195995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163195995) advanced: Analyze and test shards 0, 1, 2, 3 and 5 passed; test shard 4 failed. The failure is in `test/report_center_page_test.dart`, test “report filter sections collapse and expand without losing selections”: after scrolling to the selected category chip, the test taps the section header while it is outside the bottom-sheet viewport (hit test lands on the modal barrier). This is a test interaction/scroll-position issue; no evidence yet indicates a production filter logic defect.
+- Applied a focused test-only correction in commit [`c2a1b2ff`](https://github.com/mobinpda-lab/Arvin-clean/commit/c2a1b2ff57465e0e0b393b1e6d28fa010dadc439): re-find the Category section header and call `tester.ensureVisible` before collapsing and reopening it. No production code, Task model, persistence, or data contract changed.
+- Fresh exact-head Build run [#38163500776](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163500776) is PENDING for head `c2a1b2ff57465e0e0b393b1e6d28fa010dadc439`; no pass/fail result yet. Device Smoke [#38163500919](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163500919) is SKIPPED because PR #2607 is Draft and the workflow condition excludes Draft PRs.
+- Release closure run [#38163384915](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38163384915) failed by design at its release gate: issue #2102 remains open, and PR #1901 remains open. This is a release-blocking condition, not a build failure; no issue/PR was closed automatically.
+- Completed: diagnosed the latest shard-4 failure from the exact job log, applied a narrow test-only fix, and recorded why Device Smoke is skipped.
+- In progress: validate the new exact-head Build run.
+- Blocked: PR #2607 remains Draft; Device Smoke/physical-device and owner UX validation are outstanding; release gate #2102 and P0/P1 regression lane #1901 are still open.
+- Next action: inspect run #38163500776 after completion. If any tests fail, read that job's fresh logs before changing anything. Do not merge or release based on orchestration success.
