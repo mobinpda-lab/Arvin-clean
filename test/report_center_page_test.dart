@@ -191,18 +191,22 @@ void main() {
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.descendant(
+    final categoryHeader = find.descendant(
       of: categorySection,
       matching: find.text('دسته'),
-    ));
+    );
+    // Scrolling the selected chip can move the header above the modal sheet.
+    // Bring the header back into the sheet's viewport before tapping it.
+    await tester.ensureVisible(categoryHeader);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryHeader);
     await tester.pumpAndSettle();
     // ExpansionTile keeps its child subtree alive while collapsed; the selected
     // value must remain intact when the section is reopened.
     expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
-    await tester.tap(find.descendant(
-      of: categorySection,
-      matching: find.text('دسته'),
-    ));
+    await tester.ensureVisible(categoryHeader);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryHeader);
     await tester.pumpAndSettle();
     expect(categoryChip, findsOneWidget);
     expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
