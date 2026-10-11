@@ -212,7 +212,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = 'باز کردن فرم کامل انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
+        _error = 'باز کردن جزئیات بیشتر انجام نشد؛ متن و انتخاب‌ها حفظ شدند';
       });
     }
   }
@@ -788,7 +788,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     child: OutlinedButton(
                       key: const ValueKey('quick-capture-full-form'),
                       onPressed: _saving ? null : _openFullForm,
-                      child: const Text('فرم کامل'),
+                      child: const Text('جزئیات بیشتر'),
                     ),
                   ),
                   const SizedBox(width: 8),
