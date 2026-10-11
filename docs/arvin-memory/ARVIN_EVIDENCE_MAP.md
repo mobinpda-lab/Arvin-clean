@@ -219,3 +219,11 @@ No APK, device screenshot, physical-device result, merge or release was produced
 - PR #2607 exact head `8d3d60a1...`: Build [38166678767](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678767) PASS (Analyze, shards 0–5, Debug/Release APK); Device Smoke [38166678708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38166678708) SKIPPED because Draft. This head predates the new main merge.
 - PR #2591 remains Draft and stale-base; shared picker widget file identical across both PRs, integration files differ. Reconcile before merge.
 - Issue #2102 remains OPEN/BLOCKED; physical-device Calendar sync and backup/restore acceptance, RTL review, Golden Flow and owner approval are still required.
+
+
+## Device Smoke evidence recovery — 2026-10-11
+- Run [38037275973](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38037275973): job API now reports all six lanes completed/success — Home, Backup/Restore, SQL migration, Quick Capture, People, SQL persistence.
+- Artifacts actually listed: Home [11665410659](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11665410659), People [11665011600](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11665011600), Quick Capture [11664318029](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11664318029). Backup/Restore artifact is missing from the listing, so its output/evidence must be recovered or marked unavailable; job success alone does not prove restore integrity.
+- Calendar edit PR #2570 merged at [34a6cee9ae05ad1cf632960b96e98f2a5448e128](https://github.com/mobinpda-lab/Arvin-clean/commit/34a6cee9ae05ad1cf632960b96e98f2a5448e128).
+- Main release-closure workflow contains the merged `cancel-in-progress: false` and explicit successful `workflow_dispatch` guard. Combined-status lookup for merge commit `d8afc717eaf02d6d0bedf92e800c7f93209c97bd` returned no entries; do not claim current-main post-merge CI from this result.
+- Release gate #2102 remains OPEN/BLOCKED and regression PR #1901 remains OPEN.
