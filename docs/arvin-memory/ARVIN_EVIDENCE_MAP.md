@@ -6,7 +6,7 @@ GitHub access: Read/Write
 
 | Feature / gate | Evidence | Latest status | Limitation / next proof |
 |---|---|---|---|
-| Restore rollback: Category/Tag catalogs | [Commit 05c080e](https://github.com/mobinpda-lab/Arvin-clean/commit/05c080e706690dd3eb6a96fc5c070971a43d1354); [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585) | Code and failure-injection tests committed; PR open | Exact-head CI green; verify actual orchestration-stage failure coverage and physical device |
+| Restore rollback: Category/Tag catalogs + multi-store orchestration | [PR #2585](https://github.com/mobinpda-lab/Arvin-clean/pull/2585); [latest test commit 5e0ad6d](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27) | BackupPage now injects failure after Task, Calendar-link and settings/schedule stages; asserts Task/Project/link/settings/schedule rollback | New exact-head Build #38124942112 in progress; Smoke #38124941815 queued. Earlier green CI is for 05c080e, not this head. Physical device remains required |
 | Restore Build / Analyze / tests / APKs | [Build #38123874036](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874036) | SUCCESS on exact head 05c080e: Analyze, six test shards, Debug APK, Release APK | Does not prove physical-device acceptance |
 | Restore Device Smoke | [Smoke #38123874041](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38123874041) | ALL SIX LANES SUCCESS on exact head 05c080e: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore | Emulator lane only; physical file-provider still required |
 | Calendar primary actions + recurrence test | [PR #2587](https://github.com/mobinpda-lab/Arvin-clean/pull/2587); [P0 Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) | Latest validated head recorded in PR conversation: 4442ce450e4295e500a9db6d5dc5b4d9657b3770 | PR open; physical-device acceptance still required |
@@ -32,3 +32,10 @@ GitHub access: Read/Write
 - The seven-occurrence regression test is recorded in commit `4442ce450e4295e500a9db6d5dc5b4d9657b3770`; it asserts the eighth date is not shown for count=7 and retains separate later-occurrence navigation coverage.
 - PR #2585 exact head `05c080e` now has green Build and all six Device Smoke lanes. This is automated evidence only; physical device and actual file-provider validation remain open.
 - Physical-device same-event edit/sync/no-duplicate, recurrence/checklist behavior, link recovery after restore, screenshot review and owner acceptance remain open. Keep both PRs unmerged until their respective acceptance gates are satisfied.
+
+
+## Continuation checkpoint — BackupPage settings-stage failure
+- Commit: [`5e0ad6d`](https://github.com/mobinpda-lab/Arvin-clean/commit/5e0ad6ddd1675359b84a3ab9c351be4d8ac38a27).
+- Read-back of the changed integration test succeeded (blob `46571a56323ccbce8fa8d1c8f70272cec026c0c4`).
+- Exact-head Build [#38124942112](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124942112) is in progress; Device Smoke [#38124941815](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38124941815) is queued. No pass is claimed yet.
+- The new test is automated emulator/integration coverage, not physical file-provider acceptance.
