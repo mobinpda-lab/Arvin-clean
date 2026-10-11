@@ -403,3 +403,12 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - PR #2607 is still OPEN/Draft at the expected head. Issue #2102 and regression PR #1901 remain OPEN. Main remains `a6ced27660d34cd87dd8915aff68d3a7555fd57a`.
 - No new code change made during this poll because there is no new failure evidence. Device Smoke remains skipped under Draft gating; physical-device validation and owner acceptance remain outstanding.
 - Next action: continue polling this exact run and inspect logs only after a job reports failure.
+
+
+### Continuation checkpoint — report-filter implementation rechecked (2026-10-11 18:28 UTC)
+
+- Re-read this state and re-inspected PR #2607 branch source and tests to avoid repeating the prior diagnosis.
+- Confirmed production file is `lib/report_center_page.dart` (not a nested `lib/features/reports/... ` path). The report time selector calls `showUniversalArvinTimePicker`; filter sections are implemented with `ExpansionTile`; tests assert the Jalali picker opens and Flutter's Gregorian `CalendarDatePicker` does not appear, and assert the shared Persian-digit time picker is used.
+- Exact-head Build #38163761104 remains IN_PROGRESS in the available run response; Analyze is SUCCESS, other test shards and Debug/Release APK jobs are still marked IN_PROGRESS. Attempt to fetch running shard-4 logs returned NOT_FOUND, so no further conclusion can be drawn from that request.
+- PR #2607 remains OPEN/Draft. Device Smoke is skipped due to Draft gate. Release issue #2102 and P0/P1 device-regression PR #1901 remain open.
+- No additional code change was made without a fresh failing result. Next action: poll exact-head run #38163761104 again; once a job completes, inspect its result/log before any further change. Device/RTL small-screen validation and owner acceptance remain outstanding.
