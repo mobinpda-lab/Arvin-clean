@@ -15,14 +15,14 @@
 5. Started a documentation-only consolidation branch from this exact main commit to restore the canonical memory package without direct writes to main.
 
 ## Current exact-main validation
-- Build: [run 38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `in_progress`; Analyze passed, test shards and Debug/Release APK builds had not completed. Run update timestamp is stale (2026-10-11 21:57 UTC); do not call it a pass.
-- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `queued`; Home/Quick Capture were in progress and four lanes queued. Run update timestamp is stale (2026-10-11 21:56 UTC). A log retrieval returned BlobNotFound, which proves neither success nor failure.
+- Build: [run 38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `in_progress`; Analyze passed, and a later artifact query found non-expired Debug APK artifact 11717311531 (92,487,308 bytes) and Release APK artifact 11716328109 (32,681,865 bytes). Test shards/workflow conclusions remain incomplete or inconsistent, and the run update timestamp is stale (2026-10-11 21:57 UTC); artifact presence does not mean the workflow passed or the APK is release-accepted.
+- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Last live query: `queued`; later artifact query found Home screenshot artifact 11717201884 and Quick Capture screenshot artifact 11716972463. No artifacts were listed for People, SQL persistence, Backup/Restore or SQL migration. Run update timestamp is stale (2026-10-11 21:56 UTC); full smoke remains unaccepted. A log retrieval returned BlobNotFound, which proves neither success nor failure.
 - Recover/inspect the existing runs and artifacts before triggering duplicate workflows. If recovery is impossible, document the failure and start one controlled fresh validation batch only after checking workflow state.
 
 ## Completed
 - PR #2613 merged at `cea76673d871ce52b84dacf69f355c4282802baa`: documentation cleanup only; no product code/schema/migration changed.
 - PR-head CI and emulator smoke passed for #2613 head `55c3f829d7e443a6a4ae91de5e4b433965357400`; this is not physical-device acceptance.
-- Live checkpoint recorded on Issue #2102 in comment [6114272356](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114272356).
+- Live checkpoints recorded on Issue #2102 in comments [6114272356](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114272356) and [6114324441](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114324441); the latter captures the partial APK/screenshot artifact evidence.
 
 ## In progress
 - Restore the required project-memory package to main through a reviewed documentation-only PR. The required files currently live in overlapping draft PRs #2600 and #2608; do not merge either stale branch blindly.
