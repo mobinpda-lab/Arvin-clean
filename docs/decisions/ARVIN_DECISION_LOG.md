@@ -53,3 +53,12 @@
 
 ## Change control
 For each future important decision, record **Decision, Reason, Impact, Implementation, Evidence, Status, Owner approval, Date, and related Issue/PR/ADR**. Amend this log only alongside the canonical record. This index does not supersede accepted ADRs or issue-level architecture gates.
+
+
+## GOV-001 — AMOC is the governing product/architecture command
+- **Decision:** `docs/constitution/ARVIN_MASTER_OPERATING_COMMAND.md` records governing product-wide invariants; `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` remains the single detailed operational execution standard beneath it.
+- **Reason:** Reconcile the requested AMOC requirements with the existing v49.1 package without creating competing active governance documents.
+- **Impact:** The prior `ARVIN_MASTER_EXECUTION_COMMAND.md` becomes a short operational bridge. The detailed package's authority and continuation-command wording are aligned to AMOC. Historical text remains recoverable in Git history.
+- **Evidence:** Documentation-only edits on PR #2598 branch. No app code, schema, migration or user data is changed.
+- **Status:** PROPOSED IN OPEN DRAFT PR; not merged or approved for release.
+- **Owner approval:** Release approval is separate and is not inferred from this documentation change.
