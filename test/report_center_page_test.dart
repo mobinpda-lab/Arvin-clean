@@ -150,7 +150,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب تاریخ شروع گزارش'), findsOneWidget);
-    expect(find.text('مهر'), findsOneWidget);
+    expect(find.byKey(const ValueKey('persian-date-month-name')), findsOneWidget);
     expect(find.byType(CalendarDatePicker), findsNothing);
   });
 
