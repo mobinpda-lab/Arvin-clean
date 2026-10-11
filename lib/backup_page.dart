@@ -18,11 +18,16 @@ class BackupPage extends StatefulWidget {
     required this.loadTasks,
     required this.replaceTasks,
     this.manager,
+    this.restoreStageHook,
   });
 
   final Future<List<Map<String, dynamic>>> Function() loadTasks;
   final Future<void> Function(List<Map<String, dynamic>> tasks) replaceTasks;
   final ArvinBackupManager? manager;
+
+  /// Test-only seam for injecting failures at real restore mutation boundaries.
+  /// Production callers leave this unset.
+  final Future<void> Function(String stage)? restoreStageHook;
 
   @override
   State<BackupPage> createState() => _BackupPageState();
@@ -352,14 +357,17 @@ class _BackupPageState extends State<BackupPage> {
           await widget.replaceTasks(
             candidate.tasks.map((task) => task.toJson()).toList(growable: false),
           );
+          await widget.restoreStageHook?.call('tasks');
           if (candidate.hasProjects) {
             await ProjectStore().save(candidate.projects);
           }
+          await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
             restoredTaskIds: candidate.tasks.map((task) => task.id),
             backupLinks: candidate.calendarLinks ?? const [],
             currentLinks: previousCalendarLinks!,
           );
+          await widget.restoreStageHook?.call('calendar-links');
           if (candidate.settings != null) {
             await settingsService.restorePortableJson(candidate.settings!);
             final rawSchedule = candidate.settings!['backupSchedule'];
@@ -370,11 +378,13 @@ class _BackupPageState extends State<BackupPage> {
               await restoredSchedule.save();
             }
           }
+          await widget.restoreStageHook?.call('settings');
           // TaskStore commits both catalogs together; they are applied last.
           await TaskStore().mergeCatalogs(
             categories: candidate.categories ?? const <String>[],
             tags: candidate.tags ?? const <String>[],
           );
+          await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
