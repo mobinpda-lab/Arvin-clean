@@ -882,7 +882,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         onPressed: _requestClose,
                         icon: const Icon(Icons.close_rounded),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
                           child: Text(editing ? 'ویرایش کار' : 'کار جدید', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                         ),
