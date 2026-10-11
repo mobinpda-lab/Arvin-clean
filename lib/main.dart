@@ -200,6 +200,16 @@ class _ArvinAppState extends State<ArvinApp> {
           outline: ArvinColors.border,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
+        cardTheme: const CardThemeData(
+          color: ArvinColors.surface,
+          elevation: 1,
+          shadowColor: Color(0x12000000),
+          margin: EdgeInsets.symmetric(vertical: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            side: BorderSide(color: ArvinColors.border),
+          ),
+        ),
         fontFamily: selectedFontFamily,
         textTheme: readableLightTextTheme,
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
@@ -209,13 +219,21 @@ class _ArvinAppState extends State<ArvinApp> {
           foregroundColor: ArvinColors.textPrimary,
         ),
         inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: ArvinColors.surface,
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
           hintStyle: TextStyle(color: ArvinColors.textSecondary),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ArvinColors.border, width: 1.3),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: ArvinColors.primary, width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: ArvinColors.primary, width: 1.8),
           ),
         ),
       ),
@@ -230,16 +248,34 @@ class _ArvinAppState extends State<ArvinApp> {
           secondary: const Color(0xFF9FC4FF),
           error: const Color(0xFFFFB4AB),
         ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF25283A),
+          elevation: 1,
+          shadowColor: Color(0x40000000),
+          margin: EdgeInsets.symmetric(vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            side: BorderSide(color: Color(0xFF41465B)),
+          ),
+        ),
         fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: Color(0xFF555B70), thickness: 1),
         appBarTheme: const AppBarTheme(),
         inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFF25283A),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.3),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 1.8),
           ),
         ),
       ),
@@ -2722,7 +2758,7 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(7, 7, 7, 7),
+            padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2765,7 +2801,7 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                           color: const Color(0xFF232433),
                           fontWeight: FontWeight.w700,
-                          fontSize: 14.5,
+                          fontSize: 14,
                           decoration: task.completed
                               ? TextDecoration.lineThrough
                               : null,
@@ -2784,11 +2820,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 4),
                         _homeChecklistProgress(task),
                       ],
                       if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         TaxonomyIconRow(
                           project: _projectTitleForTask(task),
                           category: task.category,
@@ -2815,7 +2851,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (task.dueDate != null) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             Icon(

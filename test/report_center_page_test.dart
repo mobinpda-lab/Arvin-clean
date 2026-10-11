@@ -1,9 +1,39 @@
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/report_center_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Report Center uses pastel colors for task status cards', (tester) async {
+    final now = DateTime(2026, 10, 7, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: now,
+          tasks: [
+            Task(id: 'done', title: 'انجام‌شده', completed: true),
+            Task(id: 'late', title: 'عقب‌افتاده', dueDate: DateTime(2026, 10, 6, 9)),
+            Task(id: 'planned', title: 'برنامه‌ریزی‌شده', dueDate: DateTime(2026, 10, 8, 9)),
+          ],
+        ),
+      ),
+    );
+
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-done'))).color,
+      ArvinColors.timeSoft,
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-late'))).color,
+      ArvinColors.errorSoft,
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('report-task-card-planned'))).color,
+      ArvinColors.projectSoft,
+    );
+  });
+
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -71,12 +101,26 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-section-دسته')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
-
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-category-کار')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-apply')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
       await tester.pumpAndSettle();
 
@@ -94,5 +138,107 @@ void main() {
       expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
     },
   );
+
+  testWidgets('Report date range opens the Jalali picker rather than Gregorian calendar', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final rangeSection = find.byKey(const ValueKey('report-filter-section-بازه دقیق'));
+    await tester.ensureVisible(rangeSection);
+    await tester.tap(rangeSection);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('از تاریخ'));
+    await tester.tap(find.text('از تاریخ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انتخاب تاریخ شروع گزارش'), findsOneWidget);
+    expect(find.byKey(const ValueKey('persian-date-month-name')), findsOneWidget);
+    expect(find.byType(CalendarDatePicker), findsNothing);
+  });
+
+  testWidgets('report filter sections collapse and expand without losing selections', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول', category: 'کار')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final categorySection = find.byKey(const ValueKey('report-filter-section-دسته'));
+    await tester.scrollUntilVisible(
+      categorySection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    final categoryChip = find.byKey(const ValueKey('report-filter-category-کار'));
+    await tester.scrollUntilVisible(
+      categoryChip,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(categoryChip);
+    await tester.pumpAndSettle();
+
+    final categoryHeader = find.descendant(
+      of: categorySection,
+      matching: find.text('دسته'),
+    );
+    // Scrolling the selected chip can move the header above the modal sheet.
+    // Bring the header back into the sheet's viewport before tapping it.
+    await tester.ensureVisible(categoryHeader);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryHeader);
+    await tester.pumpAndSettle();
+    // The collapsed section may be outside the lazy ListView's built range.
+    // Scroll the section back into the sheet before reopening it.
+    await tester.scrollUntilVisible(
+      categorySection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(categoryHeader);
+    await tester.pumpAndSettle();
+    expect(categoryChip, findsOneWidget);
+    expect(tester.widget<FilterChip>(categoryChip).selected, isTrue);
+    expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('Report time range uses the shared Persian-digit Arvin time picker', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [Task(id: 'one', title: 'اول')],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final rangeSection = find.byKey(const ValueKey('report-filter-section-بازه دقیق'));
+    await tester.ensureVisible(rangeSection);
+    await tester.tap(rangeSection);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('از ساعت'));
+    await tester.tap(find.text('از ساعت'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsNothing);
+    expect(find.text('از ساعت گزارش'), findsOneWidget);
+  });
+
 }
 

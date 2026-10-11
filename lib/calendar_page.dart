@@ -880,6 +880,21 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
+bool _isOverdueCalendarItem(CalendarReminder item) =>
+    !item.completed &&
+    !item.isAllDay &&
+    DateUtils.dateOnly(item.date).isBefore(
+      DateUtils.dateOnly(IranClock.now()),
+    );
+
+Color _calendarStatusColor(CalendarReminder item) {
+  if (item.completed) return const Color(0xFF409B51);
+  if (_isOverdueCalendarItem(item)) return const Color(0xFFC94A4A);
+  if (item.id.startsWith('task-followup:')) return const Color(0xFFDB8B23);
+  if (item.id.startsWith('external-calendar:')) return const Color(0xFF218A91);
+  return const Color(0xFF4A69C8);
+}
+
 bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder:') ||
@@ -987,49 +1002,113 @@ class _ReminderCardState extends State<_ReminderCard> {
       PrayerCompletionStatus.notCompleted => 'قضا شد',
       null => 'ثبت نشده',
     };
-    final subtitle = item.isAllDay
-        ? '${widget.dateLabel}\nرویداد تمام‌روز'
-        : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${widget.isPrayer ? prayerState : (item.completed ? 'انجام‌شده' : 'در انتظار پیگیری')}';
+    final statusLabel = widget.isPrayer
+        ? prayerState
+        : item.completed
+        ? 'انجام‌شده'
+        : item.isAllDay
+        ? 'تمام‌روز'
+        : _isOverdueCalendarItem(item)
+        ? 'عقب‌افتاده'
+        : item.id.startsWith('task-followup:')
+        ? 'در انتظار پیگیری'
+        : 'برنامه‌ریزی‌شده';
     final visual = _CalendarItemVisualStyle.of(context, item);
+    final statusColor = _calendarStatusColor(item);
+    final subtitle = item.isAllDay
+        ? '${widget.dateLabel} • رویداد تمام‌روز'
+        : '${widget.dateLabel} • ${widget.timeLabel}';
 
     return Card(
+      key: ValueKey('calendar-pastel-card-${item.id}'),
+      color: statusColor.withValues(alpha: 0.16),
+      elevation: 1,
+      shadowColor: statusColor.withValues(alpha: 0.12),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: statusColor.withValues(alpha: 0.22)),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           ListTile(
             key: ValueKey('reminder-card-${item.id}'),
+            dense: true,
+            visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
+            minVerticalPadding: 2,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             onTap: _hasActions
                 ? () => setState(() => _expanded = !_expanded)
                 : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),
-              backgroundColor: visual.color.withValues(alpha: 0.14),
+              radius: 16,
+              backgroundColor: statusColor.withValues(alpha: 0.20),
               child: Icon(
                 item.completed ? Icons.check_circle : visual.icon,
-                color: visual.color,
+                size: 19,
+                color: statusColor,
               ),
             ),
-            title: Text(
-              visual.label,
-              key: ValueKey('calendar-item-kind-${item.id}'),
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: visual.color),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            title: Row(
               children: [
-                const SizedBox(height: 2),
-                Text(
-                  item.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: visual.color,
+                Expanded(
+                  child: Text(
+                    item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF232433),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(subtitle),
+                const SizedBox(width: 6),
+                Container(
+                  key: ValueKey('calendar-item-status-${item.id}'),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
             ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                children: [
+                  Icon(Icons.schedule_rounded, size: 13, color: statusColor),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF5F6178)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    visual.label,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 10, color: visual.color, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
             trailing: _hasActions
-                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more)
+                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20)
                 : null,
           ),
           // The two most-used actions on Arvin-owned Tasks must be

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_next_action_service.dart';
@@ -73,9 +75,21 @@ class TaskNextActionPage extends StatelessWidget {
                   final title = suggestion.task.title.trim().isEmpty
                       ? 'بدون عنوان'
                       : suggestion.task.title;
+                  final statusColor = switch (suggestion.reason) {
+                    TaskNextActionReason.overdue => ArvinColors.errorSoft,
+                    TaskNextActionReason.scheduled => ArvinColors.projectSoft,
+                    TaskNextActionReason.unscheduled => ArvinColors.reminderSoft,
+                  };
                   return Card(
+                    key: ValueKey('next-action-card-${suggestion.task.id}'),
+                    color: statusColor,
                     child: ListTile(
-                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      dense: true,
+                      visualDensity: const VisualDensity(vertical: -1),
+                      leading: CircleAvatar(
+                        backgroundColor: statusColor.withValues(alpha: 0.9),
+                        child: Text('${index + 1}'),
+                      ),
                       title: Text(title),
                       subtitle: Text(
                         suggestion.dueAt == null

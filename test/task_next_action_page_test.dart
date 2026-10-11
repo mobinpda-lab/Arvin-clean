@@ -1,3 +1,4 @@
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,24 @@ void main() {
     expect(find.text('زمان‌بندی‌شده • ۱۴۰۵/۰۶/۰۵ • ۰۹:۰۰'), findsOneWidget);
     expect(find.textContaining('2026/'), findsNothing);
     expect(find.text('بدون زمان‌بندی'), findsOneWidget);
+    expect(
+      tester.widget<Card>(
+        find.byKey(const ValueKey('next-action-card-late')),
+      ).color,
+      ArvinColors.errorSoft,
+    );
+    expect(
+      tester.widget<Card>(
+        find.byKey(const ValueKey('next-action-card-later')),
+      ).color,
+      ArvinColors.projectSoft,
+    );
+    expect(
+      tester.widget<Card>(
+        find.byKey(const ValueKey('next-action-card-free')),
+      ).color,
+      ArvinColors.reminderSoft,
+    );
   });
 
   testWidgets('shows an explicit empty state when no open task exists',
