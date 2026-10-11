@@ -367,3 +367,10 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - In progress: validate the new exact-head Build run.
 - Blocked: PR #2607 remains Draft; Device Smoke/physical-device and owner UX validation are outstanding; release gate #2102 and P0/P1 regression lane #1901 are still open.
 - Next action: inspect run #38163500776 after completion. If any tests fail, read that job's fresh logs before changing anything. Do not merge or release based on orchestration success.
+
+
+### Release containment verification — 2026-10-11
+
+- Verified repository releases after Release Closure #38163384915 ran. Two Arvin prerelease records (`v0.1.0-arvin-dd95132` and `v0.1.0-arvin-33ed363`) are now Draft prereleases; their tags/assets were preserved. The workflow appended an explicit “UNAPPROVED — NOT A RELEASE CANDIDATE” notice while issue #2102 remains open. This is reversible containment, not a release approval.
+- Exact-head Build #38163500776 remains IN_PROGRESS at latest poll; no terminal result is available. Device Smoke #38163500919 remains SKIPPED due to the PR Draft condition.
+- Keep publication blocked until issue #2102 is closed after evidence and owner acceptance, and P0/P1 regression PR #1901 is resolved. Do not publish or close these gates automatically.
