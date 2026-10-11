@@ -39,7 +39,7 @@ Reuse the existing Quick Capture/Quick Add surface, the existing `ArvinTaskEdito
 
 Reminder, attachments, follow-up, history and other currently supported features must not be silently removed. Their placement can use progressive disclosure but requires no semantic regression.
 
-## Visual decision
+## Additive Task Note data decision (2026-10-11)\n- Short description remains `Task.description`; optional Note is a separate `Task.note` field. `FollowUp.note` remains the note of an individual follow-up and must not be reused.\n- Storage audit on main `72a2f4cc24df7a38eff9856ce403461615db5280` confirmed that `TaskStore` retains the canonical JSON envelope in `legacy_payload_json`, decodes it through `Task.fromJson`, and preserves unknown legacy keys.\n- Implement Note as an additive field in the existing Task model/JSON envelope, defaulting to `''` for older records that do not contain it. Add it to the TaskStore canonical-known-fields list. Keep the existing SQL `description` column for short description; do not add a separate Note table/store or dedicated SQL column for this change.\n- This does not require a destructive SQL schema migration. It still requires legacy-read, TaskStore save/load, backup/restore round-trip, and edit-save tests proving description and Note remain independent. No claim of data safety until those tests pass.\n\n## Visual decision
 - Full Persian RTL, readable contrast, clear hierarchy and spacing.
 - Quick Add stays compact; advanced information belongs in the Full Editor or a clearly disclosed section.
 - Calm card surfaces, consistent corner radius and icons; restrained color.
@@ -57,7 +57,7 @@ Canonical Task identity/storage; existing user data and history; Repeat/Occurren
 - **Goal:** one Task with two coherent entry experiences.
 - **Problem:** fragmented requirements risk inconsistent UX and duplicate saves.
 - **Solution:** Quick Add for speed, Full Editor for depth, same draft identity and canonical write path.
-- **Impact:** Quick Add, Create/Edit, Task Detail, Calendar, Repeat, Reminder, Follow-up, Checklist, Search, Report, Backup/Restore.
+- **Impact for the person using Arvin:** the first screen asks for less, date/time stay easy to find, and advanced controls remain available without creating a different task. A separate Note keeps free-form context from overwriting the short description; both must survive editing and backup/restore. Cross-feature scope includes Quick Add, Create/Edit, Task Detail, Calendar, Repeat, Reminder, Follow-up, Checklist, Search, Report and Backup/Restore.
 - **Changed:** this decision and supporting UX/product/design/model contracts are being recorded; implementation is not claimed by this ADR.
 - **Evidence:** current editor and Quick Capture code were inspected; prior Quick Entry convergence/cancel behavior records include [PR #1116](https://github.com/mobinpda-lab/Arvin-clean/pull/1116) and [PR #1122](https://github.com/mobinpda-lab/Arvin-clean/pull/1122). No approved runtime screenshot or physical-device acceptance is claimed here.
 - **Remaining:** verify current Quick Add layout and exact draft/save/cancel wiring; audit all related surfaces; capture actual screenshots; run feature/integration tests, Android smoke and real-device acceptance.
