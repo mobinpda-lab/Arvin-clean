@@ -436,3 +436,11 @@ Poll run #38163195995 and #38163195983. If tests still fail, inspect fresh logs 
 - Release gate remains BLOCKED: Issue #2102 OPEN, PR #1901 OPEN, owner acceptance ledger #1139 OPEN with unchecked installed-device acceptance. The two available prereleases remain Draft/unapproved. No release, merge, issue closure, or app-code change was made in this checkpoint.
 - Product acceptance reminders: #1139 includes Home + → Quick Entry directly, sequential one-task persistence, same draft identity into Full Form, tablet text contrast, and more installed-device requirements; #845 remains a durable missed-requirements checklist. #866 remains open for premature Recovery Wave auto-close; its comments show repeated AI provider HTTP 429 cooldown/retry events, which are infrastructure pressure rather than product-failure evidence. #1324 remains open for lossless SQL migration acceptance.
 - Next: inspect exact checks/jobs on PR #2531 and current trigger-chain run graph; then consolidate memory/docs branches and continue targeted historical PR/Issue/commit audit. Do not mass-close AUTO-FIX issues or delete branches.
+
+
+## Existing release-loop PR rebased onto exact current main — 2026-10-11 18:46 UTC
+- Continued from the live audit; did not create a duplicate PR. Existing PR #2531 was 18 commits behind main, so its existing branch was rebuilt from current main while retaining only its original two-file scope.
+- New head: `4505c759a8338e91c596d9b031d16d29080a339c`; current base: `a6ced27660d34cd87dd8915aff68d3a7555fd57a`; comparison is now ahead 1 / behind 0 with only `.github/workflows/release-closure.yml` and `test/release_closure_product_gate_test.dart`.
+- Change is narrowly limited to release trigger isolation and a matching regression assertion. PR conversation records the rebase and warns that exact-head CI is pending.
+- At latest poll, 21 checks exist: 6 completed, 9 in progress, 6 queued; Build #38165128162 and Device Smoke #38165128170 are queued. No failures observed yet. Do not merge until exact-head Build and Device Smoke complete successfully and the PR's required checks are satisfied.
+- No main change or release occurred. Keep issue #2102 and PR #1901 open until actual product/device acceptance is complete.
