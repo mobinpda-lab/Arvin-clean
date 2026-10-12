@@ -116,3 +116,11 @@
 - **Architecture/data:** Presentation-only. Do not change Task data, Jalali date/time values, recurrence, Calendar identity/sync, persistence or backup formats.
 - **Execution plan:** Inventory shared date/time rendering paths; implement the smallest common safe style plus screen-specific constraints; add widget/golden regression tests for Home, Calendar and other date/time surfaces; run exact-head Analyze, tests, Debug/Release builds and emulator smoke; record screenshots and physical-device visual acceptance separately.
 - **Status:** ACCEPTED requirement; implementation/validation pending. Related UX/release tracking: Issue #2102.
+
+
+## 2026-10-12 — Follow-up visibility in Calendar requires its own reminder
+- **Owner requirement / product rule:** A Task's follow-up must appear in Arvin's Calendar only when an independent reminder has explicitly been configured for that follow-up. A follow-up by itself, or a Task's date/time alone, must not implicitly create a Calendar entry for the follow-up.
+- **Semantics:** Keep the follow-up and its reminder distinct. Do not infer a reminder from the follow-up's existence, task due date, or unrelated notification settings. When a reminder is present, Calendar visibility should use that reminder's intended date/time and preserve the existing Task/follow-up identity and update-in-place/no-duplicate behavior.
+- **Architecture/data guard:** Reuse existing FollowUp and reminder/Calendar projection paths; do not create a parallel store, entity, or backup format. Do not alter unrelated Task date/time, recurrence, or Calendar sync rules.
+- **Acceptance tests:** follow-up without its own reminder is absent from Calendar; follow-up with an explicit reminder appears at the reminder's scheduled time; editing/removing the reminder updates/removes the same linked Calendar entry without duplicates or stale events; backup/restore retains the reminder and link where supported. Cover Persian RTL/Jalali display as applicable.
+- **Status:** ACCEPTED product rule; implementation and regression/device validation pending. Track under Issue #2102 and audit the existing follow-up/calendar projection before code changes.
