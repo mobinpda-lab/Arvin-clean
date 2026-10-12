@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 (Device Smoke completion and source-level compatibility audit)
+
+This newest entry supersedes conflicting earlier live-status statements below. Historical checkpoints remain for audit. Verified through GitHub at the time of this update.
+
+- **Latest observed main commit:** `326afaa276b04650a86a811b18560eb4e20ed5cd`. Older checkpoint references to `ddcf96955f3a62081d7ab24f922d8031c44e6202` are historical branch-base information, not the latest main SHA.
+- **PR #2639 pre-memory-update CI evidence:** Build [38255658613](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38255658613) passed Analyze, all six test shards, Debug APK and Release APK on SHA `104111cb79e1669a529d4c9daf53536796683c68`.
+- **PR #2639 Device Smoke completed:** [run 38255658812](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38255658812) is now terminal SUCCESS on that same SHA. All six lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore. Artifacts verified at final poll include Home, Quick Capture and People. This is automated Android-emulator evidence only, not physical-device acceptance.
+- **Content-level compatibility findings are recorded and verified** in [Issue #2102 comment 6125444112](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6125444112): PR #2636 normalizes legacy `nextFollowUp` into `reminderDate` and clears the old field on save; its tests demonstrate the new normalization but do not prove all downstream/backup compatibility or owner approval. PR #2595 removes Quick Add description/category/tag entry from the compact interface and no longer assigns those values when constructing its draft; the reviewed tests do not establish compatibility/preservation of data entered through the previous Quick Add UI.
+- **Integration remains blocked on product/data gates:** do not merge #2636 until explicit owner decision and compatibility coverage for legacy reads/writes, downstream consumers and backup/restore. Do not integrate #2595 until the intended Quick Add field contract and preservation regression tests are settled. The overlapping #2591/#2595/#2602/#2607 UI/time-picker work must not be independently merged.
+- **Release remains NO-GO:** physical-device Calendar same-event update/no-duplicate evidence, real-device Backup/Restore and Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen visual acceptance and explicit owner approval are still required.
+- **Next actions:** because this memory-only update changes the PR #2639 head, re-check the resulting exact-head Build and Device Smoke; do not reuse the prior SHA's green status as evidence for the new commit. Continue from the existing compatibility gates without duplicating already completed audits or starting unnecessary duplicate runs.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (live re-poll after compact UI CI)
 
 This section supersedes any older status statement below where it conflicts. Historical material is preserved for audit. Last verified against GitHub Actions and PR metadata during this continuation.
@@ -720,3 +734,26 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Blocked:** Task Note data-contract change pending explicit owner decision; final release pending physical-device evidence and explicit owner acceptance.
 - **Current bottleneck:** overlapping draft PRs plus missing physical-device/user-data acceptance. The mainline automated baseline is green, so do not rerun it without a new commit or evidence-driven reason.
 - **Next action:** compare and reconcile the live PR diffs into one integration sequence without merging overlapping drafts independently; continue collecting non-destructive device acceptance evidence; update the release gate only from actual evidence. Keep #2102 open and fail-closed.
+
+
+## LIVE CONTINUATION ADDENDUM — 2026-10-12 (CI routing validation)
+
+### CHECK — exact current evidence
+- Re-read this execution state before acting. Current main SHA at this checkpoint: `326afaa276b04650a86a811b18560eb4e20ed5cd`.
+- CI-routing fix PR [#2639](https://github.com/mobinpda-lab/Arvin-clean/pull/2639) is open, unmerged, base `main`, head `433a741beb277572d2b4cdf6ef9838149e63a134`; one-line workflow diff removes the pull-request base-branch restriction while retaining main/master-only push triggers.
+- Exact-head Build [38254855655](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855655): Analyze, test shards 0–5, Debug APK passed; Release APK was still in progress at latest poll. Overall result is not final.
+- Exact-head Device Smoke [38254855466](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855466): Quick Capture and Home passed; SQL Persistence and SQL Migration were in progress; People and Backup/Restore were queued. Overall result is not final.
+- Latest re-poll did not show completion; do not create duplicate runs or call the build/smoke green.
+- Task-form PR [#2595](https://github.com/mobinpda-lab/Arvin-clean/pull/2595) remains open/draft on stacked base `feat/universal-arvin-time-picker-implementation-20261011`, head `a5d4581997084179f525de4f274ad00d5305ac1a`, mergeability false. The owner has not explicitly approved the previously proposed integration of #2591/#2595/#2602/#2607; no retarget, rebase, or merge is authorized.
+- Release listing still contains only draft prereleases; release closure remains NO-GO. Automated mainline green runs do not replace physical-device Calendar same-event update/no-duplicate evidence, real file-provider Backup/Restore/link-integrity evidence, recurrence/checklist golden flow, compact RTL acceptance, and explicit owner approval.
+
+### Completed in this continuation
+- Revalidated project memory, current main, open PR inventory, release listing, and exact-head Build/Device Smoke jobs.
+- Added an evidence checkpoint comment to PR #2639 (comment ID `6125186798`) with exact run IDs, status and guardrails.
+
+### Current status
+- **Completed:** CI routing fix is proposed; Analyze, all six test shards, Debug APK, Home and Quick Capture passed on its exact head.
+- **In Progress:** Release APK and remaining Device Smoke lanes.
+- **Blocked:** Final CI conclusion; Task-form stack integration awaiting explicit owner approval; release awaiting physical-device evidence and explicit owner acceptance.
+- **Current bottleneck:** Exact-head validation has not finished; overlapping task-form changes must not be merged independently.
+- **Next action:** Poll existing runs [38254855655](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855655) and [38254855466](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855466), fix only evidence-backed failures, and update this state with final job outcomes. Do not merge PRs or release APKs without required authorization and acceptance evidence.
