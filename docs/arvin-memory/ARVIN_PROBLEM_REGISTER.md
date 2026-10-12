@@ -199,3 +199,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **P1:** Restore canonical memory package to main; drafts #2600/#2608 are stale/overlapping.
 - **P1:** Reconcile #2591/#2595/#2602/#2607 shared Task Editor, Quick Capture, Report Center and time-picker paths before integration.
 - **P1:** Preserve the root Task.description decision; do not add Task.note or alter migration/backup semantics without owner approval.
+
+
+## 2026-10-13 — Follow-up / Reminder open compatibility issues
+
+- **P1 — Missing first-set bridge:** selecting Next Follow-up currently saves the field but does not create the one-time initial reminder required by the product contract. Add tests for first-set and subsequent edit/delete independence after owner decision.
+- **P1 — All-day semantics absent:** FollowUp has no explicit all-day marker and calendar projection omits `isAllDay`; midnight inference is unsafe. Define a backward-compatible representation for both independently date-only fields and test JSON, SQL envelope and backup/restore.
+- **P1 — Editor incompleteness:** Next Follow-up inherits the history timestamp's time and has no clear-next action in inspected code; implement only after all-day representation is agreed.
+- **BLOCKED — Existing reminder at first activation:** product owner must choose whether to preserve it, ask, or take another explicit action. Never overwrite or create a duplicate by assumption.
+- No product code changed in the 2026-10-13 audit. Release remains NO-GO.
