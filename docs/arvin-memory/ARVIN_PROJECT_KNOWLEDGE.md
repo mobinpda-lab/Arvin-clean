@@ -112,3 +112,10 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Recorded Follow-up entries are history records. Next Follow-up is the distinct next-action value. Reminders are independently editable/schedulable entries.
 - Editing or deleting one reminder must not affect other reminders or Follow-up values/history. Editing/deleting a Follow-up record must not affect reminders. Reminder creation remains user-controlled, not automatic.
 - All entries must persist through the canonical Task model, SQL JSON envelope and backup/restore, and retain stable identities for Calendar projection/sync. Do not add a parallel store.
+
+
+## 2026-10-13 — Reminder cardinality and compatibility gate
+- Live model audit: `Task.reminderDate` is singular; each `FollowUp` also has singular `reminderDate`. A Task can have multiple FollowUp records, but the model lacks a collection of Task-level reminders independent of FollowUps.
+- Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
+- Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
+- Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
