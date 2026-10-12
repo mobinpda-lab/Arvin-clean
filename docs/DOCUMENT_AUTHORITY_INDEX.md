@@ -10,7 +10,7 @@ GitHub repository reality always outranks narrative documents.
 
 1. **Live GitHub reality** — current `main`, current code, current open/merged PRs/Issues, exact-head workflow evidence.
 2. **Newest explicit owner-approved product decision** — binding issue/design/contract for the affected surface. As of 2026-09-12, Issue #845 and its Recovery Wave mapping are the newest cross-surface owner recovery decisions where they directly conflict with older wording.
-3. **`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1** — canonical governance and software-production rules.
+3. **`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1** — canonical governance and software-production standard. The owner execution command v8 at `docs/arvin-memory/ARVIN_AUTONOMOUS_DELIVERY_EVOLUTION_COMMAND_V8.md` is the current continuation trigger and replaces earlier execution commands; it does not erase the separate product-governance standard.
 4. **Official scorecards** — `docs/project_completion_scorecard.json` for total Arvin; `docs/progress_scorecard.json` for the 19-feature extension. Scorecards are evidence/planning registries, never permission to override a newer owner requirement.
 5. **Canonical product/UI indices** — `docs/ARVIN_UI_CANONICAL.md`, `docs/PRODUCT_CONTRACT_MATRIX.md`, the 2026-09-12 recovery audit, and the detailed contracts they link.
 6. **Implementation-specific current contracts** — current migration/security/calendar/sync/notebook/etc. documents when consistent with the above.
@@ -20,7 +20,7 @@ GitHub repository reality always outranks narrative documents.
 
 | Area | Active reference |
 | --- | --- |
-| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1 |
+| Governance / execution | `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.1 + owner continuation command v8 + live `docs/arvin-memory/ARVIN_EXECUTION_STATE.md` |
 | Current owner recovery ledger | GitHub Issue #845 |
 | Ordered recovery execution | `docs/ARVIN_RECOVERY_WAVE_EXECUTION_2026-09-12.md` + Issues #846–#853 |
 | Exact-main recovery reconciliation | `docs/ARVIN_RECOVERY_WAVE0_EXACT_MAIN_AUDIT_2026-09-12.md` |
@@ -49,18 +49,17 @@ The following conflicts are now explicit so future agents do not revive stale be
 - **Prayer statistics:** prayer rows are not general Tasks and may not inflate Task counts/completion percentages.
 - **Backup/fonts:** existing foundations must be exposed/recovered; a missing Settings path is not evidence that the underlying foundation should be rebuilt.
 
-## Snapshot documents: useful but time-sensitive
+## Retired stale status snapshots
 
-These files may describe a real historical checkpoint, but their SHA/PR/percentages can become stale quickly. They must be reconciled with live GitHub before use:
+The following standalone status/handoff files were removed from the current tree in cleanup PR #2619 after their live SHA, PR and percentage claims were found stale and their enduring product requirements were retained in the canonical UI contract, ADRs, conversation continuity, project knowledge and execution memory. Git history preserves the original snapshots for audit/provenance:
 
 - `docs/AI_CONTINUATION_STATE.md`
 - `docs/AI_HANDOFF_CURRENT_FA.md`
 - `docs/PROJECT_STATUS.md`
 - `docs/ARVIN_STATUS.md`
 - `docs/ARVIN_PROJECT_STATE.md`
-- dated progress snapshots/logs/audits
 
-A stale snapshot is not an implementation bug by itself; it becomes a bug when someone uses it instead of current GitHub reality.
+Current execution status: `docs/arvin-memory/ARVIN_EXECUTION_STATE.md`. Durable product knowledge: `docs/arvin-memory/ARVIN_PROJECT_KNOWLEDGE.md`. Owner requirements: `docs/arvin-memory/ARVIN_CONVERSATION_CONTINUITY_2026-10-11.md` and `docs/arvin-memory/ARVIN_CONVERSATION_DECISION_HISTORY.md`. Always refresh live GitHub before acting.
 
 ## Historical / superseded technical records
 
@@ -76,7 +75,7 @@ When two documents disagree:
 2. check which owner decision is newer and whether it explicitly changes the affected behavior;
 3. check the current #845 recovery ledger/Wave owner when the capability is part of recovery;
 4. check current Issues/PRs and exact-head CI;
-5. preserve historical text rather than deleting it;
+5. preserve provenance in Git history; when a standalone snapshot is stale and its durable requirements are consolidated, remove the obsolete file from the current tree;
 6. update the active contract/index so the conflict is explicit;
 7. open or link an issue for any accepted behavior not yet implemented.
 

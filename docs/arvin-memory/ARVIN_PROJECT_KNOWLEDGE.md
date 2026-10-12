@@ -1,6 +1,6 @@
 # Arvin Project Knowledge
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 
 ## Authoritative continuation rule
@@ -66,5 +66,8 @@ Green CI and emulator tests are necessary but insufficient. Release evidence mus
 - Current product acceptance ledger #1139 has unchecked installed-device requirements. Older #358 physical-device deferral text is stale relative to the newer ledger.
 
 
-## Live checkpoint 2026-10-12
-Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanup PR #2613 is merged. Exact-main Build #38178428086 and Device Smoke #38178428043 have stale/incomplete status and are not accepted as passing. Release remains blocked by physical-device Calendar, Backup/Restore, golden-flow and owner-approval gates. Read the live `ARVIN_EXECUTION_STATE.md` before acting; historical SHA/run notes above are not current truth.
+## Current status source and repository cleanup
+
+The live SHA, PR state, CI status, blockers and next action belong only in `ARVIN_EXECUTION_STATE.md`; never use a copied SHA or workflow result from this knowledge file as current evidence. This file retains durable architecture, backup/restore, taxonomy, repeat/tracking, UX and report-filter knowledge.
+
+The stale standalone status snapshots formerly named in `DOCUMENT_AUTHORITY_INDEX.md` have been consolidated into the active memory/contract set and removed from the current tree by cleanup PR #2619 (pending validation/merge). Their original versions remain in Git history for traceability.

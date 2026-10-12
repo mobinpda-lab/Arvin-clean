@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'cloud_backup_provider.dart';
 
-/// Minimal Dropbox implementation for Arvin cloud backups.
+/// Dropbox backup provider using the injectable canonical HTTP client.
 class DropboxCloudBackupProvider implements CloudBackupProvider {
   DropboxCloudBackupProvider({
     required this.accessToken,
@@ -16,26 +16,19 @@ class DropboxCloudBackupProvider implements CloudBackupProvider {
   final String rootPath;
   final DropboxHttpClient _client;
 
-  String _path(String fileName) {
-    final cleanRoot = rootPath.endsWith('/')
-        ? rootPath.substring(0, rootPath.length - 1)
-        : rootPath;
-    final cleanName = fileName.startsWith('/') ? fileName.substring(1) : fileName;
-    return '$cleanRoot/$cleanName';
-  }
+  String _path(String fileName) =>
+      '${rootPath.replaceFirst(RegExp(r'/$'), '')}/${fileName.replaceFirst(RegExp(r'^/'), '')}';
 
   @override
-  Future<void> uploadBackup({
-    required String fileName,
-    required Uint8List bytes,
-  }) => _client.upload(accessToken, _path(fileName), bytes);
+  Future<void> uploadBackup({required String fileName, required Uint8List bytes}) =>
+      _client.upload(accessToken, _path(fileName), bytes);
 
   @override
   Future<Uint8List?> downloadBackup(String fileName) async {
     try {
       return await _client.download(accessToken, _path(fileName));
-    } on DropboxApiException catch (error) {
-      if (error.isNotFound) return null;
+    } on DropboxApiException catch (e) {
+      if (e.isNotFound) return null;
       rethrow;
     }
   }
@@ -49,78 +42,83 @@ class DropboxCloudBackupProvider implements CloudBackupProvider {
     try {
       await _client.metadata(accessToken, _path(fileName));
       return true;
-    } on DropboxApiException catch (error) {
-      if (error.isNotFound) return false;
+    } on DropboxApiException catch (e) {
+      if (e.isNotFound) return false;
       rethrow;
     }
   }
 }
 
-class DropboxHttpClient {
-  static const _apiBase = 'https://api.dropboxapi.com/2';
-  static const _contentBase = 'https://content.dropboxapi.com/2';
+typedef DropboxRequestHandler = Future<DropboxHttpResponse> Function({
+  required String method,
+  required String url,
+  required String token,
+  required Map<String, String> headers,
+  Uint8List? body,
+});
 
-  Future<void> upload(String token, String path, Uint8List bytes) async {
-    final response = await _request(
-      method: 'POST',
-      url: '$_contentBase/files/upload',
-      token: token,
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Dropbox-API-Arg': jsonEncode({
-          'path': path,
-          'mode': 'overwrite',
-          'autorename': false,
-          'mute': true,
-          'strict_conflict': false,
-        }),
-      },
-      body: bytes,
-    );
-    _check(response);
-  }
+class DropboxHttpClient {
+  DropboxHttpClient({DropboxRequestHandler? request})
+      : _request = request ?? _defaultRequest;
+
+  static const _api = 'https://api.dropboxapi.com/2';
+  static const _content = 'https://content.dropboxapi.com/2';
+
+  final DropboxRequestHandler _request;
+
+  Future<void> upload(String token, String path, Uint8List bytes) async =>
+      _check(await _request(
+        method: 'POST',
+        url: '$_content/files/upload',
+        token: token,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Dropbox-API-Arg': jsonEncode({
+            'path': path,
+            'mode': 'overwrite',
+            'autorename': false,
+            'mute': true,
+            'strict_conflict': false,
+          }),
+        },
+        body: bytes,
+      ));
 
   Future<Uint8List> download(String token, String path) async {
-    final response = await _request(
+    final r = await _request(
       method: 'POST',
-      url: '$_contentBase/files/download',
+      url: '$_content/files/download',
       token: token,
       headers: {
         'Content-Type': 'application/octet-stream',
         'Dropbox-API-Arg': jsonEncode({'path': path}),
       },
     );
-    _check(response);
-    return response.bodyBytes;
+    _check(r);
+    return Uint8List.fromList(r.bodyBytes);
   }
 
-  Future<void> delete(String token, String path) async {
-    final response = await _request(
-      method: 'POST',
-      url: '$_apiBase/files/delete_v2',
-      token: token,
-      headers: {'Content-Type': 'application/json'},
-      body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
-    );
-    _check(response);
-  }
+  Future<void> delete(String token, String path) async => _check(await _request(
+        method: 'POST',
+        url: '$_api/files/delete_v2',
+        token: token,
+        headers: {'Content-Type': 'application/json'},
+        body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
+      ));
 
-  Future<void> metadata(String token, String path) async {
-    final response = await _request(
-      method: 'POST',
-      url: '$_apiBase/files/get_metadata',
-      token: token,
-      headers: {'Content-Type': 'application/json'},
-      body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
-    );
-    _check(response);
-  }
+  Future<void> metadata(String token, String path) async => _check(await _request(
+        method: 'POST',
+        url: '$_api/files/get_metadata',
+        token: token,
+        headers: {'Content-Type': 'application/json'},
+        body: Uint8List.fromList(utf8.encode(jsonEncode({'path': path}))),
+      ));
 
-  Future<DropboxHttpResponse> _request({
+  static Future<DropboxHttpResponse> _defaultRequest({
     required String method,
     required String url,
     required String token,
-    Map<String, String> headers = const {},
+    required Map<String, String> headers,
     Uint8List? body,
   }) async {
     final client = HttpClient();
@@ -130,10 +128,10 @@ class DropboxHttpClient {
       headers.forEach(request.headers.set);
       if (body != null) request.add(body);
       final response = await request.close();
-      final bytes = await response.fold<List<int>>(<int>[], (buffer, chunk) {
-        buffer.addAll(chunk);
-        return buffer;
-      });
+      final List<int> bytes = await response.fold<List<int>>(
+        <int>[],
+        (List<int> a, List<int> b) => a..addAll(b),
+      );
       return DropboxHttpResponse(
         statusCode: response.statusCode,
         bodyBytes: Uint8List.fromList(bytes),
@@ -143,9 +141,9 @@ class DropboxHttpClient {
     }
   }
 
-  void _check(DropboxHttpResponse response) {
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw DropboxApiException(response.statusCode, response.bodyText);
+  void _check(DropboxHttpResponse r) {
+    if (r.statusCode < 200 || r.statusCode >= 300) {
+      throw DropboxApiException(r.statusCode, r.bodyText);
     }
   }
 }

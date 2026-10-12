@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin/dropbox_cloud_backup_provider_v2.dart';
+import 'package:arvin/dropbox_cloud_backup_provider.dart';
 
 void main() {
   DropboxHttpResponse responseFor({int statusCode = 200, String body = ''}) =>
@@ -12,32 +12,8 @@ void main() {
       );
 
   test('Dropbox provider builds the expected upload request', () async {
-    String? method;
-    String? url;
-    String? token;
-    Map<String, String>? headers;
-    Uint8List? requestBody;
-
-    final client = DropboxHttpClient(
-      request: ({
-        required String method,
-        required String url,
-        required String token,
-        required Map<String, String> headers,
-        Uint8List? body,
-      }) async {
-        method = method;
-        url = url;
-        token = token;
-        headers = headers;
-        requestBody = body;
-        return responseFor();
-      },
-    );
-
-    // Capture through a separate handler to avoid shadowing named parameters.
     final captured = <String, dynamic>{};
-    final capturingClient = DropboxHttpClient(
+    final client = DropboxHttpClient(
       request: ({
         required String method,
         required String url,
@@ -54,7 +30,7 @@ void main() {
       },
     );
 
-    await DropboxCloudBackupProviderV2(accessToken: 'token', client: capturingClient)
+    await DropboxCloudBackupProvider(accessToken: 'token', client: client)
         .uploadBackup(
       fileName: 'backup.json',
       bytes: Uint8List.fromList([1, 2, 3]),
@@ -68,14 +44,6 @@ void main() {
     expect((captured['headers'] as Map<String, String>)['Dropbox-API-Arg'],
         contains('/Apps/Arvin/backup.json'));
     expect(captured['body'], orderedEquals([1, 2, 3]));
-
-    // Keep the first client construction compiled as part of the adapter contract.
-    expect(client, isA<DropboxHttpClient>());
-    expect(method, isNull);
-    expect(url, isNull);
-    expect(token, isNull);
-    expect(headers, isNull);
-    expect(requestBody, isNull);
   });
 
   test('Dropbox provider treats not-found download as null', () async {
@@ -92,7 +60,7 @@ void main() {
       ),
     );
 
-    final provider = DropboxCloudBackupProviderV2(
+    final provider = DropboxCloudBackupProvider(
       accessToken: 'token',
       client: client,
     );
@@ -101,9 +69,7 @@ void main() {
   });
 
   test('Dropbox provider deletes a backup through files/delete_v2', () async {
-    String? url;
-    Uint8List? requestBody;
-
+    final captured = <String, dynamic>{};
     final client = DropboxHttpClient(
       request: ({
         required String method,
@@ -112,13 +78,26 @@ void main() {
         required Map<String, String> headers,
         Uint8List? body,
       }) async {
-        url = url;
-        requestBody = body;
+        captured['url'] = url;
+        captured['body'] = body;
         return responseFor();
       },
     );
 
-    final capturingClient = DropboxHttpClient(
+    await DropboxCloudBackupProvider(
+      accessToken: 'token',
+      client: client,
+    ).deleteBackup('backup.json');
+
+    expect(captured['url'], 'https://api.dropboxapi.com/2/files/delete_v2');
+    expect(captured['body'], isNotNull);
+    expect(utf8.decode(captured['body'] as Uint8List),
+        contains('/Apps/Arvin/backup.json'));
+  });
+
+  test('Dropbox provider downloads bytes from the canonical content endpoint', () async {
+    final captured = <String, dynamic>{};
+    final client = DropboxHttpClient(
       request: ({
         required String method,
         required String url,
@@ -126,19 +105,80 @@ void main() {
         required Map<String, String> headers,
         Uint8List? body,
       }) async {
-        requestBody = body;
+        captured['method'] = method;
+        captured['url'] = url;
+        captured['headers'] = headers;
+        captured['body'] = body;
+        return DropboxHttpResponse(
+          statusCode: 200,
+          bodyBytes: Uint8List.fromList([7, 8, 9]),
+        );
+      },
+    );
+
+    final bytes = await DropboxCloudBackupProvider(
+      accessToken: 'token',
+      rootPath: '/custom/',
+      client: client,
+    ).downloadBackup('/backup.json');
+
+    expect(captured['method'], 'POST');
+    expect(captured['url'], 'https://content.dropboxapi.com/2/files/download');
+    expect((captured['headers'] as Map<String, String>)['Dropbox-API-Arg'],
+        contains('/custom/backup.json'));
+    expect(bytes, orderedEquals([7, 8, 9]));
+  });
+
+  test('Dropbox provider reports an existing backup through metadata', () async {
+    final captured = <String, String>{};
+    final client = DropboxHttpClient(
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async {
+        captured['url'] = url;
         return responseFor();
       },
     );
 
-    await DropboxCloudBackupProviderV2(
-      accessToken: 'token',
-      client: capturingClient,
-    ).deleteBackup('backup.json');
+    expect(
+      await DropboxCloudBackupProvider(
+        accessToken: 'token',
+        client: client,
+      ).exists('backup.json'),
+      isTrue,
+    );
+    expect(captured['url'], 'https://api.dropboxapi.com/2/files/get_metadata');
+  });
 
-    expect(requestBody, isNotNull);
-    expect(utf8.decode(requestBody!), contains('/Apps/Arvin/backup.json'));
-    expect(client, isA<DropboxHttpClient>());
-    expect(url, isNull);
+  test('Dropbox provider propagates non-not-found API errors', () async {
+    final client = DropboxHttpClient(
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async => responseFor(
+        statusCode: 500,
+        body: 'server_error',
+      ),
+    );
+    final provider = DropboxCloudBackupProvider(
+      accessToken: 'token',
+      client: client,
+    );
+
+    await expectLater(
+      provider.downloadBackup('backup.json'),
+      throwsA(isA<DropboxApiException>()),
+    );
+    await expectLater(
+      provider.exists('backup.json'),
+      throwsA(isA<DropboxApiException>()),
+    );
   });
 }
