@@ -159,6 +159,9 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+
     final timeBox =
         find.byKey(const ValueKey('task-editor-due-time-rollbox'));
     await tester.ensureVisible(timeBox);
