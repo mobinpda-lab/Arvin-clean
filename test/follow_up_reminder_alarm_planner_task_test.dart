@@ -68,4 +68,22 @@ void main() {
       isNull,
     );
   });
+
+  test('selects earliest independent Task reminder through the existing alarm planner', () {
+    final first = now.add(const Duration(hours: 1));
+    final second = now.add(const Duration(hours: 2));
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(id: 'r1', title: 'اول', date: first, sequence: 1),
+        TaskReminder(id: 'r2', title: 'دوم', date: second, sequence: 2),
+      ],
+    );
+
+    expect(
+      planner.nextAlarmAt([task], deliveredState: const {}, now: now),
+      first,
+    );
+  });
 }
