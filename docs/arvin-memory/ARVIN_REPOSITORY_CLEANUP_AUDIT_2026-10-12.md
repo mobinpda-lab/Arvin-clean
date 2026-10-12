@@ -37,17 +37,17 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 ## Code cleanup completed and remaining candidates
 
 - `lib/services/backup_service.dart` was removed after exact import-path search found no internal references. It was an alternate SharedPreferences dump/restore implementation and not the canonical SAF-backed `ArvinBackupService`; this removal does not change canonical backup format or restore flow.
-- `lib/dropbox_cloud_backup_provider.dart` and `lib/dropbox_cloud_backup_provider_v2.dart` were consolidated into one canonical `DropboxCloudBackupProvider` at `lib/dropbox_cloud_backup_provider.dart`. The injectable V2 HTTP seam and tests are retained; the V2-suffixed duplicate file/class is removed. Exact in-repo search found no other V2 callers.
+- `lib/dropbox_cloud_backup_provider.dart` and `lib/dropbox_cloud_backup_provider_v2.dart` were consolidated into one canonical `DropboxCloudBackupProvider` at `lib/dropbox_cloud_backup_provider.dart`. The injectable HTTP seam and tests are retained; the V2-suffixed duplicate file/class is removed. Exact in-repo search found no other V2 callers.
+- Additional Dropbox regression tests now exercise canonical download URL/path normalization and returned bytes, metadata success for `exists`, and propagation of non-not-found API errors for both download and existence checks.
 - The repository contains 21 GitHub workflow files, including several factory/orchestrator/queue/production-loop workflows. No workflow is to be deleted until trigger overlap, `workflow_run`/dispatch callers, branch filters, release gates and active-run dependencies are mapped.
 - A pre-existing `chore/whole-codebase-cleanup-20260930` branch is diverged and 290 commits behind current `main`; it is not a safe base for cleanup.
 
 ## Exact-head validation — rechecked 2026-10-12
 
-- Earlier code-only head `b72b4c47fda68c4ecf7f035ce9977fe4335f971a` passed Build and all six emulator smoke lanes; this is historical evidence only.
-- Current PR head checked: `68fd56eb2b4543c27af7e6c04af275dad3b15197`.
-- Exact-head Build [#38206493297](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38206493297): completed successfully. Analyze, all six test shards (0–5), Debug APK and Release APK passed.
-- Exact-head Device Smoke [#38206493289](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38206493289): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
-- Workflow evidence applies only to SHA `68fd56eb2b4543c27af7e6c04af275dad3b15197`. Any subsequent commit, including documentation-only updates, requires a fresh exact-head status check before merge.
+- Current code/test head before this audit-only correction: `ffb0f261b90530da7f4081e65ba773ca21fba27a`.
+- Exact-head Build [#38212159267](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38212159267): completed successfully. Analyze, test shards 0–5, Debug APK and Release APK passed.
+- Exact-head Device Smoke [#38212159213](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38212159213): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
+- These results apply only to SHA `ffb0f261b90530da7f4081e65ba773ca21fba27a`. This audit-file update creates a new head and therefore requires fresh exact-head Build and Device Smoke checks before merge.
 - These are automated CI/emulator results; they do not prove physical-device acceptance or release readiness.
 - PR #2619 remains open and unmerged. Complete deletion/content-migration review and refresh the base/main comparison before merging; green CI alone does not prove every deletion is safe.
 
