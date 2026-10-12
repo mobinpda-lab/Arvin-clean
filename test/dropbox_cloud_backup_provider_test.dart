@@ -130,7 +130,7 @@ void main() {
   });
 
   test('Dropbox provider reports an existing backup through metadata', () async {
-    String? url;
+    final captured = <String, String>{};
     final client = DropboxHttpClient(
       request: ({
         required String method,
@@ -139,7 +139,7 @@ void main() {
         required Map<String, String> headers,
         Uint8List? body,
       }) async {
-        url = url;
+        captured['url'] = url;
         return responseFor();
       },
     );
@@ -151,7 +151,7 @@ void main() {
       ).exists('backup.json'),
       isTrue,
     );
-    expect(url, 'https://api.dropboxapi.com/2/files/get_metadata');
+    expect(captured['url'], 'https://api.dropboxapi.com/2/files/get_metadata');
   });
 
   test('Dropbox provider propagates non-not-found API errors', () async {
