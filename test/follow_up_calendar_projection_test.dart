@@ -30,10 +30,12 @@ void main() {
             id: 'fu-2',
             dateTime: DateTime(2026, 8, 27, 10),
             note: 'پیگیری قرارداد',
+            reminderDate: DateTime(2026, 8, 28, 11),
           ),
           FollowUp(
             id: 'fu-1',
             dateTime: DateTime(2026, 8, 26, 9),
+            reminderDate: DateTime(2026, 8, 27, 9),
           ),
         ],
       ),
@@ -44,8 +46,28 @@ void main() {
     expect(reminders, hasLength(2));
     expect(reminders.first.id, 'followup:task-1:fu-1');
     expect(reminders.first.title, 'تماس با مشتری');
+    expect(reminders.first.date, DateTime(2026, 8, 27, 9));
     expect(reminders.last.title, 'تماس با مشتری — پیگیری قرارداد');
-    expect(reminders.last.date, DateTime(2026, 8, 27, 10));
+    expect(reminders.last.date, DateTime(2026, 8, 28, 11));
+  });
+
+  test('does not project follow-up history when no independent reminder is configured', () {
+    final task = Task(
+      id: 'history-only',
+      title: 'پیگیری بدون یادآور',
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'fu-history',
+          dateTime: DateTime(2026, 10, 12, 10),
+        ),
+      ],
+    );
+
+    expect(projection.project(<Task>[task]), isEmpty);
+    expect(
+      projection.resolveTarget(<Task>[task], 'followup:history-only:fu-history'),
+      isNull,
+    );
   });
 
   test('projects a task due date even without follow-up history', () {
@@ -64,7 +86,7 @@ void main() {
     expect(reminders.single.date, dueDate);
   });
 
-  test('projects legacy follow-up date when canonical history is absent', () {
+  test('does not project a legacy follow-up date without an independent reminder', () {
     final followUpDate = DateTime(2026, 11, 12, 9);
     final task = Task(
       id: 'legacy-followup',
@@ -75,9 +97,7 @@ void main() {
 
     final reminders = projection.project(<Task>[task]);
 
-    expect(reminders, hasLength(1));
-    expect(reminders.single.id, 'task-followup:legacy-followup');
-    expect(reminders.single.date, followUpDate);
+    expect(reminders, isEmpty);
   });
 
   test('does not duplicate equivalent task and follow-up timestamps', () {
@@ -89,7 +109,7 @@ void main() {
       followUpEnabled: true,
       followUpDate: date,
       followUps: <FollowUp>[
-        FollowUp(id: 'fu', dateTime: date),
+        FollowUp(id: 'fu', dateTime: date, reminderDate: date),
       ],
     );
 
@@ -105,7 +125,11 @@ void main() {
       title: 'قرارداد',
       dueDate: DateTime(2026, 12, 3, 16),
       followUps: <FollowUp>[
-        FollowUp(id: 'fu', dateTime: DateTime(2026, 12, 3, 10)),
+        FollowUp(
+          id: 'fu',
+          dateTime: DateTime(2026, 12, 3, 10),
+          reminderDate: DateTime(2026, 12, 3, 11),
+        ),
       ],
     );
 
@@ -121,6 +145,7 @@ void main() {
       id: 'fu-1',
       dateTime: DateTime(2026, 8, 27, 10),
       note: 'پیگیری قرارداد',
+      reminderDate: DateTime(2026, 8, 28, 10),
     );
     final task = Task(
       id: 'task-1',
@@ -140,6 +165,7 @@ void main() {
     final followUp = FollowUp(
       id: 'fu:part:2',
       dateTime: DateTime(2026, 8, 27, 11),
+      reminderDate: DateTime(2026, 8, 28, 11),
     );
     final task = Task(
       id: 'task:customer:42',
@@ -183,7 +209,11 @@ void main() {
         title: 'انجام شده',
         completed: true,
         followUps: <FollowUp>[
-          FollowUp(id: 'fu', dateTime: DateTime(2026, 8, 25)),
+          FollowUp(
+            id: 'fu',
+            dateTime: DateTime(2026, 8, 25),
+            reminderDate: DateTime(2026, 8, 26),
+          ),
         ],
       ),
       Task(
@@ -211,6 +241,7 @@ void main() {
           FollowUp(
             id: 'done-followup',
             dateTime: DateTime(2026, 9, 9, 12),
+            reminderDate: DateTime(2026, 9, 10, 8),
             completed: true,
           ),
         ],
