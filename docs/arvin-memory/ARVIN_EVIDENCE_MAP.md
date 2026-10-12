@@ -1,6 +1,6 @@
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
-- **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) has Analyze + test shards 0–5 PASS and Debug APK PASS; Release APK remains IN PROGRESS. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) has Home + Quick Capture PASS; SQL Migration + SQL Persistence IN PROGRESS; People + Backup/Restore QUEUED. Partial evidence only; no merge until all required lanes conclude and path-by-path review is complete.
+- **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
 
 This section records evidence whose SHA and scope are explicitly known. PR-head references in older entries are historical unless their SHA is rechecked live.
 
