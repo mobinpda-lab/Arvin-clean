@@ -124,3 +124,11 @@
 - **Architecture/data guard:** Reuse existing FollowUp and reminder/Calendar projection paths; do not create a parallel store, entity, or backup format. Do not alter unrelated Task date/time, recurrence, or Calendar sync rules.
 - **Acceptance tests:** follow-up without its own reminder is absent from Calendar; follow-up with an explicit reminder appears at the reminder's scheduled time; editing/removing the reminder updates/removes the same linked Calendar entry without duplicates or stale events; backup/restore retains the reminder and link where supported. Cover Persian RTL/Jalali display as applicable.
 - **Status:** ACCEPTED product rule; implementation and regression/device validation pending. Track under Issue #2102 and audit the existing follow-up/calendar projection before code changes.
+
+
+## 2026-10-12 — Follow-up Calendar visibility requires its own reminder
+- **Owner rule:** A task follow-up appears in Arvin Calendar only when an independent reminder is explicitly configured for that follow-up. The existence of a follow-up or the parent Task's date/time must not implicitly create a Calendar item.
+- If configured, the Calendar item uses the reminder's own scheduled date/time. Editing/removing the reminder must update/remove the same linked entry without duplicates or stale events.
+- Reuse the existing FollowUp, reminder, Calendar projection, persistence and backup/restore paths; do not introduce a parallel store/entity or backup format. Do not change general Task date/time or recurrence semantics.
+- **Required tests:** no reminder => no Calendar item; explicit reminder => item at reminder time; edit/remove => correct update/removal without duplicates; persistence/backup/restore retention where applicable.
+- **Status:** requirement accepted and recorded; implementation and regression/device validation pending. Release tracker: [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102).
