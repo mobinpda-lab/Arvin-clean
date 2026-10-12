@@ -65,8 +65,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
       );
 
-  String _dateTime(DateTime value) => '${_date(value)} • ${_time(value)}';
-
   String _statusLabel() {
     if (_task.completed) return 'انجام شده';
     final latest = _task.lastFollowUp;
