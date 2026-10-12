@@ -50,6 +50,7 @@ void main() {
     expect(reminders.first.date, DateTime(2026, 8, 27, 9));
     expect(reminders.last.title, 'پیگیری قرارداد');
     expect(reminders.last.description, 'نتیجه تماس ثبت‌شده');
+    expect(reminders.last.parentTaskId, 'task-1');
     expect(reminders.last.date, DateTime(2026, 8, 28, 11));
   });
 
