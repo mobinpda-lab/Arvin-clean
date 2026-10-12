@@ -6,6 +6,13 @@ Repository: https://github.com/mobinpda-lab/Arvin-clean
 ## Authoritative continuation rule
 Always re-fetch current main, PR heads/bases, issues, source files and exact-head workflow results before acting. A chat summary is only a pointer; GitHub is authoritative. Do not infer current CI state from a previous commit.
 
+## 2026-10-12 — Phone Calendar origin and FollowUp reminder
+
+- Use the existing `ExternalCalendarLinkStore` as the identity map for provider `calendarId + eventId`. An event imported from phone Calendar must retain `imported-task:<Task ID>` marker and be excluded from outbound echo sync; re-import by provider identity must warn and offer the existing Task.
+- FollowUp history timestamp (`FollowUp.dateTime`) is not an independent Calendar reminder. Only the explicit reminder timestamp is eligible for Calendar. The unified editor reads `reminderDate` first, falls back to legacy `nextFollowUp`, and normalizes new saves to `reminderDate`; retain backup/restore compatibility tests.
+- Visual semantic tokens: Arvin Task `#4A4CAB` + checklist icon; independent FollowUp `#B45309` + notification icon; imported phone event `#0F766E` + phone icon. Keep icon/label and adequate contrast, not color alone.
+- Current implementation pointer: [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635), branch `feat/calendar-origin-followup-visual-contract-20261012`, validation pending. PR #2631 remains a required dependency for reminder-gated FollowUp projection.
+
 ## Product and architecture invariants
 - Task is the canonical actionable entity and source of truth.
 - Quick Add and Full Task Form create/edit the same Task.
