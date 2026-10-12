@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 — PR #2636 week-view origin-marker overflow correction
+
+- **Completed:** Inspected the previous failed exact-head Build logs for run [38239373451](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373451). Root cause: the two Home calendar/navigation tests failed on a 3 px vertical overflow in the compact week-view day cell after origin dots were added.
+- **Code correction committed:** [205267988aa059ecad99a8b6cbe380f50824d2d2](https://github.com/mobinpda-lab/Arvin-clean/commit/205267988aa059ecad99a8b6cbe380f50824d2d2), changed the week-cell height from 58 to 61 px in `lib/calendar_page.dart` to reserve space for the marker row. This is a presentation-only change; no Task data, external-event identity, sync, migration, persistence or backup contract changed.
+- **PR:** [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) remains unmerged. The correction and acceptance gate were recorded in PR comment [6123013815](https://github.com/mobinpda-lab/Arvin-clean/pull/2636#issuecomment-6123013815).
+- **Exact-correction validation:** Build run [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757): Analyze succeeded; six test shards and Debug/Release APK jobs were still running at last poll. Calendar Provider Acceptance run [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) was still running. Device Smoke run [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) had Home and Quick Capture running, and SQL migration, SQL persistence, People and Backup/Restore queued. These are not passes.
+- **Completed step:** Root-cause identification, minimal code correction, commit and PR evidence note.
+- **In progress:** Exact-head Build, provider acceptance and all six Device Smoke lanes.
+- **Blocked:** Merge/release; physical-device Calendar same-event update/no-duplicate, real Android file-provider Backup/Restore with Calendar-link integrity, Persian RTL/compact-screen acceptance and explicit owner approval remain unverified.
+- **Current bottleneck:** CI results for corrected commit; do not merge on workflow start or partial pass.
+- **Next action:** Poll runs 38240441757, 38240441696 and 38240441866. If any gate fails, inspect exact failing logs and repair without weakening tests. Once CI is green, continue independent physical-device and product acceptance. Keep release NO-GO until every release gate is evidenced.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (origin-aware Calendar and unified FollowUp reminder)
 
 - Owner requirement tracked in [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635). Phone-calendar-originated events retain stable provider identity and must never echo back into the phone Calendar; manual re-import of an already-linked provider event warns and offers the existing Task. Arvin-originated eligible Tasks/recurrence and explicitly configured independent FollowUp reminders must create once and then update the same external event. Never deduplicate by title/date.
