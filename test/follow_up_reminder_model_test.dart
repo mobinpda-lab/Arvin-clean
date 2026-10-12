@@ -57,4 +57,51 @@ void main() {
       DateTime(2026, 8, 28, 11, 45),
     );
   });
+
+  test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
+    final task = Task(
+      id: 'multi-reminder',
+      title: 'خرید فرش',
+      reminderDate: DateTime(2026, 10, 20, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-a',
+          title: 'خرید فرش — یادآور 1',
+          date: DateTime(2026, 10, 20, 10),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'reminder-c',
+          title: 'خرید فرش — یادآور 3',
+          date: DateTime(2026, 10, 22, 11),
+          isAllDay: true,
+          sequence: 3,
+        ),
+      ],
+      nextReminderSequence: 4,
+    );
+
+    final restored = Task.fromJson(task.toJson());
+
+    expect(restored.reminderDate, task.reminderDate,
+        reason: 'legacy singular reminder must remain unchanged');
+    expect(restored.taskReminders, hasLength(2));
+    expect(restored.taskReminders.map((item) => item.id),
+        ['reminder-a', 'reminder-c']);
+    expect(restored.taskReminders.last.isAllDay, isTrue);
+    expect(restored.taskReminders.last.date, DateTime(2026, 10, 22, 11));
+    expect(restored.nextReminderSequence, 4);
+  });
+
+  test('legacy Task JSON without a reminder collection remains valid', () {
+    final restored = Task.fromJson({
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+
+    expect(restored.taskReminders, isEmpty);
+    expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
+    expect(restored.nextReminderSequence, 1);
+  });
 }
