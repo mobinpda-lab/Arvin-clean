@@ -30,11 +30,13 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
   DateTime? _reminderDate;
+  DateTime? _nextFollowUp;
   bool _waitingForResponse = false;
   late DateTime _initialDateTime;
   late String _initialNote;
   late String _initialResult;
   late DateTime? _initialReminderDate;
+  late DateTime? _initialNextFollowUp;
   late bool _initialWaitingForResponse;
 
   bool get _editing => widget.initialFollowUp != null;
@@ -47,13 +49,13 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
-    // Compatibility mapping: reminderDate is canonical when both legacy
-    // fields exist; otherwise migrate the old nextFollowUp timestamp into it.
-    _reminderDate = initial?.reminderDate ?? initial?.nextFollowUp;
+    _reminderDate = initial?.reminderDate;
+    _nextFollowUp = initial?.nextFollowUp;
     _initialDateTime = _dateTime;
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
     _initialReminderDate = _reminderDate;
+    _initialNextFollowUp = _nextFollowUp;
     _initialWaitingForResponse = _waitingForResponse;
   }
 
@@ -139,7 +141,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     });
   }
 
-  DateTime _baseReminder() => _reminderDate ?? _dateTime;
+  DateTime _baseReminder() => _reminderDate ?? _nextFollowUp ?? _dateTime;
 
   Future<void> _pickReminderDate() async {
     final base = _baseReminder();
@@ -180,11 +182,30 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   void _clearReminder() => setState(() => _reminderDate = null);
 
+  Future<void> _pickNext() async {
+    final picked = await _pickPersianDate(
+      initialDate: _nextFollowUp ?? _dateTime,
+      firstDate: _dateTime,
+      helpText: 'انتخاب پیگیری بعدی',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _nextFollowUp = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _dateTime.hour,
+        _dateTime.minute,
+      );
+    });
+  }
+
   bool get _hasChanges =>
       _dateTime != _initialDateTime ||
       _noteController.text != _initialNote ||
       _resultController.text != _initialResult ||
       _reminderDate != _initialReminderDate ||
+      _nextFollowUp != _initialNextFollowUp ||
       _waitingForResponse != _initialWaitingForResponse;
 
   Future<void> _requestClose() async {
@@ -239,9 +260,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       note: enteredTitle.isEmpty ? _defaultTitle : enteredTitle,
       result: result,
       reminderDate: _reminderDate,
-      // New saves use the unified independent-reminder field. Legacy
-      // nextFollowUp is read above and intentionally normalized on save.
-      nextFollowUp: null,
+      nextFollowUp: _nextFollowUp,
     );
     widget.onSaved?.call(followUp);
     Navigator.of(context).pop(followUp);
@@ -329,6 +348,16 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               ),
             ),
             const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _pickNext,
+              icon: const Icon(Icons.event_repeat),
+              label: Text(
+                _nextFollowUp == null
+                    ? 'انتخاب پیگیری بعدی'
+                    : 'پیگیری بعدی: ${_formatDate(_nextFollowUp!)} • ساعت ${_formatTime(_nextFollowUp!)}',
+              ),
+            ),
+            const SizedBox(height: 16),
             Card(
               key: const ValueKey('follow-up-reminder-block'),
               margin: EdgeInsets.zero,
@@ -348,7 +377,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               SizedBox(height: 2),
-                              Text('این پیگیری در تقویم گوشی ثبت شود'),
+                              Text('این یادآور مستقل از پیگیری بعدی است و در تقویم گوشی ثبت می‌شود'),
                             ],
                           ),
                         ),
