@@ -147,8 +147,8 @@ void main() {
 
     await revealReminder(tester);
     expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
-    expect(find.text('این پیگیری در تقویم گوشی ثبت شود'), findsOneWidget);
-    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
+    expect(find.text('این یادآور مستقل از پیگیری بعدی است و در تقویم گوشی ثبت می‌شود'), findsOneWidget);
+    expect(find.textContaining('پیگیری بعدی:'), findsOneWidget);
     expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
     expect(find.text('۰۷:۴۵'), findsOneWidget);
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
@@ -158,11 +158,11 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, isNull);
+    expect(result!.nextFollowUp, initial.nextFollowUp);
   });
 
 
-  testWidgets('legacy nextFollowUp migrates to the unified independent reminder',
+  testWidgets('legacy nextFollowUp remains independent from an unset reminder',
       (tester) async {
     FollowUp? result;
     final legacyTimestamp = DateTime(2026, 9, 12, 11, 20);
@@ -201,12 +201,12 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, legacyTimestamp);
-    expect(result!.nextFollowUp, isNull);
+    expect(result!.reminderDate, isNull);
+    expect(result!.nextFollowUp, legacyTimestamp);
 
     final restored = FollowUp.fromJson(result!.toJson());
-    expect(restored.reminderDate, legacyTimestamp);
-    expect(restored.nextFollowUp, isNull);
+    expect(restored.reminderDate, isNull);
+    expect(restored.nextFollowUp, legacyTimestamp);
   });
 
   testWidgets('existing reminder can be cleared without changing FollowUp identity',
