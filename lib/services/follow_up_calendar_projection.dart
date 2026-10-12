@@ -25,7 +25,7 @@ class FollowUpCalendarProjection {
   String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
 
   String taskReminderItemIdFor(Task task, TaskReminder reminder) =>
-      'task-reminder-item:' + task.id + ':' + reminder.id;
+      'task-reminder-item:${task.id}:${reminder.id}';
 
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
@@ -99,7 +99,7 @@ class FollowUpCalendarProjection {
           CalendarReminder(
             id: taskReminderItemIdFor(task, reminder),
             title: reminder.title.trim().isEmpty
-                ? task.title + ' — یادآور ' + reminder.sequence.toString()
+                ? '${task.title} — یادآور ${reminder.sequence}'
                 : reminder.title,
             date: reminder.date,
             completed: task.completed,
