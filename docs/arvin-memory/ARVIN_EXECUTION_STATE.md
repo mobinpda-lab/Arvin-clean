@@ -1,3 +1,15 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 (origin-aware Calendar and unified FollowUp reminder)
+
+- Owner requirement tracked in [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635). Phone-calendar-originated events retain stable provider identity and must never echo back into the phone Calendar; manual re-import of an already-linked provider event warns and offers the existing Task. Arvin-originated eligible Tasks/recurrence and explicitly configured independent FollowUp reminders must create once and then update the same external event. Never deduplicate by title/date.
+- Implementation branch: `feat/calendar-origin-followup-visual-contract-20261012`; current lane is **draft / validation pending**.
+- FollowUp editor now exposes one control, **«یادآور پیگیری مستقل»**, with helper **«این پیگیری در تقویم گوشی ثبت شود»**; the separate «پیگیری بعدی» button was removed. Compatibility mapping on load: `reminderDate` wins if both legacy fields exist; otherwise legacy `nextFollowUp` is loaded into the unified reminder. New saves persist the chosen timestamp as `reminderDate` and clear `nextFollowUp`. Focused widget tests cover both the label and legacy mapping. This intentionally normalizes the legacy semantic under the explicit owner decision; verify serialization/backup round-trip and provider behavior before merge.
+- Calendar agenda rows now have distinct icon/color identity: Arvin Task purple `#4A4CAB` + checklist icon; independent FollowUp amber `#B45309` + notification icon; imported phone event teal `#0F766E` + phone icon. Week/month cells show up to three matching origin-color dots. Tests assert row identity colors and cell dots.
+- `ExternalCalendarLinkStore.findByProviderIdentity(calendarId,eventId)` resolves the stable provider identity across imported and Arvin-created links. Registration rejects a second link with the same provider calendar/event identity even if the reminder ID differs. Manual import now warns and offers «مشاهده کار» for an already-linked Task instead of opening a new Task editor.
+- **Dependency:** current main's `FollowUpCalendarProjection` still projects historical FollowUps at `FollowUp.dateTime` without checking `reminderDate`. The independent-reminder-only projection and stale linked-event cleanup are in open PR [#2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631). Do not claim calendar projection correctness until that PR's exact-head CI passes and its behavior is integrated/merged.
+- **Validation pending:** exact-head Analyze, all test shards, Debug/Release APK, relevant Device Smoke lanes, Calendar Provider Acceptance, backup/restore round-trip and real-device verification. This branch is not release evidence; do not merge until all required gates pass.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (live re-poll after compact UI CI)
 
 This section supersedes any older status statement below where it conflicts. Historical material is preserved for audit. Last verified against GitHub Actions and PR metadata during this continuation.
