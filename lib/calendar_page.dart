@@ -915,8 +915,7 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder:') ||
     id.startsWith('task-followup:') ||
-    id.startsWith('task-recurrence:') ||
-    id.startsWith('followup:');
+    id.startsWith('task-recurrence:');
 
 enum _CalendarItemVisualKind {
   ordinary,
