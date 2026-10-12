@@ -344,8 +344,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.checklist_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.phone_android_rounded), findsOneWidget);
     expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
   });
 
