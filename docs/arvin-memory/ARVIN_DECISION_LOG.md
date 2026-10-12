@@ -107,3 +107,12 @@
 - **Reason:** Keep GitHub as project brain while preserving an auditable review path.
 - **Impact:** No application code, schema, migration, backup format or release artifact changed.
 - **Status:** In progress; PR and exact-head validation still required.
+
+
+## 2026-10-12 — Owner decision: preserve independent nextFollowUp and reminderDate
+- **Problem:** Follow-up scheduling and system notification time were being collapsed by a proposed editor compatibility mapping.
+- **Decision:** `nextFollowUp` is the next planned action/review time; `reminderDate` is the system notification time. They are independent. Never copy one into the other as a fallback, clear either to simplify UI, or treat one as proof the other exists.
+- **Calendar:** project a FollowUp reminder only when explicit `reminderDate` exists; display policy must not mutate the canonical fields. Keep next-follow-up scheduling independently available.
+- **Reports:** future follow-ups and reminders must be filterable independently.
+- **Status:** ACCEPTED. Implementation correction staged in PR #2636; exact-head validation pending.
+- **References:** [PR #2642](https://github.com/mobinpda-lab/Arvin-clean/pull/2642), [PR #2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636), [PR #2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631).
