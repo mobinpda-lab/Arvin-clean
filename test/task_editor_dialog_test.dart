@@ -539,4 +539,53 @@ void main() {
     expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
   });
 
+  testWidgets('repeat preset anchors a new task to the current local date and time',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    final repeat = find.byKey(const ValueKey('task-editor-recurrence'));
+    await tester.ensureVisible(repeat);
+    await tester.tap(repeat);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('هر ۱۵ دقیقه'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('هر ۱۵ دقیقه'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.recurrence?.frequency, RecurrenceFrequency.minutes);
+    expect(result!.recurrence?.interval, 15);
+  });
+
+  testWidgets('all-day task keeps reminder unavailable without inventing a time',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'all-day-reminder-gate',
+      title: 'کار تمام‌روز',
+      dueDate: DateTime(2026, 8, 27),
+      allDay: true,
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-reminder-requires-timed-due')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.allDay, isTrue);
+    expect(result!.dueDate, DateTime(2026, 8, 27));
+    expect(result!.reminderDate, isNull);
+  });
+
 }
