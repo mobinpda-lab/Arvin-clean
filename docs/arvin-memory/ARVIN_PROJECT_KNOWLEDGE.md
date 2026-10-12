@@ -100,7 +100,7 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 
 ## Owner-confirmed Follow-up / Reminder lifecycle (2026-10-13)
 - The reminder is a separate user-editable object/value, independent of previous and next follow-up records.
-- On first explicit Next Follow-up setting, create one initial reminder with Task title as its initial title and Next Follow-up date/time as its initial schedule. This is a one-time seed, not a live binding.
+- Setting Next Follow-up does not automatically create a reminder. Create one only when the user explicitly wants/chooses it; then prefill Task title and Next Follow-up date/time as initial values. This is not a live binding.
 - The user may ask for additional reminders and can independently edit reminder title/date/time. Never silently overwrite or duplicate an existing reminder.
 - Changes/deletion to Next Follow-up never move/delete reminders. Reminder edits/deletion never change Next Follow-up. Reminder may remain without Next Follow-up.
 - Both Next Follow-up and reminder independently support date-only/all-day or date/time; preserve legacy midnight values without guessing.
