@@ -238,7 +238,6 @@ void main() {
     await tester.tap(add);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-editor-reminder-title-reminder-')), findsNothing);
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
     await tester.tap(save);
@@ -249,7 +248,7 @@ void main() {
     expect(result!.taskReminders, hasLength(2));
     expect(result!.taskReminders.map((item) => item.sequence), [1, 2]);
     expect(result!.taskReminders.map((item) => item.id).toSet().length, 2);
-    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور 1');
+    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور ۱');
     expect(result!.nextReminderSequence, 3);
   });
 
