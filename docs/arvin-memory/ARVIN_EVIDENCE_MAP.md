@@ -1,3 +1,9 @@
+
+
+| Week-view origin-marker overflow correction | Commit [205267988aa059ecad99a8b6cbe380f50824d2d2](https://github.com/mobinpda-lab/Arvin-clean/commit/205267988aa059ecad99a8b6cbe380f50824d2d2), PR #2636 | Code correction committed | Exact-head Build/provider/smoke still in progress at last poll; not yet accepted |
+| Corrected-head Build | [Run 38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze passed; six test shards and APKs running | Incomplete; do not call green |
+| Calendar Provider Acceptance | [Run 38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Provider job running | Incomplete |
+| Device Smoke | [Run 38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Home and Quick Capture running; four other lanes queued | Incomplete; no physical-device acceptance implied |
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
