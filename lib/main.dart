@@ -2150,6 +2150,7 @@ class _HomePageState extends State<HomePage> {
     }
     if (task == null) {
       for (final prefix in const <String>[
+        'task-reminder-item:',
         'task-due:',
         'task-reminder:',
         'task-followup:',
