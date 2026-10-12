@@ -60,6 +60,50 @@ extension FollowUpLegacyDate on FollowUp {
 /// Unified product model foundation:
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.
+class TaskReminder {
+  const TaskReminder({
+    required this.id,
+    required this.title,
+    required this.date,
+    this.isAllDay = false,
+    required this.sequence,
+  });
+
+  final String id;
+  final String title;
+  final DateTime date;
+  final bool isAllDay;
+  final int sequence;
+
+  TaskReminder copyWith({
+    String? title,
+    DateTime? date,
+    bool? isAllDay,
+  }) => TaskReminder(
+        id: id,
+        title: title ?? this.title,
+        date: date ?? this.date,
+        isAllDay: isAllDay ?? this.isAllDay,
+        sequence: sequence,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'date': date.toIso8601String(),
+        'isAllDay': isAllDay,
+        'sequence': sequence,
+      };
+
+  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
+        id: json['id'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        date: DateTime.parse(json['date'] as String),
+        isAllDay: json['isAllDay'] as bool? ?? false,
+        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      );
+}
+
 class Task {
   Task({
     required this.id,
@@ -79,6 +123,8 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    Iterable<TaskReminder> taskReminders = const [],
+    this.nextReminderSequence = 1,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -88,7 +134,8 @@ class Task {
     Iterable<PersonReference> people = const [],
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
-        people = _normalizePeople(people);
+        people = _normalizePeople(people),
+        taskReminders = List<TaskReminder>.of(taskReminders);
 
   final String id;
   String title;
@@ -114,7 +161,12 @@ class Task {
   /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
+  /// Legacy singular Task reminder retained for backward compatibility.
   DateTime? reminderDate;
+  /// New independent reminders stored in the canonical Task JSON envelope.
+  List<TaskReminder> taskReminders;
+  /// Monotonic per-Task sequence; removed reminder numbers are never reused.
+  int nextReminderSequence;
   TaskPriority priority;
   bool archived;
   bool trashed;
@@ -241,6 +293,10 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (taskReminders.isNotEmpty)
+          'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
+        if (nextReminderSequence > 1)
+          'nextReminderSequence': nextReminderSequence,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
@@ -260,6 +316,23 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
+    final loadedTaskReminders = <TaskReminder>[];
+    final rawTaskReminders = json['taskReminders'];
+    if (rawTaskReminders is List) {
+      for (final rawReminder in rawTaskReminders) {
+        if (rawReminder is Map) {
+          loadedTaskReminders.add(
+            TaskReminder.fromJson(Map<String, dynamic>.from(rawReminder)),
+          );
+        }
+      }
+    }
+    final sequenceFromJson = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final nextReminderSequence = [
+      sequenceFromJson,
+      if (loadedTaskReminders.isNotEmpty)
+        loadedTaskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1,
+    ].reduce((a, b) => a > b ? a : b);
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
@@ -307,6 +380,8 @@ class Task {
       reminderDate: json['reminderDate'] == null
           ? null
           : DateTime.tryParse(json['reminderDate'] as String),
+      taskReminders: loadedTaskReminders,
+      nextReminderSequence: nextReminderSequence,
       priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
