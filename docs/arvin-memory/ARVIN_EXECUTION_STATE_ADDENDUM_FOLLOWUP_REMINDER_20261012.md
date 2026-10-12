@@ -50,3 +50,12 @@ Inspect the existing calendar provider and SQL/JSON/backup tests, then obtain th
 - **Data safety:** do not infer all-day from midnight, overwrite a pre-existing reminder, or silently normalize legacy `nextFollowUp` into `reminderDate`. The existing-reminder first-activation behavior is still an owner decision. A separate persisted all-day marker for Next Follow-up and Reminder is the safer candidate because each can independently be date-only or timed, but this is a model/backup compatibility change and must be specified before implementation.
 - **This run:** source/docs audit only; no app code changed and no Flutter analyze/test/build/device validation was executed. Release remains **NO-GO**.
 - **Next action:** owner decision on first activation when a reminder already exists; then agree on backward-compatible all-day representation. Safe work may continue after recording these gates; do not merge this PR without exact-head validation.
+
+
+# AUTHORITATIVE STATUS CORRECTION — 2026-10-13 (PR #2650 merged)
+
+- PR #2650 is **MERGED**, not open: squash commit `8136c929237c321f2e879a80f067970c31cb0100`; source head `e6b0dbbd70c5779e2e21f731ce6f2cf29604c99b`.
+- Exact source-head Build [38305396957](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396957) and six-lane Device Smoke [38305396917](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396917) both succeeded. These are automated CI/emulator results, not physical-device acceptance.
+- This merge only records documentation; it does not fix app code. The first-set reminder creation, FollowUp all-day representation/projection, date-only editor and clear-next behavior remain unimplemented/unvalidated.
+- Product owner still needs to decide behavior when an existing reminder is present at first Next Follow-up activation. No data-changing implementation should assume overwrite, duplicate creation, or normalization.
+- Current main after merge: `8136c929237c321f2e879a80f067970c31cb0100`. Keep Release NO-GO until product gates, code/tests, exact-head validation and physical-device evidence are complete.
