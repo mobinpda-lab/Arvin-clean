@@ -418,4 +418,39 @@ void main() {
       DateTime(2026, 10, 17, 9),
     ]);
   });
+
+  test('projects multiple independent reminders with stable IDs and explicit all-day state', () {
+    final sameTime = DateTime(2026, 12, 5, 9);
+    final task = Task(
+      id: 'multi',
+      title: 'خرید فرش',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'خرید فرش — یادآور 1',
+          date: sameTime,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          title: 'خرید فرش — یادآور 2',
+          date: sameTime,
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ],
+    );
+
+    final reminders = projection.project([task]);
+
+    expect(reminders, hasLength(2),
+        reason: 'independent reminders at the same instant must not collapse');
+    expect(reminders.map((item) => item.id).toSet(), {
+      'task-reminder-item:multi:r1',
+      'task-reminder-item:multi:r2',
+    });
+    expect(reminders.map((item) => item.isAllDay).toSet(), {false, true});
+    expect(reminders.map((item) => item.title), contains('خرید فرش — یادآور 1'));
+  });
+
 }
