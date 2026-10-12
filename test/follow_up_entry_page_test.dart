@@ -195,7 +195,7 @@ void main() {
     await tester.pumpAndSettle();
     await revealReminder(tester);
     expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
-    expect(find.text('این پیگیری در تقویم گوشی ثبت شود'), findsOneWidget);
+    expect(find.text('این یادآور مستقل از پیگیری بعدی است و در تقویم گوشی ثبت می‌شود'), findsOneWidget);
 
     await saveEditor(tester);
 
