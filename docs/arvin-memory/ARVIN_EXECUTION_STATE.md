@@ -1,22 +1,14 @@
-# LIVE CONTINUATION OVERRIDE — 2026-10-12 (latest verified state)
+# LIVE CONTINUATION OVERRIDE — 2026-10-12
 
-This override supersedes all older SHA, CI status, and next-action statements below. Recheck GitHub before any further write.
+This is the current continuation rule for this document. Historical SHA and CI details below are audit records, not live status. Always query GitHub for the current PR head, latest-main SHA, workflow runs and check-runs before deciding to merge.
 
-- Repository: `mobinpda-lab/Arvin-clean`; memory PR: [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614), still OPEN / DRAFT, base `main` at `cea76673d871ce52b84dacf69f355c4282802baa`.
-- Latest PR head verified: `910b98bd38d2f03dfd1a30e5781d2f2f12a41a1e`. It includes the current memory overrides in execution state, evidence map and problem register.
-- Exact-head Build [38200047929](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200047929) is still IN PROGRESS at last check. Analyze passed; test shards 1, 3 and 5 passed; test shards 0, 2 and 4 and Debug/Release APK jobs were still running. These statuses are only valid for head `910b98bd38d2f03dfd1a30e5781d2f2f12a41a1e` and must be refreshed before merge.
-- Exact-head Device Smoke [38200047904](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200047904) was SKIPPED because this is a documentation-only Draft PR. Exact-main emulator smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) passed all six emulator scenarios; this is not physical-device acceptance.
-- The required project-memory package is not yet on `main`; do not claim the memory restoration is complete until the docs-only PR is reviewed, all required exact-head Build jobs pass, and it is merged with the expected head SHA.
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Memory PR: [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614), intended base `main`. The required memory package is not complete on `main` until this PR is reviewed, validated against its exact current head, and merged.
+- A CI run for a previous head does not validate a later commit. Every content update changes the PR head; after this update, refresh the current PR head and wait for all required exact-head Build checks before any readiness or merge action.
+- Documentation-only Device Smoke may be skipped; use exact-main emulator evidence only for emulator claims. Never present emulator smoke as physical-device acceptance.
 - Release remains NO-GO. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN until physical-device Calendar same-event/no-duplicate, real Android file-provider Backup/Restore and restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval are evidenced.
-- Other open P0/P1 product work includes the overlapping Universal Arvin Time Picker / Task Editor / Report Center PRs (#2591, #2595, #2602, #2607), and owner decision on root `Task.note` versus canonical `Task.description`. Do not merge overlapping code PRs independently or alter schema/backup/migration semantics without that decision.
-
-## Last completed step
-1. Re-read the execution state and refreshed PR #2614, exact-head workflow runs, current-main baseline and open issue list.
-2. Confirmed current head `910b98bd38d2f03dfd1a30e5781d2f2f12a41a1e`, PR #2614 still Draft, Build still running; no merge occurred.
-3. Confirmed the earlier execution-state paragraph still named an older head and stale in-progress details; this override corrects the live continuation status while preserving historical audit records.
-
-## Next action
-Poll exact-head Build #38200047929 to completion. If all required jobs pass, recheck all 11 changed files for coherent current-vs-historical status, mark PR ready for review, and merge only with expected head SHA. If Build fails, diagnose the failing job before any merge. After merge, verify main SHA and post-merge evidence. Continue release gates and overlapping PR reconciliation without duplicate implementation.
+- Overlapping implementation PRs #2591, #2595, #2602 and #2607 must not be merged independently. Root `Task.note` versus canonical `Task.description` remains an owner decision; no schema, backup or migration semantics change without approval.
+- Next action: refresh PR #2614 metadata and exact-head checks after the latest checkpoint commit. If any required Build job fails, diagnose it. If all pass, inspect the complete 11-file diff, mark ready for review, merge only with the exact verified head SHA, then verify the resulting `main` SHA and record it.
 
 ---
 
