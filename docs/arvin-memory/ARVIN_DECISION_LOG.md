@@ -5,7 +5,7 @@
 - **Decision:** wherever date and time are shown together, keep them on one horizontal row when supported. Prefer a shared reusable style/component; use flexible constraints, ellipsis or compact formatting only as needed.
 - **Acceptance:** test Persian/Jalali labels, RTL, narrow Android screens and larger accessibility font sizes. Preserve legibility and touch targets; where one row cannot fit, implement and test an explicit graceful fallback rather than accidental wrapping.
 - **Impact:** presentation-only. No Task data, recurrence, Calendar identity/sync, persistence or backup-format changes.
-- **Status:** requirement recorded; implementation and visual acceptance pending.
+- **Status:** partial reusable-widget implementation started in draft PR [#2633](https://github.com/mobinpda-lab/Arvin-clean/pull/2633); exact-head CI and visual acceptance pending. Remaining surfaces must be migrated before the requirement is considered globally implemented.
 
 ## 2026-10-12 — FollowUp Calendar visibility requires an independent reminder
 - **Problem:** a FollowUp must not appear in Calendar merely because the FollowUp or its parent Task exists or has a date/time.
