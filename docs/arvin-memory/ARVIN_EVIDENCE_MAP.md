@@ -302,3 +302,19 @@ A missing workflow log/BlobNotFound is not a success or failure result. Emulator
 | Other Device Smoke lanes | Same run; no listed artifact for People, SQL persistence, Backup/Restore or SQL migration | Evidence incomplete | Not accepted |
 
 Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114324441). Artifact existence must not be conflated with workflow conclusion, full smoke completion, physical-device acceptance or owner approval.
+
+
+## Unified validation snapshot — PR #2636 — 2026-10-12 11:09 UTC
+
+| Gate | Run | Observed evidence | Unified status |
+|---|---|---|---|
+| Build / Analyze | [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze succeeded; test shards 0–5 and Debug/Release APK jobs cancelled; workflow cancelled | **INCOMPLETE / NO PASS** |
+| Calendar Provider Acceptance | [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Job in progress at last poll; no terminal conclusion | **PENDING** |
+| Device Smoke — Home | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — Quick Capture | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — SQL migration | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — SQL persistence | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — People | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — Backup/Restore | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled; no artifact confirmed | **INCOMPLETE / NO PASS** |
+
+**Head integrity:** current PR head at checkpoint = `dbe0524494182abd013fd16a6c04f9f82f75948a`; these runs were started on code commit `205267988aa059ecad99a8b6cbe380f50824d2d2`. Treat them as stale for exact-head acceptance. A pass requires terminal success on the current head; canceled/in-progress jobs do not count. Physical-device checks and owner sign-off remain unverified. Release gate = **NO-GO**.
