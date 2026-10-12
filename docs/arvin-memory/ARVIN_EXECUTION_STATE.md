@@ -1,17 +1,15 @@
-# LIVE CONTINUATION OVERRIDE — 2026-10-12
+# LIVE CONTINUATION OVERRIDE — 2026-10-12 (refreshed)
 
-This section is the current authoritative continuation state. Historical SHA and CI details below are audit history only. Refresh live GitHub before every write or readiness decision.
+This is the newest continuation checkpoint in this proposed documentation change. It does not become authoritative on `main` until merged. Re-query live GitHub before every write or readiness decision.
 
-- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
-- Memory consolidation PR [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614) merged as `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad`.
-- State correction PR [#2615](https://github.com/mobinpda-lab/Arvin-clean/pull/2615) merged as `843f44c924602a7eef71393cc9cdbcbee707249f`; exact-head Build [38201007991](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38201007991) passed Analyze, all six test shards, Debug APK and Release APK.
-- State correction PR [#2616](https://github.com/mobinpda-lab/Arvin-clean/pull/2616) merged as `17c78fc2f3dfe1bf8e608449824a047a7f6d6484`; exact-head Build [38201566491](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38201566491) passed Analyze, all six test shards, Debug APK and Release APK. Post-merge inspection found stale live-state text.
-- Follow-up state PR [#2617](https://github.com/mobinpda-lab/Arvin-clean/pull/2617) merged as `a4dae51e93d9b3dcbc55ded366280e59183f16bc`. Its exact-head Build [38202455010](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202455010) passed Analyze, all six test shards, Debug APK and Release APK. **Read-back after merge showed the live override still contained obsolete #2616 repair-pending text**, so this current state refresh records the actual status rather than claiming that the prior correction was complete.
-- Post-merge Build [38202955720](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955720) was queued for current main `a4dae51e93d9b3dcbc55ded366280e59183f16bc` at last check. Device Smoke [38202955719](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955719) was pending. Refresh these exact-SHA workflows before claiming post-merge validation.
-- PR #2602 exact head `1ddea0c9e6481dbf944f70f4faceb91499908c80` has three test-harness fixes but GitHub Actions and check-runs queries both returned zero runs/checks for that exact SHA. Fixes remain unvalidated; keep [PR #2602](https://github.com/mobinpda-lab/Arvin-clean/pull/2602) Draft and investigate CI triggering/attachment before merge.
-- Release remains NO-GO. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN until physical-device Calendar same-event/no-duplicate, real Android file-provider Backup/Restore and restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval are evidenced.
-- Overlapping implementation PRs #2591, #2595, #2602 and #2607 must not be merged independently. Reconcile them into one integrated, tested code head. Root `Task.note` versus canonical `Task.description` remains owner-decision sensitive; do not change schema, migration or backup semantics without explicit approval.
-- **Next action:** verify the exact current-main post-merge Build and Device Smoke runs; then investigate missing exact-head CI for #2602 and continue reconciling the overlapping UI PRs into one tested integration head. Separately obtain physical-device Calendar and Backup/Restore evidence. No release publication or Release Ready claim without owner approval.
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`; last observed main/base SHA: `a4dae51e93d9b3dcbc55ded366280e59183f16bc`.
+- **PR #2619 — cleanup:** open, unmerged, mergeable. GitHub PR metadata currently reports head `433c337327a031c5008f4a63c2b2759847309c39`. Exact-head Build [38209828960](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38209828960) passed Analyze, test shards 0–5, Debug APK and Release APK; Device Smoke [38209828949](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38209828949) passed Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore emulator lanes. These results do not replace the required maintainer path-by-path deletion/content review or physical-device acceptance.
+- **PR #2620 — consolidated project report:** open, ready for review, unmerged. Exact-head Build [38211356787](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38211356787) passed Analyze, all six test shards, Debug APK and Release APK. Device Smoke [38211356834](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38211356834) was skipped for this documentation-only change, as expected. No product code/data contract was changed.
+- **PR #2618 — execution-state correction:** this branch is the current proposed location for this checkpoint. Before merging, verify the resulting file at the merge SHA; previous state-document PRs exposed stale text after merge.
+- **Overlapping product changes:** #2591 Universal Time Picker has Build success on exact head `eae0394163a958223b79fc3b7aa914f79b664b8a`; #2595 Task Form does not currently have exact-head Build evidence in the latest query; #2602 exact head `1ddea0c9e6481dbf944f70f4faceb91499908c80` has no workflow runs returned; #2607 Build succeeded on exact head `8d3d60a1b321fa4ceb9f5da779a144d3705b9103` but PR metadata reports merge conflicts. Do not merge these overlapping branches independently. Reconcile them into one integration head and validate that exact SHA.
+- Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN and Release **NO-GO** until real-phone evidence covers Calendar update-same-event/no duplicates, Android file-provider Backup/Restore and restored Calendar-link integrity, the installed-app golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval.
+- No installation or manual testing is requested from the owner yet. Continue repository inspection, code/test integration, automated validation and documentation first. Ask for phone installation only after one integrated candidate has passed available automated gates; then provide the exact APK, install steps and short acceptance checklist.
+- **Next action:** complete path-by-path review of #2619 and coordinate one integration branch for #2591/#2595/#2602/#2607. Investigate and repair missing exact-head CI evidence for #2595/#2602 before considering merge. Keep release gates open.
 
 ---
 
@@ -19,20 +17,10 @@ This section is the current authoritative continuation state. Historical SHA and
 **Checkpoint:** 2026-10-12 (UTC)
 **Repository:** `mobinpda-lab/Arvin-clean`
 **Branch:** `main`
-**Current main SHA:** `a4dae51e93d9b3dcbc55ded366280e59183f16bc`
+**Last observed main SHA:** `a4dae51e93d9b3dcbc55ded366280e59183f16bc`
 **Overall state:** IN PROGRESS — RELEASE BLOCKED
 
-> This live checkpoint supersedes older status, branch SHA, next-action and CI statements in historical notes. Re-query GitHub before every write.
-
-## LIVE CONTINUATION — 2026-10-12
-
-- **Completed:** PRs #2614, #2615, #2616 and #2617 merged as documentation-only changes. PR #2617 merge SHA is `a4dae51e93d9b3dcbc55ded366280e59183f16bc`.
-- **Exact-head validation:** PR #2617 Build [38202455010](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202455010) passed Analyze, test shards 0–5, Debug APK and Release APK on exact head `1ab09904b1c1a44dccc54be7800b1fbe48906884`.
-- **Current-main validation pending:** Build [38202955720](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955720) was queued and Device Smoke [38202955719](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955719) was pending for current main SHA `a4dae51e93d9b3dcbc55ded366280e59183f16bc` at last query. Do not claim post-merge validation until those exact runs finish.
-- **#2602 validation blocked:** GitHub Actions run query and commit check-runs query both returned zero entries for exact head `1ddea0c9e6481dbf944f70f4faceb91499908c80`. Its three test-harness corrections remain unvalidated and its PR remains Draft.
-- **Release remains NO-GO.** Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN until physical-device Calendar same-event/no-duplicate, real Android file-provider Backup/Restore and restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval are evidenced.
-- **Overlapping implementation PRs #2591, #2595, #2602 and #2607 must not be merged independently.** Reconcile into one integrated, tested code head. Root `Task.note` vs canonical `Task.description` remains owner-decision sensitive; do not change schema, migration or backup semantics without explicit approval.
-- **Next action:** refresh exact-main Build and Device Smoke results; then resolve #2602's missing CI evidence and reconcile the overlapping UI PRs. Obtain physical-device Calendar and Backup/Restore evidence in parallel where possible. No release publication or Release Ready claim without owner approval.
+> This checkpoint supersedes older live-status and CI claims below. The document changes in PR #2618 remain proposed until reviewed and merged.
 
 ## Last completed step
 
