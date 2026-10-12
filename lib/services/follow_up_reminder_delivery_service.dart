@@ -44,7 +44,7 @@ class FollowUpReminderDeliveryService {
           taskTitle: task.title,
           taskReminderId: reminder.id,
           label: reminder.title.trim().isEmpty
-              ? 'یادآور ' + reminder.sequence.toString()
+              ? 'یادآور ${reminder.sequence}'
               : reminder.title,
           scheduledAt: scheduledAt,
         );
