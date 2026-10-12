@@ -1,3 +1,11 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 (global date/time implementation lane)
+
+- **PR #2633** [global inline date/time label](https://github.com/mobinpda-lab/Arvin-clean/pull/2633) is OPEN/DRAFT at head `13a2398d42c42630855089faf8c24f040bec3720`. Reusable widget `lib/widgets/arvin_date_time_label.dart` measures date/time at the active text scale and RTL direction, uses one row when it fits and an explicit stacked fallback otherwise. Initial adoption: Task Timeline, FollowUp Office primary timestamp and Task Detail due/history/next-action/reminder labels. Widget tests cover wide RTL row and narrow/high-scale fallback. Build [38234432045](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234432045) was queued at the last poll; Device Smoke [38234432004](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234432004) was skipped because the PR is draft. This is a partial rollout, not global completion. Calendar rows, Quick Add/full form, Reports, Notebook, remaining task lists and visual acceptance remain open.
+- **PR #2631** is OPEN/unmerged at head `e815a8f1daa312da7bf6bf1188cf94a3b541e380`, after correcting test fixtures to configure independent reminder timestamps. Fresh Build [38234134184](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134184), Device Smoke [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195), and Calendar Provider Acceptance [38234134120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134120) were still running/queued at the last poll; no success conclusion yet.
+- Keep release **NO-GO**. No emulator run substitutes for physical-device Calendar same-event/no-duplicate acceptance, real file-provider Backup/Restore and Calendar-link integrity, installed-app Golden Flow, Persian RTL/compact-screen visual review or explicit owner approval.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (after PR #2631 fixture correction)
 
 This checkpoint supersedes conflicting older status statements below. Recheck exact-head CI before merge/release decisions.
