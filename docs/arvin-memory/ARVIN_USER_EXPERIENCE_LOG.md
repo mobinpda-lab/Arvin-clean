@@ -1,3 +1,12 @@
+# ANTI-FORGET UX ACCEPTANCE ITEMS — 2026-10-12
+
+No new physical-device installation or owner test session was provided in this audit; do not fabricate version/device/results. The owner-visible requirements that still need visual or installed-device evidence are indexed in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md): Report Filter reference #2623; Quick Add/full Task form reference #2624; compact Home/Calendar and remaining task surfaces; global inline date/time with accessible fallback; Calendar icon/color distinctions; Persian RTL/Jalali rendering; real Calendar provider duplicate/update behavior; real backup/restore and restored links.
+
+When an owner tests a build, record APK/version, device model, Android version, exact steps, expected vs actual, screenshot/log, severity, fix commit and retest result. Emulator CI is not physical-device acceptance.
+
+
+## Anti-forget ledger requirement
+The owner requirements across the 2026-10-12 conversation are enumerated in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Read that checklist before further work; do not treat a PR, documentation record or in-progress workflow as completion. Preserve all checklist items and update their evidence/status only after exact-head verification.
 # Arvin User Experience Log
 
 ## 2026-10-09 — Calendar task actions reported missing

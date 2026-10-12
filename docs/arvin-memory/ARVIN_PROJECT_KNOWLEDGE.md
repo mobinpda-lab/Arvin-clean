@@ -1,3 +1,17 @@
+# CROSS-CONVERSATION KNOWLEDGE PRESERVATION — 2026-10-12
+
+The complete requirement matrix is in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). It captures owner requirements that can be lost across branches: origin-aware calendar sync, duplicate-safe manual actions, independent FollowUp reminders, lawful icons/colors, global inline date/time, compact cards on all surfaces, approved Report Filter and Task Form references, Repeat Tracking Level, cleanup boundaries and release evidence.
+
+Important implementation distinctions:
+- Issue #2635 is the requirement; PR #2636 is implementation in progress, not proof of release behavior. PR #2631 is the independent-reminder projection/stale-event dependency; validate both on exact heads and test backup/restore.
+- PR #2633 is a staged shared date/time rollout, not global completion. PR #2627 is compact Home/Calendar implementation, not all-surface completion.
+- Global Auto-sync owner rule is broader than legacy per-source switches; compatibility must be retained while switches must not silently suppress eligible Arvin-owned events.
+- Report Filter and Task Form screenshots are requirements captured in #2623/#2624; compare real UI to references. No screenshot reference means acceptance has not been proven.
+- Keep Task as the single source of truth; no duplicate Task/storage; Repeat does not copy root Tasks; Category=Group conceptually, with no fourth Group entity; preserve root Task.description guard until note-contract history is reconciled.
+
+
+## Anti-forget ledger requirement
+The owner requirements across the 2026-10-12 conversation are enumerated in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Read that checklist before further work; do not treat a PR, documentation record or in-progress workflow as completion. Preserve all checklist items and update their evidence/status only after exact-head verification.
 # Arvin Project Knowledge
 
 Updated: 2026-10-11

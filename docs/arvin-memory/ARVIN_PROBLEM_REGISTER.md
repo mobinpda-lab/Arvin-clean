@@ -1,3 +1,28 @@
+# LIVE TEST FAILURE — PR #2636 — 2026-10-12
+
+- Prior exact-head Build #38238251976 failed several shards. Root causes: 1px vertical overflow in compact Calendar day cells after adding 4px origin dots; FollowUp lost «انجام شد» because `followup:` was misclassified as Task-owned; an old icon assertion expected pre-contract icons.
+- Correction on PR #2636 head `0b010e105c9d2fbb3279b58795bd42f4340f6b1d`: dots 3px; FollowUp action classification restored; icon assertion updated to checklist/phone icons.
+- New Build #38239373451, Calendar Provider Acceptance #38239373403 and Device Smoke #38239373435 were pending at last poll. Status remains OPEN until exact-head runs finish and failures are fixed.
+- Full checklist: [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md).
+
+---
+
+# LIVE ANTI-FORGET PROBLEM REGISTER ADDENDUM — 2026-10-12
+
+- **P0 Calendar sync/duplicate:** owner contract Issue #2635; implementation PR #2636 is still awaiting exact-head Build/provider/device-smoke conclusions. Main still has legacy per-source gating. Imported phone events must never echo; manual duplicate registration must warn and offer existing event; no title/date matching.
+- **P0 FollowUp projection:** PR #2631 fixes history-only FollowUps appearing in Calendar and stale linked events after reminder removal. Build and provider acceptance passed on its exact head, but Device Smoke was cancelled; acceptance remains incomplete.
+- **P0 release:** physical-device provider update/no-duplicate, real Android file-provider Backup/Restore and restored-link integrity, installed golden flow, RTL/compact visual review and owner approval remain open; release NO-GO.
+- **P1 global date/time:** PR #2633 staged rollout only; exact-head Build pending at last poll; earlier SHA failure tracked by #2634. Complete rollout and tests across all relevant surfaces.
+- **P1 compact density:** PR #2627 only covers Home/Calendar; Reports, Next Action, Notebook, search/results and lists remain to be reviewed/implemented; no physical visual acceptance.
+- **P1 owner reference screens:** #2623 Report Filter and #2624 Quick Add/full form are registered design targets, not proof of implementation.
+- **P1 Repeat Tracking Level:** #2605 accepted direction; end-to-end form/Home/report/history/backup validation remains open.
+- **P1 cleanup:** #2619 requires current-base reconciliation and path-by-path review; preserve canonical SAF backup and data semantics.
+
+The complete checklist is in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Do not close a problem because a PR exists.
+
+
+## Anti-forget ledger requirement
+The owner requirements across the 2026-10-12 conversation are enumerated in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Read that checklist before further work; do not treat a PR, documentation record or in-progress workflow as completion. Preserve all checklist items and update their evidence/status only after exact-head verification.
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
