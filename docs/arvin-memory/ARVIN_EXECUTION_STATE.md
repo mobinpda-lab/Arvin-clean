@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 (after PR #2631 fixture correction)
+
+This checkpoint supersedes conflicting older status statements below. Recheck exact-head CI before merge/release decisions.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main`; current verified main checkpoint `326afaa276b04650a86a811b18560eb4e20ed5cd`.
+- **PR #2631 — FollowUp reminder-gated Calendar projection:** OPEN, unmerged, head `e815a8f1daa312da7bf6bf1188cf94a3b541e380`. Implementation now projects only FollowUps with explicit `reminderDate`, uses the reminder timestamp, refuses to resolve removed reminder targets, and plans deletion of stale linked events for removed reminders on active Tasks while preserving trashed-Task links under the existing delete policy.
+- **PR #2631 validation failure diagnosis:** prior exact-head Build `38233403829` failed because `test/canonical_calendar_launcher_test.dart` conflict/reschedule fixtures relied on FollowUp history without independent reminders. Those fixtures no longer generated Calendar conflicts under the intended owner contract. Updated all conflict candidates to explicitly set `reminderDate: when`; this preserves the scenario without weakening the product rule. Failure diagnosis and correction recorded on [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) (comment [6122073164](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6122073164)).
+- **Fresh exact-head CI for `e815a8f1daa312da7bf6bf1188cf94a3b541e380`:** Build run [38234134184](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134184), Device Smoke [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195), and Calendar Provider Acceptance [38234134120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134120) were queued/pending at checkpoint. No results can be inferred from prior SHA runs. Keep PR unmerged until Build, all six smoke lanes and Calendar acceptance finish successfully.
+- **Global date/time row rule:** owner requires date and time to remain on the same horizontal row wherever they appear together across Home, Calendar, forms, filters, Reports and task rows, using reusable layout, RTL/Jalali legibility, narrow-screen handling and accessible font scaling. If one row cannot fit, use an explicit tested graceful fallback; do not simply shrink text. This remains an implementation/visual-test work item, not complete.
+- **PR #2630:** this documentation branch itself must be validated at its resulting exact head after this checkpoint update. Do not treat its earlier workflow results as validating the new commit.
+- **Release remains NO-GO.** Real-device same-event Calendar update/no-duplicates, Android file-provider Backup/Restore with Calendar-link integrity, installed-device Golden Flow, Persian RTL/compact-screen visual acceptance and explicit owner approval remain open.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (post-PR #2626 merge and latest CI poll)
 
 This section supersedes any older status statement below where it conflicts. Historical material is retained for audit. Refresh GitHub before each subsequent write or release decision.
