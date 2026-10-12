@@ -84,3 +84,9 @@ This is the durable checklist of material owner requirements raised across the c
 - [ ] Link this ledger from execution state; record every material owner requirement, decision, failure, validation and next action in GitHub.
 - [ ] Re-fetch all open PRs, issue links, branch heads and workflow conclusions on each continuation. Historical SHA/run entries are not current evidence.
 - [ ] Do not claim DONE without code + tests + exact-head Build + applicable validation + evidence.
+
+
+## Live validation correction — 2026-10-12
+- PR #2636 exact head `0b010e105c9d2fbb3279b58795bd42f4340f6b1d`: Build [38239373451](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373451), Calendar Provider Acceptance [38239373403](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373403), Device Smoke [38239373435](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373435) were queued/pending at last poll. No pass claimed.
+- Previous Build [38238251976](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38238251976) FAILED. Logs showed 4px origin dots caused repeated 1px overflow in fixed-height week/month cells; classifying `followup:<task>:<id>` as Task-owned hid «انجام شد». Fixed: dots 3px; `followup:` removed from Task-owned classification; old icon test updated to checklist/phone icons.
+- Re-poll exact-head runs; do not mark Calendar UX or release gate DONE until tests/build/smoke/provider checks pass and physical-device acceptance exists.
