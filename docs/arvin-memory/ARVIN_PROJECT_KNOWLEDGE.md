@@ -68,3 +68,29 @@ Green CI and emulator tests are necessary but insufficient. Release evidence mus
 
 ## Live checkpoint 2026-10-12
 Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanup PR #2613 is merged. Exact-main Build #38178428086 and Device Smoke #38178428043 have stale/incomplete status and are not accepted as passing. Release remains blocked by physical-device Calendar, Backup/Restore, golden-flow and owner-approval gates. Read the live `ARVIN_EXECUTION_STATE.md` before acting; historical SHA/run notes above are not current truth.
+
+
+
+## AUTHORITATIVE LIVE CHECKPOINT — 2026-10-12 — PR #2647 merged; exact-head Build + Device Smoke green
+
+This entry supersedes older status wording where it conflicts. Older entries remain historical audit records.
+
+- **Implementation merged:** PR [#2647](https://github.com/mobinpda-lab/Arvin-clean/pull/2647) merged by squash at commit [18117aea2fa07b5a9a02e6021f41ff4faae120cc](https://github.com/mobinpda-lab/Arvin-clean/commit/18117aea2fa07b5a9a02e6021f41ff4faae120cc). Tested PR head: 7f44964b4ce6eab005d756a564dc912e40c70bb3.
+- **Build evidence:** [Run 38291907900](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38291907900) completed SUCCESS on the exact PR head: Analyze, Android V2 audit, test shards 0–5, Debug APK, Release APK and APK verification passed.
+- **Device Smoke evidence:** [Run 38292607493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38292607493) completed SUCCESS on the same exact PR head. All six lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore. These are Android emulator/CI results, not physical-device acceptance.
+- **Implemented:** Full Task Form no longer invents a follow-up timestamp when enabling the follow-up flag and preserves an existing legacy Task.followUpDate; Quick Entry now has compact «دارای پیگیری» and «دارای چک‌لیست» controls with Task-owned Roll Boxes. nextFollowUp and reminderDate remain independent per merged owner decision [PR #2643](https://github.com/mobinpda-lab/Arvin-clean/pull/2643).
+- **Exact evidence boundary:** the green runs validate the PR head, not the resulting merge commit. The latest workflow lookup did not yet return post-merge Build/Device Smoke runs for merge commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; do not describe post-merge mainline CI as green until that exact commit is checked.
+- **Remaining blockers:** PR [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) remains OPEN and reports mergeable=false; do not merge it until nextFollowUp/reminderDate normalization and clearing paths are reconciled to the owner contract and legacy/JSON/persistence/backup round-trip tests are added. Physical Android device Calendar CREATE-then-UPDATE/no-duplicate proof, real file-provider Backup/Restore with Calendar-link integrity, installed-app golden flow, Persian RTL/compact-screen visual acceptance, and explicit owner release approval remain unverified.
+- **Release: NO-GO.** Passing emulator CI and merging PR #2647 do not constitute final release approval.
+- **Next action:** verify post-merge CI for commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; continue safe compatibility work without merging #2636; preserve issue #2102 as the release gate until all outstanding evidence is collected.
+
+
+### Engineering learning — Task follow-up and Quick Entry
+- A boolean followUpEnabled is not a timestamp: activating it must not create a current-time followUpDate.
+- Preserve legacy Task date values when removing obsolete UI; UI simplification must not silently clear stored data.
+- Do not copy the latest FollowUp history timestamp into Task.followUpDate; history time, next action (nextFollowUp), and notification (reminderDate) are separate concepts.
+- Quick Entry checklist and follow-up entry points must attach to the canonical Task model; do not introduce a second checklist/follow-up store.
+- In Flutter dialogs, avoid disposing a TextEditingController while the dialog's exit animation may still reference it; use a local value captured by onChanged/submit when a controller is unnecessary.
+- Roll Box item collections require ArvinRollItem<T> wrappers rather than raw strings; keep tests exercising the actual component contract.
+- Green CI on a PR SHA does not prove the resulting merge SHA. Record the exact tested SHA and separately verify post-merge workflows.
+- Automated Android emulator Backup/Restore success does not establish real-device file-provider behavior or external Calendar-link integrity.
