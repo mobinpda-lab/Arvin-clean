@@ -1,3 +1,11 @@
+
+
+## 2026-10-12 — Week-view calendar marker overflow (PR #2636)
+- **Severity:** P1 UI regression / CI blocker; no data-loss evidence.
+- **Root cause:** Two Home calendar/navigation tests failed because week-view day cells overflowed vertically by 3 px after adding origin dots.
+- **Repair:** Commit 205267988aa059ecad99a8b6cbe380f50824d2d2 raises the week-cell height from 58 to 61 px.
+- **Validation status:** Analyze passed on Build run 38240441757; test shards and APK jobs were still in progress at last poll. Calendar Provider Acceptance run 38240441696 was running. Device Smoke run 38240441866 had two lanes running and four queued.
+- **Closure criterion:** Exact-head Build green, provider acceptance green, all six smoke lanes green, then physical-device/RTL and backup/restore acceptance evidence. Until then the issue is not closed and release remains NO-GO.
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
