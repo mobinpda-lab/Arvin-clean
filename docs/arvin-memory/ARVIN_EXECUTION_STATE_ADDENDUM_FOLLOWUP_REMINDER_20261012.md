@@ -31,3 +31,11 @@ Verified PR base SHA: `18117aea2fa07b5a9a02e6021f41ff4faae120cc`
 
 ## Next action
 Inspect the existing calendar provider and SQL/JSON/backup tests, then obtain the two owner decisions above before implementation. Do not mark the feature complete or merge this docs PR without exact-head validation.
+
+## Latest live verification — 2026-10-12
+- PR #2650 remains OPEN and unmerged; current head is `a7cc6719d17ca7d90b0fef42c1176000f72dff60`, base is `18117aea2fa07b5a9a02e6021f41ff4faae120cc`, and GitHub currently reports `mergeable=true`. This does not mean checks passed or that the PR should merge.
+- Exact-head workflows when checked: `ARVIN Orchestrator` SUCCESS; `G1 lock sync` SUCCESS; `ARVIN Orchestrator PR Wakeup` SUCCESS; `ARVIN Production Loop` SUCCESS; `Arvin Build` IN_PROGRESS; `Arvin Device Smoke` QUEUED; `Arvin Parallel Wave` SKIPPED. No exact-head Build/Device Smoke success is claimed.
+- Existing source tests include `test/follow_up_calendar_projection_test.dart`, with coverage for a date-only Task due date. Search did not establish equivalent tests for date-only FollowUp reminders or the one-time creation bridge.
+- The projection sends `CalendarReminder.isAllDay` for date-only Task due dates, while FollowUp reminder projection currently passes only `date: reminderDate` and omits `isAllDay`. `SystemCalendarBridge` already supports all-day events, so the gap is in source semantics/projection and safe persisted representation, not proof that the platform has no all-day capability.
+- The default-branch execution state has newer live status than the PR base; this PR is based on `18117aea...` and should not be assumed to include later main changes. Rebase/cherry-pick only after checking changed files and exact branch ancestry; do not casually update its base while checks run.
+- No code change was made and no application test/build was run by this assistant. Next permitted action is inspect existing model/persistence/backup/provider tests and prepare a compatibility-safe design; implementation of the unresolved pre-existing-reminder behavior remains blocked on owner decision.
