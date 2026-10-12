@@ -761,3 +761,15 @@ This entry supersedes the immediately preceding Report Center next-action note w
 **Counting rule:** only a completed job with conclusion `success` is a pass. `cancelled`, `in_progress`, missing artifacts, and a successful Analyze job alone are not test-suite passes. Previous wording that described Build or Smoke lanes as still running/queued is superseded by this observed snapshot.
 
 **Next action:** obtain fresh Build, Calendar Provider Acceptance, and all six Device Smoke results for the current PR head `dbe0524494182abd013fd16a6c04f9f82f75948a`; inspect logs for any failure. Do not infer a product regression from cancellation alone. Physical-device Calendar identity/update/no-duplicate, real Backup/Restore round-trip and link integrity, Persian RTL/compact-screen acceptance, and explicit owner approval remain separate release gates. **Merge/release: NO-GO.**
+
+
+## Authoritative continuation — exact-head CI checkpoint — 2026-10-12
+
+- **Current PR/head verified:** PR #2636 remains open and unmerged; head at this checkpoint is `aad552088e6cbb55a548c47fbfbdbe4c99a33796`.
+- **Build run [38240971924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971924):** Analyze = success; test-0 through test-5, Debug APK and Release APK = in progress at poll. Build acceptance is **PENDING**, not passed.
+- **Calendar Provider run [38240971994](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971994):** android-calendar-provider = in progress. **PENDING**, not passed.
+- **Device Smoke run [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879):** Home and Quick Capture = in progress; SQL migration, SQL persistence, People and Backup/Restore = queued. No lane has yet been accepted as passed.
+- Orchestrator, Production Loop and G1 lock sync completed successfully, but these coordination checks do not substitute for Build, Calendar Provider or Device Smoke.
+- **Completed this continuation:** read this execution state, verify PR #2636 and owner contract Issue #2635, poll job-level exact-head status, and record the checkpoint in GitHub memory/PR.
+- **Next action:** poll the three runs after their jobs reach terminal states; fetch logs for every failed job; repair without weakening tests; then run/collect physical-device and owner acceptance evidence.
+- **Release:** NO-GO. Physical writable-calendar same-event update/no-duplicate, backup/restore round-trip and external-link integrity, Persian RTL/compact-screen review and explicit owner approval remain open.

@@ -126,3 +126,12 @@
 - **Reason:** Keep GitHub as project brain while preserving an auditable review path.
 - **Impact:** No application code, schema, migration, backup format or release artifact changed.
 - **Status:** In progress; PR and exact-head validation still required.
+
+
+## 2026-10-12 — exact-head CI status classification
+
+- **Problem:** Earlier validation runs were cancelled and did not prove acceptance; documentation commits advanced the PR head.
+- **Decision:** Evaluate only fresh workflow jobs associated with the currently verified PR head and classify each job explicitly as success, in progress, queued, cancelled, or failure.
+- **Reason:** Prevent stale-SHA evidence, orchestration success, or a partial Analyze pass from being misrepresented as a full product pass.
+- **Impact:** No application code, data model, migration, backup format or product behavior changed in this checkpoint.
+- **Status:** Applied to PR #2636 and the execution/evidence/problem memory; automated and physical-device acceptance remain pending.

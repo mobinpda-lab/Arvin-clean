@@ -207,3 +207,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **P1:** Restore canonical memory package to main; drafts #2600/#2608 are stale/overlapping.
 - **P1:** Reconcile #2591/#2595/#2602/#2607 shared Task Editor, Quick Capture, Report Center and time-picker paths before integration.
 - **P1:** Preserve the root Task.description decision; do not add Task.note or alter migration/backup semantics without owner approval.
+
+
+## Live CI checkpoint — 2026-10-12
+
+- **P0 validation gate:** fresh exact-head Build run 38240971924 has Analyze success but six test shards and Debug/Release APK jobs still in progress at last poll; no overall pass established.
+- **P0 validation gate:** Calendar Provider run 38240971994 remains in progress.
+- **P0 validation gate:** Device Smoke run 38240971879 has Home and Quick Capture in progress, with SQL migration, SQL persistence, People and Backup/Restore queued. No lane is accepted as pass yet.
+- Previous cancelled runs are superseded for current-head acceptance by these fresh runs; do not call them a current code failure, and do not count them as passes.
+- Physical-device calendar identity/update/no-duplicate, real provider Backup/Restore and external-link integrity remain unproven. Release stays blocked.

@@ -318,3 +318,19 @@ Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/
 | Device Smoke — Backup/Restore | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled; no artifact confirmed | **INCOMPLETE / NO PASS** |
 
 **Head integrity:** current PR head at checkpoint = `dbe0524494182abd013fd16a6c04f9f82f75948a`; these runs were started on code commit `205267988aa059ecad99a8b6cbe380f50824d2d2`. Treat them as stale for exact-head acceptance. A pass requires terminal success on the current head; canceled/in-progress jobs do not count. Physical-device checks and owner sign-off remain unverified. Release gate = **NO-GO**.
+
+
+## Exact-head CI checkpoint — 2026-10-12
+
+| Gate | Run | Job-level result at poll | Status |
+|---|---|---|---|
+| Build | [38240971924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971924) | Analyze success; six test shards and Debug/Release APK jobs in progress | **PENDING — not pass** |
+| Calendar Provider Acceptance | [38240971994](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971994) | Provider job in progress | **PENDING — not pass** |
+| Device Smoke — Home | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | In progress | **PENDING — not pass** |
+| Device Smoke — Quick Capture | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | In progress | **PENDING — not pass** |
+| Device Smoke — SQL migration | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — SQL persistence | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — People | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — Backup/Restore | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+
+**Head:** `aad552088e6cbb55a548c47fbfbdbe4c99a33796`. Count only completed `success` as pass. Release remains **NO-GO** until exact-head automated jobs and separate physical-device/owner gates are evidenced.
