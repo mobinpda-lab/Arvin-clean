@@ -1,5 +1,20 @@
 # Arvin Decision Log
 
+## 2026-10-12 — Global inline date/time typography
+- **Problem:** date/calendar and time values wrap onto separate rows in parts of the UI, creating avoidable height and inconsistent hierarchy.
+- **Decision:** wherever date and time are shown together, keep them on one horizontal row when supported. Prefer a shared reusable style/component; use flexible constraints, ellipsis or compact formatting only as needed.
+- **Acceptance:** test Persian/Jalali labels, RTL, narrow Android screens and larger accessibility font sizes. Preserve legibility and touch targets; where one row cannot fit, implement and test an explicit graceful fallback rather than accidental wrapping.
+- **Impact:** presentation-only. No Task data, recurrence, Calendar identity/sync, persistence or backup-format changes.
+- **Status:** requirement recorded; implementation and visual acceptance pending.
+
+## 2026-10-12 — FollowUp Calendar visibility requires an independent reminder
+- **Problem:** a FollowUp must not appear in Calendar merely because the FollowUp or its parent Task exists or has a date/time.
+- **Decision:** project a FollowUp into Calendar only when that FollowUp has its own explicitly configured independent reminder. The reminder's scheduled date/time is authoritative. Editing or removing the reminder must update or remove the same linked event, without duplicates or stale entries.
+- **Architecture:** reuse existing FollowUp/reminder/Calendar projection, persistence and backup/restore paths. No parallel entity, store, schema or sync identity. Preserve Task as source of truth and identify events by stable Task/event IDs, never title/date.
+- **Required validation:** no reminder → no Calendar item; reminder → Calendar item at reminder time; edit/remove → update/remove same event; persistence and backup/restore retain correct behavior.
+- **Impact:** existing projection behavior and regression tests only unless inspection proves a migration is required; if data-contract/migration changes are required, stop and request owner approval.
+- **Status:** owner requirement recorded; implementation and tests pending.
+
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
 - Finding: both Home restore and BackupPage merged Category/Tag catalogs after Task/Project/Calendar/settings writes, but rollback omitted catalog cleanup. A failure injected after catalog merge could leave incoming catalog entries behind after other stores were rolled back.
 - Decision: snapshot pre-restore Category/Tag catalogs and, on rollback, remove only incoming catalog entries that were absent from the snapshot. Restore the previous Tasks before deleting newly introduced tags so old Task-tag relations remain authoritative.
