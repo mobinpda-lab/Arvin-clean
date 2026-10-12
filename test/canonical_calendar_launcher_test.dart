@@ -154,14 +154,14 @@ void main() {
         id: 'conflict-a',
         title: 'جلسه مشتری',
         followUps: [
-          FollowUp(id: 'follow-a', dateTime: when, note: 'پیگیری قرارداد'),
+          FollowUp(id: 'follow-a', dateTime: when, reminderDate: when, note: 'پیگیری قرارداد'),
         ],
       ),
       Task(
         id: 'conflict-b',
         title: 'جلسه داخلی',
         followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, note: 'هماهنگی تیم'),
+          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
         ],
       ),
     ];
@@ -203,6 +203,7 @@ void main() {
           FollowUp(
             id: 'follow-a',
             dateTime: when,
+            reminderDate: when,
             note: 'پیگیری قرارداد',
             result: 'منتظر تأیید',
             nextFollowUp: DateTime(2026, 8, 29, 9),
