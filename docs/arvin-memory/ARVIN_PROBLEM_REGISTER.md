@@ -1,3 +1,15 @@
+## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12
+
+This section supersedes older checkpoint status statements below where they conflict. Older entries remain historical context.
+
+- **P0 / Release gate:** main Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) passed on exact main SHA `cea76673d871ce52b84dacf69f355c4282802baa`; main Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) passed all six emulator scenarios. This closes automated CI evidence only.
+- **P0 / Exact-head validation:** PR #2614 is OPEN / DRAFT at head `ee91725a6ba90cb537335e09f3c6d7f2c2800cf2`; Build [38199794481](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199794481) was still running at the latest check (test shard 2 and Debug/Release APK jobs pending). Do not merge based on stale-head results.
+- **P0 / Physical-device acceptance:** Calendar same-event update/no-duplicate behavior; real Android system-file-provider Backup/Restore, rollback and restored Calendar-link integrity remain NOT VERIFIED.
+- **P0 / Product handover:** installed-device golden flow, Persian RTL/compact-screen visual acceptance and explicit owner release approval remain outstanding. Keep release gate [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN; no release authorized.
+- **P1 / Integration:** reconcile overlapping implementation PRs #2591, #2595, #2602 and #2607 into a single tested integration head. Preserve canonical root `Task.description`; do not introduce `Task.note` or alter schema/migration/backup semantics without an explicit owner decision.
+
+---
+
 # Arvin Problem Register
 
 Updated: 2026-10-11 from live GitHub review.
