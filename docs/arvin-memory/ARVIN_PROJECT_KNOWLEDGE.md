@@ -1,3 +1,15 @@
+# CURRENT OWNER CLARIFICATION — 2026-10-13 (multiple reminders)
+
+- One Task may have multiple independent reminders, separate from recorded FollowUp history and `nextFollowUp`.
+- Setting `nextFollowUp` does not create a reminder automatically. Reminder creation from next follow-up is opt-in; copied title/date/time are editable defaults only.
+- New Task reminders are stored inside canonical Task JSON as a stable-ID collection. Do not create parallel Task storage or a second notification scheduler.
+- Each reminder's title/date/time and all-day state are independent. Calendar identity is stable-ID based, not title/date based. Default titles use a per-Task monotonic number; numbers are never reused or renumbered after deletion.
+- Legacy `Task.reminderDate` and `FollowUp.reminderDate` remain preserved and semantically distinct. Never silently migrate, overwrite, duplicate, or infer all-day from midnight.
+- All-day new reminders appear as all-day Calendar events; local notification delivery is scheduled for 09:00 local time on that date.
+- Implementation branch: `feat/task-multiple-reminders-editor-20261013`; detailed design: `docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md`; Issue #2654. The latest owner-confirmed opt-in rule supersedes any older conflicting notes about automatic creation.
+
+---
+
 # Arvin Project Knowledge
 
 Updated: 2026-10-11
