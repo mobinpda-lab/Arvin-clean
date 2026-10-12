@@ -111,6 +111,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _initialReminderDateTime = task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
+    if (_nextReminderSequence < 1) _nextReminderSequence = 1;
     if (_taskReminders.isNotEmpty) {
       final highest = _taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
       if (_nextReminderSequence <= highest) _nextReminderSequence = highest + 1;
