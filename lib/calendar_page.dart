@@ -1032,7 +1032,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  subtitle.replaceAll('\\n', ' • '),
+                  subtitle.replaceAll('\n', ' • '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 11),
