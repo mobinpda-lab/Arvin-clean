@@ -105,3 +105,10 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Changes/deletion to Next Follow-up never move/delete reminders. Reminder edits/deletion never change Next Follow-up. Reminder may remain without Next Follow-up.
 - Both Next Follow-up and reminder independently support date-only/all-day or date/time; preserve legacy midnight values without guessing.
 - Code implementation and exact-head tests/build/calendar/persistence/backup validation are not established by this decision record.
+
+
+## Owner-confirmed cardinality — Follow-up and Reminder (2026-10-13)
+- A single canonical Task may have multiple recorded Follow-up entries and multiple independent reminders; there is no one-per-Task restriction.
+- Recorded Follow-up entries are history records. Next Follow-up is the distinct next-action value. Reminders are independently editable/schedulable entries.
+- Editing or deleting one reminder must not affect other reminders or Follow-up values/history. Editing/deleting a Follow-up record must not affect reminders. Reminder creation remains user-controlled, not automatic.
+- All entries must persist through the canonical Task model, SQL JSON envelope and backup/restore, and retain stable identities for Calendar projection/sync. Do not add a parallel store.
