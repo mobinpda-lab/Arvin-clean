@@ -13,6 +13,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/arvin_date_time_label.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
@@ -258,11 +259,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               const Icon(Icons.schedule_outlined, size: 18, color: _muted),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(
-                  _task.dueDate == null ? 'بدون موعد انجام' : _dateTime(_task.dueDate!),
-                  key: const ValueKey('task-detail-due-date'),
-                  style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
-                ),
+                child: _task.dueDate == null
+                    ? const Text(
+                        'بدون موعد انجام',
+                        key: ValueKey('task-detail-due-date'),
+                        style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
+                      )
+                    : ArvinDateTimeLabel(
+                        key: const ValueKey('task-detail-due-date'),
+                        date: _date(_task.dueDate!),
+                        time: _time(_task.dueDate!),
+                        style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
               ),
               if (_task.reminderDate != null)
                 const Icon(Icons.notifications_none_outlined, size: 18, color: _muted),
@@ -354,7 +362,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 5),
-            Text(_dateTime(latest.dateTime), style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            ArvinDateTimeLabel(
+              date: _date(latest.dateTime),
+              time: _time(latest.dateTime),
+              style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 7),
             Row(
               children: [
@@ -435,7 +447,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 3),
-                Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
+                ArvinDateTimeLabel(
+                  date: _date(followUp.dateTime),
+                  time: _time(followUp.dateTime),
+                  style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700),
+                ),
                 if (result != null && !isLatest) ...[
                   const SizedBox(height: 5),
                   Text(result, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)),
@@ -485,7 +501,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               children: [
                 const Text('اقدام بعدی', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
-                Text(_dateTime(next), style: const TextStyle(fontWeight: FontWeight.w800)),
+                ArvinDateTimeLabel(
+                  date: _date(next),
+                  time: _time(next),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
               ],
             ),
           ),
@@ -600,7 +620,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     const SizedBox(width: 9),
                     const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
                     const Spacer(),
-                    Text(_dateTime(_task.reminderDate!), style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Flexible(
+                      child: ArvinDateTimeLabel(
+                        date: _date(_task.reminderDate!),
+                        time: _time(_task.reminderDate!),
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
                   ],
                 ),
               ),
