@@ -1,3 +1,13 @@
+## 2026-10-12 — Origin-aware phone Calendar and unified FollowUp reminder
+
+- **Problem:** a phone-originated event can be imported as a Task and then echoed back into the same phone calendar; manual import also needs to detect a provider event already linked to an Arvin-created Task. FollowUp editor exposes two date concepts, «پیگیری بعدی» and «یادآور پیگیری مستقل», while only the latter should project to Calendar.
+- **Decision:** provider identity is the normalized `calendarId + eventId`; never match synchronization identity by title/date. Imported links retain `imported-task:<Task ID>` metadata and are excluded from outbound sync. A second manual import of an already-linked provider event must warn and offer the existing Task.
+- **FollowUp UX/data compatibility:** one UI control labelled «یادآور پیگیری مستقل», helper «این پیگیری در تقویم گوشی ثبت شود». On legacy read, explicit `reminderDate` wins; otherwise map `nextFollowUp` into the unified reminder. On new save, persist to `reminderDate` and clear `nextFollowUp`; this is an explicit compatibility mapping and requires persistence/backup round-trip tests. FollowUp is eligible for Calendar only when independent reminder exists (projection fix tracked by PR #2631).
+- **Visual identity:** Arvin Task purple `#4A4CAB` + checklist icon; independent FollowUp amber `#B45309` + notification icon; imported phone event teal `#0F766E` + phone icon. Calendar week/month cells show matching origin dots; icon and label remain available so color is not the sole signal.
+- **Status:** implementation started on branch `feat/calendar-origin-followup-visual-contract-20261012`; tests and exact-head CI are pending. No release gate closed.
+
+---
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
