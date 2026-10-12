@@ -313,7 +313,7 @@ class _CalendarIntegrationSettingsPageState
                     key: const ValueKey('calendar-auto-sync'),
                     title: 'ثبت خودکار کارها در تقویم مقصد',
                     subtitle:
-                        'هر Task دارای موعد/یادآور مجاز، با تقویم مقصد انتخاب‌شده همگام می‌شود.',
+                        'همه موارد متعلق به آروین در تقویم گوشی ثبت می‌شوند؛ موارد واردشده از گوشی دوباره صادر نمی‌شوند.',
                     value: current.autoSync,
                     update: (value) => current.copyWith(autoSync: value),
                   ),
