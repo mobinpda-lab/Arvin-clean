@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-12 — exact-head automated gates green
+
+This checkpoint supersedes prior status wording where it conflicts. Verified against the live GitHub Actions job results and PR metadata before this documentation update.
+
+- Repository: `mobinpda-lab/Arvin-clean`; working branch: `feat/calendar-origin-followup-visual-contract-20261012`.
+- PR [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) is OPEN and unmerged. Verified code/documentation head before this checkpoint: `bad9c12397e7ac40a1fb6cedf6c513d26226011f`.
+- Build [38244323450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323450): Analyze, test shards 0–5, Debug APK and Release APK all completed `success`.
+- Calendar Provider Acceptance [38244323503](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323503): `android-calendar-provider` completed `success`.
+- Device Smoke [38244323304](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323304): all six lanes completed `success` — Home, Quick Capture, SQL Persistence, SQL Migration, People and Backup/Restore. Overall run completed `success`.
+- These are automated CI/emulator results for the verified SHA above. They do not establish real-phone acceptance, actual writable system-calendar CREATE-then-UPDATE/no-duplicate behavior, imported-event no-echo on device, real file-provider Backup/Restore with external Calendar-link integrity, or Persian RTL/compact-screen visual acceptance.
+- Dependency PR [#2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631) remains OPEN and unmerged at `e815a8f1daa312da7bf6bf1188cf94a3b541e380`; its targeted People rerun succeeded and its automated workflow checks were previously verified green.
+- **Completed:** exact-head Build/Quality, Calendar Provider Acceptance and all six Device Smoke lanes are green on `bad9c123...`; latest execution evidence is linked above.
+- **In progress / blocked:** collect physical-device and visual acceptance evidence; confirm product-owner approval. Do not merge or release automatically.
+- **Next action:** this memory-only commit will trigger fresh CI for the new exact head. Poll those runs to terminal state before claiming the new head validated; do not duplicate runs. Keep release status **NO-GO** until all device/product gates and explicit owner approval are evidenced.
+- Architecture guardrails unchanged: Task is the sole source of truth; Calendar is a projection; stable Task ID + External Event ID identity; no duplicate event creation; no repeat-created root Task copies; preserve history and backup/link integrity.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 — PR #2636 week-view origin-marker overflow correction
 
 - **Completed:** Inspected the previous failed exact-head Build logs for run [38239373451](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373451). Root cause: the two Home calendar/navigation tests failed on a 3 px vertical overflow in the compact week-view day cell after origin dots were added.
