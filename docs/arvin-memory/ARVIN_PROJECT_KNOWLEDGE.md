@@ -96,3 +96,12 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - CalendarReminder and provider sync already support `isAllDay/allDay`; FollowUp Calendar projection currently leaves the flag at its false default.
 - Never use hour==0 as proof of all-day for FollowUp reminders. New explicit metadata is required to distinguish intentional midnight from date-only intent; old ambiguous values should remain unchanged unless a separately approved migration rule exists.
 - Existing editor does not create an initial reminder when Next Follow-up is first set, does not offer date-only selection for Next Follow-up, and does not expose clear-next in the inspected UI. Existing reminder edit/clear is already tested as independent behavior.
+
+
+## Owner-confirmed Follow-up / Reminder lifecycle (2026-10-13)
+- The reminder is a separate user-editable object/value, independent of previous and next follow-up records.
+- On first explicit Next Follow-up setting, create one initial reminder with Task title as its initial title and Next Follow-up date/time as its initial schedule. This is a one-time seed, not a live binding.
+- The user may ask for additional reminders and can independently edit reminder title/date/time. Never silently overwrite or duplicate an existing reminder.
+- Changes/deletion to Next Follow-up never move/delete reminders. Reminder edits/deletion never change Next Follow-up. Reminder may remain without Next Follow-up.
+- Both Next Follow-up and reminder independently support date-only/all-day or date/time; preserve legacy midnight values without guessing.
+- Code implementation and exact-head tests/build/calendar/persistence/backup validation are not established by this decision record.
