@@ -1,34 +1,33 @@
 # LIVE CONTINUATION OVERRIDE — 2026-10-12
 
-This is the current continuation rule for this document. Historical SHA and CI details below are audit records, not live status. Always query GitHub for the current PR head, latest-main SHA, workflow runs and check-runs before deciding to merge.
+This section is the current authoritative continuation state. Older SHA and CI details below are audit history only. Refresh live GitHub before every write or readiness decision.
 
-- Repository: `mobinpda-lab/Arvin-clean`.
-- Memory PR: [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614), intended base `main`. The required memory package is not complete on `main` until this PR is reviewed, validated against its exact current head, and merged.
-- A CI run for a previous head does not validate a later commit. Every content update changes the PR head; after this update, refresh the current PR head and wait for all required exact-head Build checks before any readiness or merge action.
-- Documentation-only Device Smoke may be skipped; use exact-main emulator evidence only for emulator claims. Never present emulator smoke as physical-device acceptance.
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
+- Memory consolidation PR [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614) was merged successfully as commit `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad`. It was documentation-only (11 files). Its exact-head Build [38200417935](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200417935) passed Analyze, all six test shards, Debug APK and Release APK. Device Smoke was skipped for docs-only changes, not passed.
+- The merge commit is the verified current `main` SHA at this checkpoint. New post-merge workflows are queued: Build [38200943394](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200943394), Device Smoke [38200943409](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200943409), and Production Orchestrator [38200944149](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200944149). Poll these exact-SHA runs before relying on post-merge validation.
 - Release remains NO-GO. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN until physical-device Calendar same-event/no-duplicate, real Android file-provider Backup/Restore and restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval are evidenced.
-- Overlapping implementation PRs #2591, #2595, #2602 and #2607 must not be merged independently. Root `Task.note` versus canonical `Task.description` remains an owner decision; no schema, backup or migration semantics change without approval.
-- Next action: refresh PR #2614 metadata and exact-head checks after the latest checkpoint commit. If any required Build job fails, diagnose it. If all pass, inspect the complete 11-file diff, mark ready for review, merge only with the exact verified head SHA, then verify the resulting `main` SHA and record it.
-
+- Overlapping implementation PRs #2591, #2595, #2602 and #2607 must not be merged independently. Reconcile them into one integrated, tested code head. Root `Task.note` versus canonical `Task.description` remains owner-decision sensitive; do not change schema, migration or backup semantics without explicit approval.
+- **Next action:** poll the three post-merge workflows for commit `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad`; record exact results. Then continue the highest-priority product acceptance blockers, starting with physical-device Calendar and Backup/Restore evidence. No release publication or Release Ready claim without owner approval.
 ---
 
 # ARVIN EXECUTION STATE — LIVE CHECKPOINT
 **Checkpoint:** 2026-10-12 (UTC)
 **Repository:** `mobinpda-lab/Arvin-clean`
 **Branch:** `main`
-**Current main SHA:** `cea76673d871ce52b84dacf69f355c4282802baa`
+**Current main SHA:** `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad`
 **Overall state:** IN PROGRESS — RELEASE BLOCKED
 
-> This live checkpoint supersedes every older status, branch SHA, “next action”, and CI state in the historical notes retained below. Recheck live GitHub before every write.
+> This live checkpoint supersedes older status, branch SHA, next-action and CI statements in historical notes. Re-query GitHub before every write.
 
-## LIVE CONTINUATION — 2026-10-12 (supersedes older checkpoint prose below)
+## LIVE CONTINUATION — 2026-10-12
 
-- Latest current branch head at this update: `ee91725a6ba90cb537335e09f3c6d7f2c2800cf2`; this document is on the documentation PR branch, not yet on `main`.
-- PR #2614 remains OPEN / DRAFT, base `main` at `cea76673d871ce52b84dacf69f355c4282802baa`. The current-head Build [38199794481](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199794481) is IN PROGRESS: Analyze and test shards 0, 1, 3, 4 and 5 have passed; test shard 2 and Debug/Release APK jobs remain in progress at the latest check. Do not merge until all required exact-head jobs complete successfully.
-- Exact-main Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) passed Analyze, six test shards and Debug/Release APK jobs on `cea76673d871ce52b84dacf69f355c4282802baa`.
-- Exact-main Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) completed successfully across all six emulator scenarios: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore. This is emulator evidence only, not physical-device acceptance.
-- Release remains NO-GO. Physical-device Calendar same-event/no-duplicate proof, real Android file-provider Backup/Restore/rollback and Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner release approval remain outstanding. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN.
-- **Next action:** finish exact-head Build verification for the latest PR head; if all required jobs pass and the 11-file documentation diff is coherent, merge only the docs-only PR using expected-head SHA. Then verify the resulting main SHA and refresh the checkpoint again. Continue to keep overlapping implementation PRs unmerged until a single integrated code head is validated.
+- **Completed:** PR [#2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614) merged with squash as `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad`. It adds the 11-file v8 project-memory package to `main`.
+- **Exact-head validation:** Build [38200417935](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200417935) passed Analyze, test shards 0–5, Debug APK and Release APK on PR head `b4a6008c4271fd00db7fbdda6b26414390bf649f`. Documentation-only Device Smoke was skipped as expected.
+- **Post-merge validation pending:** Build [38200943394](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200943394), Device Smoke [38200943409](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200943409), and Production Orchestrator [38200944149](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38200944149) were queued for merge commit `4fbd8f6d16ae1eacaa2212f3a39374f65ccec0ad` at last check. Their conclusions must be refreshed live.
+- Main baseline before memory merge: Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) and six-scenario emulator Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) passed on previous main SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Emulator evidence is not physical-device acceptance.
+- Release remains NO-GO. Outstanding evidence: physical-device Calendar update-existing/no-duplicate behavior; real Android file-provider Backup/Restore, rollback/recovery and restored Calendar-link integrity; installed-device golden flow; Persian RTL/compact-screen acceptance; explicit owner approval. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN.
+- Keep overlapping implementation PRs #2591/#2595/#2602/#2607 unmerged independently. Reconcile into one tested integration head; do not alter root Task text ownership or schema/backup/migration semantics without owner approval.
+- **Next action:** poll post-merge workflows on the exact current `main` SHA, update evidence, then continue physical-device acceptance and the unified implementation lane.
 
 ## Last completed step
 1. Read the v8 execution command and reviewed the existing memory drafts in PRs #2600 and #2608.
