@@ -1088,11 +1088,41 @@ class _HomePageState extends State<HomePage> {
     if (instanceId.isEmpty) return null;
 
     final importLinks = ExternalCalendarLinkStore();
-    if (await importLinks.hasImportedEvent(reminder.id)) {
+    final existingLink = await importLinks.findByProviderIdentity(
+      calendarId: calendarId,
+      eventId: instanceId,
+    );
+    if (existingLink != null) {
+      final linkedTaskId = existingLink.lastSyncedFingerprint
+              .startsWith('imported-task:')
+          ? existingLink.lastSyncedFingerprint
+              .substring('imported-task:'.length)
+          : calendarTaskIdForReminderId(existingLink.reminderId);
+      Task? linkedTask;
+      for (final candidate in tasks) {
+        if (candidate.id == linkedTaskId) {
+          linkedTask = candidate;
+          break;
+        }
+      }
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('این رویداد قبلاً در آروین ثبت شده است.')));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                linkedTask == null
+                    ? 'این رویداد قبلاً به آروین پیوند خورده است؛ مورد تکراری ساخته نشد.'
+                    : 'این رویداد قبلاً به کار «${linkedTask.title}» پیوند خورده است.',
+              ),
+              action: linkedTask == null
+                  ? null
+                  : SnackBarAction(
+                      label: 'مشاهده کار',
+                      onPressed: () => _openTaskDetail(linkedTask!),
+                    ),
+            ),
+          );
       }
       return null;
     }
