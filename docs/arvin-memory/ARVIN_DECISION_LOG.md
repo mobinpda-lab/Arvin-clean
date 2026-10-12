@@ -1,3 +1,15 @@
+# AUTHORITATIVE OWNER REQUIREMENTS — 2026-10-12
+
+- The complete cross-conversation acceptance checklist is [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Treat it as the index for owner requirements; preserve history and do not silently drop items.
+- Calendar decisions: Task is source of truth; calendar is projection; create once then update by stable provider identity; phone-imported items must not echo; no title/date identity; global Auto-sync covers all eligible Arvin-owned projections; manual duplicate registration must warn and offer existing item.
+- FollowUp decision: one «یادآور پیگیری مستقل» control, helper «این پیگیری در تقویم گوشی ثبت شود», only explicit independent reminder projects to Calendar; preserve legacy-field mapping and prove backup/restore.
+- Visual decisions: Task purple #4A4CAB/checklist; independent FollowUp amber #B45309/notification; phone import teal #0F766E/phone; date+time inline when feasible with explicit accessible fallback; compact cards across all task surfaces.
+- Owner-approved visual references remain Issues #2623 (Report Filter) and #2624 (Quick Add/full Task form). Repeat Tracking Level remains in #2605. Do not treat references or accepted direction as implementation proof.
+- Conflicting root Task.note/Task.description history must be reconciled explicitly before any schema/backup change; current execution guard preserves root Task.description and forbids silent data-contract changes.
+
+
+## Anti-forget ledger requirement
+The owner requirements across the 2026-10-12 conversation are enumerated in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Read that checklist before further work; do not treat a PR, documentation record or in-progress workflow as completion. Preserve all checklist items and update their evidence/status only after exact-head verification.
 # Arvin Decision Log
 
 ## 2026-10-12 — Global inline date/time typography
