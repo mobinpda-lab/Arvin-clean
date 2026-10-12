@@ -24,7 +24,7 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 - `docs/ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_FINAL_OPERATIONAL_feshordeh.md`: retained because the v48.2 transfer manifest explicitly identifies this 16,720-line document as the approved consolidated source. It is large, but size alone does not prove it is unused.
 - `docs/ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_TRANSFER_MANIFEST.md` and `...SOURCE_VERIFIED.md`: retained as provenance for the approved transfer.
 - `docs/ARVIN_UI_CANONICAL.md`: retained as the indexed canonical UI/ontology contract.
-- `docs/UI/ARVIN_UI_CANONICAL.md`: not deleted in this pass; it contains owner visual-reference requirements and may hold unique content even though exact-path searches found no inbound references. Merge its unique requirements into the canonical UI document before removing it.
+- `docs/UI/ARVIN_UI_CANONICAL.md`: its substantive visual requirements (palette, Home and Task/FollowUp reference, typography, spacing, architecture limits and acceptance criteria) were migrated into a supplemental section of `docs/ARVIN_UI_CANONICAL.md`; `docs/UI/ARVIN_UI_REFERENCE_IMAGES_CONTRACT.md` now points explicitly to the root canonical document. The nested duplicate authority file is removed.
 - `docs/AI_CONTINUATION_STATE.md`, `docs/AI_HANDOFF_CURRENT_FA.md`, `docs/PROJECT_STATUS.md`, `docs/ARVIN_STATUS.md`, and `docs/ARVIN_PROJECT_STATE.md`: the document authority index still names these as historical checkpoints. Their stale live status must be removed or clearly marked historical after preserving unique knowledge, not bulk-deleted.
 
 ## High-risk duplicate-code candidates — not yet deleted
