@@ -7,6 +7,15 @@
 
 > This live checkpoint supersedes every older status, branch SHA, “next action”, and CI state in the historical notes retained below. Recheck live GitHub before every write.
 
+## LIVE CONTINUATION — 2026-10-12 (supersedes older checkpoint prose below)
+
+- Latest current branch head at this update: `ee91725a6ba90cb537335e09f3c6d7f2c2800cf2`; this document is on the documentation PR branch, not yet on `main`.
+- PR #2614 remains OPEN / DRAFT, base `main` at `cea76673d871ce52b84dacf69f355c4282802baa`. The current-head Build [38199794481](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199794481) is IN PROGRESS: Analyze and test shards 0, 1, 3, 4 and 5 have passed; test shard 2 and Debug/Release APK jobs remain in progress at the latest check. Do not merge until all required exact-head jobs complete successfully.
+- Exact-main Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) passed Analyze, six test shards and Debug/Release APK jobs on `cea76673d871ce52b84dacf69f355c4282802baa`.
+- Exact-main Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) completed successfully across all six emulator scenarios: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore. This is emulator evidence only, not physical-device acceptance.
+- Release remains NO-GO. Physical-device Calendar same-event/no-duplicate proof, real Android file-provider Backup/Restore/rollback and Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner release approval remain outstanding. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN.
+- **Next action:** finish exact-head Build verification for the latest PR head; if all required jobs pass and the 11-file documentation diff is coherent, merge only the docs-only PR using expected-head SHA. Then verify the resulting main SHA and refresh the checkpoint again. Continue to keep overlapping implementation PRs unmerged until a single integrated code head is validated.
+
 ## Last completed step
 1. Read the v8 execution command and reviewed the existing memory drafts in PRs #2600 and #2608.
 2. Rechecked current `main`, release-gate Issue #2102, open PRs and exact-main workflow runs.
