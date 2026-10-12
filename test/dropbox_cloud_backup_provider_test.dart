@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin/dropbox_cloud_backup_provider_v2.dart';
+import 'package:arvin/dropbox_cloud_backup_provider.dart';
 
 void main() {
   DropboxHttpResponse responseFor({int statusCode = 200, String body = ''}) =>
@@ -54,7 +54,7 @@ void main() {
       },
     );
 
-    await DropboxCloudBackupProviderV2(accessToken: 'token', client: capturingClient)
+    await DropboxCloudBackupProvider(accessToken: 'token', client: capturingClient)
         .uploadBackup(
       fileName: 'backup.json',
       bytes: Uint8List.fromList([1, 2, 3]),
@@ -92,7 +92,7 @@ void main() {
       ),
     );
 
-    final provider = DropboxCloudBackupProviderV2(
+    final provider = DropboxCloudBackupProvider(
       accessToken: 'token',
       client: client,
     );
@@ -131,7 +131,7 @@ void main() {
       },
     );
 
-    await DropboxCloudBackupProviderV2(
+    await DropboxCloudBackupProvider(
       accessToken: 'token',
       client: capturingClient,
     ).deleteBackup('backup.json');
