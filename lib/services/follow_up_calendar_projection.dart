@@ -34,7 +34,7 @@ class FollowUpCalendarProjection {
     for (final task in tasks) {
       if (task.trashed) continue;
       for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
+        if ((followUp.reminderDate != null || followUp.nextFollowUp != null) &&
             reminderIdFor(task, followUp) == reminderId) {
           return FollowUpCalendarTarget(
             taskId: task.id,
@@ -70,11 +70,11 @@ class FollowUpCalendarProjection {
       final taskDatesAlreadyProjected = <DateTime>[];
 
       for (final followUp in task.followUps) {
-        // A follow-up's occurrence/history date is not itself a Calendar
-        // reminder. Only its explicitly configured independent reminder is
-        // projected, and that reminder's own time is authoritative.
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null) continue;
+        // An explicit notification time wins. If no notification is set,
+        // the next-action schedule is the Calendar fallback. These remain
+        // independent stored concepts; projection never copies or mutates them.
+        final calendarDate = followUp.reminderDate ?? followUp.nextFollowUp;
+        if (calendarDate == null) continue;
 
         final note = followUp.note.trim();
         final result = followUp.result?.trim();
@@ -84,13 +84,13 @@ class FollowUpCalendarProjection {
             title: note.isEmpty || note == 'پیگیری'
                 ? 'پیگیری ${task.title}'
                 : note,
-            date: reminderDate,
+            date: calendarDate,
             description: result == null || result.isEmpty ? null : result,
             parentTaskId: task.id,
             completed: followUp.completed || task.completed,
           ),
         );
-        taskDatesAlreadyProjected.add(reminderDate);
+        taskDatesAlreadyProjected.add(calendarDate);
       }
 
       final taskReminderDate = task.reminderDate;
