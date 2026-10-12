@@ -488,7 +488,9 @@ class _CalendarPageState extends State<CalendarPage> {
                           ? null
                           : () => widget.onCreateTaskForDate!(date),
                       child: Container(
-                        height: 58,
+                        // Origin markers add a third pixel row beneath the day/count labels.
+                        // Reserve that space so compact week cells never overflow.
+                        height: 61,
                         decoration: BoxDecoration(
                           color: selected ? scheme.primaryContainer : null,
                           borderRadius: BorderRadius.circular(10),
