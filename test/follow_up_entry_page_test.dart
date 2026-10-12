@@ -146,6 +146,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await revealReminder(tester);
+    expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
+    expect(find.text('این پیگیری در تقویم گوشی ثبت شود'), findsOneWidget);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
     expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
     expect(find.text('۰۷:۴۵'), findsOneWidget);
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
@@ -155,7 +158,51 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, initial.nextFollowUp);
+    expect(result!.nextFollowUp, isNull);
+  });
+
+
+  testWidgets('legacy nextFollowUp migrates to the unified independent reminder',
+      (tester) async {
+    FollowUp? result;
+    final legacyTimestamp = DateTime(2026, 9, 12, 11, 20);
+    final initial = FollowUp(
+      id: 'fu-legacy-next',
+      dateTime: DateTime(2026, 9, 8, 9, 15),
+      nextFollowUp: legacyTimestamp,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                  ),
+                );
+              },
+              child: const Text('open-legacy-next'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open-legacy-next'));
+    await tester.pumpAndSettle();
+    await revealReminder(tester);
+    expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
+    expect(find.text('این پیگیری در تقویم گوشی ثبت شود'), findsOneWidget);
+
+    await saveEditor(tester);
+
+    expect(result, isNotNull);
+    expect(result!.id, initial.id);
+    expect(result!.reminderDate, legacyTimestamp);
+    expect(result!.nextFollowUp, isNull);
   });
 
   testWidgets('existing reminder can be cleared without changing FollowUp identity',
