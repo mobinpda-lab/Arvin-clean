@@ -77,11 +77,15 @@ class FollowUpCalendarProjection {
         if (reminderDate == null) continue;
 
         final note = followUp.note.trim();
+        final result = followUp.result?.trim();
         reminders.add(
           CalendarReminder(
             id: reminderIdFor(task, followUp),
-            title: note.isEmpty ? task.title : '${task.title} — $note',
+            title: note.isEmpty || note == 'پیگیری'
+                ? 'پیگیری ${task.title}'
+                : note,
             date: reminderDate,
+            description: result == null || result.isEmpty ? null : result,
             completed: followUp.completed || task.completed,
           ),
         );
