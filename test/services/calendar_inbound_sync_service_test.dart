@@ -124,6 +124,114 @@ void main() {
     expect(refreshed.reminderDate, DateTime(2026, 10, 9, 11));
   });
 
+  test('provider edit of FollowUp reminder changes reminderDate only', () async {
+    final taskStore = TaskStore(executor: database);
+    final occurrence = DateTime(2026, 10, 7, 10);
+    final reminderDate = DateTime(2026, 10, 8, 9);
+    final nextAction = DateTime(2026, 10, 12, 15);
+    final tasks = await taskStore.load();
+    tasks.single.followUps = <FollowUp>[
+      FollowUp(
+        id: 'fu-1',
+        dateTime: occurrence,
+        reminderDate: reminderDate,
+        nextFollowUp: nextAction,
+      ),
+    ];
+    await taskStore.save(tasks);
+
+    const id = 'followup:task-1:fu-1';
+    final canonical = CalendarReminder(
+      id: id,
+      title: 'پیگیری کار',
+      date: reminderDate,
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: id,
+        calendarId: '7',
+        eventId: '42',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: '42',
+          calendarId: '7',
+          title: 'پیگیری کار',
+          start: DateTime(2026, 10, 9, 11),
+          end: DateTime(2026, 10, 9, 11, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+
+    expect(result.updated, 1);
+    final followUp = (await taskStore.load()).single.followUps.single;
+    expect(followUp.dateTime, occurrence);
+    expect(followUp.reminderDate, DateTime(2026, 10, 9, 11));
+    expect(followUp.nextFollowUp, nextAction);
+  });
+
+  test('provider edit of FollowUp fallback changes nextFollowUp only', () async {
+    final taskStore = TaskStore(executor: database);
+    final occurrence = DateTime(2026, 10, 7, 10);
+    final nextAction = DateTime(2026, 10, 12, 15);
+    final tasks = await taskStore.load();
+    tasks.single.followUps = <FollowUp>[
+      FollowUp(
+        id: 'fu-2',
+        dateTime: occurrence,
+        nextFollowUp: nextAction,
+      ),
+    ];
+    await taskStore.save(tasks);
+
+    const id = 'followup:task-1:fu-2';
+    final canonical = CalendarReminder(
+      id: id,
+      title: 'پیگیری کار',
+      date: nextAction,
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: id,
+        calendarId: '7',
+        eventId: '43',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '100',
+          eventId: '43',
+          calendarId: '7',
+          title: 'پیگیری کار',
+          start: DateTime(2026, 10, 13, 16),
+          end: DateTime(2026, 10, 13, 16, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+
+    expect(result.updated, 1);
+    final followUp = (await taskStore.load()).single.followUps.single;
+    expect(followUp.dateTime, occurrence);
+    expect(followUp.reminderDate, isNull);
+    expect(followUp.nextFollowUp, DateTime(2026, 10, 13, 16));
+  });
+
   test('provider deletion clears linked canonical due date', () async {
     final taskStore = TaskStore(executor: database);
     final canonical = CalendarReminder(
