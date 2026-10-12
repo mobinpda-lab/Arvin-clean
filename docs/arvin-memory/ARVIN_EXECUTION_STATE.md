@@ -16,7 +16,7 @@
 
 ## Current exact-main validation
 - Build: [run 38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Fresh API query confirms overall conclusion `success`; Analyze, all six test shards, Debug APK and Release APK jobs are completed successfully. Non-expired artifacts: Debug APK 11717311531 (92,487,308 bytes), Release APK 11716328109 (32,681,865 bytes). This is exact-main CI evidence, not physical-device acceptance or release approval.
-- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Latest job query: overall run `in_progress`; Home, Quick Capture, SQL Persistence and SQL Migration are `success`; People and Backup/Restore remain `in_progress`. Only Home screenshot artifact 11717201884 and Quick Capture screenshot artifact 11716972463 are listed. Job-log retrieval for the stalled jobs returned `BlobNotFound`; this is unavailable log evidence, not a test result. Full smoke remains unaccepted; continue recovering this existing run before triggering duplicates.
+- Device Smoke: [run 38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043), exact SHA `cea76673d871ce52b84dacf69f355c4282802baa`. Latest live job query confirms all six scenarios completed successfully: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore. This is automated Android-emulator evidence only; it does not prove physical-device acceptance. Earlier `BlobNotFound` log retrieval is superseded by the completed job conclusions and must not be reported as a current test failure.
 - Recover/inspect the existing runs and artifacts before triggering duplicate workflows. If recovery is impossible, document the failure and start one controlled fresh validation batch only after checking workflow state.
 
 ## Completed
@@ -26,7 +26,7 @@
 
 ## In progress
 - Restore the required project-memory package to main through a reviewed documentation-only PR. The required files currently live in overlapping draft PRs #2600 and #2608; do not merge either stale branch blindly.
-- Exact-main Build is confirmed successful; Device Smoke has four successful scenarios but People and Backup/Restore remain in progress, with logs unavailable.
+- Exact-main Build and all six Device Smoke emulator scenarios are confirmed successful. Physical-device acceptance remains outstanding; do not equate emulator CI with installed-device evidence.
 - Reconcile shared implementation files in #2591, #2595, #2602 and #2607 before integration. Their diffs overlap in Task Editor, Quick Capture, main routing, Report Center and Universal Arvin Time Picker.
 - Preserve the report-filter owner requirements and Persian/Jalali time controls; implementation/combined-head acceptance is still open.
 
@@ -39,10 +39,10 @@
 - The `Task.note` vs `Task.description` data-contract issue remains owner-decision sensitive; do not add a root `Task.note`, alter schema, migration or backup semantics without an explicit decision. Existing recorded direction says root `Task.description` remains canonical.
 
 ## Next action
-Finish the current documentation consolidation PR, verify its exact file list and current checkpoint, then recover/finish the existing exact-main Device Smoke run and review its evidence. Continue safe independent work in parallel, but do not merge overlapping code PRs, publish an APK as a release, or claim Release Ready.
+Finish the documentation consolidation PR only after its exact-head Build completes successfully and its checkpoint remains coherent. The exact-main Device Smoke run is complete with all six emulator scenarios passing; next, preserve this updated evidence, then continue reconciling overlapping code PRs into a single tested integration sequence. Do not publish an APK as a release or claim Release Ready.
 
 ## Current bottleneck
-Project memory is not present on main; exact-main Build passes, while Device Smoke is stalled on People and Backup/Restore and release acceptance still lacks physical-device proof.
+Project memory is not present on main and PR #2614 exact-head Build is still running. Exact-main Build and all six emulator smoke scenarios pass, while release acceptance still lacks physical-device proof and explicit owner approval.
 
 ## Product invariants
 - Task is the sole source of truth; Quick Add and Full Form must preserve the same Task ID.
