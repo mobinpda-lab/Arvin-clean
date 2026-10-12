@@ -47,7 +47,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
-    _reminderDate = initial?.reminderDate;
+    // The owner-approved v1 model has one active follow-up schedule.
+    // Prefer an existing reminder; migrate the legacy schedule only when needed.
+    _reminderDate = initial?.reminderDate ?? initial?.nextFollowUp;
     _initialDateTime = _dateTime;
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
@@ -237,9 +239,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       note: enteredTitle.isEmpty ? _defaultTitle : enteredTitle,
       result: result,
       reminderDate: _reminderDate,
-      // The form edits the independent reminder only. Preserve the existing
-      // nextFollowUp schedule verbatim; it has separate consumers and meaning.
-      nextFollowUp: widget.initialFollowUp?.nextFollowUp,
+      // Canonical model v1 has one active follow-up reminder schedule.
+      // Legacy nextFollowUp is normalized into reminderDate on save.
+      nextFollowUp: null,
     );
     widget.onSaved?.call(followUp);
     Navigator.of(context).pop(followUp);
