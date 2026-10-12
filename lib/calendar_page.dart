@@ -883,34 +883,79 @@ class _DailyContentCard extends StatelessWidget {
 bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder:') ||
-    id.startsWith('task-followup:');
+    id.startsWith('task-followup:') ||
+    id.startsWith('task-recurrence:') ||
+    id.startsWith('followup:');
 
-enum _CalendarItemVisualKind { ordinary, arvinReminder, importedPhoneCalendar, prayer }
+enum _CalendarItemVisualKind {
+  ordinary,
+  arvinTask,
+  independentFollowUp,
+  importedPhoneCalendar,
+  prayer,
+}
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
-  if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
-  if (item.id.startsWith('task-due:')) return _CalendarItemVisualKind.arvinReminder;
+  if (item.id.startsWith('external-calendar:')) {
+    return _CalendarItemVisualKind.importedPhoneCalendar;
+  }
+  if (item.id.startsWith('followup:') ||
+      item.id.startsWith('task-followup:')) {
+    return _CalendarItemVisualKind.independentFollowUp;
+  }
+  if (item.id.startsWith('task-due:') ||
+      item.id.startsWith('task-reminder:') ||
+      item.id.startsWith('task-recurrence:')) {
+    return _CalendarItemVisualKind.arvinTask;
+  }
   if (item.id.startsWith('prayer-')) return _CalendarItemVisualKind.prayer;
   return _CalendarItemVisualKind.ordinary;
 }
 
 class _CalendarItemVisualStyle {
-  const _CalendarItemVisualStyle({required this.icon, required this.color, required this.label});
+  const _CalendarItemVisualStyle({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
   final IconData icon;
   final Color color;
   final String label;
 
-  static _CalendarItemVisualStyle of(BuildContext context, CalendarReminder item) {
+  static _CalendarItemVisualStyle of(
+    BuildContext context,
+    CalendarReminder item,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
-      _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
-      _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
-        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: 'واردشده از تقویم گوشی'),
+      _CalendarItemVisualKind.arvinTask => const _CalendarItemVisualStyle(
+          icon: Icons.checklist_rounded,
+          color: Color(0xFF4A4CAB),
+          label: 'کار آروین',
+        ),
+      _CalendarItemVisualKind.independentFollowUp =>
+        const _CalendarItemVisualStyle(
+          icon: Icons.notifications_active_outlined,
+          color: Color(0xFFB45309),
+          label: 'یادآور پیگیری مستقل',
+        ),
+      _CalendarItemVisualKind.importedPhoneCalendar =>
+        const _CalendarItemVisualStyle(
+          icon: Icons.phone_android_rounded,
+          color: Color(0xFF0F766E),
+          label: 'واردشده از تقویم گوشی',
+        ),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.event_available_outlined, color: scheme.secondary, label: 'نماز'),
+          icon: Icons.event_available_outlined,
+          color: scheme.secondary,
+          label: 'نماز',
+        ),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: 'یادآور'),
+          icon: Icons.event_outlined,
+          color: scheme.onSurfaceVariant,
+          label: 'رویداد',
+        ),
     };
   }
 }
