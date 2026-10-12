@@ -786,3 +786,12 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Completed:** exact-head automated gates for PR #2636 are green; terminal result recorded in PR comment [6123371051](https://github.com/mobinpda-lab/Arvin-clean/pull/2636#issuecomment-6123371051).
 - **Blocked / release NO-GO:** physical writable-calendar CREATE-then-UPDATE same external event/no duplicate; imported-event no-echo on a real device; real Android file-provider backup/restore round-trip and external Calendar-link integrity; Persian RTL/compact-screen visual acceptance; dependency PR #2631 terminal validation; explicit product-owner approval.
 - **Next action:** poll only the existing targeted People rerun for PR #2631, then review dependency checks; collect the missing physical-device acceptance evidence. Do not merge or release automatically.
+
+
+## Follow-up correction — dependency rerun completed — 2026-10-12
+
+- Re-polled dependency Device Smoke run [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195): targeted rerun job `114789195820` (**device-smoke (people)**) is now `completed / success`. All six lanes in that run are now `success`: People, Home, Backup/Restore, SQL Migration, SQL Persistence and Quick Capture.
+- Dependency PR #2631's associated workflow runs on code head `e815a8f1daa312da7bf6bf1188cf94a3b541e380` show Build, Calendar Provider Acceptance, Device Smoke, Orchestrator and Production Loop completed successfully; PR remains open/unmerged. This clears the previously cancelled People-lane blocker for automated CI evidence.
+- PR #2636 current branch head is documentation-only commit `b1c9afa1491b8ee374ec2b903ab699dda94a3a7b`; the green feature-code CI evidence above is for parent code SHA `c24c2b12516addb9c39b434d8ec91b1f0dc38993`. No new CI run was returned for the documentation-only SHA. Do not claim a new test execution on the docs commit; rerun required checks if GitHub branch protection requires exact current-head checks.
+- Remaining release NO-GO gates unchanged: physical-device writable-calendar same-event update/no duplicate and imported-event no-echo; real-device backup/restore round-trip and external link integrity; Persian RTL/compact-screen visual acceptance; explicit owner approval. No merge or release performed.
+- Next action: verify exact-current-head PR checks / branch protection requirements, then obtain and attach physical-device acceptance evidence. Do not duplicate already-green code-head CI runs unless required by policy.
