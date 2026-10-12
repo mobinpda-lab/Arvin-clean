@@ -2804,49 +2804,71 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       if (expandedTaskCards.contains(task.id)) ...[
-                      if (preview != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          preview,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: ArvinColors.textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                      if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
-                        const SizedBox(height: 7),
-                        _homeChecklistProgress(task),
-                      ],
-                      if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        TaxonomyIconRow(
-                          project: _projectTitleForTask(task),
-                          category: task.category,
-                          tags: task.tags,
-                          maxTags: 2,
-                        ),
-                      ],
-                      if (task.priority != TaskPriority.none) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.flag_rounded, size: 13, color: ArvinColors.reminder),
-                            const SizedBox(width: 4),
-                            Text(
-                              switch (task.priority) {
-                                TaskPriority.high => 'اهمیت زیاد',
-                                TaskPriority.medium => 'اهمیت متوسط',
-                                TaskPriority.low => 'اهمیت کم',
-                                TaskPriority.none => '',
-                              },
-                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w600),
+                        if (task.description.trim().isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            task.description.trim(),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: ArvinColors.textSecondary,
+                              fontSize: 11,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                        if (preview != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            preview,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: ArvinColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                        if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
+                          const SizedBox(height: 7),
+                          _homeChecklistProgress(task),
+                        ],
+                        if (_projectTitleForTask(task) != null ||
+                            task.category?.trim().isNotEmpty == true ||
+                            task.tags.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          TaxonomyIconRow(
+                            project: _projectTitleForTask(task),
+                            category: task.category,
+                            tags: task.tags,
+                            maxTags: 2,
+                          ),
+                        ],
+                        if (task.priority != TaskPriority.none) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.flag_rounded,
+                                size: 13,
+                                color: ArvinColors.reminder,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                switch (task.priority) {
+                                  TaskPriority.high => 'اهمیت زیاد',
+                                  TaskPriority.medium => 'اهمیت متوسط',
+                                  TaskPriority.low => 'اهمیت کم',
+                                  TaskPriority.none => '',
+                                },
+                                style: const TextStyle(
+                                  color: ArvinColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                       if (task.dueDate != null) ...[
                         const SizedBox(height: 5),
