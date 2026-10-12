@@ -83,9 +83,27 @@ class RecurrenceRule {
     switch (frequency) {
       case RecurrenceFrequency.daily:
       case RecurrenceFrequency.oncePerDay:
-        return from.add(Duration(days: interval));
+        return DateTime(
+          from.year,
+          from.month,
+          from.day + interval,
+          from.hour,
+          from.minute,
+          from.second,
+          from.millisecond,
+          from.microsecond,
+        );
       case RecurrenceFrequency.weekly:
-        return from.add(Duration(days: 7 * interval));
+        return DateTime(
+          from.year,
+          from.month,
+          from.day + 7 * interval,
+          from.hour,
+          from.minute,
+          from.second,
+          from.millisecond,
+          from.microsecond,
+        );
       case RecurrenceFrequency.monthly:
         final targetMonth = from.month - 1 + interval;
         final year = from.year + targetMonth ~/ 12;
