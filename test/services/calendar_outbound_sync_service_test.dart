@@ -368,10 +368,16 @@ targetCalendarId: 'calendar-7',
       preserveUnprojectedTaskIds: const <String>{'task-1'},
     );
 
-    expect(result?.deleted, 0);
-    expect(executor.receivedPlan?.items, isEmpty);
+    expect(result?.deleted, 1);
+    expect(
+      executor.receivedPlan?.items.single.action,
+      CalendarSyncAction.delete,
+    );
     expect(links.links.map((link) => link.reminderId), contains(reminder.id));
-    expect(links.links.map((link) => link.reminderId), isNot(contains('followup:task-2:f2')));
+    expect(
+      links.links.map((link) => link.reminderId),
+      isNot(contains('followup:task-2:f2')),
+    );
   });
 
   test('delete policy on schedules deletion of a missing canonical reminder', () async {
