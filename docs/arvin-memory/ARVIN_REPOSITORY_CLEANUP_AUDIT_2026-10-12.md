@@ -25,9 +25,9 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 - `docs/ARVIN_PROJECT_OPERATING_PACKAGE_v48.2_TRANSFER_MANIFEST.md` and `...SOURCE_VERIFIED.md`: retained as provenance for the approved transfer.
 - `docs/ARVIN_UI_CANONICAL.md`: retained as the indexed canonical UI/ontology contract.
 - `docs/UI/ARVIN_UI_CANONICAL.md`: its substantive visual requirements (palette, Home and Task/FollowUp reference, typography, spacing, architecture limits and acceptance criteria) were migrated into a supplemental section of `docs/ARVIN_UI_CANONICAL.md`; `docs/UI/ARVIN_UI_REFERENCE_IMAGES_CONTRACT.md` now points explicitly to the root canonical document. The nested duplicate authority file is removed.
-- `docs/AI_CONTINUATION_STATE.md`, `docs/AI_HANDOFF_CURRENT_FA.md`, `docs/PROJECT_STATUS.md`, `docs/ARVIN_STATUS.md`, and `docs/ARVIN_PROJECT_STATE.md`: the document authority index still names these as historical checkpoints. Their stale live status must be removed or clearly marked historical after preserving unique knowledge, not bulk-deleted.
+- Removed stale standalone status snapshots: `docs/AI_CONTINUATION_STATE.md`, `docs/AI_HANDOFF_CURRENT_FA.md`, `docs/PROJECT_STATUS.md`, `docs/ARVIN_STATUS.md`, and `docs/ARVIN_PROJECT_STATE.md`. Their old SHA/PR/percentage claims are no longer in the active tree; durable architecture and owner requirements remain in the current memory, ADR, UI contract, Product Contract Matrix and conversation continuity ledger. Git history retains the original files. The authority index and continuity startup instructions were updated to point to the current canonical memory.
 
-## High-risk duplicate-code candidates — not yet deleted
+## Code cleanup completed and remaining candidates
 
 - `lib/services/backup_service.dart` was removed after exact import-path search found no internal references. It was an alternate SharedPreferences dump/restore implementation and not the canonical SAF-backed `ArvinBackupService`; this removal does not change canonical backup format or restore flow.
 - `lib/dropbox_cloud_backup_provider.dart` and `lib/dropbox_cloud_backup_provider_v2.dart` were consolidated into one canonical `DropboxCloudBackupProvider` at `lib/dropbox_cloud_backup_provider.dart`. The injectable V2 HTTP seam and tests are retained; the V2-suffixed duplicate file/class is removed. Exact in-repo search found no other V2 callers.
@@ -38,9 +38,9 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 
 1. Inventory Dart imports and symbol references for all source files; distinguish dead code from plugin/reflection/entrypoint use.
 2. Consolidate duplicate implementations in small, testable changes; retain canonical Task/storage/backup/calendar owners.
-3. Audit workflow triggers and callers before removing redundant workflows.
-4. Merge unique UI-reference requirements into the canonical UI contract, update the authority index, then delete proven redundant docs.
-5. Refresh stale historical status snapshots so they cannot masquerade as live state.
+3. Audit workflow triggers and callers before removing redundant workflows. The first pass confirms that `Arvin Production Orchestrator` is the guarded promotion authority, `ARVIN Production Loop` owns terminal-failure Auto-Fix issue creation, `ARVIN Orchestrator` handles normal issue routing, and `ARVIN AI Code Worker` is a bounded implementation worker; these are distinct responsibilities, not safe blind-deletion duplicates. `release-closure.yml` depends on `Arvin Production Orchestrator`, and `final-head-release-validation.yml` depends on Release Closure. Production Orchestrator and Factory REST Promotion Bridge both react to Build/Parallel Wave/Device Smoke and schedules; inspect the trigger graph before consolidating either.
+4. UI visual requirements have been migrated into the root canonical UI contract; the nested duplicate and stale standalone status snapshots have been removed on this branch.
+5. Continue stale-doc cleanup by consolidating unique content from old operating-package and audit PRs before closing/superseding them. Do not bulk-close branches or PRs solely for age.
 6. Run exact-head Analyze, all test shards, Debug/Release APK, and relevant Device Smoke. No cleanup is complete until evidence is attached.
 
 ## Guardrails
