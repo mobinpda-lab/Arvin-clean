@@ -390,4 +390,38 @@ void main() {
   });
 
 
+  testWidgets('follow-up reminder exposes a link to its canonical parent task', (tester) async {
+    final day = DateTime(2026, 10, 12, 10);
+    CalendarReminder? opened;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(
+                id: 'followup:parent-1:follow-1',
+                title: 'خرید موکت',
+                date: day,
+                description: 'نتیجه پیگیری ثبت‌شده',
+                parentTaskId: 'parent-1',
+              ),
+            ],
+            onOpenParentTask: (reminder) async { opened = reminder; },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-parent-task-followup:parent-1:follow-1')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('follow-up-parent-task-followup:parent-1:follow-1')));
+    await tester.pumpAndSettle();
+    expect(opened?.parentTaskId, 'parent-1');
+    await tester.tap(find.byKey(const ValueKey('reminder-card-followup:parent-1:follow-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-reminder-description-followup:parent-1:follow-1')), findsOneWidget);
+    expect(find.text('نتیجه پیگیری ثبت‌شده'), findsOneWidget);
+  });
+
 }
