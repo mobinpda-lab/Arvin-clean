@@ -87,3 +87,12 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Example: initial Next Follow-up = 15 Mehr 17:00 creates reminder = 15 Mehr 17:00. Later Next Follow-up = 20 Mehr 10:00 leaves reminder at 15 Mehr 17:00; deleting Next Follow-up also leaves the reminder.
 - **Open edge case:** when a reminder already exists at the moment Next Follow-up is first set, owner decision is still needed on whether to preserve it and skip creation or another explicit behavior. Do not overwrite or duplicate the existing reminder by assumption.
 - This is an owner-approved product contract, not proof of code/test/device completion. Audit the existing implementation and tests before any code change; preserve JSON/SQL/backup compatibility and add regression coverage for all lifecycle rules.
+
+## Follow-up / Reminder all-day compatibility — 2026-10-13
+
+- `FollowUp.dateTime` is the recorded history timestamp; `nextFollowUp` is the next-action date/time; `reminderDate` is an independent reminder date/time. Do not conflate them.
+- Current FollowUp JSON has no all-day metadata. Task-level `allDay` only describes Task dueDate and must not be reused as a FollowUp flag.
+- Task SQL storage persists a canonical JSON envelope; canonical backup serializes `Task.toJson()` and restore uses `Task.fromJson()`. Any new FollowUp all-day marker must round-trip through both paths.
+- CalendarReminder and provider sync already support `isAllDay/allDay`; FollowUp Calendar projection currently leaves the flag at its false default.
+- Never use hour==0 as proof of all-day for FollowUp reminders. New explicit metadata is required to distinguish intentional midnight from date-only intent; old ambiguous values should remain unchanged unless a separately approved migration rule exists.
+- Existing editor does not create an initial reminder when Next Follow-up is first set, does not offer date-only selection for Next Follow-up, and does not expose clear-next in the inspected UI. Existing reminder edit/clear is already tested as independent behavior.
