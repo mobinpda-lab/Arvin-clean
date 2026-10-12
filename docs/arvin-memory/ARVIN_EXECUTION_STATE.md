@@ -1,3 +1,18 @@
+# AUTHORITATIVE LIVE CONTINUATION — 2026-10-12 (post-PR #2621 merge)
+
+This checkpoint is the first source to read on continuation. It supersedes conflicting historical/current-status statements below. Historical details remain for audit only. Refresh GitHub before every future write.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
+- Current `main` SHA at this checkpoint: `a1b0a1b54137a82695818119f3726fce3863f9b1`.
+- **Completed:** documentation PR [#2621](https://github.com/mobinpda-lab/Arvin-clean/pull/2621) merged as `a1b0a1b54137a82695818119f3726fce3863f9b1`. Post-merge read-back confirmed this execution-state file is present on `main`.
+- **Exact PR-head validation for #2621 head `b05b369818b9ca7bf2154c12551c4a2e0c91a2e3`:** Build [38221358052](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38221358052) passed Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38221357978](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38221357978) passed all six Android Emulator scenarios: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore. This is emulator evidence, not physical-device acceptance.
+- **PR #2602 remains OPEN/DRAFT** at exact head `1ddea0c9e6481dbf944f70f4faceb91499908c80`. The PR-triggered workflow query returned no runs and combined commit status returned no entries. The current Build and Device Smoke workflow definitions include PR `synchronize` triggers, but the reason no run is associated with this SHA is not established. The available GitHub connector has no workflow-dispatch action. This validation gate is BLOCKED pending an authorized workflow dispatch or a real synchronize event from an enabled GitHub identity. Do not add a meaningless commit or weaken tests to manufacture a pass.
+- **Integration rule:** do not merge overlapping PRs #2591, #2595, #2602 and #2607 independently. Reconcile them into one canonical integration head and require exact-head Analyze, all six test shards, Debug/Release APK, emulator smoke and review. Preserve root `Task.description` as the sole root Task text field; do not add root `Task.note` or change schema/migration/backup semantics without explicit owner approval.
+- **Release: NO-GO.** Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN until real-device Calendar update-existing/no-duplicate behavior, Android file-provider Backup/Restore and restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen acceptance, and explicit owner approval are evidenced.
+- **Next action:** resolve the missing #2602 CI evidence through an authorized trigger, then reconcile overlapping UI PRs into one exact-head-tested integration lane. In parallel, continue the path-by-path review of cleanup PR #2619. Do not claim device/release acceptance from emulator tests.
+
+---
+
 # LIVE RECHECK ADDENDUM — 2026-10-12 (latest GitHub verification)
 
 This addendum supersedes earlier workflow-status wording below where it conflicts. It is on the proposed documentation branch only until PR #2621 is reviewed and merged.
