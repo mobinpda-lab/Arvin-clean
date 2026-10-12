@@ -123,13 +123,29 @@ void main() {
     );
   });
 
-  test('TaskStore uses the existing key and round-trips people', () async {
+  test('TaskStore uses the existing key and round-trips people and independent reminders', () async {
     final store = TaskStore();
     await store.save(<Task>[
       Task(
         id: 'store-people',
         title: 'ذخیره شخص',
         people: [_person('person-store', 'مریم')],
+        taskReminders: [
+          TaskReminder(
+            id: 'store-r1',
+            title: 'ذخیره — یادآور ۱',
+            date: DateTime(2026, 10, 20, 10),
+            sequence: 1,
+          ),
+          TaskReminder(
+            id: 'store-r2',
+            title: 'ذخیره — یادآور ۲',
+            date: DateTime(2026, 10, 21),
+            isAllDay: true,
+            sequence: 2,
+          ),
+        ],
+        nextReminderSequence: 3,
       ),
     ]);
 
@@ -138,6 +154,12 @@ void main() {
     final loaded = await store.load();
     expect(loaded.single.people.single.id, 'person-store');
     expect(loaded.single.people.single.displayName, 'مریم');
+    expect(loaded.single.taskReminders.map((item) => item.id), [
+      'store-r1',
+      'store-r2',
+    ]);
+    expect(loaded.single.taskReminders.last.isAllDay, isTrue);
+    expect(loaded.single.nextReminderSequence, 3);
   });
 
   test('Home migration write preserves existing people during edit', () {
@@ -177,6 +199,22 @@ void main() {
       id: 'backup-people',
       title: 'پشتیبان شخص',
       people: [_person('person-backup', 'نرگس')],
+      taskReminders: [
+        TaskReminder(
+          id: 'backup-person-r1',
+          title: 'پشتیبان — یادآور ۱',
+          date: DateTime(2026, 10, 22, 11),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'backup-person-r2',
+          title: 'پشتیبان — یادآور ۲',
+          date: DateTime(2026, 10, 23),
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
     );
 
     await manager.backupCanonicalTasks(<Task>[task]);
@@ -192,6 +230,12 @@ void main() {
 
     expect(restoredTask.people.single.id, 'person-backup');
     expect(restoredTask.people.single.displayName, 'نرگس');
+    expect(restoredTask.taskReminders.map((item) => item.id), [
+      'backup-person-r1',
+      'backup-person-r2',
+    ]);
+    expect(restoredTask.taskReminders.last.isAllDay, isTrue);
+    expect(restoredTask.nextReminderSequence, 3);
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(TaskStore.key), isNull);
