@@ -315,6 +315,6 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 
 ## 2026-10-13 — Owner clarification evidence (Follow-up / Reminder)
 - Source: explicit owner clarification in conversation on 2026-10-13.
-- Accepted behavior: first explicit Next Follow-up setting seeds one initial reminder; Task title prefills reminder title, Next Follow-up date/time prefills schedule; user may independently edit reminder title/date/time and request additional reminders.
+- Accepted behavior: setting Next Follow-up does not automatically create a reminder. Only if the user explicitly wants/chooses a reminder for it, prefill reminder title from Task title and schedule from Next Follow-up; user may independently edit reminder title/date/time and request additional reminders.
 - Independence invariant: no later propagation in either direction; reminders can remain without Next Follow-up; no silent overwrite/duplicates.
 - Validation status: product contract clarified; implementation and app validation not yet proven. Keep release NO-GO.
