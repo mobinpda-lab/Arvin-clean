@@ -882,9 +882,16 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       color: const Color(0xFF7650C8),
                       emptyLabel: 'هنوز پیگیری ثبت نشده',
                       items: _pendingFollowUps
-                          .map((followUp) => followUp.note.trim().isEmpty
-                              ? 'پیگیری'
-                              : followUp.note.trim())
+                          .map((followUp) {
+                            final label = followUp.note.trim().isEmpty
+                                ? 'پیگیری'
+                                : followUp.note.trim();
+                            return ArvinRollItem<String>(
+                              value: label,
+                              label: label,
+                              icon: Icons.follow_the_signs_outlined,
+                            );
+                          })
                           .toList(growable: false),
                       createLabel: 'ثبت جزئیات پیگیری',
                       onCreate: _saving ? null : _addFollowUpEntry,
@@ -902,7 +909,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       icon: Icons.checklist_outlined,
                       color: const Color(0xFF2F7D5A),
                       emptyLabel: 'چک‌لیست خالی',
-                      items: List<String>.of(_checklistItems),
+                      items: _checklistItems
+                          .map((item) => ArvinRollItem<String>(
+                                value: item,
+                                label: item,
+                                icon: Icons.check_box_outline_blank,
+                              ))
+                          .toList(growable: false),
                       createLabel: 'افزودن مورد چک‌لیست',
                       onCreate: _saving ? null : _addChecklistItem,
                       onSelected: (_) {},
