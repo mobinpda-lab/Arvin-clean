@@ -101,7 +101,17 @@ class CalendarOutboundSyncService {
         ? managedLinks
         : integration.deleteLinkedEventWithTask
             ? managedLinks
-            : managedLinks.where((link) => revisionIds.contains(link.reminderId));
+            : managedLinks.where((link) {
+                if (revisionIds.contains(link.reminderId)) return true;
+                // Keep external events only for reminders belonging to a
+                // trashed Task when the owner has disabled delete-with-Task.
+                // A missing reminder on an active Task was explicitly removed
+                // from the canonical projection and must not leave a stale
+                // linked event behind.
+                final taskId = _taskIdForReminder(link.reminderId);
+                return taskId != null &&
+                    preserveUnprojectedTaskIds.contains(taskId);
+              });
     final plan = planService.plan(
       revisions: revisions,
       links: linksForPlan,
