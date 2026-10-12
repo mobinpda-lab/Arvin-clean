@@ -36,3 +36,15 @@ Future follow-ups (`nextFollowUp`) and reminders (`reminderDate`) must be indepe
 
 ## Status
 The product decision is accepted. Documentation and code correction are in review; implementation and release acceptance are not yet fully validated.
+
+
+## Owner clarification — one-time initialization (2026-10-12)
+This addendum supersedes conflicting rules above that prohibit any automatic reminder creation from Next Follow-up. The clarified lifecycle is:
+- Next Follow-up is initially empty and becomes active only when the user explicitly sets it.
+- On its first setting, create one initial reminder at the same date/time; if Next Follow-up is date-only, create an all-day reminder.
+- Later edits to Next Follow-up do not change the reminder. Deleting Next Follow-up does not delete the reminder.
+- A reminder may exist without Next Follow-up; either may be independently edited or deleted. Editing/deleting the reminder never changes Next Follow-up.
+- FollowUp record `dateTime` is the timestamp of the recorded Follow-up action and is distinct from `nextFollowUp`.
+- **Unresolved edge case:** if `reminderDate` already exists when Next Follow-up is first set, owner clarification is required before deciding whether to preserve/skip creation or take another action. Do not overwrite or duplicate it by assumption.
+- **Implementation audit finding:** the currently inspected `FollowUp` model stores both fields as nullable `DateTime`, and the editor's `_pickNext()` currently reuses the recorded Follow-up's hour/minute. The inspected code does not establish date-only/all-day semantics or the one-time creation bridge. Do not claim implementation complete; assess a backward-compatible all-day representation and test it across calendar projection and persistence before coding.
+- Required validation includes first-set matching, all-day creation, independent later edits/deletes, reminder-only, recorded dateTime separation, JSON/SQL/backup-restore and same-event/no-duplicate calendar behavior.
