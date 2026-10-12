@@ -291,47 +291,22 @@ class _CalendarIntegrationSettingsPageState
                     'Google Calendar، Samsung Calendar و سایر تقویم‌های اندروید از یک Calendar Provider مشترک استفاده می‌کنند؛ آروین موتور جداگانه و تکراری برای هر برند نمی‌سازد.',
                   ),
                   const Divider(height: 32),
-                  const Text(
-                    'موارد قابل همگام‌سازی',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-due-dates'),
-                    title: 'موعد کارها',
-                    subtitle: 'Due Date کارهای آروین',
-                    value: current.syncDueDates,
-                    update: (value) => current.copyWith(syncDueDates: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-task-reminders'),
-                    title: 'یادآور کارها',
-                    subtitle: 'Reminder مستقل کار',
-                    value: current.syncTaskReminders,
-                    update: (value) =>
-                        current.copyWith(syncTaskReminders: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followups'),
-                    title: 'پیگیری‌ها',
-                    subtitle: 'تاریخ خود پیگیری‌ها',
-                    value: current.syncFollowUps,
-                    update: (value) => current.copyWith(syncFollowUps: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followup-reminders'),
-                    title: 'یادآور پیگیری‌ها',
-                    subtitle: 'Reminder مستقل هر پیگیری',
-                    value: current.syncFollowUpReminders,
-                    update: (value) =>
-                        current.copyWith(syncFollowUpReminders: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-recurrence'),
-                    title: 'تکرار کارها',
-                    subtitle:
-                        'خاموش به‌صورت پیش‌فرض؛ فقط پس از فعال‌سازی صریح کاربر.',
-                    value: current.syncRecurrence,
-                    update: (value) => current.copyWith(syncRecurrence: value),
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.sync_rounded),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'با روشن بودن ثبت خودکار، همه موارد متعلق به آروین که در تقویم آروین ثبت می‌شوند — موعد و یادآور کار، تکرار و یادآور پیگیری مستقل — در تقویم مقصد همگام می‌شوند. رویدادی که از تقویم گوشی به آروین وارد شده باشد دوباره به گوشی صادر نمی‌شود.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const Divider(height: 32),
                   _switch(
