@@ -111,7 +111,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _initialReminderDateTime = task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
-    if (_nextReminderSequence < 1) _nextReminderSequence = 1;
+    if (_nextReminderSequence < 1) {
+      _nextReminderSequence = 1;
+    }
     if (_taskReminders.isNotEmpty) {
       final highest = _taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
       if (_nextReminderSequence <= highest) _nextReminderSequence = highest + 1;
@@ -253,8 +255,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final localizedSequence = _dateFormatter.toPersianDigits(sequence.toString());
     final taskTitle = _titleController.text.trim();
     final reminder = TaskReminder(
-      id: 'reminder-' + now.microsecondsSinceEpoch.toString(),
-      title: (taskTitle.isEmpty ? 'بدون عنوان' : taskTitle) + ' — یادآور ' + localizedSequence,
+      id: 'reminder-${now.microsecondsSinceEpoch}',
+      title: '${taskTitle.isEmpty ? 'بدون عنوان' : taskTitle} — یادآور $localizedSequence',
       date: DateTime(now.year, now.month, now.day, now.hour, now.minute),
       isAllDay: false,
       sequence: sequence,
@@ -345,7 +347,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               final reminder = entry.value;
               final reminderKey = reminder.id;
               return Container(
-                key: ValueKey('task-editor-reminder-' + reminderKey),
+                key: ValueKey('task-editor-reminder-$reminderKey'),
                 margin: const EdgeInsets.only(top: 10),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -360,7 +362,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            key: ValueKey('task-editor-reminder-title-' + reminderKey),
+                            key: ValueKey('task-editor-reminder-title-$reminderKey'),
                             initialValue: reminder.title,
                             textDirection: TextDirection.rtl,
                             decoration: _fieldDecoration(label: 'عنوان یادآور'),
@@ -371,7 +373,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           ),
                         ),
                         IconButton(
-                          key: ValueKey('task-editor-remove-reminder-' + reminderKey),
+                          key: ValueKey('task-editor-remove-reminder-$reminderKey'),
                           tooltip: 'حذف این یادآور',
                           onPressed: () => setState(() {
                             _taskReminders = _taskReminders.where((item) => item.id != reminder.id).toList();
@@ -386,14 +388,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       runSpacing: 8,
                       children: [
                         OutlinedButton.icon(
-                          key: ValueKey('task-editor-reminder-date-' + reminderKey),
+                          key: ValueKey('task-editor-reminder-date-$reminderKey'),
                           onPressed: () => _pickTaskReminderDate(index),
                           icon: const Icon(Icons.calendar_month_outlined, size: 18),
                           label: Text(_dateText(reminder.date)),
                         ),
                         if (!reminder.isAllDay)
                           OutlinedButton.icon(
-                            key: ValueKey('task-editor-reminder-time-' + reminderKey),
+                            key: ValueKey('task-editor-reminder-time-$reminderKey'),
                             onPressed: () => _pickTaskReminderTime(index),
                             icon: const Icon(Icons.schedule, size: 18),
                             label: Text(_timeText(reminder.date)),
@@ -401,7 +403,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       ],
                     ),
                     CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-all-day-' + reminderKey),
+                      key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
                       contentPadding: EdgeInsets.zero,
                       controlAffinity: ListTileControlAffinity.leading,
                       value: reminder.isAllDay,
