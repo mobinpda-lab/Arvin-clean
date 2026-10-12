@@ -609,7 +609,6 @@ Future<void> _pickDueDate() async {
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
-        _nextReminderSequence != existing.nextReminderSequence ||
         !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _repeatEnabled != (existing.recurrence?.active ?? false) ||
