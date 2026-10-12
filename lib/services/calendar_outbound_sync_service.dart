@@ -137,21 +137,14 @@ class CalendarOutboundSyncService {
     CalendarIntegrationSettings integration,
     String id,
   ) {
-    if (id.startsWith('task-due:')) {
-      return integration.syncDueDates;
-    }
-    if (id.startsWith('task-reminder:')) {
-      return integration.syncTaskReminders;
-    }
-    if (id.startsWith('followup:')) {
-      return integration.syncFollowUps;
-    }
-    if (id.startsWith('task-followup:')) {
-      return integration.syncFollowUpReminders;
-    }
-    if (id.startsWith('task-recurrence:')) {
-      return integration.syncRecurrence;
-    }
-    return false;
+    // Owner contract: once global auto-sync is enabled, every Arvin-owned
+    // Task/recurrence/independent-FollowUp projection is synchronized. The
+    // legacy per-source booleans remain deserializable for backup compatibility
+    // but no longer silently exclude canonical Arvin calendar items.
+    return id.startsWith('task-due:') ||
+        id.startsWith('task-reminder:') ||
+        id.startsWith('followup:') ||
+        id.startsWith('task-followup:') ||
+        id.startsWith('task-recurrence:');
   }
 }
