@@ -311,3 +311,14 @@ Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/
 | Execution validation | Current assistant run | Read-only audit only; no Flutter test/analyze/build/device run |
 
 PR #2650 is documentation-only and must be revalidated on its final exact head; no green check is claimed for a new post-audit commit.
+
+
+## 2026-10-13 — PR #2650 merge evidence
+
+| Item | Evidence | Result |
+|---|---|---|
+| Documentation merge | PR [#2650](https://github.com/mobinpda-lab/Arvin-clean/pull/2650), merge SHA `8136c929237c321f2e879a80f067970c31cb0100` | Merged; docs only; no app code change |
+| Build | [Run 38305396957](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396957) on source SHA `e6b0dbbd...` | SUCCESS: analyze, six test shards, Debug and Release APK |
+| Device Smoke | [Run 38305396917](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396917) on source SHA `e6b0dbbd...` | SUCCESS: six emulator lanes; not physical-device evidence |
+| Calendar integration | PR #2636 exact head `6d970ace...`; PR #2640 exact head `2d62e315...` | Workflows succeeded, but both branches are based on stale `326afaa...` and currently report non-mergeable; no merge approved |
+| FollowUp feature completion | Model/editor/projection audit | Still incomplete; owner/data gates remain; Release NO-GO |
