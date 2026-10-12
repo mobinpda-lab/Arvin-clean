@@ -86,6 +86,7 @@ class FollowUpCalendarProjection {
                 : note,
             date: reminderDate,
             description: result == null || result.isEmpty ? null : result,
+            parentTaskId: task.id,
             completed: followUp.completed || task.completed,
           ),
         );
