@@ -435,19 +435,26 @@ void main() {
           id: 'r2',
           title: 'خرید فرش — یادآور 2',
           date: sameTime,
-          isAllDay: true,
           sequence: 2,
+        ),
+        TaskReminder(
+          id: 'r3',
+          title: 'خرید فرش — یادآور 3',
+          date: DateTime(2026, 12, 5),
+          isAllDay: true,
+          sequence: 3,
         ),
       ],
     );
 
     final reminders = projection.project([task]);
 
-    expect(reminders, hasLength(2),
+    expect(reminders, hasLength(3),
         reason: 'independent reminders at the same instant must not collapse');
     expect(reminders.map((item) => item.id).toSet(), {
       'task-reminder-item:multi:r1',
       'task-reminder-item:multi:r2',
+      'task-reminder-item:multi:r3',
     });
     expect(reminders.map((item) => item.isAllDay).toSet(), {false, true});
     expect(reminders.map((item) => item.title), contains('خرید فرش — یادآور 1'));
