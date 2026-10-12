@@ -116,3 +116,36 @@
 - **Reports:** future follow-ups and reminders must be filterable independently.
 - **Status:** ACCEPTED. Implementation correction staged in PR #2636; exact-head validation pending.
 - **References:** [PR #2642](https://github.com/mobinpda-lab/Arvin-clean/pull/2642), [PR #2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636), [PR #2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631).
+
+
+## 2026-10-12 — Owner decision: Calendar reminder vs. in-app follow-up (binding product rule)
+- **Decision:** Follow-up (nextFollowUp) and reminder (reminderDate) are two independent concepts and must never be merged, inferred from one another, copied, or cleared as a side effect of editing or displaying either.
+- **Phone calendar rule:** Only an explicitly configured reminder (reminderDate) may be projected to the phone calendar, clearly titled «یادآوری». A follow-up date/time alone must never create a phone-calendar reminder or OS notification.
+- **Arvin Home rule:** Follow-up date/time (nextFollowUp) is shown as «پیگیری» in Arvin's Home / next-action presentation. It is not titled «یادآوری» and does not itself trigger a phone notification.
+- **Independent edits:** Changing follow-up must not change reminder; changing reminder must not change follow-up. Clearing either field must not clear the other.
+- **Calendar identity:** When a reminder is edited, update its existing linked event using canonical Task identity and the stored external event identity; do not create duplicates. Imported calendar events must not echo back as newly created reminders.
+- **Examples:** Task «خرید فرش اتاق»: follow-up = 15 Mehr at 17:00 → shown in Arvin Home as «پیگیری»; reminder = 15 Mehr at 09:00 → phone calendar entry titled «یادآوری». Either can exist without the other.
+- **Acceptance tests required:** follow-up-only creates no phone-calendar reminder/OS notification; reminder-only appears as «یادآوری» in phone calendar; both can coexist with different dates/times; editing/clearing either leaves the other unchanged through UI, JSON, SQL persistence and backup/restore; editing a linked reminder updates the same external event without duplicates; imported events do not loop back.
+- **Status:** Owner-approved product rule. Documentation decision is being recorded; implementation and exact-head/device acceptance are not implied by this decision and remain subject to evidence.
+
+
+## 2026-10-12 — Owner clarification: one-time initial reminder from Next Follow-up
+- **Supersedes the conflicting sentence above** that says a follow-up date/time alone must never create a reminder. The two concepts remain independent after initialization, but the owner has specified a one-time creation bridge.
+- **Concepts must remain distinct:** (1) follow-up-enabled Task, (2) a recorded Follow-up/action, (3) Next Follow-up (`nextFollowUp`), (4) reminder (`reminderDate`), and (5) the date/time belonging to a recorded Follow-up. The recorded Follow-up date/time is not the Next Follow-up date/time.
+- **Initial state:** Next Follow-up is empty until the user explicitly activates/sets it with the “Next Follow-up” action.
+- **One-time bridge:** when Next Follow-up is set for the first time, create an initial reminder at the same date/time. If Next Follow-up is date-only, the initial reminder is an all-day reminder.
+- **After initialization, independence is binding:** changing Next Follow-up must not move or rewrite the reminder; deleting Next Follow-up must not delete the reminder; deleting/editing the reminder must not change Next Follow-up. A Task may have a reminder without any Next Follow-up. Users can independently create, edit and delete each concept; each may be date-and-time or date-only where applicable.
+- **Presentation/projection:** Next Follow-up is shown in Arvin as «پیگیری بعدی»/next action. The reminder is shown/projected as «یادآوری» and uses the existing calendar-link identity for in-place updates; do not create duplicates or imported-event echo loops.
+- **Example:** «خرید فرش اتاق»: first setting Next Follow-up to 15 Mehr, 17:00 creates an initial reminder at 15 Mehr, 17:00. If Next Follow-up later changes to 20 Mehr, 10:00, the reminder remains at 15 Mehr, 17:00. Deleting Next Follow-up leaves that reminder intact.
+- **Still needs owner clarification:** if a reminder already exists when Next Follow-up is first activated, should the existing reminder be preserved, or should no additional reminder be created? Do not overwrite or duplicate an existing reminder until this edge case is decided.
+- **Acceptance tests required:** initial date+time creates matching reminder once; date-only creates all-day reminder; later date/time edits do not update reminder; deleting Next Follow-up leaves reminder; reminder-only Task works; editing/deleting reminder leaves Next Follow-up intact; recorded Follow-up date/time remains separate; all behavior survives UI, JSON, SQL persistence and backup/restore; calendar edits update the same linked event with no duplicates/echo loops.
+- **Status:** owner product clarification recorded; implementation/code audit, tests, exact-head CI and physical-device acceptance remain unverified. This decision does not authorize claiming the feature complete.
+
+
+## 2026-10-13 — Follow-up/reminder compatibility audit
+
+- **Problem:** the UI contract requires date-only Next Follow-up to create an all-day initial reminder, but FollowUp model stores only nullable DateTime fields and the Calendar projection does not mark FollowUp reminders all-day.
+- **Decision:** preserve independent `nextFollowUp` and `reminderDate`; do not infer all-day from midnight and do not auto-overwrite/duplicate a pre-existing reminder. The exact behavior when a reminder already exists at first activation remains pending explicit owner decision.
+- **Reason:** midnight can represent a real timed reminder; legacy JSON/backup values do not preserve intent separately. A dedicated all-day marker (separately for Next Follow-up and Reminder) is the candidate for forward data, subject to compatibility design and owner approval before implementation.
+- **Impact:** model/editor/projection and canonical Task JSON/SQL-envelope/backup-restore regression tests are required. Platform Calendar bridge already accepts all-day state; the gap is in source semantics and projection.
+- **Status:** audit recorded; implementation blocked on the two product/data decisions; release NO-GO.

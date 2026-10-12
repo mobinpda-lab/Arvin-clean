@@ -68,3 +68,31 @@ Green CI and emulator tests are necessary but insufficient. Release evidence mus
 
 ## Live checkpoint 2026-10-12
 Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanup PR #2613 is merged. Exact-main Build #38178428086 and Device Smoke #38178428043 have stale/incomplete status and are not accepted as passing. Release remains blocked by physical-device Calendar, Backup/Restore, golden-flow and owner-approval gates. Read the live `ARVIN_EXECUTION_STATE.md` before acting; historical SHA/run notes above are not current truth.
+
+
+## Binding UX rule — Follow-up vs. reminder (2026-10-12)
+- «پیگیری» is an in-app next action/review time. Show it on Arvin Home / next-action surfaces; do not project it to the phone calendar or generate an OS notification solely because it exists.
+- «یادآوری» is an explicitly configured notification time. Only this field may create/update a phone-calendar entry, titled «یادآوری».
+- These fields are independent in storage, UI, editing, projections and backup/restore. Either may exist without the other; never auto-copy, infer, clear or synchronize their values.
+- Example: «خرید فرش اتاق» with follow-up 15 Mehr 17:00 appears in Arvin as «پیگیری»; reminder 15 Mehr 09:00 appears in the phone calendar as «یادآوری».
+- Any change must preserve Task as the sole source of truth and use the existing external-event link to update the same calendar event. No duplicate events or imported-event echo loops.
+- See the binding decision in ARVIN_DECISION_LOG.md (2026-10-12). This is a product contract, not evidence that all implementation/device acceptance tests already pass.
+
+
+## Owner clarification — Next Follow-up and reminder lifecycle (2026-10-12)
+- Keep five concepts separate: follow-up-enabled Task, recorded Follow-up/action, Next Follow-up (`nextFollowUp`), reminder (`reminderDate`), and the date/time associated with a recorded Follow-up.
+- Next Follow-up starts empty and is activated explicitly by the user. On its first setting only, create an initial reminder at the same date/time; if the chosen Next Follow-up is date-only, make that initial reminder all-day.
+- Thereafter these are independent: editing or deleting Next Follow-up never edits/deletes the reminder; editing/deleting the reminder never edits/deletes Next Follow-up. A reminder can exist without Next Follow-up. Each is independently manageable and may be date+time or date-only.
+- Next Follow-up is an Arvin next-action cue («پیگیری بعدی»); reminder is the calendar/notification concept («یادآوری»). Preserve Task as the canonical source and stable Task/external-event identity for updates; no duplicate events or imported-event echo loops.
+- Example: initial Next Follow-up = 15 Mehr 17:00 creates reminder = 15 Mehr 17:00. Later Next Follow-up = 20 Mehr 10:00 leaves reminder at 15 Mehr 17:00; deleting Next Follow-up also leaves the reminder.
+- **Open edge case:** when a reminder already exists at the moment Next Follow-up is first set, owner decision is still needed on whether to preserve it and skip creation or another explicit behavior. Do not overwrite or duplicate the existing reminder by assumption.
+- This is an owner-approved product contract, not proof of code/test/device completion. Audit the existing implementation and tests before any code change; preserve JSON/SQL/backup compatibility and add regression coverage for all lifecycle rules.
+
+## Follow-up / Reminder all-day compatibility — 2026-10-13
+
+- `FollowUp.dateTime` is the recorded history timestamp; `nextFollowUp` is the next-action date/time; `reminderDate` is an independent reminder date/time. Do not conflate them.
+- Current FollowUp JSON has no all-day metadata. Task-level `allDay` only describes Task dueDate and must not be reused as a FollowUp flag.
+- Task SQL storage persists a canonical JSON envelope; canonical backup serializes `Task.toJson()` and restore uses `Task.fromJson()`. Any new FollowUp all-day marker must round-trip through both paths.
+- CalendarReminder and provider sync already support `isAllDay/allDay`; FollowUp Calendar projection currently leaves the flag at its false default.
+- Never use hour==0 as proof of all-day for FollowUp reminders. New explicit metadata is required to distinguish intentional midnight from date-only intent; old ambiguous values should remain unchanged unless a separately approved migration rule exists.
+- Existing editor does not create an initial reminder when Next Follow-up is first set, does not offer date-only selection for Next Follow-up, and does not expose clear-next in the inspected UI. Existing reminder edit/clear is already tested as independent behavior.

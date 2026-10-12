@@ -296,3 +296,18 @@ A missing workflow log/BlobNotFound is not a success or failure result. Emulator
 | Other Device Smoke lanes | Same run; no listed artifact for People, SQL persistence, Backup/Restore or SQL migration | Evidence incomplete | Not accepted |
 
 Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114324441). Artifact existence must not be conflated with workflow conclusion, full smoke completion, physical-device acceptance or owner approval.
+
+
+## 2026-10-13 — Follow-up/reminder audit evidence
+
+| Area | Evidence | Result |
+|---|---|---|
+| Model | `lib/models/task.dart` on main SHA `18117aea2fa07b5a9a02e6021f41ff4faae120cc` | `FollowUp.reminderDate/nextFollowUp` are separate nullable DateTime values; no FollowUp all-day marker |
+| Editor | `lib/follow_up_entry_page.dart` | Next Follow-up inherits history hour/minute; no clear-next; save does not create reminder |
+| Calendar projection | `lib/services/follow_up_calendar_projection.dart` | FollowUp reminder omits `isAllDay`; Task due-date path alone applies date-only heuristic |
+| Persistence | `lib/services/task_store.dart` | canonical Task JSON envelope is persisted; nested FollowUp fields travel in Task payload |
+| Backup/restore | `lib/backup_manager.dart` | backup uses `Task.toJson()`; restore uses `Task.fromJson()` |
+| Existing tests | `test/follow_up_reminder_model_test.dart`, `test/follow_up_entry_page_test.dart`, `test/follow_up_calendar_projection_test.dart` | JSON independence and reminder clear/edit covered; first-set bridge and FollowUp all-day behavior not established |
+| Execution validation | Current assistant run | Read-only audit only; no Flutter test/analyze/build/device run |
+
+PR #2650 is documentation-only and must be revalidated on its final exact head; no green check is claimed for a new post-audit commit.
