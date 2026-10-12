@@ -203,6 +203,10 @@ void main() {
     expect(result!.id, initial.id);
     expect(result!.reminderDate, legacyTimestamp);
     expect(result!.nextFollowUp, isNull);
+
+    final restored = FollowUp.fromJson(result!.toJson());
+    expect(restored.reminderDate, legacyTimestamp);
+    expect(restored.nextFollowUp, isNull);
   });
 
   testWidgets('existing reminder can be cleared without changing FollowUp identity',
