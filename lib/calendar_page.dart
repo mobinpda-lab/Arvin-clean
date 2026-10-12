@@ -997,6 +997,10 @@ class _ReminderCardState extends State<_ReminderCard> {
         children: [
           ListTile(
             key: ValueKey('reminder-card-${item.id}'),
+            dense: true,
+            visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
+            minVerticalPadding: 2,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             onTap: _hasActions
                 ? () => setState(() => _expanded = !_expanded)
                 : null,
@@ -1019,13 +1023,20 @@ class _ReminderCardState extends State<_ReminderCard> {
                 const SizedBox(height: 2),
                 Text(
                   item.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: visual.color,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(subtitle),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle.replaceAll('\\n', ' • '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11),
+                ),
               ],
             ),
             trailing: _hasActions
