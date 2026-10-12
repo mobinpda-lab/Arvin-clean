@@ -13,6 +13,7 @@ void main() {
     bool trashed = false,
     DateTime? taskReminder,
     List<FollowUp> followUps = const <FollowUp>[],
+    List<TaskReminder> taskReminders = const <TaskReminder>[],
   }) =>
       Task(
         id: id,
@@ -21,6 +22,7 @@ void main() {
         archived: archived,
         trashed: trashed,
         reminderDate: taskReminder,
+        taskReminders: taskReminders,
         followUps: followUps,
       );
 
@@ -152,5 +154,51 @@ void main() {
       'b:z',
     ]);
     expect(result.first.label, 'پیگیری');
+  });
+
+  test('delivers multiple Task reminders with distinct stable identities', () {
+    final at = now.subtract(const Duration(minutes: 2));
+    final result = service.due(
+      [
+        task(
+          'multi',
+          taskReminders: [
+            TaskReminder(id: 'r1', title: 'یادآور اول', date: at, sequence: 1),
+            TaskReminder(id: 'r2', title: 'یادآور دوم', date: at, sequence: 2),
+          ],
+        ),
+      ],
+      now: now,
+    );
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey).toSet(), {
+      'task:multi:reminder:r1',
+      'task:multi:reminder:r2',
+    });
+    expect(result.map((item) => item.label), ['یادآور اول', 'یادآور دوم']);
+  });
+
+  test('date-only reminder notification uses 9 AM, not an inferred midnight time', () {
+    final result = service.due(
+      [
+        task(
+          'all-day',
+          taskReminders: [
+            TaskReminder(
+              id: 'r-all-day',
+              title: 'یادآور تمام‌روز',
+              date: DateTime(2026, 8, 28),
+              isAllDay: true,
+              sequence: 1,
+            ),
+          ],
+        ),
+      ],
+      now: DateTime(2026, 8, 28, 9),
+    );
+
+    expect(result, hasLength(1));
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 9));
   });
 }
