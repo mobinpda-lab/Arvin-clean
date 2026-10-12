@@ -249,10 +249,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   void _addTaskReminder() {
     final now = DateTime.now();
     final sequence = _nextReminderSequence;
+    final localizedSequence = _dateFormatter.toPersianDigits(sequence.toString());
     final taskTitle = _titleController.text.trim();
     final reminder = TaskReminder(
       id: 'reminder-' + now.microsecondsSinceEpoch.toString(),
-      title: (taskTitle.isEmpty ? 'بدون عنوان' : taskTitle) + ' — یادآور $sequence',
+      title: (taskTitle.isEmpty ? 'بدون عنوان' : taskTitle) + ' — یادآور ' + localizedSequence,
       date: DateTime(now.year, now.month, now.day, now.hour, now.minute),
       isAllDay: false,
       sequence: sequence,
