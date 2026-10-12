@@ -164,3 +164,10 @@
 - Each reminder must have its own editable title and schedule and must be independently editable/deletable without mutating other reminders or Follow-up history. Each Follow-up history entry remains distinct.
 - Next Follow-up is the next-action value, separate from recorded Follow-up history and reminders. Reminder creation is opt-in; when explicitly requested for Next Follow-up, Task title and Next Follow-up date/time are only initial values.
 - Implementation, storage/backup round-trip and Calendar identity/no-duplicate validation remain required; this records product intent, not shipped behavior.
+
+
+## 2026-10-13 — Proposed canonical model for multiple independent Task reminders (NOT APPROVED)
+- Problem: the canonical Task has one nullable `reminderDate`; each FollowUp has one nullable `reminderDate`. This does not represent an arbitrary collection of Task-level reminders independent of FollowUp history.
+- Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
+- Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
+- Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
