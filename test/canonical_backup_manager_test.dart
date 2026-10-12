@@ -60,6 +60,7 @@ Task _completeTask() {
         dateTime: DateTime(2026, 8, 24, 9),
         note: 'تماس اول',
         result: 'منتظر پاسخ',
+        reminderDate: DateTime(2026, 8, 28, 10, 15),
         nextFollowUp: DateTime(2026, 8, 28, 10, 30),
       ),
     ],
@@ -96,6 +97,10 @@ void main() {
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');
+    expect(
+      restored.followUps.single.reminderDate,
+      DateTime(2026, 8, 28, 10, 15),
+    );
     expect(
       restored.followUps.single.nextFollowUp,
       DateTime(2026, 8, 28, 10, 30),
