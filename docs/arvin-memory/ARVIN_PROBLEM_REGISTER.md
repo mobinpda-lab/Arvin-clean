@@ -1,12 +1,14 @@
-## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12
+## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
-This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against live GitHub.
+This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
 
-- **P0 / Automated baseline:** main Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) passed on exact main SHA `cea76673d871ce52b84dacf69f355c4282802baa`; main Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) passed all six emulator scenarios. This closes automated evidence only for that SHA.
-- **P0 / Memory PR exact-head validation:** PR #2614 remains OPEN/DRAFT at last check. Always retrieve its current head and required Build jobs before readiness or merge; stale-head results are not valid evidence.
-- **P0 / Physical-device acceptance:** Calendar same-event update/no-duplicate behavior; real Android system-file-provider Backup/Restore, rollback and restored Calendar-link integrity remain NOT VERIFIED.
-- **P0 / Product handover:** installed-device golden flow, Persian RTL/compact-screen visual acceptance and explicit owner release approval remain outstanding. Keep release gate [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN; no release authorized.
-- **P1 / Integration:** reconcile overlapping implementation PRs #2591, #2595, #2602 and #2607 into a single tested integration head. Preserve canonical root `Task.description`; do not introduce `Task.note` or alter schema/migration/backup semantics without an explicit owner decision.
+- **Current main checkpoint:** `a4dae51e93d9b3dcbc55ded366280e59183f16bc`. Build [38202955720](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955720) passed Analyze, all six test shards, Debug APK and Release APK; Device Smoke [38202955719](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38202955719) passed all six emulator lanes.
+- **P0 / Physical-device acceptance:** Calendar same-event update/no-duplicate behavior; real Android file-provider Backup/Restore and restored Calendar-link integrity; installed-app golden flow; Persian RTL/compact-screen visual acceptance remain unverified. Keep [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) OPEN and release NO-GO.
+- **P0 / Calendar installed-app mismatch:** [Issue #2535](https://github.com/mobinpda-lab/Arvin-clean/issues/2535) remains open. Current main contains visible action wiring, recurrence projection, and launcher-level tests for edit/register actions and the seven-occurrence boundary; this does not establish that the owner's previously installed APK contained those changes.
+- **P1 / Cleanup:** [PR #2619](https://github.com/mobinpda-lab/Arvin-clean/pull/2619) remains open/unmerged. Latest head `ffb0f261b90530da7f4081e65ba773ca21fba27a` adds Dropbox download/metadata/error regression tests; its exact-head Build and Device Smoke are queued. Prior-head green results are not substituted.
+- **P1 / Consolidated status report:** [PR #2620](https://github.com/mobinpda-lab/Arvin-clean/pull/2620) is ready for review, unmerged; exact-head Build [38211356787](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38211356787) passed. Device Smoke was skipped for documentation-only changes.
+- **P1 / Integrated UI lane:** reconcile #2591, #2595, #2602 and #2607 into one tested integration head. #2595 and #2602 lack exact-head Build evidence in the latest query; #2607 reports merge conflicts. Preserve root `Task.description`; no root `Task.note`, schema or migration change.
+- **Next action:** finish exact-head validation and path-by-path review of #2619; verify the new state/probem-register documentation changes; then resolve overlapping UI PRs without weakening tests. No installation is requested yet; ask the owner only when one integrated candidate passes available automated gates.
 
 ---
 
