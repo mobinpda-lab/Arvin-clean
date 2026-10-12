@@ -2199,6 +2199,56 @@ class _HomePageState extends State<HomePage> {
     }
     if (task == null) return;
 
+    final links = await ExternalCalendarLinkStore().load();
+    ExternalCalendarEventLink? importedOriginLink;
+    for (final link in links) {
+      if (link.reminderId.startsWith('external-calendar:') &&
+          link.lastSyncedFingerprint == 'imported-task:${task.id}') {
+        importedOriginLink = link;
+        break;
+      }
+    }
+    if (importedOriginLink != null) {
+      final existing = importedOriginLink;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text(
+              'این کار از تقویم گوشی وارد آروین شده است؛ برای جلوگیری از تکرار دوباره صادر نمی‌شود.',
+            ),
+            action: SnackBarAction(
+              label: 'مشاهده رویداد اصلی',
+              onPressed: () async {
+                try {
+                  final opened = await SystemCalendarBridge()
+                      .openDeviceCalendarEvent(
+                    calendarId: existing.calendarId,
+                    eventId: existing.eventId,
+                  );
+                  if (!opened && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('باز کردن رویداد اصلی ممکن نشد.'),
+                      ),
+                    );
+                  }
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('باز کردن رویداد اصلی ممکن نشد.'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      return;
+    }
+
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
@@ -2211,7 +2261,6 @@ class _HomePageState extends State<HomePage> {
     );
     try {
       final revision = await CalendarSyncRevisionService().fromReminder(canonical);
-      final links = await ExternalCalendarLinkStore().load();
       ExternalCalendarEventLink? existingTargetLink;
       for (final link in links) {
         if (link.reminderId == reminder.id &&
