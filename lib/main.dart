@@ -2212,6 +2212,54 @@ class _HomePageState extends State<HomePage> {
     try {
       final revision = await CalendarSyncRevisionService().fromReminder(canonical);
       final links = await ExternalCalendarLinkStore().load();
+      ExternalCalendarEventLink? existingTargetLink;
+      for (final link in links) {
+        if (link.reminderId == reminder.id &&
+            link.calendarId == targetCalendarId) {
+          existingTargetLink = link;
+          break;
+        }
+      }
+      if (existingTargetLink != null) {
+        final existing = existingTargetLink;
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: const Text(
+                'این کار قبلاً در تقویم گوشی ثبت شده است؛ ثبت تکراری انجام نشد.',
+              ),
+              action: SnackBarAction(
+                label: 'مشاهده رویداد',
+                onPressed: () async {
+                  try {
+                    final opened = await SystemCalendarBridge()
+                        .openDeviceCalendarEvent(
+                      calendarId: existing.calendarId,
+                      eventId: existing.eventId,
+                    );
+                    if (!opened && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('باز کردن رویداد موجود ممکن نشد.'),
+                        ),
+                      );
+                    }
+                  } catch (_) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('باز کردن رویداد موجود ممکن نشد.'),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        return;
+      }
       final plan = const CalendarSyncPlanService().plan(
         revisions: <CalendarSyncRevision>[revision],
         links: links,
