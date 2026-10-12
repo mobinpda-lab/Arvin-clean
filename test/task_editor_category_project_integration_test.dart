@@ -22,6 +22,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        builder: (context, child) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        ),
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(
