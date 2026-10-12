@@ -318,3 +318,10 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Accepted behavior: setting Next Follow-up does not automatically create a reminder. Only if the user explicitly wants/chooses a reminder for it, prefill reminder title from Task title and schedule from Next Follow-up; user may independently edit reminder title/date/time and request additional reminders.
 - Independence invariant: no later propagation in either direction; reminders can remain without Next Follow-up; no silent overwrite/duplicates.
 - Validation status: product contract clarified; implementation and app validation not yet proven. Keep release NO-GO.
+
+
+## 2026-10-13 — Owner cardinality decision evidence
+- Source: explicit owner clarification in conversation on 2026-10-13.
+- Accepted contract: one Task can have multiple recorded Follow-up entries and multiple independent reminders. Each reminder and each history entry remains distinct; changes to one must not affect others.
+- Reminder creation remains opt-in. If the user chooses a reminder for Next Follow-up, Task title and Next Follow-up date/time are initial suggestions only.
+- Validation status: product contract recorded; code/model cardinality and app validation not yet proven.
