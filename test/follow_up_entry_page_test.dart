@@ -158,11 +158,11 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, initial.nextFollowUp);
+    expect(result!.nextFollowUp, isNull);
   });
 
 
-  testWidgets('legacy nextFollowUp remains separate when reminder editor is saved',
+  testWidgets('legacy nextFollowUp migrates to the single reminder schedule',
       (tester) async {
     FollowUp? result;
     final legacyTimestamp = DateTime(2026, 9, 12, 11, 20);
@@ -201,12 +201,12 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, isNull);
+    expect(result!.reminderDate, legacyTimestamp);
     expect(result!.nextFollowUp, isNull);
 
     final restored = FollowUp.fromJson(result!.toJson());
-    expect(restored.reminderDate, isNull);
-    expect(restored.nextFollowUp, legacyTimestamp);
+    expect(restored.reminderDate, legacyTimestamp);
+    expect(restored.nextFollowUp, isNull);
   });
 
   testWidgets('existing reminder can be cleared without changing FollowUp identity',
