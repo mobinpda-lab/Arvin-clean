@@ -757,3 +757,28 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Blocked:** Final CI conclusion; Task-form stack integration awaiting explicit owner approval; release awaiting physical-device evidence and explicit owner acceptance.
 - **Current bottleneck:** Exact-head validation has not finished; overlapping task-form changes must not be merged independently.
 - **Next action:** Poll existing runs [38254855655](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855655) and [38254855466](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38254855466), fix only evidence-backed failures, and update this state with final job outcomes. Do not merge PRs or release APKs without required authorization and acceptance evidence.
+
+
+---
+
+# LIVE EXECUTION CHECKPOINT — 2026-10-12 (follow-up decision + CI acceleration)
+
+This checkpoint supersedes earlier status statements where they conflict. Refresh GitHub before the next write.
+
+- **Completed:** PR #2631 merged at `d136dfc5c3c64a4e1dc0dae20e1a928dd154e66e`. FollowUp Calendar projection now requires an explicitly configured `FollowUp.reminderDate`; it no longer projects follow-up history/date alone. Exact-head Build, Calendar Provider Acceptance and all six Device Smoke lanes passed on dependency head `e815a8f1daa312da7bf6bf1188cf94a3b541e380`.
+- **Completed:** PR #2639 merged at `3550e754bdf5019b1a9192e4384d5ed4c947c680`. Stacked pull requests can now receive Build workflow validation; exact-head Build and Device Smoke passed before merge.
+- **Owner decision:** `nextFollowUp` and `reminderDate` are independent. Never migrate/clear `nextFollowUp` to simplify UI. Keep separate next-action and reminder controls. Calendar may project an explicit reminder only, without mutating either field. Decision is documented in PR #2642 and the dedicated decision document on a review branch.
+- **Correction in progress:** PR #2636 originally proposed a compatibility mapping that collapsed the two fields. Commented on PR #2636 and Issue #2635; updated PR description, FollowUp editor to preserve both values, regression tests and decision log. Current proposed head: `6d970acec8f2d26464f746525861f5b3f341ce67`.
+- **Validation status for PR #2636:** exact-head Build and Device Smoke are queued; Calendar Provider Acceptance is in progress. Do not merge until all gates finish and the branch is reconciled with latest main. Earlier run `38238251976` failed multiple calendar widget tests due to a 1 px vertical overflow at `lib/calendar_page.dart:501`, plus a follow-up action expectation failure; those results are historical and not proof about the corrected head.
+- **Current bottleneck:** verify PR #2636 on its exact current head and reconcile it with the merged PR #2631/main. The branch currently reports mergeable=false after main advanced; do not merge blindly.
+- **Release:** NO-GO until physical-device same-event Calendar update/no-duplicate, real Android file-provider Backup/Restore and Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen visual acceptance, and explicit owner approval are evidenced.
+- **Next action:** poll exact-head PR #2636 Build, Calendar Provider Acceptance and all six Device Smoke lanes; then reconcile branch/base conflicts and rerun on the final head. Continue only from this checkpoint; do not repeat already completed CI-routing/projection work.
+
+
+## Owner execution command — Follow-up, Quick Entry and Checklist (2026-10-12)
+
+- Canonical owner contract recorded in `docs/arvin-memory/ARVIN_FOLLOW_UP_AND_QUICK_ENTRY_DECISION.md` on documentation PR [#2643](https://github.com/mobinpda-lab/Arvin-clean/pull/2643); exact-head validation for the updated docs commit is running. Do not claim the document is merged until GitHub confirms it.
+- Existing implementation lane [#2595](https://github.com/mobinpda-lab/Arvin-clean/pull/2595) already owns `lib/task_editor_dialog.dart`, `lib/quick_capture_dialog.dart` and their tests; avoid creating a parallel implementation PR. Added the new contract to that lane and Calendar PR #2636 for reconciliation.
+- Required code changes remain **not yet verified complete**: remove auto-generated follow-up timestamp controls from Full Task Form while retaining «کار پیگیری‌دار»; preserve stored Task.followUpDate and FollowUp.nextFollowUp without copying/clearing; add compact Quick Entry «دارای پیگیری» and «دارای چک‌لیست» toggles that activate the canonical Roll Boxes; keep Checklist Task-owned; and make Calendar show explicit reminder first or nextFollowUp as an action item when no reminder exists, without scheduling a system notification from nextFollowUp alone.
+- Existing #2595 is stacked and currently reports mergeable=false; do not merge or rebase blindly. Reconcile with its shared Universal Time Picker parent and existing overlapping Task-form drafts, then run exact-head Analyze, all test shards, Debug/Release APK, and relevant Calendar/Device Smoke.
+- **Release remains NO-GO** until exact-head automated gates, physical-device Calendar update/no-duplicate behavior, real Backup/Restore and link-integrity evidence, RTL/compact-screen visual acceptance, and explicit owner approval are all recorded.
