@@ -15,13 +15,13 @@ Arvin's current main branch has a successful automated Build, including test sha
 | Area | Status | Management interpretation |
 |---|---|---|
 | Main-branch Build | PASS — run [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) | Automated baseline is green |
-| PR #2614 Build | IN PROGRESS — run [38179272840](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38179272840) | Analyze passed; Debug/Release APK jobs and six test shards are still running |
-| Main Device Smoke | IN PROGRESS — run [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) | Home, Quick Capture, SQL Persistence, SQL Migration and Backup/Restore passed; People remains in progress |
+| PR #2614 Build | IN PROGRESS — run [38199637809](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199637809), exact head `4ddb5fe0d8a13e1c3be43fbe661b7f093628649d` | Analyze passed; Debug/Release APK jobs and test shards are still running |
+| Main Device Smoke | PASS — run [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) | All six emulator scenarios passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore; physical-device validation remains separate |
 | v8 project memory on main | NOT YET | [PR #2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614) is open and Draft |
 | Physical-device acceptance | NOT EVIDENCED | Emulator/CI results do not substitute for real-device validation |
 | Release approval | BLOCKED | Explicit owner approval and required evidence remain outstanding |
 
-The People job's log retrieval returned `BlobNotFound`; treat this as unavailable diagnostic evidence, not as a pass or failure.
+Earlier People/Backup job-log retrieval returned `BlobNotFound`, but the latest job API now confirms all six scenarios completed successfully. Do not treat the earlier log-fetch issue as a current test failure.
 
 ## Top release risks / outstanding gates
 
