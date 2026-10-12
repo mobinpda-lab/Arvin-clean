@@ -27,6 +27,7 @@ import 'services/follow_up_calendar_projection.dart';
 import 'services/calendar_provider_sync_executor.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/system_calendar_bridge.dart';
 
 import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
@@ -1088,11 +1089,41 @@ class _HomePageState extends State<HomePage> {
     if (instanceId.isEmpty) return null;
 
     final importLinks = ExternalCalendarLinkStore();
-    if (await importLinks.hasImportedEvent(reminder.id)) {
+    final existingLink = await importLinks.findByProviderIdentity(
+      calendarId: calendarId,
+      eventId: instanceId,
+    );
+    if (existingLink != null) {
+      final linkedTaskId = existingLink.lastSyncedFingerprint
+              .startsWith('imported-task:')
+          ? existingLink.lastSyncedFingerprint
+              .substring('imported-task:'.length)
+          : calendarTaskIdForReminderId(existingLink.reminderId);
+      Task? linkedTask;
+      for (final candidate in tasks) {
+        if (candidate.id == linkedTaskId) {
+          linkedTask = candidate;
+          break;
+        }
+      }
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('این رویداد قبلاً در آروین ثبت شده است.')));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                linkedTask == null
+                    ? 'این رویداد قبلاً به آروین پیوند خورده است؛ مورد تکراری ساخته نشد.'
+                    : 'این رویداد قبلاً به کار «${linkedTask.title}» پیوند خورده است.',
+              ),
+              action: linkedTask == null
+                  ? null
+                  : SnackBarAction(
+                      label: 'مشاهده کار',
+                      onPressed: () => _openTaskDetail(linkedTask!),
+                    ),
+            ),
+          );
       }
       return null;
     }
@@ -2169,6 +2200,56 @@ class _HomePageState extends State<HomePage> {
     }
     if (task == null) return;
 
+    final links = await ExternalCalendarLinkStore().load();
+    ExternalCalendarEventLink? importedOriginLink;
+    for (final link in links) {
+      if (link.reminderId.startsWith('external-calendar:') &&
+          link.lastSyncedFingerprint == 'imported-task:${task.id}') {
+        importedOriginLink = link;
+        break;
+      }
+    }
+    if (importedOriginLink != null) {
+      final existing = importedOriginLink;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text(
+              'این کار از تقویم گوشی وارد آروین شده است؛ برای جلوگیری از تکرار دوباره صادر نمی‌شود.',
+            ),
+            action: SnackBarAction(
+              label: 'مشاهده رویداد اصلی',
+              onPressed: () async {
+                try {
+                  final opened = await SystemCalendarBridge()
+                      .openDeviceCalendarEvent(
+                    calendarId: existing.calendarId,
+                    eventId: existing.eventId,
+                  );
+                  if (!opened && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('باز کردن رویداد اصلی ممکن نشد.'),
+                      ),
+                    );
+                  }
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('باز کردن رویداد اصلی ممکن نشد.'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      return;
+    }
+
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
@@ -2181,7 +2262,54 @@ class _HomePageState extends State<HomePage> {
     );
     try {
       final revision = await CalendarSyncRevisionService().fromReminder(canonical);
-      final links = await ExternalCalendarLinkStore().load();
+      ExternalCalendarEventLink? existingTargetLink;
+      for (final link in links) {
+        if (link.reminderId == reminder.id &&
+            link.calendarId == targetCalendarId) {
+          existingTargetLink = link;
+          break;
+        }
+      }
+      if (existingTargetLink != null) {
+        final existing = existingTargetLink;
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: const Text(
+                'این کار قبلاً در تقویم گوشی ثبت شده است؛ ثبت تکراری انجام نشد.',
+              ),
+              action: SnackBarAction(
+                label: 'مشاهده رویداد',
+                onPressed: () async {
+                  try {
+                    final opened = await SystemCalendarBridge()
+                        .openDeviceCalendarEvent(
+                      calendarId: existing.calendarId,
+                      eventId: existing.eventId,
+                    );
+                    if (!opened && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('باز کردن رویداد موجود ممکن نشد.'),
+                        ),
+                      );
+                    }
+                  } catch (_) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('باز کردن رویداد موجود ممکن نشد.'),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        return;
+      }
       final plan = const CalendarSyncPlanService().plan(
         revisions: <CalendarSyncRevision>[revision],
         links: links,
@@ -2222,6 +2350,7 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onOpenTaskDetails: _openTaskDetail,
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),

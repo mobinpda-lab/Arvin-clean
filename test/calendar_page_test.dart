@@ -34,6 +34,75 @@ void main() {
     expect(find.text('جلسه تیم'), findsNothing);
   });
 
+
+  testWidgets('calendar visually distinguishes Arvin Tasks, independent FollowUps and phone imports',
+      (tester) async {
+    final day = DateTime(2026, 10, 12, 9);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(
+                id: 'task-due:task-1',
+                title: 'کار برنامه‌ریزی‌شده',
+                date: day,
+              ),
+              CalendarReminder(
+                id: 'followup:task-1:follow-1',
+                title: 'تماس پیگیری',
+                date: day.add(const Duration(minutes: 30)),
+              ),
+              CalendarReminder(
+                id: 'external-calendar:calendar-1:event-1',
+                title: 'رویداد واردشده',
+                date: day.add(const Duration(hours: 1)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار آروین'), findsOneWidget);
+    expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
+    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+
+    final taskIcon = tester.widget<Icon>(find.byIcon(Icons.checklist_rounded));
+    final followUpIcon = tester.widget<Icon>(
+      find.byIcon(Icons.notifications_active_outlined),
+    );
+    final importedIcon = tester.widget<Icon>(
+      find.byIcon(Icons.phone_android_rounded),
+    );
+    expect(taskIcon.color, const Color(0xFF4A4CAB));
+    expect(followUpIcon.color, const Color(0xFFB45309));
+    expect(importedIcon.color, const Color(0xFF0F766E));
+
+    await tester.tap(find.text('هفتگی'));
+    await tester.pumpAndSettle();
+    final weekDots = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith('calendar-origin-dot-'),
+    );
+    expect(weekDots, findsNWidgets(3));
+
+    await tester.tap(find.text('ماهانه'));
+    await tester.pumpAndSettle();
+    final monthDots = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith('calendar-origin-dot-'),
+    );
+    expect(monthDots, findsNWidgets(3));
+  });
+
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -275,8 +344,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.checklist_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.phone_android_rounded), findsOneWidget);
     expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
   });
 
@@ -320,5 +389,39 @@ void main() {
     expect(find.byKey(const ValueKey('task-due-delete-external-calendar:event-1')), findsNothing);
   });
 
+
+  testWidgets('follow-up reminder exposes a link to its canonical parent task', (tester) async {
+    final day = DateTime(2026, 10, 12, 10);
+    CalendarReminder? opened;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(
+                id: 'followup:parent-1:follow-1',
+                title: 'خرید موکت',
+                date: day,
+                description: 'نتیجه پیگیری ثبت‌شده',
+                parentTaskId: 'parent-1',
+              ),
+            ],
+            onOpenParentTask: (reminder) async { opened = reminder; },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-parent-task-followup:parent-1:follow-1')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('follow-up-parent-task-followup:parent-1:follow-1')));
+    await tester.pumpAndSettle();
+    expect(opened?.parentTaskId, 'parent-1');
+    await tester.tap(find.byKey(const ValueKey('reminder-card-followup:parent-1:follow-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-reminder-description-followup:parent-1:follow-1')), findsOneWidget);
+    expect(find.text('نتیجه پیگیری ثبت‌شده'), findsOneWidget);
+  });
 
 }

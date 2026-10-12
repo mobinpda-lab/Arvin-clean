@@ -126,6 +126,7 @@ void main() {
             id: 'fu-1',
             dateTime: followUpDate,
             note: 'Call customer',
+            reminderDate: DateTime.utc(2026, 9, 3, 9, 45),
             completed: true,
           ),
         ],
@@ -137,6 +138,10 @@ void main() {
     expect(loaded.single.followUps, hasLength(1));
     expect(loaded.single.followUps.single.id, 'fu-1');
     expect(loaded.single.followUps.single.note, 'Call customer');
+    expect(
+      loaded.single.followUps.single.reminderDate,
+      DateTime.utc(2026, 9, 3, 9, 45),
+    );
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 

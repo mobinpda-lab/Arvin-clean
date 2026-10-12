@@ -34,7 +34,8 @@ class FollowUpCalendarProjection {
     for (final task in tasks) {
       if (task.trashed) continue;
       for (final followUp in task.followUps) {
-        if (reminderIdFor(task, followUp) == reminderId) {
+        if ((followUp.reminderDate != null || followUp.nextFollowUp != null) &&
+            reminderIdFor(task, followUp) == reminderId) {
           return FollowUpCalendarTarget(
             taskId: task.id,
             followUp: followUp,
@@ -69,16 +70,27 @@ class FollowUpCalendarProjection {
       final taskDatesAlreadyProjected = <DateTime>[];
 
       for (final followUp in task.followUps) {
+        // An explicit notification time wins. If no notification is set,
+        // the next-action schedule is the Calendar fallback. These remain
+        // independent stored concepts; projection never copies or mutates them.
+        final calendarDate = followUp.reminderDate ?? followUp.nextFollowUp;
+        if (calendarDate == null) continue;
+
         final note = followUp.note.trim();
+        final result = followUp.result?.trim();
         reminders.add(
           CalendarReminder(
             id: reminderIdFor(task, followUp),
-            title: note.isEmpty ? task.title : '${task.title} — $note',
-            date: followUp.dateTime,
+            title: note.isEmpty || note == 'پیگیری'
+                ? 'پیگیری ${task.title}'
+                : note,
+            date: calendarDate,
+            description: result == null || result.isEmpty ? null : result,
+            parentTaskId: task.id,
             completed: followUp.completed || task.completed,
           ),
         );
-        taskDatesAlreadyProjected.add(followUp.dateTime);
+        taskDatesAlreadyProjected.add(calendarDate);
       }
 
       final taskReminderDate = task.reminderDate;
@@ -136,23 +148,8 @@ class FollowUpCalendarProjection {
         taskDatesAlreadyProjected.add(dueDate);
       }
 
-      // Older persisted tasks may still carry only the legacy single
-      // followUpDate. Keep them visible until migration is complete, but do
-      // not duplicate an equivalent canonical follow-up or due date.
-      final legacyFollowUpDate = task.followUpDate;
-      if (task.followUpEnabled &&
-          legacyFollowUpDate != null &&
-          !taskDatesAlreadyProjected
-              .any((date) => _sameInstant(date, legacyFollowUpDate))) {
-        reminders.add(
-          CalendarReminder(
-            id: legacyFollowUpReminderIdFor(task),
-            title: task.title,
-            date: legacyFollowUpDate,
-            completed: task.completed,
-          ),
-        );
-      }
+      // Legacy followUpDate is a schedule/history value, not proof that an
+      // independent reminder exists. Do not project it into Calendar.
     }
 
     reminders.sort((a, b) => a.date.compareTo(b.date));

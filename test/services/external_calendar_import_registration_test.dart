@@ -8,6 +8,36 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  test('provider identity lookup finds Arvin-created events before manual import', () async {
+    final store = ExternalCalendarLinkStore(
+      preferencesKey: 'test.externalCalendarLinks.providerIdentity',
+    );
+    await store.save([
+      ExternalCalendarEventLink(
+        reminderId: 'task-due:task-1',
+        calendarId: 'calendar-7',
+        eventId: 'provider-event-1',
+        lastSyncedFingerprint: 'task-fingerprint',
+      ),
+    ]);
+
+    final link = await store.findByProviderIdentity(
+      calendarId: 'calendar-7',
+      eventId: 'provider-event-1',
+    );
+    expect(link, isNotNull);
+    expect(link!.reminderId, 'task-due:task-1');
+
+    final duplicateImport = await store.registerImportedEvent(
+      reminderId: 'external-calendar:calendar-7:provider-event-1',
+      calendarId: 'calendar-7',
+      instanceId: 'provider-event-1',
+      taskId: 'task-2',
+    );
+    expect(duplicateImport, isFalse);
+    expect(await store.load(), hasLength(1));
+  });
+
   test('restore preserves current-device links, fills missing links and filters absent Tasks', () async {
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'test.externalCalendarLinks.restore',

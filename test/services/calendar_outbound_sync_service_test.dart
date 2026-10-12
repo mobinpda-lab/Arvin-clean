@@ -235,7 +235,7 @@ targetCalendarId: 'calendar-7',
     expect(links.links.single.eventId, 'event-17');
   });
 
-  test('honors per-source sync settings before planning provider writes', () async {
+  test('auto sync includes every Arvin-owned source regardless of legacy per-source settings', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
       settingsService: _Settings(
@@ -268,11 +268,15 @@ targetCalendarId: 'calendar-7',
       followUp('f1'),
     ]);
 
-    expect(result?.created, 1);
-    expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
+    expect(result?.created, 3);
+    expect(executor.receivedPlan?.items.map((item) => item.reminderId).toSet(), {
+      'task-due:task-1',
+      'task-reminder:task-1',
+      'followup:task-1:f1',
+    });
   });
 
-  test('disabled source does not delete its existing external link', () async {
+  test('legacy source toggle does not block an existing Arvin follow-up link', () async {
     final reminder = followUp('f1');
     final revision = await CalendarSyncRevisionService().fromReminder(reminder);
     final executor = _Executor();
@@ -296,9 +300,10 @@ targetCalendarId: 'calendar-7',
       ]),
     );
 
-    final result = await service.sync(const <CalendarReminder>[]);
+    final result = await service.sync([reminder]);
+    expect(result?.noOp, 1);
     expect(result?.deleted, 0);
-    expect(executor.receivedPlan?.items, isEmpty);
+    expect(executor.receivedPlan?.items.single.reminderId, reminder.id);
   });
 
   test('delete policy off preserves provider event and clears stale link metadata', () async {

@@ -1,3 +1,71 @@
+# LATEST IMPLEMENTATION UPDATE — Calendar FollowUp fallback — 2026-10-12
+
+- Implemented the owner-approved Calendar date selection on the experimental branch: `reminderDate` takes precedence; if absent, `nextFollowUp` supplies the projected date; neither stored value is changed merely by projection.
+- Projection/target resolution changes: commit `c1f5bf845e73b6c7b5baf558fc26339eee174c56`; projection regression tests: `db191d017dafce0053efd2afc6f19f5abcd0b060`.
+- Inbound Calendar reconciliation now resolves the same effective date/title as the projection and applies provider date edits to the field that supplied that date. It preserves the historical FollowUp `dateTime` and preserves the other independent field: service change `2dbf9b3fb37a732f5b73ff75c3cede4196ddba24`; regression tests `a6a2d4a57de33531151d3c0a7c2ad1ad315eff53`.
+- These are experimental-branch commits only. Exact-head Build, Calendar Provider Acceptance, and all six emulator smoke lanes must be verified after the final documentation update. No merge to `main`, no release.
+- Next action: poll exact-head workflows and inspect failures/logs; fix only evidenced defects. Physical-device Calendar update/no-duplicate, backup/restore integrity and Persian RTL/compact-screen acceptance remain open.
+
+---
+
+# LATEST OWNER DECISION — FollowUp fields remain independent — 2026-10-12
+
+This section is authoritative for future continuation and supersedes any older conflicting FollowUp mapping text below.
+
+- Owner decision is recorded in [ARVIN_FOLLOW_UP_CONCEPT_DECISION.md](ARVIN_FOLLOW_UP_CONCEPT_DECISION.md) and summarized in [ARVIN_DECISION_LOG.md](ARVIN_DECISION_LOG.md).
+- `nextFollowUp` means the next time to act on/review a topic; `reminderDate` means when the system should notify the user. They are separate persisted concepts.
+- Never copy `nextFollowUp` into `reminderDate`, clear it during UI save, or use a reminder as its substitute. Preserve both through editor, JSON, SQL, sync and backup/restore.
+- Calendar projection: use explicit `reminderDate` when present; otherwise fall back to `nextFollowUp` without mutating either field. Reports/filters must distinguish upcoming follow-ups and notifications.
+- Experimental branch only: `integration/calendar-2631-2636-experiment-20261012`. No merge to `main`, no release. PR #2640 remains subject to exact-head Build, Calendar Provider Acceptance, all six emulator smoke lanes, and outstanding physical-device/RTL/compact-screen acceptance.
+- Current code corrections already recorded below preserve `nextFollowUp` when editing; the new decision makes that preservation a permanent product contract rather than a temporary integration constraint.
+- Next action: verify the experimental branch head after documentation commits; inspect exact-head workflow results and confirm tests cover independent editor/serialization/projection behavior. Keep release NO-GO until all release gates and explicit final acceptance are satisfied.
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-12 — exact-head automated gates green
+
+This checkpoint supersedes prior status wording where it conflicts. Verified against the live GitHub Actions job results and PR metadata before this documentation update.
+
+- Repository: `mobinpda-lab/Arvin-clean`; working branch: `feat/calendar-origin-followup-visual-contract-20261012`.
+- PR [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) is OPEN and unmerged. Verified code/documentation head before this checkpoint: `bad9c12397e7ac40a1fb6cedf6c513d26226011f`.
+- Build [38244323450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323450): Analyze, test shards 0–5, Debug APK and Release APK all completed `success`.
+- Calendar Provider Acceptance [38244323503](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323503): `android-calendar-provider` completed `success`.
+- Device Smoke [38244323304](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38244323304): all six lanes completed `success` — Home, Quick Capture, SQL Persistence, SQL Migration, People and Backup/Restore. Overall run completed `success`.
+- These are automated CI/emulator results for the verified SHA above. They do not establish real-phone acceptance, actual writable system-calendar CREATE-then-UPDATE/no-duplicate behavior, imported-event no-echo on device, real file-provider Backup/Restore with external Calendar-link integrity, or Persian RTL/compact-screen visual acceptance.
+- Dependency PR [#2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631) remains OPEN and unmerged at `e815a8f1daa312da7bf6bf1188cf94a3b541e380`; its targeted People rerun succeeded and its automated workflow checks were previously verified green.
+- **Completed:** exact-head Build/Quality, Calendar Provider Acceptance and all six Device Smoke lanes are green on `bad9c123...`; latest execution evidence is linked above.
+- **In progress / blocked:** collect physical-device and visual acceptance evidence; confirm product-owner approval. Do not merge or release automatically.
+- **Next action:** this memory-only commit will trigger fresh CI for the new exact head. Poll those runs to terminal state before claiming the new head validated; do not duplicate runs. Keep release status **NO-GO** until all device/product gates and explicit owner approval are evidenced.
+- Architecture guardrails unchanged: Task is the sole source of truth; Calendar is a projection; stable Task ID + External Event ID identity; no duplicate event creation; no repeat-created root Task copies; preserve history and backup/link integrity.
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-12 — PR #2636 week-view origin-marker overflow correction
+
+- **Completed:** Inspected the previous failed exact-head Build logs for run [38239373451](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373451). Root cause: the two Home calendar/navigation tests failed on a 3 px vertical overflow in the compact week-view day cell after origin dots were added.
+- **Code correction committed:** [205267988aa059ecad99a8b6cbe380f50824d2d2](https://github.com/mobinpda-lab/Arvin-clean/commit/205267988aa059ecad99a8b6cbe380f50824d2d2), changed the week-cell height from 58 to 61 px in `lib/calendar_page.dart` to reserve space for the marker row. This is a presentation-only change; no Task data, external-event identity, sync, migration, persistence or backup contract changed.
+- **PR:** [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) remains unmerged. The correction and acceptance gate were recorded in PR comment [6123013815](https://github.com/mobinpda-lab/Arvin-clean/pull/2636#issuecomment-6123013815).
+- **Exact-correction validation:** Build run [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757): Analyze succeeded; six test shards and Debug/Release APK jobs were still running at last poll. Calendar Provider Acceptance run [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) was still running. Device Smoke run [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) had Home and Quick Capture running, and SQL migration, SQL persistence, People and Backup/Restore queued. These are not passes.
+- **Completed step:** Root-cause identification, minimal code correction, commit and PR evidence note.
+- **In progress:** Exact-head Build, provider acceptance and all six Device Smoke lanes.
+- **Blocked:** Merge/release; physical-device Calendar same-event update/no-duplicate, real Android file-provider Backup/Restore with Calendar-link integrity, Persian RTL/compact-screen acceptance and explicit owner approval remain unverified.
+- **Current bottleneck:** CI results for corrected commit; do not merge on workflow start or partial pass.
+- **Next action:** Poll runs 38240441757, 38240441696 and 38240441866. If any gate fails, inspect exact failing logs and repair without weakening tests. Once CI is green, continue independent physical-device and product acceptance. Keep release NO-GO until every release gate is evidenced.
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-12 (origin-aware Calendar and unified FollowUp reminder)
+
+- Owner requirement tracked in [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635). Phone-calendar-originated events retain stable provider identity and must never echo back into the phone Calendar; manual re-import of an already-linked provider event warns and offers the existing Task. Arvin-originated eligible Tasks/recurrence and explicitly configured independent FollowUp reminders must create once and then update the same external event. Never deduplicate by title/date.
+- Implementation PR: [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636), branch `feat/calendar-origin-followup-visual-contract-20261012`; PR is **ready for review, validation pending**. Auto-sync scope is all Arvin-owned canonical projections when global Auto-sync is enabled; legacy per-source toggles do not suppress them. Manual registration of phone-imported Tasks is blocked to prevent echo; repeated manual registration of an already-linked Arvin item warns and offers the existing event.
+- FollowUp editor now exposes one control, **«یادآور پیگیری مستقل»**, with helper **«این پیگیری در تقویم گوشی ثبت شود»**; the separate «پیگیری بعدی» button was removed. Compatibility mapping on load: `reminderDate` wins if both legacy fields exist; otherwise legacy `nextFollowUp` is loaded into the unified reminder. New saves persist the chosen timestamp as `reminderDate` and clear `nextFollowUp`. Focused widget tests cover both the label and legacy mapping. This intentionally normalizes the legacy semantic under the explicit owner decision; verify serialization/backup round-trip and provider behavior before merge.
+- Calendar agenda rows now have distinct icon/color identity: Arvin Task purple `#4A4CAB` + checklist icon; independent FollowUp amber `#B45309` + notification icon; imported phone event teal `#0F766E` + phone icon. Week/month cells show up to three matching origin-color dots. Tests assert row identity colors and cell dots.
+- `ExternalCalendarLinkStore.findByProviderIdentity(calendarId,eventId)` resolves the stable provider identity across imported and Arvin-created links. Registration rejects a second link with the same provider calendar/event identity even if the reminder ID differs. Manual import now warns and offers «مشاهده کار» for an already-linked Task instead of opening a new Task editor.
+- **Dependency:** current main's `FollowUpCalendarProjection` still projects historical FollowUps at `FollowUp.dateTime` without checking `reminderDate`. The independent-reminder-only projection and stale linked-event cleanup are in open PR [#2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631). Do not claim calendar projection correctness until that PR's exact-head CI passes and its behavior is integrated/merged.
+- **Validation pending:** exact-head Analyze, all test shards, Debug/Release APK, relevant Device Smoke lanes, Calendar Provider Acceptance, backup/restore round-trip and real-device verification. This branch is not release evidence; do not merge until all required gates pass.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (live re-poll after compact UI CI)
 
 This section supersedes any older status statement below where it conflicts. Historical material is preserved for audit. Last verified against GitHub Actions and PR metadata during this continuation.
@@ -720,3 +788,64 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Blocked:** Task Note data-contract change pending explicit owner decision; final release pending physical-device evidence and explicit owner acceptance.
 - **Current bottleneck:** overlapping draft PRs plus missing physical-device/user-data acceptance. The mainline automated baseline is green, so do not rerun it without a new commit or evidence-driven reason.
 - **Next action:** compare and reconcile the live PR diffs into one integration sequence without merging overlapping drafts independently; continue collecting non-destructive device acceptance evidence; update the release gate only from actual evidence. Keep #2102 open and fail-closed.
+
+
+## Unified validation status — 2026-10-12 11:09 UTC — PR #2636
+
+**Single source of truth for this checkpoint:** PR #2636 head is `dbe0524494182abd013fd16a6c04f9f82f75948a`. The three workflow runs below were started for code commit `205267988aa059ecad99a8b6cbe380f50824d2d2`, so they are **not exact-current-PR-head evidence** after the subsequent memory commits.
+
+| Gate | Run | Observed result | Classification |
+|---|---|---|---|
+| Build / Analyze | [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze = success; test-0..test-5 and Debug/Release APK jobs = cancelled; overall run = cancelled | **INCOMPLETE — not pass** |
+| Calendar Provider Acceptance | [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Provider job was in progress at last poll; no terminal conclusion verified | **PENDING — not pass** |
+| Device Smoke | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | All six lanes (Home, Quick Capture, SQL migration, SQL persistence, People, Backup/Restore) = cancelled; no acceptance artifacts confirmed | **INCOMPLETE — not pass** |
+
+**Counting rule:** only a completed job with conclusion `success` is a pass. `cancelled`, `in_progress`, missing artifacts, and a successful Analyze job alone are not test-suite passes. Previous wording that described Build or Smoke lanes as still running/queued is superseded by this observed snapshot.
+
+**Next action:** obtain fresh Build, Calendar Provider Acceptance, and all six Device Smoke results for the current PR head `dbe0524494182abd013fd16a6c04f9f82f75948a`; inspect logs for any failure. Do not infer a product regression from cancellation alone. Physical-device Calendar identity/update/no-duplicate, real Backup/Restore round-trip and link integrity, Persian RTL/compact-screen acceptance, and explicit owner approval remain separate release gates. **Merge/release: NO-GO.**
+
+
+## Authoritative continuation — exact-head CI checkpoint — 2026-10-12
+
+- **Current PR/head verified:** PR #2636 remains open and unmerged; head at this checkpoint is `aad552088e6cbb55a548c47fbfbdbe4c99a33796`.
+- **Build run [38240971924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971924):** Analyze = success; test-0 through test-5, Debug APK and Release APK = in progress at poll. Build acceptance is **PENDING**, not passed.
+- **Calendar Provider run [38240971994](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971994):** android-calendar-provider = in progress. **PENDING**, not passed.
+- **Device Smoke run [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879):** Home and Quick Capture = in progress; SQL migration, SQL persistence, People and Backup/Restore = queued. No lane has yet been accepted as passed.
+- Orchestrator, Production Loop and G1 lock sync completed successfully, but these coordination checks do not substitute for Build, Calendar Provider or Device Smoke.
+- **Completed this continuation:** read this execution state, verify PR #2636 and owner contract Issue #2635, poll job-level exact-head status, and record the checkpoint in GitHub memory/PR.
+- **Next action:** poll the three runs after their jobs reach terminal states; fetch logs for every failed job; repair without weakening tests; then run/collect physical-device and owner acceptance evidence.
+- **Release:** NO-GO. Physical writable-calendar same-event update/no-duplicate, backup/restore round-trip and external-link integrity, Persian RTL/compact-screen review and explicit owner approval remain open.
+
+
+## Authoritative continuation — exact-head CI completed, dependency lane pending — 2026-10-12
+
+- **PR #2636** remains OPEN and unmerged at head `c24c2b12516addb9c39b434d8ec91b1f0dc38993` on `feat/calendar-origin-followup-visual-contract-20261012`.
+- **Build** run [38241377217](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377217): Analyze, test shards 0–5, Debug APK and Release APK all completed `success`.
+- **Calendar Provider Acceptance** run [38241377428](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377428): `android-calendar-provider` completed `success`.
+- **Device Smoke** run [38241377344](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377344): all six lanes completed `success` — Home, Quick Capture, SQL Persistence, SQL Migration, People and Backup/Restore. People and Quick Capture/Home screenshot artifacts are listed. Job steps confirm the People screenshot-evidence upload succeeded; Backup/Restore lane passed, but its step list did not include a screenshot upload.
+- This is automated emulator evidence on the exact PR #2636 head; it is **not** physical-device product acceptance.
+- **Dependency PR #2631** remains OPEN and unmerged at head `e815a8f1daa312da7bf6bf1188cf94a3b541e380`. Its prior Device Smoke run [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195) had a cancelled People lane. A targeted rerun was accepted; new People job `114789195820` is still `in_progress` at this checkpoint. Other five lanes in that run are success. Do not claim dependency validation complete until People reaches a terminal successful result and the PR's other checks are verified.
+- **Completed:** exact-head automated gates for PR #2636 are green; terminal result recorded in PR comment [6123371051](https://github.com/mobinpda-lab/Arvin-clean/pull/2636#issuecomment-6123371051).
+- **Blocked / release NO-GO:** physical writable-calendar CREATE-then-UPDATE same external event/no duplicate; imported-event no-echo on a real device; real Android file-provider backup/restore round-trip and external Calendar-link integrity; Persian RTL/compact-screen visual acceptance; dependency PR #2631 terminal validation; explicit product-owner approval.
+- **Next action:** poll only the existing targeted People rerun for PR #2631, then review dependency checks; collect the missing physical-device acceptance evidence. Do not merge or release automatically.
+
+
+## Follow-up correction — dependency rerun completed — 2026-10-12
+
+- Re-polled dependency Device Smoke run [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195): targeted rerun job `114789195820` (**device-smoke (people)**) is now `completed / success`. All six lanes in that run are now `success`: People, Home, Backup/Restore, SQL Migration, SQL Persistence and Quick Capture.
+- Dependency PR #2631's associated workflow runs on code head `e815a8f1daa312da7bf6bf1188cf94a3b541e380` show Build, Calendar Provider Acceptance, Device Smoke, Orchestrator and Production Loop completed successfully; PR remains open/unmerged. This clears the previously cancelled People-lane blocker for automated CI evidence.
+- PR #2636 current branch head is documentation-only commit `b1c9afa1491b8ee374ec2b903ab699dda94a3a7b`; the green feature-code CI evidence above is for parent code SHA `c24c2b12516addb9c39b434d8ec91b1f0dc38993`. No new CI run was returned for the documentation-only SHA. Do not claim a new test execution on the docs commit; rerun required checks if GitHub branch protection requires exact current-head checks.
+- Remaining release NO-GO gates unchanged: physical-device writable-calendar same-event update/no duplicate and imported-event no-echo; real-device backup/restore round-trip and external link integrity; Persian RTL/compact-screen visual acceptance; explicit owner approval. No merge or release performed.
+- Next action: verify exact-current-head PR checks / branch protection requirements, then obtain and attach physical-device acceptance evidence. Do not duplicate already-green code-head CI runs unless required by policy.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-12 — preserve FollowUp scheduling semantics
+
+- **Scope:** continue experimental Calendar integration PR [#2640](https://github.com/mobinpda-lab/Arvin-clean/pull/2640), combining the independent-reminder projection correction from #2631 with origin-aware Calendar identity from #2636. No merge to `main`, release, or database migration is authorized.
+- **Root cause confirmed:** the candidate editor treated legacy `FollowUp.nextFollowUp` as `reminderDate` and cleared `nextFollowUp` on save. This conflated automatic follow-up scheduling (consumed by automatic follow-up, next-action ranking, work agenda and Task Detail) with an explicitly configured independent Calendar reminder. The user's statement that the database is empty lowers immediate entered-data-loss exposure but does not make a future-behavior contract change safe.
+- **Code correction committed on the experimental branch:** `d180c607c25a0e6abe74975ab2930f35744e5b7d` makes the editor load `reminderDate` only and preserve the existing `nextFollowUp` value when editing. The follow-up widget tests were updated in `eaa7809f6c876ac9f54cf43d872012a013d06e42` to assert that editing preserves the schedule, and JSON round-trip preserves legacy `nextFollowUp` without silently promoting it to a Calendar reminder. A source comment was clarified in `1b9f7968df6968bb69dd67d1fff316b101c062a1`.
+- **Validation status:** prior candidate SHA `e9805de3c5e3a82e2943d7fd1d9a086e9f39c620` had successful Build, Calendar Provider Acceptance and six-lane emulator Device Smoke, but that evidence does not validate the corrected commits. The first runs after the new commits were cancelled/restarted by automation; do not treat them as passes. Re-query workflows for the latest exact branch head and require Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, and all six Device Smoke lanes to complete successfully on that exact SHA.
+- **Still open:** audit the approved single-control FollowUp UX against all consumers and JSON/SQL/backup/restore contracts; physical Android Calendar create-then-update/no-duplicate evidence; imported-event no-echo; real file-provider Backup/Restore and Calendar-link integrity; Persian RTL/compact-screen visual acceptance; explicit owner acceptance. Emulator CI is not physical-device acceptance.
+- **Current state:** IN PROGRESS; merge/release BLOCKED. Continue only on this experimental branch, preserve Task/FollowUp identity and history, do not change schema/migrations or silently normalize existing persisted values. Record exact-head CI outcomes after polling.

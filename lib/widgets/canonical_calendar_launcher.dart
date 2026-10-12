@@ -32,6 +32,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
     this.onEditTask,
+    this.onOpenTaskDetails,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onRetryCalendarSync,
@@ -47,6 +48,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
+  final Future<void> Function(Task task)? onOpenTaskDetails;
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function()? onRetryCalendarSync;
@@ -184,6 +186,24 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
+  }
+
+  Future<void> _openParentTask(CalendarReminder reminder) async {
+    final target = _targetFor(reminder);
+    final openDetails = widget.onOpenTaskDetails;
+    if (target == null || openDetails == null) return;
+    Task? parent;
+    for (final task in _tasks) {
+      if (task.id == target.taskId && !task.trashed) {
+        parent = task;
+        break;
+      }
+    }
+    if (parent == null) return;
+    await openDetails(parent);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
   }
 
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
@@ -891,6 +911,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
+            onOpenParentTask: _openParentTask,
             onDeleteTask: _deleteTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,

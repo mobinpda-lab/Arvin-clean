@@ -154,14 +154,14 @@ void main() {
         id: 'conflict-a',
         title: 'جلسه مشتری',
         followUps: [
-          FollowUp(id: 'follow-a', dateTime: when, note: 'پیگیری قرارداد'),
+          FollowUp(id: 'follow-a', dateTime: when, reminderDate: when, note: 'پیگیری قرارداد'),
         ],
       ),
       Task(
         id: 'conflict-b',
         title: 'جلسه داخلی',
         followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, note: 'هماهنگی تیم'),
+          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
         ],
       ),
     ];
@@ -182,8 +182,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
-    expect(find.text('جلسه مشتری — پیگیری قرارداد'), findsWidgets);
-    expect(find.text('جلسه داخلی — هماهنگی تیم'), findsWidgets);
+    expect(find.text('پیگیری قرارداد'), findsWidgets);
+    expect(find.text('هماهنگی تیم'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
     expect(
       find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'),
@@ -203,6 +203,7 @@ void main() {
           FollowUp(
             id: 'follow-a',
             dateTime: when,
+            reminderDate: when,
             note: 'پیگیری قرارداد',
             result: 'منتظر تأیید',
             nextFollowUp: DateTime(2026, 8, 29, 9),
@@ -213,7 +214,7 @@ void main() {
         id: 'conflict-b',
         title: 'جلسه داخلی',
         followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, note: 'هماهنگی تیم'),
+          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
         ],
       ),
     ];
@@ -285,12 +286,12 @@ void main() {
       Task(
         id: 'conflict-a',
         title: 'جلسه مشتری',
-        followUps: [FollowUp(id: 'follow-a', dateTime: when)],
+        followUps: [FollowUp(id: 'follow-a', dateTime: when, reminderDate: when)],
       ),
       Task(
         id: 'conflict-b',
         title: 'جلسه داخلی',
-        followUps: [FollowUp(id: 'follow-b', dateTime: when)],
+        followUps: [FollowUp(id: 'follow-b', dateTime: when, reminderDate: when)],
       ),
     ];
     SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});

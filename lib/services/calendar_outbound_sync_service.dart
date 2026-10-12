@@ -80,9 +80,10 @@ class CalendarOutboundSyncService {
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
       // An explicit edit of an already-linked Task is a direct reconciliation
-      // request, not a new/background sync. Per-source toggles still gate normal
-      // sync and unlinked reminders, but must not strand an existing link.
-      if (!linkedOnly && !_enabledForReminder(integration, reminder)) continue;
+      // request, not a new/background sync. Global auto-sync owns all canonical
+      // Arvin Task/recurrence/independent-FollowUp projections; legacy per-source
+      // switches do not suppress them or strand existing links.
+      if (!linkedOnly && !_enabledForReminder(reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
       } on ArgumentError {
@@ -96,7 +97,7 @@ class CalendarOutboundSyncService {
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final managedLinks = linkedOnly
         ? links.where((link) => revisionIds.contains(link.reminderId))
-        : links.where((link) => _enabledForReminderId(integration, link.reminderId));
+        : links.where((link) => _enabledForReminderId(link.reminderId));
     final linksForPlan = linkedOnly
         ? managedLinks
         : integration.deleteLinkedEventWithTask
@@ -128,30 +129,18 @@ class CalendarOutboundSyncService {
     return result;
   }
 
-  bool _enabledForReminder(
-    CalendarIntegrationSettings integration,
-    CalendarReminder reminder,
-  ) => _enabledForReminderId(integration, reminder.id);
+  bool _enabledForReminder(CalendarReminder reminder) =>
+      _enabledForReminderId(reminder.id);
 
-  bool _enabledForReminderId(
-    CalendarIntegrationSettings integration,
-    String id,
-  ) {
-    if (id.startsWith('task-due:')) {
-      return integration.syncDueDates;
-    }
-    if (id.startsWith('task-reminder:')) {
-      return integration.syncTaskReminders;
-    }
-    if (id.startsWith('followup:')) {
-      return integration.syncFollowUps;
-    }
-    if (id.startsWith('task-followup:')) {
-      return integration.syncFollowUpReminders;
-    }
-    if (id.startsWith('task-recurrence:')) {
-      return integration.syncRecurrence;
-    }
-    return false;
+  bool _enabledForReminderId(String id) {
+    // Owner contract: once global auto-sync is enabled, every Arvin-owned
+    // Task/recurrence/independent-FollowUp projection is synchronized. The
+    // legacy per-source booleans remain deserializable for backup compatibility
+    // but no longer silently exclude canonical Arvin calendar items.
+    return id.startsWith('task-due:') ||
+        id.startsWith('task-reminder:') ||
+        id.startsWith('followup:') ||
+        id.startsWith('task-followup:') ||
+        id.startsWith('task-recurrence:');
   }
 }

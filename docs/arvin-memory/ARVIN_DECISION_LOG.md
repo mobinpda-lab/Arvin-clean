@@ -1,3 +1,22 @@
+
+
+## 2026-10-12 — PR #2636 week-view origin-marker overflow correction
+- **Problem:** The exact-head Build run 38239373451 reported two failures caused by a 3 px vertical overflow in the compact week-view calendar day cell after origin dots were introduced.
+- **Decision:** Increase that week-cell height from 58 to 61 px, reserving space for origin markers while leaving data and calendar identity contracts untouched.
+- **Reason:** Fix the actual layout constraint rather than suppressing or weakening regression tests.
+- **Impact:** Presentation-only; no Task model, sync identity, persistence, migration, or backup changes.
+- **Status:** Commit 205267988aa059ecad99a8b6cbe380f50824d2d2 recorded on PR #2636; exact-head Build, Calendar Provider Acceptance and all six Device Smoke lanes were still running/queued at the latest poll. Merge and release remain blocked pending full evidence.
+## 2026-10-12 — Origin-aware phone Calendar and unified FollowUp reminder
+
+- **Problem:** a phone-originated event can be imported as a Task and then echoed back into the same phone calendar; manual import also needs to detect a provider event already linked to an Arvin-created Task. FollowUp editor exposes two date concepts, «پیگیری بعدی» and «یادآور پیگیری مستقل», while only the latter should project to Calendar.
+- **Decision:** provider identity is the normalized `calendarId + eventId`; never match synchronization identity by title/date. Imported links retain `imported-task:<Task ID>` metadata and are excluded from outbound sync and manual re-registration; manual registration of an imported Task offers the original event instead. A second manual import of an already-linked provider event must warn and offer the existing Task. Clicking «ثبت در تقویم گوشی» for a Task already linked to the selected destination must warn and offer to open that same provider event rather than silently reporting a new registration.
+- **FollowUp UX/data contract — superseded by owner decision 2026-10-12:** `nextFollowUp` (next action/review time) and `reminderDate` (notification time) are independent and must both be preserved. Never map one into the other, clear `nextFollowUp` to simplify UI, or change their persisted semantics without a separate explicit owner decision. Calendar projection uses explicit `reminderDate` when present, otherwise falls back to `nextFollowUp` without mutating either stored field. Reports/filters must distinguish upcoming follow-ups from reminders. Canonical decision: [ARVIN_FOLLOW_UP_CONCEPT_DECISION.md](ARVIN_FOLLOW_UP_CONCEPT_DECISION.md).
+- **Visual identity:** Arvin Task purple `#4A4CAB` + checklist icon; independent FollowUp amber `#B45309` + notification icon; imported phone event teal `#0F766E` + phone icon. Calendar week/month cells show matching origin dots; icon and label remain available so color is not the sole signal.
+- **Auto-sync scope:** when global Auto-sync is enabled, all Arvin-owned Task due/reminder, recurrence, and explicitly configured independent FollowUp projections sync. Legacy per-source toggles remain readable for old settings/backups but do not silently suppress this owner-mandated behavior; phone-originated imported Tasks remain excluded from outbound sync.
+- **Status:** implementation started on branch `feat/calendar-origin-followup-visual-contract-20261012`; tests and exact-head CI are pending. No release gate closed.
+
+---
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
@@ -107,3 +126,12 @@
 - **Reason:** Keep GitHub as project brain while preserving an auditable review path.
 - **Impact:** No application code, schema, migration, backup format or release artifact changed.
 - **Status:** In progress; PR and exact-head validation still required.
+
+
+## 2026-10-12 — exact-head CI status classification
+
+- **Problem:** Earlier validation runs were cancelled and did not prove acceptance; documentation commits advanced the PR head.
+- **Decision:** Evaluate only fresh workflow jobs associated with the currently verified PR head and classify each job explicitly as success, in progress, queued, cancelled, or failure.
+- **Reason:** Prevent stale-SHA evidence, orchestration success, or a partial Analyze pass from being misrepresented as a full product pass.
+- **Impact:** No application code, data model, migration, backup format or product behavior changed in this checkpoint.
+- **Status:** Applied to PR #2636 and the execution/evidence/problem memory; automated and physical-device acceptance remain pending.
