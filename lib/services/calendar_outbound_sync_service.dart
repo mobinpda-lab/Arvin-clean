@@ -80,8 +80,9 @@ class CalendarOutboundSyncService {
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
       // An explicit edit of an already-linked Task is a direct reconciliation
-      // request, not a new/background sync. Per-source toggles still gate normal
-      // sync and unlinked reminders, but must not strand an existing link.
+      // request, not a new/background sync. Global auto-sync owns all canonical
+      // Arvin Task/recurrence/independent-FollowUp projections; legacy per-source
+      // switches do not suppress them or strand existing links.
       if (!linkedOnly && !_enabledForReminder(reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
