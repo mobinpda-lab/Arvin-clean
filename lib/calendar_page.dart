@@ -17,6 +17,7 @@ class CalendarReminder {
     this.end,
     this.externalCalendarId,
     this.externalEventId,
+    this.parentTaskId,
   });
   final String id;
   final String title;
@@ -27,6 +28,8 @@ class CalendarReminder {
   final DateTime? end;
   final String? externalCalendarId;
   final String? externalEventId;
+  /// Canonical Task owning a projected FollowUp reminder; presentation-only.
+  final String? parentTaskId;
 }
 
 enum _CalendarViewMode { day, week, month, year }
@@ -45,6 +48,7 @@ class CalendarPage extends StatefulWidget {
     this.onConvertReminderToTask,
     this.onOpenExternalReminder,
     this.onCreateTaskFromCalendarEvent,
+    this.onOpenParentTask,
     this.canMutateReminder,
     this.onCreateTaskForDate,
     this.visibleReminderProjection,
@@ -64,6 +68,8 @@ class CalendarPage extends StatefulWidget {
   onConvertReminderToTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenExternalReminder;
   final Future<void> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
+  /// Opens the canonical Task that owns a FollowUp reminder.
+  final Future<void> Function(CalendarReminder reminder)? onOpenParentTask;
 
   /// Generic Task/FollowUp actions are shown only for exact canonical targets.
   final bool Function(CalendarReminder reminder)? canMutateReminder;
@@ -855,6 +861,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                 )
                                 ? widget.onEditTask
                                 : null,
+                            onOpenParentTask:
+                                selectedReminders[index].parentTaskId != null
+                                ? widget.onOpenParentTask
+                                : null,
                             onDeleteTask: _isTaskCalendarItemId(
                                   selectedReminders[index].id,
                                 )
@@ -1000,6 +1010,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onEdit,
     this.onEditTask,
+    this.onOpenParentTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
@@ -1016,6 +1027,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenParentTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
@@ -1041,6 +1053,7 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
           (widget.onEditTask != null ||
+              widget.onOpenParentTask != null ||
               widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
@@ -1140,6 +1153,20 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ],
               ),
             ),
+          if (!_expanded && widget.onOpenParentTask != null)
+            Padding(
+              key: ValueKey('follow-up-parent-primary-${item.id}'),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: ActionChip(
+                  key: ValueKey('follow-up-parent-task-${item.id}'),
+                  avatar: const Icon(Icons.link_outlined, size: 18),
+                  label: const Text('کار مادر'),
+                  onPressed: () => _run(widget.onOpenParentTask),
+                ),
+              ),
+            ),
           if (_expanded && _hasActions)
             Padding(
               key: ValueKey('reminder-actions-${item.id}'),
@@ -1148,6 +1175,13 @@ class _ReminderCardState extends State<_ReminderCard> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  if (widget.onOpenParentTask != null)
+                    ActionChip(
+                      key: ValueKey('follow-up-parent-task-${item.id}'),
+                      avatar: const Icon(Icons.link_outlined, size: 18),
+                      label: const Text('کار مادر'),
+                      onPressed: () => _run(widget.onOpenParentTask),
+                    ),
                   if (widget.isPrayer && widget.onPrayerCompleted != null)
                     ActionChip(
                       key: ValueKey('prayer-completed-${item.id}'),
