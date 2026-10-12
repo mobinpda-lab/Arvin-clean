@@ -43,11 +43,12 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 
 ## Exact-head validation — rechecked 2026-10-12
 
-- Validated cleanup code head: `b72b4c47fda68c4ecf7f035ce9977fe4335f971a`.
-- The audit checkpoint was then updated in documentation commit `6c1041ce5de5f01839fb9a1a35f32b492462d993`; rerun/confirm exact-head CI for this newest branch head before merge.
-- Exact-head Build [#38205403000](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403000): completed successfully. Analyze, all six test shards (0–5), Debug APK and Release APK passed.
-- Exact-head Device Smoke [#38205403044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403044): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
-- These are automated exact-head CI/emulator results; they do not prove physical-device acceptance or release readiness.
+- Earlier code-only head `b72b4c47fda68c4ecf7f035ce9977fe4335f971a` passed Build and all six emulator smoke lanes; this is historical evidence only.
+- Current PR head checked: `68fd56eb2b4543c27af7e6c04af275dad3b15197`.
+- Exact-head Build [#38206493297](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38206493297): completed successfully. Analyze, all six test shards (0–5), Debug APK and Release APK passed.
+- Exact-head Device Smoke [#38206493289](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38206493289): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
+- Workflow evidence applies only to SHA `68fd56eb2b4543c27af7e6c04af275dad3b15197`. Any subsequent commit, including documentation-only updates, requires a fresh exact-head status check before merge.
+- These are automated CI/emulator results; they do not prove physical-device acceptance or release readiness.
 - PR #2619 remains open and unmerged. Complete deletion/content-migration review and refresh the base/main comparison before merging; green CI alone does not prove every deletion is safe.
 
 ## Required next passes
