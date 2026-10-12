@@ -753,7 +753,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       RecurrenceFrequency.yearly => 'سالانه',
       RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
       RecurrenceFrequency.minutes => 'هر $count دقیقه',
-      RecurrenceFrequency.hours => 'هر $count ساعت',
+      RecurrenceFrequency.hours => interval == null || interval == 1 ? 'هر ساعت' : 'هر $count ساعت',
     };
   }
 
@@ -1153,7 +1153,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             label: 'تکرار',
                             valueLabel: _recurrence == null
                                 ? 'بدون تکرار'
-                                : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency, interval: _recurrence!.interval)),
+                                : (!_repeatEnabled
+                                    ? 'تکرار غیرفعال'
+                                    : '${_recurrenceLabel(_recurrence!.frequency, interval: _recurrence!.interval)} • ${_relativeDateLabel(_dueDateTime)}${_dueDateTime != null && !_dueAllDay ? '، ${_timeText(_dueDateTime!)}' : ''}'),
                             icon: Icons.repeat_rounded,
                             color: ArvinColors.primary,
                             emptyLabel: 'بدون تکرار',
