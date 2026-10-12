@@ -650,10 +650,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     final now = DateTime.now();
     final existing = widget.task;
     _syncAutomaticReminder();
-    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
-        ? _dueDateTime
-        : (_reminderDateTime ??
-            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
+    if ((_dueDateTime == null || _dueAllDay) && _reminderDateTime != null) {
+      _saving = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برای ذخیره یادآور، موعد کار باید تاریخ و ساعت داشته باشد.')),
+      );
+      return;
+    }
+    final reminderDate = (_dueDateTime == null || _dueAllDay)
+        ? null
+        : (_reminderFollowsDueTime
+            ? _dueDateTime
+            : (_reminderDateTime ??
+                (!_reminderExplicitlyCleared ? _initialReminderDateTime : null)));
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
@@ -697,6 +706,30 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   String _dateText(DateTime value) =>
       _dateFormatter.format(value, usePersianDate: true);
 
+  String _weekdayLabel(DateTime value) {
+    const weekdays = <int, String>{
+      DateTime.monday: 'دوشنبه',
+      DateTime.tuesday: 'سه‌شنبه',
+      DateTime.wednesday: 'چهارشنبه',
+      DateTime.thursday: 'پنجشنبه',
+      DateTime.friday: 'جمعه',
+      DateTime.saturday: 'شنبه',
+      DateTime.sunday: 'یکشنبه',
+    };
+    return weekdays[value.weekday]!;
+  }
+
+  String _relativeDateLabel(DateTime? value) {
+    if (value == null) return 'تعیین نشده';
+    final now = DateTime.now();
+    final selectedDay = DateTime.utc(value.year, value.month, value.day);
+    final currentDay = DateTime.utc(now.year, now.month, now.day);
+    final dayOffset = selectedDay.difference(currentDay).inDays;
+    if (dayOffset == 0) return 'امروز، ${_weekdayLabel(value)}';
+    if (dayOffset == 1) return 'فردا، ${_weekdayLabel(value)}';
+    return '${_dateText(value)}، ${_weekdayLabel(value)}';
+  }
+
   String _timeText(DateTime value) {
     final raw =
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
@@ -710,15 +743,19 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     TaskPriority.high => 'زیاد',
   };
 
-  String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
-    RecurrenceFrequency.daily => 'روزانه',
-    RecurrenceFrequency.weekly => 'هفتگی',
-    RecurrenceFrequency.monthly => 'ماهانه',
-    RecurrenceFrequency.yearly => 'سالانه',
-    RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
-    RecurrenceFrequency.minutes => 'دقیقه‌ای',
-    RecurrenceFrequency.hours => 'ساعتی',
-  };
+  String _recurrenceLabel(RecurrenceFrequency frequency, {int? interval}) {
+    final formatter = const PersianDateFormatter();
+    final count = formatter.toPersianDigits((interval ?? (frequency == RecurrenceFrequency.minutes ? 15 : 1)).toString());
+    return switch (frequency) {
+      RecurrenceFrequency.daily => 'روزانه',
+      RecurrenceFrequency.weekly => 'هفتگی',
+      RecurrenceFrequency.monthly => 'ماهانه',
+      RecurrenceFrequency.yearly => 'سالانه',
+      RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
+      RecurrenceFrequency.minutes => 'هر $count دقیقه',
+      RecurrenceFrequency.hours => 'هر $count ساعت',
+    };
+  }
 
   Widget _dateTimeRollBox({    required String keyPrefix,
     required String label,
@@ -944,7 +981,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                   const SizedBox(height: 14),
                   _dateTimeEditor(
                     keyPrefix: 'task-editor-due',
-                    title: 'تاریخ انجام',
+                    title: 'موعد • ${_relativeDateLabel(_dueDateTime)}${_dueDateTime != null && !_dueAllDay ? '، ${_timeText(_dueDateTime!)}' : ''}',
                     value: _dueDateTime,
                     onPickDate: _pickDueDate,
                     onPickTime: _pickDueTime,
@@ -1067,15 +1104,47 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         ),
                       ],
                       const SizedBox(height: 10),
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-reminder',
-                        title: 'یادآوری',
-                        value: _reminderDateTime,
-                        onPickDate: _pickReminderDate,
-                        onPickTime: _pickReminderTime,
-                        onClear: _clearReminderTime,
-                        accent: ArvinColors.reminder,
-                      ),
+                      if (_dueDateTime != null && !_dueAllDay)
+                        _dateTimeEditor(
+                          keyPrefix: 'task-editor-reminder',
+                          title: 'یادآوری • ${_relativeDateLabel(_reminderDateTime ?? _dueDateTime)}',
+                          value: _reminderDateTime,
+                          onPickDate: _pickReminderDate,
+                          onPickTime: _pickReminderTime,
+                          onClear: _clearReminderTime,
+                          accent: ArvinColors.reminder,
+                        )
+                      else
+                        Container(
+                          key: const ValueKey('task-editor-reminder-requires-timed-due'),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _fieldSurface,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: _border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text('یادآوری', style: TextStyle(fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 4),
+                              const Text('برای فعال‌کردن یادآور، تاریخ و ساعت موعد کار را وارد کنید. کار تمام‌روز یادآور معمولی ندارد.'),
+                              if (_reminderDateTime != null) ...[
+                                const SizedBox(height: 6),
+                                Text('یادآور فعلی: ${_dateText(_reminderDateTime!)} • ${_timeText(_reminderDateTime!)}'),
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: TextButton.icon(
+                                    key: const ValueKey('task-editor-reminder-clear-invalid'),
+                                    onPressed: _clearReminderTime,
+                                    icon: const Icon(Icons.delete_outline),
+                                    label: const Text('حذف یادآور'),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       const SizedBox(height: 10),
                       LayoutBuilder(
                         builder: (context, constraints) {
@@ -1084,7 +1153,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                             label: 'تکرار',
                             valueLabel: _recurrence == null
                                 ? 'بدون تکرار'
-                                : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency)),
+                                : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency, interval: _recurrence!.interval)),
                             icon: Icons.repeat_rounded,
                             color: ArvinColors.primary,
                             emptyLabel: 'بدون تکرار',
@@ -1099,22 +1168,30 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                                 )
                                 .toList(growable: false),
                             onSelected: (frequency) {
-                              final interval =
-                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
+                              final interval = int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
                               setState(() {
                                 if (frequency == null) {
                                   _recurrence = null;
                                   _repeatEnabled = false;
                                 } else {
+                                  final presetInterval = frequency == RecurrenceFrequency.minutes
+                                      ? 15
+                                      : (frequency == RecurrenceFrequency.hours ? 1 : (interval > 0 ? interval : 1));
+                                  _recurrenceIntervalController.text = '$presetInterval';
                                   _recurrence = RecurrenceRule(
                                     frequency: frequency,
-                                    interval: interval > 0 ? interval : 1,
+                                    interval: presetInterval,
                                     startDate: _recurrenceStartDate,
                                     endDate: _recurrenceEndDate,
                                     count: int.tryParse(_recurrenceCountController.text.trim()),
                                     active: true,
                                   );
                                   _repeatEnabled = true;
+                                  if (_dueDateTime == null && !_dueAllDay) {
+                                    final now = DateTime.now();
+                                    _dueDateTime = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+                                  }
+                                  _syncAutomaticReminder();
                                 }
                               });
                             },
