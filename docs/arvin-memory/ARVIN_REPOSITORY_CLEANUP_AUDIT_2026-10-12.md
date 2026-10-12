@@ -27,6 +27,13 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 - `docs/UI/ARVIN_UI_CANONICAL.md`: its substantive visual requirements (palette, Home and Task/FollowUp reference, typography, spacing, architecture limits and acceptance criteria) were migrated into a supplemental section of `docs/ARVIN_UI_CANONICAL.md`; `docs/UI/ARVIN_UI_REFERENCE_IMAGES_CONTRACT.md` now points explicitly to the root canonical document. The nested duplicate authority file is removed.
 - Removed stale standalone status snapshots: `docs/AI_CONTINUATION_STATE.md`, `docs/AI_HANDOFF_CURRENT_FA.md`, `docs/PROJECT_STATUS.md`, `docs/ARVIN_STATUS.md`, and `docs/ARVIN_PROJECT_STATE.md`. Their old SHA/PR/percentage claims are no longer in the active tree; durable architecture and owner requirements remain in the current memory, ADR, UI contract, Product Contract Matrix and conversation continuity ledger. Git history retains the original files. The authority index and continuity startup instructions were updated to point to current canonical memory. The v49.1 operating package remains the governance standard; owner command v8 is the current continuation command and replaces earlier execution commands only.
 
+## Removed: placeholder workflow with no callers
+
+- Removed `.github/workflows/arvin-task-dispatcher.yml` from this cleanup branch.
+- The workflow was manual-dispatch-only and its jobs only echoed placeholder messages; it did not execute or dispatch a real factory task.
+- Exact-name repository code search found no workflow dispatch callers or other references to this workflow.
+- Similar names do not justify deleting `arvin-factory-worker-engine.yml` or the active queue/router/orchestrator workflows; those remain separate audit subjects.
+
 ## Code cleanup completed and remaining candidates
 
 - `lib/services/backup_service.dart` was removed after exact import-path search found no internal references. It was an alternate SharedPreferences dump/restore implementation and not the canonical SAF-backed `ArvinBackupService`; this removal does not change canonical backup format or restore flow.
