@@ -149,4 +149,36 @@ void main() {
 
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
+
+  test('projects independent Task reminders with stable delivery keys', () {
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور اول',
+          date: DateTime(2026, 8, 28, 17),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          title: 'یادآور تمام‌روز',
+          date: DateTime(2026, 8, 29),
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey), [
+      'task:multi:reminder:r1',
+      'task:multi:reminder:r2',
+    ]);
+    expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
+    expect(result.last.label, 'یادآور تمام‌روز');
+  });
 }
