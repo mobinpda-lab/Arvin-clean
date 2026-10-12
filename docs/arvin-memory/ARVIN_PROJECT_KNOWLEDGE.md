@@ -68,3 +68,12 @@ Green CI and emulator tests are necessary but insufficient. Release evidence mus
 
 ## Live checkpoint 2026-10-12
 Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanup PR #2613 is merged. Exact-main Build #38178428086 and Device Smoke #38178428043 have stale/incomplete status and are not accepted as passing. Release remains blocked by physical-device Calendar, Backup/Restore, golden-flow and owner-approval gates. Read the live `ARVIN_EXECUTION_STATE.md` before acting; historical SHA/run notes above are not current truth.
+
+
+## Binding UX rule — Follow-up vs. reminder (2026-10-12)
+- «پیگیری» is an in-app next action/review time. Show it on Arvin Home / next-action surfaces; do not project it to the phone calendar or generate an OS notification solely because it exists.
+- «یادآوری» is an explicitly configured notification time. Only this field may create/update a phone-calendar entry, titled «یادآوری».
+- These fields are independent in storage, UI, editing, projections and backup/restore. Either may exist without the other; never auto-copy, infer, clear or synchronize their values.
+- Example: «خرید فرش اتاق» with follow-up 15 Mehr 17:00 appears in Arvin as «پیگیری»; reminder 15 Mehr 09:00 appears in the phone calendar as «یادآوری».
+- Any change must preserve Task as the sole source of truth and use the existing external-event link to update the same calendar event. No duplicate events or imported-event echo loops.
+- See the binding decision in ARVIN_DECISION_LOG.md (2026-10-12). This is a product contract, not evidence that all implementation/device acceptance tests already pass.
