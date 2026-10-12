@@ -1,3 +1,13 @@
+# LATEST IMPLEMENTATION UPDATE — Calendar FollowUp fallback — 2026-10-12
+
+- Implemented the owner-approved Calendar date selection on the experimental branch: `reminderDate` takes precedence; if absent, `nextFollowUp` supplies the projected date; neither stored value is changed merely by projection.
+- Projection/target resolution changes: commit `c1f5bf845e73b6c7b5baf558fc26339eee174c56`; projection regression tests: `db191d017dafce0053efd2afc6f19f5abcd0b060`.
+- Inbound Calendar reconciliation now resolves the same effective date/title as the projection and applies provider date edits to the field that supplied that date. It preserves the historical FollowUp `dateTime` and preserves the other independent field: service change `2dbf9b3fb37a732f5b73ff75c3cede4196ddba24`; regression tests `a6a2d4a57de33531151d3c0a7c2ad1ad315eff53`.
+- These are experimental-branch commits only. Exact-head Build, Calendar Provider Acceptance, and all six emulator smoke lanes must be verified after the final documentation update. No merge to `main`, no release.
+- Next action: poll exact-head workflows and inspect failures/logs; fix only evidenced defects. Physical-device Calendar update/no-duplicate, backup/restore integrity and Persian RTL/compact-screen acceptance remain open.
+
+---
+
 # LATEST OWNER DECISION — FollowUp fields remain independent — 2026-10-12
 
 This section is authoritative for future continuation and supersedes any older conflicting FollowUp mapping text below.
