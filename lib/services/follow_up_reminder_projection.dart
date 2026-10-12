@@ -64,6 +64,24 @@ class FollowUpReminderProjection {
         );
       }
 
+      for (final reminder in task.taskReminders) {
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        if (scheduledAt.isBefore(now)) continue;
+        result.add(
+          FollowUpReminderCandidate.task(
+            taskId: task.id,
+            taskTitle: task.title,
+            taskReminderId: reminder.id,
+            label: reminder.title.trim().isEmpty
+                ? 'یادآور ' + reminder.sequence.toString()
+                : reminder.title,
+            scheduledAt: scheduledAt,
+          ),
+        );
+      }
+
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;
         final reminderDate = followUp.reminderDate;
