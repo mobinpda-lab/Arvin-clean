@@ -1,3 +1,23 @@
+# EVIDENCE STATUS — ANTI-FORGET AUDIT 2026-10-12
+
+Requirement-to-evidence matrix is indexed in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Current verified scope:
+
+| Requirement | Evidence currently known | Status / missing proof |
+|---|---|---|
+| FollowUp reminder-only projection | PR #2631 exact-head Build #38234134184 PASS; Calendar Provider Acceptance #38234134120 PASS | Device Smoke #38234134195 cancelled; re-run and validate backup/restore/device behavior |
+| Calendar origin, duplicate warning, unified FollowUp UI and icon/color | PR #2636 head ff9267307db6e480643c749f3bbeba59c79a15bb; Build #38238251976 and provider #38238251704 were in progress; smoke #38238251775 queued | NOT VALIDATED until all exact-head jobs conclude and failures repaired |
+| Global inline date/time | PR #2633 staged rollout; Build #38238544598 in progress; Smoke skipped as draft | Partial implementation; more surfaces, RTL/compact screenshots and exact-head pass needed; old failure #38234432045 is for old SHA |
+| Compact cards | PR #2627 Home/Calendar scope; prior Build pass on head 91b949f... | Other surfaces and visual/physical-device acceptance remain open; refresh smoke status live |
+| Report Filter visual target | Issue #2623 | Reference recorded; UI comparison/behavior evidence required |
+| Quick Add/full Task Form visual target | Issue #2624; architecture #2593 | Reference/decision recorded; integrated UI and tests required |
+| Repeat Tracking Level | Issue #2605 | Accepted direction; end-to-end and backup/restore evidence required |
+| Physical device / SAF Backup-Restore / golden flow | Issue #2102 | NOT VERIFIED; release NO-GO |
+
+Do not infer evidence from old SHA, queued/in-progress/cancelled workflow, PR existence or emulator alone.
+
+
+## Anti-forget ledger requirement
+The owner requirements across the 2026-10-12 conversation are enumerated in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Read that checklist before further work; do not treat a PR, documentation record or in-progress workflow as completion. Preserve all checklist items and update their evidence/status only after exact-head verification.
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
