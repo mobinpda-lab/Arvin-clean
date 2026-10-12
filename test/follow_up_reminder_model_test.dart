@@ -73,7 +73,7 @@ void main() {
         TaskReminder(
           id: 'reminder-c',
           title: 'خرید فرش — یادآور 3',
-          date: DateTime(2026, 10, 22, 11),
+          date: DateTime(2026, 10, 22),
           isAllDay: true,
           sequence: 3,
         ),
@@ -89,7 +89,7 @@ void main() {
     expect(restored.taskReminders.map((item) => item.id),
         ['reminder-a', 'reminder-c']);
     expect(restored.taskReminders.last.isAllDay, isTrue);
-    expect(restored.taskReminders.last.date, DateTime(2026, 10, 22, 11));
+    expect(restored.taskReminders.last.date, DateTime(2026, 10, 22));
     expect(restored.nextReminderSequence, 4);
   });
 
