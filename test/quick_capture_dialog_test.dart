@@ -714,4 +714,87 @@ void main() {
     expect(captured!.reminderDate, fixedNow.subtract(const Duration(minutes: 15)));
   });
 
+  testWidgets('Quick Add offers hourly and 15-minute repeat presets and anchors due time',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 8, 26, 12, 15);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () async {
+                  captured = await showModalBottomSheet<Task>(
+                    context: context,
+                    builder: (_) => QuickCaptureDialog(
+                      idFactory: () => 'quick-repeat-preset',
+                      now: () => fixedNow,
+                    ),
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار تکرارشونده');
+    await tester.tap(find.byKey(const ValueKey('quick-capture-repeat-rollbox')));
+    await tester.pumpAndSettle();
+    expect(find.text('هر ۱۵ دقیقه'), findsOneWidget);
+    expect(find.text('هر ساعت'), findsOneWidget);
+    await tester.tap(find.text('هر ۱۵ دقیقه'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('۱۲:۱۵'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, fixedNow);
+    expect(captured!.recurrence?.frequency.name, 'minutes');
+    expect(captured!.recurrence?.interval, 15);
+  });
+
+  testWidgets('Quick Add does not offer a reminder before a due date is set',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () => showModalBottomSheet<Task>(
+                  context: context,
+                  builder: (_) => QuickCaptureDialog(
+                    now: () => DateTime(2026, 8, 26, 12),
+                  ),
+                ),
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('۱۵ دقیقه قبل'), findsNothing);
+    expect(find.text('تاریخ و ساعت سفارشی'), findsNothing);
+    expect(find.text('ابتدا موعد را تعیین کنید'), findsOneWidget);
+  });
+
 }
