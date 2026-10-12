@@ -327,7 +327,8 @@ class Task {
         }
       }
     }
-    final sequenceFromJson = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final sequenceFromJson = storedSequence < 1 ? 1 : storedSequence;
     final nextReminderSequence = [
       sequenceFromJson,
       if (loadedTaskReminders.isNotEmpty)
