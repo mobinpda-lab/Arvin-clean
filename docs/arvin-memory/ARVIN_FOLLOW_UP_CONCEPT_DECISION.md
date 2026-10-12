@@ -65,3 +65,11 @@ The owner explicitly reconfirms:
 - Next Follow-up remains a distinct next-action value, not the whole Follow-up history and not a reminder. Setting it does not automatically create a reminder.
 - If the user explicitly chooses to create a reminder for a Next Follow-up, prefill the reminder title from the Task title and its initial date/time from Next Follow-up; these are initial values only.
 - Data model, UI, persistence, backup/restore, calendar projection and tests must support multiple entries without overwriting, collapsing or duplicating them. Preserve canonical Task ownership and stable reminder/calendar identities; no parallel Task store.
+
+
+## Owner clarification — multiple follow-ups and reminders per Task (2026-10-13)
+- One Task may have multiple recorded Follow-up entries and multiple independent reminders; neither is limited to one per Task.
+- Keep each recorded Follow-up as its own history entry. Keep reminder instances independently identifiable, editable, schedulable and deletable; editing/deleting one must not affect another reminder or any Follow-up entry.
+- Next Follow-up remains a distinct next-action value, not the whole Follow-up history and not a reminder. Setting it does not automatically create a reminder.
+- If the user explicitly chooses to create a reminder for a Next Follow-up, prefill the reminder title from the Task title and its initial date/time from Next Follow-up; these are initial values only.
+- Data model, UI, persistence, backup/restore, Calendar projection and tests must support multiple entries without overwriting, collapsing or duplicating them. Preserve canonical Task ownership and stable reminder/calendar identities; no parallel Task store.
