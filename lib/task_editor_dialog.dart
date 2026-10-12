@@ -102,7 +102,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _checklistController = TextEditingController();
     _tagFocusNode = FocusNode();
     _titleFocusNode = FocusNode();
-    _followUpDateTime = task?.legacyHomeFollowUpDate;
+    _followUpDateTime = task?.followUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.reminderDate;
@@ -234,31 +234,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   }
 
   void _setFollowUpEnabled(bool value) {
-    setState(() {
-      _followUpEnabled = value;
-      if (value && _followUpDateTime == null) {
-        _followUpDateTime = _baseDateTime(null);
-      }
-    });
+    // Enabling follow-up is a state choice only; it must not invent a timestamp.
+    setState(() => _followUpEnabled = value);
   }
 
-  Future<void> _pickFollowUpDate() async {
-    final value = await _chooseDate(
-      _followUpDateTime,
-      helpText: 'انتخاب تاریخ پیگیری',
-    );
-    if (value != null && mounted) setState(() => _followUpDateTime = value);
-  }
-
-  Future<void> _pickFollowUpTime() async {
-    final value = await _chooseTime(
-      _followUpDateTime,
-      helpText: 'انتخاب ساعت پیگیری',
-    );
-    if (value != null && mounted) setState(() => _followUpDateTime = value);
-  }
-
-  Future<void> _pickDueDate() async {
+Future<void> _pickDueDate() async {
     final value = await _chooseDate(
       _dueDateTime,
       helpText: 'انتخاب تاریخ انجام کار',
@@ -327,7 +307,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
   }
 
-  void _clearFollowUpTime() => setState(() => _followUpDateTime = null);
   void _clearDueTime() => setState(() {
     _dueDateTime = null;
     _dueAllDay = false;
@@ -425,7 +404,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
         _followUpEnabled != initialFollowUpEnabled ||
-        _followUpDateTime != existing.legacyHomeFollowUpDate ||
+        _followUpDateTime != existing.followUpDate ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
@@ -676,7 +655,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
         followUpEnabled: _followUpEnabled,
-        followUpDate: _followUpEnabled ? _followUpDateTime : null,
+        followUpDate: existing?.followUpDate ?? _followUpDateTime,
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
@@ -863,7 +842,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final editing = widget.task != null;
-    final followUp = _followUpDateTime;
     final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
     return PopScope(
       canPop: false,
@@ -1320,40 +1298,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                               ),
                             ),
                           ),
-                        if (_followUpEnabled) ...[
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'زمان پیگیری',
-                                  style: TextStyle(
-                                    color: Color(0xFF77778A),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                              if (followUp != null)
-                                TextButton.icon(
-                                  key: const ValueKey(
-                                    'task-editor-clear-followup',
-                                  ),
-                                  onPressed: _clearFollowUpTime,
-                                  icon: const Icon(Icons.close, size: 17),
-                                  label: const Text('حذف زمان'),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          _dateTimeEditor(
-                            keyPrefix: 'task-editor-followup',
-                            title: 'زمان پیگیری',
-                            value: followUp,
-                            onPickDate: _pickFollowUpDate,
-                            onPickTime: _pickFollowUpTime,
-                            onClear: _clearFollowUpTime,
-                            accent: ArvinColors.primary,
-                          ),
-                        ],
+
                       ],
                     ),
                   ),
