@@ -107,3 +107,13 @@
 - **Reason:** Keep GitHub as project brain while preserving an auditable review path.
 - **Impact:** No application code, schema, migration, backup format or release artifact changed.
 - **Status:** In progress; PR and exact-head validation still required.
+
+
+## 2026-10-12 — Owner decision: keep nextFollowUp and reminderDate independent
+- **Problem:** The next planned follow-up/action and the system notification time can be conflated during UI simplification or Calendar/report implementation.
+- **Decision:** `nextFollowUp` means when the user should next act on/review the topic; `reminderDate` means when the system should notify the user. They are independent and neither replaces the other. Preserve both in the model and persistence.
+- **Reason:** A planned action date and a notification timestamp express different user intent.
+- **Impact:** Do not delete, transfer, or clear `nextFollowUp` to simplify UI; “یادآور پیگیری بعدی” is a reminder label, not a replacement field. Calendar displays `reminderDate` when a Reminder exists, otherwise `nextFollowUp`, without mutating either value. Reports and filters must support each independently.
+- **Required validation:** Audit existing model/editor/repository/Calendar/report paths; test independent persistence, null/fallback and precedence, edit flows and backup/restore compatibility. No parallel Task or Reminder store.
+- **Status:** ACCEPTED product decision; documentation staged on `docs/follow-up-concept-decision-20261012`; implementation and release validation not yet verified.
+- **Decision document:** [ARVIN_FOLLOW_UP_CONCEPT_DECISION.md](../ARVIN_FOLLOW_UP_CONCEPT_DECISION.md).
