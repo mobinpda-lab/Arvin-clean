@@ -1,3 +1,11 @@
+# LIVE TEST-DRIVEN CORRECTION — 2026-10-12
+
+- PR #2636 prior head `ff9267307db6e480643c749f3bbeba59c79a15bb` Build [38238251976](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38238251976) FAILED across test shards. Logs showed 1px overflow in compact Calendar day cells from 4px origin dots and a FollowUp action regression caused by treating `followup:<task>:<followup>` as Task-owned. Corrected on head `0b010e105c9d2fbb3279b58795bd42f4340f6b1d`: dots 3px, FollowUp actions restored, icon assertion updated.
+- New exact-head Build [38239373451](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373451), Calendar Provider Acceptance [38239373403](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373403) and Device Smoke [38239373435](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38239373435) were queued/pending at last poll. Re-poll and repair failures; no pass claimed.
+- Mandatory checklist: [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md).
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 (anti-forget audit)
 
 - **Anti-forget source:** [Conversation Requirements Ledger](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). This checklist consolidates the owner requirements surfaced across the current conversation and previous Arvin continuation: Calendar origin/sync/duplicate rules; independent FollowUp reminder; lawful Calendar icons/colors; global date+time row/fallback; compact task density; owner screenshots for Reports and Task forms; Repeat Tracking Level; cleanup/data integrity; release and evidence gates.
