@@ -41,6 +41,14 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 - The repository contains 21 GitHub workflow files, including several factory/orchestrator/queue/production-loop workflows. No workflow is to be deleted until trigger overlap, `workflow_run`/dispatch callers, branch filters, release gates and active-run dependencies are mapped.
 - A pre-existing `chore/whole-codebase-cleanup-20260930` branch is diverged and 290 commits behind current `main`; it is not a safe base for cleanup.
 
+## Exact-head validation — rechecked 2026-10-12
+
+- Cleanup head: `b72b4c47fda68c4ecf7f035ce9977fe4335f971a`.
+- Exact-head Build [#38205403000](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403000): completed successfully. Analyze, all six test shards (0–5), Debug APK and Release APK passed.
+- Exact-head Device Smoke [#38205403044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403044): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
+- These are automated exact-head CI/emulator results; they do not prove physical-device acceptance or release readiness.
+- PR #2619 remains open and unmerged. Complete deletion/content-migration review and refresh the base/main comparison before merging; green CI alone does not prove every deletion is safe.
+
 ## Required next passes
 
 1. Inventory Dart imports and symbol references for all source files; distinguish dead code from plugin/reflection/entrypoint use.
