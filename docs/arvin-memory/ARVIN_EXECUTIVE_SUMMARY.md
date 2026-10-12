@@ -15,7 +15,7 @@ Arvin's current main branch has a successful automated Build, including test sha
 | Area | Status | Management interpretation |
 |---|---|---|
 | Main-branch Build | PASS — run [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086) | Automated baseline is green |
-| PR #2614 Build | IN PROGRESS — run [38199637809](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199637809), exact head `4ddb5fe0d8a13e1c3be43fbe661b7f093628649d` | Analyze passed; Debug/Release APK jobs and test shards are still running |
+| PR #2614 Build | PENDING LIVE CHECK — validate the latest PR head in GitHub Actions before merge | The checkpoint edits create a new head; any result from an earlier head is stale and cannot authorize merge |
 | Main Device Smoke | PASS — run [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043) | All six emulator scenarios passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore; physical-device validation remains separate |
 | v8 project memory on main | NOT YET | [PR #2614](https://github.com/mobinpda-lab/Arvin-clean/pull/2614) is open and Draft |
 | Physical-device acceptance | NOT EVIDENCED | Emulator/CI results do not substitute for real-device validation |
