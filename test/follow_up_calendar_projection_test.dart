@@ -54,7 +54,7 @@ void main() {
     expect(reminders.last.date, DateTime(2026, 8, 28, 11));
   });
 
-  test('does not project follow-up history when no independent reminder is configured', () {
+  test('does not project follow-up history when neither schedule nor reminder is configured', () {
     final task = Task(
       id: 'history-only',
       title: 'پیگیری بدون یادآور',
@@ -71,6 +71,56 @@ void main() {
       projection.resolveTarget(<Task>[task], 'followup:history-only:fu-history'),
       isNull,
     );
+  });
+
+  test('falls back to nextFollowUp when no explicit reminder exists', () {
+    final nextAction = DateTime(2026, 10, 25, 9);
+    final followUp = FollowUp(
+      id: 'fu-next-action',
+      dateTime: DateTime(2026, 10, 12, 10),
+      nextFollowUp: nextAction,
+    );
+    final task = Task(
+      id: 'next-action-task',
+      title: 'خرید فرش اتاق',
+      followUps: <FollowUp>[followUp],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+    final target = projection.resolveTarget(
+      <Task>[task],
+      'followup:next-action-task:fu-next-action',
+    );
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.date, nextAction);
+    expect(reminders.single.id, 'followup:next-action-task:fu-next-action');
+    expect(target, isNotNull);
+    expect(target!.followUp.nextFollowUp, nextAction);
+    expect(target.followUp.reminderDate, isNull);
+  });
+
+  test('explicit reminderDate takes precedence over nextFollowUp', () {
+    final nextAction = DateTime(2026, 10, 25, 9);
+    final reminderDate = DateTime(2026, 10, 25, 8);
+    final followUp = FollowUp(
+      id: 'fu-both-dates',
+      dateTime: DateTime(2026, 10, 12, 10),
+      reminderDate: reminderDate,
+      nextFollowUp: nextAction,
+    );
+    final task = Task(
+      id: 'both-dates-task',
+      title: 'خرید فرش اتاق',
+      followUps: <FollowUp>[followUp],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.date, reminderDate);
+    expect(followUp.reminderDate, reminderDate);
+    expect(followUp.nextFollowUp, nextAction);
   });
 
   test('projects a task due date even without follow-up history', () {
