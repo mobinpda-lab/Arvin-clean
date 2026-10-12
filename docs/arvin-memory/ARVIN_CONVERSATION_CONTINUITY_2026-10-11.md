@@ -73,7 +73,7 @@
 This document is a durable owner-requirements ledger, not a live status snapshot. All earlier SHA/run statements above are historical. Current execution status is maintained in `docs/arvin-memory/ARVIN_EXECUTION_STATE.md`.
 
 - Last audited main before this cleanup lane: `a4dae51e93d9b3dcbc55ded366280e59183f16bc`.
-- Cleanup PR #2619 consolidates the canonical UI visual contract, removes proven duplicate/unused content, and is pending exact-head Build validation.
+- Cleanup PR #2619 consolidates the canonical UI visual contract and removes reviewed duplicate/unused content. Build and all six Device Smoke lanes passed on prior head `68fd56eb2b4543c27af7e6c04af275dad3b15197`; the cleanup audit was then refreshed in documentation commit `b87b4e80ca197384a24bba13f5fe6f79385ac0e9`, so CI must be rechecked on the final head before merge.
 - Memory state correction PR #2618 is open; do not claim the live-state correction is complete on main until its merge and read-back are verified.
 - Release remains NO-GO pending physical-device Calendar idempotency, real-file Backup/Restore integrity, installed-device golden flow, Persian RTL/compact-screen acceptance and explicit owner approval.
 - For report filters and time-picker integration, follow the current open PRs and exact-head status rather than the old heads listed in historical sections above.
