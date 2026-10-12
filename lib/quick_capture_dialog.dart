@@ -602,6 +602,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ArvinRollBox<RecurrenceRule?>(
+                          key: const ValueKey('quick-capture-repeat-rollbox'),
                           label: 'تکرار',
                           valueLabel: _recurrenceContextLabel(),
                           icon: Icons.repeat_rounded,
