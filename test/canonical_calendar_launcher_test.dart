@@ -286,12 +286,12 @@ void main() {
       Task(
         id: 'conflict-a',
         title: 'جلسه مشتری',
-        followUps: [FollowUp(id: 'follow-a', dateTime: when)],
+        followUps: [FollowUp(id: 'follow-a', dateTime: when, reminderDate: when)],
       ),
       Task(
         id: 'conflict-b',
         title: 'جلسه داخلی',
-        followUps: [FollowUp(id: 'follow-b', dateTime: when)],
+        followUps: [FollowUp(id: 'follow-b', dateTime: when, reminderDate: when)],
       ),
     ];
     SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
