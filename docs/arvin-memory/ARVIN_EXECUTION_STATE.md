@@ -1,3 +1,17 @@
+# LATEST OWNER DECISION — FollowUp fields remain independent — 2026-10-12
+
+This section is authoritative for future continuation and supersedes any older conflicting FollowUp mapping text below.
+
+- Owner decision is recorded in [ARVIN_FOLLOW_UP_CONCEPT_DECISION.md](ARVIN_FOLLOW_UP_CONCEPT_DECISION.md) and summarized in [ARVIN_DECISION_LOG.md](ARVIN_DECISION_LOG.md).
+- `nextFollowUp` means the next time to act on/review a topic; `reminderDate` means when the system should notify the user. They are separate persisted concepts.
+- Never copy `nextFollowUp` into `reminderDate`, clear it during UI save, or use a reminder as its substitute. Preserve both through editor, JSON, SQL, sync and backup/restore.
+- Calendar projection: use explicit `reminderDate` when present; otherwise fall back to `nextFollowUp` without mutating either field. Reports/filters must distinguish upcoming follow-ups and notifications.
+- Experimental branch only: `integration/calendar-2631-2636-experiment-20261012`. No merge to `main`, no release. PR #2640 remains subject to exact-head Build, Calendar Provider Acceptance, all six emulator smoke lanes, and outstanding physical-device/RTL/compact-screen acceptance.
+- Current code corrections already recorded below preserve `nextFollowUp` when editing; the new decision makes that preservation a permanent product contract rather than a temporary integration constraint.
+- Next action: verify the experimental branch head after documentation commits; inspect exact-head workflow results and confirm tests cover independent editor/serialization/projection behavior. Keep release NO-GO until all release gates and explicit final acceptance are satisfied.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-12 — exact-head automated gates green
 
 This checkpoint supersedes prior status wording where it conflicts. Verified against the live GitHub Actions job results and PR metadata before this documentation update.
