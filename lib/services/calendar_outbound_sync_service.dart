@@ -82,7 +82,7 @@ class CalendarOutboundSyncService {
       // An explicit edit of an already-linked Task is a direct reconciliation
       // request, not a new/background sync. Per-source toggles still gate normal
       // sync and unlinked reminders, but must not strand an existing link.
-      if (!linkedOnly && !_enabledForReminder(integration, reminder)) continue;
+      if (!linkedOnly && !_enabledForReminder(reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
       } on ArgumentError {
@@ -96,7 +96,7 @@ class CalendarOutboundSyncService {
     final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final managedLinks = linkedOnly
         ? links.where((link) => revisionIds.contains(link.reminderId))
-        : links.where((link) => _enabledForReminderId(integration, link.reminderId));
+        : links.where((link) => _enabledForReminderId(link.reminderId));
     final linksForPlan = linkedOnly
         ? managedLinks
         : integration.deleteLinkedEventWithTask
@@ -128,15 +128,10 @@ class CalendarOutboundSyncService {
     return result;
   }
 
-  bool _enabledForReminder(
-    CalendarIntegrationSettings integration,
-    CalendarReminder reminder,
-  ) => _enabledForReminderId(integration, reminder.id);
+  bool _enabledForReminder(CalendarReminder reminder) =>
+      _enabledForReminderId(reminder.id);
 
-  bool _enabledForReminderId(
-    CalendarIntegrationSettings integration,
-    String id,
-  ) {
+  bool _enabledForReminderId(String id) {
     // Owner contract: once global auto-sync is enabled, every Arvin-owned
     // Task/recurrence/independent-FollowUp projection is synchronized. The
     // legacy per-source booleans remain deserializable for backup compatibility
