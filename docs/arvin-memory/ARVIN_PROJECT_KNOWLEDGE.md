@@ -77,3 +77,13 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Example: «خرید فرش اتاق» with follow-up 15 Mehr 17:00 appears in Arvin as «پیگیری»; reminder 15 Mehr 09:00 appears in the phone calendar as «یادآوری».
 - Any change must preserve Task as the sole source of truth and use the existing external-event link to update the same calendar event. No duplicate events or imported-event echo loops.
 - See the binding decision in ARVIN_DECISION_LOG.md (2026-10-12). This is a product contract, not evidence that all implementation/device acceptance tests already pass.
+
+
+## Owner clarification — Next Follow-up and reminder lifecycle (2026-10-12)
+- Keep five concepts separate: follow-up-enabled Task, recorded Follow-up/action, Next Follow-up (`nextFollowUp`), reminder (`reminderDate`), and the date/time associated with a recorded Follow-up.
+- Next Follow-up starts empty and is activated explicitly by the user. On its first setting only, create an initial reminder at the same date/time; if the chosen Next Follow-up is date-only, make that initial reminder all-day.
+- Thereafter these are independent: editing or deleting Next Follow-up never edits/deletes the reminder; editing/deleting the reminder never edits/deletes Next Follow-up. A reminder can exist without Next Follow-up. Each is independently manageable and may be date+time or date-only.
+- Next Follow-up is an Arvin next-action cue («پیگیری بعدی»); reminder is the calendar/notification concept («یادآوری»). Preserve Task as the canonical source and stable Task/external-event identity for updates; no duplicate events or imported-event echo loops.
+- Example: initial Next Follow-up = 15 Mehr 17:00 creates reminder = 15 Mehr 17:00. Later Next Follow-up = 20 Mehr 10:00 leaves reminder at 15 Mehr 17:00; deleting Next Follow-up also leaves the reminder.
+- **Open edge case:** when a reminder already exists at the moment Next Follow-up is first set, owner decision is still needed on whether to preserve it and skip creation or another explicit behavior. Do not overwrite or duplicate the existing reminder by assumption.
+- This is an owner-approved product contract, not proof of code/test/device completion. Audit the existing implementation and tests before any code change; preserve JSON/SQL/backup compatibility and add regression coverage for all lifecycle rules.
