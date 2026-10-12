@@ -29,8 +29,8 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 
 ## High-risk duplicate-code candidates — not yet deleted
 
-- `lib/services/backup_service.dart` contains a separate SharedPreferences export/import path and has no exact internal import-path matches in current code search. Because it writes/restores persisted keys, removal requires a complete import/entrypoint and compatibility check; do not conflate it with canonical `ArvinBackupService`.
-- `lib/dropbox_cloud_backup_provider.dart` and `lib/dropbox_cloud_backup_provider_v2.dart` define parallel provider implementations. Current code search finds V2 referenced by its tests, but does not establish whether V1 is externally depended on. Compare semantics, test coverage, call sites and credential/error handling before consolidating to one implementation.
+- `lib/services/backup_service.dart` was removed after exact import-path search found no internal references. It was an alternate SharedPreferences dump/restore implementation and not the canonical SAF-backed `ArvinBackupService`; this removal does not change canonical backup format or restore flow.
+- `lib/dropbox_cloud_backup_provider.dart` and `lib/dropbox_cloud_backup_provider_v2.dart` were consolidated into one canonical `DropboxCloudBackupProvider` at `lib/dropbox_cloud_backup_provider.dart`. The injectable V2 HTTP seam and tests are retained; the V2-suffixed duplicate file/class is removed. Exact in-repo search found no other V2 callers.
 - The repository contains 21 GitHub workflow files, including several factory/orchestrator/queue/production-loop workflows. No workflow is to be deleted until trigger overlap, `workflow_run`/dispatch callers, branch filters, release gates and active-run dependencies are mapped.
 - A pre-existing `chore/whole-codebase-cleanup-20260930` branch is diverged and 290 commits behind current `main`; it is not a safe base for cleanup.
 
