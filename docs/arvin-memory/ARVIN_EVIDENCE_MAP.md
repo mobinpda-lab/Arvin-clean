@@ -1,3 +1,11 @@
+# LIVE EXACT-HEAD VALIDATION UPDATE — 2026-10-12
+
+- PR #2636 old head `ff9267307db6e480643c749f3bbeba59c79a15bb`: Build #38238251976 FAILED; Calendar Provider Acceptance #38238251704 PASSED; Device Smoke #38238251775 was queued, not passed.
+- Corrective head `0b010e105c9d2fbb3279b58795bd42f4340f6b1d`: Build #38239373451, Calendar Provider Acceptance #38239373403 and Device Smoke #38239373435 were queued/pending at last poll. Not passing evidence yet.
+- Mandatory checklist: [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md).
+
+---
+
 # EVIDENCE STATUS — ANTI-FORGET AUDIT 2026-10-12
 
 Requirement-to-evidence matrix is indexed in [ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md](ARVIN_CONVERSATION_REQUIREMENTS_2026-10-12.md). Current verified scope:
