@@ -149,3 +149,11 @@
 - **Reason:** midnight can represent a real timed reminder; legacy JSON/backup values do not preserve intent separately. A dedicated all-day marker (separately for Next Follow-up and Reminder) is the candidate for forward data, subject to compatibility design and owner approval before implementation.
 - **Impact:** model/editor/projection and canonical Task JSON/SQL-envelope/backup-restore regression tests are required. Platform Calendar bridge already accepts all-day state; the gap is in source semantics and projection.
 - **Status:** audit recorded; implementation blocked on the two product/data decisions; release NO-GO.
+
+
+## 2026-10-13 — Owner clarification: reminder is independent; initial values are prefilled
+- Reminder is independent of previous/next follow-up and of the recorded Follow-up history. The first setting of Next Follow-up triggers a one-time initial reminder creation only.
+- Initial reminder title is prefilled from the follow-up-enabled Task title; initial date/time is prefilled from Next Follow-up. User may independently edit reminder title/date/time afterward.
+- User-requested additional reminders are allowed. Never silently overwrite an existing reminder or create duplicates. Later changes/deletion of Next Follow-up must not mutate reminders; reminder edit/delete must not mutate Next Follow-up.
+- Date-only/all-day intent is independent for Next Follow-up and reminder; midnight is not a safe inference for legacy values.
+- Implementation and regression validation remain outstanding; this is a product-contract clarification, not proof of shipped behavior.
