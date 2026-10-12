@@ -116,3 +116,26 @@
 - **Reports:** future follow-ups and reminders must be filterable independently.
 - **Status:** ACCEPTED. Implementation correction staged in PR #2636; exact-head validation pending.
 - **References:** [PR #2642](https://github.com/mobinpda-lab/Arvin-clean/pull/2642), [PR #2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636), [PR #2631](https://github.com/mobinpda-lab/Arvin-clean/pull/2631).
+
+
+
+## AUTHORITATIVE LIVE CHECKPOINT — 2026-10-12 — PR #2647 merged; exact-head Build + Device Smoke green
+
+This entry supersedes older status wording where it conflicts. Older entries remain historical audit records.
+
+- **Implementation merged:** PR [#2647](https://github.com/mobinpda-lab/Arvin-clean/pull/2647) merged by squash at commit [18117aea2fa07b5a9a02e6021f41ff4faae120cc](https://github.com/mobinpda-lab/Arvin-clean/commit/18117aea2fa07b5a9a02e6021f41ff4faae120cc). Tested PR head: 7f44964b4ce6eab005d756a564dc912e40c70bb3.
+- **Build evidence:** [Run 38291907900](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38291907900) completed SUCCESS on the exact PR head: Analyze, Android V2 audit, test shards 0–5, Debug APK, Release APK and APK verification passed.
+- **Device Smoke evidence:** [Run 38292607493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38292607493) completed SUCCESS on the same exact PR head. All six lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore. These are Android emulator/CI results, not physical-device acceptance.
+- **Implemented:** Full Task Form no longer invents a follow-up timestamp when enabling the follow-up flag and preserves an existing legacy Task.followUpDate; Quick Entry now has compact «دارای پیگیری» and «دارای چک‌لیست» controls with Task-owned Roll Boxes. nextFollowUp and reminderDate remain independent per merged owner decision [PR #2643](https://github.com/mobinpda-lab/Arvin-clean/pull/2643).
+- **Exact evidence boundary:** the green runs validate the PR head, not the resulting merge commit. The latest workflow lookup did not yet return post-merge Build/Device Smoke runs for merge commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; do not describe post-merge mainline CI as green until that exact commit is checked.
+- **Remaining blockers:** PR [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) remains OPEN and reports mergeable=false; do not merge it until nextFollowUp/reminderDate normalization and clearing paths are reconciled to the owner contract and legacy/JSON/persistence/backup round-trip tests are added. Physical Android device Calendar CREATE-then-UPDATE/no-duplicate proof, real file-provider Backup/Restore with Calendar-link integrity, installed-app golden flow, Persian RTL/compact-screen visual acceptance, and explicit owner release approval remain unverified.
+- **Release: NO-GO.** Passing emulator CI and merging PR #2647 do not constitute final release approval.
+- **Next action:** verify post-merge CI for commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; continue safe compatibility work without merging #2636; preserve issue #2102 as the release gate until all outstanding evidence is collected.
+
+
+### Decision implementation status
+- **Problem:** Follow-up activation could invent a timestamp; Quick Entry lacked compact Task-owned follow-up/checklist controls.
+- **Decision:** Enabling the flag alone does not generate a time; preserve an existing legacy Task.followUpDate; keep nextFollowUp (next planned action/review) and reminderDate (notification time) independent; checklist and follow-ups remain attached to the canonical Task.
+- **Reason:** Avoid confusing a next action with a notification and prevent timestamp fabrication or parallel storage.
+- **Impact:** Task Editor and Quick Entry behavior updated with regression tests.
+- **Status:** IMPLEMENTATION MERGED in PR #2647 at 18117aea2fa07b5a9a02e6021f41ff4faae120cc; exact PR-head Build and six emulator smoke lanes passed. Post-merge exact-SHA CI and physical-device acceptance remain pending.

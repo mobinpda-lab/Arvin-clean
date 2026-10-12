@@ -199,3 +199,27 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **P1:** Restore canonical memory package to main; drafts #2600/#2608 are stale/overlapping.
 - **P1:** Reconcile #2591/#2595/#2602/#2607 shared Task Editor, Quick Capture, Report Center and time-picker paths before integration.
 - **P1:** Preserve the root Task.description decision; do not add Task.note or alter migration/backup semantics without owner approval.
+
+
+
+## AUTHORITATIVE LIVE CHECKPOINT — 2026-10-12 — PR #2647 merged; exact-head Build + Device Smoke green
+
+This entry supersedes older status wording where it conflicts. Older entries remain historical audit records.
+
+- **Implementation merged:** PR [#2647](https://github.com/mobinpda-lab/Arvin-clean/pull/2647) merged by squash at commit [18117aea2fa07b5a9a02e6021f41ff4faae120cc](https://github.com/mobinpda-lab/Arvin-clean/commit/18117aea2fa07b5a9a02e6021f41ff4faae120cc). Tested PR head: 7f44964b4ce6eab005d756a564dc912e40c70bb3.
+- **Build evidence:** [Run 38291907900](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38291907900) completed SUCCESS on the exact PR head: Analyze, Android V2 audit, test shards 0–5, Debug APK, Release APK and APK verification passed.
+- **Device Smoke evidence:** [Run 38292607493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38292607493) completed SUCCESS on the same exact PR head. All six lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore. These are Android emulator/CI results, not physical-device acceptance.
+- **Implemented:** Full Task Form no longer invents a follow-up timestamp when enabling the follow-up flag and preserves an existing legacy Task.followUpDate; Quick Entry now has compact «دارای پیگیری» and «دارای چک‌لیست» controls with Task-owned Roll Boxes. nextFollowUp and reminderDate remain independent per merged owner decision [PR #2643](https://github.com/mobinpda-lab/Arvin-clean/pull/2643).
+- **Exact evidence boundary:** the green runs validate the PR head, not the resulting merge commit. The latest workflow lookup did not yet return post-merge Build/Device Smoke runs for merge commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; do not describe post-merge mainline CI as green until that exact commit is checked.
+- **Remaining blockers:** PR [#2636](https://github.com/mobinpda-lab/Arvin-clean/pull/2636) remains OPEN and reports mergeable=false; do not merge it until nextFollowUp/reminderDate normalization and clearing paths are reconciled to the owner contract and legacy/JSON/persistence/backup round-trip tests are added. Physical Android device Calendar CREATE-then-UPDATE/no-duplicate proof, real file-provider Backup/Restore with Calendar-link integrity, installed-app golden flow, Persian RTL/compact-screen visual acceptance, and explicit owner release approval remain unverified.
+- **Release: NO-GO.** Passing emulator CI and merging PR #2647 do not constitute final release approval.
+- **Next action:** verify post-merge CI for commit 18117aea2fa07b5a9a02e6021f41ff4faae120cc; continue safe compatibility work without merging #2636; preserve issue #2102 as the release gate until all outstanding evidence is collected.
+
+
+### Live problem status after PR #2647 merge
+- **Resolved in merged code (pending post-merge CI):** Task follow-up toggle no longer fabricates a timestamp; legacy Task.followUpDate is preserved; Quick Entry has compact follow-up/checklist Roll Boxes backed by the same Task.
+- **Open P1 — PR #2636:** branch remains non-mergeable and must be reconciled against the independent nextFollowUp/reminderDate contract. Require regression coverage for legacy-field preservation and JSON/persistence/backup round trips before merge.
+- **Open P0 release evidence:** real-device Calendar CREATE-then-UPDATE/no-duplicate and imported-event no-echo behavior not yet proven.
+- **Open P0 release evidence:** real Android file-provider Backup/Restore and restored Calendar-link integrity not yet proven.
+- **Open P1 UX:** installed-app golden flow and Persian RTL/compact-screen visual acceptance not yet recorded.
+- **Release gate:** NO-GO until post-merge exact-SHA CI, device/product acceptance and explicit owner approval are recorded.
