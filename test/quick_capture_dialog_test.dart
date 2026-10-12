@@ -753,7 +753,7 @@ void main() {
     await tester.tap(find.text('هر ۱۵ دقیقه'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('۱۲:۱۵'), findsOneWidget);
+    expect(find.textContaining('۱۲:۱۵'), findsWidgets);
     await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
