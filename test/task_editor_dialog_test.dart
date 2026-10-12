@@ -174,7 +174,7 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'history');
     expect(result!.followUpEnabled, isFalse);
-    expect(result!.followUpDate, isNull);
+    expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
     expect(result!.followUps, hasLength(2));
     expect(result!.followUps.last.note, 'تماس دوم');
     expect(result!.category, 'مشتریان');
