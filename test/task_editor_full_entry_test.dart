@@ -219,4 +219,38 @@ void main() {
     expect(result!.dueDate!.hour, 0);
     expect(result!.dueDate!.minute, 0);
   });
+
+  testWidgets('full Task editor adds independent numbered reminders without replacing legacy reminder', (tester) async {
+    Task? result;
+    final legacyDate = DateTime(2026, 10, 20, 9, 30);
+    final task = Task(
+      id: 'editor-multi',
+      title: 'خرید فرش',
+      reminderDate: legacyDate,
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final add = find.byKey(const ValueKey('task-editor-add-reminder'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-editor-reminder-title-reminder-')), findsNothing);
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, legacyDate);
+    expect(result!.taskReminders, hasLength(2));
+    expect(result!.taskReminders.map((item) => item.sequence), [1, 2]);
+    expect(result!.taskReminders.map((item) => item.id).toSet().length, 2);
+    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور 1');
+    expect(result!.nextReminderSequence, 3);
+  });
+
 }
