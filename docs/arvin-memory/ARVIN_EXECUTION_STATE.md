@@ -1,3 +1,18 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
+
+This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
+
+- **Repo:** `mobinpda-lab/Arvin-clean`; current observed main/base checkpoint for PR #2652: `8136c929237c321f2e879a80f067970c31cb0100`.
+- **PR #2652:** open, unmerged; title “docs(arvin): clarify multiple follow-ups and independent reminders”; branch `docs/owner-clarification-reminder-seed-20261013`; latest pre-this-state-update head `ca0b80a6c4275d44054c4ad9eb2b72d5f9832392`. Updating this state file creates a newer head; query that exact SHA's CI before treating it as validated.
+- **Completed:** re-polled Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450): Analyze, test shards 0–5, Debug APK and Release APK all SUCCESS. Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458): Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore all SUCCESS. These are evidence for pre-update head `00ae93b2dba36093c4074624fe951efec51e2ab4`, not for later documentation commits or the unimplemented feature.
+- **Persistent gap:** Issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) tracks multiple independent Task-level reminders. Source `lib/models/task.dart` has a singular Task reminder and singular FollowUp reminder field per FollowUp. Existing test `test/follow_up_reminder_model_test.dart` proves only one FollowUp reminder JSON round-trip and legacy missing-field handling.
+- **Decision gate:** an architecture proposal was added to PR #2652: candidate is a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, using existing Calendar/notification engines. **PROPOSAL ONLY, NOT APPROVED.** Legacy `Task.reminderDate` and `FollowUp.reminderDate` compatibility, old backup decoding, duplicate prevention, and all-day-vs-midnight semantics must be decided before implementation. No application code or schema migration changed.
+- **Memory updated in this branch:** Decision Log, Project Knowledge, Problem Register, Evidence Map; source evidence and limitations recorded. Issue #2635 contains the owner's opt-in reminder contract.
+- **Release:** NO-GO. Emulator smoke is not physical-device acceptance. No feature code was changed or validated in this continuation.
+- **Next action:** obtain owner/architecture approval for the proposed compatibility semantics, then implement the model on a dedicated branch with legacy JSON, SQL, backup/restore, independent edit/delete, notification and stable Calendar identity tests. Keep PR #2652 unmerged until its latest exact-head checks finish.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (owner reminder cardinality audit)
 
 This entry supersedes stale live-status wording below where it conflicts; historical entries remain for audit.
