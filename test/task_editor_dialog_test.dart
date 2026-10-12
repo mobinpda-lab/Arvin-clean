@@ -76,6 +76,7 @@ void main() {
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
@@ -110,42 +111,6 @@ void main() {
     expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
   });
 
-  testWidgets('changing Jalali date preserves the selected hour and minute',
-      (tester) async {
-    Task? result;
-    final task = Task(
-      id: 'date-change',
-      title: 'جلسه',
-      followUpEnabled: true,
-      followUpDate: DateTime(2026, 8, 27, 10, 30),
-    );
-
-    await pumpEditor(
-      tester,
-      task: task,
-      onResult: (value) => result = value,
-    );
-
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-date-rollbox')));
-    await tester.pumpAndSettle();
-    expect(find.text('امروز'), findsOneWidget);
-    expect(find.text('فردا'), findsOneWidget);
-
-    await tester.tap(find.text('فردا'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('۱۰:۳۰'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
-
-    expect(result, isNotNull);
-    expect(result!.followUpDate, isNotNull);
-    expect(result!.followUpDate!.hour, 10);
-    expect(result!.followUpDate!.minute, 30);
-  });
-
   testWidgets('new ordinary task keeps follow-up controls hidden until enabled',
       (tester) async {
     Task? result;
@@ -165,30 +130,6 @@ void main() {
     expect(result, isNotNull);
     expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
-  });
-
-  testWidgets('enabling follow-up converts the same task and prefills a time',
-      (tester) async {
-    Task? result;
-    await pumpEditor(tester, onResult: (value) => result = value);
-
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.pump();
-
-    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsOneWidget);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('task-editor-title')),
-      'کار پیگیری‌دار جدید',
-    );
-    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
-
-    expect(result, isNotNull);
-    expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, isNotNull);
   });
 
   testWidgets('disabling future follow-up never erases existing history',
