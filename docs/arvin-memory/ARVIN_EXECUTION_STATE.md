@@ -819,4 +819,14 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - **Recorded to canonical memory:** follow-up concept decision, decision log, project knowledge, problem register and evidence map are being updated in this branch. This records the product contract only; it does not mean application code has been changed or validated.
 - **Implementation gaps remain:** source audit found no first-set reminder creation bridge, no explicit Follow-up all-day metadata in the inspected model, and Follow-up Calendar projection does not set all-day explicitly. Need regression coverage across UI, model JSON, SQL envelope, backup/restore and Calendar event identity/no-duplicate behavior.
 - **Validation:** no Flutter analyze/test/build/device run was performed as part of this documentation update. Release remains **NO-GO** until exact-head automation and required device/owner acceptance are proven.
-- **Next action:** implement safely against canonical Task/FollowUp paths; test prefill, one-time seed, additional reminder action, independent edits/deletes, collision handling, date-only/all-day semantics, persistence/backup round-trip and same-event calendar updates. Recheck exact-head CI after the documentation PR is opened.
+- **Next action:** implement safely against canonical Task/FollowUp paths; test opt-in reminder creation and prefill, multiple reminders, independent edits/deletes, collision handling, date-only/all-day semantics, persistence/backup round-trip and same-event calendar updates. Recheck exact-head CI after the documentation PR is opened.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (multiple Follow-ups and reminders)
+
+- **New owner-confirmed cardinality:** one Task may have multiple recorded Follow-up entries and multiple independent reminders. There is no one-per-Task limit.
+- Each recorded Follow-up remains a distinct history entry. Each reminder remains a distinct, independently editable/deletable item with its own title and schedule. Editing/deleting one must not mutate other reminders, Follow-up history or Next Follow-up.
+- Next Follow-up is still the separate next-action value. Setting it does not automatically create a reminder. If the user explicitly chooses to create a reminder for it, prefill Task title and Next Follow-up date/time as initial values only.
+- **Implementation status:** this cardinality contract is now documented; the current implementation's support for multiple independently identified reminders and Follow-up entries has not been verified by this documentation update. Audit the canonical model/editor/storage/backup and Calendar identity paths; no parallel store.
+- Required regression coverage: create/edit/delete one among several entries; preserve remaining entries and history; independently edit reminder title/date/time; reminder-only and multiple-reminder cases; JSON/SQL/backup-restore round-trip; Calendar same-event updates without duplicate creation; date-only/all-day semantics for each item.
+- No app code or Flutter validation was performed in this documentation step. Release remains **NO-GO**.
