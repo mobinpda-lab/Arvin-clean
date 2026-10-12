@@ -1,3 +1,18 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (owner reminder cardinality audit)
+
+This entry supersedes stale live-status wording below where it conflicts; historical entries remain for audit.
+
+- **Repository/main:** `mobinpda-lab/Arvin-clean`; observed current main checkpoint `8136c929237c321f2e879a80f067970c31cb0100`.
+- **Docs PR:** [#2652](https://github.com/mobinpda-lab/Arvin-clean/pull/2652), branch `docs/owner-clarification-reminder-seed-20261013`, pre-update head `2b1f89e51aa7f42bca10d92352e49d6c73c7fd83`, base `8136c929237c321f2e879a80f067970c31cb0100`. PR title corrected to “docs(arvin): clarify multiple follow-ups and independent reminders”; it remains open/unmerged. This state update creates a new head; re-check all exact-head runs.
+- **Current pre-update CI:** Build run [38316746472](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38316746472): Analyze, six test shards, and Debug APK SUCCESS; Release APK still IN_PROGRESS. Device Smoke [38316746569](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38316746569): Home SUCCESS; Quick Capture and SQL Persistence IN_PROGRESS; People, SQL Migration and Backup/Restore QUEUED. These results apply only to the pre-update SHA; not release evidence.
+- **Source audit:** main `lib/models/task.dart` currently supports one `Task.reminderDate` and one optional `FollowUp.reminderDate` per FollowUp record. Multiple FollowUp records can each carry a reminder, but there is no collection for multiple Task-level reminders that exist independently of FollowUp records. `nextFollowUp` and `reminderDate` remain separate nullable fields. The editor’s `_pickNext()` derives hour/minute from the recorded FollowUp timestamp; there is no date-only marker for either FollowUp field, and the Calendar projection does not pass FollowUp all-day state.
+- **Recorded owner contract:** [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635) now has a 2026-10-13 clarification: setting `nextFollowUp` does not create a reminder; reminder creation is opt-in; seeded Task title/date-time are independently editable; no normalization, overwrite, or duplicate creation.
+- **New explicit model gap:** [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) records the requirement for multiple independent Task-level reminders, current cardinality limits, compatibility requirements, and acceptance tests. This is an architecture/persistence/backup/Calendar identity gate. **Do not implement a schema migration until the canonical representation and legacy-field compatibility are documented.**
+- **No application code changed in this continuation.** No Flutter analyze/test/build/device run was executed by the assistant; GitHub Actions status above is separate CI evidence. Release remains **NO-GO**.
+- **Next action:** complete the canonical model/compatibility design for #2654, including explicit all-day metadata and treatment of legacy singular fields; then implement on a dedicated branch with JSON, SQL persistence, backup/restore, independent edit/delete, Calendar identity and exact-head CI/device-smoke tests. Keep PR #2652 unmerged until its new exact-head checks finish.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (post-audit live state)
 
 This entry supersedes older live-status wording below. Historical checkpoints remain for audit.
