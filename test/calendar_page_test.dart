@@ -34,6 +34,55 @@ void main() {
     expect(find.text('جلسه تیم'), findsNothing);
   });
 
+
+  testWidgets('calendar visually distinguishes Arvin Tasks, independent FollowUps and phone imports',
+      (tester) async {
+    final day = DateTime(2026, 10, 12, 9);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: day,
+            reminders: [
+              CalendarReminder(
+                id: 'task-due:task-1',
+                title: 'کار برنامه‌ریزی‌شده',
+                date: day,
+              ),
+              CalendarReminder(
+                id: 'followup:task-1:follow-1',
+                title: 'تماس پیگیری',
+                date: day.add(const Duration(minutes: 30)),
+              ),
+              CalendarReminder(
+                id: 'external-calendar:calendar-1:event-1',
+                title: 'رویداد واردشده',
+                date: day.add(const Duration(hours: 1)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار آروین'), findsOneWidget);
+    expect(find.text('یادآور پیگیری مستقل'), findsOneWidget);
+    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+
+    final taskIcon = tester.widget<Icon>(find.byIcon(Icons.checklist_rounded));
+    final followUpIcon = tester.widget<Icon>(
+      find.byIcon(Icons.notifications_active_outlined),
+    );
+    final importedIcon = tester.widget<Icon>(
+      find.byIcon(Icons.phone_android_rounded),
+    );
+    expect(taskIcon.color, const Color(0xFF4A4CAB));
+    expect(followUpIcon.color, const Color(0xFFB45309));
+    expect(importedIcon.color, const Color(0xFF0F766E));
+  });
+
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
