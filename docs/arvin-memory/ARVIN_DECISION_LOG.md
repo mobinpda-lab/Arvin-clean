@@ -107,3 +107,12 @@
 - **Reason:** Keep GitHub as project brain while preserving an auditable review path.
 - **Impact:** No application code, schema, migration, backup format or release artifact changed.
 - **Status:** In progress; PR and exact-head validation still required.
+
+
+## 2026-10-12 — Global inline date-and-time typography contract
+- **Owner requirement:** In every Arvin screen where a date/calendar value and a time value are displayed together (including Home, Calendar, task lists, forms, filters and reports), size the primary date/time typography and layout so both values remain on one horizontal row instead of wrapping onto separate lines.
+- **Decision:** Treat this as a global UX/layout rule, not a screen-specific tweak. Audit shared date/time widgets and each distinct presentation; prefer a shared reusable style/component where compatible, use flexible constraints/ellipsis or compact formatting only when needed, and preserve semantic clarity.
+- **Acceptance:** Persian RTL, narrow Android screens, larger system font/accessibility scaling, long Jalali dates, and time labels must be tested. Do not simply shrink all text to unreadable sizes; keep tap targets and legibility. Where a single row cannot fit at supported accessibility sizes, document and test an explicit graceful fallback rather than accidental wrapping.
+- **Architecture/data:** Presentation-only. Do not change Task data, Jalali date/time values, recurrence, Calendar identity/sync, persistence or backup formats.
+- **Execution plan:** Inventory shared date/time rendering paths; implement the smallest common safe style plus screen-specific constraints; add widget/golden regression tests for Home, Calendar and other date/time surfaces; run exact-head Analyze, tests, Debug/Release builds and emulator smoke; record screenshots and physical-device visual acceptance separately.
+- **Status:** ACCEPTED requirement; implementation/validation pending. Related UX/release tracking: Issue #2102.
