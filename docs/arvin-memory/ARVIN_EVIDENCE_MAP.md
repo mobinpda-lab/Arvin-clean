@@ -1,3 +1,15 @@
+# LIVE EVIDENCE OVERRIDE — 2026-10-12
+
+This section supersedes any older “current main” or workflow-status statements below when they conflict. Older entries are retained as historical evidence, not current state.
+
+- Current main SHA: `cea76673d871ce52b84dacf69f355c4282802baa`.
+- Main Build [38178428086](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428086): PASS on exact main; Analyze, six test shards, Debug APK and Release APK succeeded.
+- Main Device Smoke [38178428043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38178428043): PASS on exact main; all six emulator scenarios succeeded (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore).
+- PR #2614 current head at this checkpoint: `ee91725a6ba90cb537335e09f3c6d7f2c2800cf2`. Exact-head Build [38199794481](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38199794481) is still IN PROGRESS; Analyze and shards 0, 1, 3, 4, 5 passed, while shard 2 and Debug/Release APK builds were still running. Recheck the latest PR head before merge; any older-head result is stale.
+- Physical-device Calendar same-event/no-duplicate, real Android file-provider Backup/Restore and rollback, restored Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen review and owner release approval remain NOT VERIFIED. Release is NO-GO; Issue #2102 remains OPEN.
+
+---
+
 # Arvin Evidence Map
 
 ## Latest live mainline checkpoint — 2026-10-11
