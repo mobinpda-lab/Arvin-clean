@@ -405,6 +405,9 @@ void main() {
 
     await pumpEditor(tester, task: task, onResult: (value) => result = value);
 
+    await tester.tap(find.byKey(const ValueKey('task-editor-more-details')));
+    await tester.pumpAndSettle();
+
     final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
     expect(rollBox, findsOneWidget);
     expect(find.text('روزانه'), findsWidgets);
