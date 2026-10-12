@@ -10,6 +10,7 @@ import 'system_calendar_bridge.dart';
 /// contract rather than maintaining separate parsers.
 String? calendarTaskIdForReminderId(String reminderId) {
   for (final prefix in const <String>[
+    'task-reminder-item:',
     'task-due:',
     'task-reminder:',
     'task-followup:',
