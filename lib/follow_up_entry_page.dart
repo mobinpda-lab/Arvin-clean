@@ -48,7 +48,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     // The owner-approved v1 model has one active follow-up schedule.
-    // Prefer an existing reminder; migrate the legacy schedule only when needed.
+    // An automatic follow-up schedule is not an independent Calendar reminder.
     // Keep automatic next-follow-up scheduling separate from an explicit Calendar reminder.
     _reminderDate = initial?.reminderDate;
     _initialDateTime = _dateTime;
