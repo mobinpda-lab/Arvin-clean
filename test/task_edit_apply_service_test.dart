@@ -61,6 +61,8 @@ void main() {
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
     expect(target.reminderDate, DateTime(2026, 8, 30, 12));
+    expect(target.taskReminders, isEmpty);
+    expect(target.nextReminderSequence, 1);
     expect(target.priority, TaskPriority.high);
     expect(target.completed, isFalse);
     expect(target.updatedAt, appliedAt);
@@ -160,5 +162,29 @@ void main() {
 
     expect(target.tags, ['الف']);
     expect(target.checklist, ['یک']);
+  });
+
+  test('copies independent reminders and their sequence without list aliasing', () {
+    final target = Task(id: 'reminders', title: 'کار');
+    final edited = Task(
+      id: 'reminders',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور ۱',
+          date: DateTime(2026, 10, 20, 9),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    service.apply(target, edited);
+    edited.taskReminders.clear();
+
+    expect(target.taskReminders, hasLength(1));
+    expect(target.taskReminders.single.id, 'r1');
+    expect(target.nextReminderSequence, 2);
   });
 }
