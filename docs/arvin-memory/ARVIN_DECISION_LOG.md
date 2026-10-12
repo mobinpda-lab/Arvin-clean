@@ -1,3 +1,11 @@
+
+
+## 2026-10-12 — PR #2636 week-view origin-marker overflow correction
+- **Problem:** The exact-head Build run 38239373451 reported two failures caused by a 3 px vertical overflow in the compact week-view calendar day cell after origin dots were introduced.
+- **Decision:** Increase that week-cell height from 58 to 61 px, reserving space for origin markers while leaving data and calendar identity contracts untouched.
+- **Reason:** Fix the actual layout constraint rather than suppressing or weakening regression tests.
+- **Impact:** Presentation-only; no Task model, sync identity, persistence, migration, or backup changes.
+- **Status:** Commit 205267988aa059ecad99a8b6cbe380f50824d2d2 recorded on PR #2636; exact-head Build, Calendar Provider Acceptance and all six Device Smoke lanes were still running/queued at the latest poll. Merge and release remain blocked pending full evidence.
 ## 2026-10-12 — Origin-aware phone Calendar and unified FollowUp reminder
 
 - **Problem:** a phone-originated event can be imported as a Task and then echoed back into the same phone calendar; manual import also needs to detect a provider event already linked to an Arvin-created Task. FollowUp editor exposes two date concepts, «پیگیری بعدی» and «یادآور پیگیری مستقل», while only the latter should project to Calendar.
