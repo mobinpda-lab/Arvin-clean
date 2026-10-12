@@ -746,3 +746,18 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Blocked:** Task Note data-contract change pending explicit owner decision; final release pending physical-device evidence and explicit owner acceptance.
 - **Current bottleneck:** overlapping draft PRs plus missing physical-device/user-data acceptance. The mainline automated baseline is green, so do not rerun it without a new commit or evidence-driven reason.
 - **Next action:** compare and reconcile the live PR diffs into one integration sequence without merging overlapping drafts independently; continue collecting non-destructive device acceptance evidence; update the release gate only from actual evidence. Keep #2102 open and fail-closed.
+
+
+## Unified validation status — 2026-10-12 11:09 UTC — PR #2636
+
+**Single source of truth for this checkpoint:** PR #2636 head is `dbe0524494182abd013fd16a6c04f9f82f75948a`. The three workflow runs below were started for code commit `205267988aa059ecad99a8b6cbe380f50824d2d2`, so they are **not exact-current-PR-head evidence** after the subsequent memory commits.
+
+| Gate | Run | Observed result | Classification |
+|---|---|---|---|
+| Build / Analyze | [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze = success; test-0..test-5 and Debug/Release APK jobs = cancelled; overall run = cancelled | **INCOMPLETE — not pass** |
+| Calendar Provider Acceptance | [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Provider job was in progress at last poll; no terminal conclusion verified | **PENDING — not pass** |
+| Device Smoke | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | All six lanes (Home, Quick Capture, SQL migration, SQL persistence, People, Backup/Restore) = cancelled; no acceptance artifacts confirmed | **INCOMPLETE — not pass** |
+
+**Counting rule:** only a completed job with conclusion `success` is a pass. `cancelled`, `in_progress`, missing artifacts, and a successful Analyze job alone are not test-suite passes. Previous wording that described Build or Smoke lanes as still running/queued is superseded by this observed snapshot.
+
+**Next action:** obtain fresh Build, Calendar Provider Acceptance, and all six Device Smoke results for the current PR head `dbe0524494182abd013fd16a6c04f9f82f75948a`; inspect logs for any failure. Do not infer a product regression from cancellation alone. Physical-device Calendar identity/update/no-duplicate, real Backup/Restore round-trip and link integrity, Persian RTL/compact-screen acceptance, and explicit owner approval remain separate release gates. **Merge/release: NO-GO.**
