@@ -206,8 +206,44 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (value == null) return 'بدون موعد';
     final formatter = const PersianDateFormatter();
     final date = formatter.format(value, usePersianDate: true);
-    final time = formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
-    return '$date • $time';
+    return '$date • ${_timeLabel(value)}';
+  }
+
+  String _weekdayLabel(DateTime value) {
+    const weekdays = <int, String>{
+      DateTime.monday: 'دوشنبه',
+      DateTime.tuesday: 'سه‌شنبه',
+      DateTime.wednesday: 'چهارشنبه',
+      DateTime.thursday: 'پنجشنبه',
+      DateTime.friday: 'جمعه',
+      DateTime.saturday: 'شنبه',
+      DateTime.sunday: 'یکشنبه',
+    };
+    return weekdays[value.weekday]!;
+  }
+
+  String _relativeDateLabel(DateTime? value) {
+    if (value == null) return 'بدون تاریخ';
+    final now = _now();
+    final selectedDay = DateTime.utc(value.year, value.month, value.day);
+    final currentDay = DateTime.utc(now.year, now.month, now.day);
+    final dayOffset = selectedDay.difference(currentDay).inDays;
+    if (dayOffset == 0) return 'امروز، ${_weekdayLabel(value)}';
+    if (dayOffset == 1) return 'فردا، ${_weekdayLabel(value)}';
+    final formatter = const PersianDateFormatter();
+    return '${formatter.format(value, usePersianDate: true)}، ${_weekdayLabel(value)}';
+  }
+
+  String _timeLabel(DateTime value) {
+    final formatter = const PersianDateFormatter();
+    return formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
+  }
+
+  String _recurrenceContextLabel() {
+    if (_recurrence == null) return 'بدون تکرار';
+    final anchor = _dueDate;
+    if (anchor == null) return _recurrenceLabel();
+    return '${_recurrenceLabel()} • ${_relativeDateLabel(anchor)}، ${_timeLabel(anchor)}';
   }
 
   DateTime _now() => widget.now?.call() ?? DateTime.now();
@@ -543,7 +579,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         child: ArvinRollBox<Object?>(
                           key: const ValueKey('quick-capture-due-rollbox'),
                           label: 'موعد',
-                          valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
+                          valueLabel: _dueDate == null ? 'موعد' : '${_relativeDateLabel(_dueDate)} • ${_timeLabel(_dueDate!)}',
                           icon: Icons.calendar_today_outlined,
                           color: const Color(0xFF2F7D5A),
                           emptyLabel: 'بدون موعد',
@@ -567,11 +603,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       Expanded(
                         child: ArvinRollBox<RecurrenceRule?>(
                           label: 'تکرار',
-                          valueLabel: _recurrenceLabel(),
+                          valueLabel: _recurrenceContextLabel(),
                           icon: Icons.repeat_rounded,
                           color: const Color(0xFFD16A2D),
                           emptyLabel: 'بدون تکرار',
                           items: const [
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.minutes, interval: 15), label: 'هر ۱۵ دقیقه', icon: Icons.timer_outlined, color: Color(0xFFD16A2D)),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.hours), label: 'هر ساعت', icon: Icons.access_time_rounded, color: Color(0xFFD16A2D)),
                             ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: Color(0xFFD16A2D)),
                             ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: Color(0xFF3568D4)),
                             ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: Color(0xFF7650C8)),
@@ -579,7 +617,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                           ],
                           createLabel: 'تکرار سفارشی',
                           onCreate: _saving ? null : _pickCustomRecurrence,
-                          onSelected: (value) => setState(() => _recurrence = value),
+                          onSelected: (value) => setState(() {
+                            _recurrence = value;
+                            if (value != null && _dueDate == null) {
+                              final now = _now();
+                              _dueDate = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+                              _syncAutomaticReminder();
+                            }
+                          }),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -587,19 +632,19 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         child: ArvinRollBox<Object?>(
                           key: const ValueKey('quick-capture-reminder-rollbox'),
                           label: 'یادآور',
-                          valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
+                          valueLabel: _dueDate == null ? 'ابتدا موعد را تعیین کنید' : (_reminderDate == null ? 'یادآور • ${_relativeDateLabel(_dueDate)}' : '${_relativeDateLabel(_reminderDate)} • ${_timeLabel(_reminderDate!)}'),
                           icon: Icons.notifications_none_outlined,
                           color: const Color(0xFFE08A2E),
                           emptyLabel: 'بدون یادآور',
-                          items: [
-                            ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                          items: _dueDate == null ? const [] : [
+                            ArvinRollItem<Object?>(value: _dueDate!, label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: _dueDate!.subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: _dueDate!.subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: _dueDate!.subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: _dueDate!.subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
                           ],
                           createLabel: 'تاریخ و ساعت سفارشی',
-                          onCreate: _saving ? null : _pickCustomReminder,
+                          onCreate: _saving || _dueDate == null ? null : _pickCustomReminder,
                           onSelected: (value) {
                             setState(() {
                               _reminderDate = value is DateTime ? value : null;
