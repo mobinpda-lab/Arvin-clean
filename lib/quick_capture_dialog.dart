@@ -854,7 +854,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                         label: const Text('دارای پیگیری'),
                         onSelected: _saving
                             ? null
-                            : (value) => setState(() => _followUpEnabled = value),
+                            : (value) => setState(() {
+                                  _followUpEnabled =
+                                      value || _pendingFollowUps.isNotEmpty;
+                                }),
                       ),
                       FilterChip(
                         key: const ValueKey('quick-capture-checklist-enabled'),
@@ -878,7 +881,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       icon: Icons.follow_the_signs_outlined,
                       color: const Color(0xFF7650C8),
                       emptyLabel: 'هنوز پیگیری ثبت نشده',
-                      items: const [],
+                      items: _pendingFollowUps
+                          .map((followUp) => followUp.note.trim().isEmpty
+                              ? 'پیگیری'
+                              : followUp.note.trim())
+                          .toList(growable: false),
                       createLabel: 'ثبت جزئیات پیگیری',
                       onCreate: _saving ? null : _addFollowUpEntry,
                       onSelected: (_) {},
@@ -895,7 +902,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       icon: Icons.checklist_outlined,
                       color: const Color(0xFF2F7D5A),
                       emptyLabel: 'چک‌لیست خالی',
-                      items: const [],
+                      items: List<String>.of(_checklistItems),
                       createLabel: 'افزودن مورد چک‌لیست',
                       onCreate: _saving ? null : _addChecklistItem,
                       onSelected: (_) {},
