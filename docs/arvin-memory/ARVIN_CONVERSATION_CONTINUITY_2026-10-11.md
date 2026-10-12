@@ -61,7 +61,7 @@
 - Any storage, migration or architecture-level decision is sensitive and requires independent review (including DeepSeek cross-review per owner workflow) before implementation.
 
 ## Mandatory next-session startup
-1. Read this file, `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md`, `docs/ARVIN_PROJECT_STATE.md`, `docs/PRODUCT_CONTRACT_MATRIX.md` and `docs/UI_UX_GOVERNANCE.md`.
+1. Read this requirements ledger, `docs/arvin-memory/ARVIN_EXECUTION_STATE.md`, `docs/arvin-memory/ARVIN_PROJECT_KNOWLEDGE.md`, `docs/arvin-memory/ARVIN_REPORT_FILTER_DECISION.md`, `docs/PRODUCT_CONTRACT_MATRIX.md` and `docs/UI_UX_GOVERNANCE.md`.
 2. Refresh GitHub main, open PRs/issues, branch heads and exact-head CI.
 3. Reconcile duplicate/stacked PRs before editing; report Read/Write access truthfully.
 4. Select the highest-impact open product defect, implement only after audit, test and record evidence.
@@ -69,8 +69,11 @@
 
 
 ## Live correction — 2026-10-12
-- Current main is `cea76673d871ce52b84dacf69f355c4282802baa` after cleanup PR #2613; older SHAs and workflow snapshots in this file are historical only.
-- Required memory files are not yet on main. PR #2600 and #2608 remain open drafts/stale branches; this checkpoint is being consolidated via a new branch from current main.
-- Current-main Build #38178428086 is stale/incomplete; Device Smoke #38178428043 is stale/queued. Do not claim green.
-- Product release remains blocked pending physical-device Calendar same-event update, real-file Backup/Restore, Repeat/Checklist golden flow, Persian RTL/compact-screen review and explicit owner approval.
-- Current report-filter decision remains: Persian/Jalali user-facing date/time, Persian digits, compact expandable sections preserving selection, multi-select, canonical source data, no parallel Report/Note stores. The shared Universal Arvin Time Picker and Report Center integration must be reconciled on one validated branch.
+
+This document is a durable owner-requirements ledger, not a live status snapshot. All earlier SHA/run statements above are historical. Current execution status is maintained in `docs/arvin-memory/ARVIN_EXECUTION_STATE.md`.
+
+- Last audited main before this cleanup lane: `a4dae51e93d9b3dcbc55ded366280e59183f16bc`.
+- Cleanup PR #2619 consolidates the canonical UI visual contract, removes proven duplicate/unused content, and is pending exact-head Build validation.
+- Memory state correction PR #2618 is open; do not claim the live-state correction is complete on main until its merge and read-back are verified.
+- Release remains NO-GO pending physical-device Calendar idempotency, real-file Backup/Restore integrity, installed-device golden flow, Persian RTL/compact-screen acceptance and explicit owner approval.
+- For report filters and time-picker integration, follow the current open PRs and exact-head status rather than the old heads listed in historical sections above.
