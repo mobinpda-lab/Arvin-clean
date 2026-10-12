@@ -94,4 +94,91 @@ void main() {
     expect(utf8.decode(captured['body'] as Uint8List),
         contains('/Apps/Arvin/backup.json'));
   });
+
+  test('Dropbox provider downloads bytes from the canonical content endpoint', () async {
+    final captured = <String, dynamic>{};
+    final client = DropboxHttpClient(
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async {
+        captured['method'] = method;
+        captured['url'] = url;
+        captured['headers'] = headers;
+        captured['body'] = body;
+        return const DropboxHttpResponse(
+          statusCode: 200,
+          bodyBytes: <int>[7, 8, 9],
+        );
+      },
+    );
+
+    final bytes = await DropboxCloudBackupProvider(
+      accessToken: 'token',
+      rootPath: '/custom/',
+      client: client,
+    ).downloadBackup('/backup.json');
+
+    expect(captured['method'], 'POST');
+    expect(captured['url'], 'https://content.dropboxapi.com/2/files/download');
+    expect((captured['headers'] as Map<String, String>)['Dropbox-API-Arg'],
+        contains('/custom/backup.json'));
+    expect(bytes, orderedEquals([7, 8, 9]));
+  });
+
+  test('Dropbox provider reports an existing backup through metadata', () async {
+    String? url;
+    final client = DropboxHttpClient(
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async {
+        url = url;
+        return responseFor();
+      },
+    );
+
+    expect(
+      await DropboxCloudBackupProvider(
+        accessToken: 'token',
+        client: client,
+      ).exists('backup.json'),
+      isTrue,
+    );
+    expect(url, 'https://api.dropboxapi.com/2/files/get_metadata');
+  });
+
+  test('Dropbox provider propagates non-not-found API errors', () async {
+    final client = DropboxHttpClient(
+      request: ({
+        required String method,
+        required String url,
+        required String token,
+        required Map<String, String> headers,
+        Uint8List? body,
+      }) async => responseFor(
+        statusCode: 500,
+        body: 'server_error',
+      ),
+    );
+    final provider = DropboxCloudBackupProvider(
+      accessToken: 'token',
+      client: client,
+    );
+
+    await expectLater(
+      provider.downloadBackup('backup.json'),
+      throwsA(isA<DropboxApiException>()),
+    );
+    await expectLater(
+      provider.exists('backup.json'),
+      throwsA(isA<DropboxApiException>()),
+    );
+  });
 }
