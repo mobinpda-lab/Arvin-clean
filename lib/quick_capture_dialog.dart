@@ -127,7 +127,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.priority = _priority;
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
-    task.reminderDate = _reminderDate;
+    task.reminderDate = _dueDate == null ? null : _reminderDate;
     task.recurrence = _recurrence;
     return task;
   }
