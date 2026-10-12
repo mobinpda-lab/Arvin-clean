@@ -45,7 +45,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('existing follow-up task shows explicit toggle and date plus time',
+  testWidgets('full Task form keeps follow-up toggle without a timestamp editor',
       (tester) async {
     final task = Task(
       id: '1',
@@ -61,16 +61,29 @@ void main() {
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
     expect(find.text('کار پیگیری‌دار'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsOneWidget);
-    expect(find.text('۱۴۰۵/۰۶/۰۵'), findsOneWidget);
-    expect(find.text('۱۰:۳۰'), findsOneWidget);
+    expect(find.text('زمان پیگیری'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
     expect(find.text('مشتری'), findsOneWidget);
 
     final save = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-editor-header-save')),
     );
     expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
+  });
+
+  testWidgets('enabling follow-up on a new Task does not invent a timestamp',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, isNull);
   });
 
   testWidgets('editing and saving preserves the exact existing follow-up time',
