@@ -43,7 +43,8 @@ Remove genuinely unused or superseded repository content, consolidate duplicate 
 
 ## Exact-head validation — rechecked 2026-10-12
 
-- Cleanup head: `b72b4c47fda68c4ecf7f035ce9977fe4335f971a`.
+- Validated cleanup code head: `b72b4c47fda68c4ecf7f035ce9977fe4335f971a`.
+- The audit checkpoint was then updated in documentation commit `6c1041ce5de5f01839fb9a1a35f32b492462d993`; rerun/confirm exact-head CI for this newest branch head before merge.
 - Exact-head Build [#38205403000](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403000): completed successfully. Analyze, all six test shards (0–5), Debug APK and Release APK passed.
 - Exact-head Device Smoke [#38205403044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38205403044): completed successfully. All six emulator lanes passed: Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore.
 - These are automated exact-head CI/emulator results; they do not prove physical-device acceptance or release readiness.
