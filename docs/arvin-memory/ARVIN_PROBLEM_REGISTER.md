@@ -210,8 +210,8 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - No product code changed in the 2026-10-13 audit. Release remains NO-GO.
 
 
-## P1 — Follow-up initial reminder seed and independent editing (owner clarification 2026-10-13)
-- **Contract:** first explicit Next Follow-up setting creates one initial reminder, prefilled with the Task title and Next Follow-up date/time. This is a one-time seed only; reminder is independently editable and can exist without Next Follow-up. Additional reminders are permitted when explicitly requested.
+## P1 — User-controlled Follow-up reminder creation and independent editing (owner clarification 2026-10-13)
+- **Contract:** setting Next Follow-up does not automatically create a reminder. Create a reminder for it only if the user explicitly wants/chooses it; prefill the Task title and Next Follow-up date/time, then allow independent editing. Reminder can exist without Next Follow-up. Additional reminders are permitted when explicitly requested.
 - **Data safety:** no silent overwrite or duplicate creation; Next Follow-up changes/deletion must not mutate reminders, and reminder edits/deletion must not mutate Next Follow-up. Each independently supports date-only/all-day or date/time.
 - **Current evidence boundary:** source audit found missing initial creation bridge and explicit Follow-up all-day metadata; no implementation or Flutter validation is claimed here.
 - **Next action:** implement against canonical Task/FollowUp storage and stable Calendar event identity; add tests for title/date/time prefill, one-time-only behavior, extra reminder creation, independent edit/delete, collision/no-duplicate safety, date-only projection, JSON/SQL/backup-restore and calendar same-event update. Release remains NO-GO pending full gates.
