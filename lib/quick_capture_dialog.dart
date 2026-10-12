@@ -174,16 +174,16 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   Future<String?> _addChecklistItem() async {
-    final controller = TextEditingController();
+    var enteredItem = '';
     final item = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('مورد چک‌لیست'),
         content: TextField(
           key: const ValueKey('quick-capture-checklist-item-input'),
-          controller: controller,
           autofocus: true,
           textInputAction: TextInputAction.done,
+          onChanged: (value) => enteredItem = value,
           onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
           decoration: const InputDecoration(
             hintText: 'مثلاً تماس با فروشنده',
@@ -196,13 +196,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
           ),
           FilledButton(
             key: const ValueKey('quick-capture-checklist-item-save'),
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            onPressed: () => Navigator.of(dialogContext).pop(enteredItem.trim()),
             child: const Text('افزودن'),
           ),
         ],
       ),
     );
-    controller.dispose();
     final normalized = item?.trim();
     if (!mounted || normalized == null || normalized.isEmpty) return null;
     setState(() {
