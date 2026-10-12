@@ -157,3 +157,10 @@
 - User-requested additional reminders are allowed. Never silently overwrite an existing reminder or create duplicates. Later changes/deletion of Next Follow-up must not mutate reminders; reminder edit/delete must not mutate Next Follow-up.
 - Date-only/all-day intent is independent for Next Follow-up and reminder; midnight is not a safe inference for legacy values.
 - Implementation and regression validation remain outstanding; this is a product-contract clarification, not proof of shipped behavior.
+
+
+## 2026-10-13 — Owner decision: multiple follow-ups and reminders per Task
+- One Task can contain multiple recorded Follow-up history entries and multiple independent reminders.
+- Each reminder must have its own editable title and schedule and must be independently editable/deletable without mutating other reminders or Follow-up history. Each Follow-up history entry remains distinct.
+- Next Follow-up is the next-action value, separate from recorded Follow-up history and reminders. Reminder creation is opt-in; when explicitly requested for Next Follow-up, Task title and Next Follow-up date/time are only initial values.
+- Implementation, storage/backup round-trip and Calendar identity/no-duplicate validation remain required; this records product intent, not shipped behavior.
