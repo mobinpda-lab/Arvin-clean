@@ -214,7 +214,7 @@ void main() {
         id: 'conflict-b',
         title: 'جلسه داخلی',
         followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, note: 'هماهنگی تیم'),
+          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
         ],
       ),
     ];
