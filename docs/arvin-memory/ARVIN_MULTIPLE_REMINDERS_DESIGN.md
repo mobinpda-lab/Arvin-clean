@@ -10,7 +10,7 @@ Status: Owner approved feature and full Task editor entry point. UX numbering re
 1. The full Task create/edit form contains a dedicated **یادآورها** section.
 2. **+ افزودن یادآور** adds a new independent reminder without replacing existing reminders.
 3. Each reminder has a stable immutable ID, editable title, date/time, explicit date-only/all-day state, and its own remove/edit controls.
-4. New reminder title defaults to `<Task title> — یادآور N`. N is allocated monotonically for that Task; removing reminder 2 does not rename reminder 3 or recycle number 2. Titles remain editable.
+4. New reminder title defaults to `<Task title> — یادآور N`. N is allocated monotonically for that Task; removing reminder 2 does not rename reminder 3 or recycle number 2. Titles remain editable. A new timed reminder defaults to one hour from the current local time, so saving without further edits does not immediately trigger it.
 5. Calendar event identity is based on stable reminder ID, never title/date. Editing title/date updates the same event; adding another reminder creates a different event.
 6. `nextFollowUp` and reminder dates remain independent. Creating a reminder from next follow-up is opt-in; prefilled title/time are editable defaults only.
 7. Editing/removing a reminder cannot mutate other reminders, follow-up history, or `nextFollowUp`.
