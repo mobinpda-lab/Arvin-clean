@@ -9,24 +9,31 @@ class FollowUpReminderCandidate {
     required this.followUpId,
     required this.label,
     required this.scheduledAt,
+    this.taskReminderId,
   });
 
   const FollowUpReminderCandidate.task({
     required this.taskId,
     required this.taskTitle,
     required this.scheduledAt,
-  })  : followUpId = null,
-        label = 'یادآوری';
+    this.taskReminderId,
+    this.label = 'یادآوری',
+  }) : followUpId = null;
 
   final String taskId;
   final String taskTitle;
   final String? followUpId;
+  final String? taskReminderId;
   final String label;
   final DateTime scheduledAt;
 
   bool get isTaskReminder => followUpId == null;
 
-  String get stableKey => isTaskReminder ? 'task:$taskId' : '$taskId:$followUpId';
+  String get stableKey => followUpId != null
+      ? '$taskId:$followUpId'
+      : taskReminderId == null
+          ? 'task:$taskId'
+          : 'task:$taskId:reminder:$taskReminderId';
 }
 
 /// Projects canonical FollowUp reminder state into deterministic pending work.
