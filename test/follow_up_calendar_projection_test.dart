@@ -30,6 +30,7 @@ void main() {
             id: 'fu-2',
             dateTime: DateTime(2026, 8, 27, 10),
             note: 'پیگیری قرارداد',
+            result: 'نتیجه تماس ثبت‌شده',
             reminderDate: DateTime(2026, 8, 28, 11),
           ),
           FollowUp(
@@ -45,9 +46,10 @@ void main() {
 
     expect(reminders, hasLength(2));
     expect(reminders.first.id, 'followup:task-1:fu-1');
-    expect(reminders.first.title, 'تماس با مشتری');
+    expect(reminders.first.title, 'پیگیری تماس با مشتری');
     expect(reminders.first.date, DateTime(2026, 8, 27, 9));
-    expect(reminders.last.title, 'تماس با مشتری — پیگیری قرارداد');
+    expect(reminders.last.title, 'پیگیری قرارداد');
+    expect(reminders.last.description, 'نتیجه تماس ثبت‌شده');
     expect(reminders.last.date, DateTime(2026, 8, 28, 11));
   });
 
