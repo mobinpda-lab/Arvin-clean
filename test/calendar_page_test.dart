@@ -81,6 +81,26 @@ void main() {
     expect(taskIcon.color, const Color(0xFF4A4CAB));
     expect(followUpIcon.color, const Color(0xFFB45309));
     expect(importedIcon.color, const Color(0xFF0F766E));
+
+    await tester.tap(find.text('هفتگی'));
+    await tester.pumpAndSettle();
+    final weekDots = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith('calendar-origin-dot-'),
+    );
+    expect(weekDots, findsNWidgets(3));
+
+    await tester.tap(find.text('ماهانه'));
+    await tester.pumpAndSettle();
+    final monthDots = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith('calendar-origin-dot-'),
+    );
+    expect(monthDots, findsNWidgets(3));
   });
 
   testWidgets('shows empty state when selected day has no reminder', (tester) async {
