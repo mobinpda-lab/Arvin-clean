@@ -178,7 +178,7 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         for (final color in colors)
           Container(
-            key: ValueKey('calendar-origin-dot-${day.year}-${day.month}-${day.day}-${color.value}'),
+            key: ValueKey('calendar-origin-dot-${day.year}-${day.month}-${day.day}-${color.toARGB32()}'),
             width: 4,
             height: 4,
             margin: const EdgeInsets.symmetric(horizontal: 1),
