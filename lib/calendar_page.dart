@@ -1116,6 +1116,14 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ),
                 const SizedBox(height: 4),
                 Text(subtitle),
+                if (_expanded && (item.description?.trim().isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    item.description!,
+                    key: ValueKey('calendar-reminder-description-${item.id}'),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
               ],
             ),
             trailing: _hasActions
