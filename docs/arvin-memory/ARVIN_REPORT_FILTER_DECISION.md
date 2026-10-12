@@ -63,3 +63,11 @@ This is a product direction/acceptance contract, not proof of implementation. PR
 
 ## Source audit correction — 2026-10-12
 An earlier note in this document says PR #2607 still uses Flutter's generic `showTimePicker` in Report Center. That statement is **stale for the currently inspected PR head**. Live source fetch of branch `feat/calendar-pastel-compact-cards-20261011` confirms `lib/report_center_page.dart` calls `showUniversalArvinTimePicker` and has no generic `showTimePicker` call. The shared picker file has the same Git blob SHA `caacc5539c5f2304a1a060f5e3610a25987a6619` in PR #2591 and #2607. Remaining work is to reconcile the overlapping `main.dart`, Report Center and picker file changes into one exact-head-tested integration; source inspection does not establish passing tests or physical-device acceptance. See PR comments [#2591](https://github.com/mobinpda-lab/Arvin-clean/pull/2591#issuecomment-6114333837) and [#2607](https://github.com/mobinpda-lab/Arvin-clean/pull/2607#issuecomment-6114334281).
+
+
+## Owner-approved screenshot reference — 2026-10-12
+- Dedicated GitHub acceptance record: [Issue #2623 — owner-approved Report Filter Bottom Sheet reference](https://github.com/mobinpda-lab/Arvin-clean/issues/2623).
+- The owner supplied a visual reference image in the conversation. It defines the compact rounded Bottom Sheet, Persian RTL header (فیلتر گزارش‌ها / پاک کردن همه / close), expandable sections, Jalali date range + shared Arvin time picker, multi-select Project/Category/Tag/Status chips, pastel semantic colors, and bottom actions بازنشانی / اعمال فیلتر.
+- The screenshot's palette is the current Report Center contract: Primary #4A4CAB, Light Primary #E9EAFF, Background #F8F8FB, Card #FDFDFE, Text #232433, Secondary #80829C.
+- This visual reference supplements—not replaces—the broader filter contract here. Keep Note, Tracking and Follow-up filter requirements; preserve canonical read-only data ownership and no-parallel-store rules.
+- **Status:** decision/acceptance checklist registered; screenshot binary is not yet committed/attached to GitHub, and implementation/device visual acceptance remain pending. Do not mark Done without evidence.
