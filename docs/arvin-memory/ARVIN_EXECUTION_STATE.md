@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (post-PR #2650 merge)
+
+This checkpoint supersedes older live-status statements below where they conflict; historical records are retained for audit.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main`; current observed main SHA: `8136c929237c321f2e879a80f067970c31cb0100`.
+- **PR #2650 is MERGED** by squash commit `8136c929237c321f2e879a80f067970c31cb0100`. It is documentation-only; it changes no application code. The merged source head was `e6b0dbbd70c5779e2e21f731ce6f2cf29604c99b`.
+- **Exact-head validation for #2650 source SHA `e6b0dbbd...`:** Build [38305396957](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396957) SUCCESS: analyze, six test shards, Debug APK and Release APK. Device Smoke [38305396917](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305396917) SUCCESS: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore. This is CI/emulator evidence, not physical-device acceptance. Orchestrator, Production Loop and lock sync succeeded; Parallel Wave was skipped.
+- **Product state is unchanged by #2650:** no app code changed. The FollowUp source audit still finds separate nullable `nextFollowUp`/`reminderDate` fields without explicit all-day metadata; first-set reminder creation is missing in the inspected path; the editor inherits history time and lacks clear-next; FollowUp Calendar projection omits explicit `isAllDay`. Release remains **NO-GO**.
+- **Owner/data gates remain open:** (1) behavior when a reminder already exists at first activation of Next Follow-up; (2) backward-compatible explicit all-day representation for both independently editable values, without treating midnight as proof of all-day or silently rewriting ambiguous legacy data.
+- **Calendar integration candidates:** PR #2636 head `6d970acec8f2d26464f746525861f5b3f341ce67` and experimental PR #2640 head `2d62e31540402c788b6404400d6aa1b8e27bd72e` both have successful workflow runs on those exact heads, including Build, Device Smoke and Calendar Provider Acceptance. However, both are based on stale `326afaa276b04650a86a811b18560eb4e20ed5cd`; GitHub reports `mergeable=false`. Do not merge them as-is. Rebase/reintegrate against current main only with conflict/data-contract review, then rerun exact-head validation. Historical failure issues #2644/#2646 refer to earlier failed SHAs, not proof that the newer heads failed.
+- **Next action:** safely resolve owner/data gates for FollowUp semantics; independently reconcile the Calendar candidate against current main and validate it. Do not infer product-owner approval from green CI. No physical-device validation was performed in this continuation.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (post-audit live state)
 
 This entry supersedes older live-status wording below. Historical checkpoints remain for audit.
