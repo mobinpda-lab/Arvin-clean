@@ -1,3 +1,9 @@
+
+
+| Week-view origin-marker overflow correction | Commit [205267988aa059ecad99a8b6cbe380f50824d2d2](https://github.com/mobinpda-lab/Arvin-clean/commit/205267988aa059ecad99a8b6cbe380f50824d2d2), PR #2636 | Code correction committed | Exact-head Build/provider/smoke still in progress at last poll; not yet accepted |
+| Corrected-head Build | [Run 38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze passed; six test shards and APKs running | Incomplete; do not call green |
+| Calendar Provider Acceptance | [Run 38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Provider job running | Incomplete |
+| Device Smoke | [Run 38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Home and Quick Capture running; four other lanes queued | Incomplete; no physical-device acceptance implied |
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
@@ -296,3 +302,35 @@ A missing workflow log/BlobNotFound is not a success or failure result. Emulator
 | Other Device Smoke lanes | Same run; no listed artifact for People, SQL persistence, Backup/Restore or SQL migration | Evidence incomplete | Not accepted |
 
 Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/mobinpda-lab/Arvin-clean/issues/2102#issuecomment-6114324441). Artifact existence must not be conflated with workflow conclusion, full smoke completion, physical-device acceptance or owner approval.
+
+
+## Unified validation snapshot — PR #2636 — 2026-10-12 11:09 UTC
+
+| Gate | Run | Observed evidence | Unified status |
+|---|---|---|---|
+| Build / Analyze | [38240441757](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441757) | Analyze succeeded; test shards 0–5 and Debug/Release APK jobs cancelled; workflow cancelled | **INCOMPLETE / NO PASS** |
+| Calendar Provider Acceptance | [38240441696](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441696) | Job in progress at last poll; no terminal conclusion | **PENDING** |
+| Device Smoke — Home | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — Quick Capture | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — SQL migration | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — SQL persistence | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — People | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled | **INCOMPLETE / NO PASS** |
+| Device Smoke — Backup/Restore | [38240441866](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240441866) | Cancelled; no artifact confirmed | **INCOMPLETE / NO PASS** |
+
+**Head integrity:** current PR head at checkpoint = `dbe0524494182abd013fd16a6c04f9f82f75948a`; these runs were started on code commit `205267988aa059ecad99a8b6cbe380f50824d2d2`. Treat them as stale for exact-head acceptance. A pass requires terminal success on the current head; canceled/in-progress jobs do not count. Physical-device checks and owner sign-off remain unverified. Release gate = **NO-GO**.
+
+
+## Exact-head CI checkpoint — 2026-10-12
+
+| Gate | Run | Job-level result at poll | Status |
+|---|---|---|---|
+| Build | [38240971924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971924) | Analyze success; six test shards and Debug/Release APK jobs in progress | **PENDING — not pass** |
+| Calendar Provider Acceptance | [38240971994](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971994) | Provider job in progress | **PENDING — not pass** |
+| Device Smoke — Home | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | In progress | **PENDING — not pass** |
+| Device Smoke — Quick Capture | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | In progress | **PENDING — not pass** |
+| Device Smoke — SQL migration | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — SQL persistence | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — People | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+| Device Smoke — Backup/Restore | [38240971879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38240971879) | Queued | **PENDING — not pass** |
+
+**Head:** `aad552088e6cbb55a548c47fbfbdbe4c99a33796`. Count only completed `success` as pass. Release remains **NO-GO** until exact-head automated jobs and separate physical-device/owner gates are evidenced.

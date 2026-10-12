@@ -373,11 +373,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'یادآور این پیگیری',
+                                'یادآور پیگیری مستقل',
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               SizedBox(height: 2),
-                              Text('مستقل از زمان خود پیگیری و پیگیری بعدی'),
+                              Text('این یادآور مستقل از پیگیری بعدی است و در تقویم گوشی ثبت می‌شود'),
                             ],
                           ),
                         ),

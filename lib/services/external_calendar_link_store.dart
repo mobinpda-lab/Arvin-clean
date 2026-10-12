@@ -49,6 +49,21 @@ class ExternalCalendarLinkStore {
     return List<ExternalCalendarEventLink>.unmodifiable(links);
   }
 
+  /// Finds an existing link by the stable provider calendar/event identity,
+  /// regardless of whether the event was originally created by Arvin or imported.
+  Future<ExternalCalendarEventLink?> findByProviderIdentity({
+    required String calendarId,
+    required String eventId,
+  }) async {
+    final calendar = calendarId.trim();
+    final event = eventId.trim();
+    if (calendar.isEmpty || event.isEmpty) return null;
+    for (final link in await load()) {
+      if (link.calendarId == calendar && link.eventId == event) return link;
+    }
+    return null;
+  }
+
   /// Returns whether this provider event instance was already imported.
   Future<bool> hasImportedEvent(String reminderId) async {
     final normalized = reminderId.trim();
@@ -79,7 +94,10 @@ class ExternalCalendarLinkStore {
     }
 
     final existing = await load();
-    if (existing.any((link) => link.reminderId == normalizedReminderId)) {
+    if (existing.any((link) =>
+        link.reminderId == normalizedReminderId ||
+        (link.calendarId == normalizedCalendarId &&
+            link.eventId == normalizedInstanceId))) {
       return false;
     }
     await save([
