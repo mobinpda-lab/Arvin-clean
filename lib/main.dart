@@ -312,6 +312,7 @@ class _HomePageState extends State<HomePage> {
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
   final Set<String> selected = <String>{};
+  final Set<String> expandedTaskCards = <String>{};
   bool loading = true;
   Object? loadFailure;
   bool selectionMode = false;
@@ -2760,17 +2761,49 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        task.title,
-                        style: TextStyle(
-                          color: const Color(0xFF232433),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.5,
-                          decoration: task.completed
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              task.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: const Color(0xFF232433),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                decoration: task.completed
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            key: ValueKey('home-task-expand-${task.id}'),
+                            tooltip: expandedTaskCards.contains(task.id)
+                                ? 'پنهان کردن جزئیات'
+                                : 'نمایش جزئیات',
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            onPressed: () => setState(() {
+                              if (!expandedTaskCards.add(task.id)) {
+                                expandedTaskCards.remove(task.id);
+                              }
+                            }),
+                            icon: Icon(
+                              expandedTaskCards.contains(task.id)
+                                  ? Icons.expand_less_rounded
+                                  : Icons.expand_more_rounded,
+                              size: 20,
+                            ),
+                          ),
+                        ],
                       ),
+                      if (expandedTaskCards.contains(task.id)) ...[
                       if (preview != null) ...[
                         const SizedBox(height: 3),
                         Text(
@@ -2813,6 +2846,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
+                      ],
                       ],
                       if (task.dueDate != null) ...[
                         const SizedBox(height: 5),
@@ -2858,7 +2892,9 @@ class _HomePageState extends State<HomePage> {
                               ),
                           ],
                         ),
-                      ],                      if (followUpDate != null) ...[
+                      ],
+                      if (expandedTaskCards.contains(task.id) &&
+                          followUpDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
                           children: [
