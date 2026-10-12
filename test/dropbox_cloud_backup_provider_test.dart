@@ -109,9 +109,9 @@ void main() {
         captured['url'] = url;
         captured['headers'] = headers;
         captured['body'] = body;
-        return const DropboxHttpResponse(
+        return DropboxHttpResponse(
           statusCode: 200,
-          bodyBytes: <int>[7, 8, 9],
+          bodyBytes: Uint8List.fromList([7, 8, 9]),
         );
       },
     );
