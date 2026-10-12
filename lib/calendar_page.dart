@@ -159,6 +159,35 @@ class _CalendarPageState extends State<CalendarPage> {
       .where((item) => _sameDay(item.date, day))
       .toList(growable: false);
 
+  List<Color> _visualColorsForDay(BuildContext context, DateTime day) {
+    final colors = <Color>[];
+    for (final item in _forDay(day)) {
+      final color = _CalendarItemVisualStyle.of(context, item).color;
+      if (!colors.contains(color)) colors.add(color);
+      if (colors.length == 3) break;
+    }
+    return colors;
+  }
+
+  Widget _calendarOriginDots(BuildContext context, DateTime day) {
+    final colors = _visualColorsForDay(context, day);
+    if (colors.isEmpty) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (final color in colors)
+          Container(
+            key: ValueKey('calendar-origin-dot-${day.year}-${day.month}-${day.day}-${color.value}'),
+            width: 4,
+            height: 4,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+      ],
+    );
+  }
+
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
     final reminders = _calendarReminders();
@@ -491,6 +520,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                       fontWeight: FontWeight.w700,
                                     ),
                               ),
+                            _calendarOriginDots(context, date),
                           ],
                         ),
                       ),
@@ -584,6 +614,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
+                        _calendarOriginDots(context, date),
                       ],
                     ),
                   ),
