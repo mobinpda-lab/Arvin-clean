@@ -1,3 +1,19 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (multiple Task reminders implementation)
+
+This entry supersedes older live-status notes wherever they conflict. Historical entries remain for audit.
+
+- Owner explicitly approved adding multiple independent reminders to the full Task create/edit form, including a `+` action and numbered titles.
+- Implementation branch: `feat/task-multiple-reminders-editor-20261013`.
+- Design record: `docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md`; feature issue: [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654).
+- Product contract: reminders are independent of `nextFollowUp`; creating a reminder from next follow-up is opt-in only. Titles/dates/times are editable. Each new reminder has a stable ID and a monotonic per-Task sequence; deleting one does not renumber the others.
+- Code changes on this branch: canonical `TaskReminder` model/JSON and sequence counter; full editor reminder list/add/edit/remove controls; Calendar projection with distinct stable IDs; outbound and inbound Calendar sync identity; Android notification projection, delivery-state and alarm planner support. All-day reminder notifications use 09:00 local time rather than treating midnight as an alarm time; Calendar retains explicit all-day metadata.
+- Legacy `Task.reminderDate` and `FollowUp.reminderDate` remain separate and are not migrated, overwritten, or cleared by the new collection. Existing legacy Task Calendar identity remains `task-reminder:<taskId>`; new identities use `task-reminder-item:<taskId>:<reminderId>`.
+- Canonical Task JSON remains the source of truth; existing SQL envelope and backup/restore paths are reused. No parallel Task/reminder store or scheduler is introduced.
+- Regression tests were added for model JSON compatibility, same-time independent Calendar reminders, editor add/numbering/legacy preservation, canonical edit apply, notification delivery, all-day delivery time, and alarm scheduling.
+- Validation status: implementation is in progress. Do not claim build/test/device success until exact-head GitHub Actions runs complete. Release remains **NO-GO** pending exact-head CI and physical-device acceptance.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (post-audit live state)
 
 This entry supersedes older live-status wording below. Historical checkpoints remain for audit.
