@@ -773,3 +773,16 @@ This entry supersedes the immediately preceding Report Center next-action note w
 - **Completed this continuation:** read this execution state, verify PR #2636 and owner contract Issue #2635, poll job-level exact-head status, and record the checkpoint in GitHub memory/PR.
 - **Next action:** poll the three runs after their jobs reach terminal states; fetch logs for every failed job; repair without weakening tests; then run/collect physical-device and owner acceptance evidence.
 - **Release:** NO-GO. Physical writable-calendar same-event update/no-duplicate, backup/restore round-trip and external-link integrity, Persian RTL/compact-screen review and explicit owner approval remain open.
+
+
+## Authoritative continuation — exact-head CI completed, dependency lane pending — 2026-10-12
+
+- **PR #2636** remains OPEN and unmerged at head `c24c2b12516addb9c39b434d8ec91b1f0dc38993` on `feat/calendar-origin-followup-visual-contract-20261012`.
+- **Build** run [38241377217](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377217): Analyze, test shards 0–5, Debug APK and Release APK all completed `success`.
+- **Calendar Provider Acceptance** run [38241377428](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377428): `android-calendar-provider` completed `success`.
+- **Device Smoke** run [38241377344](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38241377344): all six lanes completed `success` — Home, Quick Capture, SQL Persistence, SQL Migration, People and Backup/Restore. People and Quick Capture/Home screenshot artifacts are listed. Job steps confirm the People screenshot-evidence upload succeeded; Backup/Restore lane passed, but its step list did not include a screenshot upload.
+- This is automated emulator evidence on the exact PR #2636 head; it is **not** physical-device product acceptance.
+- **Dependency PR #2631** remains OPEN and unmerged at head `e815a8f1daa312da7bf6bf1188cf94a3b541e380`. Its prior Device Smoke run [38234134195](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38234134195) had a cancelled People lane. A targeted rerun was accepted; new People job `114789195820` is still `in_progress` at this checkpoint. Other five lanes in that run are success. Do not claim dependency validation complete until People reaches a terminal successful result and the PR's other checks are verified.
+- **Completed:** exact-head automated gates for PR #2636 are green; terminal result recorded in PR comment [6123371051](https://github.com/mobinpda-lab/Arvin-clean/pull/2636#issuecomment-6123371051).
+- **Blocked / release NO-GO:** physical writable-calendar CREATE-then-UPDATE same external event/no duplicate; imported-event no-echo on a real device; real Android file-provider backup/restore round-trip and external Calendar-link integrity; Persian RTL/compact-screen visual acceptance; dependency PR #2631 terminal validation; explicit product-owner approval.
+- **Next action:** poll only the existing targeted People rerun for PR #2631, then review dependency checks; collect the missing physical-device acceptance evidence. Do not merge or release automatically.
