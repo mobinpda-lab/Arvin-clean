@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (post-audit live state)
+
+This entry supersedes older live-status wording below. Historical checkpoints remain for audit.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main`; observed main SHA `18117aea2fa07b5a9a02e6021f41ff4faae120cc`.
+- PR [#2650](https://github.com/mobinpda-lab/Arvin-clean/pull/2650) remains OPEN and unmerged; base SHA matches the observed main checkpoint; branch `docs/decision-follow-up-vs-reminder-20261012`; latest pre-checkpoint head `bd1e73e94395f9ed4fee6ea20b96b4fca2291a0e`. Branch compare: 13 commits ahead, 0 behind; GitHub reports mergeable=true. This is documentation-only and must not be merged without exact-head validation.
+- **Exact-head CI evidence for pre-checkpoint SHA `bd1e73e...`:** Build [38305322486](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322486) PENDING; Device Smoke [38305322504](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322504) PENDING; G1 lock sync [38305322539](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322539) IN PROGRESS; PR Wakeup [38305322472](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322472) IN PROGRESS; Production Loop [38305322668](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322668) SUCCESS; Orchestrator [38305322659](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305322659) SUCCESS; Parallel Wave [38305323414](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38305323414) SKIPPED. These statuses apply only to `bd1e73e...`. This execution-state update creates a newer commit; re-check the resulting exact SHA and do not reuse these results as its validation.
+- **Completed this run — read-only source compatibility audit and memory recording:** confirmed that FollowUp has separate nullable `nextFollowUp` and `reminderDate` values but no explicit all-day metadata; the editor does not create the initial reminder when Next Follow-up is first set, inherits the history time, and lacks a clear-next action in the inspected path; FollowUp Calendar projection omits `isAllDay`. SQL storage uses the canonical Task JSON envelope; backup uses `Task.toJson()` and restore uses `Task.fromJson()`. Findings were recorded across execution state, decision log, project knowledge, problem register, evidence map, and the follow-up/reminder addendum on this branch.
+- **Owner/data gates remain:** (1) define what happens when a reminder already exists at first activation of Next Follow-up; (2) approve a backward-compatible all-day representation that distinguishes date-only from intentional midnight for both independently editable fields. Do not overwrite/duplicate existing reminders, infer all-day from midnight, or silently normalize legacy fields.
+- **No application code changed.** No Flutter analyze/test/build/device validation was run in this source-audit step. Release remains **NO-GO**.
+- **Next action:** poll exact-head Build and all six Device Smoke lanes for the resulting latest commit; continue safe compatibility analysis. Implementation remains blocked on the two owner/data decisions above.
+
+---
+
 
 
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (follow-up/reminder compatibility audit)
