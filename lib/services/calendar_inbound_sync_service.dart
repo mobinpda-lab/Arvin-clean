@@ -228,12 +228,15 @@ class CalendarInboundSyncService {
       if (task == null || task.trashed) return null;
       for (final followUp in task.followUps) {
         if (followUp.id != parsed.$2) continue;
+        final date = followUp.reminderDate ?? followUp.nextFollowUp;
+        if (date == null) return null;
+        final note = followUp.note.trim();
         return CalendarReminder(
           id: reminderId,
-          title: followUp.note.trim().isEmpty
-              ? task.title
-              : '${task.title} — ${followUp.note.trim()}',
-          date: followUp.dateTime,
+          title: note.isEmpty || note == 'پیگیری'
+              ? 'پیگیری ${task.title}'
+              : note,
+          date: date,
           completed: followUp.completed || task.completed,
         );
       }
@@ -296,11 +299,13 @@ class CalendarInboundSyncService {
       final next = List<FollowUp>.of(task.followUps);
       next[index] = FollowUp(
         id: current.id,
-        dateTime: revision.start,
+        // Calendar edits update the field that supplied the projected date;
+        // the historical FollowUp occurrence date remains unchanged.
+        dateTime: current.dateTime,
         note: current.note,
         result: current.result,
-        reminderDate: current.reminderDate,
-        nextFollowUp: current.nextFollowUp,
+        reminderDate: current.reminderDate != null ? revision.start : current.reminderDate,
+        nextFollowUp: current.reminderDate == null ? revision.start : current.nextFollowUp,
         completed: current.completed,
       );
       task.followUps = next;
