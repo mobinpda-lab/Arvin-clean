@@ -2108,6 +2108,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
+        reminder.id.startsWith('task-reminder-item:') ||
         reminder.id.startsWith('task-reminder:') ||
         reminder.id.startsWith('task-followup:') ||
         reminder.id.startsWith('followup:');
