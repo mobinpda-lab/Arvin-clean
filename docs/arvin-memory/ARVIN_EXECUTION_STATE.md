@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (CI failure triage; no current-head evidence)
+
+This checkpoint supersedes live-status statements below when they conflict. Historical entries are retained for audit.
+
+- Latest PR #2655 head observed: `ee41302483b0edbaa5eeec935f1b540a5ac04ec8`; main remains `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`. PR is open/unmerged; mergeable=false; three commits behind main.
+- No workflow runs/check-runs were returned for the latest head. Therefore there is no exact-head validation evidence after the latest source/docs commits.
+- Triage of older CI run [Build #38346161903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161903), SHA `217c57ad2574ef7f87182c8edfed84c0be0c38ab`: Debug and Release APK jobs passed; Analyze passed; three test shards failed on three test cases:
+  1. `task_editor_dialog_test.dart`: new Task checklist toggle expected the checklist block to appear, but it was absent.
+  2. `task_editor_dialog_test.dart`: disabling checklist expected the block to disappear, but it remained.
+  3. `task_editor_full_entry_test.dart`: Flutter reported “ListTile background color or ink splashes may be invisible” for the reminder all-day tile inside a decorated reminder card.
+- These failures are **older-head evidence only**. Current branch source has a local Material wrapper around the reminder all-day tile, but that source change has not been validated by a run at the current head. Do not claim these are fixed until exact-head CI confirms.
+- Device Smoke and Calendar Provider Acceptance passed on the same older SHA only; they do not override the failed test shards or certify the latest head.
+- Current integration blocker remains the approved legacy migration contract: missing TaskReminder metadata and idempotent migration; calendar projection overlap with main also needs reconciliation. No source code or user data was modified during this triage.
+- **Next action:** obtain exact-head CI for `ee41302483b0edbaa5eeec935f1b540a5ac04ec8` or make a narrowly scoped source/test correction that triggers CI; inspect all test shards and Analyze, then fix only reproduced failures. Separately implement the approved migration contract on a safe branch and reconcile mainline Calendar projection before integration.
+- Release remains **NO-GO**; physical-device acceptance is outstanding.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (migration contract mismatch blocks integration)
 
 This checkpoint supersedes conflicting live-status statements below. Historical entries remain for audit.
