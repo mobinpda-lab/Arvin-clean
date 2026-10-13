@@ -41,7 +41,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('all-day-reminder-time-setting')),
       250,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('all-day-reminder-time-setting')), findsOneWidget);
