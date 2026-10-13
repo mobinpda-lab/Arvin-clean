@@ -153,4 +153,56 @@ void main() {
     ]);
     expect(result.first.label, 'پیگیری');
   });
+
+  test('migrated legacy Task reminder is delivered once under the old identity', () {
+    final migrated = Task.fromJson({
+      'id': 'legacy',
+      'title': 'کار قدیمی',
+      'reminderDate': now.subtract(const Duration(minutes: 1)).toIso8601String(),
+    });
+
+    final result = service.due([migrated], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy');
+    expect(result.single.scheduledAt, now.subtract(const Duration(minutes: 1)));
+  });
+
+  test('multiple Task reminders have independent delivery identities', () {
+    final firstAt = now.subtract(const Duration(minutes: 2));
+    final secondAt = now.subtract(const Duration(minutes: 1));
+    final taskWithReminders = Task(
+      id: 'multi',
+      title: 'چند یادآور',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          taskId: 'multi',
+          title: 'اول',
+          date: firstAt,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'multi',
+          title: 'دوم',
+          date: secondAt,
+          sequence: 2,
+        ),
+      ],
+    );
+    final all = service.due([taskWithReminders], now: now);
+    expect(all.map((item) => item.stableKey),
+        ['task:multi:reminder:r1', 'task:multi:reminder:r2']);
+
+    final deliveredFirst = service.deliveryIdentity(all.first);
+    final remaining = service.due(
+      [taskWithReminders],
+      now: now,
+      deliveredIdentities: {deliveredFirst},
+    );
+    expect(remaining, hasLength(1));
+    expect(remaining.single.stableKey, 'task:multi:reminder:r2');
+  });
+
 }
