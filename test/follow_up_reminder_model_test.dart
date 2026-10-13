@@ -78,6 +78,7 @@ void main() {
     expect(migrated.isAllDay, isFalse);
     expect(migrated.sequence, 1);
     expect(original.nextReminderSequence, 2);
+    expect(original.legacyReminderMigrationCompleted, isTrue);
 
     final restored = Task.fromJson(original.toJson());
     expect(restored.reminderDate, reminderDate);
@@ -85,6 +86,28 @@ void main() {
     expect(restored.taskReminders.single.id, migrated.id);
     expect(restored.taskReminders.single.createdAt, migrated.createdAt);
     expect(restored.taskReminders.single.updatedAt, migrated.updatedAt);
+    expect(restored.nextReminderSequence, 2);
+    expect(restored.legacyReminderMigrationCompleted, isTrue);
+  });
+
+  test('legacy migration tombstone prevents a deleted item from being recreated', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-delete',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-13T09:00:00.000',
+    });
+    expect(task.taskReminders, hasLength(1));
+
+    task.taskReminders.clear();
+    final persisted = task.toJson();
+    expect(persisted['reminderDate'], '2026-10-13T09:00:00.000');
+    expect(persisted['legacyReminderMigrationCompleted'], isTrue);
+    expect(persisted.containsKey('taskReminders'), isFalse);
+
+    final restored = Task.fromJson(persisted);
+    expect(restored.taskReminders, isEmpty);
+    expect(restored.reminderDate, DateTime(2026, 10, 13, 9));
+    expect(restored.legacyReminderMigrationCompleted, isTrue);
     expect(restored.nextReminderSequence, 2);
   });
 
