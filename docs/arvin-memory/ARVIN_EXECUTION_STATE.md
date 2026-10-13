@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2666 latest exact-head test triage)
+
+This checkpoint supersedes conflicting live status below. Historical entries are retained.
+
+- **PR #2666:** open, unmerged. Exact validated-for-triage head: `75d5d174c7cda616dd78a84d220c12c8d8b1f1ca`.
+- **Build:** [run 38435829341](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38435829341). At latest poll, Analyze and test-0 passed; test-1, test-2, and test-3 failed; test-4/test-5 and Debug/Release APK were still running. Failures:
+  - test-1 `test/external_calendar_page_projection_test.dart`: external event edit action key absent after tapping card.
+  - test-2 `test/task_editor_dialog_test.dart`: checklist block remained visible after disabling checklist (potential product regression); also `test/calendar_release_acceptance_test.dart` could not find follow-up completion action, `test/official_calendar_prayer_actions_test.dart` could not find `ادا شد`, and `test/settings_page_test.dart` could not find all-day reminder setting key.
+  - test-3 `test/follow_up_office_page_test.dart`: expected second rendered `کار پاسخ‌گرفته` row was absent. Do not weaken assertions; inspect actual behavior, fixtures and list/rendering.
+- **Device Smoke:** [run 38435829243](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38435829243) was still running/queued at latest poll. Earlier SQL Persistence failure on prior SHA was caused by an invalid/unknown Android SDK system-image ZIP; it remains unverified until a clean retry.
+- **Calendar Provider Acceptance:** [run 38435829177](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38435829177) still in progress at latest poll.
+- **Recorded action:** detailed exact-head triage comment posted at [PR #2666 comment 6150990752](https://github.com/mobinpda-lab/Arvin-clean/pull/2666#issuecomment-6150990752).
+- **No product code was changed** in this triage step. Root causes other than the checklist toggle's observed failure are not confirmed. This checkpoint is a documentation-only change; it will create a new head, so all required gates must be rechecked against that new exact SHA.
+- **Release:** NO-GO; do not merge until all Build, Calendar Provider Acceptance, and six Device Smoke lanes pass on the same exact head.
+- **Next action:** repair confirmed checklist toggle behavior; diagnose calendar/settings/prayer/Follow-up failures against changed source and test setup; retry SQL Persistence in a healthy emulator; rerun targeted tests and all gates on the final corrected SHA.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2666 exact-head validation checkpoint)
 
 This entry records the latest observed state and supersedes conflicting live-status claims below; older checkpoints remain history.
