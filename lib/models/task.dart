@@ -404,6 +404,7 @@ class Task {
       if (hasMigratedLegacyReminder) {
         legacyReminderMigrationCompleted = true;
       } else {
+        final sequence = nextReminderSequence;
         // Preserve the legacy Calendar title so existing external links
         // keep their fingerprint through the one-time migration.
         final title = 'یادآوری: $taskTitle';
