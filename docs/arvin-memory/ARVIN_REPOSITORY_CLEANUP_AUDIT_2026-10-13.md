@@ -60,3 +60,13 @@ The approved report behavior requires filtering by Person and showing Task, Foll
 ## Release decision
 
 **NO-GO.** The architecture is partially implemented and the cleanup regression tests are authored, but they are not proven passing on the exact child head. Do not merge PR #2681 before the parent PR #2666 is accepted and the child exact-head gates, backup/restore coverage, Person reports, and device acceptance pass.
+
+---
+
+## Latest status correction — 2026-10-13
+
+- Current observed parent PR #2666 head: `d70827e1db927dcac2afc7367ca0d2e759359d8e`; Build/Device Smoke queued and Calendar Provider Acceptance in progress.
+- Current observed child PR #2681 head: `d87f5a3e3de72e8227b4dd6dd954149757c79774`; Draft, unmerged, and GitHub reports not mergeable. No child-head workflow runs were returned.
+- Related PR #2679 Build run failed in test shard 2 (232 tests passed, one waiting-list test failed). It is a different merge head and must not be treated as child-branch evidence.
+- Follow-up issues opened: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) for Person directory backup/restore and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) for Person-specific reports.
+- The child branch's waiting-list semantics now use structured per-Follow-up status and preserve multiple waiting records. Its updated tests still need exact-head CI confirmation.
