@@ -2362,7 +2362,7 @@ class _HomePageState extends State<HomePage> {
         _selectDueScope(TaskDueScope.today);
         return;
       case HomeTaskFilterKind.followUp:
-        _selectListScope(TaskListScope.followUpEnabled);
+        _selectListScope(TaskListScope.withFollowUps);
         return;
       case HomeTaskFilterKind.withoutFollowUp:
         _selectListScope(TaskListScope.simpleNotes);
