@@ -180,8 +180,8 @@ class CanonicalNotebookRepository {
     });
   }
 
-  /// Converts the same canonical Notebook item into a Task by enabling Task
-  /// behavior on the existing identity. No copy or parallel store is created.
+  /// Converts the same canonical Notebook item into a regular Task by
+  /// clearing its Notebook projection marker. Identity and data are preserved.
   Future<Task> convertNoteToTask(String id) {
     return _store.mutate<Task>((tasks) {
       final index = tasks.indexWhere((task) => task.id == id);
