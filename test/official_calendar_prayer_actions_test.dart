@@ -35,9 +35,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.longPress(find.byKey(
+    final prayerCard = find.byKey(
       const ValueKey('reminder-card-prayer-test-2026-09-15-fajr'),
-    ));
+    );
+    await tester.ensureVisible(prayerCard);
+    await tester.longPress(prayerCard);
     await tester.pumpAndSettle();
 
     expect(find.text('ادا شد'), findsOneWidget);
