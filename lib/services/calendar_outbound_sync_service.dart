@@ -40,6 +40,10 @@ class CalendarOutboundSyncService {
       if (reminderId.startsWith(prefix)) {
         final value = reminderId.substring(prefix.length);
         final separator = value.indexOf(':');
+        if (prefix == 'task-reminder-item:') {
+          if (separator <= 0) return null;
+          return Uri.decodeComponent(value.substring(0, separator));
+        }
         return separator < 0 ? value : value.substring(0, separator);
       }
     }
