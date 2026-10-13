@@ -61,7 +61,9 @@ void main() {
     await tester.tap(openExternalAction);
     await tester.pump();
     expect(opened, isTrue);
-    expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
+    // Imported device-calendar entries open through their source-specific action;
+    // they must not expose Arvin Task-edit actions.
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
   });
 
   testWidgets('permission denial fails closed and keeps calendar usable', (tester) async {
