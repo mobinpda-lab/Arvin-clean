@@ -9,24 +9,34 @@ class FollowUpReminderCandidate {
     required this.followUpId,
     required this.label,
     required this.scheduledAt,
+    this.taskReminderId,
   });
 
   const FollowUpReminderCandidate.task({
     required this.taskId,
     required this.taskTitle,
     required this.scheduledAt,
-  })  : followUpId = null,
-        label = 'یادآوری';
+    this.taskReminderId,
+    this.label = 'یادآوری',
+  }) : followUpId = null;
 
   final String taskId;
   final String taskTitle;
   final String? followUpId;
   final String label;
   final DateTime scheduledAt;
+  final String? taskReminderId;
 
   bool get isTaskReminder => followUpId == null;
 
-  String get stableKey => isTaskReminder ? 'task:$taskId' : '$taskId:$followUpId';
+  String get stableKey {
+    if (followUpId != null) return '$taskId:$followUpId';
+    if (taskReminderId == null ||
+        taskReminderId == 'legacy-task-reminder:$taskId') {
+      return 'task:$taskId';
+    }
+    return 'task:$taskId:reminder:$taskReminderId';
+  }
 }
 
 /// Projects canonical FollowUp reminder state into deterministic pending work.
@@ -46,13 +56,37 @@ class FollowUpReminderProjection {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
+      final legacyReminderId = 'legacy-task-reminder:' + task.id;
+      final hasMigratedLegacyReminder =
+          task.taskReminders.any((item) => item.id == legacyReminderId);
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isBefore(now)) {
+      if (!hasMigratedLegacyReminder &&
+          taskReminder != null &&
+          !taskReminder.isBefore(now)) {
         result.add(
           FollowUpReminderCandidate.task(
             taskId: task.id,
             taskTitle: task.title,
             scheduledAt: taskReminder,
+          ),
+        );
+      }
+
+      for (final reminder in task.taskReminders) {
+        if (reminder.status != 'active') continue;
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        if (scheduledAt.isBefore(now)) continue;
+        result.add(
+          FollowUpReminderCandidate.task(
+            taskId: task.id,
+            taskTitle: task.title,
+            scheduledAt: scheduledAt,
+            taskReminderId: reminder.id,
+            label: reminder.title.trim().isEmpty
+                ? 'یادآور ' + reminder.sequence.toString()
+                : reminder.title,
           ),
         );
       }
