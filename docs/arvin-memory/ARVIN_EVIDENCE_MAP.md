@@ -360,3 +360,9 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 
 - On exact head `c3b95d0781ec03f07d43379c4087f427667cb250`, Build run `38361448901` now confirms Analyze + test shards 0–5 SUCCESS. Debug and Release APK jobs are still in progress; no complete Build PASS until both finish successfully.
 - Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued. Full Device Smoke is not yet validated.
+
+## Exact-head visual PR update — 2026-10-13
+
+- PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Build run `38361448901` fully passed Analyze, all test shards 0–5, Debug APK and Release APK.
+- Device Smoke run `38361448950`: Home and Quick Capture passed; SQL Persistence and SQL Migration in progress; People and Backup/Restore queued at latest poll. Full Device Smoke not yet passed.
+- This is evidence for the visual-change PR head only, not for multiple Task-level reminders, external Calendar origin/duplicate handling, or physical-device acceptance.
