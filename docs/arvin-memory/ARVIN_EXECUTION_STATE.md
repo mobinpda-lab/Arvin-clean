@@ -1220,3 +1220,21 @@ The integration branch advanced again during this audit. Latest observed parent 
 - **Validation trigger:** exact-head Build run [38428476972](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476972) is in progress; Calendar Provider Acceptance [38428476999](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476999) and Device Smoke [38428476964](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476964) are also queued/in progress. No pass is claimed yet.
 - **Not addressed by this commit:** checklist UI contract failures, all-day setting key, Calendar inbound legacy identity/delete tests, waiting-list semantic mismatch, Notebook conversion and RTL swipe timeouts; they require separate root-cause work.
 - **Next action:** inspect this exact head's Build and smoke outcomes; if these two test corrections pass, take the next smallest source-level root cause. Keep PR unmerged and release **NO-GO** until all gates and Person backup/report work are validated.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — Person directory portable backup/restore implementation — 2026-10-13
+
+- **Scope:** P1 issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), standalone Person directory records missing from portable backup/restore and rollback.
+- **Branch:** `integration/follow-up-person-model-20261013`; implementation is on stacked Draft PR [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), based on parent integration PR #2666. Do not merge; GitHub currently reports the child PR not mergeable against its base.
+- **Implementation authored:**
+  - Existing portable backup v1 now accepts optional `people` entries; no second backup format and no version bump. Legacy files without `people` remain valid.
+  - `ArvinBackupManager` serializes stable Person ID/display name, validates entries, rejects duplicate IDs, and exposes `people == null` for legacy backups versus an explicit list for newer backups.
+  - Both Home's direct backup/restore flow and BackupPage flow include the Person directory in normal and emergency backups.
+  - Restore merges incoming records by stable Person ID and retains local-only directory entries. Rollback restores the exact pre-restore directory through a transactional TaskStore operation, without cascading deletion of Tasks/Follow-ups.
+  - Regression coverage added for portable document compatibility, manager round-trip, duplicate IDs, directory merge/replace, Home rollback, BackupPage runtime restore/late rollback, and file-backed round-trip.
+- **Files changed:** `lib/backup_service.dart`, `lib/backup_manager.dart`, `lib/services/task_store.dart`, `lib/main.dart`, `lib/backup_page.dart`, `test/backup_service_test.dart`, `test/canonical_backup_manager_test.dart`, `test/person_directory_backup_restore_test.dart`, `test/home_restore_orchestration_test.dart`, `integration_test/android_backup_restore_sql_smoke_test.dart`.
+- **Validation:** source and test edits are committed to the child branch; no workflow run/check result has yet been returned for its current head. Tests/build/device smoke are **NOT YET VERIFIED**. No claim of Done or release readiness.
+- **Current status:** implementation authored; validation pending; issue #2682 remains open until exact-head tests, backup/restore/rollback evidence, and device smoke pass.
+- **Next action:** obtain exact-head CI for the final child head, repair any concrete failures, safely synchronize with the latest parent branch without overwriting changes, then rerun required gates. Release remains **NO-GO**.
