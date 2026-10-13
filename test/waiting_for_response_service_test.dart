@@ -22,7 +22,7 @@ void main() {
         personIds: personIds,
       );
 
-  test('uses the latest follow-up result as the waiting state source', () {
+  test('keeps separate Person-linked waiting Follow-ups active', () {
     final task = Task(
       id: 't1',
       title: 'پیگیری قرارداد',
@@ -42,7 +42,7 @@ void main() {
       ],
     );
 
-    expect(service.isWaiting(task), isFalse);
+    expect(service.isWaiting(task), isTrue);
   });
 
   test('recognizes canonical and Persian legacy result aliases', () {
