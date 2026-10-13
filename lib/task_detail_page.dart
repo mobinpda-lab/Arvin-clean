@@ -249,7 +249,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   _task.priority == TaskPriority.high ? _danger : _waiting,
                   icon: Icons.flag_outlined,
                 ),
-              if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
+              if (_task.followUps.isNotEmpty || _task.followUpDate != null) _badge('دارای سابقه پیگیری', _brand, icon: Icons.timeline_outlined),
               for (final tag in _task.tags.take(4))
                 _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
