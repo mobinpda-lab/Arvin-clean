@@ -17,6 +17,15 @@ class FollowUpInternalCalendarProjection {
     final actions = <CalendarReminder>[];
     for (final task in tasks) {
       if (task.trashed) continue;
+
+      // Product contract: when this Task already has one or more explicit
+      // reminders, the internal calendar displays those reminder entries
+      // instead of also rendering its next-action fallback. This is display
+      // precedence only; it never changes or clears nextFollowUp.
+      final hasExplicitReminder = task.reminderDate != null ||
+          task.followUps.any((followUp) => followUp.reminderDate != null);
+      if (hasExplicitReminder) continue;
+
       for (final followUp in task.followUps) {
         final at = followUp.nextFollowUp;
         if (at == null) continue;
