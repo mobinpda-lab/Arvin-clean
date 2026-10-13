@@ -317,7 +317,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('calendar-action-delete-task-due:task-1')));
     await tester.pumpAndSettle();
-    expect(find.text('حذف کار'), findsOneWidget);
+    expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
     expect(deleted, 0);
     await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
