@@ -219,6 +219,7 @@ void main() {
     Task? enabledResult;
     await pumpEditor(tester, task: disabledResult, onResult: (value) => enabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
