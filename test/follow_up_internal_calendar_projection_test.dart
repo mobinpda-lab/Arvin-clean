@@ -122,10 +122,20 @@ void main() {
     // The existing Reminder wins the internal calendar display. The action
     // date remains independently editable in canonical Follow-up data.
     expect(internal.project([task]), isEmpty);
+    // Clearing the Reminder is an explicit, independent operation. Once
+    // cleared, the still-existing nextFollowUp becomes visible internally.
+    final followUpWithoutReminder = FollowUp(
+      id: changed.id,
+      dateTime: changed.dateTime,
+      note: changed.note,
+      result: changed.result,
+      nextFollowUp: changed.nextFollowUp,
+      completed: changed.completed,
+    );
     final taskWithoutReminder = Task(
       id: task.id,
       title: task.title,
-      followUps: [changed],
+      followUps: [followUpWithoutReminder],
     );
     expect(internal.project([taskWithoutReminder]).single.date,
         DateTime(2026, 10, 21, 10));
