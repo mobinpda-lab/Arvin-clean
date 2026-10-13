@@ -1,0 +1,37 @@
+name: One-time cleanup of obsolete Arvin APK assets
+
+on:
+  push:
+    branches:
+      - integration/task-multiple-reminders-safe-20261013
+    paths:
+      - .github/workflows/cleanup-obsolete-apks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  remove-obsolete-apks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete only the two identified legacy APK assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="${GITHUB_REPOSITORY}"
+          for asset_id in 624509960 624489765; do
+            code="$(curl --silent --show-error --output /tmp/delete-response.json --write-out '%{http_code}' \
+              --request DELETE \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "Accept: application/vnd.github+json" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$repo/releases/assets/$asset_id")"
+            case "$code" in
+              204) echo "Deleted obsolete APK release asset $asset_id." ;;
+              404) echo "Obsolete APK asset $asset_id is already absent." ;;
+              *) cat /tmp/delete-response.json; echo "Unexpected GitHub API response $code for asset $asset_id." >&2; exit 1 ;;
+            esac
+          done
