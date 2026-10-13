@@ -1154,3 +1154,9 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **No architecture relaxation:** preserve canonical Task as the single source of truth; keep nextFollowUp and per-FollowUp reminderDate independent; no parallel store/scheduler; prevent duplicate Calendar events/notifications.
 - **Execution status:** this update is documentation-only. No application code, database, backup, or owner data was changed. The safe integration PR #2666 remains Draft; PR #2655 must not be blindly merged. Release remains NO-GO until implementation and exact-head validation are complete.
 - **Next action:** proceed on the safe integration branch with source-level implementation only after reviewing canonical Task JSON/persistence, legacy reminder projection, backup/restore and relevant tests. Add explicit empty-database/fresh-install coverage where appropriate, while retaining legacy-payload compatibility tests. Then run exact-head CI; physical-device acceptance remains a separate gate.
+
+---
+
+## Latest poll correction — 2026-10-13 15:44 UTC
+
+The integration branch advanced again during this audit. Latest observed parent PR #2666 head is `90c2addbd128776241d06d10f7f57207973d8907`. At this poll, Build and Device Smoke were pending; Calendar Provider Acceptance and several orchestration/lock workflows were queued. These are not pass results. Child PR #2681 remains Draft, unmerged, not mergeable, and has no associated workflow runs. This correction is documentation-only; it does not validate the source changes.
