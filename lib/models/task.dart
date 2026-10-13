@@ -138,9 +138,9 @@ class TaskReminder {
   }
 }
 
-/// Unified product model foundation:
-/// an Item can behave as a simple note until follow-up is enabled.
-/// These fields are additive and remain backward-compatible with legacy data.
+/// Canonical Task model. Every Task can have zero or more real FollowUp records.
+/// `followUpEnabled` remains only as a deprecated compatibility mirror for old
+/// readers; current behavior must derive from `followUps`/`followUpDate` data.
 class Task {
   Task({
     required this.id,
@@ -184,6 +184,7 @@ class Task {
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
+  @Deprecated('Use followUps/followUpDate; this is a legacy compatibility mirror.')
   bool followUpEnabled;
   DateTime? followUpDate;
   List<String> tags;
