@@ -876,7 +876,7 @@ Future<void> _pickDueDate() async {
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUps.isNotEmpty || existing?.followUpDate != null,
+        followUpEnabled: existing?.followUpEnabled ?? false,
         followUpDate: existing?.followUpDate ?? _followUpDateTime,
         tags: List<String>.of(_tags),
         category: _category,
