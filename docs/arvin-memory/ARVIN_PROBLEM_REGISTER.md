@@ -1,3 +1,13 @@
+## 2026-10-13 — Approved migration contract conflicts with feature implementation
+
+- **Problem:** the feature implementation keeps legacy `Task.reminderDate` separate from the new collection, while the approved architecture decision requires deterministic idempotent migration.
+- **Root cause:** the lower-level design and PR implementation were not reconciled to the approved decision document.
+- **Impact:** merging as-is risks split representation and duplicate Calendar/notification projections once both paths are active.
+- **Owner-data scope:** owner reports no information has been entered and the current database is empty; do not claim current owner-entered records are at risk. Still preserve compatibility for old backups and legacy JSON.
+- **Required fix:** add stable required metadata (`taskId`, `status`, `createdAt`, `updatedAt`), deterministic legacy migration, durable-write/retry behavior and tests for one logical reminder/one projection.
+- **Status:** OPEN / integration blocker. No application code changed in this checkpoint.
+
+---
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
