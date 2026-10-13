@@ -1,3 +1,13 @@
+## 2026-10-13 — P1 UX: waiting-for-response list unreachable
+
+- **Problem:** users can mark a FollowUp «منتظر پاسخ دیگران», but cannot find the list.
+- **Root cause:** `FollowUpOfficePage` existed with a waiting-only filter but had no entry in the Home primary More menu and no navigation call site.
+- **Fix in progress:** Issue [#2677](https://github.com/mobinpda-lab/Arvin-clean/issues/2677), branch `fix/follow-up-waiting-response-discoverability-20261013`; menu entry and route implemented, widget test added.
+- **Data risk:** none intended; the existing canonical Task/FollowUp read/write path is reused.
+- **Remaining:** exact-head Analyze, targeted widget test, full test/build workflows and regression acceptance. Keep issue open until CI evidence passes.
+
+---
+
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
