@@ -1,3 +1,11 @@
+## 2026-10-13 — Navigation and active-task filter repair (Issue #2677)
+
+- Added «دفتر پیگیری» to Home > «بیشتر» and connected it to the existing FollowUpOfficePage; users can now reach the already-implemented «فقط منتظر پاسخ» filter.
+- The waiting-only filter now excludes completed, archived, and trashed Tasks, matching the existing WaitingForResponseService contract.
+- Widget regression coverage checks both the navigation route and exclusion of inactive Tasks. Exact-head CI remains pending until the final branch SHA is validated.
+
+---
+
 ## 2026-10-13 — Discoverability repair (Issue #2677)
 
 - Root cause: `FollowUpOfficePage` and its `فقط منتظر پاسخ` filter already existed, but `lib/main.dart` never imported or navigated to the page. Users could enable «منتظر پاسخ دیگران» without a discoverable route to the list.
