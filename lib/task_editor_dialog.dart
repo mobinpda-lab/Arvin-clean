@@ -579,7 +579,9 @@ Future<void> _pickDueDate() async {
       final right = b[i];
       if (left.id != right.id || left.title != right.title || left.date != right.date ||
           left.isAllDay != right.isAllDay || left.sequence != right.sequence ||
-          left.status != right.status) return false;
+          left.status != right.status) {
+        return false;
+      }
     }
     return true;
   }
