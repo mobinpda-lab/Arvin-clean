@@ -162,7 +162,7 @@ class Task {
     this.reminderDate,
     this.legacyReminderMigrationCompleted = false,
     Iterable<TaskReminder> taskReminders = const [],
-    int nextReminderSequence = 1,
+    this.nextReminderSequence = 1,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -173,7 +173,6 @@ class Task {
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         taskReminders = List<TaskReminder>.of(taskReminders),
-        nextReminderSequence = nextReminderSequence,
         people = _normalizePeople(people);
 
   final String id;
