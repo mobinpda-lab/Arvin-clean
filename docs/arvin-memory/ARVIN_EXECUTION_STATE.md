@@ -912,3 +912,18 @@ This checkpoint supersedes earlier live status for PR #2665 where conflicting; p
 - **Safe next step:** inspect/reconcile PR #2655's 58-ahead/2-behind divergence against current main without blind merge/rebase. Its Task model, editor, Calendar inbound/outbound, backup and reminder scheduling changes overlap newer main and require path-by-path compatibility review.
 - Release remains **NO-GO** pending multi-reminder integration, provider CREATE→UPDATE/no-duplicate evidence, real-device notification and backup/restore validation, Persian RTL/compact UX acceptance, and owner approval.
 - This memory write creates a new PR head; re-query Build and all six Device Smoke lanes for that resulting exact head before any merge/readiness decision.
+
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (owner-approved multiple-reminder migration command)
+
+This checkpoint records the latest owner instruction. Keep older checkpoints as history; do not treat their “design unapproved” wording as current.
+
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Latest main observed during this execution: `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- Owner explicitly approved the multiple independent Task reminder product model and requested a safe legacy migration from `Task.reminderDate` into a TaskReminder collection. The architecture decision is recorded in `docs/arvin-memory/ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md` on branch `integration/task-multiple-reminders-safe-20261013`, commit `33ddb0f9467fd9a2d832c2e485eedf449da8eba3`.
+- PR #2655 remains OPEN/unmerged; current feature branch `feat/task-multiple-reminders-editor-20261013` is diverged from main: 58 commits ahead, 3 behind, merge base `8136c929237c321f2e879a80f067970c31cb0100`; GitHub reports `mergeable=false`. It modifies model/JSON, editor, notification services, Calendar inbound/outbound/projections, persistence and backup tests.
+- Safe integration branch created from current main: `integration/task-multiple-reminders-safe-20261013`. At this checkpoint it contains the approved architecture/migration decision document only; no application code has been ported, no schema migration has run, and no test/build/device run has been executed on this branch.
+- Non-negotiable compatibility: `nextFollowUp` is not a reminder; legacy `FollowUp.reminderDate` stays independent; migration of `Task.reminderDate` must be idempotent and must not emit duplicate legacy/new Calendar events; explicit all-day state must distinguish date-only from intentional midnight; canonical Task JSON/SQL and existing backup/restore remain the only persistence path; internal Follow-up Action projection remains display-only and excluded from outbound sync/notification scheduling.
+- Next implementation sequence: inspect latest main and feature sources side-by-side; port model/JSON with a deterministic, retry-safe legacy migration first; then persistence/backup, editor CRUD, notification identity, Calendar sync, and focused regression tests. Do not use a blind merge or overwrite mainline Calendar projection files.
+- Validation gate: exact-final-head Analyze, test shards 0–5, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, followed by physical-device Calendar and Backup/Restore acceptance. Release remains NO-GO until evidence is recorded.
