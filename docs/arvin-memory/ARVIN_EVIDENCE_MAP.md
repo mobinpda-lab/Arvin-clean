@@ -468,3 +468,12 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Waiting list retains each structured Person-linked Follow-up | `lib/follow_up_office_page.dart`, `lib/services/waiting_for_response_service.dart`, `test/waiting_for_response_service_test.dart` | Source fix and regression test authored | Tests not run/confirmed |
 | Person directory is portable through backup/restore | Existing `lib/backup_manager.dart` payload and restore candidate | **NOT PROVEN / P1 OPEN** | Standalone directory records are not currently included |
 | Release-ready status | PR #2666 and stacked PR #2681 | **NO-GO** | Parent exact-head workflows queued/pending; child has no associated run evidence; no physical-device acceptance |
+
+---
+
+## Latest exact-head evidence — 2026-10-13
+
+- Parent PR #2666 head `d70827e1db927dcac2afc7367ca0d2e759359d8e`: Build and Device Smoke queued; Calendar Provider Acceptance in progress. No final pass claim.
+- Child PR #2681 head `d87f5a3e3de72e8227b4dd6dd954149757c79774`: no PR-associated workflow runs returned; GitHub reports the stacked PR not mergeable.
+- Related PR #2679 run [38417142693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38417142693): test shard 2 failed one waiting-list test after 232 tests passed. Different merge head; use only as evidence that the old waiting-list contract is failing.
+- Follow-up P1s: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683).
