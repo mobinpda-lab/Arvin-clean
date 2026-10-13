@@ -1496,7 +1496,10 @@ class _HomePageState extends State<HomePage> {
         item.id.startsWith('task-reminder-item:')) {
       return 'یادآور';
     }
-    if (item.id.startsWith('task-due:')) return 'موعد کار';
+    if (item.id.startsWith('task-due:')) {
+      final occurrence = item.id.substring('task-due:'.length);
+      return occurrence.contains(':') ? 'کار تکرارشونده' : 'موعد کار';
+    }
     if (item.id.startsWith('external-calendar:')) return 'رویداد تقویم گوشی';
     return 'کار';
   }
