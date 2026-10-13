@@ -506,7 +506,8 @@ void main() {
     // exposed only by the typed long-press menu.
     expect(find.byKey(ValueKey('task-due-edit-$occurrenceId')), findsNothing);
     await tester.longPress(card);
-    await tester.pumpAndSettle();
+    // Calendar keeps an ongoing animation; settle a bounded frame window instead.
+    await tester.pump(const Duration(milliseconds: 300));
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
 

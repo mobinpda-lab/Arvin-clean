@@ -253,7 +253,8 @@ void main() {
     await tester.ensureVisible(delete);
     await tester.tap(delete);
     await tester.pumpAndSettle();
-    expect(find.text('حذف کار'), findsNothing);
+    // Task-due deletion requires explicit confirmation; cancel must preserve the Task.
+    expect(find.text('حذف کار'), findsOneWidget);
     expect(deleted, 0);
     await tester.ensureVisible(find.text('لغو'));
     await tester.tap(find.text('لغو'));
