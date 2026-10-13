@@ -1275,3 +1275,27 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **Action taken in this checkpoint:** exact-head workflow state and decoded failure evidence were re-polled. No product code/test was changed because root causes are not yet sufficiently isolated; do not make speculative changes or loosen expectations. This memory update itself creates a new commit and therefore changes branch HEAD; the runs above remain historical evidence for `445d2897eaeb5c12695716284c999f9cad9bd918`, not validation of the new documentation commit.
 - **Release decision: NO-GO.** Required Build shards, both APKs, Calendar Provider Acceptance, all Device Smoke lanes, backup/restore, calendar integrity and physical-device acceptance must pass on one exact final source SHA.
 - **Next action:** inspect the complete checklist failure assertion and affected widget keys against their source/test fixtures; repair confirmed product regressions or test setup defects separately; poll test-4/test-5 and device/calendar lanes; then rerun all release gates on the corrected exact SHA.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Calendar / widget-test contract repair)
+
+- **Code/test branch:** `integration/task-multiple-reminders-safe-20261013`; latest observed test-change head before this memory checkpoint: `e0bbf62610502498a58953c5c72f1b1349f68733`.
+- **PR:** [#2666](https://github.com/mobinPda-lab/Arvin-clean/pull/2666), open and unmerged. No product implementation or persistence schema changed in this checkpoint; only test harnesses/selectors were updated.
+- **Confirmed interaction contract from source + decision log:** Calendar normal tap opens the canonical Task Detail (for Task/Follow-up rows); long press opens contextual actions. Action-menu keys use `calendar-action-edit-<item-id>` and `calendar-action-complete-<item-id>`. Prayer actions are visible labels `ادا شد` and `قضا شد`, not the previously expected `prayer-completed-...` test keys.
+- **Test corrections committed:**
+  - `1cac02e6fe1d09bd82fc8568daedf0d4415418a5`: external Calendar event test uses long press.
+  - `8c31f2e39a85248c02d5752562dbaa0375250832`: prayer action test uses long press.
+  - `c30a959a9d5090a449b9792ce103fd0dbfabb823`: Follow-up completion test uses long press.
+  - `1c3bfc3c0061732b53524a6231cfbd4c6574a28f` and `77aa2894e17c0ded728b517545a9711ff7e6fe0f`: checklist toggle/re-enable tests ensure the toggle is in view before tapping.
+  - `713eaf24883bb5287379d757306f0ebbde23aa24`: follow-up list test provides enough viewport height to evaluate lazy list rows.
+  - `cc670e08086d457d3e39428d507c347e3792ca6c`: external event test uses the actual `calendar-action-edit-` key.
+  - `e55c02c89808ad274193d6f2ceda19fb057e9080`: Follow-up completion test uses the actual `calendar-action-complete-` key.
+  - `c6828c21d7c1bc72041e3ec8cbc736403470a754`: settings test scrolls to the lazy-built all-day reminder setting and ensures later controls are visible before tapping.
+  - `e0bbf62610502498a58953c5c72f1b1349f68733`: prayer test taps the visible action labels rather than nonexistent keys.
+- **Validation for prior test head `c6828c21d7c1bc72041e3ec8cbc736403470a754`:** Build run [38439790478](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439790478) was still running with Analyze, test shards and APK jobs in progress at the last poll; Calendar Provider Acceptance [38439790425](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439790425) was in progress; Device Smoke [38439790435](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439790435) had Home/Quick Capture in progress and Backup/Restore, SQL Migration, People and SQL Persistence cancelled after a later run superseded some lanes. These are not terminal passing results and do not validate the later `e0bbf62` head.
+- **Current head workflow snapshot at this checkpoint:** Build [38439948609](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948609) and Device Smoke [38439948699](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948699) were pending with no jobs returned yet; Calendar Provider Acceptance [38439948778](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948778), job `115443616711`, was in progress. This snapshot is associated with `e0bbf62610502498a58953c5c72f1b1349f68733` only.
+- **No assertions were intentionally weakened.** These are test-selector/viewport corrections inferred from the current implementation contract; their effectiveness is unproven until the corresponding jobs finish.
+- **Release:** NO-GO. No physical-device screenshot or physical-device acceptance evidence has been captured in this checkpoint.
+- **Next action:** let Build, Calendar Provider Acceptance and all six Device Smoke lanes reach terminal states on the latest head; inspect every remaining failure log, fix only verified causes, then rerun all required gates on one final SHA. Keep PR #2666 unmerged.
