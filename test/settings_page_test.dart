@@ -38,6 +38,8 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('all-day-reminder-time-setting')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('all-day-reminder-time-setting')), findsOneWidget);
     expect(find.textContaining('پیش‌فرض ۹:۰۰ صبح'), findsOneWidget);
 
@@ -47,16 +49,19 @@ void main() {
     await tester.tap(find.text('CANCEL'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('تیره'));
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
     expect(changed?.themeMode, ThemeMode.dark);
 
+    await tester.ensureVisible(find.text('نمایش تاریخ فارسی'));
     await tester.tap(find.text('نمایش تاریخ فارسی'));
     await tester.pumpAndSettle();
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('font-settings-entry')));
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
