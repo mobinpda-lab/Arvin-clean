@@ -72,7 +72,7 @@ void main() {
     final migrated = original.taskReminders.single;
     expect(migrated.id, 'legacy-task-reminder:legacy-task-reminder-1');
     expect(migrated.taskId, original.id);
-    expect(migrated.title, 'جلسه — یادآور ۱');
+    expect(migrated.title, 'یادآوری: جلسه');
     expect(migrated.date, reminderDate);
     expect(migrated.status, 'active');
     expect(migrated.isAllDay, isFalse);

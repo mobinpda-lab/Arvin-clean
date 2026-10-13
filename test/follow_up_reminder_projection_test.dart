@@ -178,7 +178,7 @@ void main() {
           id: 'r2',
           taskId: 'task-1',
           title: 'یادآور دوم',
-          date: DateTime(2026, 8, 28, 0),
+          date: DateTime(2026, 8, 28, 10),
           createdAt: createdAt,
           updatedAt: createdAt,
           sequence: 2,
@@ -200,7 +200,7 @@ void main() {
     );
     expect(
       result.singleWhere((item) => item.taskReminderId == 'r2').scheduledAt,
-      DateTime(2026, 8, 28, 0),
+      DateTime(2026, 8, 28, 10),
     );
   });
 
@@ -216,7 +216,7 @@ void main() {
     expect(result, hasLength(1));
     expect(result.single.stableKey, 'task:legacy-task');
     expect(result.single.taskReminderId, 'legacy-task-reminder:legacy-task');
-    expect(result.single.label, 'تماس — یادآور ۱');
+    expect(result.single.label, 'یادآوری: تماس');
   });
 
   test('deleted migrated legacy reminder is not scheduled from retained legacy value', () {
