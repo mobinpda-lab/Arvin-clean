@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (migration contract mismatch blocks integration)
+
+This checkpoint supersedes conflicting live-status statements below. Historical entries remain for audit.
+
+- **Current main:** `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`. Feature PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) is OPEN/unmerged, head before this memory-only update `4c0a00d0bf4d7cec7ff109b7781424bf3db4adda`, base checkpoint `8136c929237c321f2e879a80f067970c31cb0100); 58 commits ahead, 3 behind, GitHub reports `mergeable=false`.
+- **P0/P1 integration blocker found by comparing source with the approved architecture contract:** current PR #2655 `TaskReminder` contains only `id`, `title`, `date`, `isAllDay`, and `sequence`; it does not contain required `taskId`, `status`, `createdAt`, or `updatedAt`. `Task.fromJson` reads legacy `Task.reminderDate` separately and reads `taskReminders` separately; it does not migrate the legacy reminder into exactly one stable-ID collection item. `Task.toJson` continues to serialize both representations.
+- This conflicts with the owner-approved [multiple-reminder architecture decision](https://github.com/mobinpda-lab/Arvin-clean/blob/integration/task-multiple-reminders-safe-20261013/docs/arvin-memory/ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md), which requires idempotent migration, preservation until durable validation, rollback safety, and a single Calendar projection identity per logical reminder. The feature PR's own docs instead say legacy Task reminders are not auto-migrated. These contracts must not be silently reconciled by guessing.
+- **No code integration or migration was attempted in this checkpoint.** A blind merge would risk incompatible reminder cardinality/identity and duplicate or lost legacy Calendar events.
+- Exact current-head checks were not available for feature SHA `cc35194d84d6c2fdf52d566723be0d6343e93c6b`; older SHA `217c57ad2574ef7f87182c8edfed84c0be0c38ab` had Build FAILURE ([38346161903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161903)), Device Smoke SUCCESS ([38346161905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161905)), and Calendar Provider Acceptance SUCCESS ([38346161864](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161864)). None is current-head release evidence.
+- **Next action:** implement and test the approved legacy migration and complete reminder metadata on a dedicated branch; ensure legacy/new Calendar identity cannot emit duplicates; reconcile the three mainline commits affecting Calendar behavior; then run exact-head Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance and six Device Smoke lanes. Do not merge or release until all gates pass.
+- Release remains **NO-GO**. Physical-device acceptance is still outstanding.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (latest-head CI and mainline reconciliation audit)
 
 This checkpoint supersedes conflicting live-status notes below. Older entries remain historical evidence and must not be reused as current validation.
