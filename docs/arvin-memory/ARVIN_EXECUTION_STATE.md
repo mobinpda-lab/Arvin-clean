@@ -1471,3 +1471,46 @@ Use one unambiguous PR reference for the current multiple-reminder integration w
 4. Safely reconcile #2681/#2682 backup/restore work with the parent before merge; complete #2683 Person-specific report behavior.
 5. Record real backup/restore and Calendar-link integrity evidence plus physical-device acceptance.
 6. Keep **release NO-GO** and do not merge until all required gates pass on one final exact SHA and required owner approval is present.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Exact-head CI terminal; Person branch reconciliation)
+
+## Execution identity
+- Repository: `mobinpda-lab/Arvin-clean`
+- Primary integration PR: [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666)
+- Branch: `integration/task-multiple-reminders-safe-20261013`
+- Validated SHA: `a01f7a7a6d057af00cd33c747d7848c8538806d2`
+- PR #2666 remains open and unmerged.
+
+## Exact-head terminal evidence
+- **Arvin Build** [run 38471562221](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38471562221): Analyze, test shards 0–5, Debug APK, and Release APK all succeeded.
+- **Device Smoke** [run 38471562155](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38471562155): all six lanes succeeded — Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People.
+- **Calendar Provider Acceptance** [run 38471562235](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38471562235): succeeded.
+- These are automated CI gates on the exact SHA above. They do not prove physical-device acceptance or close separate product issues.
+
+## Branch safety finding — PR #2681
+- Child PR [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681) is open, unmerged, and reported non-mergeable.
+- Compare of parent SHA `a01f7a7a6d057af00cd33c747d7848c8538806d2` to child SHA `25b4755317d6890d96a019b897f5661a013caeb4` reports `diverged`: child side 88 commits ahead, 157 behind; merge base `68724d6191590b81b2d611f59b7944a7fcbb06e0`.
+- **Decision:** no automatic merge, force update, or blind cherry-pick. This degree of divergence requires a dedicated synchronization/reconciliation plan with file-level review and fresh exact-head CI, especially around TaskStore/schema, portable backup, rollback, and Person references.
+- PR #2666 validation results were recorded in comment [6155927237](https://github.com/mobinpda-lab/Arvin-clean/pull/2666#issuecomment-6155927237).
+
+## Open blockers
+- [Issue #2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), P1: standalone Person directory backup/restore integrity, legacy backup compatibility, reference validation before destructive restore, and rollback coverage.
+- [Issue #2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683): Person-based per-Follow-up reporting with waiting state, Person associations, nextFollowUp and independent Reminder timing.
+- [Issue #2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685): Calendar UX contract acceptance.
+- Physical-device acceptance and end-to-end product acceptance remain unevidenced.
+
+## Current bottleneck
+Safe integration of Person-linked Follow-up/Person-directory backup and report behavior into the validated parent without data loss or architecture duplication. Automated parent CI is green, but the child branch is heavily diverged and must not be merged blindly.
+
+## Next action
+1. Plan and perform a safe reconciliation of #2681 against the validated parent in a dedicated branch; inspect conflicting source/test files before applying changes.
+2. Complete #2682 and #2683, preserving Task as the sole source of truth, keeping nextFollowUp independent from Reminder, and preserving existing data on rollback.
+3. Run focused regression tests plus Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, and backup/restore integrity checks on the resulting exact SHA.
+4. Collect physical-device acceptance evidence and close #2685 before considering release.
+5. Keep release **NO-GO** until all gates and required approvals are satisfied on one final exact SHA.
+
+## Release decision
+**NO-GO.** Exact-head automated parent CI is green; product/data-integrity blockers, branch reconciliation, and physical-device acceptance remain open.
