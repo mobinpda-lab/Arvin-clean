@@ -1,3 +1,16 @@
+# EVIDENCE UPDATE — 2026-10-13 (legacy migration and notification projection slice)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| TaskReminder model | Implemented in PR #2667 | Some metadata remains nullable for backward compatibility; exact-head analysis pending |
+| Legacy Task reminder decode | Deterministic collection item added and legacy field retained | In-memory decode is not yet a durable transaction |
+| Notification projection/alarm | Migrated legacy item uses old delivery identity; legacy/new duplicate scheduling suppressed in pure projection/planner | Runtime Android scheduling/delivery not yet validated |
+| Calendar projection | Migrated item uses legacy Calendar ID; new items use stable Task/reminder IDs | External provider sync reconciliation still pending |
+| Regression tests | Added model, notification planner/projection and Calendar projection tests | CI execution/results not confirmed |
+| Exact-head CI | Not established for latest code head | Do not treat as PASS |
+| Device / release | Not validated / NO-GO | Physical device and real backup/restore remain mandatory |
+
+---
 # EVIDENCE UPDATE — 2026-10-13 (PR #2667 model migration slice)
 
 | Item | Result | Limitation |
