@@ -1,3 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder editor + approved compatibility correction)
+
+This entry supersedes earlier live statements in this file that say legacy Task.reminderDate is automatically copied into taskReminders. Keep older entries as audit history only.
+
+- **Repo/PR:** mobinpda-lab/Arvin-clean; draft [PR #2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667), branch feat/task-reminder-legacy-migration-20261013.
+- **Approved design source:** [PR #2655 design document](https://github.com/mobinpda-lab/Arvin-clean/blob/feat/task-multiple-reminders-editor-20261013/docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md) and [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) explicitly require legacy Task.reminderDate and FollowUp.reminderDate to remain independently readable and prohibit silently copying legacy Task reminders into the new collection. Code has been corrected to follow this; no automatic collection migration is performed.
+- **Implemented:** TaskReminder collection stays inside canonical Task JSON; legacy singular Task reminder remains on its existing path; new collection reminders get independent Calendar and notification identities. Added the full Task editor section with add/title/date/time/all-day/remove controls, monotonic per-Task sequence allocation, default reminder one hour from current local time, and save/apply wiring. Added editor create/edit/delete tests, Task edit-apply coverage, model compatibility test, and canonical backup JSON round-trip test.
+- **Important compatibility correction:** prior draft implementation automatically synthesized legacy-task-reminder:<taskId> collection items. That was removed because it contradicted the approved design. The legacy field remains projected and scheduled by the existing legacy path; new collection items use task-reminder-item:<taskId>:<reminderId>. Same-time reminders with different stable IDs remain distinct.
+- **CI evidence:** an earlier head's Analyze failed only on four prefer_interpolation_to_compose_strings infos; these were corrected. No workflow runs were returned for the latest code head at the time of this update, so current exact-head Analyze/tests/build/provider acceptance are UNCONFIRMED, not PASS. Device Smoke is skipped for docs/code changes under current workflow rules; this does not establish physical-device acceptance.
+- **Known open work:** run latest exact-head CI and fix all failures; review provider update/create/delete behavior for new reminder IDs; ensure the canonical editor has adequate UI tests at compact RTL sizes; validate true backup file restore and Calendar event identity on a physical Android device. Owner reports current DB empty; that does not remove old JSON/backup compatibility obligations.
+- **Next action:** query PR #2667 exact head and its Build test shards, Analyze, APK jobs and Calendar Provider Acceptance; fix failures before adding more scope. Keep Draft and release NO-GO.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (provider identity compatibility slice)
 
 - **PR:** [#2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667), draft; current code/test head before this checkpoint: `308ea3b35c00afcee116539e948df7695a6efb07`.
