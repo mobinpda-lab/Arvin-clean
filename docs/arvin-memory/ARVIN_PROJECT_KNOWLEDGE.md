@@ -187,3 +187,13 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Canonical model requirements: each TaskReminder has stable ID, title, date/time, status, taskId, createdAt, updatedAt, and explicit date-only/all-day semantics. Keep `nextFollowUp` and legacy per-FollowUp `reminderDate` separate.
 - Migration requirements: preserve legacy data; convert it to exactly one reminder; be idempotent; preserve legacy/new Calendar identity; never infer all-day from midnight; no duplicate notifications or events; old backups remain readable.
 - Safe integration branch currently contains documentation only. No multiple-reminder application code has yet been ported or validated there.
+
+
+## 2026-10-13 — Calendar item interaction contract
+
+- Use Tap = open canonical Task Detail and Long Press = contextual management. Do not display Edit/register chips in the normal card body.
+- Resolve Task, recurrence, independent Reminder and Follow-up projections by canonical IDs. Never create a Task or external Calendar Event just because an item was opened.
+- Pass selected item type into Task Detail so the user can distinguish موعد کار, یادآور, پیگیری and recurring occurrences. Do not infer type from title text.
+- Deleting a Task from the long-press menu requires explicit confirmation. Calendar registration remains idempotent and must preserve external event identity.
+- Code implementation and widget test changes are on the integration branch; CI was pending/queued at last poll. This is implementation knowledge, not proof of acceptance.
+- Reference: ARVIN_CALENDAR_INTERACTION_DECISION.md and Issue #2685.
