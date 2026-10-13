@@ -140,7 +140,7 @@ void main() {
         home: ReportCenterPage(
           now: DateTime(2026, 10, 7, 10),
           tasks: [task, completedTask],
-          people: const [
+          people: [
             PersonReference(id: 'ali', displayName: 'علی رضایی'),
             PersonReference(id: 'sara', displayName: 'سارا احمدی'),
           ],
