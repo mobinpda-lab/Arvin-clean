@@ -24,6 +24,11 @@ class FollowUpCalendarProjection {
 
   String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
 
+  String taskReminderItemIdFor(Task task, TaskReminder reminder) =>
+      reminder.id == 'legacy-task-reminder:${task.id}'
+          ? taskReminderIdFor(task)
+          : 'task-reminder-item:${task.id}:${reminder.id}';
+
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
@@ -88,8 +93,24 @@ class FollowUpCalendarProjection {
         taskDatesAlreadyProjected.add(reminderDate);
       }
 
+      for (final taskReminder in task.taskReminders) {
+        // The migrated legacy item keeps its historical external identity.
+        // New items use their own stable ID; date/title never define identity.
+        reminders.add(
+          CalendarReminder(
+            id: taskReminderItemIdFor(task, taskReminder),
+            title: taskReminder.title,
+            date: taskReminder.date,
+            completed: task.completed || taskReminder.status == 'completed',
+            isAllDay: taskReminder.isAllDay,
+          ),
+        );
+        taskDatesAlreadyProjected.add(taskReminder.date);
+      }
+
       final taskReminderDate = task.reminderDate;
-      if (taskReminderDate != null &&
+      if (!task.legacyReminderMigrationCompleted &&
+          taskReminderDate != null &&
           !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
         reminders.add(
           CalendarReminder(
