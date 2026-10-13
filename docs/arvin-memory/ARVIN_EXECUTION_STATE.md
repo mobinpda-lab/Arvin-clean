@@ -1536,3 +1536,42 @@ This checkpoint supersedes conflicting live-status statements above; older entri
 - **No product code was changed in this execution.** The child patch was inspected file-by-file; merge remains blocked pending reviewed reconciliation, referential-integrity validation, Report Center implementation, and exact-head test evidence.
 - **Release:** NO-GO. Physical-device acceptance and the full Task → Follow-up → Person → Reminder → Calendar → Person report → Backup/Restore integrity scenario remain outstanding.
 - **Next action:** make a reviewed, minimal synchronization plan for the Person backup/restore slice onto the current parent, including referential validation and rollback tests; then implement Person-specific per-Follow-up reporting. Run all gates on the resulting exact SHA.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Version 9.0 execution)
+
+## Current parent release checkpoint
+
+- Parent branch: `integration/task-multiple-reminders-safe-20261013`
+- Parent PR #2666 exact code head checked: `a7be929a844038d64fcf20e5a6681a1c8732b2fc`.
+- Exact-head Build: [run 38477701769](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701769) — success; Analyze, six test shards, Debug APK and Release APK all succeeded.
+- Exact-head Calendar Provider Acceptance: [run 38477701747](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701747) — success.
+- Exact-head Device Smoke: [run 38477701760](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701760) — six automated lanes succeeded: Home, Quick Capture, SQL persistence, SQL migration, People, and Backup/Restore. This is automated smoke evidence, **not physical-device UX acceptance**.
+- Orchestration: [run 38477701833](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701833) and [run 38477701603](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701603) — success.
+- Parent PR #2666 remains open and unmerged. These green results apply to the parent head named above only.
+
+## Calendar interaction — latest verified parent implementation
+
+- Normal tap on Task/Follow-up calendar rows now routes to the existing canonical Task Detail and labels the selected calendar item type.
+- Long press opens the contextual action sheet; management actions are no longer exposed as collapsed-card chips.
+- Task deletion requires confirmation. Reminder rows do not expose deletion of their parent Task.
+- The updated calendar interaction tests are included in the successful Build/test shards on parent head `a7be929...`.
+- Issue [#2685](https://github.com/mobinPda-lab/Arvin-clean/issues/2685) remains open pending broader small-screen day/week/month and physical-device evidence. No screenshot or physical-device result is claimed.
+
+## Current P1 bottleneck — Person directory, backup integrity, and reporting
+
+- [Issue #2682](https://github.com/mobinPda-lab/Arvin-clean/issues/2682) remains open: standalone Person directory data is not yet included in the active parent branch's portable backup/restore path.
+- [Issue #2683](https://github.com/mobinPda-lab/Arvin-clean/issues/2683) remains open: active parent Report Center lacks Person-based per-Follow-up rows and waiting/next-action reporting.
+- [PR #2681](https://github.com/mobinPda-lab/Arvin-clean/pull/2681) remains open and non-mergeable. Comparing its current head `4c2795e92d70cee208f38a150a28b1f63f31c7f2` against parent head `a7be929...` returns **diverged: 101 commits ahead, 159 behind**, common ancestor `68724d6191590b81b2d611f59b7944a7fcbb06e0`. Do not merge, force-update, or cherry-pick the child branch wholesale.
+- A focused synchronization plan was opened as [PR #2692](https://github.com/mobinPda-lab/Arvin-clean/pull/2692): `docs/arvin-memory/ARVIN_PERSON_DIRECTORY_SYNC_PLAN_2026-10-14.md`.
+- Additional referential-integrity and Person report implementation/test changes were made on the divergent child branch, latest observed head `4c2795e...`. **Those child-branch changes have no successful CI evidence and are not integrated into the parent.** They must not be described as validated or release-ready.
+
+## Next action and release decision
+
+1. Keep parent PR #2666 intact; no blind merge of PR #2681.
+2. Port the Person persistence/migration slice onto a clean branch from the current parent in small, reviewed steps.
+3. Validate SQL migration/persistence, Settings directory, backup round-trip, old-backup compatibility, dangling-reference rejection, injected-failure rollback, then Person-specific per-Follow-up reporting.
+4. Run every required gate on the exact integrated SHA and record physical-device evidence separately.
+5. Preserve the owner-approved distinctions: `nextFollowUp` is next action time; `reminderDate` is notification time. Neither may substitute for the other.
+
+**Release: NO-GO.** Parent automated gates are green on the stated head, but Person backup/restore integrity, Person reporting, complete acceptance scenario, and physical-device acceptance remain outstanding.
