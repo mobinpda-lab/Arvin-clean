@@ -228,3 +228,9 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## STATUS UPDATE — 2026-10-13 — Owner decision received
+- **Resolved gate:** owner/product decision for multiple Task-level reminders and the requested legacy migration is now explicit in the command dated 2026-10-13. Earlier text saying “blocked until owner approval” is historical and superseded.
+- **Still open P1:** implementation and safe reconciliation of PR #2655 onto current main. Branch divergence and overlapping Task model/editor/Calendar/notification/backup changes make blind merge unsafe.
+- **Still open data risk:** deterministic/idempotent conversion of legacy Task `reminderDate`; preserving legacy per-FollowUp reminder fields; all-day versus intentional midnight; backup/restore round-trip; prevent legacy and new Calendar identities from creating duplicate events.
+- **Next action:** continue from `integration/task-multiple-reminders-safe-20261013`, port and test the canonical model/migration first. No production code has been ported to this branch as of this update. Release remains NO-GO.
