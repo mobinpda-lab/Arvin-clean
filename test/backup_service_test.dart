@@ -136,6 +136,51 @@ void main() {
       );
     });
 
+    test('round-trips the standalone Person directory in the existing v1 backup', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[],
+        'people': <Map<String, dynamic>>[
+          {'id': 'person-1', 'displayName': 'سارا احمدی'},
+          {'id': 'person-2', 'displayName': 'علی رضایی'},
+        ],
+      });
+      final document = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(bytes)),
+      );
+
+      expect(document['formatVersion'], 1);
+      expect(document['people'], [
+        {'id': 'person-1', 'displayName': 'سارا احمدی'},
+        {'id': 'person-2', 'displayName': 'علی رضایی'},
+      ]);
+    });
+
+    test('rejects malformed Person directory data but accepts legacy absence', () {
+      final legacy = ArvinBackupService.validateBackupDocument({
+        'type': 'arvin_backup',
+        'formatVersion': 1,
+        'tasks': <dynamic>[],
+      });
+      expect(legacy.containsKey('people'), isFalse);
+
+      expect(
+        () => ArvinBackupService.encodeBackupDocument({
+          'tasks': <dynamic>[],
+          'people': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+          'people': ['not-a-person'],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('rejects a non-map backup document', () {
       expect(
         () => ArvinBackupService.validateBackupDocument(<dynamic>[]),
