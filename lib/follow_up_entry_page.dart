@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'models/person_reference.dart';
 import 'models/task.dart';
+import 'services/task_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'widgets/persian_date_picker.dart';
@@ -11,11 +13,13 @@ class FollowUpEntryPage extends StatefulWidget {
     this.initialFollowUp,
     this.initialDateTime,
     this.onSaved,
+    this.store,
   });
 
   final FollowUp? initialFollowUp;
   final DateTime? initialDateTime;
   final ValueChanged<FollowUp>? onSaved;
+  final TaskStore? store;
 
   @override
   State<FollowUpEntryPage> createState() => _FollowUpEntryPageState();
@@ -32,6 +36,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   DateTime? _reminderDate;
   DateTime? _nextFollowUp;
   bool _waitingForResponse = false;
+  List<PersonReference> _availablePeople = const <PersonReference>[];
+  final Set<String> _selectedPersonIds = <String>{};
+  Set<String> _initialPersonIds = <String>{};
+  bool _peopleLoading = true;
+  String? _personError;
   late DateTime _initialDateTime;
   late String _initialNote;
   late String _initialResult;
@@ -47,7 +56,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _noteController.text = initial?.note ?? '';
-    _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
+    _waitingForResponse =
+        initial?.waitingForResponse ?? _waitingService.isWaitingResult(initial?.result);
+    _selectedPersonIds.addAll(initial?.personIds ?? const <String>[]);
+    _initialPersonIds = Set<String>.of(_selectedPersonIds);
+    _loadPeopleDirectory();
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _reminderDate = initial?.reminderDate;
     _nextFollowUp = initial?.nextFollowUp;
@@ -57,6 +70,23 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _initialReminderDate = _reminderDate;
     _initialNextFollowUp = _nextFollowUp;
     _initialWaitingForResponse = _waitingForResponse;
+  }
+
+  Future<void> _loadPeopleDirectory() async {
+    try {
+      final people = await (widget.store ?? TaskStore()).loadPeopleDirectory();
+      if (!mounted) return;
+      setState(() {
+        _availablePeople = people;
+        _peopleLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _peopleLoading = false;
+        _personError = 'فهرست اشخاص بارگذاری نشد؛ دوباره صفحه را باز کنید.';
+      });
+    }
   }
 
   @override
@@ -206,7 +236,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       _resultController.text != _initialResult ||
       _reminderDate != _initialReminderDate ||
       _nextFollowUp != _initialNextFollowUp ||
-      _waitingForResponse != _initialWaitingForResponse;
+      _waitingForResponse != _initialWaitingForResponse ||
+      _selectedPersonIds.length != _initialPersonIds.length ||
+      !_selectedPersonIds.containsAll(_initialPersonIds);
 
   Future<void> _requestClose() async {
     if (!_hasChanges) {
@@ -248,6 +280,12 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   void _save() {
+    if (_waitingForResponse && _selectedPersonIds.isEmpty) {
+      setState(() {
+        _personError = 'برای ثبت «منتظر پاسخ»، حداقل یک شخص مرتبط انتخاب کنید.';
+      });
+      return;
+    }
     final rawResult = _resultController.text.trim();
     final result = _waitingForResponse
         ? WaitingForResponseService.canonicalResult
@@ -261,6 +299,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       result: result,
       reminderDate: _reminderDate,
       nextFollowUp: _nextFollowUp,
+      waitingForResponse: _waitingForResponse,
+      personIds: List<String>.unmodifiable(_selectedPersonIds),
+      completed: widget.initialFollowUp?.completed ?? false,
     );
     widget.onSaved?.call(followUp);
     Navigator.of(context).pop(followUp);
@@ -336,6 +377,43 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               onChanged: (value) =>
                   setState(() => _waitingForResponse = value),
             ),
+            const SizedBox(height: 8),
+            const Text(
+              'اشخاص مرتبط',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            if (_peopleLoading)
+              const LinearProgressIndicator()
+            else if (_availablePeople.isEmpty)
+              const Text(
+                'هنوز شخصی در دفترچه اشخاص ثبت نشده است. ابتدا از تنظیمات، بخش «اشخاص»، فرد موردنظر را اضافه کنید.',
+              )
+            else
+              ..._availablePeople.map(
+                (person) => CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(person.displayName),
+                  value: _selectedPersonIds.contains(person.id),
+                  onChanged: (selected) {
+                    setState(() {
+                      if (selected == true) {
+                        _selectedPersonIds.add(person.id);
+                      } else {
+                        _selectedPersonIds.remove(person.id);
+                      }
+                      _personError = null;
+                    });
+                  },
+                ),
+              ),
+            if (_personError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                _personError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
             const SizedBox(height: 4),
             TextField(
               controller: _resultController,
