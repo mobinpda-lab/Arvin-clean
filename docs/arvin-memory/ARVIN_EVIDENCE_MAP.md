@@ -499,3 +499,17 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Calendar Provider Acceptance | [Run 38438327929](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438327929), job `115438056261` | In progress | Not validated yet |
 | Device Smoke | [Run 38438328062](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438328062) | Workflow queued at latest workflow-level poll; Home/Quick Capture jobs running, remaining lanes queued | Backup/Restore, SQL Migration, SQL Persistence and physical-device acceptance remain open |
 | Release | PR #2666 remains open and unmerged | **NO-GO** | This evidence belongs to source SHA `445d2897eaeb5c12695716284c999f9cad9bd918`; memory-only commit `1a04ae7fb7b670dcab59127686403b99e5d382ee` changes HEAD and is not validated by those runs |
+
+
+## 2026-10-13 — Calendar widget-test contract corrections (pending exact-head validation)
+
+| Claim / correction | Evidence | Result | Limit |
+|---|---|---|---|
+| External Calendar edit action is exposed through long-press menu | `lib/calendar_page.dart`; `test/external_calendar_page_projection_test.dart`; commits `1cac02e6`, `cc670e08` | Test interaction and key now align with source | No test pass claim; exact-head CI pending |
+| Follow-up completion action uses the current action-menu key | `lib/calendar_page.dart`; `test/calendar_release_acceptance_test.dart`; commits `c30a959a`, `e55c02c8` | Test now long-presses the card and looks up `calendar-action-complete-...` | Exact-head test result pending |
+| Prayer actions are in the long-press menu and selected by visible labels | `lib/calendar_page.dart`; `test/official_calendar_prayer_actions_test.dart`; commits `8c31f2e3`, `e0bbf626` | Test uses long press and taps `ادا شد` / `قضا شد` | Exact-head test result pending |
+| Checklist toggle tests interact with visible controls | `test/task_editor_dialog_test.dart`; commits `1c3bfc3c`, `77aa2894` | ensureVisible added for disable and re-enable | Test result pending |
+| Follow-up record list assertions account for lazy list viewport | `lib/follow_up_office_page.dart`; `test/follow_up_office_page_test.dart`; commit `713eaf24` | Test viewport height increased for the specific record-list test | Exact-head result pending; does not establish a production fix |
+| Settings test scrolls to the lazy-built all-day reminder setting | `lib/settings_page.dart`; `test/settings_page_test.dart`; commit `c6828c21` | ensureVisible added before asserting/tapping the setting and before later offscreen controls | Exact-head result pending |
+| Latest test-change head `e0bbf62610502498a58953c5c72f1b1349f68733` | Build run [38439948609](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948609); Calendar Provider Acceptance [38439948778](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948778); Device Smoke [38439948699](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948699) | Build and Device Smoke pending/no jobs at poll; Calendar Provider job `115443616711` in progress | Later memory commit advances HEAD; these runs do not validate that newer SHA |
+| Release gate | PR #2666 open/unmerged; no physical-device evidence recorded | **NO-GO** | Requires all gates on one exact final SHA plus device evidence |
