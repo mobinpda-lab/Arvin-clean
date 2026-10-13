@@ -74,17 +74,15 @@ The optional Reminder is an independent record. Editing or deleting it must not 
 - These toggles must not auto-generate timestamps, reminders, checklist entries, or duplicate Tasks.
 - Quick Entry and Full Task Form create/edit the same canonical Task.
 
-## 7. Calendar projection — clarification gate
+## 7. Calendar projection — final scope decision (2026-10-13)
 
-The owner's v2 command says: if a Reminder exists, show the Reminder; otherwise show `nextFollowUp`, and every Reminder must link to its parent Task.
+The owner's explicit `ARVIN CALENDAR FOLLOW-UP & REMINDER INTEGRATION COMMAND v1.0` resolves the earlier scope question:
+- **Arvin in-app Calendar:** when a Task has one or more Reminders, display the Reminder item(s) with their nature identified and a link to the parent Task. If no Reminder exists but `nextFollowUp` exists, display a clearly labeled Follow-up Action.
+- **External/device Calendar:** sync only Reminders and Events explicitly designated/authorized for sync. Never create an external event or OS notification solely from `nextFollowUp`.
+- Displaying `nextFollowUp` in the in-app Calendar is presentation only and must not create a Reminder, notification, or external event.
+- Keep stable identity and CREATE → UPDATE EXISTING behavior; update the same event instead of duplicating it.
 
-**Important scope conflict to resolve before changing phone-calendar synchronization:** earlier approved architecture says a Follow-up alone must not be projected to the phone calendar or generate an OS notification. Version 2.0 says “Calendar” but does not explicitly distinguish Arvin's in-app calendar from the Android/phone calendar. Therefore:
-- Preserve existing stable Task/Event IDs and CREATE → UPDATE EXISTING behavior.
-- Every projected Reminder must resolve back to its parent Task.
-- Do not add `nextFollowUp` to the phone Calendar or schedule an OS notification from it until the owner confirms that Version 2.0 intends to supersede that earlier phone-calendar boundary.
-- In-app Calendar presentation may be updated only with tests that keep Follow-up and Reminder visibly distinct and do not create duplicate events.
-
-This is a narrow clarification gate, not permission to conflate the two concepts.
+The previous in-app-versus-phone Calendar clarification gate is resolved by this decision. Implementation still requires exact-head tests and device evidence; this documentation does not prove runtime behavior. Full contract: `ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
 
 ## 8. Reports and search
 
