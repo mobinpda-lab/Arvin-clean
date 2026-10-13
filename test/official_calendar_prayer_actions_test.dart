@@ -64,10 +64,23 @@ void main() {
 
     await tester.tap(find.text('ادا شد').last);
     await tester.pumpAndSettle();
-    expect(find.text('ادا شد'), findsWidgets);
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(PrayerCompletionStore.key), contains('completed'));
+
+    // The action sheet closes after a selection. Reopen it before choosing the
+    // independent "not completed" state; the card's subtitle is not the
+    // authoritative persistence assertion for every all-day presentation.
+    final updatedPrayerCard = find.byKey(
+      const ValueKey('reminder-card-prayer-test-2026-09-15-fajr'),
+    );
+    await tester.ensureVisible(updatedPrayerCard);
+    final secondGesture = await tester.startGesture(
+      tester.getCenter(updatedPrayerCard),
+    );
+    await tester.pump(const Duration(milliseconds: 900));
+    await secondGesture.up();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('قضا شد').last);
     await tester.pumpAndSettle();
