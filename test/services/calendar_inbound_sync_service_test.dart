@@ -124,6 +124,120 @@ void main() {
     expect(refreshed.reminderDate, DateTime(2026, 10, 9, 11));
   });
 
+  test('provider edit updates independent Task reminder title and date by stable ID', () async {
+    final taskStore = TaskStore(executor: database);
+    final tasks = await taskStore.load();
+    tasks.single.taskReminders = [
+      TaskReminder(
+        id: 'reminder-1',
+        title: 'یادآور اولیه',
+        date: DateTime(2026, 10, 8, 10),
+        sequence: 1,
+      ),
+    ];
+    tasks.single.nextReminderSequence = 2;
+    await taskStore.save(tasks);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder-item:task-1:reminder-1',
+      title: 'یادآور اولیه',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint =
+        await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: '42',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    var rescheduled = 0;
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: '42',
+          calendarId: '7',
+          title: 'یادآور ویرایش‌شده',
+          start: DateTime(2026, 10, 9, 11, 15),
+          end: DateTime(2026, 10, 9, 11, 45),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+      reminderReschedule: () async => rescheduled++,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.updated, 1);
+    expect(result.conflicts, 0);
+    expect(rescheduled, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.taskReminders, hasLength(1));
+    expect(refreshed.taskReminders.single.id, 'reminder-1');
+    expect(refreshed.taskReminders.single.title, 'یادآور ویرایش‌شده');
+    expect(refreshed.taskReminders.single.date, DateTime(2026, 10, 9, 11, 15));
+    expect(refreshed.taskReminders.single.sequence, 1);
+  });
+
+  test('provider deletion removes only the linked independent Task reminder', () async {
+    final taskStore = TaskStore(executor: database);
+    final tasks = await taskStore.load();
+    tasks.single.taskReminders = [
+      TaskReminder(
+        id: 'reminder-1',
+        title: 'یادآور حذف‌شونده',
+        date: DateTime(2026, 10, 8, 10),
+        sequence: 1,
+      ),
+      TaskReminder(
+        id: 'reminder-2',
+        title: 'یادآور باقی‌مانده',
+        date: DateTime(2026, 10, 10, 10),
+        sequence: 2,
+      ),
+    ];
+    tasks.single.nextReminderSequence = 3;
+    await taskStore.save(tasks);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder-item:task-1:reminder-1',
+      title: 'یادآور حذف‌شونده',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint =
+        await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: '42',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge(const []),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.deleted, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.taskReminders.map((item) => item.id), ['reminder-2']);
+    expect(refreshed.nextReminderSequence, 3);
+    expect(await links.load(), isEmpty);
+  });
+
   test('provider deletion clears linked canonical due date', () async {
     final taskStore = TaskStore(executor: database);
     final canonical = CalendarReminder(
