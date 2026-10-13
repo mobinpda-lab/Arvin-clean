@@ -404,10 +404,9 @@ class Task {
       if (hasMigratedLegacyReminder) {
         legacyReminderMigrationCompleted = true;
       } else {
-        final sequence = nextReminderSequence;
-        final title = taskTitle.trim().isEmpty
-            ? 'یادآور کار — ${_toPersianDigits(sequence)}'
-            : '$taskTitle — یادآور ${_toPersianDigits(sequence)}';
+        // Preserve the legacy Calendar title so existing external links
+        // keep their fingerprint through the one-time migration.
+        final title = 'یادآوری: $taskTitle';
         loadedTaskReminders.add(
           TaskReminder(
             id: legacyReminderId,
