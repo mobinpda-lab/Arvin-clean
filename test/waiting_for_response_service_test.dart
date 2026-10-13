@@ -91,7 +91,9 @@ void main() {
       dateTime: now,
       note: 'تماس با مشتری',
       result: 'بدون پاسخ',
+      reminderDate: now.add(const Duration(hours: 1)),
       nextFollowUp: now.add(const Duration(days: 2)),
+      completed: true,
     );
 
     final marked = service.markWaiting(original);
@@ -99,7 +101,9 @@ void main() {
     expect(marked.id, original.id);
     expect(marked.dateTime, original.dateTime);
     expect(marked.note, original.note);
+    expect(marked.reminderDate, original.reminderDate);
     expect(marked.nextFollowUp, original.nextFollowUp);
+    expect(marked.completed, original.completed);
     expect(marked.result, WaitingForResponseService.canonicalResult);
   });
 }
