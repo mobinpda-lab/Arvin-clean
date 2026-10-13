@@ -1,3 +1,12 @@
+## 2026-10-13 — Discoverability repair (Issue #2677)
+
+- Root cause: `FollowUpOfficePage` and its `فقط منتظر پاسخ` filter already existed, but `lib/main.dart` never imported or navigated to the page. Users could enable «منتظر پاسخ دیگران» without a discoverable route to the list.
+- Change on branch `fix/follow-up-waiting-response-discoverability-20261013`: add «دفتر پیگیری» to Home's primary «بیشتر» sheet and route it to the existing FollowUpOfficePage. No new data model, repository, storage or status field.
+- Regression coverage added in `test/home_more_my_tasks_test.dart` for menu discoverability, navigation, and the waiting-filter control.
+- Status: implementation committed to the branch; exact-head CI not yet run. Do not mark validated until Analyze, targeted tests, full Build and required acceptance finish.
+
+---
+
 # Waiting for Response — user-facing flow — 2026-08-26
 
 ## Scope
