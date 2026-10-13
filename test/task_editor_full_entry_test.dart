@@ -369,7 +369,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'تماس با مشتری');
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    final followUpSave = find.byKey(const ValueKey('follow-up-entry-save'));
+    await tester.ensureVisible(followUpSave);
+    await tester.tap(followUpSave);
     await tester.pumpAndSettle();
 
     expect(find.text('تماس با مشتری'), findsOneWidget);
