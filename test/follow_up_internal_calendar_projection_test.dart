@@ -33,7 +33,7 @@ void main() {
     expect(task.toJson(), before);
   });
 
-  test('Reminder and Follow-up remain separate when both exist', () {
+  test('explicit Reminder takes calendar precedence without mutating Follow-up', () {
     final task = Task(
       id: 'customer-call',
       title: 'تماس با مشتری',
@@ -48,13 +48,14 @@ void main() {
       ],
     );
 
-    final action = internal.project([task]).single;
+    final before = task.toJson();
+    final actionItems = internal.project([task]);
     final reminderItems = reminders.project([task]);
 
-    expect(action.date, DateTime(2026, 10, 20, 10));
-    expect(action.id, startsWith('task-followup-action:'));
-    expect(reminderItems.any((item) => item.id.startsWith('task-followup-action:')), isFalse);
+    expect(actionItems, isEmpty);
     expect(reminderItems.any((item) => item.date == DateTime(2026, 10, 20, 9, 55)), isTrue);
+    expect(task.followUps.single.nextFollowUp, DateTime(2026, 10, 20, 10));
+    expect(task.toJson(), before);
   });
 
   test('changing nextFollowUp does not mutate existing reminderDate', () {
