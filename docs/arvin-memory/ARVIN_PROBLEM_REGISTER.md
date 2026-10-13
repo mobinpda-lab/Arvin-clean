@@ -1,3 +1,14 @@
+## LIVE BLOCKER — 2026-10-13: legacy reminder migration contract mismatch
+
+- **Priority:** P1 — data compatibility and duplicate Calendar event risk.
+- **Evidence:** PR #2655's current `TaskReminder` lacks `taskId`, `status`, `createdAt`, and `updatedAt`; `Task.fromJson` keeps legacy `Task.reminderDate` separate instead of performing the approved idempotent migration.
+- **Contract conflict:** the approved architecture decision requires one deterministic migrated item, durable-write/rollback safety, and no dual external Calendar identity. Feature-branch docs currently state that the legacy Task reminder is not auto-migrated.
+- **Impact:** merging as-is would ship an implementation that does not satisfy the approved persistence/migration contract; attempting an ad-hoc conversion risks lost legacy reminders or duplicate Calendar events.
+- **Status:** OPEN / BLOCKS INTEGRATION. No migration or code integration performed during this audit.
+- **Resolution:** implement migration at a safe canonical persistence boundary, preserve old data until successful durable write, and add idempotence, old-backup, rollback, and no-duplicate Calendar regression tests. Reconcile with mainline internal Follow-up projection before merge.
+
+---
+
 ## 2026-10-13 — Duplicate Calendar projection of each new Task reminder
 
 - **Priority:** P1 — core feature correctness / Calendar duplicate risk.
