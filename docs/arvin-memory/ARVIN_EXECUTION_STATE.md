@@ -1332,3 +1332,19 @@ This checkpoint records the owner's explicit operational clarification. It super
 - P1 data integrity issue [#2682](https://github.com/mobinPda-lab/Arvin-clean/issues/2682) remains open: standalone Person directory entries must be included in canonical backup/restore, with old-backup compatibility, pre-restore ID/reference validation, emergency backup/rollback inclusion, and injected-failure rollback tests. Do not close it without exact-head evidence.
 - Next action: wait for and inspect the latest workflow triggered by the corrected tests; fix remaining confirmed failures; then address #2682 by tracing the existing canonical backup/apply/rollback sequence before any storage mutation. Re-run Analyze, every test shard, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes on one exact final SHA. Physical-device evidence remains outstanding.
 - Release status: **NO-GO**; keep PR #2666 open and unmerged.
+
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (status registration: settings test failure)
+
+- **Repository / branch:** `mobinpda-lab/Arvin-clean` / `integration/task-multiple-reminders-safe-20261013`.
+- **Current source SHA at inspection:** `066c87ec90625b8fe894df45d0a82227802ff65f`.
+- **PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), open and unmerged.
+- **Build:** [Arvin Build run 38448584824](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584824), still in progress at poll. Analyze, test-0, test-1 and test-3 succeeded; **test-2 failed**; test-4, test-5, Debug APK and Release APK remained in progress.
+- **Confirmed failure:** job `115473670604`, `test/settings_page_test.dart`, test `settings exposes date, swipe, projects and canonical backup controls`, fails at line 58 while calling `scrollUntilVisible(find.text('تیره'), ...)`; stack reports `Bad state: No element` from `WidgetController.dragUntilVisible`. This establishes the failing test interaction, not yet the root cause in product code or test setup.
+- **Device Smoke:** [run 38448584991](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584991), not terminal; Quick Capture passed, Home and SQL Persistence were in progress, other lanes queued at latest poll.
+- **Calendar Provider Acceptance:** [run 38448584862](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584862), `android-calendar-provider` still in progress.
+- **Artifacts:** none available at the observed Build artifact check.
+- **No source or test changes were made as part of this status registration.** No local Flutter run and no physical-device acceptance were performed in this session.
+- **Next action:** inspect the widget route/scroll state around the time-picker dismissal and line 58; determine whether the page is still mounted and the finder is in the expected scrollable; correct the actual cause without weakening assertions. Poll all current run IDs to terminal status, then rerun required gates on one exact final SHA.
+- **Release:** **NO-GO**. Do not merge or release until Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, backup/restore integrity and physical-device acceptance are evidenced on the final SHA.
