@@ -20,8 +20,9 @@ class WaitingForResponseService {
 
   bool isWaiting(Task task) {
     if (task.completed || task.archived || task.trashed) return false;
-    final latest = task.lastFollowUp;
-    return latest != null && isWaitingFollowUp(latest);
+    // Waiting is a property of each Follow-up record, not a Task-level
+    // "latest result" flag. More than one Follow-up may await different people.
+    return task.followUps.any(isWaitingFollowUp);
   }
 
   /// A structured waiting state is valid only when at least one Person is
