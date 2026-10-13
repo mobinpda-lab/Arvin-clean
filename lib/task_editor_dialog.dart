@@ -116,7 +116,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
     if (_taskReminders.isNotEmpty) {
       final highest = _taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
-      if (_nextReminderSequence <= highest) _nextReminderSequence = highest + 1;
+      if (_nextReminderSequence <= highest) {
+        _nextReminderSequence = highest + 1;
+      }
     }
     _reminderFollowsDueTime = task == null ||
         task.reminderDate == null ||
@@ -684,7 +686,7 @@ Future<void> _pickDueDate() async {
       key: const ValueKey('task-editor-checklist-section'),
       children: [
         Container(
-          key: const ValueKey('task-editor-checklist-toggle'),
+          key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFFF8F7FF),
@@ -694,6 +696,7 @@ Future<void> _pickDueDate() async {
           child: Material(
             color: Colors.transparent,
             child: SwitchListTile(
+              key: const ValueKey('task-editor-checklist-toggle'),
               value: _checklistEnabled,
               onChanged: _setChecklistEnabled,
               contentPadding: EdgeInsets.zero,
