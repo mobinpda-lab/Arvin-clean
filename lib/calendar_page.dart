@@ -990,8 +990,10 @@ class _ReminderCardState extends State<_ReminderCard> {
     final approved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('حذف کار'),
-        content: Text('«${item.title}» حذف شود؟'),
+        title: const Text('انتقال کار به سطل زباله؟'),
+        content: Text(
+          '«${item.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -999,7 +1001,7 @@ class _ReminderCardState extends State<_ReminderCard> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('حذف'),
+            child: const Text('انتقال به سطل زباله'),
           ),
         ],
       ),
