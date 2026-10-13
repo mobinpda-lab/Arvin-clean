@@ -366,3 +366,9 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Build run `38361448901` fully passed Analyze, all test shards 0–5, Debug APK and Release APK.
 - Device Smoke run `38361448950`: Home and Quick Capture passed; SQL Persistence and SQL Migration in progress; People and Backup/Restore queued at latest poll. Full Device Smoke not yet passed.
 - This is evidence for the visual-change PR head only, not for multiple Task-level reminders, external Calendar origin/duplicate handling, or physical-device acceptance.
+
+
+## Device Smoke checkpoint — 2026-10-13
+- Build run `38361448901`: Analyze, all six test shards, Debug APK and Release APK SUCCESS at PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`.
+- Device Smoke run `38361448950`: Home, Quick Capture, SQL Persistence and SQL Migration SUCCESS; People and Backup/Restore still IN_PROGRESS at latest poll.
+- Full six-lane device acceptance is therefore pending. No physical-device acceptance evidence is available; visual compact-width/RTL review remains outstanding.
