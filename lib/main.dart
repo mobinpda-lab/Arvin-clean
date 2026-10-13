@@ -1486,12 +1486,31 @@ class _HomePageState extends State<HomePage> {
     return updated;
   }
 
-  Future<void> _openTaskDetail(Task task) async {
+  String _calendarItemLabel(CalendarReminder item) {
+    if (item.id.startsWith('followup:') ||
+        item.id.startsWith('task-followup:') ||
+        item.id.startsWith('task-followup-action:')) {
+      return 'پیگیری';
+    }
+    if (item.id.startsWith('task-reminder:') ||
+        item.id.startsWith('task-reminder-item:')) {
+      return 'یادآور';
+    }
+    if (item.id.startsWith('task-due:')) return 'موعد کار';
+    if (item.id.startsWith('external-calendar:')) return 'رویداد تقویم گوشی';
+    return 'کار';
+  }
+
+  Future<void> _openTaskDetail(
+    Task task, {
+    String? calendarItemLabel,
+  }) async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
           task: task,
+          calendarItemLabel: calendarItemLabel,
           projectTitle: _projectTitleForTask(task),
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
@@ -2225,7 +2244,10 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
-          onOpenTaskDetail: _openTaskDetail,
+          onOpenTaskDetail: (task, item) => _openTaskDetail(
+            task,
+            calendarItemLabel: _calendarItemLabel(item),
+          ),
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),
@@ -2288,7 +2310,10 @@ class _HomePageState extends State<HomePage> {
               tasks: _searchSource,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-              onOpenTaskDetail: _openTaskDetail,
+              onOpenTaskDetail: (task, item) => _openTaskDetail(
+                task,
+                calendarItemLabel: _calendarItemLabel(item),
+              ),
             ),
           ),
         );
