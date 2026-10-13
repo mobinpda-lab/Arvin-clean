@@ -347,3 +347,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Observed: canonical Task has distinct nullable `nextFollowUp` and singular legacy `reminderDate`; FollowUp has its own nullable `nextFollowUp` and `reminderDate`; Quick Entry has Follow-up and Checklist controls; Calendar projection currently projects reminder fields.
 - Not established by this audit: multiple Task-level reminder UI end-to-end, optional reminder creation inside Follow-up entry, complete independent report/search filters, date-only/all-day preservation across every layer, or physical-device behavior.
 - No application code, schema, or migration changed in this documentation step. This record is not test/build evidence. Release remains NO-GO.
+
+
+## CURRENT VISUAL PR EVIDENCE — 2026-10-13
+
+- PR #2663 head: `c3b95d0781ec03f07d43379c4087f427667cb250`. Exact-head Build run `38361448901`: Analyze passed; test shards 0–5 passed; Debug and Release APK jobs were still in progress at the latest poll. Do not mark Build complete until both APK jobs finish successfully.
+- Exact-head Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued at latest poll. Do not mark Device Smoke complete until all six lanes pass.
+- Successful orchestrator/production-loop/lock-sync runs are not substitutes for Build, Device Smoke, or physical-device acceptance.
+- The owner command resolves the internal-vs-external Calendar scope: internal Calendar can show Follow-up fallback; external Calendar cannot receive follow-up-only projections. This is a product decision, not implementation evidence.
