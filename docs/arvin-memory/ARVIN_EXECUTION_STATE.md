@@ -926,3 +926,13 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - **Implementation status:** this cardinality contract is now documented; the current implementation's support for multiple independently identified reminders and Follow-up entries has not been verified by this documentation update. Audit the canonical model/editor/storage/backup and Calendar identity paths; no parallel store.
 - Required regression coverage: create/edit/delete one among several entries; preserve remaining entries and history; independently edit reminder title/date/time; reminder-only and multiple-reminder cases; JSON/SQL/backup-restore round-trip; Calendar same-event updates without duplicate creation; date-only/all-day semantics for each item.
 - No app code or Flutter validation was performed in this documentation step. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Calendar/Home visual distinction retest)
+
+- Owner command re-confirmed: Follow-up/\`nextFollowUp\` is an action plan; Reminder/\`reminderDate\` is notification. The approved decision remains recorded in \`ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md\`; no new architecture change is implied by this repeat.
+- PR #2663 current feature head: \`c3b95d0781ec03f07d43379c4087f427667cb250\`. The UI scope remains limited to separate icon/color/compact boxes in Calendar and Home.
+- Exact-head CI on prior head \`5d3fd497135e5fda7c66fc624fe46fccf84eab4c\`: Analyze passed; test shards 0, 1, 3, 4 passed; shard 5 failed because \`find.text('موعد کار')\` matched two widgets, a non-unique test selector. The new fix replaces that assertion with stable key \`calendar-item-kind-task-due:task-3\` in commit \`c3b95d0781ec03f07d43379c4087f427667cb250\`. This is test-only; exact-head CI must rerun.
+- At last poll, Debug and Release APK jobs were still running on the prior PR merge ref; test shard 2 was in progress. Device Smoke run \`38361021358\` had Home and Quick Capture in progress, with SQL Persistence, SQL Migration, People and Backup/Restore queued. Those runs do not validate the new head.
+- **Next action:** verify fresh Build and all six Device Smoke lanes on current head; investigate any remaining failure from logs, repair, and rerun. Physical-device acceptance remains outstanding.
+- PR #2663 remains open/unmerged. Release remains **NO-GO**.
