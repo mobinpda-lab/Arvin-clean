@@ -184,8 +184,7 @@ class Task {
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
-  @Deprecated('Use followUps/followUpDate; this is a legacy compatibility mirror.')
-  bool followUpEnabled;
+  bool followUpEnabled; // Deprecated compatibility mirror; never a decision source.
   DateTime? followUpDate;
   List<String> tags;
   String? category;
