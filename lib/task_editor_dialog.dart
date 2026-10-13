@@ -407,7 +407,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           ),
                       ],
                     ),
-                    CheckboxListTile(
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      child: CheckboxListTile(
                       key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
                       contentPadding: EdgeInsets.zero,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -422,6 +425,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         ));
                       },
                       title: const Text('تمام‌روز (بدون ساعت)'),
+                      ),
                     ),
                   ],
                 ),
