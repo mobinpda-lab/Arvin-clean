@@ -185,3 +185,14 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Canonical model requirements: each TaskReminder has stable ID, title, date/time, status, taskId, createdAt, updatedAt, and explicit date-only/all-day semantics. Keep `nextFollowUp` and legacy per-FollowUp `reminderDate` separate.
 - Migration requirements: preserve legacy data; convert it to exactly one reminder; be idempotent; preserve legacy/new Calendar identity; never infer all-day from midnight; no duplicate notifications or events; old backups remain readable.
 - Safe integration branch currently contains documentation only. No multiple-reminder application code has yet been ported or validated there.
+
+---
+
+## 2026-10-13 — Repository cleanup findings
+
+- Calendar inbound Follow-up updates reconstructed a FollowUp without copying `waitingForResponse` and `personIds`. Fixed the copy path and added regression coverage for these fields plus independent `reminderDate` and `nextFollowUp`.
+- Legacy flag writes remained in FollowUpRepository, Calendar Follow-up mutation paths, Notebook-to-Task conversion, and Quick Add. Removed those writes in the stacked branch; preserve legacy fields only for compatibility.
+- Report Center filtering used `task.followUpEnabled`, which would hide valid new Follow-up records after the flag ceased to be written. It now derives the filter from `followUps`/`followUpDate`.
+- Waiting is attached to individual Follow-up records and can be associated with multiple Persons; collapsing the waiting list to the latest Follow-up per Task hid valid waiting relationships. The list and Task-level waiting check now inspect structured waiting records.
+- Backup gap: a Person directory entry can exist without a Task association, but the current portable backup payload has no `peopleDirectory` field. Do not claim directory portability until backup, restore, and rollback preserve it.
+- Evidence boundary: changes and regression tests are in source; tests/build/device results are not confirmed on the current child head. See `ARVIN_REPOSITORY_CLEANUP_AUDIT_2026-10-13.md`.
