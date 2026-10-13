@@ -624,3 +624,15 @@ This entry records status only; no source/test change is claimed by this checkpo
 **Evidence boundary:** this entry is a documentation checkpoint and advances branch HEAD. All results above apply only to the exact SHA named in the heading. Re-query the PR head and collect new exact-head results after this commit. Physical-device acceptance remains unproven.
 
 **Release decision: NO-GO.**
+
+
+## Evidence checkpoint — 2026-10-14
+
+| Feature / Gate | Exact parent code head | Result | Evidence | Limitation |
+|---|---|---|---|---|
+| Build, Analyze, six test shards, Debug APK, Release APK | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Build run 38477701769](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701769) | Applies to parent head only |
+| Calendar Provider Acceptance | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Run 38477701747](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701747) | Does not prove physical-device gesture UX |
+| Automated Device Smoke: Home, Quick Capture, SQL persistence/migration, People, Backup/Restore | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Run 38477701760](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701760) | Automated lanes only; no physical-device screenshot evidence |
+| Person directory backup/restore + dangling-reference preflight | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | PR #2681; sync plan PR #2692 | Must be ported and tested on current parent |
+| Person-based per-Follow-up reporting | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | Issue #2683; PR #2681 | Must be ported and tested on current parent |
+| Release | — | **NO-GO** | Issues #2682, #2683, #2685 | End-to-end integrity and physical-device acceptance remain open |
