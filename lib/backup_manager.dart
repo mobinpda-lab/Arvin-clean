@@ -229,7 +229,7 @@ class ArvinBackupManager {
     final calendarLinks = _decodeCalendarLinks(document);
     final categories = _decodeCatalog(document, 'categories', 'Category');
     final tags = _decodeCatalog(document, 'tags', 'Tag');
-    final people = _decodePeople(document);
+    final people = _decodePeople(document, tasks);
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -358,8 +358,25 @@ class ArvinBackupManager {
   }
 
   /// Missing Person data means a legacy backup; callers must preserve the local directory.
-  List<PersonReference>? _decodePeople(Map<String, dynamic> document) {
-    if (!document.containsKey('people')) return null;
+  List<PersonReference>? _decodePeople(
+    Map<String, dynamic> document,
+    List<Task> tasks,
+  ) {
+    final hasPeopleField = document.containsKey('people');
+    if (!hasPeopleField) {
+      // Backward compatibility applies to genuinely legacy backups. A backup
+      // that contains structured Person links but omits the directory cannot
+      // be safely restored because those links would become dangling.
+      if (tasks.any(
+        (task) => task.followUps.any((followUp) => followUp.personIds.isNotEmpty),
+      )) {
+        throw const FormatException(
+          'Arvin backup omits the Person directory required by Follow-up references',
+        );
+      }
+      return null;
+    }
+
     final rawPeople = document['people'];
     if (rawPeople is! List) {
       throw const FormatException('Arvin backup Person directory is invalid');
@@ -376,6 +393,22 @@ class ArvinBackupManager {
       }
       people.add(person);
     }
+
+    final missingIds = <String>{};
+    for (final task in tasks) {
+      for (final followUp in task.followUps) {
+        for (final personId in followUp.personIds) {
+          if (!ids.contains(personId)) missingIds.add(personId);
+        }
+      }
+    }
+    if (missingIds.isNotEmpty) {
+      final ordered = missingIds.toList()..sort();
+      throw FormatException(
+        'Arvin backup contains Follow-up references to unknown Person ids: ${ordered.join(', ')}',
+      );
+    }
+
     return List<PersonReference>.unmodifiable(people);
   }
 
