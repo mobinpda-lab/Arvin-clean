@@ -1,3 +1,14 @@
+## 2026-10-13 — FollowUp write paths still depended on legacy enablement flag
+
+- **Problem:** add, completion, and Task Editor save paths could set `followUpEnabled` based on the presence of FollowUp records.
+- **Root cause:** old flag semantics remained embedded in write operations after the product decision made FollowUp a native Task capability.
+- **Impact:** old flag concept continued to be written even though it must not control eligibility.
+- **Repair:** stop toggling/deriving the flag in these paths while retaining legacy values for compatibility.
+- **Status:** source change and focused test added; exact-head validation pending.
+- **Remaining P1:** first-class waiting-response state and Person associations require canonical persistence, migration, UI and report integration.
+
+---
+
 ## 2026-10-13 — Strict analyzer findings after compile repair
 
 - **Problem:** `flutter analyze` still returned exit code 1 after the uninitialized-field fix because two info-level lints are treated as blocking by the workflow.
