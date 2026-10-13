@@ -1828,6 +1828,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
+        people: await taskStore.loadPeopleDirectory(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1854,6 +1855,7 @@ class _HomePageState extends State<HomePage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
@@ -1891,6 +1893,7 @@ class _HomePageState extends State<HomePage> {
       previousCalendarLinks = calendarLinksBeforeRestore;
       previousCategories = await taskStore.loadCategories();
       previousTags = await taskStore.loadTags();
+      previousPeople = await taskStore.loadPeopleDirectory();
       final settingsBeforeRestore = await _portableBackupSettings();
       previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
@@ -1900,6 +1903,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: calendarLinksBeforeRestore,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -2005,10 +2009,16 @@ class _HomePageState extends State<HomePage> {
             categories: candidate.categories ?? const <String>[],
             tags: candidate.tags ?? const <String>[],
           );
+          if (candidate.people != null) {
+            await taskStore.restorePeopleDirectoryEntries(candidate.people!);
+          }
           await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
+          if (previousPeople != null) {
+            await taskStore.restorePeopleDirectoryEntries(previousPeople!, replace: true);
+          }
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
