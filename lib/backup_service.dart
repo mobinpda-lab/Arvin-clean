@@ -141,6 +141,7 @@ class ArvinBackupService {
     final rawCalendarLinks = payload['calendarLinks'];
     final rawCategories = payload['categories'];
     final rawTags = payload['tags'];
+    final rawPeople = payload['people'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
     }
@@ -155,6 +156,12 @@ class ArvinBackupService {
     }
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
+    }
+    if (rawPeople != null && rawPeople is! List) {
+      throw const FormatException('Arvin backup Person directory is invalid');
+    }
+    if (rawPeople is List && rawPeople.any((entry) => entry is! Map)) {
+      throw const FormatException('Arvin backup Person directory entry is invalid');
     }
 
     final document = <String, dynamic>{
@@ -171,6 +178,7 @@ class ArvinBackupService {
       if (rawCategories is List)
         'categories': List<dynamic>.from(rawCategories),
       if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
+      if (rawPeople is List) 'people': List<dynamic>.from(rawPeople),
     };
 
     return Uint8List.fromList(
@@ -223,11 +231,21 @@ class ArvinBackupService {
       document['categories'] = List<dynamic>.from(rawCategories);
     }
     final rawTags = document['tags'];
+    final rawPeople = document['people'];
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
     }
     if (rawTags is List) {
       document['tags'] = List<dynamic>.from(rawTags);
+    }
+    if (rawPeople != null && rawPeople is! List) {
+      throw const FormatException('Arvin backup Person directory is invalid');
+    }
+    if (rawPeople is List) {
+      if (rawPeople.any((entry) => entry is! Map)) {
+        throw const FormatException('Arvin backup Person directory entry is invalid');
+      }
+      document['people'] = List<dynamic>.from(rawPeople);
     }
 
     return document;
