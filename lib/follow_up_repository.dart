@@ -23,7 +23,7 @@ class FollowUpRepository {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
       task.followUps = [..._decodeFollowUps(task), followUp];
-      task.followUpEnabled = true;
+      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
     });
   }
@@ -39,7 +39,7 @@ class FollowUpRepository {
 
       final updated = List<FollowUp>.of(existing)..[index] = followUp;
       task.followUps = updated;
-      task.followUpEnabled = true;
+      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
     });
   }
