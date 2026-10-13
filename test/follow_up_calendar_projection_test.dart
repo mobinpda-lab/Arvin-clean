@@ -418,4 +418,59 @@ void main() {
       DateTime(2026, 10, 17, 9),
     ]);
   });
+
+  test('migrated legacy Task reminder keeps legacy Calendar identity and projects once', () {
+    final task = Task.fromJson({
+      'id': 'legacy-calendar',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T00:00:00.000',
+    });
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-reminder:legacy-calendar');
+    expect(reminders.single.date, DateTime(2026, 10, 20));
+    expect(reminders.single.isAllDay, isFalse,
+        reason: 'legacy midnight does not prove all-day intent');
+  });
+
+  test('independent Task reminders preserve stable IDs even at the same time', () {
+    final sameTime = DateTime(2026, 12, 8, 10);
+    final task = Task(
+      id: 'independent',
+      title: 'جلسه',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-a',
+          taskId: 'independent',
+          title: 'آماده‌سازی',
+          date: sameTime,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'reminder-b',
+          taskId: 'independent',
+          title: 'تماس',
+          date: sameTime,
+          sequence: 2,
+        ),
+      ],
+      followUps: [
+        FollowUp(
+          id: 'follow-up-a',
+          dateTime: sameTime,
+          reminderDate: sameTime,
+        ),
+      ],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(3));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:independent:reminder-a'));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:independent:reminder-b'));
+    expect(reminders.map((item) => item.id), contains('followup:independent:follow-up-a'));
+  });
+
 }
