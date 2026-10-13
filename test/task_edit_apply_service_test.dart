@@ -55,8 +55,10 @@ void main() {
     expect(target.description, 'بعد');
     expect(target.dueDate, DateTime(2026, 8, 30, 14));
     expect(target.allDay, isTrue);
-    expect(target.followUpEnabled, isFalse);
+    expect(target.followUpEnabled, isTrue);
     expect(target.followUpDate, isNull);
+    expect(target.followUps, hasLength(1));
+    expect(target.followUps.single.id, 'fu-1');
     expect(target.tags, ['مهم', 'مشتری']);
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
