@@ -150,6 +150,14 @@ void main() {
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
 
+  test('allows a configured local notification time for all-day reminders', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final task = Task(id: 'configured-all-day', title: 'کار', taskReminders: [TaskReminder(id: 'r1', taskId: 'configured-all-day', title: 'یادآور', date: DateTime(2026, 8, 28), createdAt: createdAt, updatedAt: createdAt, isAllDay: true, sequence: 1)], nextReminderSequence: 2);
+    final result = projection.pending([task], now: DateTime(2026, 8, 28, 7), allDayReminderNotificationMinutes: 7 * 60 + 35);
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 7, 35));
+    expect(task.taskReminders.single.date, DateTime(2026, 8, 28));
+  });
+
   test('projects multiple independent Task reminders with stable keys', () {
     final createdAt = DateTime(2026, 8, 1, 10);
     final task = Task(

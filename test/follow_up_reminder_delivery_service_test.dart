@@ -221,6 +221,16 @@ void main() {
     expect(task.taskReminders.single.isAllDay, isTrue);
   });
 
+  test('uses a user-configured time for all-day reminder delivery', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final reminder = TaskReminder(id: 'custom-time', taskId: 'custom-time-task', title: 'یادآور', date: DateTime(2026, 8, 28), createdAt: createdAt, updatedAt: createdAt, isAllDay: true, sequence: 1);
+    final configuredService = FollowUpReminderDeliveryService(allDayReminderNotificationMinutes: 7 * 60 + 35);
+    final result = configuredService.due([Task(id: 'custom-time-task', title: 'کار', taskReminders: [reminder], nextReminderSequence: 2)], now: DateTime(2026, 8, 28, 7, 35));
+    expect(result, hasLength(1));
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 7, 35));
+    expect(reminder.date, DateTime(2026, 8, 28));
+  });
+
   test('migrated legacy reminder is not delivered through two identities', () {
     final task = Task.fromJson(<String, dynamic>{
       'id': 'legacy-once',

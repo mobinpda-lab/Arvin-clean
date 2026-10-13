@@ -4,6 +4,7 @@ import 'follow_up_reminder_notification_service.dart';
 import 'services/follow_up_reminder_delivery_service.dart';
 import 'services/follow_up_reminder_delivery_state.dart';
 import 'services/task_store.dart';
+import 'services/app_settings_service.dart';
 
 class FollowUpReminderBackgroundRunner {
   const FollowUpReminderBackgroundRunner({
@@ -29,9 +30,11 @@ class FollowUpReminderBackgroundRunner {
     final tasks = await store.load();
     final stateService =
         _deliveryState ?? const FollowUpReminderDeliveryState();
-    final service =
-        _deliveryService ?? const FollowUpReminderDeliveryService();
     final prefs = await SharedPreferences.getInstance();
+    final appSettings = _deliveryService == null ? await AppSettingsService().load() : null;
+    final service = _deliveryService ?? FollowUpReminderDeliveryService(
+      allDayReminderNotificationMinutes: appSettings!.allDayReminderNotificationMinutes,
+    );
 
     var state = stateService.decode(
       prefs.getString(FollowUpReminderDeliveryState.storageKey),

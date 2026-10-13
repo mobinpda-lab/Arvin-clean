@@ -38,6 +38,14 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('all-day-reminder-time-setting')), findsOneWidget);
+    expect(find.textContaining('پیش‌فرض ۹:۰۰ صبح'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('all-day-reminder-time-setting')));
+    await tester.pumpAndSettle();
+    expect(find.text('زمان اعلان یادآورهای تمام‌روزه'), findsOneWidget);
+    await tester.tap(find.text('CANCEL'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();

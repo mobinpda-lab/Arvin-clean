@@ -1,5 +1,6 @@
 import '../models/task.dart';
 import 'follow_up_reminder_projection.dart';
+import 'reminder_notification_policy.dart';
 
 /// Projects canonical FollowUp reminder timestamps that are ready for delivery.
 ///
@@ -7,7 +8,9 @@ import 'follow_up_reminder_projection.dart';
 /// plugin, or notification side effect. Delivery-state persistence remains a
 /// separate boundary and is represented here only by exact identity strings.
 class FollowUpReminderDeliveryService {
-  const FollowUpReminderDeliveryService();
+  const FollowUpReminderDeliveryService({this.allDayReminderNotificationMinutes = defaultAllDayReminderNotificationMinutes});
+
+  final int allDayReminderNotificationMinutes;
 
   String deliveryIdentity(FollowUpReminderCandidate candidate) =>
       '${candidate.stableKey}@${candidate.scheduledAt.toIso8601String()}';
@@ -43,7 +46,7 @@ class FollowUpReminderDeliveryService {
           taskTitle: task.title,
           taskReminderId: reminder.id,
           label: reminder.title,
-          scheduledAt: taskReminderNotificationTime(reminder),
+          scheduledAt: taskReminderNotificationTime(reminder, allDayNotificationMinutes: allDayReminderNotificationMinutes),
         );
         if (!candidate.scheduledAt.isAfter(now) &&
             !deliveredIdentities.contains(deliveryIdentity(candidate))) {

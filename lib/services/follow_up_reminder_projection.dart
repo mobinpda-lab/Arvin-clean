@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'reminder_notification_policy.dart';
 
 /// Immutable projection consumed by the existing Android reminder/scheduler
 /// foundation. It intentionally carries no persistence or platform behavior.
@@ -56,6 +57,7 @@ class FollowUpReminderProjection {
   List<FollowUpReminderCandidate> pending(
     Iterable<Task> tasks, {
     required DateTime now,
+    int allDayReminderNotificationMinutes = defaultAllDayReminderNotificationMinutes,
   }) {
     final result = <FollowUpReminderCandidate>[];
 
@@ -77,7 +79,7 @@ class FollowUpReminderProjection {
 
       for (final reminder in task.taskReminders) {
         if (reminder.status != 'active') continue;
-        final scheduledAt = taskReminderNotificationTime(reminder);
+        final scheduledAt = taskReminderNotificationTime(reminder, allDayNotificationMinutes: allDayReminderNotificationMinutes);
         if (scheduledAt.isBefore(now)) continue;
         result.add(
           FollowUpReminderCandidate.taskReminder(
@@ -119,7 +121,8 @@ class FollowUpReminderProjection {
 
 /// Date-only reminders remain all-day calendar events but notify at 09:00
 /// local time. This function never changes the canonical stored date.
-DateTime taskReminderNotificationTime(TaskReminder reminder) {
+DateTime taskReminderNotificationTime(TaskReminder reminder, {int allDayNotificationMinutes = defaultAllDayReminderNotificationMinutes}) {
   if (!reminder.isAllDay) return reminder.date;
-  return DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9);
+  final minutes = normalizeAllDayReminderNotificationMinutes(allDayNotificationMinutes);
+  return DateTime(reminder.date.year, reminder.date.month, reminder.date.day, minutes ~/ 60, minutes % 60);
 }

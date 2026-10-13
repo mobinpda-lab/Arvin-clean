@@ -1,3 +1,13 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (all-day reminder time configurable)
+
+- **Owner decision:** all-day/date-only Task reminder notifications default to **09:00 local time**, and the user can change the time in Settings. It is not hard-coded as an unchangeable hour.
+- **Implementation added:** canonical `AppSettingsService` preference in minutes after local midnight, Settings time picker, portable backup/restore field with backward-compatible 09:00 fallback, configurable notification projection/delivery/alarm planner, background runner setting load, and reschedule after settings changes.
+- **Branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. This update is committed as one Git commit; query the live head and Actions after the ref update.
+- **Validation:** tests have been added/updated but have not yet been run to a terminal green result. Build, Calendar Provider Acceptance, Device Smoke, physical-device acceptance, backup/restore and Calendar-link integrity must be checked on the exact resulting SHA.
+- **Release:** NO-GO until all required gates pass. Keep PR Draft and unmerged.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (owner decision recorded)
 
 - **Owner decision:** 09:00 in the user's local time zone is approved for all-day/date-only Task reminder notifications. Timed reminders retain their selected time. This resolves the product-policy ambiguity, not validation gates.
@@ -17,7 +27,7 @@ Use this checkpoint instead of earlier state summaries; re-query the live PR hea
 - **Implemented:** TaskReminder model and deterministic legacy decode; migration tombstone; sequence persistence; TaskStore canonical-envelope keys; full editor CRUD and edit-apply; Calendar projection with stable identity; inbound/outbound Calendar sync; notification projection/delivery/alarm planner/state; model/editor/Calendar/SQL/backup tests.
 - **Persistence safety:** always serialize `taskReminders` (including empty), `nextReminderSequence`, and `legacyReminderMigrationCompleted`. TaskStore treats them as canonical fields so stale legacy JSON cannot restore a deleted reminder. A SQL save/reload regression test was added.
 - **CI on code checkpoint `13456ed...`:** Build [38396952083](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38396952083) is pending with no jobs reported yet; Calendar Provider Acceptance [38396952020](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38396952020) is in progress; Device Smoke [38396952092](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38396952092) is skipped. Orchestrator/Production Loop/Parallel Wave successes are not product validation.
-- **Owner decision:** the code uses 09:00 local time for all-day notification delivery, but the approved architecture does not specify an hour. This remains provisional and blocks merge; obtain owner confirmation.
+- **Owner decision:** 09:00 local time is the default for all-day notifications, and users can change it in Settings. Validate the configurable preference and runtime rescheduling on the exact head before merge.
 - **Next:** query the new live PR head after this doc write; trigger/recheck exact-head Build and Calendar Provider Acceptance, inspect test/analyzer output, and do not claim acceptance until terminal results and artifacts are reviewed. Then require all test shards, Debug/Release APK, all six Device Smoke lanes, physical-device validation, backup/restore and Calendar-link integrity.
 - **Release:** NO-GO. No PR merge.
 

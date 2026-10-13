@@ -19,6 +19,7 @@ void main() {
     expect(settings.fontFamily, isNull);
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+    expect(settings.allDayReminderNotificationMinutes, 9 * 60);
   });
 
   test('persists theme and Persian-date preferences without a second store', () async {
@@ -30,6 +31,25 @@ void main() {
     final settings = await service.load();
     expect(settings.themeMode, ThemeMode.dark);
     expect(settings.usePersianDate, isFalse);
+  });
+
+  test('persists a configurable all-day reminder notification time', () async {
+    final service = AppSettingsService();
+    expect((await service.load()).allDayReminderNotificationMinutes, 540);
+    await service.saveAllDayReminderNotificationMinutes(7 * 60 + 35);
+    expect((await service.load()).allDayReminderNotificationMinutes, 455);
+    await service.saveAllDayReminderNotificationMinutes(24 * 60);
+    expect((await service.load()).allDayReminderNotificationMinutes, 540);
+  });
+
+  test('portable settings round-trip all-day reminder notification time', () {
+    final service = AppSettingsService();
+    const source = AppSettings(themeMode: ThemeMode.system, usePersianDate: true, fontFamily: null, allDayReminderNotificationMinutes: 7 * 60 + 35);
+    final json = service.toPortableJson(source);
+    expect(json['allDayReminderNotificationMinutes'], 455);
+    expect(service.decodePortableJson(json).allDayReminderNotificationMinutes, 455);
+    expect(service.decodePortableJson({}).allDayReminderNotificationMinutes, 540);
+    expect(() => service.decodePortableJson({'allDayReminderNotificationMinutes': 1440}), throwsA(isA<FormatException>()));
   });
 
   test('persists explicit left and right swipe actions', () async {

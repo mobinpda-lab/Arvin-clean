@@ -1,8 +1,16 @@
+## 2026-10-13 — Configurable all-day reminder time
+
+- **Resolved product ambiguity:** 09:00 local is the default, not a fixed time. Users can change it in Settings; the selected minute-of-day persists in canonical AppSettingsService storage and portable backup/restore.
+- **Implementation status:** code and regression tests added on PR #2666 for Settings persistence, backup compatibility, configurable projection/planning, background delivery, and rescheduling after preference changes.
+- **Still open P1 — validation:** exact-head Analyze/test shards, Debug/Release APK, Calendar Provider Acceptance, six Device Smoke lanes, physical-device behavior, backup/restore and Calendar-link integrity remain unverified. Release stays NO-GO.
+
+---
+
 ## 2026-10-13 — Multiple-reminder implementation checkpoint
 
 - **Addressed in branch, not yet validated:** model fields, idempotent legacy decode, migration tombstone, editor CRUD, TaskEditApplyService, Calendar projection and stable IDs, inbound/outbound provider reconciliation, notification candidates/planner/state, SQL envelope semantics, and focused tests.
 - **Important regression prevented:** `TaskStore._canonicalEnvelope` preserved unknown fields from previous JSON. Because the new serializer omitted empty reminder lists, a deleted reminder could return from stale `legacy_payload_json`. Fixed by always serializing reminder list/counter/tombstone and adding these fields to TaskStore's known canonical keys; a SQL delete/reload regression test was added.
-- **P1 — All-day notification hour:** implementation currently schedules date-only reminders at 09:00 local. Architecture requires a documented local-time policy, but the owner-approved document does not specify an hour. Treat 09:00 as provisional; do not merge until owner confirms.
+- **P1 — Configurable all-day notification time:** product policy is resolved: default 09:00 local with user override in Settings. Validate persistence, background delivery and alarm rescheduling end-to-end before merge.
 - **P1 — Exact-head validation:** current feature branch's Build/Calendar Provider Acceptance are pending/queued at the last observed code checkpoint. Device Smoke is skipped. The next workflow result must match the final exact SHA.
 - **P1 — Physical device:** no physical-device acceptance has been supplied; emulator/CI cannot replace it.
 - **Release:** NO-GO until exact-head tests/builds, Calendar acceptance, all six Device Smoke lanes, backup/restore/link-integrity review, owner policy decision, and physical-device acceptance pass.

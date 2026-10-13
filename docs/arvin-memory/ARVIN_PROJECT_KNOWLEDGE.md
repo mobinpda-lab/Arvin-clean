@@ -1,3 +1,13 @@
+## 2026-10-13 — Configurable all-day reminder notification time
+
+- The product default is 09:00 local time, user-configurable from Settings; this is not a hard-coded product constraint.
+- `AppSettings.allDayReminderNotificationMinutes` stores the selected minute-of-day through the existing `AppSettingsService` and SharedPreferences foundation. Missing legacy values fall back to 540 minutes (09:00).
+- The setting is included in portable settings backup/restore, and older backups without the key remain compatible.
+- Runtime alarm planning and background delivery consume the same saved setting; changing it triggers a reschedule. All-day Calendar entries remain date-only, and timed reminders/FollowUp reminders are unaffected.
+- No parallel settings store or scheduler was introduced. Exact-head validation is pending.
+
+---
+
 ## 2026-10-13 — TaskReminder integration expanded
 
 - Editor controls were ported to the safe integration branch: independent add/edit/delete rows, editable numbered titles, date/time and explicit all-day toggle. When the Task has already migrated its legacy reminder, the editor uses the canonical collection rather than showing the same reminder in both the legacy field and the collection.
@@ -5,7 +15,7 @@
 - Calendar projection uses `task-reminder:<taskId>` for the deterministic migrated legacy item and `task-reminder-item:<taskId>:<reminderId>` for new items. The retained legacy field is suppressed after migration; same-time TaskReminder entries remain distinct.
 - Calendar inbound reconciliation edits/deletes one reminder by stable identity. Deleting the migrated legacy reminder clears its legacy mirror in the same TaskStore save; editing it updates both the canonical item and compatibility mirror. New-item operations leave Task title, FollowUps and sibling reminders unchanged.
 - Outbound sync routes both Task reminder identity forms through the existing `syncTaskReminders` preference. The existing provider planner/link store remains the only external-event linkage foundation.
-- Notification projection, due delivery, alarm planning and delivery-state reconciliation now support multiple TaskReminder IDs. Migrated legacy reminders retain old delivery identity. The current 09:00 local all-day notification time is provisional and awaits owner confirmation.
+- Notification projection, due delivery, alarm planning and delivery-state reconciliation now support multiple TaskReminder IDs. Migrated legacy reminders retain old delivery identity. All-day notification time defaults to 09:00 local and is user-configurable through canonical Settings.
 - Task JSON writes an explicit empty list and durable sequence/tombstone values; SQL envelope preservation now recognizes these canonical fields, preventing stale old payload values from resurrecting deleted reminders.
 - Current implementation is still a Draft PR. Automated green checks and physical-device acceptance have not been established.
 

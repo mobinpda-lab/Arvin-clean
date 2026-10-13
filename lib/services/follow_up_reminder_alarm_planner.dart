@@ -1,15 +1,18 @@
 import '../models/task.dart';
 import 'follow_up_reminder_delivery_state.dart';
+import 'reminder_notification_policy.dart';
 import 'follow_up_reminder_projection.dart';
 
 class FollowUpReminderAlarmPlanner {
   const FollowUpReminderAlarmPlanner({
     this.stateService = const FollowUpReminderDeliveryState(),
     this.minimumDelay = const Duration(minutes: 1),
+    this.allDayReminderNotificationMinutes = defaultAllDayReminderNotificationMinutes,
   });
 
   final FollowUpReminderDeliveryState stateService;
   final Duration minimumDelay;
+  final int allDayReminderNotificationMinutes;
 
   DateTime? nextAlarmAt(
     Iterable<Task> tasks, {
@@ -36,7 +39,7 @@ class FollowUpReminderAlarmPlanner {
           taskTitle: task.title,
           taskReminderId: reminder.id,
           label: reminder.title,
-          scheduledAt: taskReminderNotificationTime(reminder),
+          scheduledAt: taskReminderNotificationTime(reminder, allDayNotificationMinutes: allDayReminderNotificationMinutes),
         );
         final identity =
             '${candidate.stableKey}@${candidate.scheduledAt.toIso8601String()}';

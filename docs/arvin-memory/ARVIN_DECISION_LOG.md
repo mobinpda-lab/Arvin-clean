@@ -1,3 +1,13 @@
+## 2026-10-13 — Owner decision: all-day reminder time is configurable
+
+- **Product decision:** all-day/date-only Task reminder notifications default to **09:00 local time**, but the user can change the time in Settings under «یادآورها و اعلان‌ها».
+- **Persistence:** store the chosen minute-of-day through the existing `AppSettingsService` / SharedPreferences foundation. Legacy installs and backups missing this key use 09:00. Portable backup/restore carries the preference and validates it as a local time from 00:00 through 23:59.
+- **Runtime contract:** both alarm planning and background delivery must load and apply the saved preference. Changing it must reschedule the existing alarm. Calendar projection remains all-day; timed reminders and FollowUp reminders remain unchanged.
+- **Architecture:** no second settings store, reminder store, scheduler, or notification model.
+- **Validation status:** implementation and tests added on the safe integration branch; exact-head CI and Android runtime acceptance are pending. Do not merge/release until validated.
+
+---
+
 ## 2026-10-13 — Owner decision: all-day reminder notification time APPROVED
 
 - **Owner decision:** use **09:00 in the user's local time zone** for notification delivery for date-only/all-day Task reminders.
@@ -13,7 +23,7 @@
 - **Decision:** Notification delivery keys are independent per reminder. The migrated legacy item retains the previous `task:<taskId>@<timestamp>` delivery identity; new items use their own stable identity. Date-only reminders remain all-day in Calendar and use a separate notification-time helper.
 - **Persistence fix:** Task JSON always serializes `taskReminders`, `nextReminderSequence`, and `legacyReminderMigrationCompleted`; `TaskStore._canonicalEnvelope` treats them as known canonical keys. This prevents a previously persisted collection from being reintroduced when the current collection is empty.
 - **Impact:** Updated projection, outbound/inbound Calendar reconciliation, alarm planning, delivery projection/state, Task Editor and TaskEditApplyService; added tests for same-time distinct reminders, stable IDs, inbound edit/delete isolation, SQL/backup round-trip and deletion tombstone.
-- **Owner decision resolved (2026-10-13):** owner approved **09:00 local time** for all-day/date-only reminder notifications. Timed reminders retain their selected time.
+- **Owner decision resolved (2026-10-13):** 09:00 local time is the default for all-day/date-only reminder notifications, and users can change it in Settings. Timed reminders retain their selected time.
 - **Status:** Draft PR #2666 only. Exact-head Build/Calendar acceptance remain unverified; Device Smoke is skipped. Do not merge/release.
 
 ---
