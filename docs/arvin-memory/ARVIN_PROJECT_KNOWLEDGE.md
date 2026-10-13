@@ -1,3 +1,21 @@
+## 2026-10-13 — Waiting-for-response discoverability
+
+- A control that stores a state is not a complete user-facing workflow unless the user can discover the resulting list.
+- `FollowUpOfficePage` and its `فقط منتظر پاسخ` filter already existed, but main navigation lacked a route. Connect existing UI before building a duplicate screen.
+- The waiting list must be based on the latest FollowUp for each active Task; completed, archived, or trashed Tasks are not active waiting items.
+- Branch `fix/follow-up-waiting-response-discoverability-20261013`, Issue #2677 / Draft PR #2679 connects the route and enforces the active-task filter without changing canonical storage.
+
+---
+
+## 2026-10-13 — Waiting-for-response UX finding
+
+- A UI control is not a complete product capability unless users can discover the resulting list/workflow.
+- `FollowUpOfficePage` already reads canonical Tasks and FollowUps and provides the `فقط منتظر پاسخ` filter. If users report that waiting items cannot be found, inspect navigation reachability before duplicating the filter or creating new persistence.
+- On main checkpoint `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`, `lib/main.dart` did not import or route to the existing office. Branch `fix/follow-up-waiting-response-discoverability-20261013` connects it from Home > «بیشتر».
+- Waiting state remains derived from the latest canonical FollowUp result; an older waiting FollowUp must not override a newer resolved result. Do not add a parallel Task status or CRM model.
+
+---
+
 # Arvin Project Knowledge
 
 Updated: 2026-10-11

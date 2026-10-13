@@ -45,6 +45,7 @@ import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
+import 'follow_up_office_page.dart';
 import 'task_detail_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
@@ -2410,6 +2411,14 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
               ),
               ListTile(
+                key: const ValueKey('home-more-follow-up-office'),
+                leading: const Icon(Icons.hourglass_top_outlined),
+                title: const Text('دفتر پیگیری'),
+                subtitle: const Text('پیگیری‌ها و موارد منتظر پاسخ دیگران'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_HomeMoreAction.followUpOffice),
+              ),
+              ListTile(
                 leading: const Icon(Icons.today_outlined),
                 title: const Text('امروز'),
                 onTap: () =>
@@ -2482,6 +2491,13 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.myTasks:
         await _openMyTasks();
+        return;
+      case _HomeMoreAction.followUpOffice:
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const FollowUpOfficePage(),
+          ),
+        );
         return;
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -2989,6 +3005,7 @@ enum _HomeMoreAction {
   report,
   quickCapture,
   myTasks,
+  followUpOffice,
   today,
   undated,
   archive,

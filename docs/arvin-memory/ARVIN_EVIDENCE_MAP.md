@@ -1,3 +1,22 @@
+## 2026-10-13 — Waiting-for-response discoverability (Issue #2677 / Draft PR #2679)
+
+- **Source:** `lib/main.dart` exposes Home > «بیشتر» > «دفتر پیگیری», routing to the existing FollowUpOfficePage.
+- **Behavior:** `lib/follow_up_office_page.dart` filters by the latest FollowUp per active Task and excludes completed/archived/trashed Tasks.
+- **Tests:** `test/home_more_my_tasks_test.dart` covers navigation and filter discovery; `test/follow_up_office_page_test.dart` covers exclusion of inactive Tasks.
+- **Status:** code/tests are committed to the feature branch; exact-head CI has not yet validated the latest SHA. Older run results do not count for the final head.
+
+---
+
+## 2026-10-13 — Waiting-for-response list discoverability (Issue #2677)
+
+- **Feature/source:** Home > «بیشتر» -> «دفتر پیگیری» routes to existing `FollowUpOfficePage`; existing `فقط منتظر پاسخ` filter uses latest canonical FollowUp per Task.
+- **Changed source:** `lib/main.dart`.
+- **Regression test:** `test/home_more_my_tasks_test.dart` now checks that the menu entry is visible, navigation opens the office, and the waiting filter is available.
+- **Implementation commits:** `2c1920a14a8acd256c09c33ffd21b0d9649c92cf` (navigation) and `b26c297af21d9bc52a6a904e4e6d768737c08548` (widget test).
+- **Validation status:** code/test added; exact-head CI result not yet available. Do not claim test/build pass before reading workflow results for the final SHA.
+
+---
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.

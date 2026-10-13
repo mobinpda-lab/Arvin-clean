@@ -210,6 +210,48 @@ void main() {
             },
           ],
         },
+        {
+          'id': 'completed-waiting',
+          'title': 'کار تکمیل‌شده منتظر',
+          'completed': true,
+          'followUps': [
+            {
+              'id': 'cw1',
+              'dateTime': '2026-08-27T09:00:00.000',
+              'note': 'قدیمی',
+              'result': 'waiting_for_response',
+              'nextFollowUp': null,
+            },
+          ],
+        },
+        {
+          'id': 'archived-waiting',
+          'title': 'کار بایگانی‌شده منتظر',
+          'archived': true,
+          'followUps': [
+            {
+              'id': 'aw1',
+              'dateTime': '2026-08-28T09:00:00.000',
+              'note': 'قدیمی',
+              'result': 'waiting_for_response',
+              'nextFollowUp': null,
+            },
+          ],
+        },
+        {
+          'id': 'trashed-waiting',
+          'title': 'کار سطل‌زباله منتظر',
+          'trashed': true,
+          'followUps': [
+            {
+              'id': 'tw1',
+              'dateTime': '2026-08-29T09:00:00.000',
+              'note': 'قدیمی',
+              'result': 'waiting_for_response',
+              'nextFollowUp': null,
+            },
+          ],
+        },
       ]),
     });
 
@@ -228,6 +270,9 @@ void main() {
     expect(find.text('کار منتظر'), findsOneWidget);
     expect(find.text('کار منتظر فارسی'), findsOneWidget);
     expect(find.text('کار پاسخ‌گرفته'), findsNothing);
+    expect(find.text('کار تکمیل‌شده منتظر'), findsNothing);
+    expect(find.text('کار بایگانی‌شده منتظر'), findsNothing);
+    expect(find.text('کار سطل‌زباله منتظر'), findsNothing);
     expect(find.text('منتظر پاسخ'), findsNWidgets(2));
   });
 
