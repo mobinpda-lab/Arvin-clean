@@ -34,6 +34,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         widget.tasks,
         now: _now,
         projects: widget.projects,
+        ignoreTaskTime: _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly,
       );
 
   List<_FollowUpReportEntry> get _followUpRows {
