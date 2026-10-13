@@ -582,3 +582,15 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Person-directory backup/restore | Issue #2682 / PR #2681 | Blocked | Missing parent-branch schema/APIs and substantial branch divergence; safe reconciliation required |
 
 **Release decision: NO-GO.**
+
+
+## 2026-10-14 — Calendar test repair wave (validation pending)
+
+| Claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Legacy provider edit keeps stable Task identity while updating the migrated reminder date | Prior Build [38461299960](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38461299960), test-4 failure; test commit `e2f61132914b93f116aa93d651a4a3a65a082024` | Test expectation aligned to provider-edited canonical date `2026-10-09 11:00` and legacy mirror | No exact-head CI pass yet |
+| Calendar management uses long press, not inline due-row actions | Issue [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685); test commit `392936b81ca54a18f6063c955023b1776df24fa7` | Launcher test updated to use typed `calendar-action-*` keys after long press | No exact-head CI pass yet |
+| Calendar action dialog test uses visible controls | Test commit `092e9b7eb10419132da53236dc88c841ebee520c` | Added `ensureVisible` before delete/cancel taps | No exact-head CI pass yet |
+| Current release candidate | Intended source head `392936b81ca54a18f6063c955023b1776df24fa7`; memory checkpoint commit `0b39a4cea8bcc2766636edf03d07c8c746050641` | Changes and evidence checkpoint recorded | Workflow/status query returned no runs for the pre-documentation test head; poll the live branch and ensure validation starts on its latest exact SHA |
+
+**Release gate:** NO-GO. These changes are test-only; they do not prove production behavior, full CI, backup/restore integrity, or physical-device acceptance.
