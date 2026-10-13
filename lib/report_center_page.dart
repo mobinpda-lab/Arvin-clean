@@ -208,7 +208,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
             ),
           ],
         ),
-        floatingActionButton: tasks.isEmpty
+        floatingActionButton: _showFollowUpRows || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
