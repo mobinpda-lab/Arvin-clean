@@ -242,3 +242,9 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - Verify full-form obsolete timestamp removal, optional Follow-up→Reminder creation, multiple reminder editing, compact Quick Entry progressive disclosure, independent report/search filters, legacy compatibility, and all-day/midnight handling with tests.
 - Calendar scope conflict remains: v2 says Calendar fallback to `nextFollowUp` when no Reminder exists, while earlier phone-calendar policy excludes follow-up-only projection. Do not change Android/phone Calendar or OS notifications until clarified.
 - Exact-head CI and physical-device acceptance remain outstanding for this feature. Release remains NO-GO.
+
+
+## SUPERSESSION — Owner resolved Calendar scope (2026-10-13)
+
+- The earlier note that Calendar scope required clarification is superseded by the owner's final command: fallback-to-`nextFollowUp` applies only to **Arvin's internal Calendar** when no Reminder exists. It must not project to Google/device Calendar or create an OS notification.
+- Remaining implementation/validation gaps are still open: multiple independent Task reminders end-to-end, optional reminder creation in Follow-up flow, all-day/date-only metadata, legacy/backup/restore round-trip, stable Calendar IDs and no-duplicate updates, and physical-device acceptance. No gap is considered fixed merely because this decision is documented.
