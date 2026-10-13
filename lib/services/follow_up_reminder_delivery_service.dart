@@ -22,7 +22,7 @@ class FollowUpReminderDeliveryService {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final legacyReminderId = 'legacy-task-reminder:' + task.id;
+      final legacyReminderId = 'legacy-task-reminder:${task.id}';
       final hasMigratedLegacyReminder =
           task.taskReminders.any((item) => item.id == legacyReminderId);
       final taskReminder = task.reminderDate;
@@ -50,7 +50,7 @@ class FollowUpReminderDeliveryService {
           taskTitle: task.title,
           taskReminderId: reminder.id,
           label: reminder.title.trim().isEmpty
-              ? 'یادآور ' + reminder.sequence.toString()
+              ? 'یادآور ${reminder.sequence}'
               : reminder.title,
           scheduledAt: scheduledAt,
         );
