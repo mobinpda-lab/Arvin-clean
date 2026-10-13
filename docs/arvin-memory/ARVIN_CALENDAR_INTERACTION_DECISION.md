@@ -144,3 +144,15 @@ Calendar displays and navigates; canonical Task data and lifecycle remain owned 
 - Both Home-to-Calendar navigation paths now pass the canonical open/edit/delete/register/refresh/sync callbacks.
 - Internal Follow-up Action rows open the parent Task Detail and retain the «پیگیری» type label; they remain display-only projections and do not become notification or external Calendar events.
 - Latest code checkpoint: 8817b0ce6f79ae6610c431a40c299c0bda1b9074. Build/test/provider/device checks are still pending/in progress; the earlier Analyze pass was on an older code checkpoint. No acceptance or screenshot claim is made.
+
+
+## Verified parent implementation checkpoint — 2026-10-14
+
+- Parent release code head: `a7be929a844038d64fcf20e5a6681a1c8732b2fc`.
+- Tap-to-canonical-Task-Detail and long-press action-sheet wiring is present through the existing Calendar launcher and owning Home route. Selected item type is passed to Task Detail.
+- Parent exact-head Build and test shards passed: [Build run 38477701769](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701769).
+- Parent exact-head Calendar Provider Acceptance passed: [run 38477701747](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701747).
+- Parent automated Device Smoke lanes passed: [run 38477701760](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701760). These are automated smoke checks and are not a physical-device screenshot/gesture usability study.
+- Destructive Task action has explicit confirmation. Reminder rows do not expose the parent Task deletion action.
+- **Still open:** issue #2685 remains open until small-screen day/week/month gesture behavior, RTL readability/scroll behavior, and physical-device evidence are recorded. No screenshot evidence is currently claimed.
+- **Release impact:** this calendar code checkpoint passed the automated gates named above, but it does not close the overall release gate; Person backup/restore and Person-based reporting remain P1 blockers.

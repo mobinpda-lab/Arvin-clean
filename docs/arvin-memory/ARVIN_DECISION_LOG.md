@@ -258,3 +258,12 @@
 - **Impact:** CalendarPage now has an explicit open-detail callback, Task/Follow-up/Reminder labels are type-derived, management actions are in a long-press bottom sheet, Task deletion requires confirmation, and the existing Task Detail route receives selected item context.
 - **Status:** Initial implementation and acceptance test updates committed on the integration branch. Exact-head CI and device acceptance pending; do not treat as complete until all gates pass.
 - **Reference:** Issue #2685 and ARVIN_CALENDAR_INTERACTION_DECISION.md.
+
+
+## 2026-10-14 — Do not merge the divergent Person branch
+
+- **Problem:** PR #2681 contains the approved Person directory and reporting work, but it diverged substantially from the active parent: 101 commits ahead and 159 behind at comparison time, common ancestor `68724d6191590b81b2d611f59b7944a7fcbb06e0`.
+- **Decision:** keep #2681 open and do not merge, force-update, or cherry-pick it wholesale. Port the approved Person persistence, backup/restore, and report slices onto a clean branch from the active parent.
+- **Reason:** preserve the parent’s validated multi-reminder, Calendar identity, migration, and rollback work; avoid schema/data-loss risk.
+- **Impact:** PR #2692 records the synchronization plan. Person backup/restore and reporting remain P1 blockers; release stays NO-GO.
+- **Status:** accepted operational safeguard; implementation/validation still pending.

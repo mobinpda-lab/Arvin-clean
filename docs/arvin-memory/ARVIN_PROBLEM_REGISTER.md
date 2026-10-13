@@ -369,3 +369,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Root cause:** redundant closing brace at end of the rewritten RTL swipe acceptance test file.
 - **Repair:** removed the extra brace; no production code changed. Exact-head CI must rerun; no validation pass is claimed.
 - **Release:** NO-GO.
+
+
+## 2026-10-14 continuation — active blockers
+
+- **P1 — Person directory backup/restore (#2682): OPEN.** Active parent lacks standalone Person directory in portable backup/restore. Child-branch work now adds referential preflight tests, but that code has no CI evidence and is not in the parent.
+- **P1 — Person-based Follow-up reporting (#2683): OPEN.** Child-branch implementation adds a Person filter and per-Follow-up rows with separate next-action and Reminder timestamps, but remains unvalidated and unintegrated.
+- **P2 — Calendar interaction evidence (#2685): PARTIALLY IMPLEMENTED.** Parent tap/long-press code and automated tests passed on `a7be929...`; small-screen day/week/month and physical-device UX evidence remain outstanding.
+- **Integration risk:** #2681 is diverged 101 commits ahead / 159 behind parent. Do not merge or cherry-pick wholesale. Follow `ARVIN_PERSON_DIRECTORY_SYNC_PLAN_2026-10-14.md` in PR #2692.
+- **Release:** NO-GO.
