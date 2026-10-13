@@ -364,3 +364,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** Child-only backup/restore implementation cannot be considered validated; merging the child risks dropping or conflicting with parent reminder/Calendar changes.
 - **Decision:** Do not force-push, blindly merge, or mark #2682 complete. Reconcile code and tests deliberately while preserving both histories, then run exact-head CI.
 - **Status:** BLOCKED on safe source reconciliation and full test validation. Release remains NO-GO.
+
+
+---
+
+## 2026-10-13 — Backup-fix dependency audit
+- **New finding:** The parent integration branch has the reusable PersonReference model and Task-level people associations, but no standalone people_directory schema/table, no directory CRUD/restore API in TaskStore, and no Person directory page. The #2682 backup fix depends on those child-branch additions.
+- **Risk:** Copying only backup_manager.dart, backup_service.dart, main.dart and backup_page.dart from #2681 would reference missing APIs and/or omit the data owner/schema. Replacing all TaskStore/model/schema files blindly could overwrite unrelated parent reminder/Calendar fixes.
+- **Decision:** Do not cherry-pick partial file replacements or force-sync the diverged branch. Reconcile the complete Person-directory feature and backup/rollback flow as a reviewed unit; run exact-head CI afterwards.
+- **Status:** BLOCKED on safe reconciliation/toolchain access; #2682 remains OPEN.
