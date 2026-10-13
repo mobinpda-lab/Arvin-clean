@@ -243,6 +243,10 @@ void main() {
 
   testWidgets('waiting filter uses only each task latest follow-up result',
       (tester) async {
+    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
         {
