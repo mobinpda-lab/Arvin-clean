@@ -294,6 +294,81 @@ void main() {
     );
   });
 
+  test('canonical restore rejects Follow-up Person IDs missing from directory', () async {
+    final task = Task(
+      id: 'task-person-reference',
+      title: 'کار با شخص',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-person-reference',
+          dateTime: DateTime(2026, 10, 13, 10),
+          waitingForResponse: true,
+          personIds: const ['person-missing'],
+        ),
+      ],
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [task.toJson()],
+        'people': [
+          {'id': 'person-known', 'displayName': 'شخص شناخته‌شده'},
+        ],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('person-missing'),
+        ),
+      ),
+    );
+  });
+
+  test('canonical restore rejects structured Person links when directory field is omitted', () async {
+    final task = Task(
+      id: 'task-person-reference',
+      title: 'کار با شخص',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-person-reference',
+          dateTime: DateTime(2026, 10, 13, 10),
+          personIds: const ['person-legacy-link'],
+        ),
+      ],
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [task.toJson()],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('canonical restore accepts legacy backup without Person links or directory', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+      };
+
+    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.people, isNull);
+    expect(candidate.tasks.single.followUps.single.personIds, isEmpty);
+  });
+
   test('canonical restore returns validated calendar link metadata', () async {
     final link = ExternalCalendarEventLink(
       reminderId: 'task-due:task-full',
