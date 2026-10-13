@@ -1,3 +1,15 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (configurable all-day reminder policy + compile repair)
+
+- **Owner decision:** all-day/date-only Task reminders default to **09:00 local time** and users can change this in Settings. Timed Task reminders and FollowUp reminders are unaffected.
+- **Implementation audit:** existing code already includes `AppSettings.allDayReminderNotificationMinutes`, the Settings time picker, AppSettingsService/SharedPreferences persistence, portable backup/restore compatibility, runtime injection into alarm planning and background delivery, and rescheduling after changes. Do not create duplicate settings infrastructure.
+- **Root cause found from exact-head CI:** `FollowUpReminderCandidate` declared nullable final field `taskReminderId` but the default and `.task` constructors did not initialize it. Analyze and Android builds failed at `lib/services/follow_up_reminder_projection.dart:7,15`; Calendar Provider Acceptance and several device smoke lanes consequently failed to compile.
+- **Repair committed:** initialized `taskReminderId = null` in the default and `.task` constructors. Fix commit: `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Validation:** the failing run was against PR head `7ee42dbdf899226dfa27a2ee13cb4be6871715a4` / synthetic merge `a8e59ae43a8c66f437e9e8a89ee6385c4f5428f7`; those results do not validate the fix. Re-query current PR head and Actions after memory updates, then inspect the new exact-head results.
+- **Current gates:** Build Analyze/test shards/Debug+Release APK, Calendar Provider Acceptance and all six Device Smoke lanes must pass on the final head. Physical-device validation, backup/restore and Calendar-link integrity evidence remain required.
+- **Release:** NO-GO. PR #2666 is ready for review, open and unmerged; do not merge until every required gate is evidenced.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (full validation gate)
 
 - **Reminder policy:** all-day/date-only Task reminder notifications default to 09:00 local time and are user-configurable in Settings. The preference persists through the existing AppSettingsService and is applied by alarm planning/background delivery.
