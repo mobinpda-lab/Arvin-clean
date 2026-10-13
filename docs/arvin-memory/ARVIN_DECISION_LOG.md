@@ -1,3 +1,13 @@
+## 2026-10-13 — Approved reminder migration contract takes precedence
+
+- **Problem:** the implementation design in PR #2655 and `ARVIN_MULTIPLE_REMINDERS_DESIGN.md` retains legacy `Task.reminderDate` without migrating it, while the approved architecture decision requires a deterministic, idempotent migration into exactly one TaskReminder.
+- **Decision:** the owner-approved architecture decision is authoritative. Reconcile the lower-level design and implementation to migrate legacy Task reminders without dropping the legacy value before durable validation and without emitting both legacy and new Calendar/notification identities.
+- **Reason:** avoid design drift, missed reminders and duplicate Calendar events while keeping Task as the canonical source of truth.
+- **Impact:** PR #2655 must not be merged as-is. Implement migration and regression tests on a fresh branch from current main; retain independent `nextFollowUp` and per-FollowUp `reminderDate` semantics.
+- **Current owner-data context:** owner reports the current database is empty; this is not evidence that old backups, fixtures or legacy payloads do not exist.
+- **Status:** decision recorded; code reconciliation and validation pending.
+
+---
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
