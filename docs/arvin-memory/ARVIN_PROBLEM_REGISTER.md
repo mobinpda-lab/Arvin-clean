@@ -321,3 +321,15 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Correction:** describe the multiple-reminder migration issue as a persistence/compatibility implementation blocker, not as confirmed loss risk to existing owner-entered data.
 - **Boundary:** do not infer that all installed databases, older backups, test fixtures or legacy payloads are empty without inspection. Compatibility and rollback tests remain required before release.
 - **Status:** documentation clarified. No app code or database changed; migration, current-head CI and physical-device acceptance remain open.
+
+---
+
+## 2026-10-13 — Cleanup audit additions
+
+| Problem | Impact | Status | Required next step |
+|---|---|---|---|
+| Standalone Person directory entries are omitted from portable backup/restore | A Person with no current Task/Follow-up association may be lost on device restore | **P1 OPEN — data integrity** | Extend the existing backup payload and candidate, then restore/rollback directory records atomically; add round-trip, malformed-data and rollback tests |
+| Person-based Report Center filter/results are not implemented end-to-end | User cannot reliably answer which Tasks/Follow-ups await a selected Person and when the next action is due | **P1 OPEN** | Add canonical Person filter and per-Follow-up result rows; do not create a separate report data store |
+| Exact-head validation for PR #2681 is absent | Authored tests do not prove the branch compiles or behaves correctly | **P1 OPEN — release gate** | Obtain exact-head analyze/test/build/Calendar/device evidence |
+| Follow-up flag was still written by several mutation paths and consumed by Report filter | New records could depend on a deprecated Task-level switch | **Partially repaired; audit remains** | Re-search all read/write sites, preserve old values only for compatibility, and test all product paths |
+| Calendar inbound Follow-up update could drop waiting/Person fields | External Calendar edits could silently erase Follow-up associations | **Source fix + regression test authored; validation pending** | Run the exact Calendar inbound test and provider acceptance suite |
