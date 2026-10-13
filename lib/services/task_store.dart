@@ -219,7 +219,7 @@ class TaskStore {
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
-      task.followUpEnabled = true;
+      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
     });
   }
@@ -229,9 +229,10 @@ class TaskStore {
       final index = tasks.indexWhere((task) => task.id == taskId);
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
-      if (task.followUpEnabled) return;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
+      // Compatibility shim only. A Task is not changed by toggling a flag;
+      // a real FollowUp must be created through addFollowUp().
+      if (task.followUps.isNotEmpty || task.followUpDate != null) return;
+      throw StateError('Create a FollowUp record instead of enabling a flag');
     });
   }
 
