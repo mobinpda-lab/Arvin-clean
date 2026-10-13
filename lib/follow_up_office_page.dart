@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
+import 'task_detail_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/automatic_follow_up_service.dart';
@@ -151,6 +152,38 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
         setState(() => _saving = false);
       }
     }
+  }
+
+  Future<void> _openTask(_FollowUpRow row) async {
+    Task? task;
+    for (final candidate in _canonicalTasks) {
+      if (candidate.id == row.taskId) {
+        task = candidate;
+        break;
+      }
+    }
+    if (task == null || !mounted) return;
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(
+          task: task!,
+          onAddFollowUp: (currentTask, followUp) async {
+            await _writer.add(currentTask.id, followUp);
+            final refreshed = await TaskStore().load();
+            for (final candidate in refreshed) {
+              if (candidate.id == currentTask.id) return candidate;
+            }
+            return currentTask;
+          },
+          onEditFollowUp: (currentTask, followUp) async {
+            await _writer.update(currentTask.id, followUp);
+            return followUp;
+          },
+        ),
+      ),
+    );
+    await _load();
   }
 
   Future<void> _editFollowUp(_FollowUpRow row) async {
@@ -384,6 +417,16 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                 'پیگیری بعدی: ${_dateTime(row.nextFollowUp!)}',
                               ),
                             ],
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton.icon(
+                                key: ValueKey('follow-up-open-task-${row.taskId}'),
+                                onPressed: row.taskId.isEmpty ? null : () => _openTask(row),
+                                icon: const Icon(Icons.open_in_new, size: 18),
+                                label: const Text('بازکردن کار'),
+                              ),
+                            ),
                           ],
                         ),
                       ),
