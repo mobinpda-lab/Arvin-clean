@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (post-merge exact-head validation)
+
+This checkpoint supersedes older live-status statements below where they conflict; older entries remain historical evidence.
+
+- **Repository/main:** `mobinpda-lab/Arvin-clean`; observed main SHA `139a76567ab59b16f74c4f5a3d7e19f50fdede44`.
+- **Completed — PR #2652 merged:** [docs(arvin): clarify multiple follow-ups and independent reminders](https://github.com/mobinpda-lab/Arvin-clean/pull/2652) merged as `139a76567ab59b16f74c4f5a3d7e19f50fdede44`. Its exact pre-merge head `08c24a6c1447e4cf86d244a0a842cfbf791571a7` had Build SUCCESS and Device Smoke SUCCESS (all six lanes). Changed files were six canonical `docs/arvin-memory/` documents only; no application code changed.
+- **Owner-confirmed reminder contract now recorded in main:** one Task can have multiple recorded Follow-up history entries and multiple independent reminders. Setting Next Follow-up does NOT automatically create a reminder. If the user explicitly chooses to create one, prefill title from Task title and schedule from Next Follow-up; then each reminder and Follow-up remains independently editable/deletable. Do not overwrite or duplicate existing reminders. Date-only/all-day intent is explicit and independent; never infer it from midnight.
+- **PR #2655 — multiple Task reminders implementation:** open, head `217c57ad2574ef7f87182c8edfed84c0be0c38ab`, base SHA `8136c929237c321f2e879a80f067970c31cb0100`. After #2652 merged, GitHub reports the branch is not mergeable against current main; reconcile/rebase before further promotion. Exact-head Build [38346161903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161903) FAILED; Calendar Provider Acceptance [38346161864](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161864) SUCCESS; Device Smoke [38346161905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161905) SUCCESS on all six emulator lanes. Analyze and Debug/Release APK jobs passed, but three test shards each failed one test:
+  1. `test/task_editor_dialog_test.dart` — “new Task keeps checklist disabled until explicitly enabled”: expected the checklist block to be absent initially, but it was found.
+  2. `test/task_editor_dialog_test.dart` — “disabling a checklist preserves its rows and re-enabling restores them”: expected the checklist block to disappear after toggle, but it remained.
+  3. `test/task_editor_full_entry_test.dart` — multiple-reminder editor test triggers Flutter's ListTile ink/background assertion because a ListTile is wrapped by a colored DecoratedBox without its own Material.
+- **Action recorded:** detailed exact-head failures and required corrective direction posted to [PR #2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) in comment [6138541440](https://github.com/mobinpda-lab/Arvin-clean/pull/2655#issuecomment-6138541440).
+- **No feature merge:** #2655 must not merge until checklist behavior/test contract is reconciled without weakening tests, the reminder ListTile Material layering is fixed, branch is reconciled with latest main, and exact-head Build plus all six Device Smoke lanes pass. Successful Calendar Provider Acceptance/Device Smoke does not compensate for a failed Build.
+- **Release:** **NO-GO**. Physical-device Calendar same-event/no-duplicate, real-device Backup/Restore with Calendar-link integrity, installed-device golden flow, Persian RTL/compact-screen visual acceptance, and explicit release approval remain required.
+- **Next action:** fix the three test failures on a branch based on current main, rerun exact-head validation, and refresh this state only with evidence tied to the resulting SHA.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
