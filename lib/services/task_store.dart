@@ -219,7 +219,8 @@ class TaskStore {
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
-      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
+      // Follow-up is a Task capability, not a Task-level enablement flag.
+      // Preserve the legacy field without changing it for new follow-up writes.
       task.updatedAt = DateTime.now();
     });
   }
