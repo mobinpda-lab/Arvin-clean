@@ -979,6 +979,11 @@ class _ReminderCardState extends State<_ReminderCard> {
       widget.item.id.startsWith('task-reminder:') ||
       widget.item.id.startsWith('task-reminder-item:');
 
+  bool get _isFollowUpCalendarItem =>
+      widget.item.id.startsWith('followup:') ||
+      widget.item.id.startsWith('task-followup:') ||
+      widget.item.id.startsWith('task-followup-action:');
+
   Future<void> _confirmDeleteTask(CalendarReminder item) async {
     final delete = widget.onDeleteTask;
     if (delete == null) return;
@@ -1031,7 +1036,7 @@ class _ReminderCardState extends State<_ReminderCard> {
           key: 'calendar-action-open-${widget.item.id}',
           icon: Icons.open_in_new,
           label: 'بازکردن کار',
-          action: _isTaskCalendarItem || widget.item.id.startsWith('followup:')
+          action: _isTaskCalendarItem || _isFollowUpCalendarItem
               ? widget.onOpenTaskDetail
               : widget.item.id.startsWith('external-calendar:')
                   ? widget.onOpenExternal
@@ -1115,7 +1120,8 @@ class _ReminderCardState extends State<_ReminderCard> {
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
-          (widget.onEditTask != null ||
+          ((widget.onOpenTaskDetail != null && _isFollowUpCalendarItem) ||
+              widget.onEditTask != null ||
               widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
@@ -1149,7 +1155,7 @@ class _ReminderCardState extends State<_ReminderCard> {
         children: [
           ListTile(
             key: ValueKey('reminder-card-${item.id}'),
-            onTap: _isTaskCalendarItem || item.id.startsWith('followup:')
+            onTap: _isTaskCalendarItem || _isFollowUpCalendarItem
                 ? (widget.onOpenTaskDetail == null ? null : () => _run(widget.onOpenTaskDetail))
                 : item.id.startsWith('external-calendar:')
                     ? (widget.onOpenExternal == null ? null : () => _run(widget.onOpenExternal))
