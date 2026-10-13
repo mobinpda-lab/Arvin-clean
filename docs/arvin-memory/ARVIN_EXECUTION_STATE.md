@@ -963,3 +963,10 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - PR #2663 remains open/mergeable, not merged. PR #2662 and #2661 remain open/mergeable. PR #2655 remains open and non-mergeable; do not force-merge or fabricate a tree merge.
 - **Done this execution:** reconciled stale “scope needs clarification” notes across decision/problem/evidence memory and recorded current exact-head evidence boundary. This is documentation maintenance, not proof that all product behavior is implemented.
 - **Next action:** poll APK and all six Device Smoke lanes; inspect logs and repair failures safely. Then validate reminder/follow-up independence and calendar projection end-to-end, including legacy data/backup/restore and physical-device acceptance. Release remains **NO-GO**.
+
+
+# LIVE JOB UPDATE — 2026-10-13
+
+- Re-polled exact-head Build run `38361448901` for PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Analyze and test shards 0–5 are now confirmed successful. Debug APK and Release APK remain `in_progress`; Build is not yet complete.
+- Device Smoke run `38361448950` has not advanced in the latest poll: Home and Quick Capture `in_progress`; SQL Persistence, SQL Migration, People and Backup/Restore `queued`. No failures observed so far, but the six-lane suite is not complete.
+- The memory reconciliation commits on the documentation branch are complete; they do not alter app code or validate the feature. Release remains **NO-GO**.
