@@ -150,7 +150,7 @@ void main() {
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
 
-  test('migrated legacy Task reminder projects exactly once with legacy identity', () {
+  test('legacy Task reminder keeps its original notification identity', () {
     final task = Task.fromJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
