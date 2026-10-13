@@ -21,8 +21,14 @@ class WaitingForResponseService {
   bool isWaiting(Task task) {
     if (task.completed || task.archived || task.trashed) return false;
     final latest = task.lastFollowUp;
-    return latest != null && isWaitingResult(latest.result);
+    return latest != null && isWaitingFollowUp(latest);
   }
+
+  /// A structured waiting state is valid only when at least one Person is
+  /// attached. Legacy result text alone is retained as historical information,
+  /// but it is not a valid active waiting-for-response relation.
+  bool isWaitingFollowUp(FollowUp followUp) =>
+      followUp.waitingForResponse && followUp.personIds.isNotEmpty;
 
   bool isWaitingResult(String? result) {
     if (result == null) return false;
@@ -44,6 +50,8 @@ class WaitingForResponseService {
         reminderDate: followUp.reminderDate,
         nextFollowUp: followUp.nextFollowUp,
         completed: followUp.completed,
+        waitingForResponse: true,
+        personIds: followUp.personIds,
       );
 
   String _normalize(String value) =>
