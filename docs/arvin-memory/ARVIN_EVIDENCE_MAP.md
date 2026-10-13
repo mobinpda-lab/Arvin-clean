@@ -540,3 +540,20 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Release | PR #2666 open/unmerged | **NO-GO** | No physical-device evidence; all gates must pass on one exact final SHA |
 
 Source branch commits after the prior run: `140d47f5`, `849530cf`, `17296f0e`, `ad9c4448`. The execution-state documentation update is commit `ad0ceee1ad16254e94faed734dd3e50c3091ee79`; none of these newer source/documentation revisions inherits the prior run's validation.
+
+
+
+## 2026-10-13 — Live status registration: settings test failure on SHA `066c87ec90625b8fe894df45d0a82227802ff65f`
+
+| Gate / claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Analyze | [Build run 38448584824](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584824) — job `115473670764` | Success | Exact SHA only; overall Build not terminal |
+| Test shards 0, 1, 3 | Same run; jobs `115473670681`, `115473670840`, `115473670750` | Success | Does not compensate for failed shard or pending shards |
+| Settings widget test | Same run; job `115473670604`; `test/settings_page_test.dart:58` | **Failure:** `scrollUntilVisible(find.text('تیره'))` throws `Bad state: No element` | Root cause not yet established; inspect page/scroll state after time-picker dismissal |
+| Test shards 4, 5 and Debug/Release APK | Same run; jobs `115473670612`, `115473670722`, `115473670502`, `115473670312` | In progress at poll | Not accepted as pass |
+| Device Smoke | [Run 38448584991](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584991) | Quick Capture passed; Home and SQL Persistence running; remaining lanes queued | Not terminal; all six lanes and physical-device evidence required |
+| Calendar Provider Acceptance | [Run 38448584862](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584862), job `115473351376` | In progress | Not accepted as pass |
+| Build artifacts | Artifacts endpoint checked for run `38448584824` | No artifacts listed | Recheck after build completion |
+| Release | [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | Open/unmerged; **NO-GO** | All required gates must pass on the same final SHA; physical-device acceptance outstanding |
+
+This entry records status only; no source/test change is claimed by this checkpoint.
