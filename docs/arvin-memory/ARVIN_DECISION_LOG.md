@@ -196,3 +196,8 @@
 - **External/device Calendar boundary remains explicit:** only user-created Reminders with authorized/enabled sync and explicitly sync-enabled Events may be projected externally. `nextFollowUp` alone never authorizes external event creation or OS notification.
 - This supersedes the earlier “scope unclear / wait for clarification” status above. It does not claim implementation or validation is complete. `Task` remains canonical; `nextFollowUp` and `reminderDate` are independent; edits/deletes must not cross-mutate without explicit user choice. Multiple reminders are owner-approved as separately identified items.
 - Evidence gate remains open; Release NO-GO until exact-head tests/build, six device-smoke lanes, and physical-device acceptance are recorded.
+
+## Canonical decision-document filename correction — 2026-10-13
+
+- The authoritative file created for the owner-supplied Calendar/Follow-up/Reminder decision is `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- Any older reference in this log to `ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md` is a stale filename reference, not a second competing decision. The owner-supplied final scope clarification is recorded in the canonical file above.
