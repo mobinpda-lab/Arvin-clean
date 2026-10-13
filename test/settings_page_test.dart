@@ -50,7 +50,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('all-day-reminder-time-setting')));
     await tester.pumpAndSettle();
     expect(find.text('زمان اعلان یادآورهای تمام‌روزه'), findsOneWidget);
-    await tester.tap(find.text('CANCEL'));
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('تیره'));
