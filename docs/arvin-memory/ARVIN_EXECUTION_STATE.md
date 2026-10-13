@@ -1160,3 +1160,16 @@ This checkpoint records the owner's explicit operational clarification. It super
 ## Latest poll correction — 2026-10-13 15:44 UTC
 
 The integration branch advanced again during this audit. Latest observed parent PR #2666 head is `90c2addbd128776241d06d10f7f57207973d8907`. At this poll, Build and Device Smoke were pending; Calendar Provider Acceptance and several orchestration/lock workflows were queued. These are not pass results. Child PR #2681 remains Draft, unmerged, not mergeable, and has no associated workflow runs. This correction is documentation-only; it does not validate the source changes.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest execution checkpoint)
+
+- **Parent PR #2666 live head:** `7c830e441a75656faebb4aa63bb146f92ebfab05`, open, unmerged, GitHub reports mergeable. The current CI set for this exact head is not green yet: Build is queued; Calendar Provider Acceptance is in progress; Device Smoke is queued; orchestration and production-loop workflows have completed successfully, but those do not substitute for Build/Calendar/Device acceptance.
+- **Smoke-test correction included:** commit `69789128d36ad05249a2466b3a34125562cdef8b` replaced the obsolete `task-editor-followup-enabled` assertion with the canonical `task-editor-add-follow-up` control. Confirmed the updated assertion exists in the parent branch file. No passing test result is claimed until exact-head CI finishes.
+- **Related PR #2679 failure inspected:** its Build run `38417142693` has Analyze and APK jobs green, but test shard 2 failed: 232 tests passed and `test/follow_up_office_page_test.dart` failed at line 263 because the expected waiting Task was not rendered. The implementation still derives waiting from `FollowUp.result` and latest-record-only semantics. This conflicts with the accepted structured per-Follow-up waiting/Person model in this branch; do not merge #2679 independently or patch around the test by weakening the assertion.
+- **Child PR #2681:** remains Draft/unmerged and GitHub reports it not mergeable. Its branch remains materially diverged from the parent integration branch. Do not force-push or blindly merge; reconcile source and tests deliberately, retaining both parent reminder work and child structured Person/Follow-up work.
+- **P1s remain open:** #2682 standalone Person directory backup/restore, #2683 Person-based reporting. Both require implementation plus regression evidence.
+- **Next action:** wait for exact-head parent CI to finish; in parallel, reconcile the #2679 waiting semantics into the structured child implementation and plan the Person directory backup/restore extension on the same portable backup/restore path. Do not claim tests, build, device validation, or release readiness without actual green evidence.
+- **Release:** **NO-GO**.
