@@ -1,3 +1,20 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (TaskReminder model + legacy decoder slice)
+
+This is the newest checkpoint. Re-read live PR metadata and exact-head CI before continuing; older checkpoints below are historical where they conflict.
+
+- **Repository/main:** `mobinpda-lab/Arvin-clean`; main checkpoint `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Safe integration PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`, base main. It was a docs-only integration plan; this run began porting the approved feature in small slices. Keep Draft and unmerged.
+- **Completed code slice:** `lib/models/task.dart` now contains `TaskReminder` fields `id/taskId/title/date/status/createdAt/updatedAt/isAllDay/sequence`, canonical Task JSON serialization, sequence persistence, deterministic legacy reminder ID `legacy-task-reminder:<taskId>`, and a persisted `legacyReminderMigrationCompleted` tombstone. The legacy `Task.reminderDate` remains present for rollback/old-reader compatibility. Midnight is not inferred as all-day; `nextFollowUp` does not create a reminder.
+- **Tombstone rationale:** if a migrated item is later removed, the marker prevents subsequent `Task.fromJson` from silently recreating it. Calendar projection must also respect the marker; until that slice lands, duplicate external projection is an open blocker.
+- **Regression tests added:** `test/follow_up_reminder_model_test.dart` now covers deterministic migration, repeated JSON round-trip, sequence allocation above existing reminders, deletion tombstone, and `nextFollowUp` independence.
+- **Code checkpoint SHA:** `cc1d668b814f96f6c4b1f34f3cebce85ff484714` (model + focused tests). The exact-head Build was pending and Device Smoke was skipped at that poll. Four subsequent documentation commits updated Decision Log, Project Knowledge, Problem Register and Evidence Map; therefore CI for the code checkpoint is not proof for the current branch head.
+- **Memory:** those four documents were updated on this branch. This execution-state update itself creates another commit; query PR #2666's resulting head and exact-head runs after the write.
+- **Still open:** Calendar projection must emit migrated legacy reminders under the existing identity `task-reminder:<taskId>` exactly once, suppress separate legacy projection when the marker is set, and honor deletion tombstones. Then port independent new-reminder projection, notifications, editor CRUD, backup/restore and SQL round-trip; reconcile main's display-only Follow-up Action projection and never send it to outbound sync/scheduler.
+- **Next action:** finish the legacy/new reminder Calendar projection identity slice and focused tests on this safe integration branch; poll the newest exact-head Build/Calendar Provider/Device Smoke. Do not merge until all required CI, provider, backup/restore and physical-device gates pass.
+- **Release:** NO-GO. No claim of passing tests/build/device acceptance is made here.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (approved migration contract reconciliation)
 
 This entry is the newest operational checkpoint. Older entries are historical and must not override these live findings.
