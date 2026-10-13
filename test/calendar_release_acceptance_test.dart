@@ -140,6 +140,11 @@ void main() {
   testWidgets(
     'Calendar release acceptance routes completion without exposing ineffective snooze',
     (tester) async {
+      tester.view.physicalSize = const Size(800, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final day = DateTime(2026, 9, 9, 10);
       var completed = 0;
       final reminder = CalendarReminder(
