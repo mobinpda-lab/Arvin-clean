@@ -7,6 +7,7 @@ import 'package:arvin/services/task_store.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/follow_up_office_page.dart';
+import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/follow_up.dart';
 
@@ -104,6 +105,12 @@ void main() {
     expect(find.text('مشتری پاسخ داده'), findsNothing);
     expect(find.text('کار تمام‌شده'), findsNothing);
     expect(find.text('کار بایگانی‌شده'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('follow-up-open-task-waiting-active')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(TaskDetailPage), findsOneWidget);
   });
 
   testWidgets('adds and persists a follow-up for the only task',
