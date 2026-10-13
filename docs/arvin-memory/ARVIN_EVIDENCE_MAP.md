@@ -469,3 +469,10 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Task deletion requires explicit confirmation | _confirmDeleteTask in lib/calendar_page.dart; widget test | Implemented in source; test added | Test result pending |
 | Existing Task and external Calendar identity remain stable | canonical launcher ID resolution and existing Calendar sync path | Intended; not yet accepted | Needs end-to-end regression and Calendar Provider acceptance |
 | Small screen, RTL, day/week/month and physical device | No new screenshot or device evidence yet | NOT VERIFIED | Capture genuine evidence after tests pass |
+
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Reminder long press cannot delete the parent Task | lib/calendar_page.dart and test/calendar_runtime_actions_fast_track_test.dart | Guard and regression test added | Latest test run pending; no pass claim |
+| Both Calendar entry points preserve the same management callbacks | lib/main.dart | Implemented in source | Exact-head route/UI validation pending |
+| Internal Follow-up Action opens its Task without becoming a Reminder | lib/calendar_page.dart; lib/widgets/canonical_calendar_launcher.dart; existing projection-separation decision | Implemented in source | End-to-end acceptance and device evidence pending |
