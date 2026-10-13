@@ -1,3 +1,13 @@
+## LIVE PROBLEM UPDATE — 2026-10-13 (prayer action test)
+
+- **Problem:** `test/official_calendar_prayer_actions_test.dart` failed on the prior integration head because the test expected the transient action-sheet label `ادا شد` to remain visible after the sheet closed; it also selected `قضا شد` without reopening the sheet.
+- **Root cause:** test lifecycle/expectation mismatch, not yet evidence of a production prayer-state persistence defect.
+- **Repair commit:** `b38d4e630f01a72beee2b2d35bf24f2ee744c3de` changes the test to verify persisted `completed`, reopen the card action sheet, then verify persisted `notCompleted`.
+- **Status:** FIX IMPLEMENTED; exact-head CI PENDING. Do not mark resolved until the revised test passes in the latest workflow run.
+- **Priority:** P1 test/release blocker. Release remains NO-GO pending full exact-head gates and physical-device acceptance.
+
+---
+
 ## 2026-10-13 — Follow-up flag UX and waiting-list discoverability
 
 - **Problem:** Quick Entry and Full Form exposed «کار پیگیری‌دار», a flag that was not a real Follow-up record. The waiting-for-response filter existed inside the Follow-up Office but was not directly discoverable from Home.
