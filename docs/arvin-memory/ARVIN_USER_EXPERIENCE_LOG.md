@@ -84,3 +84,12 @@ No new owner installation, physical-device result, screenshot, or acceptance was
 - **Product implication:** current owner-entered records should not be described as being at risk of migration loss. This statement does not independently verify all installed databases, local fixtures, old backups, or legacy JSON payloads.
 - **Engineering response:** retain fresh-install/empty-database coverage and continue compatibility testing for legacy Task.reminderDate, old JSON/backup decoding, idempotent migration and duplicate-safe Calendar identity. Empty current data does not waive release validation or authorize deleting compatibility paths.
 - **Status:** recorded; implementation/CI/device validation remain separate and pending. No user data was changed.
+
+
+## 2026-10-13 — Calendar Tap / Long Press interaction
+
+- **Observed problem:** The calendar card's short tap expanded/collapsed the card instead of entering Task Detail. Edit and device-Calendar registration controls were visible before expansion, increasing the risk of accidental management.
+- **User-approved target:** Short tap opens the existing Task; long press exposes management actions. Follow-up, Reminder and recurrence types must stay distinct.
+- **Implementation progress:** Added a detail-navigation callback through the existing calendar launcher and Home route; management actions moved to a long-press menu; delete asks for confirmation; item labels are based on ID/type.
+- **Validation status:** automated workflow runs for the latest code wave were queued/pending. No screenshot, physical-device result, or passing acceptance claim is recorded yet.
+- **Next:** verify day/week/month, small viewport, RTL text, scroll gestures, no duplicate Task/Event, and selected type in detail on a final exact SHA.
