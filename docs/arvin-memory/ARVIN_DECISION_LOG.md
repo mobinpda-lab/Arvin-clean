@@ -247,3 +247,14 @@
 - **Migration contract:** migrate legacy Task `reminderDate` to exactly one reminder using deterministic identity and idempotent retry; preserve old data until durable validation; never infer all-day from midnight; preserve Calendar identity so legacy/new projections do not duplicate events.
 - **Architecture:** canonical Task JSON/SQL and existing Calendar/notification/backup systems remain the source of truth. No parallel store/scheduler. Internal Follow-up Action projection remains display-only and excluded from outbound sync and reminder notifications.
 - **Status:** OWNER DECISION APPROVED; implementation, tests, physical-device validation and release approval remain outstanding. Supersedes earlier entries that described architecture approval as pending. See `ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, Issue #2654 and PR #2655.
+
+---
+
+## 2026-10-13 — Implementation and cleanup status update
+
+- **Decision remains accepted:** all Tasks are inherently follow-up-capable; `followUpEnabled` is compatibility-only; Follow-up status and Person associations belong to the Follow-up record; `nextFollowUp` and `reminderDate` remain independent.
+- **Source now present on the stacked implementation branch:** structured `waitingForResponse` and `personIds` in FollowUp JSON and SQL; lightweight Person directory in Settings; UI validation requiring at least one Person for waiting status; Quick Add and Full Task Editor flag control removal.
+- **Cleanup fixes:** additional active writes to the legacy flag were removed; Calendar inbound edits preserve Person/waiting fields; Report filter uses canonical Follow-up records; waiting status/list now considers each structured Follow-up record.
+- **Newly identified gap:** standalone Person directory records are not included in portable backup/restore. This is a P1 data-integrity blocker, not accepted as complete. Add to existing backup format and its rollback flow; do not create a parallel backup system.
+- **Newly identified gap:** Person-based Report Center filtering/result rows remain incomplete.
+- **Validation:** focused regression tests were added/updated, but not run/confirmed at exact head. PR #2681 is Draft and stacked on PR #2666; release remains NO-GO.
