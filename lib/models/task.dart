@@ -30,6 +30,8 @@ class FollowUp {
         'note': note,
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (legacyReminderMigrationCompleted)
+          'legacyReminderMigrationCompleted': true,
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
         if (nextReminderSequence > 1)
@@ -45,6 +47,7 @@ class FollowUp {
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
       reminderDate: legacyReminderDate,
+      legacyReminderMigrationCompleted: legacyReminderMigrationCompleted,
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
       nextFollowUp: json['nextFollowUp'] == null
@@ -163,6 +166,7 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    this.legacyReminderMigrationCompleted = false,
     Iterable<TaskReminder> taskReminders = const [],
     int nextReminderSequence = 1,
     this.priority = TaskPriority.none,
@@ -203,6 +207,10 @@ class Task {
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
+  /// True once the legacy Task reminder has been represented in the canonical
+  /// collection. The legacy value is retained for rollback, but must no longer
+  /// be projected separately after the migrated record is durable.
+  bool legacyReminderMigrationCompleted;
   /// Independent reminders stored in the canonical Task JSON envelope.
   List<TaskReminder> taskReminders;
   /// Next per-Task reminder number; deleted numbers are never reused.
@@ -389,9 +397,15 @@ class Task {
 
     // Deterministically represent the legacy Task reminder exactly once.
     // Keep reminderDate intact for rollback and old-reader compatibility.
+    var legacyReminderMigrationCompleted =
+        json['legacyReminderMigrationCompleted'] as bool? ?? false;
     final legacyReminderId = 'legacy-task-reminder:$taskId';
-    if (legacyReminderDate != null &&
-        !loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId)) {
+    final hasMigratedLegacyReminder =
+        loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId);
+    if (legacyReminderDate != null && !legacyReminderMigrationCompleted) {
+      if (hasMigratedLegacyReminder) {
+        legacyReminderMigrationCompleted = true;
+      } else {
       final sequence = nextReminderSequence;
       final title = taskTitle.trim().isEmpty
           ? 'یادآور کار — ${_toPersianDigits(sequence)}'
@@ -411,6 +425,8 @@ class Task {
         ),
       );
       nextReminderSequence = sequence + 1;
+        legacyReminderMigrationCompleted = true;
+      }
     }
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
