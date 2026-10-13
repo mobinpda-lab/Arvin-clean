@@ -1,3 +1,22 @@
+# CURRENT BLOCKER MATRIX — 2026-10-13
+
+| ID | Blocker | Priority | Status | Required evidence / next action |
+|---|---|---|---|---|
+| R1 | Legacy `Task.reminderDate` migration and missing TaskReminder metadata | P1 / data risk | OPEN; implementation absent | Add taskId/status/createdAt/updatedAt; deterministic idempotent migration, old-backup, rollback and preservation tests |
+| R2 | Duplicate Task reminder Calendar projection | P1 | Code/test committed; validation pending | Exact-head regression and provider acceptance must pass |
+| R3 | Feature branch behind main; Calendar projection overlap | P1 | OPEN; no safe integration | Reconcile main's internal Follow-up display-only projection and prove no outbound sync/notifications |
+| R4 | Checklist toggle visibility tests (2 cases) | P1 | Older-head failures; current state unverified | Reproduce/fix and pass both tests at exact current head |
+| R5 | All-day ListTile Material/ink assertion | P2 | Source wrapper present; validation pending | Pass full-entry test at exact current head |
+| R6 | No exact-head CI evidence for PR #2655 | P1 | OPEN | Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance and six Device Smoke lanes on same SHA |
+| R7 | Physical-device feature acceptance | P0 release gate | OPEN; not done | Real phone: same-event update/no duplicates, real Backup/Restore and link integrity, RTL/compact-screen flow |
+| R8 | Release gate #2102 | P0 | OPEN | Complete current-main/device evidence, Calendar edit, backup/restore, Home visual/RTL, broken-link recovery, golden flow, owner approval |
+| R9 | Installed Calendar regression #2535 | P0 acceptance | OPEN | Installed APK: manual register/edit actions, correct recurrence dates/count, same Task/event, no duplicates |
+| R10 | Release readiness | P0 | NO-GO | Do not merge/publish until above evidence is accepted |
+
+Note: successful older-head Device Smoke/Calendar Provider runs do not override the failed older Build and do not validate current head.
+
+---
+
 ## LIVE BLOCKER — 2026-10-13: legacy reminder migration contract mismatch
 
 - **Priority:** P1 — data compatibility and duplicate Calendar event risk.
