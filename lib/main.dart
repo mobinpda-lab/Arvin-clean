@@ -2311,12 +2311,17 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
+              onRefreshTasks: _refreshCanonicalTasksForCalendar,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
+              onEditTask: (task) async { await _editFromDetail(task); },
               onOpenTaskDetail: (task, item) => _openTaskDetail(
                 task,
                 calendarItemLabel: _calendarItemLabel(item),
               ),
+              onDeleteTask: _trashTaskFromCalendar,
+              onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
+              onRetryCalendarSync: () => _retryCalendarSync(tasks),
             ),
           ),
         );
