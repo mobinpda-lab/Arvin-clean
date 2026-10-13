@@ -2901,7 +2901,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (followUpDate != null) ...[
+                      if (followUpDate != null || task.followUpEnabled) ...[
                         const SizedBox(height: 7),
                         Container(
                           key: ValueKey('task-card-followup-visual-${task.id}'),
@@ -2921,7 +2921,9 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(width: 5),
                               Flexible(
                                 child: Text(
-                                  'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
+                                  followUpDate == null
+                                      ? 'پیگیری‌دار'
+                                      : 'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
                                   style: TextStyle(
                                     color: colors.tertiary,
                                     fontSize: 11,
