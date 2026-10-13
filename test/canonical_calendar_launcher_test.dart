@@ -512,14 +512,16 @@ void main() {
     expect(register, findsOneWidget);
 
     await tester.tap(edit);
-    await tester.pumpAndSettle();
+    // Calendar retains a live animation; allow the action callback a bounded frame window.
+    await tester.pump(const Duration(milliseconds: 300));
     expect(identical(edited, task), isTrue);
 
     await tester.longPress(card);
     // The Calendar animation remains active; use a bounded frame pump.
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(register);
-    await tester.pumpAndSettle();
+    // Avoid waiting for the perpetual Calendar animation to settle.
+    await tester.pump(const Duration(milliseconds: 300));
     expect(registered?.id, occurrenceId);
     expect(registered?.date, anchor);
 
