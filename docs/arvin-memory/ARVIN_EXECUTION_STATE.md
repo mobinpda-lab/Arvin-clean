@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (TaskReminder full vertical slice, pending validation)
+
+This is the newest checkpoint. Re-read the live PR head and Actions before relying on any status below; earlier checkpoints are historical.
+
+- **Repository/main base:** `mobinpda-lab/Arvin-clean`, base SHA `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Integration branch/PR:** `integration/task-multiple-reminders-safe-20261013`, [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), Draft and unmerged. It is a safe integration branch; do not merge PR #2655 blindly.
+- **Implemented source areas:** `lib/models/task.dart` (TaskReminder metadata, deterministic legacy decode, sequence and migration tombstone); `lib/services/task_store.dart` (canonical envelope recognizes reminder fields, empty collection/tombstone always serialize); `lib/task_editor_dialog.dart` (independent reminder add/edit/delete); `lib/services/task_edit_apply_service.dart`; Calendar projection, outbound and inbound sync; notification projection, delivery, alarm planner and delivery state.
+- **Compatibility behavior:** the legacy Task reminder maps to deterministic ID `legacy-task-reminder:<taskId>` and retains the external Calendar identity `task-reminder:<taskId>`; new reminders use `task-reminder-item:<taskId>:<reminderId>`. The migration marker suppresses legacy duplicate projection and acts as a deletion tombstone. `FollowUp.reminderDate` and `nextFollowUp` remain independent. Internal Follow-up Action projections remain display-only.
+- **Important persistence fix:** `TaskStore._canonicalEnvelope` used to preserve old fields it did not recognize. Conditional omission of an empty reminder collection could therefore restore deleted reminders from prior JSON. Task JSON now always writes the collection, next sequence and migration marker, and TaskStore recognizes them as canonical keys. A SQL save/reload regression test covers this case.
+- **Tests added/ported:** model migration/idempotence/tombstone; Calendar stable ID and same-time distinct reminders; inbound provider edit/delete isolation for new and migrated reminders; outbound eligibility; notification identity, all-day scheduling and alarm planning; Task Editor CRUD/migration deletion; TaskEditApplyService; SQL persistence and backup/restore round-trip. These are code-level additions, not yet confirmed passing.
+- **Code checkpoint before memory updates:** `f143a5886c907483d4101e4c8510b41907dc2d77` included editor-apply tests; later SQL-envelope, persistence, backup tests and guard fixes followed. Four memory docs were updated immediately before this state file. This state-file write itself advances the branch head, so re-query the live PR for the actual final SHA.
+- **Validation status at latest pre-doc checkpoint:** Build pending; Calendar Provider Acceptance queued/in progress; Device Smoke skipped. No green exact-final-head validation, no physical-device result, and no release acceptance is established.
+- **Owner decision required:** the code currently uses 09:00 local notification time for all-day reminders, but the approved architecture only says to use a documented local-time policy and does not specify the hour. This implementation is provisional. Ask the owner to approve 09:00 or specify another local time before merge; do not silently treat it as approved.
+- **Next action:** update PR description and trigger/check Actions on the resulting exact head; inspect all Build/analyzer/test failures; finish SQL/backup and UI review; obtain the all-day notification-time decision; then run the required exact-head Analyze, test shards 0–5, Debug/Release APK, Calendar Provider Acceptance, six Device Smoke lanes and physical-device acceptance.
+- **Release:** NO-GO until the exact-head quality gates and owner decision are satisfied.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (TaskReminder model + legacy decoder slice)
 
 This is the newest checkpoint. Re-read live PR metadata and exact-head CI before continuing; older checkpoints below are historical where they conflict.
