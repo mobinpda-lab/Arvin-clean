@@ -68,4 +68,55 @@ void main() {
       isNull,
     );
   });
+
+  test('plans all-day Task reminder at 09:00 local time', () {
+    final createdAt = DateTime(2026, 10, 1, 10);
+    final reminder = TaskReminder(
+      id: 'all-day',
+      taskId: 'task-all-day',
+      title: 'یادآور تمام‌روز',
+      date: DateTime(2026, 10, 6),
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      isAllDay: true,
+      sequence: 1,
+    );
+    final task = Task(
+      id: 'task-all-day',
+      title: 'کار',
+      taskReminders: [reminder],
+      nextReminderSequence: 2,
+    );
+
+    expect(
+      planner.nextAlarmAt(
+        [task],
+        deliveredState: const {},
+        now: DateTime(2026, 10, 6, 8),
+      ),
+      DateTime(2026, 10, 6, 9),
+    );
+    expect(task.taskReminders.single.date, DateTime(2026, 10, 6));
+  });
+
+  test('migrated legacy reminder retains delivery identity across migration', () {
+    final at = now.add(const Duration(hours: 2));
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': at.toIso8601String(),
+    });
+
+    expect(
+      planner.nextAlarmAt(
+        [task],
+        deliveredState: {
+          'task:legacy-task': 'task:legacy-task@${at.toIso8601String()}',
+        },
+        now: now,
+      ),
+      isNull,
+    );
+  });
+
 }
