@@ -234,21 +234,17 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   List<_FollowUpRow> get _waitingRows {
-    final activeTaskIds = _canonicalTasks
-        .where((task) => !task.completed && !task.archived && !task.trashed)
-        .map((task) => task.id)
-        .toSet();
-    final latestByTask = <String, _FollowUpRow>{};
-    for (final row in _rows) {
-      if (row.taskId.isEmpty || !activeTaskIds.contains(row.taskId)) continue;
-      final current = latestByTask[row.taskId];
-      if (current == null || row.dateTime.isAfter(current.dateTime)) {
-        latestByTask[row.taskId] = row;
+    final latestWaitingFollowUpIds = <String, String>{};
+    for (final task in _canonicalTasks) {
+      if (!_waitingService.isWaiting(task)) continue;
+      final latest = task.lastFollowUp;
+      if (latest != null && task.id.isNotEmpty) {
+        latestWaitingFollowUpIds[task.id] = latest.id;
       }
     }
 
-    final waiting = latestByTask.values
-        .where((row) => _waitingService.isWaitingResult(row.result))
+    final waiting = _rows
+        .where((row) => latestWaitingFollowUpIds[row.taskId] == row.followUp.id)
         .toList();
     waiting.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     return waiting;
