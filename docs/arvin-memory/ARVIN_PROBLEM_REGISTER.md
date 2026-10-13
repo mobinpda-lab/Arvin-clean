@@ -320,3 +320,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Correction:** describe the multiple-reminder migration issue as a persistence/compatibility implementation blocker, not as confirmed loss risk to existing owner-entered data.
 - **Boundary:** do not infer that all installed databases, older backups, test fixtures or legacy payloads are empty without inspection. Compatibility and rollback tests remain required before release.
 - **Status:** documentation clarified. No app code or database changed; migration, current-head CI and physical-device acceptance remain open.
+
+
+## 2026-10-13 — Calendar item interaction mismatch (P1/P2 UX)
+
+- **Problem:** Short tap did not open Task Detail; management chips were visible during ordinary browsing; item long press had no typed action menu.
+- **Root cause:** The card tap toggled local expansion, and the canonical Calendar flow had no explicit Task Detail callback. Item IDs for independent reminders were not fully included in edit/register target resolution.
+- **Impact:** Extra interaction friction and increased accidental-action risk; selected Follow-up/Reminder semantics were unclear.
+- **Solution in progress:** Added canonical Task Detail navigation, type labels, long-press menu, delete confirmation, independent reminder ID resolution, and widget acceptance tests.
+- **Evidence:** source/test changes are committed on the integration branch. Exact-head Build, Calendar Provider Acceptance and Device Smoke remain pending/queued at last poll.
+- **Status:** OPEN pending test pass, integration validation, and genuine small-screen/device evidence. Track in Issue #2685.
