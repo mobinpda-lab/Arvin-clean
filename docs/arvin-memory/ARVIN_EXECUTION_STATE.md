@@ -1207,3 +1207,16 @@ The integration branch advanced again during this audit. Latest observed parent 
 - **Device Smoke:** run [38425808110](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38425808110) remains in progress at latest poll. Quick Capture, SQL migration, SQL persistence, Backup/Restore, and Home lanes succeeded; People lane is still running. This is not yet an overall completed smoke gate.
 - **Current blocker:** test failures span Task Editor/Settings, reminder projection and Calendar legacy identity, waiting-list contract, Notebook conversion, and RTL swipe acceptance. Prioritize the smallest reproducible root cause; rerun exact-head tests after each code fix. Child PR #2681 remains Draft/not mergeable and its Person backup/report gaps #2682/#2683 remain open.
 - **Next action:** fetch full failing test context and current implementation for the exact PR head; fix one confirmed root cause without changing accepted contracts, then commit and rerun targeted CI. Keep release **NO-GO** until Build is green and Device Smoke reaches a successful terminal state plus child architecture gates pass.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (first CI-root-cause correction committed)
+
+- **Parent PR #2666 head:** `4b7d5e3d454d0e1204ed6702e5643c78be83eac5`; open, unmerged, mergeable. Commit: [4b7d5e3](https://github.com/mobinPda-lab/Arvin-clean/commit/4b7d5e3d454d0e1204ed6702e5643c78be83eac5).
+- **Correction scope:** test-only changes in `test/follow_up_reminder_model_test.dart` and `test/follow_up_reminder_projection_test.dart`.
+  - The Task migration code explicitly documents that the migrated legacy reminder must preserve its legacy Calendar title/fingerprint (`یادآوری: <Task title>`). Two assertions expected a different title (`<Task title> — یادآور ۱`), contradicting that existing compatibility contract; expectations now match the preserved legacy title.
+  - The multiple-reminder projection fixture had its second timed reminder at midnight while the test's `now` was 08:00. Since it is a timed (not all-day) reminder, it was correctly expired and filtered. The fixture now schedules it at 10:00 and expects 10:00, so the test verifies two genuinely active reminders instead of weakening expiry behavior.
+- **Validation trigger:** exact-head Build run [38428476972](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476972) is in progress; Calendar Provider Acceptance [38428476999](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476999) and Device Smoke [38428476964](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38428476964) are also queued/in progress. No pass is claimed yet.
+- **Not addressed by this commit:** checklist UI contract failures, all-day setting key, Calendar inbound legacy identity/delete tests, waiting-list semantic mismatch, Notebook conversion and RTL swipe timeouts; they require separate root-cause work.
+- **Next action:** inspect this exact head's Build and smoke outcomes; if these two test corrections pass, take the next smallest source-level root cause. Keep PR unmerged and release **NO-GO** until all gates and Person backup/report work are validated.
