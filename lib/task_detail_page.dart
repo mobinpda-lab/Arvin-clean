@@ -72,7 +72,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (latest != null && _waitingService.isWaitingResult(latest.result)) {
       return 'در انتظار پاسخ';
     }
-    return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
+    return _task.followUps.isNotEmpty || _task.followUpDate != null
+        ? 'دارای سابقه پیگیری'
+        : 'در انتظار انجام';
   }
 
   Color _statusColor() {
