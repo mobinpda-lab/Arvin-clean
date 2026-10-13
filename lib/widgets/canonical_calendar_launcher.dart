@@ -184,7 +184,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       final next = List<FollowUp>.of(task.followUps);
       next[followUpIndex] = updated;
       task.followUps = next;
-      task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
   }
