@@ -38,7 +38,11 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const ValueKey('all-day-reminder-time-setting')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('all-day-reminder-time-setting')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('all-day-reminder-time-setting')), findsOneWidget);
     expect(find.textContaining('پیش‌فرض ۹:۰۰ صبح'), findsOneWidget);
