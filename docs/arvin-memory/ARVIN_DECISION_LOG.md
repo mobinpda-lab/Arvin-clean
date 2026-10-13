@@ -1,3 +1,10 @@
+## 2026-10-13 — Calendar Follow-up/Reminder projection scope finalized
+
+- Owner decision: in Arvin's internal Calendar, display Reminder item(s) when present; otherwise display `nextFollowUp` as a clearly labeled Follow-up Action.
+- External/device Calendar sync receives only authorized Reminders and explicitly sync-enabled Events. `nextFollowUp` alone must never create an external event or OS notification.
+- The previous scope clarification gate is resolved. Full decision: `ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- Follow-up and Reminder remain independent; no implicit cascade on edit/delete. Implementation status and release acceptance remain unproven until exact-head tests and device evidence pass.
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
