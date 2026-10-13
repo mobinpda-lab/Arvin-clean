@@ -333,3 +333,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | Exact-head validation for PR #2681 is absent | Authored tests do not prove the branch compiles or behaves correctly | **P1 OPEN — release gate** | Obtain exact-head analyze/test/build/Calendar/device evidence |
 | Follow-up flag was still written by several mutation paths and consumed by Report filter | New records could depend on a deprecated Task-level switch | **Partially repaired; audit remains** | Re-search all read/write sites, preserve old values only for compatibility, and test all product paths |
 | Calendar inbound Follow-up update could drop waiting/Person fields | External Calendar edits could silently erase Follow-up associations | **Source fix + regression test authored; validation pending** | Run the exact Calendar inbound test and provider acceptance suite |
+
+---
+
+## 2026-10-13 — Exact branch/CI status update
+
+- [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682): Person directory backup/restore remains P1 OPEN.
+- [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683): Person-specific reports remain P1 OPEN.
+- PR #2681 is Draft and reported not mergeable against its current base; no child-head workflow evidence was returned.
+- Parent PR #2666 head `d70827e1db927dcac2afc7367ca0d2e759359d8e`: Build/Device Smoke queued; Calendar Provider Acceptance in progress.
+- Related PR #2679 had 232 tests pass and one waiting-list test fail on its own merge head. This is not validation of PR #2681.
