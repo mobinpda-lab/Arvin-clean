@@ -119,3 +119,9 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
 - Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
 - Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
+
+## 2026-10-13 — Approved implementation contract
+- Owner command approved the multiple independent Task reminder product direction and safe migration from legacy Task `reminderDate`. Earlier “proposal only / owner approval required” wording is superseded for product direction, but not for implementation correctness.
+- Canonical model requirements: each TaskReminder has stable ID, title, date/time, status, taskId, createdAt, updatedAt, and explicit date-only/all-day semantics. Keep `nextFollowUp` and legacy per-FollowUp `reminderDate` separate.
+- Migration requirements: preserve legacy data; convert it to exactly one reminder; be idempotent; preserve legacy/new Calendar identity; never infer all-day from midnight; no duplicate notifications or events; old backups remain readable.
+- Safe integration branch currently contains documentation only. No multiple-reminder application code has yet been ported or validated there.
