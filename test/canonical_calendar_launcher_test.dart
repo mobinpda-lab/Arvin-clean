@@ -516,7 +516,8 @@ void main() {
     expect(identical(edited, task), isTrue);
 
     await tester.longPress(card);
-    await tester.pumpAndSettle();
+    // The Calendar animation remains active; use a bounded frame pump.
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(register);
     await tester.pumpAndSettle();
     expect(registered?.id, occurrenceId);
