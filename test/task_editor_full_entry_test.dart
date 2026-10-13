@@ -353,4 +353,36 @@ void main() {
     expect(result!.nextReminderSequence, 2);
   });
 
+
+  testWidgets('full editor adds a real FollowUp record without a flag',
+      (tester) async {
+    Task? result;
+    await openEditor(tester, onResult: (value) => result = value);
+
+    expect(
+      find.byKey(const ValueKey('task-editor-followup-enabled')),
+      findsNothing,
+    );
+    final add = find.byKey(const ValueKey('task-editor-add-follow-up'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'تماس با مشتری');
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تماس با مشتری'), findsOneWidget);
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.note, 'تماس با مشتری');
+    expect(result!.followUpEnabled, isTrue);
+  });
+
+
 }
