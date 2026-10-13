@@ -341,3 +341,12 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Evidence boundary:** this proves only the automated paths executed on that SHA. It is not evidence of physical-device acceptance, external Calendar provider same-event update/no-duplicate, real OS notification behavior, or release approval.
 - **PR status:** #2665 remains open/unmerged. The documentation update itself creates a new head; re-run/verify exact-head gates before treating the new head as validated.
 - **Release gate:** NO-GO until physical-device and provider acceptance plus owner approval are recorded.
+
+
+## LIVE EVIDENCE OVERRIDE — 2026-10-13 — PR #2665 latest queried head
+
+- **Checked head:** `be52a7457b6300cb917b7ab312c2ec4e27c607fa`.
+- **Build:** [38370894374](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894374) — SUCCESS. Analyze, test shards 0–5, Debug APK, Release APK.
+- **Device Smoke:** [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) — SUCCESS. Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
+- These are exact-head automated/emulator results for the queried SHA only. They do not prove physical-device acceptance, provider same-event update/no-duplicate, actual OS notification behavior, or release approval.
+- The memory update itself creates a newer branch head; re-check exact-head Build and all six Device Smoke lanes before merge.
