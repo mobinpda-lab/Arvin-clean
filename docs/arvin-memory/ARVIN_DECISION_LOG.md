@@ -1,3 +1,14 @@
+## 2026-10-13 — Waiting-for-response discoverability
+
+- **Problem:** «منتظر پاسخ دیگران» could be set on a FollowUp, but users had no visible path to the list.
+- **Root cause:** existing `FollowUpOfficePage` and waiting-only filter were implemented but not connected from `lib/main.dart`.
+- **Decision:** expose the existing Follow-up Office from the primary «بیشتر» menu as «دفتر پیگیری», with helper text «پیگیری‌ها و موارد منتظر پاسخ دیگران».
+- **Reason:** restore discoverability by connecting the existing UI, rather than creating a duplicate screen or storage path.
+- **Impact:** the waiting status becomes actionable through the existing filter and edit flow; Task/FollowUp persistence and nextFollowUp/reminder semantics remain unchanged.
+- **Status:** implemented on branch `fix/follow-up-waiting-response-discoverability-20261013`, Issue #2677; exact-head CI pending.
+
+---
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
