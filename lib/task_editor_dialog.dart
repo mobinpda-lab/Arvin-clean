@@ -561,7 +561,9 @@ Future<void> _pickDueDate() async {
   }
 
   bool _sameTaskReminders(List<TaskReminder> a, List<TaskReminder> b) {
-    if (a.length != b.length) return false;
+    if (a.length != b.length) {
+      return false;
+    }
     for (var i = 0; i < a.length; i++) {
       final left = a[i];
       final right = b[i];
@@ -569,7 +571,9 @@ Future<void> _pickDueDate() async {
           left.title != right.title ||
           left.date != right.date ||
           left.isAllDay != right.isAllDay ||
-          left.sequence != right.sequence) return false;
+          left.sequence != right.sequence) {
+        return false;
+      }
     }
     return true;
   }
