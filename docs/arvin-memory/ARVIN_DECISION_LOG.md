@@ -1,3 +1,13 @@
+## 2026-10-13 — Follow-up flag is compatibility-only
+
+- **Problem:** creating or completing a FollowUp still toggled `Task.followUpEnabled`, retaining the removed flag concept in active write paths.
+- **Decision:** new FollowUp writes and editor saves must not derive or toggle `followUpEnabled`. Existing stored values remain readable/preserved during compatibility migration.
+- **Reason:** every Task is inherently eligible for follow-up; FollowUp records represent actual follow-up history.
+- **Impact:** TaskStore, FollowUpRepository and Task Editor were updated. Focused regression tests were added; exact-head validation is pending.
+- **Status:** implemented in source, validation pending.
+
+---
+
 ## 2026-10-13 — Owner decision: configurable all-day reminder notification time
 
 - **Problem:** 09:00 is the preferred default, not a hard-coded time that every user must accept.
