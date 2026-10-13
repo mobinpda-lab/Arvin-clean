@@ -2,6 +2,7 @@ import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
@@ -240,6 +241,57 @@ void main() {
     await manager.backupCanonicalTasks([_completeTask()], calendarLinks: [link]);
 
     expect(service.writtenPayload?['calendarLinks'], [link.toJson()]);
+  });
+
+  test('canonical backup and restore preserve standalone Person directory records', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final people = <PersonReference>[
+      PersonReference(id: 'person-1', displayName: 'سارا احمدی'),
+      PersonReference(id: 'person-2', displayName: 'علی رضایی'),
+    ];
+
+    await manager.backupCanonicalTasks([_completeTask()], people: people);
+    expect(service.writtenPayload?['people'], [
+      {'id': 'person-1', 'displayName': 'سارا احمدی'},
+      {'id': 'person-2', 'displayName': 'علی رضایی'},
+    ]);
+
+    service.restoreDocument = service.writtenPayload;
+    final candidate = await manager.restoreCanonicalBackup();
+    expect(candidate?.people?.map((person) => person.id), ['person-1', 'person-2']);
+    expect(candidate?.people?.map((person) => person.displayName), ['سارا احمدی', 'علی رضایی']);
+  });
+
+  test('legacy canonical backup without people keeps directory restore unspecified', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+      };
+
+    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+    expect(candidate, isNotNull);
+    expect(candidate!.people, isNull);
+  });
+
+  test('canonical restore rejects duplicate Person IDs', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [_completeTask().toJson()],
+        'people': [
+          {'id': 'person-1', 'displayName': 'سارا'},
+          {'id': 'person-1', 'displayName': 'نام دوم'},
+        ],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
   });
 
   test('canonical restore returns validated calendar link metadata', () async {
