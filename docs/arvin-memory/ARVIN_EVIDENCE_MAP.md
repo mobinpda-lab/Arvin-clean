@@ -1,3 +1,14 @@
+## 2026-10-13 — TaskReminder model and legacy decoder evidence
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| New canonical reminder fields exist | `lib/models/task.dart` on PR #2666 | `id/taskId/title/date/status/createdAt/updatedAt/isAllDay/sequence` are serialized in Task JSON | Exact-head Build pending; not yet accepted |
+| Legacy Task reminder decoder is idempotent | `Task.fromJson` deterministic ID `legacy-task-reminder:<taskId>` plus `legacyReminderMigrationCompleted` | Existing migrated ID is not added twice; tombstone prevents re-creation after deletion | Calendar projection must consume the marker to prevent duplicate legacy/new identity |
+| Midnight does not imply all-day | Legacy migration sets `isAllDay=false` explicitly | No inference from midnight | Date-only acceptance still needs editor/projection tests |
+| Follow-up independence | Existing `FollowUp.fromJson` remains unchanged; test asserts nextFollowUp alone does not synthesize a Task reminder | Independent fields preserved in this slice | Broader notification/calendar tests pending |
+| Model regression tests | `test/follow_up_reminder_model_test.dart` on PR #2666 | Added tests for deterministic migration, sequence allocation, tombstone, and nextFollowUp independence | Tests not yet confirmed green on exact head |
+
+---
 # EVIDENCE UPDATE — 2026-10-13 (approved migration contract reconciliation)
 
 | Item | Result | Limitation |
