@@ -103,19 +103,23 @@ class TaskReportFilter {
           (task.checklist.isNotEmpty) != hasChecklist) {
         return false;
       }
-      if (personIds.isNotEmpty &&
-          !task.followUps.any(
-            (followUp) => followUp.personIds.any(personIds.contains),
-          )) {
-        return false;
-      }
       if (waitingForResponseOnly &&
           (task.completed ||
               task.archived ||
               !task.followUps.any(
                 (followUp) =>
-                    followUp.waitingForResponse && !followUp.completed,
+                    followUp.waitingForResponse &&
+                    !followUp.completed &&
+                    (personIds.isEmpty ||
+                        followUp.personIds.any(personIds.contains)),
               ))) {
+        return false;
+      }
+      if (personIds.isNotEmpty &&
+          !waitingForResponseOnly &&
+          !task.followUps.any(
+            (followUp) => followUp.personIds.any(personIds.contains),
+          )) {
         return false;
       }
       if (selectedCategories.isNotEmpty &&
