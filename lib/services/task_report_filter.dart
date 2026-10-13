@@ -23,6 +23,8 @@ class TaskReportFilter {
     this.hasRepeat,
     this.hasFollowUp,
     this.hasChecklist,
+    this.personIds = const <String>{},
+    this.waitingForResponseOnly = false,
   });
 
   final ReportTimePreset timePreset;
@@ -41,6 +43,8 @@ class TaskReportFilter {
   final bool? hasRepeat;
   final bool? hasFollowUp;
   final bool? hasChecklist;
+  final Set<String> personIds;
+  final bool waitingForResponseOnly;
 
   bool get isActive =>
       timePreset != ReportTimePreset.all ||
@@ -58,7 +62,9 @@ class TaskReportFilter {
       priority != null ||
       hasRepeat != null ||
       hasFollowUp != null ||
-      hasChecklist != null;
+      hasChecklist != null ||
+      personIds.isNotEmpty ||
+      waitingForResponseOnly;
 
   List<Task> apply(
     Iterable<Task> tasks, {
@@ -94,6 +100,21 @@ class TaskReportFilter {
       }
       if (hasChecklist != null &&
           (task.checklist.isNotEmpty) != hasChecklist) {
+        return false;
+      }
+      if (personIds.isNotEmpty &&
+          !task.followUps.any(
+            (followUp) => followUp.personIds.any(personIds.contains),
+          )) {
+        return false;
+      }
+      if (waitingForResponseOnly &&
+          (task.completed ||
+              task.archived ||
+              !task.followUps.any(
+                (followUp) =>
+                    followUp.waitingForResponse && !followUp.completed,
+              ))) {
         return false;
       }
       if (selectedCategories.isNotEmpty &&
