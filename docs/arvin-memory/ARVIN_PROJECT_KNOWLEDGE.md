@@ -1,3 +1,15 @@
+## 2026-10-13 — TaskReminder integration expanded
+
+- Editor controls were ported to the safe integration branch: independent add/edit/delete rows, editable numbered titles, date/time and explicit all-day toggle. When the Task has already migrated its legacy reminder, the editor uses the canonical collection rather than showing the same reminder in both the legacy field and the collection.
+- `TaskEditApplyService` now applies reminder collection, next sequence, and migration tombstone without replacing FollowUp history.
+- Calendar projection uses `task-reminder:<taskId>` for the deterministic migrated legacy item and `task-reminder-item:<taskId>:<reminderId>` for new items. The retained legacy field is suppressed after migration; same-time TaskReminder entries remain distinct.
+- Calendar inbound reconciliation edits/deletes one reminder by stable identity. Deleting the migrated legacy reminder clears its legacy mirror in the same TaskStore save; editing it updates both the canonical item and compatibility mirror. New-item operations leave Task title, FollowUps and sibling reminders unchanged.
+- Outbound sync routes both Task reminder identity forms through the existing `syncTaskReminders` preference. The existing provider planner/link store remains the only external-event linkage foundation.
+- Notification projection, due delivery, alarm planning and delivery-state reconciliation now support multiple TaskReminder IDs. Migrated legacy reminders retain old delivery identity. The current 09:00 local all-day notification time is provisional and awaits owner confirmation.
+- Task JSON writes an explicit empty list and durable sequence/tombstone values; SQL envelope preservation now recognizes these canonical fields, preventing stale old payload values from resurrecting deleted reminders.
+- Current implementation is still a Draft PR. Automated green checks and physical-device acceptance have not been established.
+
+---
 ## 2026-10-13 — Multiple-reminder integration, first code slice
 
 - Safe integration branch: `integration/task-multiple-reminders-safe-20261013`, PR #2666; base main checkpoint `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
