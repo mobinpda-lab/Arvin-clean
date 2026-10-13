@@ -1,3 +1,12 @@
+## LIVE EVIDENCE UPDATE — 2026-10-13 (prayer action test repair)
+
+- **Prior failing evidence:** [Build run 38447438069](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38447438069), job `quality (test-2)`, failed in `test/official_calendar_prayer_actions_test.dart` at the post-selection assertion for `ادا شد`. The action sheet closes after selection; CI log showed the finder returned zero widgets.
+- **Repair:** commit `b38d4e630f01a72beee2b2d35bf24f2ee744c3de` changes only the test interaction/assertion flow.
+- **Evidence status:** implementation commit exists, but no successful exact-head run is yet recorded for this repair. Do not infer green CI from earlier SHA runs.
+- **Release gate:** NO-GO pending exact-head Build, Calendar Provider Acceptance, all six Device Smoke lanes and physical-device acceptance.
+
+---
+
 # EVIDENCE IDENTIFIER CONVENTION — 2026-10-13
 
 For every row below, distinguish the manifest app version (`1.0.1+2` at the current inspected branch), full source commit SHA, PR number, workflow run ID, and job ID. A run or job ID is not an app version; a commit SHA is a source revision, not a release number. Attach evidence to the exact SHA actually tested. If an entry omits the exact SHA or uses a stale head reference, treat it as historical context rather than current release proof. No approved release tag is established by this file's latest checkpoint.
