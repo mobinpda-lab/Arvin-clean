@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 10:04 (+03:30)
+
+This entry supersedes earlier live-status statements below where they conflict. Historical records remain for audit.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`
+- **Current main:** `ee73adbc61c4baea82caeb9932969fd293922162`.
+- **Documentation delivery:** PR #2660 (acceptance criteria) and PR #2652 (independent follow-up/reminder clarification) are both CLOSED/MERGED. PR #2660 exact-head Build passed (Analyze, test shards 0–5, Debug and Release APK) and all six emulator smoke lanes passed. This evidence is limited to those documentation PR heads; it does not validate feature PR #2655.
+- **Owner-approved feature design:** `docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md` on branch `feat/task-multiple-reminders-editor-20261013` explicitly records approval. This supersedes old entries below that label the design “proposal only / not approved.” Issue #2654’s body also has stale pre-approval wording; the approved design and owner clarification comment are the current product decision.
+- **Feature PR #2655:** OPEN, unmerged; head `cc35194d84d6c2fdf52d566723be0d6343e93c6b`; base snapshot `8136c929237c321f2e879a80f067970c31cb0100`. Current-main comparison reports 58 commits ahead, 2 behind and `diverged`; GitHub says `mergeable=false`.
+- **Exact-head validation:** workflow lookup for the exact feature head returned no PR-triggered workflow runs and combined status returned no statuses. Prior workflow results belong to older SHAs and must not be reused. Duplicate Calendar projection fix and its regression test are committed on the feature branch, but exact-head execution remains unproven.
+- **Completed in this continuation:** rechecked current main, open issues/PRs, design approval, feature head/base, compare status and exact-head workflow evidence; merged docs PR #2660 is confirmed on main. Added a current checkpoint comment to PR #2655 (comment ID 6138933909).
+- **Blocked:** safe integration of PR #2655 into current main. Do not force-move refs, change canonical model semantics, or merge while diverged and without exact-head validation.
+- **Next action:** use a safe Git-based merge/reconciliation workflow to bring current main into the feature branch, resolve any conflicts preserving current main docs and owner-approved Task reminder semantics, then run Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes on the exact reconciled head.
+- **Release:** **NO-GO**. Physical-device acceptance is still required for Calendar same-event update/no-duplicate, Android file-provider Backup/Restore and restored Calendar-link integrity, installed-app golden flow, and Persian RTL/compact-screen review. No physical-device result was supplied or observed.
+- **Access:** GitHub read/write operations succeeded in this run.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
