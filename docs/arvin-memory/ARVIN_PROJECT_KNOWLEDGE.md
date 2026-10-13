@@ -1,3 +1,12 @@
+## 2026-10-13 — Terminology audit: due date, reminder, and form naming
+
+- `lib/task_editor_dialog.dart` binds the “موعد” controls to `_dueDateTime`; the user-facing term should not imply a completion timestamp.
+- Canonical text now proposed on PR #2671: date help “انتخاب موعد کار”, field label “موعد کار”, time help “انتخاب ساعت موعد کار”, and advanced-section subtitle “موعد کار، یادآور، تکرار، اهمیت و وضعیت”.
+- `lib/task_detail_page.dart` “بدون موعد انجام” is a due-date empty state; canonical wording is “بدون موعد”.
+- “فرم کامل” is the Quick Capture route into the fuller editor; “ویرایش کار” is the editor's operation/page title; “جزئیات کار” is the read-only detail page. These names refer to different user actions/surfaces and should not be collapsed into one label. Create-mode naming still needs direct route/test verification.
+- Search results are evidence for specific strings, not a complete inventory. Do not claim a repository-wide UI audit is complete until all screens, dialogs, tooltips, accessibility labels, guides and tests have been checked.
+- Source of record: Issue #2669; changes remain in Draft PRs #2670/#2671 pending review and exact-head validation.
+
 # Arvin Project Knowledge
 
 Updated: 2026-10-11
