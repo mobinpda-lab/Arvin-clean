@@ -58,7 +58,7 @@ void main() {
     expect(tagRollBox, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-block')), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('task-editor-followup-enabled')),
+      find.byKey(const ValueKey('task-editor-add-follow-up')),
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('task-editor-date')), findsNothing);
