@@ -901,3 +901,14 @@ This checkpoint supersedes earlier live status for PR #2665 where conflicting; p
 - **Release status:** **NO-GO** pending physical-device/product acceptance and explicit owner approval. Automated smoke is not a real-phone test.
 - **Completed in this continuation:** re-polled the exact-head Build and all six Device Smoke jobs; all were successful. This new memory commit changes the PR head, so all exact-head gates must be queried again before merge.
 - **Next action:** validate the resulting new PR head's Build and Device Smoke; review PR #2665 diff and provider/device gates. Then continue safe reconciliation of #2655 and the existing Calendar contract. Do not merge or publish a release solely because CI is green.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest-head CI poll)
+
+- Repository: `mobinpda-lab/Arvin-clean`; PR [#2665](https://github.com/mobinpda-lab/Arvin-clean/pull/2665), branch `fix/calendar-internal-followup-projection-20261013`, remains OPEN and UNMERGED; GitHub reports mergeable=true. Current checked head: `be52a7457b6300cb917b7ab312c2ec4e27c607fa`; base checkpoint `ee73adbc61c4baea82caeb9932969fd293922162`.
+- **Completed — exact-head Build:** run [38370894374](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894374) SUCCESS on the checked head. Analyze, test shards 0–5, Debug APK and Release APK all completed successfully.
+- **Completed — exact-head Device Smoke:** run [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) SUCCESS on the checked head. All six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
+- Scope remains limited to CI/emulator validation. No physical-device acceptance or external Calendar Provider Acceptance is evidenced by these runs.
+- **Safe next step:** inspect/reconcile PR #2655's 58-ahead/2-behind divergence against current main without blind merge/rebase. Its Task model, editor, Calendar inbound/outbound, backup and reminder scheduling changes overlap newer main and require path-by-path compatibility review.
+- Release remains **NO-GO** pending multi-reminder integration, provider CREATE→UPDATE/no-duplicate evidence, real-device notification and backup/restore validation, Persian RTL/compact UX acceptance, and owner approval.
+- This memory write creates a new PR head; re-query Build and all six Device Smoke lanes for that resulting exact head before any merge/readiness decision.
