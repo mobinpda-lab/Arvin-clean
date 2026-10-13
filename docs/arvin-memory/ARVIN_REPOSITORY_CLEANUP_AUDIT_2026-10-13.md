@@ -70,3 +70,12 @@ The approved report behavior requires filtering by Person and showing Task, Foll
 - Related PR #2679 Build run failed in test shard 2 (232 tests passed, one waiting-list test failed). It is a different merge head and must not be treated as child-branch evidence.
 - Follow-up issues opened: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) for Person directory backup/restore and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) for Person-specific reports.
 - The child branch's waiting-list semantics now use structured per-Follow-up status and preserve multiple waiting records. Its updated tests still need exact-head CI confirmation.
+
+---
+
+## Branch synchronization gate — 2026-10-13
+
+- Latest observed parent PR #2666 head: `d16e52050567a6631a21b563d336a0bba1c3c32b`; Build pending, Calendar Provider Acceptance in progress, Device Smoke queued.
+- Child PR #2681 is Draft and GitHub reports it not mergeable. Its base snapshot is stale relative to the latest parent branch. Safely synchronize before any merge or exact-head validation.
+- Do not force-update refs or overwrite the parent integration branch; several concurrent changes are present.
+- Issues tracking remaining work: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683).
