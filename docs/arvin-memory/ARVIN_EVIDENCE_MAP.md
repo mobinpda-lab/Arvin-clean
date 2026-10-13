@@ -1,3 +1,15 @@
+## 2026-10-13 — Follow-up simplification evidence (pending exact-head CI)
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Waiting list is directly discoverable | `lib/main.dart`: Home More item `home-more-waiting-responses`; `lib/follow_up_office_page.dart`: `initialWaitingOnly` and «منتظر پاسخ دیگران» title | Route implemented | Home navigation/widget test and exact-head CI still required |
+| Waiting list uses latest active state | `FollowUpOfficePage._waitingRows`; `test/follow_up_office_page_test.dart` new regression | Code/test added for latest waiting vs resolved, completed, archived | Test result not yet confirmed |
+| Quick Entry has no Follow-up flag | `lib/quick_capture_dialog.dart`; `test/quick_capture_dialog_test.dart` | Flag removed; checklist retained | Exact-head test result pending |
+| Full editor adds actual Follow-up records | `lib/task_editor_dialog.dart`; `TaskEditApplyService` merge-by-ID | Add UI and merge path implemented | Add-flow/persistence widget test and CI still required |
+| Flag no longer controls list/detail state | `task_list_scope_service.dart`, `home_list_projection.dart`, `task_detail_page.dart`; updated projection tests | Decisions derive from real Follow-up data/legacy date | Exact-head test result pending |
+
+---
+
 ## 2026-10-13 — Follow-up analyzer repair
 
 | Claim | Evidence | Result | Limit |
