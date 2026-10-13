@@ -490,3 +490,18 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Normal restore merges by stable ID and preserves local-only directory entries | `lib/services/task_store.dart`; `test/person_directory_backup_restore_test.dart` | Implemented; tests authored | Exact-head execution pending |
 | Home and BackupPage restore paths include Person records in emergency backup and rollback | `lib/main.dart`, `lib/backup_page.dart`; `test/home_restore_orchestration_test.dart`, `integration_test/android_backup_restore_sql_smoke_test.dart` | Wiring and regression cases authored | CI/device evidence pending |
 | P1 #2682 is closed/resolved | GitHub Issue #2682 | **Not claimed** | Keep open until exact-head tests/build and rollback/device evidence pass |
+
+
+---
+
+## 2026-10-13 — Latest parent/child validation evidence
+| Claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Parent branch Analyze and APK builds pass | Build run [38454176741](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176741), SHA 60af42f259c537fa9311dd0b195004d1dc400f2f | Analyze, Debug APK, Release APK passed | Overall Build failed due test shards 4 and 5 |
+| Parent test suite is green | Same Build run; shards 4 and 5 logs | FAIL: Calendar actions/legacy identity, Notebook conversion and RTL swipe timeout failures | Must fix root causes and rerun on exact final SHA |
+| Parent Calendar Provider Acceptance | Run [38454176500](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176500), same parent SHA | Passed | Does not substitute for Build or Person backup validation |
+| Parent Device Smoke | Run [38454176507](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176507), same parent SHA | Passed | Emulator smoke only; physical-device acceptance not evidenced |
+| Child #2681 exact-head validation | SHA a50ef4549b66621287af3aec6f805f6876fed2fd | No PR-associated workflow runs/checks returned | Person backup/restore tests remain unverified |
+| Child branch can be safely fast-forwarded to parent | Compare child vs parent integration branch | False: 82 commits ahead, 134 behind; merge base 68724d6191590b81b2d611f59b7944a7fcbb06e0 | Deliberate reconciliation required; no force update or blind merge |
+| P1 #2682 complete | Source/tests authored in child PR #2681 | Not proven / OPEN | Exact-head test, rollback, device and integrated-branch evidence missing |
+| P1 #2683 complete | Person-specific Report Center filter/results | Incomplete / OPEN | Implementation and regression validation still required |
