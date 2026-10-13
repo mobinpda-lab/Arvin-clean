@@ -72,7 +72,7 @@ void main() {
             sort: HomeListSort.title,
           )
           .map((item) => item.id),
-      ['history', 'tracked'],
+      ['history'],
     );
   });
 
