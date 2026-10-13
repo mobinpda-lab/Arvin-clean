@@ -358,3 +358,13 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Branch comparison:** integration branch was checked against main `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`; it is 2 commits ahead, 0 behind, and currently contains documentation-only changes.
 - **Implementation/test evidence:** NONE YET for multiple-reminder code on this branch. No migration, tests, builds, Calendar provider acceptance, or physical-device test have been run on this branch. Do not confuse earlier CI results from other PR heads with evidence for this branch.
 - **Release gate:** NO-GO.
+# EVIDENCE UPDATE — 2026-10-13 (empty current owner database)
+
+| Evidence | Result | Scope / limitation |
+|---|---|---|
+| Owner statement in execution conversation | No information has been entered; database is raw/empty | Owner-reported current state; not an independent inspection of every installed DB or backup |
+| Current owner-entered-data loss risk | No current owner-entered records identified by owner | Do not claim existing user records are at risk; still inspect destructive operations |
+| Legacy Task reminder migration/model contract | OPEN | Compatibility blocker remains; empty database does not prove legacy JSON/backups never exist |
+| Application code changed in this checkpoint | NONE | Documentation-only update |
+| Exact-head CI / device acceptance | NOT ESTABLISHED by this documentation update | Must be collected on the final code SHA; physical-device acceptance remains separate |
+| Release | NO-GO | No change to release gate |
