@@ -1,3 +1,13 @@
+## 2026-10-13 — Configurable all-day reminder time and CI root cause
+
+- Existing settings foundation already supports the feature: `AppSettings.allDayReminderNotificationMinutes`, `AppSettingsService`, SharedPreferences persistence, Settings time picker, portable settings JSON, alarm planner and background delivery.
+- Default is 540 minutes after local midnight (09:00). Missing old settings/backup values use the default; invalid values normalize/reject to a valid local minute-of-day.
+- Settings change calls the existing Android reminder scheduler to reschedule. The Calendar projection remains all-day; only notification delivery time is adjusted.
+- CI failure root cause: nullable final `FollowUpReminderCandidate.taskReminderId` was omitted from the default and `.task` constructor initializer lists. The fix initializes it to null in both.
+- Avoid duplicate implementations. Revalidate all tests/builds on the exact fixed head before claiming completion.
+
+---
+
 ## 2026-10-13 — Configurable all-day reminder notification time
 
 - The product default is 09:00 local time, user-configurable from Settings; this is not a hard-coded product constraint.
