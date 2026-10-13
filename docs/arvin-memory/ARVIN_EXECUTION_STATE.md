@@ -1,3 +1,14 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2667 model migration slice)
+
+- **Owner data clarification:** owner reports no information has been entered; current database is raw/empty. This narrows current owner-entered-data risk but does not waive compatibility for old backups or legacy JSON.
+- **Current main base:** `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Implementation branch:** `feat/task-reminder-legacy-migration-20261013`; draft PR [#2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667); latest code/test head at PR creation `9fdbccc5ae386ec53425d56105af6c0fadd2815f`. This memory update creates a newer head; CI must be queried again after the update.
+- **Completed slice:** added a canonical `TaskReminder` model carrying stable ID, Task ID, title, date, explicit `isAllDay`, sequence, status, createdAt and updatedAt fields; legacy `Task.reminderDate` is decoded into a deterministic `legacy-task-reminder:<taskId>` item while retaining the legacy field; added a model regression test for repeated decode/save, midnight-not-implying-all-day, and `nextFollowUp` independence.
+- **Important limitation:** this is a first code slice only. Calendar projection suppression for the legacy/migrated pair is not implemented in this PR yet; do not merge it until the old and migrated representations produce exactly one calendar event and one notification schedule. UI CRUD, backup/restore, provider acceptance and physical-device validation remain open.
+- **Validation:** no local Flutter run was executed. At first GitHub query, no workflow runs/status checks were returned for PR head `9fdbccc...`; this is NOT a pass. Exact-head Analyze, all test shards, Debug/Release builds and applicable Device Smoke/provider checks remain pending/unconfirmed.
+- **Next action:** inspect/adjust migration and sequence behavior, implement the single-projection rule in the Calendar/notification layer, then add persistence/backup round-trip tests. Keep PR #2667 Draft and release NO-GO until exact-head CI and device evidence pass.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
