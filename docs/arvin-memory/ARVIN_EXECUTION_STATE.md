@@ -1150,3 +1150,19 @@ This checkpoint records the owner's explicit operational clarification. It super
 - No source implementation or screenshot evidence is claimed by this update. Small-screen day/week/month interaction, RTL readability, scrolling, Calendar Provider and device acceptance remain unverified for this decision.
 - Next: implement the callback/typed menu through the existing canonical route; move all management actions behind long press; ensure Task ID and external event identity remain stable; replace the legacy interaction test; run relevant tests and exact-head CI; capture genuine viewport evidence.
 - Release remains NO-GO until relevant automated gates and device evidence pass. Do not merge based on decision documentation alone.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Calendar Tap / Long Press implementation wave)
+
+- **Owner decision:** Normal Tap opens the canonical Task Detail. Long Press opens the contextual management menu. Task remains the source of truth; Calendar remains a projection.
+- **Code implementation completed for initial slice:** CalendarPage gained a Task Detail callback; the existing route is wired through CanonicalCalendarLauncher, IranianOfficialCalendarPage and main.dart. Selected item type is passed to TaskDetailPage so Task due date, Reminder, Follow-up and recurrence can be labeled distinctly.
+- **Interaction changes:** removed the old inline/collapsed Task Edit and “register to phone Calendar” chips; normal tap navigates for canonical Task/Follow-up/Reminder projections; long press opens a bottom-sheet action menu. Task deletion requires explicit confirmation. Independent Task reminder IDs were added to edit/register resolution.
+- **Test changes:** test/calendar_runtime_actions_fast_track_test.dart now checks Tap-to-detail, Long Press action visibility, Follow-up actions, delete confirmation, and distinct Task due/Reminder/Follow-up labels. These tests have been committed but their result is not yet known.
+- **Commits for code wave:** 95ac8deece89c70b8de21b81f9a8ec260946cfca, 4ed222d0f840e47c37e9319f2f831ab51926a632, c6d3bbfbbc2ed03282477ac0015d7bbe2b256989, a78b80f5f90fd6e7a9f113523effc911ee9afb20, 0c98f1506ca48c989bf38131a85d1fea44eff46b, 8bc4f206534a65bb737f641fff3ec0afeeec4936, ef4645a609699b39a2779677e23b5d1e660d83a0, ef221f9720871aeb01fdb3ff3f820930d3390bb2, 957951ebc0d51f34a0ea6607355c77e65627963f, 39322b9d77f4dcbe0f4cef15faead4a44b8e931b, 4c72cd437290d71e78feb316f1e460ae8ce8576a, b40d19d22a20263dce6196cf0763d230a84452ee, c6f959450a3a1b3e65722a93dadb2eecc7e8066a, a9c5b7d6c68548fa78e3dbfaf035a9eeb04ffff3.
+- **Documentation updated:** ARVIN_CALENDAR_INTERACTION_DECISION.md, ARVIN_DECISION_LOG.md, ARVIN_PROJECT_KNOWLEDGE.md, ARVIN_USER_EXPERIENCE_LOG.md, ARVIN_PROBLEM_REGISTER.md and ARVIN_EVIDENCE_MAP.md record the decision, source changes, and pending evidence.
+- **Issue:** #2685 remains the implementation/acceptance tracker.
+- **Validation snapshot:** Build, Calendar Provider Acceptance and Device Smoke for code head a9c5b7d6c68548fa78e3dbfaf035a9eeb04ffff3 were pending/queued at the last poll. Subsequent documentation commits advanced the branch; rerun or verify all required workflows against the latest final SHA. No screenshots or physical-device evidence have been captured. Do not claim the feature accepted.
+- **Next action:** inspect terminal workflow results, fix compile/test failures without weakening assertions, add/verify canonical route and selected-type integration tests, validate day/week/month and small-screen RTL/scroll gestures, and capture genuine device evidence. Keep PR #2666 unmerged until exact-head gates pass.
+- **Release:** NO-GO.
