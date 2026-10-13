@@ -248,3 +248,13 @@
 - **Migration contract:** migrate legacy Task `reminderDate` to exactly one reminder using deterministic identity and idempotent retry; preserve old data until durable validation; never infer all-day from midnight; preserve Calendar identity so legacy/new projections do not duplicate events.
 - **Architecture:** canonical Task JSON/SQL and existing Calendar/notification/backup systems remain the source of truth. No parallel store/scheduler. Internal Follow-up Action projection remains display-only and excluded from outbound sync and reminder notifications.
 - **Status:** OWNER DECISION APPROVED; implementation, tests, physical-device validation and release approval remain outstanding. Supersedes earlier entries that described architecture approval as pending. See `ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, Issue #2654 and PR #2655.
+
+
+## 2026-10-13 — Calendar item Tap vs Long Press
+
+- **Problem:** Calendar Task cards exposed Edit and device-Calendar registration chips during ordinary viewing, while tapping the card only expanded/collapsed it. Long press on an item did not open its management menu.
+- **Decision:** Normal Tap opens the canonical Task Detail; Long Press opens a typed contextual action menu. Calendar remains a projection; Task remains the source of truth.
+- **Reason:** Prevent accidental management actions and make daily navigation predictable.
+- **Impact:** CalendarPage now has an explicit open-detail callback, Task/Follow-up/Reminder labels are type-derived, management actions are in a long-press bottom sheet, Task deletion requires confirmation, and the existing Task Detail route receives selected item context.
+- **Status:** Initial implementation and acceptance test updates committed on the integration branch. Exact-head CI and device acceptance pending; do not treat as complete until all gates pass.
+- **Reference:** Issue #2685 and ARVIN_CALENDAR_INTERACTION_DECISION.md.
