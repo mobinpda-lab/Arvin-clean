@@ -1,3 +1,12 @@
+## 2026-10-13 — Waiting-for-response discoverability (Issue #2677 / Draft PR #2679)
+
+- **Source:** `lib/main.dart` exposes Home > «بیشتر» > «دفتر پیگیری», routing to the existing FollowUpOfficePage.
+- **Behavior:** `lib/follow_up_office_page.dart` filters by the latest FollowUp per active Task and excludes completed/archived/trashed Tasks.
+- **Tests:** `test/home_more_my_tasks_test.dart` covers navigation and filter discovery; `test/follow_up_office_page_test.dart` covers exclusion of inactive Tasks.
+- **Status:** code/tests are committed to the feature branch; exact-head CI has not yet validated the latest SHA. Older run results do not count for the final head.
+
+---
+
 ## 2026-10-13 — Waiting-for-response list discoverability (Issue #2677)
 
 - **Feature/source:** Home > «بیشتر» -> «دفتر پیگیری» routes to existing `FollowUpOfficePage`; existing `فقط منتظر پاسخ` filter uses latest canonical FollowUp per Task.
