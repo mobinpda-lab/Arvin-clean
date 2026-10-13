@@ -1,3 +1,13 @@
+## 2026-10-13 — Waiting-for-response list is reachable and active-only
+
+- **Problem:** «منتظر پاسخ دیگران» could be selected, but the list was undiscoverable because its existing page had no navigation route.
+- **Decision:** expose the existing Follow-up Office from Home > «بیشتر» and keep using its canonical latest-FollowUp filter.
+- **Additional contract enforcement:** completed, archived, and trashed Tasks must not appear as active waiting items, even if their latest FollowUp retains the waiting token.
+- **Implementation:** Issue #2677 / Draft PR #2679; no new Task status, data model, storage or repository.
+- **Status:** implementation and regression tests added; exact-head CI pending.
+
+---
+
 ## 2026-10-13 — Waiting-for-response discoverability
 
 - **Problem:** «منتظر پاسخ دیگران» could be set on a FollowUp, but users had no visible path to the list.
