@@ -416,6 +416,9 @@ class TaskStore {
         'reminderDate': row['reminder_date'],
         'nextFollowUp': row['next_follow_up'],
         'completed': (row['completed'] as num?)?.toInt() == 1,
+        'waitingForResponse':
+            (row['waiting_for_response'] as num?)?.toInt() == 1,
+        'personIds': jsonDecode(row['person_ids_json'] as String? ?? '[]'),
       };
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
@@ -546,12 +549,14 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, note, result, reminder_date, next_follow_up, completed, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, note, result, reminder_date, next_follow_up,
+            completed, waiting_for_response, person_ids_json, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.note,
           followUp.result, followUp.reminderDate?.toIso8601String(),
-          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0, ordinal,
+          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
+          followUp.waitingForResponse ? 1 : 0, jsonEncode(followUp.personIds), ordinal,
         ],
       );
     }
