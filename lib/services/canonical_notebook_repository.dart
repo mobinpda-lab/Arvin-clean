@@ -190,7 +190,7 @@ class CanonicalNotebookRepository {
       }
 
       final task = tasks[index];
-      task.followUpEnabled = true;
+      task.notebookKind = null;
       task.updatedAt = _now();
       return task;
     });
