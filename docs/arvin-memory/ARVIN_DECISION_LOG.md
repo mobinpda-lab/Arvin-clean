@@ -171,3 +171,10 @@
 - Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
 - Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
 - Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
+
+## 2026-10-13 — Owner-approved multiple Task reminders and safe migration
+- **Problem:** one Task-level `reminderDate` cannot represent multiple independent reminders; naive integration risks legacy-data loss and duplicate Calendar events.
+- **Decision:** owner approved the multiple-reminder product model and requested safe migration. Each Task may contain multiple stable-ID TaskReminders with independent title/schedule/status and created/updated metadata. Keep `nextFollowUp`, Task reminders, and per-FollowUp `reminderDate` separate.
+- **Migration contract:** migrate legacy Task `reminderDate` to exactly one reminder using deterministic identity and idempotent retry; preserve old data until durable validation; never infer all-day from midnight; preserve Calendar identity so legacy/new projections do not duplicate events.
+- **Architecture:** canonical Task JSON/SQL and existing Calendar/notification/backup systems remain the source of truth. No parallel store/scheduler. Internal Follow-up Action projection remains display-only and excluded from outbound sync and reminder notifications.
+- **Status:** OWNER DECISION APPROVED; implementation, tests, physical-device validation and release approval remain outstanding. Supersedes earlier entries that described architecture approval as pending. See `ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, Issue #2654 and PR #2655.
