@@ -175,7 +175,12 @@ void main() {
       final completeAction = find.byKey(
         const ValueKey('calendar-action-complete-followup:release-task:release-followup'),
       );
-      await tester.ensureVisible(completeAction);
+      await tester.scrollUntilVisible(
+        completeAction,
+        250,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(completeAction);
       await tester.pump();
 
