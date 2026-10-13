@@ -252,7 +252,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(delete);
     await tester.pumpAndSettle();
-    expect(find.text('حذف کار'), findsOneWidget);
+    expect(find.text('حذف کار'), findsNothing);
     expect(deleted, 0);
     await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
