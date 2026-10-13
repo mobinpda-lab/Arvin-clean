@@ -3,7 +3,7 @@
 Use the following distinct, consistent labels in all Arvin reports, memory files, PR comments, release notes, and evidence tables. These identifiers are different and must never be presented interchangeably:
 
 - **App version (manifest):** `1.0.1+2` — from `pubspec.yaml` on the inspected branch. Keep the format `<marketing-version>+<build-number>`; do not change it without a release/versioning decision.
-- **Source revision / repository HEAD:** full 40-character Git commit SHA. Current memory-only HEAD recorded by this checkpoint: `54ec22c1628e1e6a09ad5b6922f9e1384773fbd9`.
+- **Source revision / repository HEAD:** full 40-character Git commit SHA. The previously recorded head before this identifier-standardization sequence was `54ec22c1628e1e6a09ad5b6922f9e1384773fbd9`; this is historical after the documentation commits below. Always query the live branch head before treating a SHA as current.
 - **Code-validation revision:** `7bce505284b39b7dda9b6ce675097f21a6306c59` — the SHA associated with the reported Build/Device results. These results do **not** validate the later memory-only HEAD above.
 - **PR identifier:** `PR #2666`; **branch:** `integration/task-multiple-reminders-safe-20261013`.
 - **CI workflow run ID:** a numeric GitHub Actions run ID, always accompanied by workflow name, URL, exact source SHA, and observed conclusion/status.
