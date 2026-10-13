@@ -1,3 +1,17 @@
+## 2026-10-13 — Multiple Task reminders, Calendar and notifications
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Stable IDs for Task reminders | `lib/services/follow_up_calendar_projection.dart` | Migrated legacy item maps to `task-reminder:<taskId>`; new items map to `task-reminder-item:<taskId>:<reminderId>` | Exact-head Build still pending |
+| Inbound edit/delete isolation | `lib/services/calendar_inbound_sync_service.dart`; `test/services/calendar_inbound_sync_service_test.dart` | Added cases for new reminder edit/delete and migrated legacy edit/delete; neighboring reminder and Task title must remain intact | Tests not yet confirmed green |
+| Outbound eligibility | `lib/services/calendar_outbound_sync_service.dart`; outbound test | New TaskReminder IDs use existing `syncTaskReminders` setting | Provider acceptance still pending |
+| Notification identities | `follow_up_reminder_projection.dart`, delivery service, alarm planner, delivery state and their tests | New reminders have separate keys; migrated item retains legacy delivery key; deletion reconciliation removes only its key | 09:00 all-day policy awaits owner confirmation |
+| SQL envelope deletion safety | `lib/services/task_store.dart`; `test/people_task_persistence_test.dart` | Empty collection, counter and migration tombstone are serialized/recognized so stale payload cannot restore removed reminders | Exact-head SQL test result pending |
+| Backup/restore | `test/canonical_backup_manager_test.dart`, `test/people_task_persistence_test.dart` | Coverage added for multiple reminders, all-day marker, sequence, legacy reminder and FollowUp field independence | Test/build results pending |
+| UI CRUD | `lib/task_editor_dialog.dart`; `test/task_editor_full_entry_test.dart` | Add/edit/delete controls and migrated-reminder deletion case added | RTL visual/physical-device validation pending |
+| Exact-head CI | PR #2666 Actions | Build and Calendar Provider Acceptance queued/pending on latest observed code checkpoint; Device Smoke skipped | Re-poll exact final head; do not claim pass |
+
+---
 ## 2026-10-13 — TaskReminder model and legacy decoder evidence
 
 | Claim | Evidence | Result | Limit |
