@@ -25,6 +25,7 @@ void main() {
         'usePersianDate',
         'fontFamily',
         'fontSize',
+        'allDayReminderNotificationMinutes',
         'swipeRightAction',
         'swipeLeftAction',
         'calendarIntegration',
@@ -62,6 +63,7 @@ void main() {
       'usePersianDate': false,
       'fontFamily': null,
       'fontSize': 16.0,
+      'allDayReminderNotificationMinutes': 540,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
       'calendarIntegration': {
