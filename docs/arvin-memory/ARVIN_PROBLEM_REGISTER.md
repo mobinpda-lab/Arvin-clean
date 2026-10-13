@@ -343,3 +343,14 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - PR #2681 is Draft and reported not mergeable against its current base; no child-head workflow evidence was returned.
 - Parent PR #2666 head `d70827e1db927dcac2afc7367ca0d2e759359d8e`: Build/Device Smoke queued; Calendar Provider Acceptance in progress.
 - Related PR #2679 had 232 tests pass and one waiting-list test fail on its own merge head. This is not validation of PR #2681.
+
+
+---
+
+## 2026-10-13 — P1 #2682 Person directory portability
+
+- **Root cause:** portable backup format/manager carried canonical Tasks, settings, Projects, Calendar links, Categories and Tags, but omitted the standalone `people_directory` records.
+- **Fix authored:** add optional `people` to the existing v1 document; preserve compatibility for older files; serialize stable Person IDs/display names; validate record shape and unique IDs.
+- **Restore semantics:** merge by stable ID and retain local-only people. Legacy backup with no `people` leaves the local directory untouched. Rollback restores the exact pre-restore directory using a transaction and does not delete Tasks/Follow-ups.
+- **Coverage authored:** service document tests, manager round-trip/legacy/duplicate-ID tests, TaskStore merge/replace tests, Home rollback test, BackupPage runtime and file-backed integration smoke coverage.
+- **Status:** implementation committed on stacked Draft PR #2681; exact-head CI, test, build and device validation not yet confirmed. Keep issue open and release NO-GO until evidence passes.
