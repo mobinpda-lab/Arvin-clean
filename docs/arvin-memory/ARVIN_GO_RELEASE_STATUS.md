@@ -98,3 +98,15 @@ A successful analyzer, one passing test shard, an APK build, or a subset of smok
 ## Evidence freshness
 
 The run results above were collected against code-bearing head `41583a72062a69f8fb30e229239198458f8bc2af`. This report was subsequently updated in documentation-only commits, which advanced the PR branch. The branch's latest SHA must be queried before sign-off, and required workflows must be rerun or otherwise proven against that exact final SHA. The earlier snapshot referenced head `4b7d5e3d454d0e1204ed6702e5643c78be83eac5` and Build run `38428476972`; those results are historical.
+
+
+---
+
+## 2026-10-13 update — Calendar Task interaction implementation
+
+- Owner-approved rule: normal tap opens canonical Task Detail; long press opens management actions.
+- Initial code and widget test changes have been committed on the integration branch. The implementation routes to the existing Task Detail page, carries selected item type, moves management actions into a long-press sheet, confirms Task deletion, and distinguishes Task due, Reminder and Follow-up labels.
+- Test coverage was updated for tap navigation, long-press actions, deletion confirmation and type labels. **The test result is pending.**
+- The last queried code-head workflows (Build, Calendar Provider Acceptance, Device Smoke) were queued/pending for code head a9c5b7d6c68548fa78e3dbfaf035a9eeb04ffff3. Later documentation commits advanced the branch. These older runs are not exact-current-head release sign-off.
+- Still missing: terminal-green exact-head CI, actual small-screen day/week/month RTL/scroll validation, genuine screenshots, and physical-device acceptance.
+- Release remains **NO-GO**; PR #2666 remains unmerged.
