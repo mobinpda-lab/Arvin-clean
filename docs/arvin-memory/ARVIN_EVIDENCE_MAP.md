@@ -332,3 +332,12 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Existing test: `test/follow_up_reminder_model_test.dart`, blob `2d232e913812e5dc6b8ff724bc9ca8dd11c5c290`, validates one FollowUp reminder JSON round-trip and legacy missing-reminder behavior only.
 - Current exact-head docs CI for PR #2652 head `00ae93b2dba36093c4074624fe951efec51e2ab4`: Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450) PASS (Analyze, test shards 0–5, Debug/Release APK); Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458) PASS (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the documentation branch's CI only; it does not validate the unimplemented multi-reminder feature or physical-device acceptance.
 - Gap tracker: Issue #2654. Proposal is not approved; no application code/schema changed.
+
+## LIVE EVIDENCE OVERRIDE — 2026-10-13 — PR #2665 exact-head result
+
+- **Validated pre-memory-update head:** `2987f5530749b6de6292ff3c86933d8f50b56578`.
+- **Build:** [38368795309](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38368795309) — SUCCESS: Analyze, test shards 0–5, Debug APK, Release APK.
+- **Device Smoke:** [38368795338](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38368795338) — SUCCESS: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
+- **Evidence boundary:** this proves only the automated paths executed on that SHA. It is not evidence of physical-device acceptance, external Calendar provider same-event update/no-duplicate, real OS notification behavior, or release approval.
+- **PR status:** #2665 remains open/unmerged. The documentation update itself creates a new head; re-run/verify exact-head gates before treating the new head as validated.
+- **Release gate:** NO-GO until physical-device and provider acceptance plus owner approval are recorded.
