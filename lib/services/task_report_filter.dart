@@ -70,6 +70,7 @@ class TaskReportFilter {
     Iterable<Task> tasks, {
     required DateTime now,
     Iterable<ProjectPlan> projects = const [],
+    bool ignoreTaskTime = false,
   }) {
     final selectedProjectIds = <String>{
       ...projectIds,
@@ -129,10 +130,13 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
-      if (!_matchesTime(task.dueDate, now)) return false;
+      if (!ignoreTaskTime && !_matchesTime(task.dueDate, now)) return false;
       return true;
     }).toList(growable: false);
   }
+
+  bool matchesFollowUpTime(FollowUp followUp, {required DateTime now}) =>
+      _matchesTime(followUp.nextFollowUp, now);
 
   bool _matchesStatus(Task task) {
     switch (status) {
