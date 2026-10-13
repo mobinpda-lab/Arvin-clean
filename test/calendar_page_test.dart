@@ -255,14 +255,16 @@ void main() {
     expect(completed, 1);
     expect(edited, 1);
   });
-  testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
+  testWidgets('visually distinguishes reminders, follow-ups, due dates and imported events', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
           reminders: [
-            CalendarReminder(id: 'task-due:task-1', title: 'آروین', date: day),
+            CalendarReminder(id: 'task-reminder:task-1', title: 'یادآور', date: day),
+            CalendarReminder(id: 'task-followup:task-2', title: 'پیگیری', date: day.add(const Duration(minutes: 10))),
+            CalendarReminder(id: 'task-due:task-3', title: 'موعد کار', date: day.add(const Duration(minutes: 20))),
             CalendarReminder(
               id: 'external-calendar:event-1',
               title: 'گوشی',
@@ -273,10 +275,17 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-item-icon-task-reminder:task-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-item-icon-task-followup:task-2')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-3')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
     expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.follow_the_signs_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.event_outlined), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+    expect(find.text('یادآور آروین'), findsOneWidget);
+    expect(find.text('پیگیری'), findsOneWidget);
+    expect(find.text('موعد کار'), findsOneWidget);
     expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
   });
 
