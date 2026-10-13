@@ -49,9 +49,11 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    // Use Flutter's long-press helper after the card is laid out in the
-    // visible viewport so the gesture starts on the actual hit-test target.
-    await tester.longPress(prayerCard);
+    // Use an explicit long press so the gesture recognizer receives the full
+    // hold duration on the visible card before the action sheet is asserted.
+    final gesture = await tester.startGesture(tester.getCenter(prayerCard));
+    await tester.pump(const Duration(milliseconds: 900));
+    await gesture.up();
     await tester.pumpAndSettle();
 
     expect(find.text('ادا شد'), findsOneWidget);
