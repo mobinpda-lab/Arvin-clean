@@ -48,7 +48,7 @@ void main() {
     const reminderId = 'followup:task-1:f1';
     final canonical = CalendarReminder(
       id: reminderId,
-      title: 'پیگیری: تماس',
+      title: 'کار — تماس',
       date: DateTime(2026, 10, 8, 10),
     );
     final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
@@ -67,7 +67,7 @@ void main() {
           instanceId: '99',
           eventId: 'followup-event-1',
           calendarId: '7',
-          title: 'پیگیری: تماس',
+          title: 'کار — تماس',
           start: DateTime(2026, 10, 9, 12),
           end: DateTime(2026, 10, 9, 12, 30),
           allDay: false,
