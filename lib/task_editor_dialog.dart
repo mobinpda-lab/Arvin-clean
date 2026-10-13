@@ -1068,7 +1068,6 @@ Future<void> _pickDueDate() async {
   @override
   Widget build(BuildContext context) {
     final editing = widget.task != null;
-    final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
