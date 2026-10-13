@@ -557,3 +557,18 @@ Source branch commits after the prior run: `140d47f5`, `849530cf`, `17296f0e`, `
 | Release | [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | Open/unmerged; **NO-GO** | All required gates must pass on the same final SHA; physical-device acceptance outstanding |
 
 This entry records status only; no source/test change is claimed by this checkpoint.
+
+
+## 2026-10-13 — Evidence update: Calendar contract test repair wave
+
+| Feature / area | Revision / run | Result | Evidence / limitation |
+|---|---|---|---|
+| TaskReminder parent-delete safety assertion | `db7aa987b33efec28a4d4eb38cb395df75a4608f` | Test expectation corrected; validation pending | PR #2666; reminder rows must not delete parent Task |
+| Calendar action keys/gesture, legacy reminder fingerprint fixtures, Notebook test storage | `d0d84ca747f29e7c7106fb599fef42320a64c292` | Test corrections committed; validation pending | Long press opens action sheet; legacy title remains `یادآوری: <Task title>`; injected SQL store used consistently |
+| RTL swipe-to-Follow-up behavior | `0b905e5844dbbc871998ef3be0d823f320a87641` | Test corrected; validation pending | Verifies route to Follow-up Office and no Task mutation/copy |
+| Build / Analyze / tests | Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958) | In progress at checkpoint | Exact head `0b905e5844dbbc871998ef3be0d823f320a87641`; predecessor debug build failed due NDK ZIP download/unzip error before source compilation |
+| Calendar Provider Acceptance | Run [38460834101](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834101) | In progress at checkpoint | Exact head `0b905e5844dbbc871998ef3be0d823f320a87641` |
+| Device Smoke | Run [38460834302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834302) | Queued/running at checkpoint | Six lanes required; no physical-device acceptance claimed |
+| Person-directory backup/restore | Issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), child PR #2681 | Blocked / open | Child-only schema and TaskStore APIs not present on parent; branches diverge materially; safe reconciliation required |
+
+**Release decision: NO-GO.** No test/build/Calendar/Device pass is inferred from a queued or in-progress run.

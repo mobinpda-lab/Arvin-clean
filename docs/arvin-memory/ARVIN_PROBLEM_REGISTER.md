@@ -351,3 +351,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Scope:** test failure observed on source SHA `066c87ec90625b8fe894df45d0a82227802ff65f`; Build run remains in progress with this failed shard. No physical-device evidence was collected here.
 - **Next action:** reproduce/inspect test route state and scroll interaction, fix the cause, then rerun targeted test and all exact-head release gates.
 - **Status:** OPEN — validation blocker; PR #2666 remains unmerged and release NO-GO.
+
+
+## 2026-10-13 — Calendar contract test repair wave
+
+- **Confirmed test/contract mismatches repaired:** reminder menu test no longer expects parent Task deletion; Calendar tests use long-press management and canonical `calendar-action-*` keys; migrated legacy reminder fixtures retain `یادآوری: <Task title>` for provider fingerprint continuity; Notebook UI assertion reads the same injected in-memory TaskStore; RTL swipe tests verify Follow-up Office navigation and unchanged canonical Task state.
+- **Commits:** `db7aa987b33efec28a4d4eb38cb395df75a4608f`, `d0d84ca747f29e7c7106fb599fef42320a64c292`, `0b905e5844dbbc871998ef3be0d823f320a87641`.
+- **Status:** tests are corrected but not yet accepted. Latest Build [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Calendar Provider Acceptance [38460834101](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834101), and Device Smoke [38460834302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834302) were still running/queued at checkpoint time.
+- **Known environment issue:** predecessor Debug APK job failed while downloading/unzipping Android NDK 28.2 (`Error on ZipFile unknown archive`) before source compilation; retry rather than attribute to app code.
+- **Unresolved P1:** #2682 Person-directory backup/restore remains blocked on safe integration of the child-only directory schema/APIs with the parent reminder/Calendar branch; do not transplant backup files alone or force-update branches.
+- **Release:** NO-GO pending exact-head CI, six Device Smoke lanes, backup/restore/link-integrity evidence and physical-device acceptance.
