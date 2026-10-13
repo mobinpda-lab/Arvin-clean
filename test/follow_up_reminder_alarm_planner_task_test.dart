@@ -114,7 +114,7 @@ void main() {
     expect(
       planner.nextAlarmAt(
         [task],
-        deliveredState: {'task:multi:reminder:r1@\${firstAt.toIso8601String()}': 'delivered'},
+        deliveredState: {'task:multi:reminder:r1@${firstAt.toIso8601String()}': 'delivered'},
         now: now,
       ),
       secondAt,
