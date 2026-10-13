@@ -153,4 +153,86 @@ void main() {
     ]);
     expect(result.first.label, 'پیگیری');
   });
+
+  test('delivers same-time Task reminders independently by stable identity', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final at = now.subtract(const Duration(minutes: 1));
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'r1',
+          taskId: 'multi',
+          title: 'یادآور اول',
+          date: at,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'multi',
+          title: 'یادآور دوم',
+          date: at,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    final result = service.due([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey).toSet(), {
+      'task-reminder-item:multi:r1',
+      'task-reminder-item:multi:r2',
+    });
+    expect(result.map(service.deliveryIdentity).toSet(), hasLength(2));
+  });
+
+  test('all-day Task reminder schedules at 09:00 without changing stored date', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final date = DateTime(2026, 8, 28);
+    final reminder = TaskReminder(
+      id: 'all-day',
+      taskId: 'all-day-task',
+      title: 'یادآور تمام‌روز',
+      date: date,
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      isAllDay: true,
+      sequence: 1,
+    );
+    final task = Task(
+      id: 'all-day-task',
+      title: 'کار',
+      taskReminders: [reminder],
+      nextReminderSequence: 2,
+    );
+
+    final result = service.due([task], now: DateTime(2026, 8, 28, 9));
+
+    expect(result, hasLength(1));
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 9));
+    expect(task.taskReminders.single.date, date);
+    expect(task.taskReminders.single.isAllDay, isTrue);
+  });
+
+  test('migrated legacy reminder is not delivered through two identities', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-once',
+      'title': 'کار قدیمی',
+      'reminderDate': now.subtract(const Duration(minutes: 1)).toIso8601String(),
+    });
+
+    final result = service.due([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy-once');
+    expect(result.single.taskReminderId, 'legacy-task-reminder:legacy-once');
+  });
+
 }
