@@ -66,3 +66,13 @@
 The accepted decision above remains authoritative. Source implementation has begun on [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), stacked on [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666). The model, SQL fields, Person directory UI and waiting-entry validation are present on that branch; cleanup also removed several legacy flag writes and fixed Calendar inbound field preservation.
 
 **Not complete:** standalone Person directory records are not included in the existing portable backup/restore contract; Person-specific reporting is incomplete; exact-head tests/build/migration/Calendar/device validation has not been confirmed. These are tracked in `ARVIN_REPOSITORY_CLEANUP_AUDIT_2026-10-13.md`. Release remains NO-GO.
+
+---
+
+## Latest validation and branch-safety checkpoint — 2026-10-13
+
+- Parent PR #2666 remains open. Latest observed head `d70827e1db927dcac2afc7367ca0d2e759359d8e` has Build/Device Smoke queued and Calendar Provider Acceptance in progress.
+- Child PR #2681 remains Draft and GitHub reports it not mergeable against its integration base. Do not merge or force-update refs; synchronize changes safely first.
+- Related PR #2679's Build failed one waiting-list test (232 passed, 1 failed) at its own merge head. Its latest-only/result-text assumptions conflict with structured per-Follow-up waiting semantics; reconcile before merging.
+- Open blockers are tracked as [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) (Person directory backup/restore) and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) (Person-specific reports).
+- No exact-head validation is established for PR #2681. Release remains NO-GO.
