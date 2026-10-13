@@ -1,3 +1,12 @@
+## LIVE PROBLEM — 2026-10-13 — Persian UI terminology consistency
+
+- **Problem:** UI labels use “تاریخ انجام” for a Task due date and “بدون موعد انجام” for the no-due-date state. The wording can imply actual completion date instead of deadline.
+- **Root cause:** Older UI text describes the action colloquially rather than the semantic meaning of the bound field.
+- **Impact:** User-facing ambiguity across Task Editor and Task Detail.
+- **Correction:** Text-only canonical labels are prepared in PR #2671. No data/model changes.
+- **Status:** Partially addressed on a Draft PR; exact-head Build pending at last check, Device Smoke skipped. Not merged.
+- **Remaining:** Full UI string audit, inspect any date/time labels in Calendar/PDF/Reports and actual create/edit/detail routes, then exact-head validation and RTL visual review.
+
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
