@@ -14,8 +14,12 @@ class TaskEditApplyService {
     target.description = edited.description;
     target.dueDate = edited.dueDate;
     target.allDay = edited.allDay;
-    target.followUpEnabled = edited.followUpEnabled;
     target.followUpDate = edited.followUpDate;
+    final existingFollowUpIds = target.followUps.map((item) => item.id).toSet();
+    final additions = edited.followUps.where((item) => !existingFollowUpIds.contains(item.id));
+    target.followUps = [...target.followUps, ...additions];
+    // Deprecated compatibility mirror: derive it from real follow-up data.
+    target.followUpEnabled = target.followUps.isNotEmpty || target.followUpDate != null;
     target.tags = List<String>.of(edited.tags);
     target.category = edited.category;
     target.checklist = List<String>.of(edited.checklist);
