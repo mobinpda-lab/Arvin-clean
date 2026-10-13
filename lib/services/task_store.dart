@@ -84,13 +84,6 @@ class TaskStore {
       final executor = _database;
       await _ensureReady();
       final normalizedName = _normalizePersonName(person.displayName);
-      final duplicate = await executor.runSelect(
-        'SELECT id FROM people_directory WHERE normalized_name = ? AND id <> ? LIMIT 1',
-        <Object?>[normalizedName, person.id],
-      );
-      if (duplicate.isNotEmpty) {
-        throw StateError('A Person with this normalized name already exists');
-      }
       final existing = await executor.runSelect(
         'SELECT created_at FROM people_directory WHERE id = ? LIMIT 1',
         <Object?>[person.id],
