@@ -22,11 +22,8 @@ class FollowUpReminderAlarmPlanner {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final legacyReminderId = 'legacy-task-reminder:${task.id}';
-      final hasMigratedLegacyReminder =
-          task.taskReminders.any((item) => item.id == legacyReminderId);
       final taskReminder = task.reminderDate;
-      if (!hasMigratedLegacyReminder && taskReminder != null) {
+      if (taskReminder != null) {
         final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
         if (!delivered.contains(identity)) candidates.add(taskReminder);
       }
@@ -36,9 +33,8 @@ class FollowUpReminderAlarmPlanner {
         final at = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
-        final identity = reminder.id == legacyReminderId
-            ? 'task:${task.id}@${task.reminderDate?.toIso8601String() ?? at.toIso8601String()}'
-            : 'task:${task.id}:reminder:${reminder.id}@${at.toIso8601String()}';
+        final identity =
+            'task:${task.id}:reminder:${reminder.id}@${at.toIso8601String()}';
         if (!delivered.contains(identity)) candidates.add(at);
       }
 
