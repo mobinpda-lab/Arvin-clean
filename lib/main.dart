@@ -2677,8 +2677,16 @@ class _HomePageState extends State<HomePage> {
   }
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
+    final reminderDate = task.reminderDate;
+    final hasReminder = reminderDate != null;
+    final hasFollowUp = followUpDate != null || task.followUpEnabled;
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final cardAccent = hasReminder
+        ? colors.error
+        : hasFollowUp
+            ? colors.tertiary
+            : null;
     final preview = _latestFollowUpPreview(task);
     return Dismissible(
       key: ValueKey(task.id),
@@ -2693,12 +2701,19 @@ class _HomePageState extends State<HomePage> {
           ? _swipeBackground(TaskSwipeAction.trash)
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
-        color: ArvinColors.surface,
+        color: hasReminder
+            ? Color.alphaBlend(colors.error.withValues(alpha: 0.045), ArvinColors.surface)
+            : hasFollowUp
+                ? Color.alphaBlend(colors.tertiary.withValues(alpha: 0.045), ArvinColors.surface)
+                : ArvinColors.surface,
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide.none,
+          side: BorderSide(
+            color: cardAccent?.withValues(alpha: 0.42) ?? Colors.transparent,
+            width: cardAccent == null ? 0 : 1.2,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -2858,33 +2873,64 @@ class _HomePageState extends State<HomePage> {
                               ),
                           ],
                         ),
-                      ],                      if (followUpDate != null) ...[
+                      ],                      if (reminderDate != null) ...[
                         const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: late
-                                  ? const Color(0xFFDB8B23)
-                                  : const Color(0xFF80829C),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
-                                style: TextStyle(
-                                  color: late
-                                      ? const Color(0xFFDB8B23)
-                                      : const Color(0xFF80829C),
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                        Container(
+                          key: ValueKey('task-card-reminder-visual-${task.id}'),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: colors.errorContainer.withValues(alpha: 0.34),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.notifications_active_outlined, size: 15, color: colors.error),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  'یادآور: ${_date(reminderDate)} • ${_time(reminderDate)}',
+                                  style: TextStyle(
+                                    color: colors.error,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (followUpDate != null) ...[
+                        const SizedBox(height: 7),
+                        Container(
+                          key: ValueKey('task-card-followup-visual-${task.id}'),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: colors.tertiaryContainer.withValues(alpha: 0.34),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.follow_the_signs_outlined,
+                                size: 15,
+                                color: colors.tertiary,
+                              ),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
+                                  style: TextStyle(
+                                    color: colors.tertiary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                       if (task.trashed || task.archived)
