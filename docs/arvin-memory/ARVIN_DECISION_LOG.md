@@ -1,3 +1,13 @@
+## 2026-10-13 — TaskReminder projection, sync, and delivery integration
+
+- **Decision:** New Task reminders use `task-reminder-item:<taskId>:<reminderId>` for external identity. The migrated legacy item keeps `task-reminder:<taskId>`; after migration the legacy field is not projected separately. Inbound edit/delete resolves the exact item by stable identity and does not rename/delete the Task or neighboring reminders.
+- **Decision:** Notification delivery keys are independent per reminder. The migrated legacy item retains the previous `task:<taskId>@<timestamp>` delivery identity; new items use their own stable identity. Date-only reminders remain all-day in Calendar and use a separate notification-time helper.
+- **Persistence fix:** Task JSON always serializes `taskReminders`, `nextReminderSequence`, and `legacyReminderMigrationCompleted`; `TaskStore._canonicalEnvelope` treats them as known canonical keys. This prevents a previously persisted collection from being reintroduced when the current collection is empty.
+- **Impact:** Updated projection, outbound/inbound Calendar reconciliation, alarm planning, delivery projection/state, Task Editor and TaskEditApplyService; added tests for same-time distinct reminders, stable IDs, inbound edit/delete isolation, SQL/backup round-trip and deletion tombstone.
+- **Open product decision:** 09:00 local notification time for all-day reminders is currently implemented as a provisional policy only. The approved architecture says to use the product-documented local-time policy but does not specify the hour. Owner confirmation is required before merge.
+- **Status:** Draft PR #2666 only. Exact-head Build/Calendar acceptance remain unverified; Device Smoke is skipped. Do not merge/release.
+
+---
 ## 2026-10-13 — Safe integration slice: canonical TaskReminder and migration marker
 
 - **Problem:** canonical Task supported only singular `reminderDate`; the approved multiple-reminder design requires a stable-ID collection and idempotent representation of the legacy Task reminder.
