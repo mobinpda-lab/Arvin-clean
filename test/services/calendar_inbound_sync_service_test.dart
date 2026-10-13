@@ -29,6 +29,66 @@ void main() {
     await database.close();
   });
 
+  test('provider edit of FollowUp preserves independent fields and Person association', () async {
+    final taskStore = TaskStore(executor: database);
+    final initial = (await taskStore.load()).single;
+    initial.followUps = <FollowUp>[
+      FollowUp(
+        id: 'f1',
+        dateTime: DateTime(2026, 10, 8, 10),
+        note: 'تماس',
+        reminderDate: DateTime(2026, 10, 12, 9),
+        nextFollowUp: DateTime(2026, 10, 14, 11),
+        waitingForResponse: true,
+        personIds: const ['person-1'],
+      ),
+    ];
+    await taskStore.save([initial]);
+
+    const reminderId = 'followup:task-1:f1';
+    final canonical = CalendarReminder(
+      id: reminderId,
+      title: 'پیگیری: تماس',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminderId,
+        calendarId: '7',
+        eventId: 'followup-event-1',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: 'followup-event-1',
+          calendarId: '7',
+          title: 'پیگیری: تماس',
+          start: DateTime(2026, 10, 9, 12),
+          end: DateTime(2026, 10, 9, 12, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.updated, 1);
+    final refreshed = (await taskStore.load()).single.followUps.single;
+    expect(refreshed.dateTime, DateTime(2026, 10, 9, 12));
+    expect(refreshed.reminderDate, DateTime(2026, 10, 12, 9));
+    expect(refreshed.nextFollowUp, DateTime(2026, 10, 14, 11));
+    expect(refreshed.waitingForResponse, isTrue);
+    expect(refreshed.personIds, ['person-1']);
+  });
+
   test('provider edit updates linked canonical due date', () async {
     final taskStore = TaskStore(executor: database);
     final canonical = CalendarReminder(
