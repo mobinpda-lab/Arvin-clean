@@ -224,16 +224,14 @@ class TaskStore {
     });
   }
 
+  @Deprecated('A Task has no follow-up flag; create a FollowUp record instead.')
   Future<void> convertToFollowUp(String taskId) async {
-    await mutate<void>((tasks) {
-      final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) throw StateError('Task not found: $taskId');
-      final task = tasks[index];
-      // Compatibility shim only. A Task is not changed by toggling a flag;
-      // a real FollowUp must be created through addFollowUp().
-      if (task.followUps.isNotEmpty || task.followUpDate != null) return;
-      throw StateError('Create a FollowUp record instead of enabling a flag');
-    });
+    // Legacy API retained for compatibility. It intentionally does not mutate
+    // the Task; use addFollowUp() to persist a real FollowUp record.
+    final tasks = await load();
+    if (!tasks.any((task) => task.id == taskId)) {
+      throw StateError('Task not found: $taskId');
+    }
   }
 
   Future<List<FollowUp>> loadFollowUps(String taskId) async {
