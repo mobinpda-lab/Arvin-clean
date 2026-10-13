@@ -154,7 +154,7 @@ void main() {
     expect(result.first.label, 'پیگیری');
   });
 
-  test('migrated legacy Task reminder is delivered once under the old identity', () {
+  test('legacy Task reminder is delivered under its original identity', () {
     final migrated = Task.fromJson({
       'id': 'legacy',
       'title': 'کار قدیمی',
