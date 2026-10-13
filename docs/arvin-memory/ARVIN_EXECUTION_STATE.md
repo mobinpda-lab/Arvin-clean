@@ -1299,3 +1299,22 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **No assertions were intentionally weakened.** These are test-selector/viewport corrections inferred from the current implementation contract; their effectiveness is unproven until the corresponding jobs finish.
 - **Release:** NO-GO. No physical-device screenshot or physical-device acceptance evidence has been captured in this checkpoint.
 - **Next action:** let Build, Calendar Provider Acceptance and all six Device Smoke lanes reach terminal states on the latest head; inspect every remaining failure log, fix only verified causes, then rerun all required gates on one final SHA. Keep PR #2666 unmerged.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (calendar/settings widget-test rerun checkpoint)
+
+- Live branch before this memory update: `ad9c444826b4c6b91b16f413f313269fc4fca44b`; PR #2666 remains open and unmerged.
+- Prior exact-head CI run [Arvin Build 38440096707](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096707) executed PR merge SHA `6ce2657dd090a9a3501add68838a24b86031b65c`, whose source head was `a72eb359ee099f3e6587d26a103bd96342aac216). It is historical evidence only, not validation of the newer test-fix commits.
+- Build evidence on that run: Analyze passed (job `115444792490`); test-0 passed (`115444792625`); test-3 passed (`115444792784`); test-1 failed (`115444792411`) with one missing external-event edit action key; test-2 failed (`115444792336`) with four failures: checklist enabled block not found, Follow-up completion action tap missed because its tile was outside the hit-testable viewport, prayer action text not found after long-press, and Settings `ensureVisible` could not find the lazily built all-day reminder control. test-4/test-5 and Debug/Release APK jobs were cancelled; do not count them as passes.
+- Calendar Provider Acceptance [run 38440096704](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096704), job `115444126573`, completed successfully on the same prior PR merge SHA. Device Smoke [run 38440096441](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096441): Home (`115444600593`) and Quick Capture (`115444601109`) passed; SQL Persistence, Backup/Restore, People and SQL Migration jobs were cancelled and remain unvalidated.
+- Test-only corrections now committed on the source branch after that run:
+  - `140d47f5f36e519e9ec3a5345bacbbbf6407176d`: external Calendar test now targets the existing `calendar-action-open-external-calendar:...` menu action rather than a generic edit action that is absent when no edit callback is supplied.
+  - `849530cfa014a9d2ff7a5c1cb80f0eae76154d7e`: ensure Follow-up completion action is visible before tapping in widget test.
+  - `17296f0ef5f38da320d0ac7fd13b7648370841d8`: ensure prayer card is visible before long-pressing in widget test.
+  - `ad9c444826b4c6b91b16f413f313269fc4fca44b`: use `scrollUntilVisible` for the lazy-built Settings control instead of `ensureVisible`.
+- These corrections are **not yet validated**. No production code changed in these four commits. The earlier checklist failure remains unresolved; inspect the actual checklist toggle implementation and its test setup instead of weakening assertions or assuming a viewport-only issue.
+- P1 data integrity issue [#2682](https://github.com/mobinPda-lab/Arvin-clean/issues/2682) remains open: standalone Person directory entries must be included in canonical backup/restore, with old-backup compatibility, pre-restore ID/reference validation, emergency backup/rollback inclusion, and injected-failure rollback tests. Do not close it without exact-head evidence.
+- Next action: wait for and inspect the latest workflow triggered by the corrected tests; fix remaining confirmed failures; then address #2682 by tracing the existing canonical backup/apply/rollback sequence before any storage mutation. Re-run Analyze, every test shard, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes on one exact final SHA. Physical-device evidence remains outstanding.
+- Release status: **NO-GO**; keep PR #2666 open and unmerged.
