@@ -149,4 +149,81 @@ void main() {
 
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
+
+  test('projects multiple independent Task reminders with stable keys', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final task = Task(
+      id: 'task-1',
+      title: 'کار',
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'r1',
+          taskId: 'task-1',
+          title: 'یادآور اول',
+          date: DateTime(2026, 8, 28, 0),
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          isAllDay: true,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'task-1',
+          title: 'یادآور دوم',
+          date: DateTime(2026, 8, 28, 0),
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    final result = projection.pending([task], now: DateTime(2026, 8, 28, 8));
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey).toSet(), {
+      'task-reminder-item:task-1:r1',
+      'task-reminder-item:task-1:r2',
+    });
+    expect(
+      result.singleWhere((item) => item.taskReminderId == 'r1').scheduledAt,
+      DateTime(2026, 8, 28, 9),
+    );
+    expect(
+      result.singleWhere((item) => item.taskReminderId == 'r2').scheduledAt,
+      DateTime(2026, 8, 28, 0),
+    );
+  });
+
+  test('migrated legacy reminder uses old delivery identity exactly once', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-task',
+      'title': 'تماس',
+      'reminderDate': '2026-08-28T17:00:00.000',
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy-task');
+    expect(result.single.taskReminderId, 'legacy-task-reminder:legacy-task');
+    expect(result.single.label, 'تماس — یادآور ۱');
+  });
+
+  test('deleted migrated legacy reminder is not scheduled from retained legacy value', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'deleted-legacy',
+      'title': 'تماس',
+      'reminderDate': '2026-08-28T17:00:00.000',
+    });
+    task.taskReminders.clear();
+
+    expect(
+      projection.pending([task], now: now),
+      isEmpty,
+    );
+    expect(task.reminderDate, DateTime(2026, 8, 28, 17));
+  });
+
 }
