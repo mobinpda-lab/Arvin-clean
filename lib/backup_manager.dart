@@ -365,7 +365,6 @@ class ArvinBackupManager {
       throw const FormatException('Arvin backup Person directory is invalid');
     }
     final ids = <String>{};
-    final names = <String>{};
     final people = <PersonReference>[];
     for (final raw in rawPeople) {
       if (raw is! Map) {
@@ -374,10 +373,6 @@ class ArvinBackupManager {
       final person = PersonReference.fromJson(Map<String, dynamic>.from(raw));
       if (!ids.add(person.id)) {
         throw FormatException('Arvin backup contains duplicate Person id: ${person.id}');
-      }
-      final normalizedName = person.displayName.trim().toLowerCase().replaceAll('ي', 'ی').replaceAll('ك', 'ک').replaceAll(RegExp(r'\\s+'), ' ');
-      if (!names.add(normalizedName)) {
-        throw FormatException('Arvin backup contains duplicate Person name: ${person.displayName}');
       }
       people.add(person);
     }
