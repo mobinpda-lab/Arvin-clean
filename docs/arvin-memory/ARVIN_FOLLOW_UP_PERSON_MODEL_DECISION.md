@@ -58,3 +58,11 @@
 - **Automated test evidence for this decision:** pending.
 - **Physical-device evidence:** pending.
 - **Release status:** NO-GO until exact-head tests/build/migration/backup-restore/Calendar gates pass.
+
+---
+
+## Implementation checkpoint — 2026-10-13
+
+The accepted decision above remains authoritative. Source implementation has begun on [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), stacked on [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666). The model, SQL fields, Person directory UI and waiting-entry validation are present on that branch; cleanup also removed several legacy flag writes and fixed Calendar inbound field preservation.
+
+**Not complete:** standalone Person directory records are not included in the existing portable backup/restore contract; Person-specific reporting is incomplete; exact-head tests/build/migration/Calendar/device validation has not been confirmed. These are tracked in `ARVIN_REPOSITORY_CLEANUP_AUDIT_2026-10-13.md`. Release remains NO-GO.
