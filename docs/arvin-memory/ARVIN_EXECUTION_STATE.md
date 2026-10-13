@@ -1,3 +1,20 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest Follow-up and reminder code checkpoint)
+
+This entry supersedes older status summaries where they conflict. Re-query live PR head after this memory write.
+
+- **Code/test head before this memory write:** `c6f34b9e05b0e842a4844a50ea004ef04ba3adf7`.
+- **PR #2666:** open, ready-for-review, unmerged; branch `integration/task-multiple-reminders-safe-20261013`. PR title now covers multiple reminders and record-based Follow-ups.
+- **Follow-up model:** `followUpEnabled` is no longer a user-facing or decision flag. Quick Entry removes it while keeping checklist; Full Form has a real Follow-ups section and add action. Editor applies new Follow-up records by stable ID while preserving existing history. Legacy field remains serialized for compatibility only.
+- **Waiting list:** Home → More includes a direct «منتظر پاسخ دیگران» entry; FollowUpOfficePage opens in waiting-only mode, evaluates latest Follow-up per Task, excludes completed/archived/trashed Tasks, and offers «بازکردن کار» for canonical Task detail.
+- **Reminder model:** independent TaskReminder collection, stable Calendar identities, configurable all-day notification default 09:00 local time, user setting/persistence/backup and runtime scheduling remain on the same branch.
+- **Tests added/updated:** waiting-list filtering/navigation, Quick Entry no-flag + checklist, Full Form Follow-up add, TaskEditApplyService merge-by-ID, flag-independent Home/list projections, reminder model/Calendar/notification/editor/SQL/backup cases.
+- **Exact-head CI observed on code/test SHA `c6f34b9...`:** Build run 38422870836 pending with no jobs yet; Calendar Provider Acceptance 38422870882 queued; Device Smoke 38422870847 queued with six lanes; Parallel Wave run 38422870866 skipped. These statuses do not prove tests passed, and this memory write advances the head.
+- **Next:** fetch the new live PR head and inspect Build/analyzer/test shards, Calendar Provider Acceptance, and all six Device Smoke lanes on that exact SHA. Fix any failures and repeat validation after the final code change.
+- **Still required before release:** terminal-green Analyze/test shards, Debug/Release APK, Calendar provider acceptance, all six Device Smoke lanes, backup/restore and Calendar-link integrity, and physical-device acceptance.
+- **Release:** NO-GO. Do not merge until all required gates pass on the final exact head.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (Follow-up model simplification + waiting list)
 
 - **Owner-approved model:** every Task supports zero or more real Follow-up records. `followUpEnabled` is deprecated compatibility data only and must not drive user-facing controls, projections, status, or capability decisions.
