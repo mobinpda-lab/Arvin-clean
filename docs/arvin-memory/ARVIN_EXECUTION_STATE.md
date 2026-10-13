@@ -970,3 +970,12 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Re-polled exact-head Build run `38361448901` for PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Analyze and test shards 0–5 are now confirmed successful. Debug APK and Release APK remain `in_progress`; Build is not yet complete.
 - Device Smoke run `38361448950` has not advanced in the latest poll: Home and Quick Capture `in_progress`; SQL Persistence, SQL Migration, People and Backup/Restore `queued`. No failures observed so far, but the six-lane suite is not complete.
 - The memory reconciliation commits on the documentation branch are complete; they do not alter app code or validate the feature. Release remains **NO-GO**.
+
+# CONTINUATION CHECKPOINT — 2026-10-13 (latest exact-head poll)
+
+- Latest status for visual PR #2663 remains head `c3b95d0781ec03f07d43379c4087f427667cb250`, open and mergeable.
+- Build run `38361448901`: Analyze, test shards 0–5, and Debug APK are SUCCESS. Release APK remains IN_PROGRESS, so the full Build gate is not yet complete.
+- Device Smoke run `38361448950`: Quick Capture SUCCESS; Home and SQL Persistence IN_PROGRESS; SQL Migration, People and Backup/Restore QUEUED. The six-lane acceptance gate remains incomplete.
+- Reviewed open owner requirement #2635 (origin-aware Calendar sync and duplicate prevention) and #2654 (multiple independent reminders). These are broader implementation/validation requirements, not closed by visual-only PR #2663.
+- **Completed in this execution:** refreshed current GitHub/PR/issue/job status; corrected and reconciled decision-memory scope; recorded latest exact-head evidence boundary. No application code was changed because current CI/device lanes are still running and no actionable failure has surfaced.
+- **Next:** poll the same exact-head runs again; if a job fails, inspect its logs and make a targeted fix. Once all lanes pass, review artifacts and still obtain physical-device acceptance. Keep Release **NO-GO** until all release gates are evidenced.
