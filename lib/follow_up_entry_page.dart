@@ -56,8 +56,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _noteController.text = initial?.note ?? '';
-    _waitingForResponse =
-        initial?.waitingForResponse ?? _waitingService.isWaitingResult(initial?.result);
+    _waitingForResponse = initial?.waitingForResponse == true ||
+        _waitingService.isWaitingResult(initial?.result);
     _selectedPersonIds.addAll(initial?.personIds ?? const <String>[]);
     _initialPersonIds = Set<String>.of(_selectedPersonIds);
     _loadPeopleDirectory();
