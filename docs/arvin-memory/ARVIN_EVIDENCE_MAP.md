@@ -372,3 +372,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Build run `38361448901`: Analyze, all six test shards, Debug APK and Release APK SUCCESS at PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`.
 - Device Smoke run `38361448950`: Home, Quick Capture, SQL Persistence and SQL Migration SUCCESS; People and Backup/Restore still IN_PROGRESS at latest poll.
 - Full six-lane device acceptance is therefore pending. No physical-device acceptance evidence is available; visual compact-width/RTL review remains outstanding.
+
+
+## Delivery blocker update — 2026-10-13
+- Build run `38361448901`, exact PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Analyze, test-0..5, Debug APK, Release APK = SUCCESS.
+- Device Smoke run `38361448950`: all six lanes now SUCCESS — Home, Quick Capture, SQL Persistence, SQL Migration, People, Backup/Restore.
+- Build artifacts listed: `arvin-debug-apk`, `arvin-release-apk`. Device Smoke artifact list includes Home, Quick Capture, People only; no dedicated artifact was listed for SQL Persistence, SQL Migration, or Backup/Restore, so only lane status—not artifact existence—is claimed for those.
+- Still open: physical-device/real-use acceptance; compact RTL and small-screen UX visual review; Calendar origin-aware sync and duplicate prevention; end-to-end multiple independent Task reminders and Follow-up separation. PR #2663 is open/unmerged. PR #2655 remains non-mergeable and requires safe integration plus fresh exact-head CI.
+- Release remains NO-GO.
