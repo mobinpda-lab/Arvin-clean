@@ -475,7 +475,7 @@ class TaskStore {
             task.createdAt?.toIso8601String(),
             task.updatedAt?.toIso8601String(),
             task.dueDate?.toIso8601String(),
-            task.followUpEnabled ? 1 : 0,
+            (task.followUps.isNotEmpty || task.followUpDate != null) ? 1 : 0,
             task.followUpDate?.toIso8601String(),
             task.category,
             task.notebookKind?.name,
