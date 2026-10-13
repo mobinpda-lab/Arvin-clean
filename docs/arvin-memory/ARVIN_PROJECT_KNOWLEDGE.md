@@ -1,3 +1,14 @@
+## 2026-10-13 — Multiple Task reminders compatibility contract
+
+- Task.taskReminders is the canonical collection for new independent Task-level reminders and is serialized in the existing Task JSON envelope.
+- Legacy Task.reminderDate is not automatically copied into the new collection. It remains on its legacy projection/notification path until a separate migration is deliberately designed, approved and tested.
+- FollowUp.reminderDate and FollowUp.nextFollowUp remain distinct. Editing/deleting a Task reminder must not mutate either field or FollowUp history.
+- Existing Task editor changes now include independent reminder add/edit/remove, date/time and explicit all-day controls, monotonic sequence allocation, and TaskEditApplyService persistence wiring.
+- New Calendar IDs are task-reminder-item:<taskId>:<reminderId>; existing legacy Task reminder ID remains task-reminder:<taskId>. Do not deduplicate by title/date.
+- JSON backup round-trip coverage was added for multiple reminders, date-only/all-day vs intentional midnight, legacy reminder, FollowUp reminder, and nextFollowUp. This is model-payload coverage, not proof of real file-provider restore or physical-device behavior.
+- Exact-head CI is the authority. A prior head failed Analyze due four style infos; those were corrected, but latest-head results are not yet confirmed.
+
+---
 # Arvin Project Knowledge
 
 Updated: 2026-10-11
