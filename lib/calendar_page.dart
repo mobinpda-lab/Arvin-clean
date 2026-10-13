@@ -975,6 +975,10 @@ class _ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<_ReminderCard> {
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
 
+  bool get _isReminderCalendarItem =>
+      widget.item.id.startsWith('task-reminder:') ||
+      widget.item.id.startsWith('task-reminder-item:');
+
   Future<void> _confirmDeleteTask(CalendarReminder item) async {
     final delete = widget.onDeleteTask;
     if (delete == null) return;
@@ -1061,7 +1065,7 @@ class _ReminderCardState extends State<_ReminderCard> {
           key: 'calendar-action-delete-${widget.item.id}',
           icon: Icons.delete_outline,
           label: 'حذف',
-          action: _isTaskCalendarItem ? _confirmDeleteTask : null,
+          action: _isTaskCalendarItem && !_isReminderCalendarItem ? _confirmDeleteTask : null,
         );
         addAction(
           key: 'calendar-action-complete-${widget.item.id}',
