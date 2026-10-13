@@ -1,3 +1,18 @@
+# LIVE EVIDENCE — 2026-10-13 (migration contract gap)
+
+| Evidence | Result | Scope |
+|---|---|---|
+| Main SHA | `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d` | Current observed main |
+| PR #2655 | OPEN / unmerged; 58 ahead, 3 behind; mergeable=false | Multiple-reminder feature |
+| Source audit | BLOCKER FOUND | Required reminder metadata and idempotent legacy Task reminder migration are absent from current feature implementation |
+| Exact current-head CI | NOT FOUND | Older-head Build failed; older Device Smoke and Calendar Provider Acceptance passed only on SHA `217c57a...` |
+| Physical-device acceptance | NOT DONE | Calendar no-duplicate, backup/restore, and RTL UX still need real-device evidence |
+| Release | NO-GO | Do not infer release readiness from older emulator CI |
+
+The approved architecture document and feature-branch documentation disagree about migrating legacy `Task.reminderDate`. Do not merge until the code and tests satisfy the approved migration contract and current-main Calendar behavior is reconciled.
+
+---
+
 # LIVE EVIDENCE — 2026-10-13 (duplicate Calendar projection correction)
 
 | Evidence | Result | Scope |
