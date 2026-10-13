@@ -280,24 +280,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       if (task != null) break;
     }
     if (task == null) return;
-    final approved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('انتقال کار به سطل زباله؟'),
-        content: Text('«${task!.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('لغو'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('انتقال به سطل زباله'),
-          ),
-        ],
-      ),
-    );
-    if (approved != true || !mounted) return;
+
+    // CalendarPage owns the single user confirmation. This boundary only
+    // resolves the projected occurrence to its canonical Task; prompting
+    // again here would create a duplicate confirmation dialog.
     await widget.onDeleteTask!(task);
     if (!mounted) return;
     final refreshed = await widget.onRefreshTasks?.call();
