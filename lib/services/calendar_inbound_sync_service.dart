@@ -443,7 +443,7 @@ class CalendarInboundSyncService {
       if (index < 0) return false;
       final next = List<FollowUp>.of(task.followUps)..removeAt(index);
       task.followUps = next;
-      task.followUpEnabled = next.isNotEmpty;
+      // Removing one history record must not mutate the legacy Task flag.
       task.updatedAt = DateTime.now();
       return true;
     }
