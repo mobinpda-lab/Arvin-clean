@@ -206,6 +206,7 @@ void main() {
     final task = Task(id: 'checklist-toggle', title: 'آماده‌سازی', checklist: const ['[ ] کیف', '[ ] کتاب']);
     await pumpEditor(tester, task: task, onResult: (value) => disabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
