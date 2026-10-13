@@ -602,3 +602,25 @@ This entry records status only; no source/test change is claimed by this checkpo
 - **Separate stacked child PR:** [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), limited to Person-linked Follow-up and People backup/restore work. Do not use #2681 as the primary integration PR label.
 - Related references #2679, #2667, and #2655 remain distinct PRs and must be described by their actual scope.
 - This is a documentation-only normalization. It adds no validation evidence and does not change the release decision: **NO-GO** until exact-head gates and required device/provider evidence pass.
+
+
+## 2026-10-14 — Exact-head validation poll after PR identifier normalization
+
+**Primary PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | **Branch:** `integration/task-multiple-reminders-safe-20261013` | **Observed source SHA:** `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23` | **App version:** `1.0.1+2` (last recorded manifest value).
+
+| Gate / evidence | Workflow run | Observed result on SHA `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23` | Limitation |
+|---|---|---|---|
+| Arvin Build | [38463727564](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727564) | IN PROGRESS | Jobs endpoint timed out on poll; no pass claimed. |
+| Calendar Provider Acceptance | [38463727485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727485) | SUCCESS | Does not certify Build, all Device Smoke lanes, physical device, or backup/restore integrity. |
+| Device Smoke | [38463727566](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727566) | QUEUED | Six lane results not yet available; no pass claimed. |
+| ARVIN Orchestrator PR Wakeup | [38463727504](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727504) | SUCCESS | Orchestration signal only, not product validation. |
+| ARVIN Orchestrator | [38463727616](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727616) | SUCCESS | Orchestration signal only, not product validation. |
+| ARVIN Production Loop | [38463727519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727519) | SUCCESS | Does not substitute for required product gates. |
+| G1 lock sync | [38463727514](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727514) | SUCCESS | Synchronization workflow only. |
+| Arvin Parallel Wave | [38463727492](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727492) | SKIPPED | Not a pass. |
+
+**Related open blockers:** [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) People backup/restore integrity; [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681) stacked Person-linked work reported non-mergeable; [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) Person-specific Report Center results; [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685) Calendar tap/long-press contract.
+
+**Evidence boundary:** this entry is a documentation checkpoint and advances branch HEAD. All results above apply only to the exact SHA named in the heading. Re-query the PR head and collect new exact-head results after this commit. Physical-device acceptance remains unproven.
+
+**Release decision: NO-GO.**
