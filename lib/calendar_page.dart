@@ -1036,13 +1036,21 @@ class _ReminderCardState extends State<_ReminderCard> {
         ? '${widget.dateLabel}\nرویداد تمام‌روز'
         : '${widget.dateLabel}  •  ساعت ${widget.timeLabel}\n${widget.isPrayer ? prayerState : (item.completed ? 'انجام‌شده' : 'در انتظار پیگیری')}';
     final visual = _CalendarItemVisualStyle.of(context, item);
+    final isReminderOrFollowUp =
+        item.id.startsWith('task-reminder:') ||
+        item.id.startsWith('task-followup:') ||
+        item.id.startsWith('followup:');
 
     return Card(
-      color: visual.color.withValues(alpha: 0.055),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: visual.color.withValues(alpha: 0.32)),
-      ),
+      color: isReminderOrFollowUp
+          ? visual.color.withValues(alpha: 0.055)
+          : null,
+      shape: isReminderOrFollowUp
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: visual.color.withValues(alpha: 0.32)),
+            )
+          : null,
       child: Column(
         children: [
           ListTile(
