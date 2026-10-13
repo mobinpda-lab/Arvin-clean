@@ -368,7 +368,7 @@ class CalendarInboundSyncService {
         completed: current.completed,
       );
       task.followUps = next;
-      task.followUpEnabled = true;
+      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
       return true;
     }
