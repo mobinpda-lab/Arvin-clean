@@ -196,4 +196,30 @@ void main() {
     expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
   });
 
+
+  test('legacy Task reminder and new Task reminders project independently', () {
+    final task = Task.fromJson({
+      'id': 'mixed',
+      'title': 'کار',
+      'reminderDate': '2026-08-28T18:00:00.000',
+      'taskReminders': [
+        {
+          'id': 'new-1',
+          'taskId': 'mixed',
+          'title': 'یادآور جدید',
+          'date': '2026-08-29T09:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+          'status': 'active',
+        },
+      ],
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey),
+        ['task:mixed', 'task:mixed:reminder:new-1']);
+  });
+
 }
