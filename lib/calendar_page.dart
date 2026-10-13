@@ -889,12 +889,20 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-reminder-item:') ||
     id.startsWith('task-followup:');
 
-enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
+enum _CalendarItemVisualKind { ordinary, taskDue, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
   if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
-  if (item.id.startsWith('task-followup-action:')) return _CalendarItemVisualKind.followUpAction;
-  if (item.id.startsWith('task-due:') || item.id.startsWith('task-reminder:') || item.id.startsWith('followup:')) return _CalendarItemVisualKind.arvinReminder;
+  if (item.id.startsWith('task-followup-action:') ||
+      item.id.startsWith('task-followup:') ||
+      item.id.startsWith('followup:')) {
+    return _CalendarItemVisualKind.followUpAction;
+  }
+  if (item.id.startsWith('task-due:')) return _CalendarItemVisualKind.taskDue;
+  if (item.id.startsWith('task-reminder:') ||
+      item.id.startsWith('task-reminder-item:')) {
+    return _CalendarItemVisualKind.arvinReminder;
+  }
   if (item.id.startsWith('prayer-')) return _CalendarItemVisualKind.prayer;
   return _CalendarItemVisualKind.ordinary;
 }
@@ -908,8 +916,10 @@ class _CalendarItemVisualStyle {
   static _CalendarItemVisualStyle of(BuildContext context, CalendarReminder item) {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
+      _CalendarItemVisualKind.taskDue => _CalendarItemVisualStyle(
+        icon: Icons.event_available_outlined, color: scheme.primary, label: 'موعد کار'),
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
+        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآور'),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
         icon: Icons.follow_the_signs_outlined, color: scheme.tertiary, label: 'پیگیری'),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
