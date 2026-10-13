@@ -1,3 +1,22 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest exact-head validation poll)
+
+This checkpoint supersedes conflicting live status below. Previous entries remain historical evidence.
+
+- **Repository / PR:** `mobinpda-lab/Arvin-clean`, PR [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`; open, non-draft, mergeable, and unmerged.
+- **Exact SHA inspected:** `7bce505284b39b7dda9b6ce675097f21a6306c59`. Do not treat these results as validation for any later SHA.
+- **Build run:** [38436544798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38436544798). Analyze, test-0, Debug APK, Release APK passed. test-1, test-2, test-3 failed. test-4 and test-5 were still in progress at latest poll.
+- **Calendar Provider Acceptance:** [run 38436544823](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38436544823) passed.
+- **Device Smoke:** [run 38436544749](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38436544749). SQL Persistence, Home and Quick Capture passed; Backup/Restore and SQL Migration were in progress; People was queued at latest poll.
+- **Exact test-2 failures:** `task_editor_dialog_test.dart` two checklist interactions tap a widget at y=1102 outside the 960px test viewport; this is confirmed as a test visibility/setup issue, not evidence that conditional checklist rendering is broken. Other failures: `calendar_release_acceptance_test.dart` missing follow-up completion action key; `official_calendar_prayer_actions_test.dart` missing “ادا شد”; `settings_page_test.dart` missing `all-day-reminder-time-setting`. Investigate the exact UI state/scroll/fixture and fix the underlying test or product behavior; do not relax assertions.
+- **Exact test-1 failure:** `external_calendar_page_projection_test.dart` fails to find the external-event edit action after tapping an external event card. Root cause not yet confirmed.
+- **Exact test-3 failure:** `follow_up_office_page_test.dart:303`, waiting filter expects two visible “کار پاسخ‌گرفته” labels but sees one. Root cause not yet confirmed; inspect data selection/rendering and fixture before modifying code.
+- **PR triage comment:** added [comment 6151198592](https://github.com/mobinpda-lab/Arvin-clean/pull/2666#issuecomment-6151198592), recording exact-head evidence and no-merge instruction.
+- **No product code or tests were changed in this checkpoint.** This is a documentation-only commit and advances the PR head; re-query the new exact SHA and rerun gates. Do not use prior SHA results as evidence for the new head.
+- **Release:** **NO-GO**. Do not merge until all test shards, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes pass on the same exact final SHA. Backup/restore/link integrity and physical-device acceptance remain required.
+- **Next action:** diagnose external Calendar edit action and Follow-up waiting-list mismatch; fix test visibility for checklist without weakening expectations; investigate missing Calendar follow-up completion, prayer status and Settings control; finish polling current device lanes and test-4/test-5; rerun all gates on the final corrected SHA.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2666 latest exact-head test triage)
 
 This checkpoint supersedes conflicting live status below. Historical entries are retained.
