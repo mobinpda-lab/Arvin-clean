@@ -219,4 +219,102 @@ void main() {
     expect(result!.dueDate!.hour, 0);
     expect(result!.dueDate!.minute, 0);
   });
+
+  testWidgets('full Task editor adds independent reminders without replacing legacy reminder', (tester) async {
+    Task? result;
+    final legacyDate = DateTime(2026, 10, 20, 9, 30);
+    final task = Task(
+      id: 'editor-multi',
+      title: 'خرید فرش',
+      reminderDate: legacyDate,
+      followUps: [
+        FollowUp(
+          id: 'follow-up-preserved',
+          dateTime: DateTime(2026, 10, 18, 12),
+          nextFollowUp: DateTime(2026, 10, 25, 10),
+        ),
+      ],
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final add = find.byKey(const ValueKey('task-editor-add-reminder'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, legacyDate);
+    expect(result!.taskReminders, hasLength(2));
+    expect(result!.taskReminders.map((item) => item.sequence), [1, 2]);
+    expect(result!.taskReminders.map((item) => item.id).toSet().length, 2);
+    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور ۱');
+    expect(result!.nextReminderSequence, 3);
+    expect(result!.followUps.single.nextFollowUp, DateTime(2026, 10, 25, 10));
+  });
+
+  testWidgets('editing or deleting one reminder leaves other reminders and nextFollowUp intact', (tester) async {
+    Task? result;
+    final nextFollowUp = DateTime(2026, 10, 25, 10);
+    final task = Task(
+      id: 'editor-independent',
+      title: 'جلسه',
+      reminderDate: DateTime(2026, 10, 20, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'keep-reminder',
+          taskId: 'editor-independent',
+          title: 'اول',
+          date: DateTime(2026, 10, 21, 10),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'remove-reminder',
+          taskId: 'editor-independent',
+          title: 'دوم',
+          date: DateTime(2026, 10, 22, 11),
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+      followUps: [
+        FollowUp(
+          id: 'follow-up-preserved',
+          dateTime: DateTime(2026, 10, 18, 12),
+          nextFollowUp: nextFollowUp,
+        ),
+      ],
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final title = find.byKey(const ValueKey('task-editor-reminder-title-keep-reminder'));
+    await tester.ensureVisible(title);
+    await tester.enterText(title, 'عنوان تغییرکرده');
+    await tester.pump();
+    final remove = find.byKey(const ValueKey('task-editor-remove-reminder-remove-reminder'));
+    await tester.ensureVisible(remove);
+    await tester.tap(remove);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders, hasLength(1));
+    expect(result!.taskReminders.single.id, 'keep-reminder');
+    expect(result!.taskReminders.single.title, 'عنوان تغییرکرده');
+    expect(result!.reminderDate, DateTime(2026, 10, 20, 9));
+    expect(result!.followUps.single.nextFollowUp, nextFollowUp);
+    expect(result!.nextReminderSequence, 3);
+  });
+
 }
