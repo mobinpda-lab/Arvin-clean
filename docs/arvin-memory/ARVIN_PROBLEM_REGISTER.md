@@ -1,3 +1,13 @@
+## 2026-10-13 — Multiple-reminder implementation checkpoint
+
+- **Addressed in branch, not yet validated:** model fields, idempotent legacy decode, migration tombstone, editor CRUD, TaskEditApplyService, Calendar projection and stable IDs, inbound/outbound provider reconciliation, notification candidates/planner/state, SQL envelope semantics, and focused tests.
+- **Important regression prevented:** `TaskStore._canonicalEnvelope` preserved unknown fields from previous JSON. Because the new serializer omitted empty reminder lists, a deleted reminder could return from stale `legacy_payload_json`. Fixed by always serializing reminder list/counter/tombstone and adding these fields to TaskStore's known canonical keys; a SQL delete/reload regression test was added.
+- **P1 — All-day notification hour:** implementation currently schedules date-only reminders at 09:00 local. Architecture requires a documented local-time policy, but the owner-approved document does not specify an hour. Treat 09:00 as provisional; do not merge until owner confirms.
+- **P1 — Exact-head validation:** current feature branch's Build/Calendar Provider Acceptance are pending/queued at the last observed code checkpoint. Device Smoke is skipped. The next workflow result must match the final exact SHA.
+- **P1 — Physical device:** no physical-device acceptance has been supplied; emulator/CI cannot replace it.
+- **Release:** NO-GO until exact-head tests/builds, Calendar acceptance, all six Device Smoke lanes, backup/restore/link-integrity review, owner policy decision, and physical-device acceptance pass.
+
+---
 ## 2026-10-13 — Multiple Task reminders integration blockers (live)
 
 - **P1 — Legacy Calendar identity reconciliation:** Task JSON now represents a legacy reminder as a deterministic TaskReminder while retaining `Task.reminderDate`. Until projection code maps the migrated item to the legacy `task-reminder:<taskId>` identity and suppresses separate legacy projection, duplicate external events remain a risk. Keep the integration PR unmerged.
