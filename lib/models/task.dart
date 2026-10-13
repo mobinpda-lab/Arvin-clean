@@ -30,6 +30,10 @@ class FollowUp {
         'note': note,
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (taskReminders.isNotEmpty)
+          'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
+        if (nextReminderSequence > 1)
+          'nextReminderSequence': nextReminderSequence,
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
       };
@@ -40,9 +44,9 @@ class FollowUp {
       dateTime: DateTime.parse(json['dateTime'] as String),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
+      reminderDate: legacyReminderDate,
+      taskReminders: loadedTaskReminders,
+      nextReminderSequence: nextReminderSequence,
       nextFollowUp: json['nextFollowUp'] == null
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
@@ -55,6 +59,86 @@ class FollowUp {
 /// Remove when HomePage stops using the legacy view model.
 extension FollowUpLegacyDate on FollowUp {
   DateTime get date => dateTime;
+}
+
+/// A reminder owned by a canonical Task. The legacy Task.reminderDate and
+/// FollowUp.reminderDate fields remain independently readable during migration.
+class TaskReminder {
+  const TaskReminder({
+    required this.id,
+    required this.taskId,
+    required this.title,
+    required this.date,
+    this.status = 'active',
+    required this.createdAt,
+    required this.updatedAt,
+    this.isAllDay = false,
+    required this.sequence,
+  });
+
+  final String id;
+  final String taskId;
+  final String title;
+  final DateTime date;
+  final String status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isAllDay;
+  final int sequence;
+
+  TaskReminder copyWith({
+    String? title,
+    DateTime? date,
+    String? status,
+    DateTime? updatedAt,
+    bool? isAllDay,
+  }) =>
+      TaskReminder(
+        id: id,
+        taskId: taskId,
+        title: title ?? this.title,
+        date: date ?? this.date,
+        status: status ?? this.status,
+        createdAt: createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        isAllDay: isAllDay ?? this.isAllDay,
+        sequence: sequence,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'taskId': taskId,
+        'title': title,
+        'date': date.toIso8601String(),
+        'status': status,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'isAllDay': isAllDay,
+        'sequence': sequence,
+      };
+
+  factory TaskReminder.fromJson(
+    Map<String, dynamic> json, {
+    required String fallbackTaskId,
+    required DateTime fallbackCreatedAt,
+  }) {
+    DateTime parseDate(Object? raw, DateTime fallback) {
+      if (raw is! String) return fallback;
+      return DateTime.tryParse(raw) ?? fallback;
+    }
+
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      taskId: json['taskId'] as String? ?? fallbackTaskId,
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      status: json['status'] as String? ?? 'active',
+      createdAt: parseDate(json['createdAt'], fallbackCreatedAt),
+      updatedAt: parseDate(json['updatedAt'], fallbackCreatedAt),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+    );
+  }
 }
 
 /// Unified product model foundation:
@@ -79,6 +163,8 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    Iterable<TaskReminder> taskReminders = const [],
+    int nextReminderSequence = 1,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -88,6 +174,8 @@ class Task {
     Iterable<PersonReference> people = const [],
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
+        taskReminders = List<TaskReminder>.of(taskReminders),
+        nextReminderSequence = nextReminderSequence,
         people = _normalizePeople(people);
 
   final String id;
@@ -115,6 +203,10 @@ class Task {
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
+  /// Independent reminders stored in the canonical Task JSON envelope.
+  List<TaskReminder> taskReminders;
+  /// Next per-Task reminder number; deleted numbers are never reused.
+  int nextReminderSequence;
   TaskPriority priority;
   bool archived;
   bool trashed;
@@ -260,6 +352,66 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
+    final taskId = json['id'] as String? ?? '';
+    final taskTitle = json['title'] as String? ?? '';
+    final taskCreatedAt = json['createdAt'] == null
+        ? null
+        : DateTime.tryParse(json['createdAt'] as String);
+    final taskUpdatedAt = json['updatedAt'] == null
+        ? null
+        : DateTime.tryParse(json['updatedAt'] as String);
+    final legacyReminderDate = json['reminderDate'] == null
+        ? null
+        : DateTime.tryParse(json['reminderDate'] as String);
+    final rawTaskReminders = json['taskReminders'];
+    if (rawTaskReminders != null && rawTaskReminders is! List) {
+      throw const FormatException('Task taskReminders must be a list');
+    }
+    final reminderMetadataFallback = taskCreatedAt ??
+        taskUpdatedAt ??
+        DateTime.utc(1970, 1, 1);
+    final loadedTaskReminders = (rawTaskReminders as List<dynamic>? ?? const [])
+        .map(
+          (item) => TaskReminder.fromJson(
+            Map<String, dynamic>.from(item as Map),
+            fallbackTaskId: taskId,
+            fallbackCreatedAt: reminderMetadataFallback,
+          ),
+        )
+        .toList();
+    var nextReminderSequence =
+        (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    for (final reminder in loadedTaskReminders) {
+      if (reminder.sequence >= nextReminderSequence) {
+        nextReminderSequence = reminder.sequence + 1;
+      }
+    }
+
+    // Deterministically represent the legacy Task reminder exactly once.
+    // Keep reminderDate intact for rollback and old-reader compatibility.
+    final legacyReminderId = 'legacy-task-reminder:$taskId';
+    if (legacyReminderDate != null &&
+        !loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId)) {
+      final sequence = nextReminderSequence;
+      final title = taskTitle.trim().isEmpty
+          ? 'یادآور کار — ${_toPersianDigits(sequence)}'
+          : '$taskTitle — یادآور ${_toPersianDigits(sequence)}';
+      loadedTaskReminders.add(
+        TaskReminder(
+          id: legacyReminderId,
+          taskId: taskId,
+          title: title,
+          date: legacyReminderDate,
+          status: 'active',
+          createdAt: reminderMetadataFallback,
+          updatedAt: reminderMetadataFallback,
+          // Midnight is not sufficient evidence of an all-day reminder.
+          isAllDay: false,
+          sequence: sequence,
+        ),
+      );
+      nextReminderSequence = sequence + 1;
+    }
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
@@ -270,15 +422,12 @@ class Task {
     );
 
     return Task(
-      id: json['id'] as String? ?? '',
+      id: taskId,
+      title: taskTitle,
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.tryParse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? null
-          : DateTime.tryParse(json['updatedAt'] as String),
+      createdAt: taskCreatedAt,
+      updatedAt: taskUpdatedAt,
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
@@ -320,6 +469,19 @@ class Task {
       people: loadedPeople,
     );
   }
+
+  static String _toPersianDigits(int value) => value
+      .toString()
+      .replaceAll('0', '۰')
+      .replaceAll('1', '۱')
+      .replaceAll('2', '۲')
+      .replaceAll('3', '۳')
+      .replaceAll('4', '۴')
+      .replaceAll('5', '۵')
+      .replaceAll('6', '۶')
+      .replaceAll('7', '۷')
+      .replaceAll('8', '۸')
+      .replaceAll('9', '۹');
 
   FollowUp? get lastFollowUp {
     if (followUps.isEmpty) return null;
