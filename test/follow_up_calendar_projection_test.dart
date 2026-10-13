@@ -473,4 +473,30 @@ void main() {
     expect(reminders.map((item) => item.id), contains('followup:independent:follow-up-a'));
   });
 
+
+  test('legacy Task reminder and new Task reminder retain separate Calendar identities', () {
+    final task = Task.fromJson({
+      'id': 'mixed-calendar',
+      'title': 'کار',
+      'reminderDate': '2026-10-20T10:00:00.000',
+      'taskReminders': [
+        {
+          'id': 'new-1',
+          'taskId': 'mixed-calendar',
+          'title': 'یادآور تازه',
+          'date': '2026-10-21T11:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+          'status': 'active',
+        },
+      ],
+    });
+
+    final reminders = projection.project([task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id),
+        ['task-reminder:mixed-calendar', 'task-reminder-item:mixed-calendar:new-1']);
+  });
+
 }
