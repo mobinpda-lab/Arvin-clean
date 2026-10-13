@@ -16,9 +16,11 @@ class FollowUpOfficePage extends StatefulWidget {
     super.key,
     this.repository = const FollowUpRepository(),
     this.writeCoordinator,
+    this.initialWaitingOnly = false,
   });
 
   final FollowUpRepository repository;
+  final bool initialWaitingOnly;
   final FollowUpWriteCoordinator? writeCoordinator;
 
   @override
@@ -43,6 +45,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   @override
   void initState() {
     super.initState();
+    _showWaitingOnly = widget.initialWaitingOnly;
     _writer = widget.writeCoordinator ??
         FollowUpWriteCoordinator(
           repository: widget.repository,
@@ -198,9 +201,13 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   List<_FollowUpRow> get _waitingRows {
+    final activeTaskIds = _canonicalTasks
+        .where((task) => !task.completed && !task.archived && !task.trashed)
+        .map((task) => task.id)
+        .toSet();
     final latestByTask = <String, _FollowUpRow>{};
     for (final row in _rows) {
-      if (row.taskId.isEmpty) continue;
+      if (row.taskId.isEmpty || !activeTaskIds.contains(row.taskId)) continue;
       final current = latestByTask[row.taskId];
       if (current == null || row.dateTime.isAfter(current.dateTime)) {
         latestByTask[row.taskId] = row;
@@ -249,7 +256,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     final rows = _visibleRows;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('دفتر پیگیری'),
+        title: Text(_showWaitingOnly ? 'منتظر پاسخ دیگران' : 'دفتر پیگیری'),
         actions: [
           IconButton(
             tooltip: _showAutomaticDueOnly
