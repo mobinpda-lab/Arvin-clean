@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (prayer-action regression repair)
+
+This checkpoint supersedes prior live-status statements where they conflict; retain older entries as history.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`; integration branch `integration/task-multiple-reminders-safe-20261013`; new commit `b38d4e630f01a72beee2b2d35bf24f2ee744c3de`.
+- **Parent PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), open and unmerged. Its prior exact-head Build [38447438069](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38447438069) failed in `quality (test-2)`; Analyze and Debug APK passed, while Release APK and other validation lanes were not all complete at that poll.
+- **Root cause identified from CI log:** `test/official_calendar_prayer_actions_test.dart` asserted that the action-sheet label `ادا شد` would remain visible after choosing it. The sheet correctly closes after selection; the durable assertion is the persisted `PrayerCompletionStore` value. The test also attempted to select `قضا شد` without reopening the sheet.
+- **Change executed:** adjusted the test to assert persisted `completed`, reopen the prayer-card action sheet, then choose `قضا شد` and assert persisted `notCompleted`. This changes test flow only; no production code or architecture changed.
+- **Validation status:** commit created on the integration branch; exact-head CI for `b38d4e630f01a72beee2b2d35bf24f2ee744c3de` must be polled before calling the repair complete. No local Flutter execution was available in this tool session.
+- **Release status:** NO-GO until exact-head Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, and physical-device acceptance are established.
+- **Next action:** inspect CI for the new exact commit. If this test passes, continue with any remaining failures; do not merge the integration PR while release gates or related Person/backup/report dependencies remain open.
+
+---
+
 # VERSION IDENTIFIER STANDARD — 2026-10-13
 
 Use the following distinct, consistent labels in all Arvin reports, memory files, PR comments, release notes, and evidence tables. These identifiers are different and must never be presented interchangeably:
