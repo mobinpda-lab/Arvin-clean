@@ -136,3 +136,11 @@ Inspected `lib/calendar_page.dart` and `test/calendar_runtime_actions_fast_track
 
 **Tap: enter the Task. Long press: manage the item.**
 Calendar displays and navigates; canonical Task data and lifecycle remain owned by Task.
+
+
+## Latest implementation safety and route-parity note
+
+- Reminder rows (legacy or independent TaskReminder) must not expose a delete action that deletes their parent Task. The long-press menu now routes to Reminder management through the existing Task editor and hides parent-Task deletion. Task due rows have a separate delete action with explicit confirmation.
+- Both Home-to-Calendar navigation paths now pass the canonical open/edit/delete/register/refresh/sync callbacks.
+- Internal Follow-up Action rows open the parent Task Detail and retain the «پیگیری» type label; they remain display-only projections and do not become notification or external Calendar events.
+- Latest code checkpoint: 8817b0ce6f79ae6610c431a40c299c0bda1b9074. Build/test/provider/device checks are still pending/in progress; the earlier Analyze pass was on an older code checkpoint. No acceptance or screenshot claim is made.
