@@ -38,7 +38,9 @@ This change is read-only. It does not migrate, delete, normalize, or convert can
 ## Validation results
 
 - Source inspection: **PASS** — outbound sync call sites still receive only `FollowUpCalendarProjection.project(...)`.
-- Implementation and regression tests: **submitted; CI pending** on the exact PR head.
+- Static analysis: **PASS** on exact PR head `227bcbcb99ad2d4919834cf1522fe9760ff641e3` (Build run 38364830290, Analyze job succeeded).
+- Test shards 0–5 and Debug/Release APK: **IN PROGRESS** at the latest poll; no PASS is claimed yet.
+- Six Device Smoke lanes: **IN PROGRESS / QUEUED** at the latest poll; no aggregate PASS is claimed yet.
 - External provider create/update/no-duplicate behavior: **BLOCKED** pending Calendar Provider Acceptance.
 - Physical device notification and calendar acceptance: **BLOCKED** pending a real-device evidence bundle.
 - Multiple Task-level reminders: **BLOCKED** by the separate non-mergeable PR #2655; this change does not attempt to solve it.
