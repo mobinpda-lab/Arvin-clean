@@ -35,6 +35,7 @@ void main() {
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
     });
     final store = TaskStore();
+    // ignore: deprecated_member_use
     await store.convertToFollowUp('t-convert');
     final task = (await store.load()).single;
     expect(task.id, 't-convert');
@@ -51,6 +52,7 @@ void main() {
       'arvin.tasks': '[{"id":"t-existing","title":"پیگیری","followUpEnabled":true,"followUps":[{"id":"f1","dateTime":"2026-08-15T10:15:00.000"}]}]',
     });
     final store = TaskStore();
+    // ignore: deprecated_member_use
     await store.convertToFollowUp('t-existing');
     final task = (await store.load()).single;
     expect(task.id, 't-existing');
