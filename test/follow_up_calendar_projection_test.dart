@@ -460,4 +460,41 @@ void main() {
     expect(reminders.map((item) => item.title), contains('خرید فرش — یادآور 1'));
   });
 
+
+  test('projects each independent Task reminder exactly once with encoded stable identity', () {
+    final sameTime = DateTime(2026, 12, 8, 9);
+    final task = Task(
+      id: 'task:with:colons',
+      title: 'خرید فرش',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder:one',
+          title: 'خرید فرش — یادآور ۱',
+          date: sameTime,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'reminder-two',
+          title: 'خرید فرش — یادآور ۲',
+          date: sameTime,
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    final reminders = projection.project([task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id).toSet(), hasLength(2));
+    expect(
+      reminders.map((item) => item.id),
+      contains('task-reminder-item:task%3Awith%3Acolons:reminder%3Aone'),
+    );
+    expect(
+      reminders.map((item) => item.id),
+      contains('task-reminder-item:task%3Awith%3Acolons:reminder-two'),
+    );
+    expect(reminders.map((item) => item.date), everyElement(sameTime));
+  });
 }
