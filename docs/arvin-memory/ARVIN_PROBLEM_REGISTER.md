@@ -1,3 +1,12 @@
+## 2026-10-13 — Multiple Task reminders integration blockers (live)
+
+- **P1 — Legacy Calendar identity reconciliation:** Task JSON now represents a legacy reminder as a deterministic TaskReminder while retaining `Task.reminderDate`. Until projection code maps the migrated item to the legacy `task-reminder:<taskId>` identity and suppresses separate legacy projection, duplicate external events remain a risk. Keep the integration PR unmerged.
+- **P1 — Delete/retry semantics:** `legacyReminderMigrationCompleted` is the tombstone; tests now cover that a deleted migrated item is not recreated by JSON decode. Projection must respect the tombstone too.
+- **P1 — Persistence/restore:** current slice has model-level JSON coverage only. SQL save/reload, actual backup export/import, restored Calendar-link integrity, transactional durability and rollback remain to be tested.
+- **Validation blocker:** latest observed feature Build is pending; Device Smoke is skipped by workflow policy. No physical-device acceptance is established.
+- **Release:** NO-GO until all required gates pass.
+
+---
 ## 2026-10-13 — Approved migration contract conflicts with feature implementation
 
 - **Problem:** the feature implementation keeps legacy `Task.reminderDate` separate from the new collection, while the approved architecture decision requires deterministic idempotent migration.
