@@ -274,6 +274,15 @@ void main() {
     expect(restored.reminderDate, DateTime(2026, 10, 20, 10));
     expect(restored.followUps.single.reminderDate, DateTime(2026, 10, 23, 11));
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 12));
+
+    // Empty collections and the migration tombstone must overwrite prior
+    // envelope values; otherwise a removed reminder could reappear on reload.
+    restored.taskReminders.clear();
+    await store.save([restored]);
+    final afterRemoval = (await store.load()).single;
+    expect(afterRemoval.taskReminders, isEmpty);
+    expect(afterRemoval.legacyReminderMigrationCompleted, isTrue);
+    expect(afterRemoval.reminderDate, DateTime(2026, 10, 20, 10));
   });
 
 }
