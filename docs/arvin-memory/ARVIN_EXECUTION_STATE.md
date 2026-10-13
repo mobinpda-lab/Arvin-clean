@@ -1,3 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (branch synchronization gate)
+
+- **Parent PR #2666:** latest observed head `d16e52050567a6631a21b563d336a0bba1c3c32b`; open and unmerged. Build is pending, Calendar Provider Acceptance is in progress, Device Smoke is queued.
+- **Child PR #2681:** Draft and unmerged; last observed code/documentation head before this state refresh was `20706e956906933d1a7194251df717e2edd88ad7`. GitHub reports it not mergeable against its stacked base. Do not merge, force-push, or overwrite the latest parent branch. First reconcile the branch with the latest parent safely.
+- **Related PR #2679:** older waiting-list implementation has conflicting latest-only/result-text semantics. Its Build test shard failed one waiting-list test after 232 tests passed on its own merge head. This is not validation for #2681. Reconcile shared semantics before merging either.
+- **Architecture decisions are documented:** Follow-up & Waiting Response decision v2.0 and current implementation/cleanup status are in `ARVIN_FOLLOW_UP_PERSON_MODEL_DECISION.md`; the repository audit is in `ARVIN_REPOSITORY_CLEANUP_AUDIT_2026-10-13.md`.
+- **Cleanup changes on child branch:** remove additional legacy flag writes; preserve Follow-up waiting/Person fields during Calendar inbound edits; use canonical records for Report's Follow-up filter; support multiple structured waiting Follow-ups; add focused regression tests.
+- **Open P1s:** [#2682 Person directory backup/restore](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [#2683 Person-based reports](https://github.com/mobinpda-lab/Arvin-clean/issues/2683).
+- **Validation:** no workflow runs returned for the child PR head; tests are not confirmed passing. Parent CI is not complete. No physical-device evidence.
+- **Next action:** synchronize branch, then run focused tests/analyzer, full exact-head CI, migration/backup-restore rollback tests, Calendar acceptance, and device smoke. Keep release **NO-GO**.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (latest repository/CI poll)
 
 - **Working branch / PR:** `integration/follow-up-person-model-20261013` / [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), current recorded head before this checkpoint `d87f5a3e3de72e8227b4dd6dd954149757c79774`. PR remains Draft and unmerged. Its base is the integration branch, and GitHub reports it **not mergeable**; base synchronization/conflict resolution is still required.
