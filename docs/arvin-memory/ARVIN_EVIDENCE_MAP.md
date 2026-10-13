@@ -455,3 +455,16 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Application code changed in this checkpoint | NONE | Documentation-only update |
 | Exact-head CI / device acceptance | NOT ESTABLISHED by this documentation update | Must be collected on the final code SHA; physical-device acceptance remains separate |
 | Release | NO-GO | No change to release gate |
+
+---
+
+## 2026-10-13 — Repository cleanup evidence map
+
+| Claim | Source/test evidence | Current status | Limitation |
+|---|---|---|---|
+| Follow-up JSON and SQL carry structured waiting status and Person IDs | `lib/models/task.dart`, `lib/services/g1_drift_schema.dart`, `lib/services/task_store.dart`, `lib/services/sql_task_migration_writer.dart` | Source present on child branch | Exact-head migration/test execution pending |
+| Calendar inbound Follow-up edits preserve Person/waiting and independent dates | `lib/services/calendar_inbound_sync_service.dart`, `test/services/calendar_inbound_sync_service_test.dart` | Fix and regression test authored | Not run/confirmed |
+| Report Follow-up filter no longer trusts the legacy flag | `lib/services/task_report_filter.dart`, `test/services/task_report_filter_test.dart` | Fix and regression test authored | Person-specific filtering still absent; tests not run |
+| Waiting list retains each structured Person-linked Follow-up | `lib/follow_up_office_page.dart`, `lib/services/waiting_for_response_service.dart`, `test/waiting_for_response_service_test.dart` | Source fix and regression test authored | Tests not run/confirmed |
+| Person directory is portable through backup/restore | Existing `lib/backup_manager.dart` payload and restore candidate | **NOT PROVEN / P1 OPEN** | Standalone directory records are not currently included |
+| Release-ready status | PR #2666 and stacked PR #2681 | **NO-GO** | Parent exact-head workflows queued/pending; child has no associated run evidence; no physical-device acceptance |
