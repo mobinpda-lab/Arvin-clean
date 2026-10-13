@@ -1,3 +1,12 @@
+## 2026-10-13 — Follow-up analyzer repair
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Projection constructors compile | `lib/services/follow_up_reminder_projection.dart`, commit `a8263d5119c16c69db7fd282d53820504650b57e` | Missing nullable identity initializers repaired | Later Analyze exposed two strict lint blockers |
+| Strict analyzer findings addressed | `lib/models/task.dart`, commit `9d91bb309c3f7df86b70e4a25ca29d4e1a0082ad`; `lib/task_editor_dialog.dart`, commit `159f9c3bcb2d74ad06e8e7681251d5d49cab57e` | Both analyzer lint findings repaired in source | Exact-final-head Analyze/test/build results pending |
+
+---
+
 ## 2026-10-13 — Configurable all-day notification time and compile repair
 
 | Claim | Evidence | Result | Limit |
