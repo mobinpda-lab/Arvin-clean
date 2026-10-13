@@ -1,3 +1,12 @@
+## 2026-10-13 — Strict analyzer findings after compile repair
+
+- **Problem:** `flutter analyze` still returned exit code 1 after the uninitialized-field fix because two info-level lints are treated as blocking by the workflow.
+- **Findings:** `prefer_initializing_formals` in `lib/models/task.dart`; `curly_braces_in_flow_control_structures` in `lib/task_editor_dialog.dart`.
+- **Repair:** initializing formal for `nextReminderSequence`; braces around the return in `_sameTaskReminders`.
+- **Status:** code edits committed; exact-head rerun pending. Do not label resolved until Analyze and downstream Build succeed.
+
+---
+
 ## 2026-10-13 — Reminder projection compile blocker
 
 - **Problem:** Analyze and Flutter/Android build failed because `FollowUpReminderCandidate.taskReminderId` was not initialized in the default and `.task` constructors.
