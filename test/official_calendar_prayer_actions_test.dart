@@ -46,7 +46,9 @@ void main() {
     await tester.ensureVisible(prayerCard);
     // Keep the long-press gesture comfortably beyond the recognizer timeout;
     // this action menu must not depend on a borderline gesture duration.
-    await tester.longPress(prayerCard, duration: const Duration(milliseconds: 900));
+    final gesture = await tester.startGesture(tester.getCenter(prayerCard));
+    await tester.pump(const Duration(milliseconds: 900));
+    await gesture.up();
     await tester.pumpAndSettle();
 
     expect(find.text('ادا شد'), findsOneWidget);
