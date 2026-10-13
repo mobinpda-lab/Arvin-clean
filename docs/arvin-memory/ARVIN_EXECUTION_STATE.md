@@ -945,3 +945,11 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Fresh exact-head Device Smoke run: 38361448950. Home and Quick Capture were in progress; SQL Persistence, SQL Migration, People and Backup/Restore were queued at the latest poll.
 - Prior runs are not evidence for the latest head. Do not merge PR #2663 until exact-head checks are complete and reviewed. Physical-device acceptance is still outstanding. Release remains NO-GO.
 - Current next action: poll fresh run IDs 38361448901 and 38361448950; investigate any failed job from its logs, repair safely, and require another exact-head run after any change.
+
+
+# STATUS POLL — 2026-10-13 (owner re-submitted Calendar Follow-up/Reminder command)
+
+- Re-read the authoritative execution state and checked PRs #2663, #2662, #2661, #2655 plus current workflow jobs. The owner-repeated contract matches the existing decision document; no duplicate design or code change was made solely because the command was re-submitted.
+- PR #2663 head remains `c3b95d0781ec03f07d43379c4087f427667cb250`, open and mergeable. Latest Build run `38361448901` remains in progress: Analyze success; six test shards and Debug/Release APK still in progress at poll time. Device Smoke run `38361448950` is still queued at workflow level; Home and Quick Capture jobs were in progress and the remaining four lanes queued at last job poll.
+- PR #2662 and #2661 remain open/mergeable. PR #2655 remains open and `mergeable=false`; do not attempt a risky merge. No release decision changes: release NO-GO, physical-device acceptance outstanding.
+- Next action remains polling exact-head validation, then fixing failures based on logs and rerunning on any new head. Do not infer completion from the successful Orchestrator/Production Loop/lock-sync runs; they do not replace Build and Device Smoke acceptance.
