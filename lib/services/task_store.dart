@@ -370,6 +370,7 @@ class TaskStore {
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
+    await _seedPeopleDirectory(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) return;
 
     final preferences = await SharedPreferences.getInstance();
@@ -380,6 +381,37 @@ class TaskStore {
     await _verifyLegacySourceBeforeCutover(executor, preferences);
     await _seedCategoryCatalog(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
+  }
+
+  Future<void> _seedPeopleDirectory(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      'SELECT person_id, person_json FROM task_people ORDER BY person_id, ordinal',
+      const [],
+    );
+    final now = DateTime.now().toIso8601String();
+    for (final row in rows) {
+      final raw = row['person_json'];
+      if (raw is! String || raw.trim().isEmpty) continue;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        throw const FormatException('Task Person reference must be an object');
+      }
+      final person = PersonReference.fromJson(
+        Map<String, dynamic>.from(decoded),
+      );
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO people_directory
+           (id, display_name, normalized_name, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?)''',
+        <Object?>[
+          person.id,
+          person.displayName,
+          _normalizePersonName(person.displayName),
+          now,
+          now,
+        ],
+      );
+    }
   }
 
   Future<void> _seedCategoryCatalog(QueryExecutor executor) async {
