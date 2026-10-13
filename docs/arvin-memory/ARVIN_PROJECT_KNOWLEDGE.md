@@ -1,3 +1,14 @@
+## 2026-10-13 — Follow-up capability is data-driven
+
+- Treat `followUpEnabled` as legacy compatibility data only; never use it to decide whether a Task supports Follow-up, whether it belongs in a Follow-up list, or how its detail badge is labeled.
+- A real Follow-up is an item in canonical `Task.followUps[]`; legacy `followUpDate` remains a compatibility projection until migration completes. A legacy true flag with no real Follow-up/date must not synthesize a record.
+- Quick Entry retains the checklist control but no longer offers a Follow-up flag or creates Follow-up records during quick capture.
+- Full editor adds real Follow-up records via FollowUpEntryPage; applying edits merges additions by stable ID instead of replacing prior Follow-up history.
+- Waiting-for-response remains the canonical latest FollowUp.result token. Home → More now routes directly to the waiting-only FollowUpOfficePage. Inactive Tasks and resolved older waiting history must not appear.
+- Reminder delivery and `nextFollowUp` remain independent; no new store/database or duplicate Task model.
+
+---
+
 ## 2026-10-13 — Analyzer lint fixes after projection compile repair
 
 - The first compiler fix exposed two additional strict-CI analyzer findings: `nextReminderSequence = nextReminderSequence` was a redundant initializer, and the reminder equality helper had an unbraced `if` return.
