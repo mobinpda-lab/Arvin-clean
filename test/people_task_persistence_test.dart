@@ -140,6 +140,40 @@ void main() {
     expect(loaded.single.people.single.displayName, 'مریم');
   });
 
+  test('Person directory delete detaches associations without deleting Task or Follow-up', () async {
+    final store = TaskStore();
+    final person = _person('person-delete', 'سارا');
+    await store.savePersonDirectoryEntry(person);
+    await store.save([
+      Task(
+        id: 'task-person-delete',
+        title: 'پیگیری قرارداد',
+        people: [person],
+        followUps: [
+          FollowUp(
+            id: 'follow-up-person-delete',
+            dateTime: DateTime(2026, 10, 10, 9),
+            waitingForResponse: true,
+            personIds: [person.id],
+          ),
+        ],
+      ),
+    ]);
+
+    expect((await store.loadPeopleDirectory()).single.id, person.id);
+    await store.deletePersonDirectoryEntry(person.id);
+
+    final tasks = await store.load();
+    expect(tasks, hasLength(1));
+    expect(tasks.single.id, 'task-person-delete');
+    expect(tasks.single.followUps, hasLength(1));
+    expect(tasks.single.followUps.single.id, 'follow-up-person-delete');
+    expect(tasks.single.followUps.single.waitingForResponse, isTrue);
+    expect(tasks.single.followUps.single.personIds, isEmpty);
+    expect(tasks.single.people, isEmpty);
+    expect(await store.loadPeopleDirectory(), isEmpty);
+  });
+
   test('Home migration write preserves existing people during edit', () {
     final existing = Task(
       id: 'home-edit-people',
