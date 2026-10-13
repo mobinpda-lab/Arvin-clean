@@ -1,3 +1,15 @@
+## 2026-10-13 — Duplicate Calendar projection of each new Task reminder
+
+- **Priority:** P1 — core feature correctness / Calendar duplicate risk.
+- **Root cause:** `FollowUpCalendarProjection.project()` contained two loops over `Task.taskReminders`; one used raw IDs and another used URI-encoded IDs, so every new reminder appeared twice.
+- **Impact:** duplicate entries and potential duplicate provider events, violating Calendar's stable-ID and no-duplicate contract.
+- **Resolution:** removed the raw-ID projection path; retained the URI-encoded ID used by inbound reconciliation. Added a regression test for two reminders scheduled at the same time, each appearing exactly once with a distinct stable ID.
+- **Evidence:** fix `9bf7f6544d888b04efcf462a745c0151542bfb0f`; regression test `bd74acabac3ef38a2b641da6d38e5872707668c6`.
+- **Status:** code/test committed; awaiting exact-head CI execution. Not marked fully resolved until the test passes.
+- **Release gate:** no merge until exact-head Build, Calendar Provider Acceptance, all six Device Smoke lanes, and physical-device acceptance are addressed.
+
+---
+
 ## LIVE FEATURE STATUS — 2026-10-13 (multiple Task reminders)
 
 - **P1 / exact-head validation pending:** PR #2655 implements independent Task reminders, full editor controls, stable Calendar IDs and Android notification scheduling. Do not merge before exact-head Build, Calendar Provider Acceptance and all six Device Smoke lanes finish successfully.
