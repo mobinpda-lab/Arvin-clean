@@ -340,3 +340,14 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Solution in progress:** Added canonical Task Detail navigation, type labels, long-press menu, delete confirmation, independent reminder ID resolution, and widget acceptance tests.
 - **Evidence:** source/test changes are committed on the integration branch. Exact-head Build, Calendar Provider Acceptance and Device Smoke remain pending/queued at last poll.
 - **Status:** OPEN pending test pass, integration validation, and genuine small-screen/device evidence. Track in Issue #2685.
+
+
+
+## 2026-10-13 — Settings widget test fails after time-picker interaction (open)
+
+- **Problem:** Build run [38448584824](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584824), job `115473670604`, fails `test/settings_page_test.dart` at line 58. `scrollUntilVisible(find.text('تیره'), ...)` throws `Bad state: No element` from `WidgetController.dragUntilVisible`.
+- **Impact:** exact-head Build is not green; Settings behavior and downstream validation cannot be accepted from this run.
+- **Root cause:** not confirmed. Inspect whether dismissing the time-picker leaves the Settings route mounted and whether the finder/scrollable assumptions remain valid. Do not assume a product defect or merely suppress the assertion.
+- **Scope:** test failure observed on source SHA `066c87ec90625b8fe894df45d0a82227802ff65f`; Build run remains in progress with this failed shard. No physical-device evidence was collected here.
+- **Next action:** reproduce/inspect test route state and scroll interaction, fix the cause, then rerun targeted test and all exact-head release gates.
+- **Status:** OPEN — validation blocker; PR #2666 remains unmerged and release NO-GO.
