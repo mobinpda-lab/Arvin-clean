@@ -1,3 +1,12 @@
+## 2026-10-13 — Multiple-reminder integration, first code slice
+
+- Safe integration branch: `integration/task-multiple-reminders-safe-20261013`, PR #2666; base main checkpoint `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- `TaskReminder` now models stable ID, owning Task ID, editable title, schedule, status, creation/update timestamps, explicit all-day flag and sequence in the canonical Task JSON envelope.
+- Legacy Task reminder decoding creates at most one deterministic item `legacy-task-reminder:<taskId>`. The original `Task.reminderDate` remains present for old-reader/rollback compatibility. `legacyReminderMigrationCompleted` is persisted as a tombstone so a user-deleted migrated item is not recreated on the next decode.
+- Legacy midnight values default to `isAllDay=false`; time-of-day is not normalized or inferred. `nextFollowUp` alone does not create a TaskReminder. Per-FollowUp `reminderDate` remains unchanged.
+- This is only the model/JSON slice. It does not yet prove the projection rule prevents the retained legacy value and migrated item from emitting two Calendar events; the Calendar projection and notification integration must explicitly use the migration marker/stable identity before merge.
+
+---
 # Arvin Project Knowledge
 
 Updated: 2026-10-11
