@@ -1,3 +1,29 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (multi-reminder implementation and validation repair)
+
+This is the first section to read on continuation. Older entries remain historical and must not override this live checkpoint.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main`; feature branch `feat/task-multiple-reminders-editor-20261013`; PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655), OPEN and unmerged; issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654).
+- Owner approval: the full Task create/edit form owns the new **+ افزودن یادآور** UI; each reminder has its own stable ID, editable title/date/time and explicit all-day state. Default titles use `<Task title> — یادآور N` with Persian digits; the per-Task sequence is monotonic and deleted numbers are not reused.
+- Canonical storage: `Task.taskReminders` and `nextReminderSequence` are serialized in the canonical Task JSON envelope. Existing SQL persistence and backup/restore are reused. No parallel reminder store or scheduler.
+- Compatibility: legacy `Task.reminderDate` and `FollowUp.reminderDate` are retained and not auto-migrated or overwritten. `nextFollowUp` remains semantically separate; creating a reminder from it is opt-in only.
+- Calendar identity: existing singular Task reminder keeps `task-reminder:<taskId>`; each new reminder uses `task-reminder-item:<taskId>:<reminderId>`. CREATE/UPDATE/DELETE reconciliation is ID-based, never title/date-based. Same-time reminders remain independent.
+- Notification behavior: timed reminders use their selected time; explicitly all-day reminders notify at 09:00 local time while remaining all-day Calendar entries. Midnight is not used to infer all-day intent.
+- Completed implementation areas: canonical model/JSON; full editor add/edit/remove and numbering; Calendar projection and inbound/outbound stable identity; notification projection/delivery-state/alarm planner; regression tests for model, projection, editor, backup, scheduler, and inbound Calendar update/delete.
+- Validation history: Build [38322523349](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38322523349) failed on head `148f62b648fa866759611c5d6bb033c3278c5c01`: one strict-analyzer lint, two checklist-toggle interaction assertions, and a Release APK dependency download failure caused by Maven Central HTTP 429. Device Smoke [38322523270](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38322523270) and Calendar Provider Acceptance [38322523343](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38322523343) passed on that older SHA only.
+- Fixes: commit `1d163e0dcf0eb598fbe807b16d4895fcd30794a5` moved the checklist test key onto the actual switch and fixed one lint; exact-head Analyze then found a second strict-flow-control lint. Commit `22ecaa2eb1473aeb596fd9d02a534e11f5f442ce` fixed the second lint.
+- Latest code addition: commit `52fc1f77a10c0e7ba2d93395eeeed1c40e5dcbf8` adds inbound Calendar regression tests for editing title/date by stable ID and deleting one reminder without affecting the others or recycling sequence numbers.
+- This memory refresh corrects the Calendar ID prefix to the implementation's actual `task-reminder-item:<taskId>:<reminderId>` namespace. The resulting new head must be validated by exact-head Build, all six Device Smoke lanes, and Calendar Provider Acceptance. Prior-head green results do not qualify as final evidence.
+- Release remains **NO-GO** until exact-head CI passes and physical-device acceptance covers Calendar same-event update/no-duplicate, Backup/Restore integrity, and Persian RTL/compact-screen UX.
+
+## Next actions
+
+1. Verify exact-head Build Analyze, all six test shards, Debug/Release APK.
+2. Verify exact-head Calendar Provider Acceptance and all six Device Smoke lanes.
+3. Fix any remaining code/test failure and repeat exact-head validation.
+4. Review PR #2655 diff and compatibility paths; do not merge automatically.
+5. Obtain physical-device acceptance before release.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (multiple Task reminders implementation)
 
 This entry supersedes older live-status notes wherever they conflict. Historical entries remain for audit.

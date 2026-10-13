@@ -1,3 +1,13 @@
+## LIVE FEATURE STATUS — 2026-10-13 (multiple Task reminders)
+
+- **P1 / exact-head validation pending:** PR #2655 implements independent Task reminders, full editor controls, stable Calendar IDs and Android notification scheduling. Do not merge before exact-head Build, Calendar Provider Acceptance and all six Device Smoke lanes finish successfully.
+- **Previously observed defects:** strict analyzer flagged two single-line flow-control statements; checklist widget tests revealed the interaction key was on the container instead of the SwitchListTile. Fixes are committed on the feature branch (`1d163e0...`, `22ecaa2...`). Confirm on the final exact head.
+- **Infrastructure issue:** an earlier Release APK build received HTTP 429 from Maven Central while resolving Kotlin Gradle artifacts. Treat as transient dependency-fetch rate limiting unless a later run shows a code/build failure.
+- **Compatibility risk:** ensure legacy `Task.reminderDate` and `FollowUp.reminderDate` are preserved; no implicit conversion from `nextFollowUp`; no duplicate external Calendar event; date-only state explicit.
+- **Test gap addressed:** inbound Calendar update/delete now has explicit regression coverage for new stable-ID reminders, including title/date edits and preservation of remaining reminders.
+- **P0 / release gate:** physical-device acceptance remains outstanding, including Calendar same-event update/no-duplicate and real Backup/Restore integrity. Release remains **NO-GO**.
+
+---
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.

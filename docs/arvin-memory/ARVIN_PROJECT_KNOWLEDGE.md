@@ -1,3 +1,16 @@
+# CURRENT OWNER-APPROVED FEATURE — 2026-10-13
+
+- Multiple independent Task reminders are implemented in PR #2655, branch `feat/task-multiple-reminders-editor-20261013`.
+- Full Task editor includes **+ افزودن یادآور**, editable title/date/time, all-day toggle and independent removal.
+- Canonical ID prefix for new Calendar reminders is `task-reminder-item:<taskId>:<reminderId>`; the legacy singular identity remains `task-reminder:<taskId>`.
+- Stable IDs, not title/date, drive Calendar reconciliation. Same-time independent reminders must not be collapsed.
+- The canonical Task JSON collection is used by SQL and backup/restore. No second reminder store/scheduler.
+- Legacy singular Task and FollowUp reminder fields remain separate. `nextFollowUp` does not automatically create reminders; user opt-in is required.
+- All-day reminders are Calendar all-day events with a local 09:00 notification; midnight is not an all-day heuristic.
+- Regression tests now cover inbound Calendar title/date update and deletion for new reminders, preserving the stable ID, other reminders, and monotonic sequence.
+- Current CI corrections: checklist toggle key now targets the actual switch; strict flow-control lint guards use braces. See current execution state before treating any CI run as final.
+
+---
 # CURRENT OWNER CLARIFICATION — 2026-10-13 (multiple reminders)
 
 - One Task may have multiple independent reminders, separate from recorded FollowUp history and `nextFollowUp`.

@@ -1,3 +1,13 @@
+## 2026-10-13 — Multiple independent Task reminders (owner approved)
+
+- **Problem:** the legacy Task model supports only one Task-level reminder. Adding more must not replace legacy values, couple reminders to `nextFollowUp`, or create duplicate Calendar events.
+- **Decision:** implement a stable-ID reminder collection inside canonical `Task` JSON and expose independent add/edit/remove controls in the full Task editor. Use the exact Calendar identity prefix `task-reminder-item:<taskId>:<reminderId>`; keep the legacy `task-reminder:<taskId>` identity intact.
+- **Reason:** Task remains the only source of truth; the existing SQL envelope, backup/restore, Calendar bridge and notification scheduling are reused. Stable identity ensures title/date edits update the same event.
+- **Behavior:** default title `<Task title> — یادآور N` (Persian digits), monotonic sequence that is not reused after deletion, editable title/date/time, explicit all-day state, 09:00 local notification for all-day reminders. `nextFollowUp` remains independent; reminder creation from it is opt-in.
+- **Compatibility:** do not auto-migrate, overwrite, clear, or duplicate legacy `Task.reminderDate` or `FollowUp.reminderDate`. Do not infer all-day from midnight.
+- **Status:** approved; implementation in PR #2655; exact-head CI/device validation pending.
+
+---
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs

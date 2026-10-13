@@ -1,3 +1,20 @@
+# LIVE EVIDENCE — 2026-10-13 (multiple Task reminders)
+
+| Evidence | Result | Scope |
+|---|---|---|
+| PR #2655 | OPEN, unmerged | Feature implementation and tests: https://github.com/mobinpda-lab/Arvin-clean/pull/2655 |
+| Build run 38322523349 | FAIL on SHA `148f62b...` | Strict analyzer lint, two checklist interaction assertions, and Maven Central HTTP 429 for Release APK |
+| Device Smoke run 38322523270 | PASS on SHA `148f62b...` | All six emulator lanes; not physical-device acceptance |
+| Calendar Provider Acceptance run 38322523343 | PASS on SHA `148f62b...` | Older head only; not final-head evidence |
+| Fix commit `1d163e0...` | COMMITTED | Checklist toggle interaction target and one analyzer lint corrected |
+| Fix commit `22ecaa2...` | COMMITTED | Second strict analyzer lint corrected |
+| Commit `52fc1f77...` | COMMITTED | Inbound Calendar update/delete regression tests for new reminders |
+| Current final-head validation | PENDING | Must be checked after this memory commit: Build, Calendar Provider Acceptance, all six Device Smoke lanes |
+| Physical-device acceptance | NOT DONE | Required before release |
+
+Older green workflow results are not transferable to a different SHA. Release remains **NO-GO** until the final exact-head CI and physical-device evidence are recorded.
+
+---
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
