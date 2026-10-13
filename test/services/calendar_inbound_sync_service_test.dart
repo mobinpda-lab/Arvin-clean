@@ -387,6 +387,50 @@ void main() {
     expect(refreshed.taskReminders.single.date, DateTime(2026, 10, 9, 11));
   });
 
+
+  test('provider deletion of migrated legacy reminder clears legacy mirror', () async {
+    final taskStore = TaskStore(executor: database);
+    final legacyDate = DateTime(2026, 10, 8, 10);
+    await taskStore.save([
+      Task.fromJson(<String, dynamic>{
+        'id': 'task-1',
+        'title': 'کار',
+        'reminderDate': legacyDate.toIso8601String(),
+      }),
+    ]);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder:task-1',
+      title: 'کار — یادآور ۱',
+      date: legacyDate,
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: 'legacy-event-1',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge(const []),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.deleted, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.reminderDate, isNull);
+    expect(refreshed.taskReminders, isEmpty);
+    expect(refreshed.legacyReminderMigrationCompleted, isTrue);
+    expect(await links.load(), isEmpty);
+  });
+
 }
 
 class _Links extends ExternalCalendarLinkStore {
