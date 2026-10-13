@@ -318,7 +318,7 @@ class Task {
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
         if (allDay) 'allDay': true,
-        'followUpEnabled': followUpEnabled,
+        'followUpEnabled': followUps.isNotEmpty || followUpDate != null,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
