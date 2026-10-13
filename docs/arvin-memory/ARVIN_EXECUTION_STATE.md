@@ -1,3 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (follow-up architecture implementation slice)
+
+- **Working branch:** `integration/follow-up-person-model-20261013`, created from PR #2666 head `68724d6191590b81b2d611f59b7944a7fcbb06e0` to isolate architecture work from concurrent updates on the reminder integration branch.
+- **Parent integration PR:** #2666 remains open/unmerged. This branch is stacked on that integration branch and must not be merged to `main` ahead of its parent.
+- **Completed code slice:** `WaitingForResponseService.markWaiting` now preserves the existing FollowUp reminder date, next action time, and completion state instead of silently dropping them. `TaskStore.addFollowUp`, FollowUp completion updates, and Task Editor saves no longer turn on or derive the legacy `followUpEnabled` flag; existing legacy values remain preserved for compatibility.
+- **Regression tests added:** verify marking a FollowUp as waiting preserves reminder/completion fields; verify creating a FollowUp for a Task without legacy follow-up data does not turn on `followUpEnabled`.
+- **Not yet validated:** Flutter tests/analyzer/build have not been run in this environment; create/review a draft PR and inspect exact-head CI before treating this slice as complete.
+- **Architecture remains incomplete:** FollowUp still lacks first-class `waitingForResponse` and Person IDs; current waiting state is encoded in `result`; SQL `follow_ups` has no columns for those fields; Settings has no reusable Person directory. Next implement canonical Person directory + FollowUp association with idempotent SQL migration and backup/restore coverage, then editor UI and Person-based reporting.
+- **Preserve invariants:** `nextFollowUp` and `reminderDate` remain independent; no reminder/calendar event may be created from `nextFollowUp`; never delete Task/FollowUp when a Person association is removed.
+- **Release:** NO-GO. No physical-device, backup/restore, or exact-head CI acceptance is established.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (Follow-up & Waiting Response Person architecture decision)
 
 - Owner supplied and accepted the Follow-up & Waiting Response Architecture Command v2.0. No clarification is needed to begin implementation planning.
