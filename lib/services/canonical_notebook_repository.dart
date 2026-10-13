@@ -190,7 +190,7 @@ class CanonicalNotebookRepository {
       }
 
       final task = tasks[index];
-      task.followUpEnabled = true;
+      // Converting a Notebook item to a Task does not imply a Follow-up.
       task.updatedAt = _now();
       return task;
     });
