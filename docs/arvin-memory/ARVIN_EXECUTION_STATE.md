@@ -860,3 +860,17 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - **Implementation status:** this cardinality contract is now documented; the current implementation's support for multiple independently identified reminders and Follow-up entries has not been verified by this documentation update. Audit the canonical model/editor/storage/backup and Calendar identity paths; no parallel store.
 - Required regression coverage: create/edit/delete one among several entries; preserve remaining entries and history; independently edit reminder title/date/time; reminder-only and multiple-reminder cases; JSON/SQL/backup-restore round-trip; Calendar same-event updates without duplicate creation; date-only/all-day semantics for each item.
 - No app code or Flutter validation was performed in this documentation step. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Calendar projection separation CI completed)
+
+This checkpoint continues the current projection-separation PR; it does not restart prior audits. It supersedes older live status for PR #2665 where conflicting.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`.
+- **PR #2665:** [fix(calendar): separate internal follow-up projection](https://github.com/mobinpda-lab/Arvin-clean/pull/2665), branch `fix/calendar-internal-followup-projection-20261013`, open/unmerged. Before this memory update, head was `1628048eacfd20ecd73e7938fddb79a8306c6b8c`; GitHub reported mergeable=true.
+- **Completed — exact queried-head automation:** Build run [38364976764](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38364976764) SUCCESS: Analyze, test shards 0–5, Debug APK and Release APK passed. Device Smoke run [38364976751](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38364976751) SUCCESS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore all passed. These are automated/emulator results, not physical-device acceptance.
+- **Implementation submitted:** separate read-only `FollowUpInternalCalendarProjection` reads canonical `FollowUp.nextFollowUp` and is combined with the existing calendar projection only at the internal calendar display boundary. Outbound sync remains wired to `FollowUpCalendarProjection`; the new follow-up-action entries are not passed into that outbound-sync call path. Regression tests cover internal-only visibility, separation when a Reminder exists, no canonical Task mutation, and independence of `nextFollowUp` from `reminderDate`.
+- **Memory recorded:** decision details and the successful CI/emulator checkpoint are appended to `docs/arvin-memory/ARVIN_CALENDAR_PROJECTION_SEPARATION_DECISION.md` on this PR branch.
+- **Still blocked:** PR review/merge; Calendar Provider Acceptance for CREATE → UPDATE same event/no duplicate; actual OS notification delivery/reschedule/cancel; physical-device installed-flow evidence; real file-provider Backup/Restore and Calendar-link integrity; multiple independent Task-level reminders (separate PR #2655); Persian RTL/compact-screen visual acceptance; explicit owner release approval.
+- **Release:** **NO-GO**. Green CI does not establish physical-device or external-provider behavior and does not clear the separate multi-reminder gate.
+- **Next action:** because this execution-state update itself creates another PR commit, query the resulting exact head and its Build + all six Device Smoke lanes. If green, review the diff and required provider/device gates; do not merge solely because GitHub says mergeable=true.
