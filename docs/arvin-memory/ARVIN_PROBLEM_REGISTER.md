@@ -1,3 +1,10 @@
+## Resolved decision / remaining implementation risk — Calendar scope (2026-10-13)
+
+- **Resolved:** Owner command v1.0 explicitly distinguishes internal Calendar from external/device Calendar. Internal Calendar can show Follow-up Action only when no Reminder exists; external sync must not project `nextFollowUp` alone.
+- **Still open:** source-level implementation/automated acceptance for internal projection, external sync authorization, parent-Task navigation, stable IDs/no duplicates, independence on edit/delete, legacy data and physical-device behavior has not been established by this documentation update.
+- **Required record:** `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- **Release remains NO-GO** until exact-head and physical-device evidence is complete.
+
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
