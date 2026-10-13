@@ -1,3 +1,16 @@
+# EVIDENCE UPDATE — 2026-10-13 (PR #2667 model migration slice)
+
+| Item | Result | Limitation |
+|---|---|---|
+| Canonical TaskReminder model | Implemented in draft PR #2667 | Exact-head tests/build not yet confirmed |
+| Legacy Task.reminderDate decoding | Deterministic ID and idempotent in-memory decode implemented | Durable persistence/rollback boundary and calendar duplicate suppression remain unimplemented |
+| Legacy field retention | Preserved in Task JSON alongside migrated collection item | Requires single-projection compatibility before integration |
+| Regression test | Added for deterministic migration, repeat decode, all-day semantics and nextFollowUp independence | Not yet executed/confirmed by CI |
+| Exact-head CI | No runs/statuses returned for code head at first query | Unknown/pending, not PASS |
+| Physical device | Not tested | Required before release |
+| Release | NO-GO | More integration and validation required |
+
+---
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
