@@ -9,6 +9,7 @@ import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/follow_up_office_page.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/follow_up.dart';
+import 'package:arvin/models/person_reference.dart';
 
 void main() {
   setUp(() async {
@@ -163,6 +164,10 @@ void main() {
       ]),
     });
 
+    await TaskStore().savePersonDirectoryEntry(
+      PersonReference(id: 'person-1', displayName: 'سارا احمدی'),
+    );
+
     await tester.pumpWidget(
       const MaterialApp(home: FollowUpOfficePage()),
     );
@@ -172,6 +177,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'پیام ارسال شد');
     await tester.tap(find.text('منتظر پاسخ دیگران'));
+    await tester.pump();
+    await tester.tap(find.text('سارا احمدی'));
     await tester.pump();
 
     final switchTile = tester.widget<SwitchListTile>(
@@ -189,6 +196,8 @@ void main() {
     final saved = Map<String, dynamic>.from(followUps.single as Map);
 
     expect(saved['result'], 'waiting_for_response');
+    expect(saved['waitingForResponse'], isTrue);
+    expect(saved['personIds'], ['person-1']);
     expect(find.text('منتظر پاسخ'), findsOneWidget);
   });
 
