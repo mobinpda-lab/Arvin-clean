@@ -107,4 +107,108 @@ void main() {
       ['none'],
     );
   });
+  test('Person filter selects Tasks by canonical Follow-up Person IDs', () {
+    final tasks = [
+      Task(
+        id: 'ali-task',
+        title: 'پاسخ علی',
+        followUps: [
+          FollowUp(
+            id: 'ali-follow-up',
+            dateTime: DateTime(2026, 10, 7, 8),
+            waitingForResponse: true,
+            personIds: const ['ali'],
+          ),
+        ],
+      ),
+      Task(
+        id: 'sara-task',
+        title: 'پاسخ سارا',
+        followUps: [
+          FollowUp(
+            id: 'sara-follow-up',
+            dateTime: DateTime(2026, 10, 7, 8),
+            waitingForResponse: true,
+            personIds: const ['sara'],
+          ),
+        ],
+      ),
+      Task(id: 'legacy', title: 'بدون شخص', followUpEnabled: true),
+    ];
+
+    final result = const TaskReportFilter(personIds: {'ali'})
+        .apply(tasks, now: now, ignoreTaskTime: true);
+    expect(result.map((task) => task.id), ['ali-task']);
+  });
+
+  test('waiting report excludes completed follow-ups and inactive Tasks', () {
+    final tasks = [
+      Task(
+        id: 'active-waiting',
+        title: 'منتظر پاسخ',
+        followUps: [
+          FollowUp(
+            id: 'active',
+            dateTime: DateTime(2026, 10, 7, 8),
+            waitingForResponse: true,
+          ),
+          FollowUp(
+            id: 'completed',
+            dateTime: DateTime(2026, 10, 7, 9),
+            waitingForResponse: true,
+            completed: true,
+          ),
+        ],
+      ),
+      Task(
+        id: 'done-task',
+        title: 'کار تمام‌شده',
+        completed: true,
+        followUps: [
+          FollowUp(
+            id: 'done-waiting',
+            dateTime: DateTime(2026, 10, 7, 8),
+            waitingForResponse: true,
+          ),
+        ],
+      ),
+      Task(
+        id: 'archived-task',
+        title: 'کار بایگانی',
+        archived: true,
+        followUps: [
+          FollowUp(
+            id: 'archived-waiting',
+            dateTime: DateTime(2026, 10, 7, 8),
+            waitingForResponse: true,
+          ),
+        ],
+      ),
+    ];
+
+    final result = const TaskReportFilter(waitingForResponseOnly: true)
+        .apply(tasks, now: now, ignoreTaskTime: true);
+    expect(result.map((task) => task.id), ['active-waiting']);
+  });
+
+  test('Follow-up date filtering uses nextFollowUp independently of Reminder', () {
+    final followUp = FollowUp(
+      id: 'next-action',
+      dateTime: DateTime(2026, 10, 6, 8),
+      reminderDate: DateTime(2026, 10, 7, 10),
+      nextFollowUp: DateTime(2026, 10, 8, 10),
+    );
+
+    expect(
+      const TaskReportFilter(timePreset: ReportTimePreset.future)
+          .matchesFollowUpTime(followUp, now: now),
+      isTrue,
+    );
+    expect(
+      const TaskReportFilter(timePreset: ReportTimePreset.today)
+          .matchesFollowUpTime(followUp, now: now),
+      isFalse,
+    );
+  });
+
 }
