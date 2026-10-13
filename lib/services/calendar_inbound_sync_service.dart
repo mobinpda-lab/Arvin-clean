@@ -206,13 +206,45 @@ class CalendarInboundSyncService {
       );
     }
 
+    if (reminderId.startsWith('task-reminder-item:')) {
+      final parsed = _parseTaskReminderItemId(tasks, reminderId);
+      if (parsed == null) return null;
+      final task = _taskForId(tasks, parsed.$1);
+      if (task == null || task.trashed) return null;
+      for (final item in task.taskReminders) {
+        if (item.id != parsed.$2) continue;
+        return CalendarReminder(
+          id: reminderId,
+          title: item.title,
+          date: item.date,
+          completed: task.completed || item.status == 'completed',
+          isAllDay: item.isAllDay,
+        );
+      }
+      return null;
+    }
+
     if (reminderId.startsWith('task-reminder:')) {
       final task = _taskForId(
         tasks,
         reminderId.substring('task-reminder:'.length),
       );
-      final date = task?.reminderDate;
-      if (task == null || date == null || task.trashed) return null;
+      if (task == null || task.trashed) return null;
+      if (task.legacyReminderMigrationCompleted) {
+        for (final item in task.taskReminders) {
+          if (item.id != 'legacy-task-reminder:${task.id}') continue;
+          return CalendarReminder(
+            id: reminderId,
+            title: item.title,
+            date: item.date,
+            completed: task.completed || item.status == 'completed',
+            isAllDay: item.isAllDay,
+          );
+        }
+        return null;
+      }
+      final date = task.reminderDate;
+      if (date == null) return null;
       return CalendarReminder(
         id: reminderId,
         title: 'یادآوری: ${task.title}',
@@ -273,14 +305,44 @@ class CalendarInboundSyncService {
       return true;
     }
 
+    if (reminderId.startsWith('task-reminder-item:')) {
+      final parsed = _parseTaskReminderItemId(tasks, reminderId);
+      if (parsed == null) return false;
+      final task = _taskForId(tasks, parsed.$1);
+      if (task == null || task.trashed) return false;
+      final index = task.taskReminders.indexWhere((item) => item.id == parsed.$2);
+      if (index < 0) return false;
+      task.taskReminders[index] = task.taskReminders[index].copyWith(
+        title: revision.title,
+        date: revision.start,
+        isAllDay: revision.allDay,
+        updatedAt: DateTime.now(),
+      );
+      task.updatedAt = DateTime.now();
+      return true;
+    }
+
     if (reminderId.startsWith('task-reminder:')) {
       final task = _taskForId(
         tasks,
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
-      task.title = revision.title.replaceFirst('یادآوری: ', '');
-      task.reminderDate = revision.start;
+      if (task.legacyReminderMigrationCompleted) {
+        final index = task.taskReminders.indexWhere(
+          (item) => item.id == 'legacy-task-reminder:${task.id}',
+        );
+        if (index < 0) return false;
+        task.taskReminders[index] = task.taskReminders[index].copyWith(
+          title: revision.title,
+          date: revision.start,
+          isAllDay: revision.allDay,
+          updatedAt: DateTime.now(),
+        );
+      } else {
+        task.title = revision.title.replaceFirst('یادآوری: ', '');
+        task.reminderDate = revision.start;
+      }
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -335,13 +397,33 @@ class CalendarInboundSyncService {
       return true;
     }
 
+    if (reminderId.startsWith('task-reminder-item:')) {
+      final parsed = _parseTaskReminderItemId(tasks, reminderId);
+      if (parsed == null) return false;
+      final task = _taskForId(tasks, parsed.$1);
+      if (task == null || task.trashed) return false;
+      final originalLength = task.taskReminders.length;
+      task.taskReminders.removeWhere((item) => item.id == parsed.$2);
+      if (task.taskReminders.length == originalLength) return false;
+      task.updatedAt = DateTime.now();
+      return true;
+    }
+
     if (reminderId.startsWith('task-reminder:')) {
       final task = _taskForId(
         tasks,
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
-      task.reminderDate = null;
+      if (task.legacyReminderMigrationCompleted) {
+        final originalLength = task.taskReminders.length;
+        task.taskReminders.removeWhere(
+          (item) => item.id == 'legacy-task-reminder:${task.id}',
+        );
+        if (task.taskReminders.length == originalLength) return false;
+      } else {
+        task.reminderDate = null;
+      }
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -379,6 +461,24 @@ class CalendarInboundSyncService {
     if (normalized.isEmpty) return null;
     for (final task in tasks) {
       if (task.id == normalized) return task;
+    }
+    return null;
+  }
+
+  (String, String)? _parseTaskReminderItemId(
+    List<Task> tasks,
+    String reminderId,
+  ) {
+    if (!reminderId.startsWith('task-reminder-item:')) return null;
+    final value = reminderId.substring('task-reminder-item:'.length);
+    final candidates = tasks.toList()
+      ..sort((a, b) => b.id.length.compareTo(a.id.length));
+    for (final task in candidates) {
+      final prefix = '${task.id}:';
+      if (value.startsWith(prefix)) {
+        final reminderIdPart = value.substring(prefix.length);
+        if (reminderIdPart.isNotEmpty) return (task.id, reminderIdPart);
+      }
     }
     return null;
   }
