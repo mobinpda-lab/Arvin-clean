@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/follow_up_office_page.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -128,7 +129,7 @@ void main() {
     expect(find.text('حرکت به چپ'), findsOneWidget);
   });
 
-  testWidgets('RTL right swipe converts the same task to follow-up',
+  testWidgets('RTL right swipe opens Follow-up Office without mutating the Task',
       (tester) async {
     const taskId = 'rtl-convert-right';
 
@@ -155,24 +156,28 @@ void main() {
     await tester.pumpAndSettle();
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    final pending = dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pumpAndSettle();
 
-    expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
+    expect(find.byType(FollowUpOfficePage), findsOneWidget);
+    final beforeExit = await TaskStore().load();
+    expect(beforeExit, hasLength(1));
+    expect(beforeExit.single.id, taskId);
+    expect(beforeExit.single.followUps, isEmpty);
+    expect(beforeExit.single.followUpEnabled, isFalse);
 
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
-    final stored = await TaskStore().load();
-    expect(stored, hasLength(1));
-    expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    Navigator.of(tester.element(find.byType(FollowUpOfficePage))).pop();
+    await tester.pumpAndSettle();
+    expect(await pending, isFalse);
+
+    final afterExit = await TaskStore().load();
+    expect(afterExit, hasLength(1));
+    expect(afterExit.single.id, taskId);
+    expect(afterExit.single.followUps, isEmpty);
+    expect(afterExit.single.followUpEnabled, isFalse);
   });
 
-  testWidgets('RTL left swipe converts the same task to follow-up',
+  testWidgets('RTL left swipe opens Follow-up Office without mutating the Task',
       (tester) async {
     const taskId = 'rtl-convert-left';
 
@@ -199,20 +204,25 @@ void main() {
     await tester.pumpAndSettle();
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.startToEnd);
+    final pending = dismissible.confirmDismiss!(DismissDirection.startToEnd);
     await tester.pumpAndSettle();
 
-    expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
+    expect(find.byType(FollowUpOfficePage), findsOneWidget);
+    final beforeExit = await TaskStore().load();
+    expect(beforeExit, hasLength(1));
+    expect(beforeExit.single.id, taskId);
+    expect(beforeExit.single.followUps, isEmpty);
+    expect(beforeExit.single.followUpEnabled, isFalse);
 
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
-    final stored = await TaskStore().load();
-    expect(stored, hasLength(1));
-    expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    Navigator.of(tester.element(find.byType(FollowUpOfficePage))).pop();
+    await tester.pumpAndSettle();
+    expect(await pending, isFalse);
+
+    final afterExit = await TaskStore().load();
+    expect(afterExit, hasLength(1));
+    expect(afterExit.single.id, taskId);
+    expect(afterExit.single.followUps, isEmpty);
+    expect(afterExit.single.followUpEnabled, isFalse);
   });
+}
 }
