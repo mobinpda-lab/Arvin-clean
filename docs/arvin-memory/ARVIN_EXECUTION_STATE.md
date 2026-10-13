@@ -1,3 +1,15 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Follow-up & Waiting Response Person architecture decision)
+
+- Owner supplied and accepted the Follow-up & Waiting Response Architecture Command v2.0. No clarification is needed to begin implementation planning.
+- Created `docs/arvin-memory/ARVIN_FOLLOW_UP_PERSON_MODEL_DECISION.md` in commit `12faf7b6df5f1076de2dcd9c5e85128426ef148b`.
+- Inspected current branch model and persistence: `Task` already has `followUps`, legacy `followUpEnabled`/`followUpDate`, `PersonReference`, and multiple Task Reminders. `FollowUp` currently lacks waiting-response status and Person IDs; `TaskStore.addFollowUp` still sets `followUpEnabled = true`; the full editor still renders `کار پیگیری‌دار` and auto-populated follow-up time.
+- Required product invariants: all Tasks are eligible for follow-up; zero-to-many Follow-up records; `nextFollowUp` is next action time only; Reminder stays independent and may be zero-to-many; waiting response requires Person association; Person directory is lightweight, not CRM; Person-filtered reports; detaching Person or deleting Reminder cannot delete Task/Follow-up.
+- No model/UI/schema/migration code changed for this architecture yet. This is intentional until the Person canonical identity, persistence schema and legacy migration behavior are traced end-to-end; migration/data-loss risk requires careful implementation and explicit evidence.
+- Next action: inventory Task/Follow-up serialization, SQL/Drift schema, TaskStore mutations, backup/restore, Quick Entry, full editor, Settings taxonomy, report filtering, Calendar and tests; then implement model/persistence migration first, tests second, UI/report integration third.
+- Preserve existing reminder branch work and the prior accepted rule that `nextFollowUp` and `reminderDate` are independent. Do not create reminders, notifications or external Calendar events from `nextFollowUp`.
+- Current validation for this new architecture: not run. Existing branch PR #2666 remains unmerged; release remains NO-GO pending exact-head CI, migration/backup-restore/Calendar validation and physical-device evidence.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (exact-head reminder sync failures triage)
 
 - Re-read this checkpoint and queried live PR #2666. It is open, ready for review, mergeable, and unmerged on `integration/task-multiple-reminders-safe-20261013`; release remains NO-GO.
