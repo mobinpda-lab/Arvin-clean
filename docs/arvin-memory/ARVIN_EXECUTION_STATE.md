@@ -1,3 +1,14 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (projection compile and analyzer lint repairs)
+
+- **Product decision:** all-day/date-only Task reminders default to 09:00 local time; user can change the time in Settings. Timed reminders and FollowUp reminders are unchanged.
+- **Existing implementation confirmed:** settings model/UI, SharedPreferences persistence, portable backup/restore, planner/background delivery injection and reschedule call already exist. Avoid duplicate implementation.
+- **Repair 1:** initialized `FollowUpReminderCandidate.taskReminderId` to null in default and `.task` constructors; commit `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Repair 2:** exact-head Analyze then failed on two info-level lints because CI treats analyzer findings as failure: prefer initializing formal for `Task.nextReminderSequence`, and braces around the return in `_sameTaskReminders`. Fixed in commits `9d91bb309c3f7df86b70e4a25ca29d4e1a0082ad` and `159f9c3bcb2d74ad06e8e7681251d5d49cab57e`.
+- **Next:** re-query live PR head after this memory write and inspect all Build, Calendar Provider Acceptance and six Device Smoke lanes for that exact final SHA. Prior runs against earlier heads do not validate these fixes.
+- **Release:** NO-GO until Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six smoke lanes, backup/restore/link integrity and physical-device acceptance are evidenced.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (configurable all-day reminder policy + compile repair)
 
 - **Owner decision:** all-day/date-only Task reminders default to **09:00 local time** and users can change this in Settings. Timed Task reminders and FollowUp reminders are unaffected.
