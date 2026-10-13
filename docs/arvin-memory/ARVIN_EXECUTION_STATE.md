@@ -1,3 +1,13 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (provider identity compatibility slice)
+
+- **PR:** [#2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667), draft; current code/test head before this checkpoint: `308ea3b35c00afcee116539e948df7695a6efb07`.
+- **Additional completed work:** canonical Calendar projection now gives migrated legacy reminders the pre-existing `task-reminder:<taskId>` identity, gives new reminders `task-reminder-item:<taskId>:<reminderId>`, and keeps same-time Task reminders independent. Existing reminder notification projection, delivery service and alarm planner suppress the separate legacy path when the deterministic migrated item exists. Outbound sync task-ID parsing, feature gating and provider eligibility now recognize the new identity prefix.
+- **Added regression tests:** migrated legacy reminder appears once in internal Calendar projection; multiple same-time Task reminders remain separate; new ID parses to its Task ID and is eligible for provider sync; notification delivery/planning preserves independent identities.
+- **CI status:** GitHub query returned no workflow runs and no combined status checks for head `308ea3b...`. This means validation is unconfirmed; it is not a pass. No local Flutter execution was performed.
+- **Remaining blocker:** external Calendar link reconciliation/migration from old link ID to new ID has not been tested against real provider state. Durable migration/write-confirmation/rollback and Backup/Restore round-trip remain open; UI CRUD remains unported.
+- **Next action:** inspect link store/backup migration path and add tests proving an existing `task-reminder:<taskId>` link is reused for the migrated item and not deleted/recreated; then run exact-head CI. Keep PR Draft and release NO-GO.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (legacy migration and notification projection slice)
 
 - **Branch / PR:** `feat/task-reminder-legacy-migration-20261013`, draft [PR #2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667). Latest implementation/test commit before this checkpoint: `be239a66c91d1bf616d1461eff7c29c4e3931ab5`; this memory update creates a new head, so re-query that exact head.
