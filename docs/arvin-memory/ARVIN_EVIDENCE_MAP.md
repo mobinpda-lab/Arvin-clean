@@ -1,3 +1,17 @@
+# CURRENT VALIDATION AUDIT — 2026-10-13
+
+| Evidence | Result | Scope |
+|---|---|---|
+| PR #2655 latest observed head | `ee41302483b0edbaa5eeec935f1b540a5ac04ec8` | Open, unmerged; not validated at exact head |
+| Older Build run #38346161903 | APK Debug/Release and Analyze passed; 3 test cases failed across 3 shards | SHA `217c57ad2574ef7f87182c8edfed84c0be0c38ab` only |
+| Older test failures | Checklist block visibility on toggle (2 cases); ListTile splash/background assertion in reminder all-day UI (1 case) | Historical; latest head requires re-run |
+| Latest-head CI | NOT FOUND | No run/check evidence returned for current head |
+| Calendar Provider Acceptance / Device Smoke | SUCCESS on older SHA only | Not current-head proof |
+| Legacy migration + metadata contract | OPEN BLOCKER | No safe integration yet |
+| Release | NO-GO | Physical-device acceptance outstanding |
+
+---
+
 # LIVE EVIDENCE — 2026-10-13 (migration contract gap)
 
 | Evidence | Result | Scope |
