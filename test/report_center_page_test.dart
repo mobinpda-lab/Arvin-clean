@@ -168,5 +168,41 @@ void main() {
     expect(find.textContaining('نباید در انتظار فعال باشد'), findsNothing);
   });
 
+  testWidgets('waiting report keeps orphaned Person associations visible without a directory entry', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [
+            Task(
+              id: 'orphaned-person-task',
+              title: 'پیگیری با شخص حذف‌شده',
+              followUps: [
+                FollowUp(
+                  id: 'orphaned-person-follow-up',
+                  dateTime: DateTime(2026, 10, 6, 9),
+                  note: 'پیگیری باز',
+                  waitingForResponse: true,
+                  personIds: const ['person-removed'],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-waiting-response-only')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-waiting-response-only')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('پیگیری باز'), findsOneWidget);
+    expect(find.textContaining('شخص حذف‌شده'), findsOneWidget);
+  });
+
 }
 
