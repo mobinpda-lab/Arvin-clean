@@ -1,3 +1,13 @@
+## 2026-10-13 — Analyzer lint fixes after projection compile repair
+
+- The first compiler fix exposed two additional strict-CI analyzer findings: `nextReminderSequence = nextReminderSequence` was a redundant initializer, and the reminder equality helper had an unbraced `if` return.
+- Converted the Task constructor parameter to initializing formal `this.nextReminderSequence = 1` and removed the redundant initializer.
+- Added braces around the conditional return in `_sameTaskReminders`.
+- Commits: `9d91bb309c3f7df86b70e4a25ca29d4e1a0082ad`, `159f9c3bcb2d74ad06e8e7681251d5d49cab57e`.
+- Re-run Analyze and all affected tests/builds on the exact final head; earlier red checks remain historical evidence only.
+
+---
+
 ## 2026-10-13 — Configurable all-day reminder time and CI root cause
 
 - Existing settings foundation already supports the feature: `AppSettings.allDayReminderNotificationMinutes`, `AppSettingsService`, SharedPreferences persistence, Settings time picker, portable settings JSON, alarm planner and background delivery.
