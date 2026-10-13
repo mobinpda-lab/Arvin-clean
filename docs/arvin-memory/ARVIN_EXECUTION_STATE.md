@@ -1,3 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (waiting-for-response discoverability)
+
+- **User-reported UX gap:** the «منتظر پاسخ دیگران» switch had no discoverable list destination.
+- **Root cause confirmed:** `lib/follow_up_office_page.dart` already contained the office and waiting-only filter, but `lib/main.dart` did not import or route to `FollowUpOfficePage`. The page was orphaned from primary navigation.
+- **Issue:** [#2677](https://github.com/mobinpda-lab/Arvin-clean/issues/2677).
+- **Branch:** `fix/follow-up-waiting-response-discoverability-20261013`, based on main `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Implemented:** new «دفتر پیگیری» item in Home > «بیشتر», subtitle explains it contains FollowUps and waiting-for-response items; route opens the existing FollowUpOfficePage. Added a widget regression test for discovery and route.
+- **Data/architecture:** unchanged; canonical Task/FollowUp storage and existing latest-FollowUp waiting filter are reused. No parallel state/storage/repository.
+- **Validation:** not yet run on the final branch head. Next: inspect exact head and CI; fix test/analyzer/build failures, then create/maintain a Draft PR with evidence. Physical-device acceptance remains separate.
+- **Release:** NO-GO pending exact-head validation and existing project release gates.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
