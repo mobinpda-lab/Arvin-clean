@@ -141,7 +141,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    task.followUpEnabled = false;
+    // Quick Add creates a normal Task; Follow-up records are added separately.
     task.followUps = <FollowUp>[];
     task.checklistEnabled = _checklistEnabled;
     task.checklist = List<String>.of(_checklistItems);
