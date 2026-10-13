@@ -29,6 +29,25 @@ void main() {
     expect(find.text('مشاهده همه'), findsNothing);
   });
 
+
+  testWidgets('Home More opens the dedicated waiting-response list',
+      (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    final waitingEntry = find.byKey(
+      const ValueKey('home-more-waiting-responses'),
+    );
+    await tester.ensureVisible(waitingEntry);
+    await tester.tap(waitingEntry);
+    await tester.pumpAndSettle();
+
+    expect(find.text('منتظر پاسخ دیگران'), findsOneWidget);
+    expect(find.text('موردی در انتظار پاسخ نیست'), findsOneWidget);
+  });
+
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
