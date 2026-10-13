@@ -355,3 +355,8 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Exact-head Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued at latest poll. Do not mark Device Smoke complete until all six lanes pass.
 - Successful orchestrator/production-loop/lock-sync runs are not substitutes for Build, Device Smoke, or physical-device acceptance.
 - The owner command resolves the internal-vs-external Calendar scope: internal Calendar can show Follow-up fallback; external Calendar cannot receive follow-up-only projections. This is a product decision, not implementation evidence.
+
+## LIVE JOB UPDATE — 2026-10-13 (PR #2663)
+
+- On exact head `c3b95d0781ec03f07d43379c4087f427667cb250`, Build run `38361448901` now confirms Analyze + test shards 0–5 SUCCESS. Debug and Release APK jobs are still in progress; no complete Build PASS until both finish successfully.
+- Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued. Full Device Smoke is not yet validated.
