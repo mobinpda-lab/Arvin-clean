@@ -69,7 +69,7 @@ void main() {
     );
   });
 
-  test('migrated legacy reminder is scheduled once through the stable legacy key', () {
+  test('legacy Task reminder keeps its original alarm identity', () {
     final task = Task.fromJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
