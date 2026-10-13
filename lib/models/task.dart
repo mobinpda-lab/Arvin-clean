@@ -30,12 +30,6 @@ class FollowUp {
         'note': note,
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
-        if (legacyReminderMigrationCompleted)
-          'legacyReminderMigrationCompleted': true,
-        if (taskReminders.isNotEmpty)
-          'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
-        if (nextReminderSequence > 1)
-          'nextReminderSequence': nextReminderSequence,
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
       };
@@ -46,10 +40,9 @@ class FollowUp {
       dateTime: DateTime.parse(json['dateTime'] as String),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
-      reminderDate: legacyReminderDate,
-      legacyReminderMigrationCompleted: legacyReminderMigrationCompleted,
-      taskReminders: loadedTaskReminders,
-      nextReminderSequence: nextReminderSequence,
+      reminderDate: json['reminderDate'] == null
+          ? null
+          : DateTime.tryParse(json['reminderDate'] as String),
       nextFollowUp: json['nextFollowUp'] == null
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
@@ -341,6 +334,12 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (legacyReminderMigrationCompleted)
+          'legacyReminderMigrationCompleted': true,
+        if (taskReminders.isNotEmpty)
+          'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
+        if (nextReminderSequence > 1)
+          'nextReminderSequence': nextReminderSequence,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
@@ -440,7 +439,6 @@ class Task {
     return Task(
       id: taskId,
       title: taskTitle,
-      title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       createdAt: taskCreatedAt,
       updatedAt: taskUpdatedAt,
@@ -469,9 +467,10 @@ class Task {
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
           ),
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
+      reminderDate: legacyReminderDate,
+      legacyReminderMigrationCompleted: legacyReminderMigrationCompleted,
+      taskReminders: loadedTaskReminders,
+      nextReminderSequence: nextReminderSequence,
       priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
