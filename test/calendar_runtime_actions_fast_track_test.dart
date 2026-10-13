@@ -250,10 +250,12 @@ void main() {
 
     await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(delete);
     await tester.tap(delete);
     await tester.pumpAndSettle();
     expect(find.text('حذف کار'), findsNothing);
     expect(deleted, 0);
+    await tester.ensureVisible(find.text('لغو'));
     await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
     expect(deleted, 0);
