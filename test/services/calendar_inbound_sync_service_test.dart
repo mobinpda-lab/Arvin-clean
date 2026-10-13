@@ -200,6 +200,193 @@ void main() {
     expect(result.conflicts, 1);
     expect((await taskStore.load()).single.dueDate, DateTime(2026, 10, 8, 12));
   });
+
+  test('provider edit updates one TaskReminder by stable ID without mutating Task title', () async {
+    final taskStore = TaskStore(executor: database);
+    final tasks = await taskStore.load();
+    final createdAt = DateTime(2026, 10, 1, 10);
+    tasks.single.taskReminders = <TaskReminder>[
+      TaskReminder(
+        id: 'r1',
+        taskId: 'task-1',
+        title: 'کار — یادآور ۱',
+        date: DateTime(2026, 10, 8, 10),
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        sequence: 1,
+      ),
+      TaskReminder(
+        id: 'r2',
+        taskId: 'task-1',
+        title: 'کار — یادآور ۲',
+        date: DateTime(2026, 10, 8, 10),
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        sequence: 2,
+      ),
+    ];
+    tasks.single.nextReminderSequence = 3;
+    await taskStore.save(tasks);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder-item:task-1:r1',
+      title: 'کار — یادآور ۱',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: 'reminder-event-1',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: 'reminder-event-1',
+          calendarId: '7',
+          title: 'عنوان ویرایش‌شده',
+          start: DateTime(2026, 10, 9, 11),
+          end: DateTime(2026, 10, 9, 11, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.updated, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.title, 'کار');
+    expect(refreshed.taskReminders, hasLength(2));
+    final first = refreshed.taskReminders.singleWhere((item) => item.id == 'r1');
+    final second = refreshed.taskReminders.singleWhere((item) => item.id == 'r2');
+    expect(first.title, 'عنوان ویرایش‌شده');
+    expect(first.date, DateTime(2026, 10, 9, 11));
+    expect(second.title, 'کار — یادآور ۲');
+    expect(second.date, DateTime(2026, 10, 8, 10));
+  });
+
+  test('provider deletion removes only the linked TaskReminder', () async {
+    final taskStore = TaskStore(executor: database);
+    final tasks = await taskStore.load();
+    final createdAt = DateTime(2026, 10, 1, 10);
+    tasks.single.taskReminders = <TaskReminder>[
+      TaskReminder(
+        id: 'r1',
+        taskId: 'task-1',
+        title: 'کار — یادآور ۱',
+        date: DateTime(2026, 10, 8, 10),
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        sequence: 1,
+      ),
+      TaskReminder(
+        id: 'r2',
+        taskId: 'task-1',
+        title: 'کار — یادآور ۲',
+        date: DateTime(2026, 10, 8, 10),
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        sequence: 2,
+      ),
+    ];
+    tasks.single.nextReminderSequence = 3;
+    await taskStore.save(tasks);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder-item:task-1:r1',
+      title: 'کار — یادآور ۱',
+      date: DateTime(2026, 10, 8, 10),
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: 'reminder-event-1',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge(const []),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.deleted, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.title, 'کار');
+    expect(refreshed.taskReminders, hasLength(1));
+    expect(refreshed.taskReminders.single.id, 'r2');
+    expect(refreshed.nextReminderSequence, 3);
+    expect(await links.load(), isEmpty);
+  });
+
+  test('migrated legacy provider edit keeps old identity and does not rename Task', () async {
+    final taskStore = TaskStore(executor: database);
+    final legacyDate = DateTime(2026, 10, 8, 10);
+    final legacyTask = Task.fromJson(<String, dynamic>{
+      'id': 'task-1',
+      'title': 'کار',
+      'reminderDate': legacyDate.toIso8601String(),
+    });
+    await taskStore.save([legacyTask]);
+
+    final canonical = CalendarReminder(
+      id: 'task-reminder:task-1',
+      title: 'کار — یادآور ۱',
+      date: legacyDate,
+    );
+    final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: canonical.id,
+        calendarId: '7',
+        eventId: 'legacy-event-1',
+        lastSyncedFingerprint: fingerprint.fingerprint,
+      ),
+    ]);
+
+    final result = await CalendarInboundSyncService(
+      bridge: _Bridge([
+        DeviceCalendarEvent(
+          instanceId: '99',
+          eventId: 'legacy-event-1',
+          calendarId: '7',
+          title: 'یادآور قدیمی ویرایش‌شده',
+          start: DateTime(2026, 10, 9, 11),
+          end: DateTime(2026, 10, 9, 11, 30),
+          allDay: false,
+        ),
+      ]),
+      linkStore: links,
+      taskStore: taskStore,
+    ).reconcile(
+      start: DateTime(2026, 10, 1),
+      end: DateTime(2026, 11, 1),
+    );
+
+    expect(result.updated, 1);
+    final refreshed = (await taskStore.load()).single;
+    expect(refreshed.title, 'کار');
+    expect(refreshed.reminderDate, legacyDate);
+    expect(refreshed.legacyReminderMigrationCompleted, isTrue);
+    expect(refreshed.taskReminders.single.title, 'یادآور قدیمی ویرایش‌شده');
+    expect(refreshed.taskReminders.single.date, DateTime(2026, 10, 9, 11));
+  });
+
 }
 
 class _Links extends ExternalCalendarLinkStore {
