@@ -2,8 +2,8 @@
 
 Updated: 2026-10-13 (latest evidence observed around 16:22 UTC)
 Working PR: [#2666](https://github.com/mobinPda-lab/Arvin-clean/pull/2666)
-Current observed PR head: `41583a72062a69f8fb30e229239198458f8bc2af`
-PR state: **OPEN, NOT MERGED**. Release decision: **NO-GO**.
+Code head covered by the CI snapshot below: `41583a72062a69f8fb30e229239198458f8bc2af`
+Status-document commit subsequently advanced the PR branch to `7fd27523617e239ac72373c9aa993bd9145f8a02` (documentation-only change). PR state: **OPEN, NOT MERGED**. Release decision: **NO-GO**.
 
 > This report separates verified terminal results from jobs that are still running and from product gaps that are not proven closed. A successful subset is not a release pass. CI run links below are the runs associated with the observed head; any new commit makes these results stale for final release sign-off unless rerun against that exact SHA.
 
@@ -17,7 +17,7 @@ PR state: **OPEN, NOT MERGED**. Release decision: **NO-GO**.
 - **Product completeness:** Person directory backup/restore and person-based reporting remain open P1 issues (#2682 and #2683). Legacy reminder title compatibility remains an unresolved contract conflict.
 - **Decision:** do not merge or publish.
 
-## Exact-head workflow evidence
+## Workflow evidence for the last code-bearing head (not current post-documentation SHA)
 
 | Workflow | Run | Observed state | What the evidence actually says |
 |---|---|---|---|
@@ -95,6 +95,6 @@ These are UI contract/layout failures, not evidence that the assertions should b
 
 A successful analyzer, one passing test shard, an APK build, or a subset of smoke tests is not a release pass. Release can move to GO only when all required exact-head checks are terminal and green, migration and backup/restore integrity are demonstrated, Calendar synchronization and device acceptance pass, open P1 gaps are closed, and the evidence/handover package is complete.
 
-## Previous snapshot
+## Evidence freshness
 
-The earlier snapshot in this file referenced head `4b7d5e3d454d0e1204ed6702e5643c78be83eac5` and Build run `38428476972`. Those results are historical and must not be used as evidence for the current head `41583a72062a69f8fb30e229239198458f8bc2af`.
+The run results above were collected against code-bearing head `41583a72062a69f8fb30e229239198458f8bc2af`. This report was then committed as a documentation-only update at `7fd27523617e239ac72373c9aa993bd9145f8a02`, which advanced the PR branch. The branch's latest SHA must be queried before sign-off, and required workflows must be rerun or otherwise proven against that exact final SHA. The earlier snapshot referenced head `4b7d5e3d454d0e1204ed6702e5643c78be83eac5` and Build run `38428476972`; those results are historical.
