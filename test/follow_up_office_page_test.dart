@@ -33,7 +33,7 @@ void main() {
   });
 
 
-  testWidgets('waiting-response entry opens a real list of latest active waiting Tasks',
+  testWidgets('waiting-response list shows each active Person-linked Follow-up',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
@@ -45,6 +45,8 @@ void main() {
               'id': 'waiting-1',
               'dateTime': '2026-10-10T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
             },
           ],
         },
@@ -56,6 +58,8 @@ void main() {
               'id': 'old-waiting',
               'dateTime': '2026-10-08T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
             },
             {
               'id': 'resolved-new',
@@ -73,6 +77,8 @@ void main() {
               'id': 'waiting-done',
               'dateTime': '2026-10-12T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
             },
           ],
         },
@@ -85,6 +91,8 @@ void main() {
               'id': 'waiting-archived',
               'dateTime': '2026-10-12T10:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
             },
           ],
         },
@@ -101,7 +109,7 @@ void main() {
     expect(find.text('منتظر پاسخ دیگران'), findsOneWidget);
     expect(find.text('مشتری منتظر پاسخ'), findsOneWidget);
     expect(find.text('بازکردن کار'), findsOneWidget);
-    expect(find.text('مشتری پاسخ داده'), findsNothing);
+    expect(find.text('مشتری پاسخ داده'), findsOneWidget);
     expect(find.text('کار تمام‌شده'), findsNothing);
     expect(find.text('کار بایگانی‌شده'), findsNothing);
   });
@@ -234,7 +242,7 @@ void main() {
     expect(find.text('پیگیری برای «کار دوم» ثبت شد'), findsOneWidget);
   });
 
-  testWidgets('waiting filter uses only each task latest follow-up result',
+  testWidgets('waiting filter shows structured Follow-ups and ignores legacy result text',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
@@ -247,6 +255,8 @@ void main() {
               'dateTime': '2026-08-25T10:00:00.000',
               'note': 'ارسال شد',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
               'nextFollowUp': null,
             },
           ],
@@ -260,6 +270,8 @@ void main() {
               'dateTime': '2026-08-24T10:00:00.000',
               'note': 'قدیمی',
               'result': 'منتظر پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
               'nextFollowUp': null,
             },
             {
@@ -272,6 +284,17 @@ void main() {
           ],
         },
         {
+          'id': 'legacy-waiting-text',
+          'title': 'فقط متن قدیمی',
+          'followUps': [
+            {
+              'id': 'legacy-only',
+              'dateTime': '2026-08-26T08:00:00.000',
+              'result': 'منتظر پاسخ',
+            },
+          ],
+        },
+        {
           'id': 'alias',
           'title': 'کار منتظر فارسی',
           'followUps': [
@@ -280,6 +303,8 @@ void main() {
               'dateTime': '2026-08-26T09:00:00.000',
               'note': 'پیام',
               'result': 'در انتظار پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
               'nextFollowUp': null,
             },
           ],
@@ -301,8 +326,9 @@ void main() {
 
     expect(find.text('کار منتظر'), findsOneWidget);
     expect(find.text('کار منتظر فارسی'), findsOneWidget);
-    expect(find.text('کار پاسخ‌گرفته'), findsNothing);
-    expect(find.text('منتظر پاسخ'), findsNWidgets(2));
+    expect(find.text('کار پاسخ‌گرفته'), findsOneWidget);
+    expect(find.text('فقط متن قدیمی'), findsNothing);
+    expect(find.text('منتظر پاسخ'), findsNWidgets(3));
   });
 
   testWidgets('automatic due filter uses only latest canonical schedule',
@@ -400,6 +426,8 @@ void main() {
               'dateTime': '2026-08-25T10:00:00.000',
               'note': 'تماس اولیه',
               'result': 'منتظر پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
               'nextFollowUp': null,
             },
           ],
