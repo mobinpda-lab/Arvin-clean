@@ -78,3 +78,9 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+## 2026-10-13 — Owner clarification: Arvin database is currently empty
+- **Environment:** owner clarification in the Arvin execution conversation; exact installed version/device not specified.
+- **Owner statement:** no information has been entered into Arvin; the database is raw/empty.
+- **Product implication:** current owner-entered records should not be described as being at risk of migration loss. This statement does not independently verify all installed databases, local fixtures, old backups, or legacy JSON payloads.
+- **Engineering response:** retain fresh-install/empty-database coverage and continue compatibility testing for legacy Task.reminderDate, old JSON/backup decoding, idempotent migration and duplicate-safe Calendar identity. Empty current data does not waive release validation or authorize deleting compatibility paths.
+- **Status:** recorded; implementation/CI/device validation remain separate and pending. No user data was changed.
