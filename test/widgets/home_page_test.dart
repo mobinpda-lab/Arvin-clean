@@ -480,6 +480,22 @@ void main() {
     expect(find.text('بدون عمل'), findsOneWidget);
   });
 
+  testWidgets('Home task card visually distinguishes reminder and follow-up', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"visuals-task","title":"تماس با مشتری","followUpEnabled":true,"reminderDate":"2026-09-09T09:55:00.000","followUps":[{"id":"fu-1","dateTime":"2026-09-09T10:00:00.000","note":"تماس بعدی"}]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-card-reminder-visual-visuals-task')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-followup-visual-visuals-task')), findsOneWidget);
+    expect(find.textContaining('یادآور:'), findsOneWidget);
+    expect(find.textContaining('پیگیری:'), findsOneWidget);
+    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.follow_the_signs_outlined), findsOneWidget);
+  });
+
   testWidgets('Home task card allows title and description to grow without forced clipping',
       (tester) async {
     const title =
