@@ -48,3 +48,16 @@ This change is read-only. It does not migrate, delete, normalize, or convert can
 ## Release decision
 
 **NO-GO.** This decision closes only the projection separation implementation after exact-head tests and review pass. It does not waive external Calendar, physical-device, multiple-reminder, backup/restore, or mobile UX release gates.
+
+
+## Validation checkpoint update — 2026-10-13 (supersedes stale in-progress lines above)
+
+- Exact queried PR head: `1628048eacfd20ecd73e7938fddb79a8306c6b8c`.
+- Build workflow [38364976764](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38364976764): **SUCCESS**. Analyze, test shards 0–5, Debug APK and Release APK all completed successfully.
+- Device Smoke workflow [38364976751](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38364976751): **SUCCESS**. All six emulator lanes passed: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore.
+- Source boundary remains: internal Follow-up Action items are combined only for Arvin's internal calendar display; the existing outbound-sync call site continues to use the reminder/calendar projection, not the new internal-only projection.
+- PR #2665 remains **OPEN and UNMERGED**. GitHub reports mergeable=true at this checkpoint. The validation above is automated CI/emulator evidence; it is not physical-device acceptance or Calendar Provider Acceptance.
+- External provider CREATE → UPDATE same event/no duplicates, actual notification delivery/reschedule/cancel, real-device backup/restore link integrity, multi-reminder support, compact Persian RTL visual acceptance, and owner release approval remain **BLOCKED / NOT EVIDENCED**.
+- Release remains **NO-GO**. Do not describe the feature as fully delivered until review and required provider/device acceptance are complete.
+
+This checkpoint documents the successful runs on the queried head. Because updating this document creates a new commit, re-query workflows for the resulting PR head before using these results as exact-head validation for merge.
