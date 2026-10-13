@@ -1412,3 +1412,14 @@ Both are historical test APKs, not approved current downloads. Their deletion is
 - **Additional known work:** issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) Person-directory backup/restore remains P1; PR #2681 remains stacked/non-mergeable against the parent. Issue [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) Person-specific Report Center filtering remains open. Calendar interaction issue [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685) is the accepted product contract; do not restore inline management controls on ordinary tap.
 - **Next action:** query live branch head and PR-triggered workflow runs; ensure CI is triggered for the exact head, then inspect all test shards, Analyze, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes. Fix any new failures without weakening assertions. Continue only after exact-head evidence is collected.
 - **Release:** **NO-GO**. Do not merge or publish based on these test-only commits; backup/restore and Calendar-link integrity, complete CI, and physical-device acceptance remain required.
+
+
+# PR IDENTIFIER NORMALIZATION — 2026-10-14
+
+Use one unambiguous PR reference for the current multiple-reminder integration work:
+
+- **Primary integration PR for this execution stream: PR #2666** — https://github.com/mobinpda-lab/Arvin-clean/pull/2666 — branch `integration/task-multiple-reminders-safe-20261013`. This is the PR to cite in the main status report, validation summary, and release-gate decision.
+- **Separate child/stacked PR: PR #2681** — https://github.com/mobinpda-lab/Arvin-clean/pull/2681 — Person-linked Follow-up and People backup/restore work. Mention it only when explicitly discussing that child branch; do not substitute #2681 for the primary integration PR.
+- **Related but distinct PRs:** #2679 (waiting-response list discoverability), #2667 (reminder implementation branch), and #2655 (original multiple-reminder proposal). These are not the primary integration PR for this execution stream.
+- **Current release decision:** NO-GO. Normalizing the identifier is documentation-only and is not validation or merge approval.
+- Older entries retain their historical PR references; this section governs current/future summaries whenever references could otherwise be ambiguous.
