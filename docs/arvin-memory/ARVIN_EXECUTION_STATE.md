@@ -1227,7 +1227,7 @@ The integration branch advanced again during this audit. Latest observed parent 
 # AUTHORITATIVE CONTINUATION — Person directory portable backup/restore implementation — 2026-10-13
 
 - **Scope:** P1 issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), standalone Person directory records missing from portable backup/restore and rollback.
-- **Branch:** `integration/follow-up-person-model-20261013`; implementation is on stacked Draft PR [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), based on parent integration PR #2666. Do not merge; GitHub currently reports the child PR not mergeable against its base.
+- **Branch:** `integration/follow-up-person-model-20261013`; implementation is on stacked PR [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), marked ready for review to collect CI evidence, based on parent integration PR #2666. Do not merge; GitHub currently reports the child PR not mergeable against its base.
 - **Implementation authored:**
   - Existing portable backup v1 now accepts optional `people` entries; no second backup format and no version bump. Legacy files without `people` remain valid.
   - `ArvinBackupManager` serializes stable Person ID/display name, validates entries, rejects duplicate IDs, and exposes `people == null` for legacy backups versus an explicit list for newer backups.
