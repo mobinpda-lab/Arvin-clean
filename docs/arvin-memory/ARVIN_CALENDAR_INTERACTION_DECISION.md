@@ -2,7 +2,7 @@
 
 Version: 1.0
 Date: 2026-10-13
-Status: **Product decision accepted; implementation and acceptance evidence pending**
+Status: **Product decision accepted; initial implementation committed; exact-head validation pending**
 Repository: `mobinpda-lab/Arvin-clean`
 Working branch: `integration/task-multiple-reminders-safe-20261013`
 Related PR: [#2666](https://github.com/mobinPda-lab/Arvin-clean/pull/2666)
@@ -105,13 +105,13 @@ Run Calendar widget tests, Task Detail navigation tests, reminder projection/ide
 
 Inspected `lib/calendar_page.dart` and `test/calendar_runtime_actions_fast_track_test.dart` on the working branch.
 
-- The selected-day `_ReminderCard` currently uses `onTap` to toggle `_expanded`, not to open canonical Task Detail.
-- For Task-like items, Edit and “ثبت در تقویم گوشی” chips are explicitly rendered while the card is collapsed, contrary to this decision.
-- Long press on calendar date cells is currently used to create a Task for that date; this is not the requested long-press item menu.
+- Initial implementation now routes a normal tap on recognized Arvin Task/Follow-up/Reminder items to canonical Task Detail, and the selected item type is passed into the detail app bar.
+- Task management actions were moved out of the card body and into a long-press bottom sheet; deleting a Task from this menu asks for confirmation.
+- Long press on a calendar item now opens the contextual action menu. Long press on a date cell still creates a Task for that date; this is a separate date-cell gesture and should be validated not to interfere with item scrolling/navigation.
 - The existing test named “Arvin Task primary actions are visible before expansion” asserts the old behavior and must be replaced with the new acceptance contract rather than weakened.
 - The current `CalendarPage` callback surface has edit/delete/register callbacks but no explicit canonical Task Detail open callback. The wiring through `official_calendar_page.dart`, `widgets/canonical_calendar_launcher.dart` and the owning route must be traced before implementation.
-- The visual style labels some `task-reminder:` IDs as “یادآوری آروین”; Follow-up and Reminder IDs need a reliable typed identity rather than title-only inference.
-- No implementation change or passing acceptance result is claimed by this decision document.
+- Calendar labels now distinguish Task due dates (موعد کار), Reminder (یادآور), and Follow-up (پیگیری) using item ID prefixes rather than titles. Task Detail receives the selected item type; recurrence items receive a separate label.
+- Code and acceptance tests were updated in commits through code head `a9c5b7d6c68548fa78e3dbfaf035a9eeb04ffff3`. GitHub Build, Calendar Provider Acceptance and Device Smoke for this code wave were pending/queued at last poll; no passing result is claimed. No screenshots or physical-device evidence have been captured yet.
 
 ## 8. Required implementation sequence
 
@@ -120,7 +120,7 @@ Inspected `lib/calendar_page.dart` and `test/calendar_runtime_actions_fast_track
 3. Replace tap-to-expand with tap-to-open; move all management operations behind long-press contextual actions. Preserve a reachable, accessible alternative for devices where long press is difficult, without making it the normal-tap behavior.
 4. Ensure Reminder, Follow-up and recurrence actions are typed and resolve to stable canonical IDs. Make device Calendar registration idempotent.
 5. Replace the old “actions visible before expansion” test with the acceptance tests above. Keep meaningful assertions; do not remove tests simply to make CI green.
-6. Run relevant tests, Analyze/build, Calendar Provider acceptance and device smoke on the exact final SHA. Capture small-screen day/week/month evidence and record links/screenshots only when actually available.
+6. Run relevant tests, Analyze/build, Calendar Provider acceptance and device smoke on the exact final SHA. Current test changes cover Tap vs Long Press, menu actions, delete confirmation and distinct item labels; their result is pending. Capture small-screen day/week/month evidence and record links/screenshots only when actually available.
 7. Update this document with commit SHA, run URLs, test outcomes, and genuine screenshots. Keep release status NO-GO until all relevant gates pass.
 
 ## 9. Evidence ledger
