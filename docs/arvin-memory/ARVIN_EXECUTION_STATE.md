@@ -1423,3 +1423,51 @@ Use one unambiguous PR reference for the current multiple-reminder integration w
 - **Related but distinct PRs:** #2679 (waiting-response list discoverability), #2667 (reminder implementation branch), and #2655 (original multiple-reminder proposal). These are not the primary integration PR for this execution stream.
 - **Current release decision:** NO-GO. Normalizing the identifier is documentation-only and is not validation or merge approval.
 - Older entries retain their historical PR references; this section governs current/future summaries whenever references could otherwise be ambiguous.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (post-PR-reference normalization, exact-head gate poll)
+
+## Execution identity
+- **Repository:** `mobinpda-lab/Arvin-clean`
+- **Primary integration PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) — the one canonical PR identifier for this execution stream.
+- **Branch:** `integration/task-multiple-reminders-safe-20261013`; base: `main`.
+- **Exact PR head at this poll:** `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23` (the PR-reference/evidence-map documentation commit).
+- **App version:** `1.0.1+2` as last recorded from `pubspec.yaml`; this is not a release version approval.
+- **PR state:** #2666 open, unmerged, non-draft, reported mergeable. Do not infer merge readiness from mergeable=true while gates are pending.
+
+## Exact-head workflow evidence for SHA `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23`
+- **Arvin Build:** [run 38463727564](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727564) — `in_progress` at poll. Job-level details could not be retrieved because the GitHub jobs endpoint timed out. No Build pass is claimed.
+- **Calendar Provider Acceptance:** [run 38463727485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727485) — `success`. This does not replace Build, Device Smoke, backup/restore, or physical-device gates.
+- **Device Smoke:** [run 38463727566](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727566) — `queued` at poll; six lanes not yet evidenced as terminal passes.
+- **ARVIN Orchestrator PR Wakeup:** [run 38463727504](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727504) — success.
+- **ARVIN Orchestrator:** [run 38463727616](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727616) — success.
+- **ARVIN Production Loop:** [run 38463727519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727519) — success.
+- **G1 lock sync:** [run 38463727514](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727514) — success.
+- **Arvin Parallel Wave:** [run 38463727492](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727492) — skipped; not a validation pass.
+
+## Related blockers confirmed by current PR/issue inventory
+- [Issue #2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682): Person directory backup/restore integrity remains P1/open.
+- [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681): separate stacked Person-linked Follow-up/People backup work; open and reported non-mergeable. Do not merge or force-update independently; reconcile branch dependency safely.
+- [Issue #2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683): Person-specific Report Center filtering/results remains open.
+- [Issue #2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685): Calendar interaction contract is tap→canonical Task detail and long-press→typed actions; preserve this contract.
+- Earlier exact-head test failures and test-only corrections are documented in the preceding checkpoint. They remain unverified until the current Build reaches terminal status.
+
+## Completed in this execution
+- Re-read the current execution memory and evidence map before acting.
+- Queried primary PR #2666 metadata, exact head, related open PRs/issues, and workflow runs.
+- Reconfirmed that PR identifiers are standardized: #2666 primary integration; #2681 only the distinct stacked child PR.
+- Recorded this exact-head workflow poll. This memory commit will advance HEAD; do not transfer the results above to any later SHA.
+
+## Current bottleneck / blocked
+- Exact-head Build has not reached terminal state, and job details endpoint timed out.
+- Device Smoke has not started running its lanes yet (queued).
+- Physical-device acceptance is not evidenced.
+- Person directory backup/restore and Person-specific report requirements remain open.
+
+## Next action (continue without restarting analysis)
+1. Query live PR #2666 head again after this memory commit.
+2. Poll Build and Device Smoke to terminal status; inspect every test shard and build lane, distinguishing product regressions from test/setup failures without weakening assertions.
+3. Repair confirmed failures, commit targeted changes, and rerun gates on the new exact SHA.
+4. Safely reconcile #2681/#2682 backup/restore work with the parent before merge; complete #2683 Person-specific report behavior.
+5. Record real backup/restore and Calendar-link integrity evidence plus physical-device acceptance.
+6. Keep **release NO-GO** and do not merge until all required gates pass on one final exact SHA and required owner approval is present.
