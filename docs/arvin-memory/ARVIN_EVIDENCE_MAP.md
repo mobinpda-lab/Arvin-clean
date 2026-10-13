@@ -350,3 +350,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Device Smoke:** [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) — SUCCESS. Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
 - These are exact-head automated/emulator results for the queried SHA only. They do not prove physical-device acceptance, provider same-event update/no-duplicate, actual OS notification behavior, or release approval.
 - The memory update itself creates a newer branch head; re-check exact-head Build and all six Device Smoke lanes before merge.
+
+
+## 2026-10-13 — Multiple-reminder safe-integration evidence
+- **Architecture decision document:** `docs/arvin-memory/ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, integration branch `integration/task-multiple-reminders-safe-20261013`; commit `33ddb0f9467fd9a2d832c2e485eedf449da8eba3`.
+- **Execution memory checkpoint:** `ARVIN_EXECUTION_STATE.md` updated on the integration branch; commit `a340845bc3651e6d0e65a3b64cf3f2e4627429fa`.
+- **Branch comparison:** integration branch was checked against main `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`; it is 2 commits ahead, 0 behind, and currently contains documentation-only changes.
+- **Implementation/test evidence:** NONE YET for multiple-reminder code on this branch. No migration, tests, builds, Calendar provider acceptance, or physical-device test have been run on this branch. Do not confuse earlier CI results from other PR heads with evidence for this branch.
+- **Release gate:** NO-GO.
