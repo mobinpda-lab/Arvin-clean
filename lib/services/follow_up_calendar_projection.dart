@@ -27,9 +27,6 @@ class FollowUpCalendarProjection {
   String independentTaskReminderIdFor(Task task, TaskReminder reminder) =>
       'task-reminder-item:${Uri.encodeComponent(task.id)}:${Uri.encodeComponent(reminder.id)}';
 
-  String taskReminderItemIdFor(Task task, TaskReminder reminder) =>
-      'task-reminder-item:${task.id}:${reminder.id}';
-
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
@@ -92,23 +89,6 @@ class FollowUpCalendarProjection {
           ),
         );
         taskDatesAlreadyProjected.add(reminderDate);
-      }
-
-      // New independent reminders have stable IDs unrelated to title/date.
-      // Do not deduplicate them by timestamp: two independent reminders may
-      // intentionally occur at the same time and still require separate events.
-      for (final reminder in task.taskReminders) {
-        reminders.add(
-          CalendarReminder(
-            id: taskReminderItemIdFor(task, reminder),
-            title: reminder.title.trim().isEmpty
-                ? '${task.title} — یادآور ${reminder.sequence}'
-                : reminder.title,
-            date: reminder.date,
-            completed: task.completed,
-            isAllDay: reminder.isAllDay,
-          ),
-        );
       }
 
       for (final reminder in task.taskReminders) {
