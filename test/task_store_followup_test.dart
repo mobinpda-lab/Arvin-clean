@@ -30,6 +30,22 @@ void main() {
     expect(task.updatedAt, isNotNull);
   });
 
+  test('adding a follow-up does not enable the legacy Task flag', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"t-no-flag","title":"کار معمولی"}]',
+    });
+
+    final store = TaskStore();
+    await store.addFollowUp(
+      't-no-flag',
+      FollowUp(id: 'f-no-flag', dateTime: DateTime(2026, 8, 15, 10)),
+    );
+
+    final task = (await store.load()).single;
+    expect(task.followUps, hasLength(1));
+    expect(task.followUpEnabled, isFalse);
+  });
+
   test('legacy flag conversion API does not invent a FollowUp record', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
