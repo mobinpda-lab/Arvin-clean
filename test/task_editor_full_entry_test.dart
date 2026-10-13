@@ -321,4 +321,36 @@ void main() {
     expect(result!.nextReminderSequence, 3);
   });
 
+
+  testWidgets('deleting migrated legacy reminder clears compatibility mirror on save', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'migrated-editor',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+    expect(task.taskReminders, hasLength(1));
+    expect(task.legacyReminderMigrationCompleted, isTrue);
+
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+    final reminderId = task.taskReminders.single.id;
+    final remove = find.byKey(
+      ValueKey('task-editor-remove-reminder-$reminderId'),
+    );
+    await tester.ensureVisible(remove);
+    await tester.tap(remove);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders, isEmpty);
+    expect(result!.reminderDate, isNull);
+    expect(result!.legacyReminderMigrationCompleted, isTrue);
+    expect(result!.nextReminderSequence, 2);
+  });
+
 }
