@@ -24,6 +24,11 @@ void main() {
 
   testWidgets('prayer actions persist and refresh without task actions',
       (tester) async {
+    tester.view.physicalSize = const Size(800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
       MaterialApp(
         home: OfficialCalendarPage(
