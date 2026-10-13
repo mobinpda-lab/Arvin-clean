@@ -2605,16 +2605,11 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const FollowUpOfficePage(),
+          ),
+        );
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2634,7 +2629,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
+      TaskSwipeAction.convertToFollowUp => 'افزودن پیگیری',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
