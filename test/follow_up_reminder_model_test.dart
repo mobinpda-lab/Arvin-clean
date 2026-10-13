@@ -102,7 +102,7 @@ void main() {
     final persisted = task.toJson();
     expect(persisted['reminderDate'], '2026-10-13T09:00:00.000');
     expect(persisted['legacyReminderMigrationCompleted'], isTrue);
-    expect(persisted.containsKey('taskReminders'), isFalse);
+    expect(persisted['taskReminders'], isEmpty);
 
     final restored = Task.fromJson(persisted);
     expect(restored.taskReminders, isEmpty);
