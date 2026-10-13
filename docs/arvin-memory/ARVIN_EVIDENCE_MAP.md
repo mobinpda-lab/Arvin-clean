@@ -1,3 +1,14 @@
+## 2026-10-13 — Configurable all-day notification time and compile repair
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| All-day reminders default to 09:00 and allow user override | `AppSettings.allDayReminderNotificationMinutes`, `SettingsPage`, `AppSettingsService`, `test/services/app_settings_service_test.dart` | Setting, persistence, picker and portable backup/restore tests are present | Must pass on exact fixed head |
+| Runtime uses saved preference | `FollowUpReminderAlarmPlanner`, `FollowUpReminderDeliveryService`, `AndroidFollowUpReminderScheduler`, background runner | Preference is passed into planning and background delivery; setting change requests reschedule | Android runtime behavior still needs acceptance |
+| Compiler blocker | Analyze log from run 38399972134 / job 115305143276; build run 38399972134 / job 115305142658 | Identified uninitialized `taskReminderId` in two projection constructors; fixed in commit `a8263d5119c16c69db7fd282d53820504650b57e` | New exact-head CI results pending |
+| Release readiness | Build run 38399972134; Calendar Provider run 38399972069; Device Smoke run 38399972061 | Failed before fix; these runs do not validate the repair | Must rerun on final head; physical-device evidence remains open |
+
+---
+
 ## 2026-10-13 — Fast Lane Draft validation contract
 
 | Claim | Evidence | Result | Limit |
