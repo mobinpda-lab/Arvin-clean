@@ -1,3 +1,14 @@
+## 2026-10-13 — Task Follow-up model simplified
+
+- **Problem:** `followUpEnabled` made users choose an implementation flag even though every Task should support optional Follow-ups; «منتظر پاسخ دیگران» was stored in FollowUp.result but not directly discoverable from Home.
+- **Decision:** Task always supports zero or more real `followUps[]`. The user-facing «کار پیگیری‌دار» flag is removed from Quick Entry and Full Form. The legacy field remains only as backward-compatible mirror and must not drive filtering/status/feature availability.
+- **UI:** Full Task editor now has «پیگیری‌ها» and «افزودن پیگیری»; newly added Follow-ups are returned with the Task. TaskEditApplyService merges new Follow-ups by stable ID to preserve existing/concurrent history.
+- **Waiting list:** Home → More now exposes «منتظر پاسخ دیگران», opens the office directly in waiting-only mode, excludes completed/archived/trashed Tasks and only includes a Task when its latest Follow-up is still waiting. Each row offers «بازکردن کار».
+- **Reason:** Follow-up is a lifecycle capability/data collection, not a Task type/flag. Reminder and `nextFollowUp` remain independent; no parallel storage or Task copies.
+- **Status:** Code and regression updates committed to the active integration branch. Exact-head analyzer/tests/build/UI acceptance are not yet confirmed; release remains NO-GO.
+
+---
+
 ## 2026-10-13 — Owner decision: configurable all-day reminder notification time
 
 - **Problem:** 09:00 is the preferred default, not a hard-coded time that every user must accept.
