@@ -248,3 +248,19 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 
 - The earlier note that Calendar scope required clarification is superseded by the owner's final command: fallback-to-`nextFollowUp` applies only to **Arvin's internal Calendar** when no Reminder exists. It must not project to Google/device Calendar or create an OS notification.
 - Remaining implementation/validation gaps are still open: multiple independent Task reminders end-to-end, optional reminder creation in Follow-up flow, all-day/date-only metadata, legacy/backup/restore round-trip, stable Calendar IDs and no-duplicate updates, and physical-device acceptance. No gap is considered fixed merely because this decision is documented.
+
+## Delivery blocker update — 2026-10-13
+
+### Resolved with CI evidence
+- The previously pending People and Backup/Restore lanes are no longer pending. On Device Smoke run `38361448950`, both completed SUCCESS; together with Home, Quick Capture, SQL Persistence and SQL Migration, all six lanes are now SUCCESS.
+- Build/automated tests/Debug APK/Release APK all passed on PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250` (run `38361448901`).
+
+### Still open
+- Physical-device installation and real-use acceptance have no evidence in the current record.
+- Persian RTL/compact-width clipping/truncation still needs visual review and, if reproduced, targeted correction.
+- Calendar origin-aware sync, stable provider identity, duplicate prevention and no-echo behavior still require end-to-end validation.
+- Multiple independent Task reminders remain unmerged/unvalidated end-to-end; PR #2655 is open with `mergeable=false`. Do not merge directly.
+- Backup/Restore lane PASS is CI evidence, not a substitute for physical-device or real-user data-safety acceptance.
+
+### Next
+- Do not add new features. Collect real-device acceptance evidence, validate existing Calendar/Reminder/Follow-up behavior, resolve UX findings, then safely reconcile and validate the reminder PR. Release remains NO-GO until all gates are satisfied.
