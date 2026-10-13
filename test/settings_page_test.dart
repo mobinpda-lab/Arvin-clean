@@ -50,7 +50,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('all-day-reminder-time-setting')));
     await tester.pumpAndSettle();
     expect(find.text('زمان اعلان یادآورهای تمام‌روزه'), findsOneWidget);
-    await tester.binding.handlePopRoute();
+    // Pop the time-picker dialog route itself; a platform back event can pop
+    // the page under test in widget tests on some Flutter versions.
+    Navigator.of(tester.element(find.text('زمان اعلان یادآورهای تمام‌روزه'))).pop();
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('تیره'));
