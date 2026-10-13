@@ -1,3 +1,22 @@
+# VERSION IDENTIFIER STANDARD — 2026-10-13
+
+Use the following distinct, consistent labels in all Arvin reports, memory files, PR comments, release notes, and evidence tables. These identifiers are different and must never be presented interchangeably:
+
+- **App version (manifest):** `1.0.1+2` — from `pubspec.yaml` on the inspected branch. Keep the format `<marketing-version>+<build-number>`; do not change it without a release/versioning decision.
+- **Source revision / repository HEAD:** full 40-character Git commit SHA. Current memory-only HEAD recorded by this checkpoint: `54ec22c1628e1e6a09ad5b6922f9e1384773fbd9`.
+- **Code-validation revision:** `7bce505284b39b7dda9b6ce675097f21a6306c59` — the SHA associated with the reported Build/Device results. These results do **not** validate the later memory-only HEAD above.
+- **PR identifier:** `PR #2666`; **branch:** `integration/task-multiple-reminders-safe-20261013`.
+- **CI workflow run ID:** a numeric GitHub Actions run ID, always accompanied by workflow name, URL, exact source SHA, and observed conclusion/status.
+- **Job ID:** the numeric identifier for a single job inside a workflow run; do not label it as a run ID.
+- **Release tag/version:** use only an actual Git tag or explicitly approved release record. No release tag is established by the evidence in this checkpoint.
+- **Date:** ISO format `YYYY-MM-DD`.
+
+**Required evidence row format:** `App version | Source SHA | Branch | PR | Workflow / Run ID | Job ID (when relevant) | Result | Evidence URL | Limitation`.
+
+**Release gate:** results are valid only for the exact SHA that the workflow actually ran against. A documentation-only commit still changes HEAD; do not carry forward the prior SHA's validation status. Keep the release status NO-GO until all required gates pass on one exact final SHA.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (latest exact-head validation poll)
 
 This checkpoint supersedes conflicting live status below. Previous entries remain historical evidence.
