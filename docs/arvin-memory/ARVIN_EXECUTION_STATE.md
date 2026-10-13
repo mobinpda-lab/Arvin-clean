@@ -1,3 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Follow-up model simplification + waiting list)
+
+- **Owner-approved model:** every Task supports zero or more real Follow-up records. `followUpEnabled` is deprecated compatibility data only and must not drive user-facing controls, projections, status, or capability decisions.
+- **Implemented:** Quick Entry Follow-up flag and inline Follow-up rollbox removed; checklist option remains. Full Task editor now has a «پیگیری‌ها» section and «افزودن پیگیری» action, and emits new Follow-up records with the Task. TaskEditApplyService merges new records by stable ID to preserve existing history.
+- **Implemented:** Home → More now has «منتظر پاسخ دیگران», opening FollowUpOfficePage in waiting-only mode. List filters to latest waiting Follow-up for active, non-completed, non-archived, non-trashed Tasks and rows have «بازکردن کار».
+- **Implemented:** Follow-up list scope and Task detail badges derive from actual `followUps[]` or legacy `followUpDate`, not the flag. The legacy swipe action now routes to Follow-up Office rather than toggling the flag.
+- **Regression coverage added/updated:** waiting list latest-result/inactive Task test; Quick Entry flag absence/checklist retention; list-scope flag non-authority; FollowUp history preservation. These tests are not yet confirmed green.
+- **Active branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. This branch also carries the independent TaskReminder integration work; no merge has occurred.
+- **Next:** re-query live PR head and exact-head Actions after these memory writes. Inspect analyzer/test failures; add/verify Home route and editor add/persistence tests; fix failures; run full Analyze, test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, backup/restore/link integrity, and physical-device acceptance.
+- **Release:** NO-GO until all gates pass on the final exact head. Do not merge based on source changes alone.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (Follow-up & Waiting Response Person architecture decision)
 
 - Owner supplied and accepted the Follow-up & Waiting Response Architecture Command v2.0. No clarification is needed to begin implementation planning.
