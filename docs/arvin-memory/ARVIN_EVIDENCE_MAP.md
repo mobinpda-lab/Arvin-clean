@@ -1,3 +1,15 @@
+# EVIDENCE UPDATE — 2026-10-13 (provider identity compatibility slice)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| Internal Calendar projection | Migrated legacy item retains `task-reminder:<taskId>`; new items use `task-reminder-item:<taskId>:<reminderId>` | Exact-head test result unavailable |
+| Notification candidate/delivery/alarm | Legacy/new duplicate path suppressed; new reminders use independent stable keys | Android runtime scheduling not validated |
+| Outbound sync eligibility | New ID prefix accepted by parser, feature gate and provider bridge | Existing provider-link continuity not yet tested |
+| Regression tests | Added model, Calendar, notification and ID eligibility cases | No CI runs/statuses returned for head `308ea3b...` |
+| Durable migration / backup restore | OPEN | Need durable-write and rollback tests |
+| Physical device / release | NOT VALIDATED / NO-GO | Required before release |
+
+---
 # EVIDENCE UPDATE — 2026-10-13 (legacy migration and notification projection slice)
 
 | Evidence | Result | Limitation |
