@@ -953,3 +953,13 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - PR #2663 head remains `c3b95d0781ec03f07d43379c4087f427667cb250`, open and mergeable. Latest Build run `38361448901` remains in progress: Analyze success; six test shards and Debug/Release APK still in progress at poll time. Device Smoke run `38361448950` is still queued at workflow level; Home and Quick Capture jobs were in progress and the remaining four lanes queued at last job poll.
 - PR #2662 and #2661 remain open/mergeable. PR #2655 remains open and `mergeable=false`; do not attempt a risky merge. No release decision changes: release NO-GO, physical-device acceptance outstanding.
 - Next action remains polling exact-head validation, then fixing failures based on logs and rerunning on any new head. Do not infer completion from the successful Orchestrator/Production Loop/lock-sync runs; they do not replace Build and Device Smoke acceptance.
+
+
+# CONTINUATION — authoritative Calendar scope and evidence boundary (2026-10-13)
+
+- Rechecked the latest execution state, decision log, evidence map, problem register, open PRs #2661–#2663 and #2655, open issues, and exact-head jobs for PR #2663. Latest head remains `c3b95d0781ec03f07d43379c4087f427667cb250`.
+- Owner's command is already recorded in `ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`. It resolves the old documentation ambiguity: fallback from Reminder to `nextFollowUp` is for Arvin's **internal Calendar only**; external/device Calendar sync is restricted to explicitly authorized Reminders and sync-enabled Events. No automatic notification/event from `nextFollowUp`.
+- Build run `38361448901`: Analyze and all six test shards passed; Debug and Release APK jobs remain in progress at latest poll. Device Smoke run `38361448950`: Home and Quick Capture remain in progress; SQL Persistence, SQL Migration, People and Backup/Restore remain queued at latest poll.
+- PR #2663 remains open/mergeable, not merged. PR #2662 and #2661 remain open/mergeable. PR #2655 remains open and non-mergeable; do not force-merge or fabricate a tree merge.
+- **Done this execution:** reconciled stale “scope needs clarification” notes across decision/problem/evidence memory and recorded current exact-head evidence boundary. This is documentation maintenance, not proof that all product behavior is implemented.
+- **Next action:** poll APK and all six Device Smoke lanes; inspect logs and repair failures safely. Then validate reminder/follow-up independence and calendar projection end-to-end, including legacy data/backup/restore and physical-device acceptance. Release remains **NO-GO**.
