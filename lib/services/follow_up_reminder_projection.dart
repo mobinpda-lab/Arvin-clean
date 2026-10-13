@@ -10,13 +10,14 @@ class FollowUpReminderCandidate {
     required this.followUpId,
     required this.label,
     required this.scheduledAt,
-  });
+  }) : taskReminderId = null;
 
   const FollowUpReminderCandidate.task({
     required this.taskId,
     required this.taskTitle,
     required this.scheduledAt,
   })  : followUpId = null,
+        taskReminderId = null,
         label = 'یادآوری';
 
   const FollowUpReminderCandidate.taskReminder({
