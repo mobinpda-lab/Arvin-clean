@@ -357,36 +357,13 @@ class Task {
         }
       }
     }
+    // Legacy Task.reminderDate remains an independent compatibility field.
+    // Do not silently convert it into the new collection: existing projection
+    // and notification paths continue to own its legacy behavior until an
+    // explicit, separately validated migration is approved.
     final legacyReminderDate = json['reminderDate'] == null
         ? null
         : DateTime.tryParse(json['reminderDate'] as String);
-    final taskId = json['id'] as String? ?? '';
-    // A legacy Task reminder is represented by one deterministic collection
-    // item while retaining the original field for backward compatibility.
-    // The deterministic ID makes repeated decoding/migration idempotent.
-    final legacyReminderId = 'legacy-task-reminder:$taskId';
-    if (legacyReminderDate != null &&
-        !loadedTaskReminders.any((item) => item.id == legacyReminderId)) {
-      final title = json['title'] as String? ?? '';
-      final createdAt = json['createdAt'] == null
-          ? null
-          : DateTime.tryParse(json['createdAt'] as String);
-      final updatedAt = json['updatedAt'] == null
-          ? null
-          : DateTime.tryParse(json['updatedAt'] as String);
-      loadedTaskReminders.add(TaskReminder(
-        id: legacyReminderId,
-        taskId: taskId,
-        title: title.isEmpty ? 'یادآور قدیمی' : '$title — یادآور',
-        date: legacyReminderDate,
-        // Do not infer all-day from midnight; legacy data did not encode intent.
-        isAllDay: false,
-        sequence: 0,
-        status: 'active',
-        createdAt: createdAt ?? legacyReminderDate,
-        updatedAt: updatedAt ?? legacyReminderDate,
-      ));
-    }
     final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
     final nextReminderSequence = [
       storedSequence < 1 ? 1 : storedSequence,
