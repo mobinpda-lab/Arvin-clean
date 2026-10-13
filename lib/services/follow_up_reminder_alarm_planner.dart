@@ -1,5 +1,6 @@
 import '../models/task.dart';
 import 'follow_up_reminder_delivery_state.dart';
+import 'follow_up_reminder_projection.dart';
 
 class FollowUpReminderAlarmPlanner {
   const FollowUpReminderAlarmPlanner({
@@ -23,9 +24,23 @@ class FollowUpReminderAlarmPlanner {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null) {
+      if (!task.legacyReminderMigrationCompleted && taskReminder != null) {
         final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
         if (!delivered.contains(identity)) candidates.add(taskReminder);
+      }
+
+      for (final reminder in task.taskReminders) {
+        if (reminder.status != 'active') continue;
+        final candidate = FollowUpReminderCandidate.taskReminder(
+          taskId: task.id,
+          taskTitle: task.title,
+          taskReminderId: reminder.id,
+          label: reminder.title,
+          scheduledAt: taskReminderNotificationTime(reminder),
+        );
+        final identity =
+            '${candidate.stableKey}@${candidate.scheduledAt.toIso8601String()}';
+        if (!delivered.contains(identity)) candidates.add(candidate.scheduledAt);
       }
 
       for (final followUp in task.followUps) {
