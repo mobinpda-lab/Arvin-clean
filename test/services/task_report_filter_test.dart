@@ -16,6 +16,7 @@ void main() {
         tags: ['مهم'],
         priority: TaskPriority.high,
         followUpEnabled: true,
+        followUps: [FollowUp(id: 'fa', dateTime: DateTime(2026, 10, 7, 9))],
         checklist: ['یک'],
       ),
       Task(
@@ -34,6 +35,7 @@ void main() {
         tags: ['مهم'],
         priority: TaskPriority.high,
         followUpEnabled: true,
+        followUps: [FollowUp(id: 'fa', dateTime: DateTime(2026, 10, 7, 9))],
         checklist: ['یک'],
       ),
     ];
@@ -55,6 +57,27 @@ void main() {
 
     expect(result.map((task) => task.id), ['a']);
     expect(tasks.map((task) => task.id), ['a', 'b', 'c']);
+  });
+
+  test('Follow-up report filter ignores the legacy flag when no record exists', () {
+    final legacyFlagOnly = Task(
+      id: 'legacy-flag-only',
+      title: 'قدیمی',
+      followUpEnabled: true,
+    );
+    final canonicalFollowUp = Task(
+      id: 'canonical-follow-up',
+      title: 'پیگیری واقعی',
+      followUps: [FollowUp(id: 'f1', dateTime: DateTime(2026, 10, 7, 9))],
+    );
+
+    final withFollowUp = const TaskReportFilter(hasFollowUp: true)
+        .apply([legacyFlagOnly, canonicalFollowUp], now: now);
+    final withoutFollowUp = const TaskReportFilter(hasFollowUp: false)
+        .apply([legacyFlagOnly, canonicalFollowUp], now: now);
+
+    expect(withFollowUp.map((task) => task.id), ['canonical-follow-up']);
+    expect(withoutFollowUp.map((task) => task.id), ['legacy-flag-only']);
   });
 
   test('time presets handle undated and future tasks', () {
