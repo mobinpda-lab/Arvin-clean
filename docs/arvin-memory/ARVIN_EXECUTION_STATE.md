@@ -1166,3 +1166,20 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **Validation snapshot:** Build, Calendar Provider Acceptance and Device Smoke for code head a9c5b7d6c68548fa78e3dbfaf035a9eeb04ffff3 were pending/queued at the last poll. Subsequent documentation commits advanced the branch; rerun or verify all required workflows against the latest final SHA. No screenshots or physical-device evidence have been captured. Do not claim the feature accepted.
 - **Next action:** inspect terminal workflow results, fix compile/test failures without weakening assertions, add/verify canonical route and selected-type integration tests, validate day/week/month and small-screen RTL/scroll gestures, and capture genuine device evidence. Keep PR #2666 unmerged until exact-head gates pass.
 - **Release:** NO-GO.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest Calendar interaction code checkpoint)
+
+- **Latest code head before this memory update:** 8817b0ce6f79ae6610c431a40c299c0bda1b9074 on integration/task-multiple-reminders-safe-20261013; PR #2666 remains open, ready-for-review, unmerged.
+- **Owner contract:** Tap opens canonical Task Detail; Long Press opens management. Calendar is projection-only. Selected item type is shown in Task Detail.
+- **Safety correction:** TaskReminder rows must never offer deletion of the parent Task. The Reminder long-press menu now offers Reminder management through the existing Task editor but hides Task deletion. Task due rows retain a separate Task deletion action with explicit confirmation.
+- **Routing correction:** both Home-to-Calendar entry points now provide the same canonical detail/edit/delete/register/refresh/sync callbacks. The launcher resolves Task, recurrence, TaskReminder and internal Follow-up Action IDs to the existing Task rather than creating a duplicate.
+- **Tests changed:** test/calendar_runtime_actions_fast_track_test.dart covers normal tap, long press, action menu, Task delete confirmation, no parent-Task deletion from Reminder rows, and distinct due/Reminder/Follow-up labels. test/task_detail_checklist_flow_test.dart checks the selected type in Task Detail.
+- **Latest CI for code head 8817b0ce6f79ae6610c431a40c299c0bda1b9074:** Build was pending/queued with Release build and test shard 0 running at the last poll; Debug was queued/in progress; Calendar Provider Acceptance was in progress; Device Smoke was pending with no jobs returned yet. No terminal green result is established.
+- **Analyzer:** a prior code wave (cb1dfd419aa5ebeed5cf40240e0bdf198191bbb5) had Analyze pass, but that is not evidence for the newer 8817b0c head.
+- **Evidence still missing:** terminal exact-head test/build/provider/device results; small-screen day/week/month and RTL/scroll validation; genuine screenshots; physical-device acceptance. No screenshot or physical-device result is claimed.
+- **Tracking:** Issue #2685 remains open.
+- **Next:** poll current run IDs, inspect any failed test logs, repair the actual root cause without weakening assertions, and keep PR #2666 unmerged until required gates pass.
+- **Release:** NO-GO.
