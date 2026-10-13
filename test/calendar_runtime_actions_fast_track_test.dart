@@ -103,6 +103,37 @@ void main() {
     expect(edited, 0);
   });
 
+  testWidgets('Task due, Reminder and Follow-up rows have distinct labels', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 9, 15, 9);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: <CalendarReminder>[
+            CalendarReminder(id: 'task-due:task-1', title: 'کار', date: day),
+            CalendarReminder(
+              id: 'task-reminder-item:task-1:rem-1',
+              title: 'یادآور مستقل',
+              date: day,
+            ),
+            CalendarReminder(
+              id: 'followup:task-1:fu-1',
+              title: 'پیگیری فروشنده',
+              date: day,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد کار'), findsOneWidget);
+    expect(find.text('یادآور'), findsOneWidget);
+    expect(find.text('پیگیری'), findsOneWidget);
+  });
+
   testWidgets('long press on a week date forwards the exact selected date', (
     tester,
   ) async {
