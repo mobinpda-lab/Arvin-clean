@@ -188,3 +188,11 @@
 - Reports/search must distinguish follow-up, `nextFollowUp`, Reminder and `reminderDate`. Preserve canonical Task storage, legacy fields, backup/restore, and stable Calendar IDs.
 - **Clarification gate:** v2 says Calendar shows a Reminder if present, otherwise `nextFollowUp`; earlier owner-approved phone-calendar boundary says follow-up alone must not be projected to the phone calendar or trigger OS notification. Do not change phone-calendar behavior until scope is clarified (Arvin in-app Calendar vs Android/phone Calendar).
 - Status: decision documented; code audit shows some existing foundations, but full acceptance is not proven. Exact-head tests and physical-device checks remain required; Release NO-GO.
+
+
+## AUTHORITATIVE SUPERSESSION — Calendar Follow-up/Reminder command v1.0 (2026-10-13)
+
+- The owner's explicit integration command resolves the prior scope ambiguity: **Arvin in-app Calendar** shows Reminder items when present, otherwise Follow-up Action from `nextFollowUp`. This internal projection must not create notifications or external events.
+- **External/device Calendar boundary remains explicit:** only user-created Reminders with authorized/enabled sync and explicitly sync-enabled Events may be projected externally. `nextFollowUp` alone never authorizes external event creation or OS notification.
+- This supersedes the earlier “scope unclear / wait for clarification” status above. It does not claim implementation or validation is complete. `Task` remains canonical; `nextFollowUp` and `reminderDate` are independent; edits/deletes must not cross-mutate without explicit user choice. Multiple reminders are owner-approved as separately identified items.
+- Evidence gate remains open; Release NO-GO until exact-head tests/build, six device-smoke lanes, and physical-device acceptance are recorded.
