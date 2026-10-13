@@ -1,3 +1,19 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest-head CI and mainline reconciliation audit)
+
+This checkpoint supersedes conflicting live-status notes below. Older entries remain historical evidence and must not be reused as current validation.
+
+- Repository: `mobinpda-lab/Arvin-clean`; current `main` SHA: `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- Feature PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655), branch `feat/task-multiple-reminders-editor-20261013`, latest pre-checkpoint head `cc35194d84d6c2fdf52d566723be0d6343e93c6b`, remains OPEN/unmerged. GitHub reports `mergeable=false`; comparison with current main is 58 commits ahead and 3 behind. Do not merge blindly.
+- **Latest-head validation gap:** no workflow runs/check-runs were returned for exact SHA `cc35194d84d6c2fdf52d566723be0d6343e93c6b`. The most recent retrieved runs were on older SHA `217c57ad2574ef7f87182c8edfed84c0be0c38ab`: Build [38346161903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161903) FAILURE; Device Smoke [38346161905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161905) SUCCESS across emulator lanes; Calendar Provider Acceptance [38346161864](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38346161864) SUCCESS. These do not validate the current head.
+- Mainline changes since the feature branch base include the internal Follow-up Calendar projection separation, touching `lib/calendar_page.dart`, `lib/widgets/canonical_calendar_launcher.dart`, and new `lib/services/follow_up_internal_calendar_projection.dart` with tests. The feature PR also touches the first two paths, so integration must reconcile these files and prove internal Follow-up actions remain display-only, excluded from outbound sync and notification scheduling.
+- **Feature implementation status:** multiple Task reminders are already implemented on PR #2655; the separate safe-integration PR [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) is documentation-only and must not be mistaken for code integration. Do not duplicate the implementation on another branch.
+- **Source correction already committed on the feature branch:** duplicate Task-reminder Calendar projection was removed in `9bf7f6544d888b04efcf462a745c0151542bfb0f`; a regression test was added in `bd74acabac3ef38a2b641da6d38e5872707668c6`. These code commits still require exact-current-head validation.
+- Owner-approved contract remains: independent stable-ID Task reminders; legacy `Task.reminderDate` and each `FollowUp.reminderDate` stay semantically distinct; `nextFollowUp` does not create/overwrite a reminder; all-day is explicit and never inferred from midnight; use existing canonical Task JSON/SQL/backup/calendar/notification paths; no parallel store or scheduler.
+- **Next action:** trigger/retrieve exact-head CI for the current feature branch after this checkpoint commit; inspect Build, Calendar Provider Acceptance, and all six Device Smoke lanes. Then reconcile the three mainline commits on a dedicated integration branch, resolve only verified conflicts, and re-run exact-head gates. Physical-device acceptance remains outstanding; release remains **NO-GO**.
+- No application code, user data, migration, or release state is changed by this checkpoint update.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (duplicate Calendar projection fixed; validation restarted)
 
 This entry supersedes older live-status statements below. Historical checkpoints remain for audit.
