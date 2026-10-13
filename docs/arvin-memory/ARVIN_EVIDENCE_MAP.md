@@ -505,3 +505,14 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Child branch can be safely fast-forwarded to parent | Compare child vs parent integration branch | False: 82 commits ahead, 134 behind; merge base 68724d6191590b81b2d611f59b7944a7fcbb06e0 | Deliberate reconciliation required; no force update or blind merge |
 | P1 #2682 complete | Source/tests authored in child PR #2681 | Not proven / OPEN | Exact-head test, rollback, device and integrated-branch evidence missing |
 | P1 #2683 complete | Person-specific Report Center filter/results | Incomplete / OPEN | Implementation and regression validation still required |
+
+
+---
+
+## 2026-10-13 — Source compatibility audit for #2682
+| Claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Parent already has PersonReference model | `lib/models/person_reference.dart` at parent branch | Present | This alone is not a standalone directory |
+| Parent has standalone Person directory persistence | `lib/services/g1_drift_schema.dart`, `lib/services/task_store.dart`, `lib/person_directory_page.dart` | Not present on parent branch: people_directory schema/CRUD/UI absent | Child branch adds these prerequisites |
+| Child backup changes can be transplanted as backup-only files | Parent/child source marker audit across backup manager, TaskStore, schema, main and BackupPage | Unsafe: backup calls depend on child-only TaskStore directory APIs and schema | Integrate as a reviewed feature unit |
+| Child #2681 exact-head CI | GitHub Actions run lookup for head 4ccaa65af60079538527909ee7ed4724a05171ef | No PR-triggered runs returned | Tests/build/rollback/device not verified |
