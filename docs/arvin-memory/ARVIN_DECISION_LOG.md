@@ -171,3 +171,13 @@
 - Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
 - Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
 - Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
+
+## OWNER DECISION — 2026-10-13 — Follow-up & Reminder Architecture v2.0
+
+- Owner supplied final architecture command; authoritative detail is in [ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md](ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md).
+- `Task` remains the only source of truth. `nextFollowUp` is next action/review time; `reminderDate` is notification schedule. They are independent, neither substitutes for the other, and enabling follow-up must not invent a timestamp.
+- Follow-up creation may offer an explicit optional Add Reminder action. Title/time prefill is a one-time editable default, not a binding. Editing/deleting one must not mutate the other, history, or another reminder.
+- Full Task form retains «کار پیگیری‌دار», removes the obsolete auto-generated follow-up timestamp field, and supports multiple independent reminders. Quick Entry keeps compact Follow-up and Checklist toggles with progressive-disclosure roll boxes.
+- Reports/search must distinguish follow-up, `nextFollowUp`, Reminder and `reminderDate`. Preserve canonical Task storage, legacy fields, backup/restore, and stable Calendar IDs.
+- **Clarification gate:** v2 says Calendar shows a Reminder if present, otherwise `nextFollowUp`; earlier owner-approved phone-calendar boundary says follow-up alone must not be projected to the phone calendar or trigger OS notification. Do not change phone-calendar behavior until scope is clarified (Arvin in-app Calendar vs Android/phone Calendar).
+- Status: decision documented; code audit shows some existing foundations, but full acceptance is not proven. Exact-head tests and physical-device checks remain required; Release NO-GO.
