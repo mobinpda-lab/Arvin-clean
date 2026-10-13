@@ -478,4 +478,67 @@ targetCalendarId: 'calendar-7',
     expect(result?.created, 1);
     expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
   });
+
+  test('new independent Task reminder uses the existing Task reminder sync setting', () async {
+    final executor = _Executor();
+    final reminder = CalendarReminder(
+      id: 'task-reminder-item:task-1:reminder-7',
+      title: 'یادآور مستقل',
+      date: DateTime(2026, 9, 16, 10),
+    );
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          syncTaskReminders: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links(),
+    );
+
+    final result = await service.sync([reminder]);
+
+    expect(result?.created, 1);
+    expect(executor.receivedPlan?.items.single.reminderId, reminder.id);
+  });
+
+  test('editing a linked independent Task reminder updates the same external event', () async {
+    final reminder = CalendarReminder(
+      id: 'task-reminder-item:task-1:reminder-7',
+      title: 'یادآور ویرایش‌شده',
+      date: DateTime(2026, 9, 17, 11),
+    );
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: reminder.id,
+        calendarId: 'calendar-7',
+        eventId: 'existing-event-77',
+        lastSyncedFingerprint: 'old-fingerprint',
+      ),
+    ]);
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          syncTaskReminders: true,
+          targetCalendarId: 'calendar-7',
+        ),
+      ),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.sync([reminder]);
+
+    expect(result?.updated, 1);
+    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items.single.link?.eventId, 'existing-event-77');
+    expect(executor.receivedPlan?.items.single.reminderId, reminder.id);
+  });
+
 }
