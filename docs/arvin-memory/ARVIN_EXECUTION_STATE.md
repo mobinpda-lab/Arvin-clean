@@ -1348,3 +1348,25 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **No source or test changes were made as part of this status registration.** No local Flutter run and no physical-device acceptance were performed in this session.
 - **Next action:** inspect the widget route/scroll state around the time-picker dismissal and line 58; determine whether the page is still mounted and the finder is in the expected scrollable; correct the actual cause without weakening assertions. Poll all current run IDs to terminal status, then rerun required gates on one exact final SHA.
 - **Release:** **NO-GO**. Do not merge or release until Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, backup/restore integrity and physical-device acceptance are evidenced on the final SHA.
+
+
+---
+
+# PERMANENT APK VERSIONING & OLD-ARTIFACT SEPARATION RULE — 2026-10-13
+
+This is a standing release rule for every future Arvin APK. It supersedes any workflow behavior that uploads ambiguously named APKs.
+
+1. Every APK filename and uploaded Actions artifact must include the app version, build number, build variant, and source revision, for example:
+   `arvin-1.0.1-build2-release-85cb31c.apk`.
+2. The app version/build number must be read from `pubspec.yaml`; never invent or manually guess it. The short SHA identifies the exact source; the full SHA must be recorded in release evidence.
+3. Debug and Release APKs must have different filenames and artifact names. Do not reuse generic names such as `app-release.apk` or `arvin-latest.apk` as the only published identity.
+4. A new APK must not overwrite, silently replace, or be presented as an older APK. Every release candidate must state app version, build number, source SHA, build run URL, and validation status.
+5. Do not publish an APK as final unless all mandatory release gates pass on that exact source SHA and required device acceptance is recorded. A successful APK compilation alone is not release approval.
+6. Retire old APK assets from release pages when possible, but do not destroy evidence needed for audit without recording what was removed. Keep at most one clearly marked current approved download in the primary release location; mark old test releases as obsolete/unapproved or remove their assets.
+7. Before sharing an APK link, query the live Releases/Actions artifacts and verify its filename, source SHA, version, build number, run result, and download URL. Never assume the newest-created file is the newest-valid release.
+8. If release-asset deletion is unavailable to the automation identity, explicitly report that limitation and provide the exact asset/release locations for authorized manual cleanup; do not claim deletion happened.
+
+Known legacy duplicates observed on 2026-10-13:
+- `arvin-1.0.1+2-build2.apk` under draft/unapproved tag `v0.1.0-arvin-dd95132`.
+- `arvin-1.0.1+2-build2.apk` under draft/unapproved tag `v0.1.0-arvin-33ed363`.
+Both are historical test APKs, not approved current downloads. Their deletion is not yet confirmed.
