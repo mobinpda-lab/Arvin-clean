@@ -1131,3 +1131,22 @@ This checkpoint records the owner's explicit operational clarification. It super
 - **No architecture relaxation:** preserve canonical Task as the single source of truth; keep nextFollowUp and per-FollowUp reminderDate independent; no parallel store/scheduler; prevent duplicate Calendar events/notifications.
 - **Execution status:** this update is documentation-only. No application code, database, backup, or owner data was changed. The safe integration PR #2666 remains Draft; PR #2655 must not be blindly merged. Release remains NO-GO until implementation and exact-head validation are complete.
 - **Next action:** proceed on the safe integration branch with source-level implementation only after reviewing canonical Task JSON/persistence, legacy reminder projection, backup/restore and relevant tests. Add explicit empty-database/fresh-install coverage where appropriate, while retaining legacy-payload compatibility tests. Then run exact-head CI; physical-device acceptance remains a separate gate.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Calendar tap vs long-press decision)
+
+- Owner supplied `ARVIN CALENDAR TASK INTERACTION COMMAND v1.0`. Product rule accepted: **Tap = open canonical Task Detail; Long press = manage the selected calendar item.**
+- Recorded the decision and acceptance contract in `docs/arvin-memory/ARVIN_CALENDAR_INTERACTION_DECISION.md`, commit `5f1bfd4e25eb0f63b6c4d86fe1b6ea0a7bcf0a57`.
+- Created tracking issue [#2685](https://github.com/mobinPda-lab/Arvin-clean/issues/2685). This is an open implementation task, not a completed feature.
+- Audited `lib/calendar_page.dart` and `test/calendar_runtime_actions_fast_track_test.dart` on the working branch:
+  - `_ReminderCard` short tap currently expands/collapses the card instead of opening canonical Task Detail.
+  - Task edit and device-Calendar registration chips currently appear while the card is collapsed, contrary to the new product decision.
+  - Long press on date cells currently creates a Task for that date; it does not open a contextual menu for the pressed item.
+  - The existing test “Arvin Task primary actions are visible before expansion” asserts the old behavior and must be replaced by explicit tap/long-press acceptance tests, without weakening assertions.
+  - `CalendarPage` does not currently expose an explicit canonical Task Detail callback. Trace/reuse the existing route through `official_calendar_page.dart`, `widgets/canonical_calendar_launcher.dart` and the owning route in `main.dart`.
+  - Current ID/style mapping needs a type-safe review so Follow-up and Reminder actions cannot mutate each other.
+- No source implementation or screenshot evidence is claimed by this update. Small-screen day/week/month interaction, RTL readability, scrolling, Calendar Provider and device acceptance remain unverified for this decision.
+- Next: implement the callback/typed menu through the existing canonical route; move all management actions behind long press; ensure Task ID and external event identity remain stable; replace the legacy interaction test; run relevant tests and exact-head CI; capture genuine viewport evidence.
+- Release remains NO-GO until relevant automated gates and device evidence pass. Do not merge based on decision documentation alone.
