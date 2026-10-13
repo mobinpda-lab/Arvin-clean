@@ -1,3 +1,18 @@
+# EVIDENCE UPDATE — 2026-10-13 (editor + legacy compatibility correction)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| TaskReminder model | Collection stored in canonical Task JSON | Exact-head analysis/test result not yet confirmed |
+| Legacy singular Task reminder | Kept separate; no implicit copy into collection | Old backup compatibility still requires tests |
+| Full Task editor | Add/edit title/date/time/all-day/remove wired; sequence counter saved | Compact RTL/device acceptance pending |
+| Task edit apply | Copies collection and sequence to canonical Task | Exact-head tests pending |
+| Calendar identity | Legacy ID retained; new items use task-reminder-item:<taskId>:<reminderId> | Real provider CREATE→UPDATE→DELETE not yet proven |
+| Notification identity | Legacy and collection paths remain separate | Android runtime scheduling/cancellation unvalidated |
+| Backup JSON | Added multiple-reminder round-trip regression | Does not prove physical file-provider restore/link integrity |
+| Analyze | Prior head failed on four style infos; corrected | Latest-head result unconfirmed |
+| Device / release | Not validated / NO-GO | Physical device and exact-head CI required |
+
+---
 # EVIDENCE UPDATE — 2026-10-13 (provider identity compatibility slice)
 
 | Evidence | Result | Limitation |
