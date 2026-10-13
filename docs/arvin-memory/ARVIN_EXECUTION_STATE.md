@@ -23,7 +23,8 @@
 - **Implementation added:** canonical `AppSettingsService` preference in minutes after local midnight, Settings time picker, portable backup/restore field with backward-compatible 09:00 fallback, configurable notification projection/delivery/alarm planner, background runner setting load, and reschedule after settings changes.
 - **Branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. This update is committed as one Git commit; query the live head and Actions after the ref update.
 - **Validation:** tests have been added/updated but have not yet been run to a terminal green result. Build, Calendar Provider Acceptance, Device Smoke, physical-device acceptance, backup/restore and Calendar-link integrity must be checked on the exact resulting SHA.
-- **Release:** NO-GO until all required gates pass. Keep PR Draft and unmerged.
+- **PR status:** marked ready for review solely to trigger the established full validation path; still unmerged. This status is not merge approval.
+- **Release:** NO-GO until all required gates pass on the final exact head.
 
 ---
 
