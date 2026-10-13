@@ -339,6 +339,8 @@ class CalendarInboundSyncService {
           isAllDay: revision.allDay,
           updatedAt: DateTime.now(),
         );
+        // Keep the legacy mirror aligned until the canonical save completes.
+        task.reminderDate = revision.start;
       } else {
         task.title = revision.title.replaceFirst('یادآوری: ', '');
         task.reminderDate = revision.start;
@@ -421,6 +423,9 @@ class CalendarInboundSyncService {
           (item) => item.id == 'legacy-task-reminder:${task.id}',
         );
         if (task.taskReminders.length == originalLength) return false;
+        // The owner explicitly deleted this migrated reminder; clear the
+        // retained legacy mirror in the same canonical Task save.
+        task.reminderDate = null;
       } else {
         task.reminderDate = null;
       }
