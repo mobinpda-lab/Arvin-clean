@@ -24,7 +24,7 @@ void main() {
 
   testWidgets('prayer actions persist and refresh without task actions',
       (tester) async {
-    tester.view.physicalSize = const Size(800, 1000);
+    tester.view.physicalSize = const Size(800, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -43,12 +43,15 @@ void main() {
     final prayerCard = find.byKey(
       const ValueKey('reminder-card-prayer-test-2026-09-15-fajr'),
     );
-    await tester.ensureVisible(prayerCard);
-    // Keep the long-press gesture comfortably beyond the recognizer timeout;
-    // this action menu must not depend on a borderline gesture duration.
-    final gesture = await tester.startGesture(tester.getCenter(prayerCard));
-    await tester.pump(const Duration(milliseconds: 900));
-    await gesture.up();
+    await tester.scrollUntilVisible(
+      prayerCard,
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    // Use Flutter's long-press helper after the card is laid out in the
+    // visible viewport so the gesture starts on the actual hit-test target.
+    await tester.longPress(prayerCard);
     await tester.pumpAndSettle();
 
     expect(find.text('ادا شد'), findsOneWidget);
