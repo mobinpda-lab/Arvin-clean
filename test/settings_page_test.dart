@@ -55,7 +55,12 @@ void main() {
     Navigator.of(tester.element(find.text('زمان اعلان یادآورهای تمام‌روزه'))).pop();
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('تیره'));
+    await tester.scrollUntilVisible(
+      find.text('تیره'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
