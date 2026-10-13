@@ -5,6 +5,7 @@ import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'models/goal_project.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/calendar_sync_plan_service.dart';
@@ -255,6 +256,7 @@ class _BackupPageState extends State<BackupPage> {
         projects: manager.projectCodec.encodeList(await ProjectStore().load()),
         categories: await TaskStore().loadCategories(),
         tags: await TaskStore().loadTags(),
+        people: await TaskStore().loadPeopleDirectory(),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -315,6 +317,7 @@ class _BackupPageState extends State<BackupPage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await manager.restoreCanonicalBackup(
@@ -359,6 +362,7 @@ class _BackupPageState extends State<BackupPage> {
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
       previousCategories = await TaskStore().loadCategories();
       previousTags = await TaskStore().loadTags();
+      previousPeople = await TaskStore().loadPeopleDirectory();
       previousSettings = await _portableBackupSettings();
       final currentTasks = tasksBeforeRestore
           .map((value) => Task.fromJson(value))
@@ -370,6 +374,7 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: previousCalendarLinks,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -440,10 +445,16 @@ class _BackupPageState extends State<BackupPage> {
             categories: candidate.categories ?? const <String>[],
             tags: candidate.tags ?? const <String>[],
           );
+          if (candidate.people != null) {
+            await TaskStore().restorePeopleDirectoryEntries(candidate.people!);
+          }
           await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
+          if (previousPeople != null) {
+            await TaskStore().restorePeopleDirectoryEntries(previousPeople!, replace: true);
+          }
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
