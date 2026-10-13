@@ -419,7 +419,7 @@ void main() {
     ]);
   });
 
-  test('migrated legacy Task reminder keeps legacy Calendar identity and projects once', () {
+  test('legacy Task reminder keeps its existing Calendar identity without implicit migration', () {
     final task = Task.fromJson({
       'id': 'legacy-calendar',
       'title': 'کار قدیمی',
