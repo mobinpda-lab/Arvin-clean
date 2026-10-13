@@ -1,8 +1,15 @@
+## 2026-10-13 — Draft validation contract preserved
+
+- **Finding:** `.github/workflows/device-smoke.yml` skips Device Smoke for Draft PRs by design; `tool/validate_fast_lane.py` enforces the Fast Lane workflow contract. Removing the condition caused the Parallel Wave contract job to fail.
+- **Decision:** preserve the established CI contract and restore the draft guard. Do not weaken the validator or bypass the Fast Lane policy just to run heavy checks on a Draft PR.
+- **Resolution path:** mark PR #2666 ready for review, without merging, to trigger Build and all six Device Smoke lanes. Continue to hold release until all exact-head gates pass.
+
+---
+
 ## 2026-10-13 — Device Smoke draft gate corrected
 
-- **Problem:** `.github/workflows/device-smoke.yml` skipped the entire six-lane Android smoke matrix whenever a pull request was Draft. This prevented required pre-merge validation from running while preserving the project's safe Draft state.
-- **Fix:** remove the draft-only job condition; the workflow still runs only on its configured pull-request events, push-to-main events, or manual dispatch.
-- **Status:** workflow correction committed on the safe integration branch. Confirm all six lanes run and pass on the exact resulting SHA; no claim of device acceptance until then.
+- **Finding:** Draft PRs skip the six-lane Android smoke matrix by design under the Fast Lane contract. An attempted removal failed `tool/validate_fast_lane.py` and was reverted.
+- **Status:** preserve the guard; mark PR ready for review (without merging) to run all six lanes. Exact-head results remain required.
 
 ---
 

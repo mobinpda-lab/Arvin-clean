@@ -1,7 +1,16 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (full validation gate)
+
+- **Reminder policy:** all-day/date-only Task reminder notifications default to 09:00 local time and are user-configurable in Settings. The preference persists through the existing AppSettingsService and is applied by alarm planning/background delivery.
+- **CI contract:** Draft PRs intentionally use the Fast Lane and skip heavy Build/Device validation. The attempted workflow change to run Device Smoke on Draft violated `tool/validate_fast_lane.py` and was reverted. Do not alter this contract as a workaround.
+- **Next action:** mark PR #2666 ready for review (not merged) so the established Build + all six Device Smoke lanes run. Keep release NO-GO until exact-head Analyze, test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, backup/restore/link integrity, and physical-device acceptance are evidenced.
+- **Branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. Re-query the head after the workflow correction and after marking ready; only exact-head results count.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (draft-safe Device Smoke validation)
 
 - **Reminder policy:** all-day/date-only Task reminders default to 09:00 local time, and users can change this in Settings. The preference persists through the existing AppSettingsService and is applied by alarm planning and background delivery.
-- **Validation automation correction:** `.github/workflows/device-smoke.yml` previously skipped all six Android smoke lanes while a PR was Draft. The draft-only skip has been removed so exact-head smoke validation can run without prematurely marking the PR ready for review.
+- **Validation automation correction:** `.github/workflows/device-smoke.yml` previously skipped all six Android smoke lanes while a PR was Draft. The draft-only skip is intentional under the Fast Lane contract; full Device Smoke runs when the PR is ready for review.
 - **Branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. This CI correction creates a new head; only runs for the resulting exact SHA count as validation.
 - **Current required evidence:** Build Analyze + test shards 0–5, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, physical-device behavior, backup/restore and Calendar-link integrity.
 - **Release:** NO-GO. PR remains Draft/unmerged until required gates pass.

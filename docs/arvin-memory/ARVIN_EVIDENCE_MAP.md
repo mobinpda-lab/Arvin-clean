@@ -1,8 +1,8 @@
-## 2026-10-13 — Draft-safe Device Smoke
+## 2026-10-13 — Fast Lane Draft validation contract
 
 | Claim | Evidence | Result | Limit |
 |---|---|---|---|
-| Device Smoke can validate a Draft PR | `.github/workflows/device-smoke.yml` | Removed the condition that skipped the six-lane matrix for Draft PRs | Exact-head run and all six terminal results still required |
+| Draft PRs skip heavy Device Smoke by design | `.github/workflows/device-smoke.yml`; `tool/validate_fast_lane.py` | Guard preserved after the validator rejected removing it; ready-for-review triggers the full validation path | Exact-head Build and all six smoke lanes still required |
 
 ---
 
