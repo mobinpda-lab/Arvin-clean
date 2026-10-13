@@ -33,6 +33,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
     this.onEditTask,
+    this.onOpenTaskDetail,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onRetryCalendarSync,
@@ -48,6 +49,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
+  final Future<void> Function(Task task)? onOpenTaskDetail;
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function()? onRetryCalendarSync;
@@ -187,6 +189,45 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
     });
+  }
+
+  Future<void> _openTaskDetailFromCalendar(CalendarReminder reminder) async {
+    if (widget.onOpenTaskDetail == null) return;
+    Task? task;
+    if (reminder.id.startsWith('followup:')) {
+      final target = widget.projection.resolveTarget(_tasks, reminder.id);
+      if (target != null) {
+        for (final candidate in _tasks) {
+          if (!candidate.trashed && candidate.id == target.taskId) {
+            task = candidate;
+            break;
+          }
+        }
+      }
+    } else {
+      for (final prefix in const <String>[
+        'task-reminder-item:',
+        'task-due:',
+        'task-reminder:',
+        'task-followup:',
+      ]) {
+        if (!reminder.id.startsWith(prefix)) continue;
+        final suffix = reminder.id.substring(prefix.length);
+        for (final candidate in _tasks) {
+          if (candidate.trashed) continue;
+          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+            task = candidate;
+            break;
+          }
+        }
+        if (task != null) break;
+      }
+    }
+    if (task == null) return;
+    await widget.onOpenTaskDetail!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
   }
 
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
@@ -912,6 +953,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onCompleteReminder: _completeReminder,
             onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
+            onOpenTaskDetail: _openTaskDetailFromCalendar,
             onDeleteTask: _deleteTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,
