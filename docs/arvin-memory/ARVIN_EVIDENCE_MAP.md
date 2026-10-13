@@ -1,3 +1,17 @@
+# EVIDENCE UPDATE — 2026-10-13 (approved migration contract reconciliation)
+
+| Item | Result | Limitation |
+|---|---|---|
+| Owner's current database | Owner reports raw/empty; no information entered | User-reported; not independent evidence for every backup/device |
+| Owner-approved reminder architecture | Approved decision document exists | Implementation and validation remain pending |
+| Migration contract consistency | FAIL / mismatch found | PR #2655 and lower-level design retain legacy reminder separately; approved decision requires idempotent migration |
+| Safe integration branch vs main | 11 ahead, 0 behind at last compare | Subsequent documentation commits create a new head; re-compare before code work |
+| Docs-only CI at prior head `4e83cdc9133a94a37cc1aa40eb28e7b887505754` | Analyze PASS; test shards and Debug/Release APK IN PROGRESS at last poll; Device Smoke SKIPPED | Does not validate feature code or current post-update head |
+| Application code changed in this checkpoint | NONE | Documentation-only commits |
+| Release | NO-GO | Exact-head feature CI and physical-device acceptance remain required |
+
+---
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
