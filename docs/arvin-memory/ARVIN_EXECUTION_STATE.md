@@ -1,3 +1,19 @@
+# AUTHORITATIVE EXECUTION CHECKPOINT — 2026-10-13 (Follow-up & Reminder v2.0)
+
+This entry supersedes conflicting older decision-status text; older entries remain historical evidence.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`
+- **Decision:** Owner supplied final Follow-up & Reminder Architecture Command v2.0. Full contract is recorded in `docs/arvin-memory/ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md`; Decision Log, Project Knowledge, Problem Register, and Evidence Map were also updated on branch `docs/follow-up-reminder-architecture-v2-20261013`.
+- **Architecture invariants:** Task is sole source of truth; `nextFollowUp` is next action/review time; `reminderDate` is notification schedule. They remain independent. No auto-generated follow-up timestamp, no implicit reminder creation, no parallel store/scheduler. Optional reminder creation must be explicit. Multiple reminders require stable IDs and independent edit/delete.
+- **Source audit (read-only):** inspected `lib/models/task.dart`, `lib/task_editor_dialog.dart`, `lib/quick_capture_dialog.dart`, `lib/services/follow_up_calendar_projection.dart`, `lib/services/follow_up_reminder_projection.dart`, `lib/report_center_page.dart`, and `test/task_editor_dialog_test.dart`. Current source has distinct nullable fields and compact Quick Entry Follow-up/Checklist controls; that does not establish full feature acceptance.
+- **Clarification gate:** v2 says Calendar should show Reminder when present and otherwise `nextFollowUp`; earlier approved phone-calendar policy prohibits projecting a follow-up alone to Android/phone Calendar or scheduling an OS notification solely for it. Do not change phone-calendar behavior until owner clarifies whether the fallback is for Arvin's in-app Calendar only or also the phone Calendar.
+- **Changed in this run:** documentation only. No application code, data schema, database migration, or user data changed. No tests/build/device validation run by this documentation step.
+- **Current blocker:** multiple-reminder feature PR #2655 still requires safe branch reconciliation and exact-head validation; the Calendar scope clarification is additionally required before changing phone-calendar projection.
+- **Next action:** open a documentation PR for review; then audit each acceptance item against existing code/tests and implement only non-conflicting, backward-compatible gaps. Validate JSON/SQL/backup/restore, independent edit/delete, notification lifecycle, Calendar no-duplicate identity, Analyze, all test shards, Debug/Release APK, six Device Smoke lanes, Calendar Provider Acceptance, and physical-device behavior.
+- **Release:** **NO-GO** until exact-head and required physical-device evidence is complete.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
