@@ -335,12 +335,9 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
-        if (legacyReminderMigrationCompleted)
-          'legacyReminderMigrationCompleted': true,
-        if (taskReminders.isNotEmpty)
-          'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
-        if (nextReminderSequence > 1)
-          'nextReminderSequence': nextReminderSequence,
+        'legacyReminderMigrationCompleted': legacyReminderMigrationCompleted,
+        'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
+        'nextReminderSequence': nextReminderSequence,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
