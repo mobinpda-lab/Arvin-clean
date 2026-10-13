@@ -1,3 +1,10 @@
+## Calendar Follow-up/Reminder decision — evidence boundary (2026-10-13)
+
+- Owner decision recorded: `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- Scope conflict is resolved at the product-decision level: internal Calendar may display Follow-up Action as a fallback; external/device Calendar may not create an event from `nextFollowUp` alone.
+- This documentation commit is not runtime evidence. Exact-head CI, Calendar Provider Acceptance, six Device Smoke lanes, compatibility tests and physical-device acceptance remain required.
+- Release: **NO-GO** until those gates have evidence.
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
