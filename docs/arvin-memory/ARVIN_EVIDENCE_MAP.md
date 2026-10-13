@@ -1,3 +1,9 @@
+# EVIDENCE IDENTIFIER CONVENTION — 2026-10-13
+
+For every row below, distinguish the manifest app version (`1.0.1+2` at the current inspected branch), full source commit SHA, PR number, workflow run ID, and job ID. A run or job ID is not an app version; a commit SHA is a source revision, not a release number. Attach evidence to the exact SHA actually tested. If an entry omits the exact SHA or uses a stale head reference, treat it as historical context rather than current release proof. No approved release tag is established by this file's latest checkpoint.
+
+---
+
 ## 2026-10-13 — Follow-up simplification evidence (pending exact-head CI)
 
 | Claim | Evidence | Result | Limit |
