@@ -238,17 +238,14 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
         .where((task) => !task.completed && !task.archived && !task.trashed)
         .map((task) => task.id)
         .toSet();
-    final latestByTask = <String, _FollowUpRow>{};
-    for (final row in _rows) {
-      if (row.taskId.isEmpty || !activeTaskIds.contains(row.taskId)) continue;
-      final current = latestByTask[row.taskId];
-      if (current == null || row.dateTime.isAfter(current.dateTime)) {
-        latestByTask[row.taskId] = row;
-      }
-    }
 
-    final waiting = latestByTask.values
-        .where((row) => _waitingService.isWaitingFollowUp(row.followUp))
+    // Each Follow-up is its own waiting relationship. Do not collapse to one
+    // latest row per Task: separate Follow-ups may await different Persons.
+    final waiting = _rows
+        .where((row) =>
+            row.taskId.isNotEmpty &&
+            activeTaskIds.contains(row.taskId) &&
+            _waitingService.isWaitingFollowUp(row.followUp))
         .toList();
     waiting.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     return waiting;
@@ -361,7 +358,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                   itemBuilder: (_, index) {
                     final row = rows[index];
                     final resultLabel = _resultLabel(row.result);
-                    final waiting = _waitingService.isWaitingResult(row.result);
+                    final waiting = _waitingService.isWaitingFollowUp(row.followUp);
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(14),
