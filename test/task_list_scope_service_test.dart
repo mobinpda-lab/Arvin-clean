@@ -78,7 +78,7 @@ void main() {
 
     final result = const TaskListScopeService().project(
       <Task>[plain, enabled, legacyDate, historyOnly],
-      scope: TaskListScope.followUpEnabled,
+      scope: TaskListScope.withFollowUps,
     );
 
     expect(result, <Task>[legacyDate, historyOnly]);
