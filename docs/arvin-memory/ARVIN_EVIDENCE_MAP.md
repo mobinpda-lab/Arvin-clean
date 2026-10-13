@@ -1,3 +1,18 @@
+# LIVE EVIDENCE — 2026-10-13 (duplicate Calendar projection correction)
+
+| Evidence | Result | Scope |
+|---|---|---|
+| PR #2655 | OPEN, unmerged | Multi-reminder feature implementation and regression tests |
+| Source review | FAIL found, FIX COMMITTED | Two loops projected each Task reminder twice with different IDs |
+| Fix commit `9bf7f6544d888b04efcf462a745c0151542bfb0f` | COMMITTED | Removed duplicate projection; retained encoded stable event identity |
+| Regression test commit `bd74acabac3ef38a2b641da6d38e5872707668c6` | COMMITTED, execution pending | Verifies same-time reminders each appear once and IDs are distinct/encoded |
+| New exact-head CI | PENDING | Must cover latest branch head after memory commits: Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes |
+| Physical-device acceptance | NOT DONE | Required before release |
+
+Previous green/pending workflow results refer to older SHAs and must not be reused as evidence for the corrected head. Release remains **NO-GO**.
+
+---
+
 # LIVE EVIDENCE — 2026-10-13 (multiple Task reminders)
 
 | Evidence | Result | Scope |
