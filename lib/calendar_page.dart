@@ -965,6 +965,29 @@ class _ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<_ReminderCard> {
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
 
+  Future<void> _confirmDeleteTask(CalendarReminder item) async {
+    final delete = widget.onDeleteTask;
+    if (delete == null) return;
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حذف کار'),
+        content: Text('«${item.title}» حذف شود؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+    if (approved == true) await delete(item);
+  }
+
   Future<void> _showActionMenu() async {
     if (!_hasActions) return;
     await showModalBottomSheet<void>(
@@ -1028,7 +1051,7 @@ class _ReminderCardState extends State<_ReminderCard> {
           key: 'calendar-action-delete-${widget.item.id}',
           icon: Icons.delete_outline,
           label: 'حذف',
-          action: _isTaskCalendarItem ? widget.onDeleteTask : null,
+          action: _isTaskCalendarItem ? _confirmDeleteTask : null,
         );
         addAction(
           key: 'calendar-action-complete-${widget.item.id}',
