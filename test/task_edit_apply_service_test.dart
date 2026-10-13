@@ -219,4 +219,39 @@ void main() {
         reason: 'the canonical Task must not alias the editor list');
   });
 
+
+  test('applies legacy migration tombstone with canonical reminder collection', () {
+    final now = DateTime(2026, 10, 1, 10);
+    final target = Task(
+      id: 'legacy-apply',
+      title: 'کار',
+      reminderDate: DateTime(2026, 10, 5, 10),
+    );
+    final edited = Task(
+      id: 'legacy-apply',
+      title: 'کار',
+      reminderDate: null,
+      legacyReminderMigrationCompleted: true,
+      taskReminders: [
+        TaskReminder(
+          id: 'legacy-task-reminder:legacy-apply',
+          taskId: 'legacy-apply',
+          title: 'کار — یادآور ۱',
+          date: DateTime(2026, 10, 5, 10),
+          createdAt: now,
+          updatedAt: now,
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.reminderDate, isNull);
+    expect(target.legacyReminderMigrationCompleted, isTrue);
+    expect(target.taskReminders.single.id, 'legacy-task-reminder:legacy-apply');
+    expect(target.nextReminderSequence, 2);
+  });
+
 }
