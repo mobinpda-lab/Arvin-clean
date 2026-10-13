@@ -256,4 +256,36 @@ void main() {
     expect(target.nextReminderSequence, 2);
   });
 
+
+  test('merges new FollowUp records without replacing existing history', () {
+    final old = FollowUp(
+      id: 'old-follow-up',
+      dateTime: DateTime(2026, 10, 10, 9),
+      note: 'سابقه قبلی',
+    );
+    final added = FollowUp(
+      id: 'new-follow-up',
+      dateTime: DateTime(2026, 10, 12, 10),
+      note: 'پیگیری جدید',
+    );
+    final target = Task(
+      id: 'task-with-follow-ups',
+      title: 'کار',
+      followUps: [old],
+    );
+    final edited = Task(
+      id: 'task-with-follow-ups',
+      title: 'کار ویرایش‌شده',
+      followUps: [old, added],
+    );
+
+    service.apply(target, edited);
+
+    expect(target.title, 'کار ویرایش‌شده');
+    expect(target.followUps.map((item) => item.id), ['old-follow-up', 'new-follow-up']);
+    expect(target.followUps.first.note, 'سابقه قبلی');
+    expect(target.followUpEnabled, isTrue);
+  });
+
+
 }
