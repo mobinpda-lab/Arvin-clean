@@ -1,3 +1,19 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (repository cleanup audit)
+
+- **Repository:** `mobinpda-lab/Arvin-clean`.
+- **Working branch:** `integration/follow-up-person-model-20261013`.
+- **Draft PR:** [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), stacked on parent [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666). Both remain unmerged; child PR remains Draft.
+- **Owner decisions verified in GitHub:** `ARVIN_FOLLOW_UP_PERSON_MODEL_DECISION.md` records the accepted Follow-up, waiting-response, Person directory, independent Reminder/next-action, Quick Add and Full Form decisions.
+- **Implemented source slice:** FollowUp model JSON and SQL fields include structured `waitingForResponse` and `personIds`; Settings has a reusable Person directory; Follow-up entry validates Person selection when waiting; Quick Add and Task Editor no longer expose the old flag control.
+- **Cleanup this pass:** removed additional active writes to legacy `followUpEnabled`; changed Report filter to use canonical Follow-up records; fixed Calendar inbound edits to preserve waiting status/Person IDs; made waiting detection and the waiting list operate on each structured Follow-up record; added focused regression tests.
+- **Audit report:** `docs/arvin-memory/ARVIN_REPOSITORY_CLEANUP_AUDIT_2026-10-13.md`.
+- **P1 blocker:** portable backup/restore does not yet include standalone `people_directory` records. Fixing this touches restore/rollback and must be implemented with round-trip/failure-rollback tests; do not mark Person directory delivery complete until this is closed.
+- **P1 blocker:** Person-based reporting is not complete. Current report fix only removes dependence on the legacy flag; it does not yet provide full Person filtering/results.
+- **Validation:** tests were authored/updated but not executed or confirmed passing on the child head. Parent PR #2666 exact-head workflows were queued/pending when last checked; child PR #2681 had no PR-associated runs because it targets the integration branch. No physical-device evidence.
+- **Release:** **NO-GO**. Continue from this checkpoint; do not restart the architecture analysis. Next: close the backup/restore Person directory gap with transactional rollback coverage, complete Person reporting, audit remaining legacy flag consumers and all Follow-up reconstruction sites, then run exact-head CI and device acceptance.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (follow-up architecture implementation slice)
 
 - **Working branch:** `integration/follow-up-person-model-20261013`, created from PR #2666 head `68724d6191590b81b2d611f59b7944a7fcbb06e0` to isolate architecture work from concurrent updates on the reminder integration branch.
