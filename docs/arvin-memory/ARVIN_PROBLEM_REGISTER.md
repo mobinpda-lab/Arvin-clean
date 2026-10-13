@@ -361,3 +361,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Known environment issue:** predecessor Debug APK job failed while downloading/unzipping Android NDK 28.2 (`Error on ZipFile unknown archive`) before source compilation; retry rather than attribute to app code.
 - **Unresolved P1:** #2682 Person-directory backup/restore remains blocked on safe integration of the child-only directory schema/APIs with the parent reminder/Calendar branch; do not transplant backup files alone or force-update branches.
 - **Release:** NO-GO pending exact-head CI, six Device Smoke lanes, backup/restore/link-integrity evidence and physical-device acceptance.
+
+
+## 2026-10-13 — RTL acceptance test syntax failure
+
+- **Finding:** Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Analyze job `115515636587`, reported `test/g6_swipe_rtl_acceptance_test.dart:228:1 • expected_executable` on SHA `0b905e5844dbbc871998ef3be0d823f320a87641`.
+- **Root cause:** redundant closing brace at end of the rewritten RTL swipe acceptance test file.
+- **Repair:** removed the extra brace; no production code changed. Exact-head CI must rerun; no validation pass is claimed.
+- **Release:** NO-GO.

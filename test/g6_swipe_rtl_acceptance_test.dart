@@ -225,4 +225,3 @@ void main() {
     expect(afterExit.single.followUpEnabled, isFalse);
   });
 }
-}

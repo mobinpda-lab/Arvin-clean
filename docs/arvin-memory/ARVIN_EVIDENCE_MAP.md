@@ -572,3 +572,13 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Person-directory backup/restore | Issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), child PR #2681 | Blocked / open | Child-only schema and TaskStore APIs not present on parent; branches diverge materially; safe reconciliation required |
 
 **Release decision: NO-GO.** No test/build/Calendar/Device pass is inferred from a queued or in-progress run.
+
+## 2026-10-13 — Evidence update: RTL test analyzer repair
+
+| Area | Source SHA / job | Result | Evidence / limitation |
+|---|---|---|---|
+| RTL Follow-up swipe tests | `0b905e5844dbbc871998ef3be0d823f320a87641`; Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Analyze job `115515636587` | Failed | Extra trailing brace at `test/g6_swipe_rtl_acceptance_test.dart:228:1`; fixed in the following commit, requires rerun |
+| Build / Calendar / Device gates | New repaired head | Pending | Must rerun all exact-head gates; prior statuses are not inherited |
+| Person-directory backup/restore | Issue #2682 / PR #2681 | Blocked | Missing parent-branch schema/APIs and substantial branch divergence; safe reconciliation required |
+
+**Release decision: NO-GO.**

@@ -1384,3 +1384,15 @@ Both are historical test APKs, not approved current downloads. Their deletion is
 - **Separate P1 blocker:** issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) remains open. PR #2681 at `25b4755317d6890d96a019b897f5661a013caeb4` remains open/unmerged with `mergeable=false` and no PR-triggered CI. Its backup changes depend on the child-only standalone Person-directory schema/TaskStore APIs; parent #2666 does not contain those prerequisites. The child/parent branches have substantial divergence, so no blind merge or force-update is safe.
 - **Release:** NO-GO. Exact-head Build/Calendar/Device gates, backup/restore/link integrity, safe #2682 reconciliation and physical-device acceptance remain outstanding. No physical-device evidence is claimed.
 - **Next:** run exact-head CI after this memory commit; fix confirmed failures without weakening assertions; retry any SDK-download-only failures; then complete safe Person-directory/schema/TaskStore + backup/rollback reconciliation as one reviewed unit.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (RTL acceptance test analyzer repair)
+
+- **Repository / branch:** `mobinpda-lab/Arvin-clean` / `integration/task-multiple-reminders-safe-20261013`; PR #2666 remains open and unmerged.
+- **Analyzer finding:** Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), job `115515636587`, failed on source/test SHA `0b905e5844dbbc871998ef3be0d823f320a87641` with `test/g6_swipe_rtl_acceptance_test.dart:228:1 • expected_executable`. Inspection confirmed an extra trailing closing brace in the rewritten RTL tests; this is a test-file syntax error, not a production-code failure.
+- **Repair:** removed only the redundant final brace. The earlier behavioral correction remains: swiping toward Follow-up opens `FollowUpOfficePage`, leaves the canonical Task intact, and does not toggle `followUpEnabled` or create a Follow-up.
+- **Validation:** no passing analyzer/test/build result is carried forward from the syntax-error SHA. Re-run exact-head Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance and all six Device Smoke lanes on the repaired commit.
+- **Person-directory blocker:** issue #2682 and child PR #2681 remain open/unmerged. Parent integration lacks the child-only standalone directory schema/APIs; the branches diverge substantially. Do not force-update or transplant only backup files.
+- **Release:** NO-GO pending exact-head gates, safe #2682 reconciliation, backup/restore and Calendar-link integrity, and physical-device acceptance.
