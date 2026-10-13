@@ -38,13 +38,38 @@ Future follow-ups (`nextFollowUp`) and reminders (`reminderDate`) must be indepe
 The product decision is accepted. Documentation and code correction are in review; implementation and release acceptance are not yet fully validated.
 
 
-## Owner clarification — one-time initialization (2026-10-12)
-This addendum supersedes conflicting rules above that prohibit any automatic reminder creation from Next Follow-up. The clarified lifecycle is:
-- Next Follow-up is initially empty and becomes active only when the user explicitly sets it.
-- On its first setting, create one initial reminder at the same date/time; if Next Follow-up is date-only, create an all-day reminder.
-- Later edits to Next Follow-up do not change the reminder. Deleting Next Follow-up does not delete the reminder.
-- A reminder may exist without Next Follow-up; either may be independently edited or deleted. Editing/deleting the reminder never changes Next Follow-up.
+## Owner clarification — one-time initialization (2026-10-12; SUPERSEDED 2026-10-13)
+The 2026-10-12 automatic-creation rule below is superseded by the newer owner decision dated 2026-10-13. It is retained only as decision history; do not implement it as current behavior.
+- Historical rule (superseded): automatically create a reminder on the first setting of Next Follow-up.
+- **Current rule:** setting Next Follow-up does not automatically create a reminder. Creating a reminder for it is optional and happens only if the user explicitly wants/chooses it.
+- When the user chooses to create a reminder for Next Follow-up, prefill reminder title from the title of the Task that has follow-up enabled and date/time from Next Follow-up. These are initial values only; the user may edit reminder title/date/time independently.
+- Reminder is independent of previous/next follow-up and recorded Follow-up history. Later edits/deletion of Next Follow-up do not move/delete reminders; reminder edit/deletion does not change Next Follow-up. A reminder may exist without Next Follow-up, and the user may request additional reminders.
 - FollowUp record `dateTime` is the timestamp of the recorded Follow-up action and is distinct from `nextFollowUp`.
-- **Unresolved edge case:** if `reminderDate` already exists when Next Follow-up is first set, owner clarification is required before deciding whether to preserve/skip creation or take another action. Do not overwrite or duplicate it by assumption.
-- **Implementation audit finding:** the currently inspected `FollowUp` model stores both fields as nullable `DateTime`, and the editor's `_pickNext()` currently reuses the recorded Follow-up's hour/minute. The inspected code does not establish date-only/all-day semantics or the one-time creation bridge. Do not claim implementation complete; assess a backward-compatible all-day representation and test it across calendar projection and persistence before coding.
-- Required validation includes first-set matching, all-day creation, independent later edits/deletes, reminder-only, recorded dateTime separation, JSON/SQL/backup-restore and same-event/no-duplicate calendar behavior.
+- Each of Next Follow-up and reminder independently supports date-only/all-day or date-and-time values. Never infer date-only intent from midnight alone; preserve legacy values safely.
+- **Implementation audit finding:** the inspected `FollowUp` model stores both fields as nullable `DateTime`, and the editor's `_pickNext()` inherits the recorded Follow-up's hour/minute. The inspected code does not establish date-only/all-day semantics or the user-controlled reminder creation path. Do not claim implementation complete; design backward-compatible metadata and test Calendar projection, persistence and backup/restore.
+- Required validation includes opt-in creation, Task-title/date-time prefill, additional reminders, independent edits/deletes, reminder-only state, recorded dateTime separation, JSON/SQL/backup-restore and same-event/no-duplicate Calendar behavior.
+
+## Owner clarification — reminder is independent; creation is user-controlled (2026-10-13)
+The owner explicitly reconfirms:
+- A reminder for a follow-up is independent of the previous and next follow-up. It must never be treated as the follow-up record itself or as a continuously linked copy of Next Follow-up.
+- Creating a reminder for Next Follow-up is optional and must happen only if the user wants/chooses it; do not silently create a reminder merely because Next Follow-up was set.
+- When the user chooses to create a reminder for Next Follow-up, prefill its title from the title of the Task that has follow-up enabled, and prefill its date/time from Next Follow-up. These are initial values only. The user can edit reminder title/date/time independently afterward.
+- After initialization, changing or deleting Next Follow-up does not move or delete any reminder. Editing or deleting a reminder does not change Next Follow-up. A reminder can exist without Next Follow-up.
+- Each concept independently supports date-only (all-day) or date-and-time values. Never infer date-only intent from midnight alone; preserve legacy values safely.
+- This clarification resolves the previously open product question about what the user expects from initial reminder creation: seed from Task title + Next Follow-up date/time, then independent editing. Existing reminder collision/duplicate handling still must be implemented conservatively: preserve existing data and do not overwrite or duplicate without explicit user intent.
+
+
+## Owner clarification — multiple follow-ups and reminders per Task (2026-10-13)
+- One Task may have multiple recorded Follow-up entries and multiple independent reminders; neither is limited to one per Task.
+- Keep each recorded Follow-up as its own history entry. Keep reminder instances independently identifiable, editable, schedulable and deletable; editing/deleting one must not affect another reminder or any Follow-up entry.
+- Next Follow-up remains a distinct next-action value, not the whole Follow-up history and not a reminder. Setting it does not automatically create a reminder.
+- If the user explicitly chooses to create a reminder for a Next Follow-up, prefill the reminder title from the Task title and its initial date/time from Next Follow-up; these are initial values only.
+- Data model, UI, persistence, backup/restore, calendar projection and tests must support multiple entries without overwriting, collapsing or duplicating them. Preserve canonical Task ownership and stable reminder/calendar identities; no parallel Task store.
+
+
+## Owner clarification — multiple follow-ups and reminders per Task (2026-10-13)
+- One Task may have multiple recorded Follow-up entries and multiple independent reminders; neither is limited to one per Task.
+- Keep each recorded Follow-up as its own history entry. Keep reminder instances independently identifiable, editable, schedulable and deletable; editing/deleting one must not affect another reminder or any Follow-up entry.
+- Next Follow-up remains a distinct next-action value, not the whole Follow-up history and not a reminder. Setting it does not automatically create a reminder.
+- If the user explicitly chooses to create a reminder for a Next Follow-up, prefill the reminder title from the Task title and its initial date/time from Next Follow-up; these are initial values only.
+- Data model, UI, persistence, backup/restore, Calendar projection and tests must support multiple entries without overwriting, collapsing or duplicating them. Preserve canonical Task ownership and stable reminder/calendar identities; no parallel Task store.

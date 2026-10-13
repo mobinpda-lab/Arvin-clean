@@ -208,3 +208,23 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **P1 — Editor incompleteness:** Next Follow-up inherits the history timestamp's time and has no clear-next action in inspected code; implement only after all-day representation is agreed.
 - **BLOCKED — Existing reminder at first activation:** product owner must choose whether to preserve it, ask, or take another explicit action. Never overwrite or create a duplicate by assumption.
 - No product code changed in the 2026-10-13 audit. Release remains NO-GO.
+
+
+## P1 — User-controlled Follow-up reminder creation and independent editing (owner clarification 2026-10-13)
+- **Contract:** setting Next Follow-up does not automatically create a reminder. Create a reminder for it only if the user explicitly wants/chooses it; prefill the Task title and Next Follow-up date/time, then allow independent editing. Reminder can exist without Next Follow-up. Additional reminders are permitted when explicitly requested.
+- **Data safety:** no silent overwrite or duplicate creation; Next Follow-up changes/deletion must not mutate reminders, and reminder edits/deletion must not mutate Next Follow-up. Each independently supports date-only/all-day or date/time.
+- **Current evidence boundary:** source audit found missing initial creation bridge and explicit Follow-up all-day metadata; no implementation or Flutter validation is claimed here.
+- **Next action:** implement against canonical Task/FollowUp storage and stable Calendar event identity; add tests for title/date/time prefill when user opts in, multiple reminder creation, independent edit/delete, collision/no-duplicate safety, date-only projection, JSON/SQL/backup-restore and calendar same-event update. Release remains NO-GO pending full gates.
+
+
+## P1 — Multiple Follow-up entries and independent reminders per Task (owner decision 2026-10-13)
+- **Contract:** one Task may have multiple recorded Follow-up entries and multiple independent reminders. There is no one-per-Task limit.
+- **Risk to verify:** editor or model may overwrite a prior entry, collapse reminders into one date field, or reuse Calendar identity. Preserve distinct entries and stable reminder/event identities.
+- **Next action:** audit existing FollowUp collection/model and reminder representation; implement through canonical Task storage; test create/edit/delete of one among several, ordering/history preservation, JSON/SQL/backup-restore round-trip, Calendar event updates/no duplicates, and independent Next Follow-up/reminder behavior. Release remains NO-GO until gates pass.
+
+
+## LIVE FINDING — 2026-10-13 — Multiple independent Task reminders
+- **Open / architecture-data gate:** canonical `Task` currently has one `reminderDate`; `FollowUp` has one `reminderDate` per follow-up record. Multiple independent Task-level reminders not attached to FollowUp records are not represented.
+- **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
+- **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
+- **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.

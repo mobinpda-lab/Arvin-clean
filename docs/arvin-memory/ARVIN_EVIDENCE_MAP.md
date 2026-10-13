@@ -311,3 +311,24 @@ Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/
 | Execution validation | Current assistant run | Read-only audit only; no Flutter test/analyze/build/device run |
 
 PR #2650 is documentation-only and must be revalidated on its final exact head; no green check is claimed for a new post-audit commit.
+
+
+## 2026-10-13 — Owner clarification evidence (Follow-up / Reminder)
+- Source: explicit owner clarification in conversation on 2026-10-13.
+- Accepted behavior: setting Next Follow-up does not automatically create a reminder. Only if the user explicitly wants/chooses a reminder for it, prefill reminder title from Task title and schedule from Next Follow-up; user may independently edit reminder title/date/time and request additional reminders.
+- Independence invariant: no later propagation in either direction; reminders can remain without Next Follow-up; no silent overwrite/duplicates.
+- Validation status: product contract clarified; implementation and app validation not yet proven. Keep release NO-GO.
+
+
+## 2026-10-13 — Owner cardinality decision evidence
+- Source: explicit owner clarification in conversation on 2026-10-13.
+- Accepted contract: one Task can have multiple recorded Follow-up entries and multiple independent reminders. Each reminder and each history entry remains distinct; changes to one must not affect others.
+- Reminder creation remains opt-in. If the user chooses a reminder for Next Follow-up, Task title and Next Follow-up date/time are initial suggestions only.
+- Validation status: product contract recorded; code/model cardinality and app validation not yet proven.
+
+
+## 2026-10-13 — Multiple independent Task reminders: evidence and gap
+- Source: `lib/models/task.dart` on main, blob `3becbe89ffd378d8bdf19300211e76ba392760b0`: FollowUp has singular nullable `reminderDate` and `nextFollowUp`; Task reminder is also singular.
+- Existing test: `test/follow_up_reminder_model_test.dart`, blob `2d232e913812e5dc6b8ff724bc9ca8dd11c5c290`, validates one FollowUp reminder JSON round-trip and legacy missing-reminder behavior only.
+- Current exact-head docs CI for PR #2652 head `00ae93b2dba36093c4074624fe951efec51e2ab4`: Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450) PASS (Analyze, test shards 0–5, Debug/Release APK); Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458) PASS (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the documentation branch's CI only; it does not validate the unimplemented multi-reminder feature or physical-device acceptance.
+- Gap tracker: Issue #2654. Proposal is not approved; no application code/schema changed.

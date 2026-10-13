@@ -1,3 +1,33 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
+
+This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
+
+- **Repo:** `mobinpda-lab/Arvin-clean`; current observed main/base checkpoint for PR #2652: `8136c929237c321f2e879a80f067970c31cb0100`.
+- **PR #2652:** open, unmerged; title “docs(arvin): clarify multiple follow-ups and independent reminders”; branch `docs/owner-clarification-reminder-seed-20261013`; latest pre-this-state-update head `ca0b80a6c4275d44054c4ad9eb2b72d5f9832392`. Updating this state file creates a newer head; query that exact SHA's CI before treating it as validated.
+- **Completed:** re-polled Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450): Analyze, test shards 0–5, Debug APK and Release APK all SUCCESS. Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458): Home, Quick Capture, People, SQL Persistence, SQL Migration and Backup/Restore all SUCCESS. These are evidence for pre-update head `00ae93b2dba36093c4074624fe951efec51e2ab4`, not for later documentation commits or the unimplemented feature.
+- **Persistent gap:** Issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) tracks multiple independent Task-level reminders. Source `lib/models/task.dart` has a singular Task reminder and singular FollowUp reminder field per FollowUp. Existing test `test/follow_up_reminder_model_test.dart` proves only one FollowUp reminder JSON round-trip and legacy missing-field handling.
+- **Decision gate:** an architecture proposal was added to PR #2652: candidate is a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, using existing Calendar/notification engines. **PROPOSAL ONLY, NOT APPROVED.** Legacy `Task.reminderDate` and `FollowUp.reminderDate` compatibility, old backup decoding, duplicate prevention, and all-day-vs-midnight semantics must be decided before implementation. No application code or schema migration changed.
+- **Memory updated in this branch:** Decision Log, Project Knowledge, Problem Register, Evidence Map; source evidence and limitations recorded. Issue #2635 contains the owner's opt-in reminder contract.
+- **Release:** NO-GO. Emulator smoke is not physical-device acceptance. No feature code was changed or validated in this continuation.
+- **Next action:** obtain owner/architecture approval for the proposed compatibility semantics, then implement the model on a dedicated branch with legacy JSON, SQL, backup/restore, independent edit/delete, notification and stable Calendar identity tests. Keep PR #2652 unmerged until its latest exact-head checks finish.
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (owner reminder cardinality audit)
+
+This entry supersedes stale live-status wording below where it conflicts; historical entries remain for audit.
+
+- **Repository/main:** `mobinpda-lab/Arvin-clean`; observed current main checkpoint `8136c929237c321f2e879a80f067970c31cb0100`.
+- **Docs PR:** [#2652](https://github.com/mobinpda-lab/Arvin-clean/pull/2652), branch `docs/owner-clarification-reminder-seed-20261013`, pre-update head `2b1f89e51aa7f42bca10d92352e49d6c73c7fd83`, base `8136c929237c321f2e879a80f067970c31cb0100`. PR title corrected to “docs(arvin): clarify multiple follow-ups and independent reminders”; it remains open/unmerged. This state update creates a new head; re-check all exact-head runs.
+- **Current pre-update CI:** Build run [38316746472](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38316746472): Analyze, six test shards, and Debug APK SUCCESS; Release APK still IN_PROGRESS. Device Smoke [38316746569](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38316746569): Home SUCCESS; Quick Capture and SQL Persistence IN_PROGRESS; People, SQL Migration and Backup/Restore QUEUED. These results apply only to the pre-update SHA; not release evidence.
+- **Source audit:** main `lib/models/task.dart` currently supports one `Task.reminderDate` and one optional `FollowUp.reminderDate` per FollowUp record. Multiple FollowUp records can each carry a reminder, but there is no collection for multiple Task-level reminders that exist independently of FollowUp records. `nextFollowUp` and `reminderDate` remain separate nullable fields. The editor’s `_pickNext()` derives hour/minute from the recorded FollowUp timestamp; there is no date-only marker for either FollowUp field, and the Calendar projection does not pass FollowUp all-day state.
+- **Recorded owner contract:** [Issue #2635](https://github.com/mobinpda-lab/Arvin-clean/issues/2635) now has a 2026-10-13 clarification: setting `nextFollowUp` does not create a reminder; reminder creation is opt-in; seeded Task title/date-time are independently editable; no normalization, overwrite, or duplicate creation.
+- **New explicit model gap:** [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) records the requirement for multiple independent Task-level reminders, current cardinality limits, compatibility requirements, and acceptance tests. This is an architecture/persistence/backup/Calendar identity gate. **Do not implement a schema migration until the canonical representation and legacy-field compatibility are documented.**
+- **No application code changed in this continuation.** No Flutter analyze/test/build/device run was executed by the assistant; GitHub Actions status above is separate CI evidence. Release remains **NO-GO**.
+- **Next action:** complete the canonical model/compatibility design for #2654, including explicit all-day metadata and treatment of legacy singular fields; then implement on a dedicated branch with JSON, SQL persistence, backup/restore, independent edit/delete, Calendar identity and exact-head CI/device-smoke tests. Keep PR #2652 unmerged until its new exact-head checks finish.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (post-audit live state)
 
 This entry supersedes older live-status wording below. Historical checkpoints remain for audit.
@@ -808,3 +838,25 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Required code changes remain **not yet verified complete**: remove auto-generated follow-up timestamp controls from Full Task Form while retaining «کار پیگیری‌دار»; preserve stored Task.followUpDate and FollowUp.nextFollowUp without copying/clearing; add compact Quick Entry «دارای پیگیری» and «دارای چک‌لیست» toggles that activate the canonical Roll Boxes; keep Checklist Task-owned; and make Calendar show explicit reminder first or nextFollowUp as an action item when no reminder exists, without scheduling a system notification from nextFollowUp alone.
 - Existing #2595 is stacked and currently reports mergeable=false; do not merge or rebase blindly. Reconcile with its shared Universal Time Picker parent and existing overlapping Task-form drafts, then run exact-head Analyze, all test shards, Debug/Release APK, and relevant Calendar/Device Smoke.
 - **Release remains NO-GO** until exact-head automated gates, physical-device Calendar update/no-duplicate behavior, real Backup/Restore and link-integrity evidence, RTL/compact-screen visual acceptance, and explicit owner approval are all recorded.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (owner clarified reminder initialization)
+
+- **Live PR correction:** PR [#2650](https://github.com/mobinpda-lab/Arvin-clean/pull/2650) is MERGED, not open. GitHub reports merge commit `8136c929237c321f2e879a80f067970c31cb0100`. Earlier text in this file describing #2650 as open is historical and superseded by this checkpoint.
+- **New owner-confirmed product contract:** setting Next Follow-up does not automatically create a reminder. Create a reminder for it only if the user explicitly wants/chooses it. When chosen, prefill reminder title from the Task title and reminder date/time from Next Follow-up. The user can independently edit reminder title/date/time and may ask for additional reminders. This is initial-value convenience only, not a live binding.
+- **Independence:** reminder is independent of previous/next follow-up and recorded Follow-up history. Later Next Follow-up edit/delete must not move/delete reminders; reminder edit/delete must not change Next Follow-up. Reminder can remain without Next Follow-up.
+- **Collision/data-safety guard:** do not silently overwrite an existing reminder or create duplicates. Preserve existing data and require explicit user intent where an additional reminder is requested. Date-only/all-day intent is independently supported for Next Follow-up and reminders; never infer it from midnight alone.
+- **Recorded to canonical memory:** follow-up concept decision, decision log, project knowledge, problem register and evidence map are being updated in this branch. This records the product contract only; it does not mean application code has been changed or validated.
+- **Implementation gaps remain:** source audit found no first-set reminder creation bridge, no explicit Follow-up all-day metadata in the inspected model, and Follow-up Calendar projection does not set all-day explicitly. Need regression coverage across UI, model JSON, SQL envelope, backup/restore and Calendar event identity/no-duplicate behavior.
+- **Validation:** no Flutter analyze/test/build/device run was performed as part of this documentation update. Release remains **NO-GO** until exact-head automation and required device/owner acceptance are proven.
+- **Next action:** implement safely against canonical Task/FollowUp paths; test opt-in reminder creation and prefill, multiple reminders, independent edits/deletes, collision handling, date-only/all-day semantics, persistence/backup round-trip and same-event calendar updates. Recheck exact-head CI after the documentation PR is opened.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (multiple Follow-ups and reminders)
+
+- **New owner-confirmed cardinality:** one Task may have multiple recorded Follow-up entries and multiple independent reminders. There is no one-per-Task limit.
+- Each recorded Follow-up remains a distinct history entry. Each reminder remains a distinct, independently editable/deletable item with its own title and schedule. Editing/deleting one must not mutate other reminders, Follow-up history or Next Follow-up.
+- Next Follow-up is still the separate next-action value. Setting it does not automatically create a reminder. If the user explicitly chooses to create a reminder for it, prefill Task title and Next Follow-up date/time as initial values only.
+- **Implementation status:** this cardinality contract is now documented; the current implementation's support for multiple independently identified reminders and Follow-up entries has not been verified by this documentation update. Audit the canonical model/editor/storage/backup and Calendar identity paths; no parallel store.
+- Required regression coverage: create/edit/delete one among several entries; preserve remaining entries and history; independently edit reminder title/date/time; reminder-only and multiple-reminder cases; JSON/SQL/backup-restore round-trip; Calendar same-event updates without duplicate creation; date-only/all-day semantics for each item.
+- No app code or Flutter validation was performed in this documentation step. Release remains **NO-GO**.
