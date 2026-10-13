@@ -594,3 +594,11 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Current release candidate | Intended source head `392936b81ca54a18f6063c955023b1776df24fa7`; memory checkpoint commit `0b39a4cea8bcc2766636edf03d07c8c746050641` | Changes and evidence checkpoint recorded | Workflow/status query returned no runs for the pre-documentation test head; poll the live branch and ensure validation starts on its latest exact SHA |
 
 **Release gate:** NO-GO. These changes are test-only; they do not prove production behavior, full CI, backup/restore integrity, or physical-device acceptance.
+
+
+## 2026-10-14 — PR identifier normalization
+
+- **Primary PR for the current multiple-reminder integration validation stream:** [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`.
+- **Separate stacked child PR:** [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), limited to Person-linked Follow-up and People backup/restore work. Do not use #2681 as the primary integration PR label.
+- Related references #2679, #2667, and #2655 remain distinct PRs and must be described by their actual scope.
+- This is a documentation-only normalization. It adds no validation evidence and does not change the release decision: **NO-GO** until exact-head gates and required device/provider evidence pass.
