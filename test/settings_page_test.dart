@@ -57,7 +57,7 @@ void main() {
 
     await tester.scrollUntilVisible(
       find.text('تیره'),
-      250,
+      -250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
