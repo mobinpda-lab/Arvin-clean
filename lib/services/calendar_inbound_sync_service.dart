@@ -437,8 +437,8 @@ class CalendarInboundSyncService {
     final separator = value.indexOf(':');
     if (separator <= 0 || separator == value.length - 1) return null;
     return (
-      value.substring(0, separator),
-      value.substring(separator + 1),
+      Uri.decodeComponent(value.substring(0, separator)),
+      Uri.decodeComponent(value.substring(separator + 1)),
     );
   }
 
