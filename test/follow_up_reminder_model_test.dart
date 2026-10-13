@@ -57,4 +57,36 @@ void main() {
       DateTime(2026, 8, 28, 11, 45),
     );
   });
+
+  test('legacy Task reminder migrates once with deterministic identity and keeps legacy value', () {
+    final legacyJson = <String, dynamic>{
+      'id': 'legacy-task-42',
+      'title': 'تماس با پزشک',
+      'createdAt': '2026-10-01T08:00:00.000',
+      'reminderDate': '2026-10-20T00:00:00.000',
+      'followUpDate': '2026-10-25T12:00:00.000',
+    };
+
+    final first = Task.fromJson(legacyJson);
+    expect(first.taskReminders, hasLength(1));
+    final migrated = first.taskReminders.single;
+    expect(migrated.id, 'legacy-task-reminder:legacy-task-42');
+    expect(migrated.taskId, 'legacy-task-42');
+    expect(migrated.date, DateTime(2026, 10, 20));
+    expect(migrated.isAllDay, isFalse,
+        reason: 'midnight alone must not be interpreted as all-day');
+    expect(migrated.status, 'active');
+    expect(migrated.createdAt, DateTime(2026, 10, 1, 8));
+    expect(first.reminderDate, DateTime(2026, 10, 20),
+        reason: 'legacy value remains until durable compatibility is validated');
+    expect(first.followUpDate, DateTime(2026, 10, 25, 12),
+        reason: 'follow-up planning remains independent');
+
+    final second = Task.fromJson(first.toJson());
+    expect(second.taskReminders, hasLength(1),
+        reason: 'decoding/saving the same payload must not duplicate migration');
+    expect(second.taskReminders.single.id, migrated.id);
+    expect(second.reminderDate, first.reminderDate);
+  });
+
 }
