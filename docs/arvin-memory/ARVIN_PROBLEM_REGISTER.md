@@ -228,3 +228,10 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## Follow-up & Reminder v2 — current implementation / validation gaps (2026-10-13)
+
+- Owner decision is recorded in `ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md`.
+- Verify full-form obsolete timestamp removal, optional Follow-up→Reminder creation, multiple reminder editing, compact Quick Entry progressive disclosure, independent report/search filters, legacy compatibility, and all-day/midnight handling with tests.
+- Calendar scope conflict remains: v2 says Calendar fallback to `nextFollowUp` when no Reminder exists, while earlier phone-calendar policy excludes follow-up-only projection. Do not change Android/phone Calendar or OS notifications until clarified.
+- Exact-head CI and physical-device acceptance remain outstanding for this feature. Release remains NO-GO.
