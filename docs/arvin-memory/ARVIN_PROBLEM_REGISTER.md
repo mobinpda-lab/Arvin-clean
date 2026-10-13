@@ -354,3 +354,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Restore semantics:** merge by stable ID and retain local-only people. Legacy backup with no `people` leaves the local directory untouched. Rollback restores the exact pre-restore directory using a transaction and does not delete Tasks/Follow-ups.
 - **Coverage authored:** service document tests, manager round-trip/legacy/duplicate-ID tests, TaskStore merge/replace tests, Home rollback test, BackupPage runtime and file-backed integration smoke coverage.
 - **Status:** implementation committed on stacked Draft PR #2681; exact-head CI, test, build and device validation not yet confirmed. Keep issue open and release NO-GO until evidence passes.
+
+
+---
+
+## 2026-10-13 — Exact-head CI recheck and branch-divergence blocker
+- **Problem:** Child PR #2681 contains Person-linked Follow-up work and the authored #2682 backup/restore fix, but it has no returned PR-associated checks and is not mergeable against parent PR #2666.
+- **Root cause / evidence:** GitHub compare reports child branch 82 commits ahead and 134 behind parent branch, with merge base 68724d6191590b81b2d611f59b7944a7fcbb06e0. This is substantial divergence, not a simple one-commit update. Parent Build run [38454176741](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176741) failed test shards 4 and 5 while Analyze, Debug/Release APK and test shards 0–3 passed. Failures span Calendar UI actions/legacy identity, Notebook conversion, and RTL swipe timeouts.
+- **Impact:** Child-only backup/restore implementation cannot be considered validated; merging the child risks dropping or conflicting with parent reminder/Calendar changes.
+- **Decision:** Do not force-push, blindly merge, or mark #2682 complete. Reconcile code and tests deliberately while preserving both histories, then run exact-head CI.
+- **Status:** BLOCKED on safe source reconciliation and full test validation. Release remains NO-GO.
