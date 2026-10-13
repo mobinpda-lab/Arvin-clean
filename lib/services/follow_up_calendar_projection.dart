@@ -24,6 +24,9 @@ class FollowUpCalendarProjection {
 
   String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
 
+  String independentTaskReminderIdFor(Task task, TaskReminder reminder) =>
+      'task-reminder-item:${Uri.encodeComponent(task.id)}:${Uri.encodeComponent(reminder.id)}';
+
   String taskReminderItemIdFor(Task task, TaskReminder reminder) =>
       'task-reminder-item:${task.id}:${reminder.id}';
 
@@ -101,6 +104,18 @@ class FollowUpCalendarProjection {
             title: reminder.title.trim().isEmpty
                 ? '${task.title} — یادآور ${reminder.sequence}'
                 : reminder.title,
+            date: reminder.date,
+            completed: task.completed,
+            isAllDay: reminder.isAllDay,
+          ),
+        );
+      }
+
+      for (final reminder in task.taskReminders) {
+        reminders.add(
+          CalendarReminder(
+            id: independentTaskReminderIdFor(task, reminder),
+            title: reminder.title,
             date: reminder.date,
             completed: task.completed,
             isAllDay: reminder.isAllDay,
