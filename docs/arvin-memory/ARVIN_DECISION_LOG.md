@@ -1,10 +1,19 @@
+## 2026-10-13 — Owner decision: all-day reminder notification time APPROVED
+
+- **Owner decision:** use **09:00 in the user's local time zone** for notification delivery for date-only/all-day Task reminders.
+- **Scope:** this selects notification delivery time only; Calendar representation remains all-day/date-only. Timed reminders keep their selected time.
+- **Status:** product-policy ambiguity is resolved. This does not imply CI, Calendar Provider Acceptance, device smoke, physical-device validation, backup/restore, or release gates have passed.
+- **Next:** re-query PR #2666's live head after this memory write and verify required validation on that exact SHA. Keep PR Draft and release NO-GO until gates pass.
+
+---
+
 ## 2026-10-13 — TaskReminder projection, sync, and delivery integration
 
 - **Decision:** New Task reminders use `task-reminder-item:<taskId>:<reminderId>` for external identity. The migrated legacy item keeps `task-reminder:<taskId>`; after migration the legacy field is not projected separately. Inbound edit/delete resolves the exact item by stable identity and does not rename/delete the Task or neighboring reminders.
 - **Decision:** Notification delivery keys are independent per reminder. The migrated legacy item retains the previous `task:<taskId>@<timestamp>` delivery identity; new items use their own stable identity. Date-only reminders remain all-day in Calendar and use a separate notification-time helper.
 - **Persistence fix:** Task JSON always serializes `taskReminders`, `nextReminderSequence`, and `legacyReminderMigrationCompleted`; `TaskStore._canonicalEnvelope` treats them as known canonical keys. This prevents a previously persisted collection from being reintroduced when the current collection is empty.
 - **Impact:** Updated projection, outbound/inbound Calendar reconciliation, alarm planning, delivery projection/state, Task Editor and TaskEditApplyService; added tests for same-time distinct reminders, stable IDs, inbound edit/delete isolation, SQL/backup round-trip and deletion tombstone.
-- **Open product decision:** 09:00 local notification time for all-day reminders is currently implemented as a provisional policy only. The approved architecture says to use the product-documented local-time policy but does not specify the hour. Owner confirmation is required before merge.
+- **Owner decision resolved (2026-10-13):** owner approved **09:00 local time** for all-day/date-only reminder notifications. Timed reminders retain their selected time.
 - **Status:** Draft PR #2666 only. Exact-head Build/Calendar acceptance remain unverified; Device Smoke is skipped. Do not merge/release.
 
 ---
