@@ -140,7 +140,7 @@ void main() {
   testWidgets(
     'Calendar release acceptance routes completion without exposing ineffective snooze',
     (tester) async {
-      tester.view.physicalSize = const Size(800, 1000);
+      tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
