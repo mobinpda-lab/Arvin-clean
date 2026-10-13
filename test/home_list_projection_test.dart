@@ -68,7 +68,7 @@ void main() {
       projection
           .project(
             [note, tracked, history],
-            scope: HomeListScope.followUpEnabled,
+            scope: HomeListScope.withFollowUps,
             sort: HomeListSort.title,
           )
           .map((item) => item.id),
