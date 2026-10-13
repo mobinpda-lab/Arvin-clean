@@ -83,6 +83,7 @@ class TaskReminder {
   final int sequence;
 
   TaskReminder copyWith({
+    String? taskId,
     String? title,
     DateTime? date,
     String? status,
@@ -91,7 +92,7 @@ class TaskReminder {
   }) =>
       TaskReminder(
         id: id,
-        taskId: taskId,
+        taskId: taskId ?? this.taskId,
         title: title ?? this.title,
         date: date ?? this.date,
         status: status ?? this.status,
