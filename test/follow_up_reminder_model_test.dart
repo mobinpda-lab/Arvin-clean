@@ -58,7 +58,7 @@ void main() {
     );
   });
 
-  test('legacy Task reminder migrates once with deterministic identity and keeps legacy value', () {
+  test('legacy Task reminder remains separate from the new collection', () {
     final legacyJson = <String, dynamic>{
       'id': 'legacy-task-42',
       'title': 'تماس با پزشک',
@@ -68,25 +68,15 @@ void main() {
     };
 
     final first = Task.fromJson(legacyJson);
-    expect(first.taskReminders, hasLength(1));
-    final migrated = first.taskReminders.single;
-    expect(migrated.id, 'legacy-task-reminder:legacy-task-42');
-    expect(migrated.taskId, 'legacy-task-42');
-    expect(migrated.date, DateTime(2026, 10, 20));
-    expect(migrated.isAllDay, isFalse,
-        reason: 'midnight alone must not be interpreted as all-day');
-    expect(migrated.status, 'active');
-    expect(migrated.createdAt, DateTime(2026, 10, 1, 8));
-    expect(first.reminderDate, DateTime(2026, 10, 20),
-        reason: 'legacy value remains until durable compatibility is validated');
+    expect(first.taskReminders, isEmpty,
+        reason: 'legacy reminder must not be silently copied into new collection');
+    expect(first.reminderDate, DateTime(2026, 10, 20));
     expect(first.followUpDate, DateTime(2026, 10, 25, 12),
         reason: 'follow-up planning remains independent');
 
     final second = Task.fromJson(first.toJson());
-    expect(second.taskReminders, hasLength(1),
-        reason: 'decoding/saving the same payload must not duplicate migration');
-    expect(second.taskReminders.single.id, migrated.id);
+    expect(second.taskReminders, isEmpty);
     expect(second.reminderDate, first.reminderDate);
+    expect(second.followUpDate, first.followUpDate);
   });
-
 }
