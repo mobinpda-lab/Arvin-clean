@@ -110,6 +110,66 @@ class TaskStore {
     });
   }
 
+  /// Restores portable Person directory records inside the existing canonical SQL store.
+  ///
+  /// Normal restore merges by stable Person ID and retains local-only entries.
+  /// Rollback may set [replace] to restore the exact pre-restore directory.
+  /// This intentionally does not cascade-delete Task or Follow-up records.
+  Future<void> restorePeopleDirectoryEntries(
+    Iterable<PersonReference> people, {
+    bool replace = false,
+  }) async {
+    final entries = List<PersonReference>.of(people);
+    final ids = <String>{};
+    for (final person in entries) {
+      if (!ids.add(person.id)) {
+        throw FormatException('Duplicate Person id: ${person.id}');
+      }
+    }
+
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        if (replace) {
+          await executor.runDelete('DELETE FROM people_directory', const []);
+        }
+        for (final person in entries) {
+          final normalizedName = _normalizePersonName(person.displayName);
+          final existing = await executor.runSelect(
+            'SELECT created_at FROM people_directory WHERE id = ? LIMIT 1',
+            <Object?>[person.id],
+          );
+          final now = DateTime.now().toIso8601String();
+          final createdAt = existing.isEmpty
+              ? now
+              : existing.single['created_at'] as String;
+          await executor.runInsert(
+            '''INSERT INTO people_directory
+               (id, display_name, normalized_name, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                 display_name = excluded.display_name,
+                 normalized_name = excluded.normalized_name,
+                 updated_at = excluded.updated_at''',
+            <Object?>[person.id, person.displayName, normalizedName, createdAt, now],
+          );
+          await executor.runUpdate(
+            'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+            <Object?>[jsonEncode(person.toJson()), person.id],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try {
+          await executor.runCustom('ROLLBACK');
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
   Future<void> deletePersonDirectoryEntry(String personId) async {
     final id = personId.trim();
     if (id.isEmpty) throw ArgumentError.value(personId, 'personId');
