@@ -1,3 +1,13 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (owner decision recorded)
+
+- **Owner decision:** 09:00 in the user's local time zone is approved for all-day/date-only Task reminder notifications. Timed reminders retain their selected time. This resolves the product-policy ambiguity, not validation gates.
+- **PR #2666:** Draft/open/unmerged on `integration/task-multiple-reminders-safe-20261013`. Re-query the live head after this memory commit because this write advances the branch.
+- **Last validation observed before owner decision:** Build run 38397084236 and Calendar Provider Acceptance run 38397084168 were in progress; Device Smoke run 38397084187 was skipped. Re-poll exact-head Actions and inspect logs/artifacts. Green orchestration runs are not product validation.
+- **Still required:** all test/analyzer shards, Debug and Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, physical-device validation, backup/restore and Calendar-link integrity. Resolve failures on the current head and rerun after final changes.
+- **Release:** NO-GO until required gates are evidenced. Do not merge just because the owner decision is resolved.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (latest exact-head poll)
 
 Use this checkpoint instead of earlier state summaries; re-query the live PR head after this memory write because the write itself advances the branch.
