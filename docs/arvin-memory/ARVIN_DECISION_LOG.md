@@ -1,3 +1,12 @@
+## 2026-10-13 — Safe integration slice: canonical TaskReminder and migration marker
+
+- **Problem:** canonical Task supported only singular `reminderDate`; the approved multiple-reminder design requires a stable-ID collection and idempotent representation of the legacy Task reminder.
+- **Decision:** add `TaskReminder` with `id/taskId/title/date/status/createdAt/updatedAt/isAllDay/sequence`; decode the legacy Task reminder into deterministic ID `legacy-task-reminder:<taskId>`; retain the legacy timestamp and persist `legacyReminderMigrationCompleted` as a tombstone so removal is not silently recreated on later decode.
+- **Reason:** preserve old-reader/rollback compatibility while making the canonical Task JSON representation idempotent.
+- **Impact:** model/JSON slice only plus focused regression tests; no separate store or schema migration.
+- **Status:** committed on safe integration PR #2666; exact-head Build is pending at the time of the code checkpoint. Calendar projection suppression/identity reconciliation and persistence/restore tests remain open; do not merge or release yet.
+
+---
 ## 2026-10-13 — Approved reminder migration contract takes precedence
 
 - **Problem:** the implementation design in PR #2655 and `ARVIN_MULTIPLE_REMINDERS_DESIGN.md` retains legacy `Task.reminderDate` without migrating it, while the approved architecture decision requires a deterministic, idempotent migration into exactly one TaskReminder.
