@@ -482,3 +482,20 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Reminder long press cannot delete the parent Task | lib/calendar_page.dart and test/calendar_runtime_actions_fast_track_test.dart | Guard and regression test added | Latest test run pending; no pass claim |
 | Both Calendar entry points preserve the same management callbacks | lib/main.dart | Implemented in source | Exact-head route/UI validation pending |
 | Internal Follow-up Action opens its Task without becoming a Reminder | lib/calendar_page.dart; lib/widgets/canonical_calendar_launcher.dart; existing projection-separation decision | Implemented in source | End-to-end acceptance and device evidence pending |
+
+
+---
+
+## 2026-10-13 — Exact-head CI failure poll (source SHA `445d2897eaeb5c12695716284c999f9cad9bd918`)
+
+| Claim / gate | Evidence | Result | Limit |
+|---|---|---|---|
+| Analyzer | [Arvin Build run 38438327785](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438327785), job `115438734856` | Passed | Exact source SHA `445d2897eaeb5c12695716284c999f9cad9bd918` only |
+| Test-0 | Same Build run, job `115438734778` | Passed | Other test shards failed or remained pending |
+| Test-1 external calendar projection | Same Build run, job `115438734860`; log reports missing key `external-calendar-edit-external-calendar:calendar-7:instance-1` at `test/external_calendar_page_projection_test.dart:58` | Failed | Root cause unconfirmed |
+| Test-2 checklist/calendar/prayer/settings | Same Build run, job `115438734884`; failures at `task_editor_dialog_test.dart`, `calendar_release_acceptance_test.dart:170`, `official_calendar_prayer_actions_test.dart:43`, `settings_page_test.dart:41` | Failed | Checklist exact assertion still needs full inspection; missing widget/text could be product behavior or test setup; do not weaken assertions |
+| Test-3 waiting Follow-up filter | Same Build run, job `115438734555`; `follow_up_office_page_test.dart:303` expects two labels but finds one | Failed | Root cause unconfirmed |
+| Test-4 / Test-5 and Debug / Release APK | Same Build run; jobs `115438734681`, `115438734572`, `115438734664`, `115438734253` | In progress at latest poll | Not a pass until completed |
+| Calendar Provider Acceptance | [Run 38438327929](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438327929), job `115438056261` | In progress | Not validated yet |
+| Device Smoke | [Run 38438328062](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438328062) | Workflow queued at latest workflow-level poll; Home/Quick Capture jobs running, remaining lanes queued | Backup/Restore, SQL Migration, SQL Persistence and physical-device acceptance remain open |
+| Release | PR #2666 remains open and unmerged | **NO-GO** | This evidence belongs to source SHA `445d2897eaeb5c12695716284c999f9cad9bd918`; memory-only commit `1a04ae7fb7b670dcab59127686403b99e5d382ee` changes HEAD and is not validated by those runs |
