@@ -8,6 +8,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/task.dart';
+import '../models/person_reference.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
@@ -58,6 +59,115 @@ class TaskStore {
       return rows.map((row) => row['name'] as String).toList(growable: false);
     });
   }
+
+  Future<List<PersonReference>> loadPeopleDirectory() async {
+    return TaskStorageLock.synchronized<List<PersonReference>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT id, display_name FROM people_directory ORDER BY normalized_name, display_name',
+        const [],
+      );
+      return rows
+          .map((row) => PersonReference(
+                id: row['id'] as String,
+                displayName: row['display_name'] as String,
+              ))
+          .toList(growable: false);
+    });
+  }
+
+  Future<PersonReference> savePersonDirectoryEntry(
+    PersonReference person,
+  ) async {
+    return TaskStorageLock.synchronized<PersonReference>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final normalizedName = _normalizePersonName(person.displayName);
+      final duplicate = await executor.runSelect(
+        'SELECT id FROM people_directory WHERE normalized_name = ? AND id <> ? LIMIT 1',
+        <Object?>[normalizedName, person.id],
+      );
+      if (duplicate.isNotEmpty) {
+        throw StateError('A Person with this normalized name already exists');
+      }
+      final existing = await executor.runSelect(
+        'SELECT created_at FROM people_directory WHERE id = ? LIMIT 1',
+        <Object?>[person.id],
+      );
+      final now = DateTime.now().toIso8601String();
+      final createdAt = existing.isEmpty
+          ? now
+          : existing.single['created_at'] as String;
+      await executor.runInsert(
+        '''INSERT INTO people_directory
+           (id, display_name, normalized_name, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             display_name = excluded.display_name,
+             normalized_name = excluded.normalized_name,
+             updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, normalizedName, createdAt, now],
+      );
+      await executor.runUpdate(
+        'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+        <Object?>[jsonEncode(person.toJson()), person.id],
+      );
+      return person;
+    });
+  }
+
+  Future<void> deletePersonDirectoryEntry(String personId) async {
+    final id = personId.trim();
+    if (id.isEmpty) throw ArgumentError.value(personId, 'personId');
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        final followUps = await executor.runSelect(
+          'SELECT id, person_ids_json FROM follow_ups',
+          const [],
+        );
+        for (final row in followUps) {
+          final raw = row['person_ids_json'];
+          if (raw is! String || raw.trim().isEmpty) continue;
+          final decoded = jsonDecode(raw);
+          if (decoded is! List) {
+            throw const FormatException('FollowUp Person IDs must be a list');
+          }
+          final personIds = decoded.whereType<String>().toList();
+          if (!personIds.contains(id)) continue;
+          personIds.removeWhere((value) => value == id);
+          await executor.runUpdate(
+            'UPDATE follow_ups SET person_ids_json = ? WHERE id = ?',
+            <Object?>[jsonEncode(personIds), row['id']],
+          );
+        }
+        await executor.runDelete(
+          'DELETE FROM task_people WHERE person_id = ?',
+          <Object?>[id],
+        );
+        await executor.runDelete(
+          'DELETE FROM people_directory WHERE id = ?',
+          <Object?>[id],
+        );
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try {
+          await executor.runCustom('ROLLBACK');
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  static String _normalizePersonName(String value) => value
+      .trim()
+      .toLowerCase()
+      .replaceAll('ي', 'ی')
+      .replaceAll('ك', 'ک')
+      .replaceAll(RegExp(r'\\s+'), ' ');
 
   Future<String> createCategory(String value) async {
     final name = value.trim();
