@@ -248,7 +248,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     }
 
     final waiting = latestByTask.values
-        .where((row) => _waitingService.isWaitingResult(row.result))
+        .where((row) => _waitingService.isWaitingFollowUp(row.followUp))
         .toList();
     waiting.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     return waiting;
