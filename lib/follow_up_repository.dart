@@ -69,7 +69,7 @@ class FollowUpRepository {
       );
       final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
       task.followUps = updated;
-      task.followUpEnabled = true;
+      // Completion updates a Follow-up record; it does not enable a Task flag.
       task.updatedAt = DateTime.now();
       return updatedFollowUp;
     });
