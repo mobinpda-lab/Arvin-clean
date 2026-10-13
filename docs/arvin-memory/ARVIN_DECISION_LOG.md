@@ -1,3 +1,14 @@
+## 2026-10-13 — Owner decision: configurable all-day reminder notification time
+
+- **Problem:** 09:00 is the preferred default, not a hard-coded time that every user must accept.
+- **Decision:** all-day/date-only Task reminders notify at **09:00 local time by default**; users may change the time in Settings. Timed Task reminders and FollowUp reminders retain their own times.
+- **Persistence/runtime:** reuse `AppSettingsService` and SharedPreferences; persist the selected minute-of-day, include it in portable settings backup/restore, default missing legacy values to 540 minutes, and apply the preference in alarm planning and background delivery. Changing the preference requests rescheduling.
+- **Architecture:** no parallel settings store, reminder store, scheduler or notification model. Calendar entries remain all-day/date-only.
+- **Validation finding:** exact-head CI found `taskReminderId` uninitialized in two `FollowUpReminderCandidate` constructors; fixed by initializing it to null for legacy/default constructors in commit `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Status:** policy and implementation path are recorded; new exact-head CI is required. No release claim until validation passes.
+
+---
+
 ## 2026-10-13 — Owner decision: all-day reminder time is configurable
 
 - **Product decision:** all-day/date-only Task reminder notifications default to **09:00 local time**, but the user can change the time in Settings under «یادآورها و اعلان‌ها».
