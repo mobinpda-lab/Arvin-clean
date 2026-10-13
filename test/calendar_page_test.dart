@@ -233,10 +233,10 @@ void main() {
       ),
     );
 
-    await tester.tap(
+    await tester.longPress(
       find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('انجام شد'), findsOneWidget);
     expect(find.text('تعویق'), findsNothing);
@@ -244,11 +244,15 @@ void main() {
     expect(find.text('تبدیل به کار'), findsNothing);
 
     await tester.tap(
-      find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1')),
+      find.byKey(const ValueKey('calendar-action-complete-followup:task-1:fu-1')),
     );
     await tester.pump();
+    await tester.longPress(
+      find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1')),
+      find.byKey(const ValueKey('calendar-action-edit-followup:task-1:fu-1')),
     );
     await tester.pump();
 
@@ -275,7 +279,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.event_available_outlined), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
     expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
   });
@@ -307,17 +311,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-due-delete-task-due:task-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-action-delete-task-due:task-1')), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('task-due-delete-task-due:task-1')));
+    await tester.tap(find.byKey(const ValueKey('calendar-action-delete-task-due:task-1')));
     await tester.pumpAndSettle();
-    expect(deleted, 1);
+    expect(find.text('حذف کار'), findsOneWidget);
+    expect(deleted, 0);
+    await tester.tap(find.text('لغو'));
+    await tester.pumpAndSettle();
+    expect(deleted, 0);
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:event-1')));
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-external-calendar:event-1')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-due-delete-external-calendar:event-1')), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-action-delete-external-calendar:event-1')), findsNothing);
   });
 
 

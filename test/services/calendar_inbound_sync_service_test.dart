@@ -346,7 +346,7 @@ void main() {
 
     final canonical = CalendarReminder(
       id: 'task-reminder:task-1',
-      title: 'کار — یادآور ۱',
+      title: 'یادآوری: کار',
       date: legacyDate,
     );
     final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);
@@ -401,7 +401,7 @@ void main() {
 
     final canonical = CalendarReminder(
       id: 'task-reminder:task-1',
-      title: 'کار — یادآور ۱',
+      title: 'یادآوری: کار',
       date: legacyDate,
     );
     final fingerprint = await CalendarSyncRevisionService().fromReminder(canonical);

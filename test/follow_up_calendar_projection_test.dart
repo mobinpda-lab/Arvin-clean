@@ -433,7 +433,7 @@ void main() {
         .toList();
 
     expect(legacyEvents, hasLength(1));
-    expect(legacyEvents.single.title, 'تماس — یادآور ۱');
+    expect(legacyEvents.single.title, 'یادآوری: تماس');
     expect(legacyEvents.single.date, DateTime(2026, 10, 13, 9));
     expect(task.legacyReminderMigrationCompleted, isTrue);
   });

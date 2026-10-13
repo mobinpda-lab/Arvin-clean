@@ -671,7 +671,7 @@ void main() {
 
     final convertedNote = await repository.loadNote('convert-ui');
     expect(convertedNote, isNull);
-    final converted = (await TaskStore().load()).single;
+    final converted = (await TaskStore(executor: database).load()).single;
     expect(converted.id, 'convert-ui');
     expect(converted.title, 'یادداشت قابل تبدیل');
     expect(converted.category, 'کاری');
