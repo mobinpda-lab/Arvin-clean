@@ -30,7 +30,7 @@ void main() {
     expect(task.updatedAt, isNotNull);
   });
 
-  test('converts a normal Task to FollowUp without changing identity', () async {
+  test('legacy flag conversion API does not invent a FollowUp record', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
     });
@@ -42,7 +42,7 @@ void main() {
     expect(task.description, 'متن');
     expect(task.category, 'مشتریان');
     expect(task.tags, ['فوری']);
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
   });
 
