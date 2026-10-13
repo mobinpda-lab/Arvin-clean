@@ -96,6 +96,24 @@ void main() {
     expect(task['category'], 'فروش');
   });
 
+  test('adding a FollowUp to a plain Task does not enable the legacy flag', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"plain","title":"کار معمولی"}]',
+    });
+
+    const repository = FollowUpRepository();
+    await repository.add(
+      'plain',
+      FollowUp(id: 'follow-up-1', dateTime: DateTime(2026, 8, 15, 10)),
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    final stored = jsonDecode(prefs.getString('arvin.tasks')!) as List<dynamic>;
+    final task = Map<String, dynamic>.from(stored.single as Map);
+    expect(task['followUpEnabled'], isFalse);
+    expect(task['followUps'], hasLength(1));
+  });
+
   test('update fails when the FollowUp id does not exist', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
