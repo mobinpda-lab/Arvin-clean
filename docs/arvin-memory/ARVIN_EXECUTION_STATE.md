@@ -1,3 +1,22 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (encoded reminder identity fix + exact-head validation refresh)
+
+This newest entry supersedes conflicting live-status statements below; historical checkpoints remain for audit.
+
+- Feature PR: [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655), OPEN and unmerged; issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654).
+- Latest code head at the start of this checkpoint: `7daa7b05ccee6cc4901555a2dc6d36fa3b214727`.
+- Added a compatibility hardening fix: new Calendar IDs use `task-reminder-item:<URI-encoded Task ID>:<URI-encoded reminder ID>`; inbound reconciliation decodes both components, and outbound sync decodes the Task ID when deciding Task-scoped sync policy. Legacy `task-reminder:<taskId>` identity remains unchanged.
+- Exact-head validation observed on `7daa7b0...`: Build [38345623666](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38345623666) IN PROGRESS (Analyze succeeded; six test shards and Debug/Release APK jobs still running); Calendar Provider Acceptance [38345623661](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38345623661) IN PROGRESS; Device Smoke [38345623678](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38345623678) QUEUED/IN PROGRESS (Home and Quick Capture running; other lanes queued at last poll). Combined commit status had no legacy status entries; this is not a pass signal.
+- This memory update creates a new commit and therefore a new PR head. **Re-check all required workflows against the resulting exact head**; the run IDs above are evidence only for the prior SHA, not the new head.
+- No merge or release authorized. Release remains **NO-GO** until exact-head Analyze, all test shards, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, and physical-device acceptance pass.
+
+## Next actions
+1. Poll exact-head Build, Calendar Provider Acceptance, and all six Device Smoke lanes for the resulting latest SHA.
+2. Fix any test/analyzer/build failure and repeat validation on the new exact head.
+3. Review PR #2655 compatibility paths; do not merge automatically.
+4. Record final evidence and obtain physical-device acceptance before release.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (multi-reminder implementation and validation repair)
 
 This is the first section to read on continuation. Older entries remain historical and must not override this live checkpoint.
