@@ -59,3 +59,15 @@ Status vocabulary: **PASS** means reproducible evidence exists for the exact can
 
 ## Execution rule
 Every gate status must cite a commit SHA and evidence artifact. Update this file when evidence changes; never set PASS based on intention, source inspection alone, or results from another SHA. Release stays **NO-GO** while any P0 gate is FAIL or BLOCKED.
+
+
+## Follow-up & Reminder v2.0 acceptance additions — 2026-10-13
+
+- Confirm the full Task form keeps the Follow-up toggle and does not expose an auto-generated Follow-up timestamp.
+- Confirm Follow-up entry supports optional explicit Reminder creation with editable initial values.
+- Confirm Quick Entry Follow-up and Checklist toggles remain compact and reveal their roll boxes only when enabled.
+- Confirm Follow-up, `nextFollowUp`, Reminder and `reminderDate` are independently filterable/searchable wherever supported.
+- Confirm each Task-level Reminder is independently editable/removable and linked to the canonical parent Task.
+- Confirm legacy fields, JSON/SQL, backup/restore, all-day-vs-midnight, notifications, Calendar stable IDs and no-duplicate behavior.
+- Resolve in-app vs phone Calendar scope before projecting follow-up-only values to the phone Calendar.
+- Acceptance requires exact-head automated checks and physical-device evidence; documentation alone does not pass the gate.

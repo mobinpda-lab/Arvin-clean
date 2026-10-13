@@ -1,3 +1,10 @@
+## Calendar Follow-up/Reminder decision — evidence boundary (2026-10-13)
+
+- Owner decision recorded: `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- Scope conflict is resolved at the product-decision level: internal Calendar may display Follow-up Action as a fallback; external/device Calendar may not create an event from `nextFollowUp` alone.
+- This documentation commit is not runtime evidence. Exact-head CI, Calendar Provider Acceptance, six Device Smoke lanes, compatibility tests and physical-device acceptance remain required.
+- Release: **NO-GO** until those gates have evidence.
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
@@ -332,3 +339,44 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Existing test: `test/follow_up_reminder_model_test.dart`, blob `2d232e913812e5dc6b8ff724bc9ca8dd11c5c290`, validates one FollowUp reminder JSON round-trip and legacy missing-reminder behavior only.
 - Current exact-head docs CI for PR #2652 head `00ae93b2dba36093c4074624fe951efec51e2ab4`: Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450) PASS (Analyze, test shards 0–5, Debug/Release APK); Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458) PASS (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the documentation branch's CI only; it does not validate the unimplemented multi-reminder feature or physical-device acceptance.
 - Gap tracker: Issue #2654. Proposal is not approved; no application code/schema changed.
+
+## Follow-up & Reminder architecture v2 — evidence boundary (2026-10-13)
+
+- Decision text: `docs/arvin-memory/ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md`.
+- Read-only source audit on main inspected `lib/models/task.dart`, `lib/task_editor_dialog.dart`, `lib/quick_capture_dialog.dart`, `lib/services/follow_up_calendar_projection.dart`, `lib/services/follow_up_reminder_projection.dart`, `lib/report_center_page.dart`, and `test/task_editor_dialog_test.dart`.
+- Observed: canonical Task has distinct nullable `nextFollowUp` and singular legacy `reminderDate`; FollowUp has its own nullable `nextFollowUp` and `reminderDate`; Quick Entry has Follow-up and Checklist controls; Calendar projection currently projects reminder fields.
+- Not established by this audit: multiple Task-level reminder UI end-to-end, optional reminder creation inside Follow-up entry, complete independent report/search filters, date-only/all-day preservation across every layer, or physical-device behavior.
+- No application code, schema, or migration changed in this documentation step. This record is not test/build evidence. Release remains NO-GO.
+
+
+## CURRENT VISUAL PR EVIDENCE — 2026-10-13
+
+- PR #2663 head: `c3b95d0781ec03f07d43379c4087f427667cb250`. Exact-head Build run `38361448901`: Analyze passed; test shards 0–5 passed; Debug and Release APK jobs were still in progress at the latest poll. Do not mark Build complete until both APK jobs finish successfully.
+- Exact-head Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued at latest poll. Do not mark Device Smoke complete until all six lanes pass.
+- Successful orchestrator/production-loop/lock-sync runs are not substitutes for Build, Device Smoke, or physical-device acceptance.
+- The owner command resolves the internal-vs-external Calendar scope: internal Calendar can show Follow-up fallback; external Calendar cannot receive follow-up-only projections. This is a product decision, not implementation evidence.
+
+## LIVE JOB UPDATE — 2026-10-13 (PR #2663)
+
+- On exact head `c3b95d0781ec03f07d43379c4087f427667cb250`, Build run `38361448901` now confirms Analyze + test shards 0–5 SUCCESS. Debug and Release APK jobs are still in progress; no complete Build PASS until both finish successfully.
+- Device Smoke run `38361448950`: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued. Full Device Smoke is not yet validated.
+
+## Exact-head visual PR update — 2026-10-13
+
+- PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Build run `38361448901` fully passed Analyze, all test shards 0–5, Debug APK and Release APK.
+- Device Smoke run `38361448950`: Home and Quick Capture passed; SQL Persistence and SQL Migration in progress; People and Backup/Restore queued at latest poll. Full Device Smoke not yet passed.
+- This is evidence for the visual-change PR head only, not for multiple Task-level reminders, external Calendar origin/duplicate handling, or physical-device acceptance.
+
+
+## Device Smoke checkpoint — 2026-10-13
+- Build run `38361448901`: Analyze, all six test shards, Debug APK and Release APK SUCCESS at PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`.
+- Device Smoke run `38361448950`: Home, Quick Capture, SQL Persistence and SQL Migration SUCCESS; People and Backup/Restore still IN_PROGRESS at latest poll.
+- Full six-lane device acceptance is therefore pending. No physical-device acceptance evidence is available; visual compact-width/RTL review remains outstanding.
+
+
+## Delivery blocker update — 2026-10-13
+- Build run `38361448901`, exact PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Analyze, test-0..5, Debug APK, Release APK = SUCCESS.
+- Device Smoke run `38361448950`: all six lanes now SUCCESS — Home, Quick Capture, SQL Persistence, SQL Migration, People, Backup/Restore.
+- Build artifacts listed: `arvin-debug-apk`, `arvin-release-apk`. Device Smoke artifact list includes Home, Quick Capture, People only; no dedicated artifact was listed for SQL Persistence, SQL Migration, or Backup/Restore, so only lane status—not artifact existence—is claimed for those.
+- Still open: physical-device/real-use acceptance; compact RTL and small-screen UX visual review; Calendar origin-aware sync and duplicate prevention; end-to-end multiple independent Task reminders and Follow-up separation. PR #2663 is open/unmerged. PR #2655 remains non-mergeable and requires safe integration plus fresh exact-head CI.
+- Release remains NO-GO.

@@ -119,3 +119,14 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
 - Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
 - Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
+
+## Owner architecture decision — Follow-up & Reminder v2.0 (2026-10-13)
+
+- See `ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md` for the canonical decision.
+- Keep `Task` as sole source of truth; `nextFollowUp` is next action/review, while `reminderDate` is notification schedule. Independent values, independent lifecycle.
+- Follow-up can exist without a reminder and reminder can exist without follow-up. Add Reminder from follow-up only by explicit opt-in; prefilled values are editable one-time defaults.
+- Full Task form keeps the follow-up toggle but must not show an auto-generated follow-up timestamp field. Quick Entry remains compact with separate Follow-up and Checklist toggles and progressive-disclosure roll boxes.
+- Multiple reminders are Task-owned, stable-ID entries; legacy singular fields remain backward compatible; no parallel store or scheduler.
+- Reports/search must keep follow-up and reminder dimensions separate.
+- Calendar scope is unresolved: do not project follow-up-only values to Android/phone Calendar or schedule OS notifications until the owner clarifies whether v2's Calendar fallback applies to in-app Calendar only or also phone Calendar.
+- Current source inspection confirms nullable `nextFollowUp` and `reminderDate` fields, and Quick Entry toggles; this is not proof that all v2 acceptance criteria pass.

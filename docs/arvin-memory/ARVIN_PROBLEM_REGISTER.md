@@ -1,3 +1,10 @@
+## Resolved decision / remaining implementation risk — Calendar scope (2026-10-13)
+
+- **Resolved:** Owner command v1.0 explicitly distinguishes internal Calendar from external/device Calendar. Internal Calendar can show Follow-up Action only when no Reminder exists; external sync must not project `nextFollowUp` alone.
+- **Still open:** source-level implementation/automated acceptance for internal projection, external sync authorization, parent-Task navigation, stable IDs/no duplicates, independence on edit/delete, legacy data and physical-device behavior has not been established by this documentation update.
+- **Required record:** `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- **Release remains NO-GO** until exact-head and physical-device evidence is complete.
+
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
@@ -228,3 +235,32 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## Follow-up & Reminder v2 — current implementation / validation gaps (2026-10-13)
+
+- Owner decision is recorded in `ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md`.
+- Verify full-form obsolete timestamp removal, optional Follow-up→Reminder creation, multiple reminder editing, compact Quick Entry progressive disclosure, independent report/search filters, legacy compatibility, and all-day/midnight handling with tests.
+- Calendar scope conflict remains: v2 says Calendar fallback to `nextFollowUp` when no Reminder exists, while earlier phone-calendar policy excludes follow-up-only projection. Do not change Android/phone Calendar or OS notifications until clarified.
+- Exact-head CI and physical-device acceptance remain outstanding for this feature. Release remains NO-GO.
+
+
+## SUPERSESSION — Owner resolved Calendar scope (2026-10-13)
+
+- The earlier note that Calendar scope required clarification is superseded by the owner's final command: fallback-to-`nextFollowUp` applies only to **Arvin's internal Calendar** when no Reminder exists. It must not project to Google/device Calendar or create an OS notification.
+- Remaining implementation/validation gaps are still open: multiple independent Task reminders end-to-end, optional reminder creation in Follow-up flow, all-day/date-only metadata, legacy/backup/restore round-trip, stable Calendar IDs and no-duplicate updates, and physical-device acceptance. No gap is considered fixed merely because this decision is documented.
+
+## Delivery blocker update — 2026-10-13
+
+### Resolved with CI evidence
+- The previously pending People and Backup/Restore lanes are no longer pending. On Device Smoke run `38361448950`, both completed SUCCESS; together with Home, Quick Capture, SQL Persistence and SQL Migration, all six lanes are now SUCCESS.
+- Build/automated tests/Debug APK/Release APK all passed on PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250` (run `38361448901`).
+
+### Still open
+- Physical-device installation and real-use acceptance have no evidence in the current record.
+- Persian RTL/compact-width clipping/truncation still needs visual review and, if reproduced, targeted correction.
+- Calendar origin-aware sync, stable provider identity, duplicate prevention and no-echo behavior still require end-to-end validation.
+- Multiple independent Task reminders remain unmerged/unvalidated end-to-end; PR #2655 is open with `mergeable=false`. Do not merge directly.
+- Backup/Restore lane PASS is CI evidence, not a substitute for physical-device or real-user data-safety acceptance.
+
+### Next
+- Do not add new features. Collect real-device acceptance evidence, validate existing Calendar/Reminder/Follow-up behavior, resolve UX findings, then safely reconcile and validate the reminder PR. Release remains NO-GO until all gates are satisfied.

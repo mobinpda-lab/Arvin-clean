@@ -78,3 +78,19 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+
+## Follow-up & Reminder UX decision v2.0 — 2026-10-13
+
+- Keep Follow-up and Reminder as separate user concepts and separate controls.
+- Full Task form retains «کار پیگیری‌دار» but removes any auto-generated «زمان پیگیری» timestamp. Optional reminder creation is explicit.
+- Quick Entry must remain compact: separate Follow-up and Checklist toggles, with detail roll boxes revealed only when enabled.
+- Multiple reminders need a clear «یادآورها» section, independent title/time/edit/remove controls, and stable numbering/identity.
+- Calendar wording/scope needs careful distinction between Arvin in-app Calendar and Android/phone Calendar; do not imply a Follow-up automatically creates an OS notification.
+- No real-device usability or visual acceptance was performed by this documentation update.
+
+
+## Follow-up — 2026-10-13 visual PR validation
+- Exact-head Build for reminder/follow-up visual PR #2663 passed Analyze, all six test shards, Debug APK and Release APK (run `38361448901`, head `c3b95d0781ec03f07d43379c4087f427667cb250`).
+- Device Smoke is still incomplete at latest poll: Home and Quick Capture passed; SQL Persistence and SQL Migration were in progress; People and Backup/Restore queued (run `38361448950`).
+- No new owner-provided physical-device installation, version, or feedback was available. Do not fabricate a user test record. Compact Persian label clipping/truncation remains a UX acceptance item; release not approved.
