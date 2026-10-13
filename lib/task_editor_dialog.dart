@@ -241,7 +241,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
 Future<void> _pickDueDate() async {
     final value = await _chooseDate(
       _dueDateTime,
-      helpText: 'انتخاب تاریخ انجام کار',
+      helpText: 'انتخاب موعد کار',
     );
     if (value != null && mounted) {
       setState(() {
@@ -1029,7 +1029,7 @@ Future<void> _pickDueDate() async {
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: const Text(
-                      'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
+                      'موعد کار، یادآور، تکرار، اهمیت و وضعیت',
                     ),
                     children: [
                       _dateTimeEditor(
