@@ -1514,3 +1514,25 @@ Safe integration of Person-linked Follow-up/Person-directory backup and report b
 
 ## Release decision
 **NO-GO.** Exact-head automated parent CI is green; product/data-integrity blockers, branch reconciliation, and physical-device acceptance remain open.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (exact-head CI and Person reconciliation review)
+
+This checkpoint supersedes conflicting live-status statements above; older entries remain historical.
+
+- **Repository / parent PR:** `mobinpda-lab/Arvin-clean`, PR [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`.
+- **Source SHA checked:** `b0fc203189c6e1ad9872a6436861232d662ca127`.
+- **Exact-head Build:** [run 38473545069](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38473545069) — Analyze, test-0 through test-5, Debug APK, Release APK all completed success.
+- **Exact-head Device Smoke:** [run 38473545117](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38473545117) — all six lanes (SQL persistence, People, Home, Backup/Restore, Quick Capture, SQL migration) completed success.
+- **Exact-head Calendar Provider Acceptance:** [run 38473544957](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38473544957) — completed success.
+- These CI results apply only to `b0fc203...`; they do not constitute physical-device acceptance or final end-to-end product acceptance.
+- **PR #2681 remains open and non-mergeable**, stacked on the parent. No force update, blind merge, or wholesale cherry-pick performed.
+- **#2682 P1 remains open:** parent `lib/backup_manager.dart` still lacks the canonical `people` field in `CanonicalBackupCandidate`, portable backup payload, and restore candidate. Child PR adds source for this but has not been synchronized/validated on the parent.
+- **Review finding on child PR #2681:** `FollowUp.fromJson` validates `personIds` as non-empty unique strings, but the shown restore preflight does not cross-check structured Follow-up Person IDs against the decoded Person directory before apply. Add explicit blank Person ID validation and cross-reference validation for backups containing `people`; retain legacy-backup compatibility. Test injected failure after Person restoration and exact rollback of directory plus Task/Follow-up records.
+- **#2683 P1 remains open:** child patch corrects use of legacy `followUpEnabled` in a Task-level filter but does not provide Person selector or per-Follow-up waiting/next-action rows.
+- **Actions recorded:** added exact-head CI/blocker checkpoint to [PR #2666 comment 6156510122](https://github.com/mobinpda-lab/Arvin-clean/pull/2666#issuecomment-6156510122); added focused backup/report review findings to [PR #2681 comment 6156519107](https://github.com/mobinpda-lab/Arvin-clean/pull/2681#issuecomment-6156519107).
+- **No product code was changed in this execution.** The child patch was inspected file-by-file; merge remains blocked pending reviewed reconciliation, referential-integrity validation, Report Center implementation, and exact-head test evidence.
+- **Release:** NO-GO. Physical-device acceptance and the full Task → Follow-up → Person → Reminder → Calendar → Person report → Backup/Restore integrity scenario remain outstanding.
+- **Next action:** make a reviewed, minimal synchronization plan for the Person backup/restore slice onto the current parent, including referential validation and rollback tests; then implement Person-specific per-Follow-up reporting. Run all gates on the resulting exact SHA.
