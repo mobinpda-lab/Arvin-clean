@@ -17,9 +17,7 @@ class TaskListScopeService {
     return tasks.where((task) {
       if (task.archived || task.trashed) return false;
 
-      final hasFollowUp = task.followUpEnabled ||
-          task.followUpDate != null ||
-          task.followUps.isNotEmpty;
+      final hasFollowUp = task.followUpDate != null || task.followUps.isNotEmpty;
 
       return switch (scope) {
         TaskListScope.all => true,
