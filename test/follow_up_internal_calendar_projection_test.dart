@@ -87,8 +87,16 @@ void main() {
     expect(changed.nextFollowUp, DateTime(2026, 10, 21, 10));
     expect(changed.reminderDate, originalReminder);
     expect(reminders.project([task]).single.date, originalReminder);
-    expect(internal.project([
-      Task(id: task.id, title: task.title, followUps: [changed]),
-    ]).single.date, DateTime(2026, 10, 21, 10));
+
+    // The existing Reminder wins the internal calendar display. The action
+    // date remains independently editable in canonical Follow-up data.
+    expect(internal.project([task]), isEmpty);
+    final taskWithoutReminder = Task(
+      id: task.id,
+      title: task.title,
+      followUps: [changed],
+    );
+    expect(internal.project([taskWithoutReminder]).single.date,
+        DateTime(2026, 10, 21, 10));
   });
 }
