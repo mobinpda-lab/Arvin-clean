@@ -198,9 +198,14 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   List<_FollowUpRow> get _waitingRows {
+    final activeTaskIds = _canonicalTasks
+        .where((task) => !task.completed && !task.archived && !task.trashed)
+        .map((task) => task.id)
+        .where((id) => id.isNotEmpty)
+        .toSet();
     final latestByTask = <String, _FollowUpRow>{};
     for (final row in _rows) {
-      if (row.taskId.isEmpty) continue;
+      if (row.taskId.isEmpty || !activeTaskIds.contains(row.taskId)) continue;
       final current = latestByTask[row.taskId];
       if (current == null || row.dateTime.isAfter(current.dateTime)) {
         latestByTask[row.taskId] = row;
