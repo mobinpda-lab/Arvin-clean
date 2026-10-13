@@ -167,9 +167,11 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(
-        find.byKey(const ValueKey('calendar-action-complete-followup:release-task:release-followup')),
+      final completeAction = find.byKey(
+        const ValueKey('calendar-action-complete-followup:release-task:release-followup'),
       );
+      await tester.ensureVisible(completeAction);
+      await tester.tap(completeAction);
       await tester.pump();
 
       expect(completed, 1);
