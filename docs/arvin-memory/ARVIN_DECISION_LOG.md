@@ -1,3 +1,11 @@
+## 2026-10-13 — Due-date labels must describe the field's meaning
+
+- **Problem:** Task Editor's due-date control was labelled “تاریخ انجام” and its time picker “انتخاب ساعت انجام کار”, although both operate on `_dueDateTime` (the Task due date), not a recorded completion timestamp.
+- **Decision:** Use “موعد کار” for the due-date field and “انتخاب موعد کار” / “انتخاب ساعت موعد کار” for its pickers. Use “یادآور” for the reminder field and keep it distinct from due date, Follow-up and Next Action.
+- **Reason:** The old wording could make users confuse a deadline with the actual time a task was completed.
+- **Impact:** Text-only UI change in PR #2671; no model, persistence, storage, migration, identifiers or scheduling semantics changed.
+- **Status:** Implemented on the open Draft branch; exact-head Build was still in progress and Device Smoke was skipped at the latest check. Not merged or release-validated.
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs

@@ -1,3 +1,14 @@
+## 2026-10-13 — Persian terminology audit evidence
+
+| Feature / claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Due-date date picker wording | `lib/task_editor_dialog.dart`, PR #2671 | Read back “انتخاب موعد کار” on the PR branch | Does not prove all date pickers are consistent |
+| Due-date field label | `_dateTimeEditor(keyPrefix: 'task-editor-due')` in the same file, PR #2671 | “تاریخ انجام” changed to “موعد کار” | Exact-head Build still in progress at checkpoint |
+| Due-date time picker | `_pickDueTime`, PR #2671 | “انتخاب ساعت موعد کار” on branch | Device Smoke skipped |
+| Detail empty state | `lib/task_detail_page.dart`, PR #2671 | “بدون موعد” prepared | Not merged to main |
+| Terminology issue | Issue #2669, comment 6144941487 | Findings and next actions recorded | Full audit remains open |
+| Exact-head CI | Build [38393338853](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38393338853); Device Smoke [38393338851](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38393338851) | Build IN_PROGRESS; Device Smoke SKIPPED at checkpoint | Re-poll before any readiness claim |
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
