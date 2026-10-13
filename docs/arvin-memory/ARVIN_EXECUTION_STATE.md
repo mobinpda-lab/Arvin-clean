@@ -936,3 +936,12 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - At last poll, Debug and Release APK jobs were still running on the prior PR merge ref; test shard 2 was in progress. Device Smoke run \`38361021358\` had Home and Quick Capture in progress, with SQL Persistence, SQL Migration, People and Backup/Restore queued. Those runs do not validate the new head.
 - **Next action:** verify fresh Build and all six Device Smoke lanes on current head; investigate any remaining failure from logs, repair, and rerun. Physical-device acceptance remains outstanding.
 - PR #2663 remains open/unmerged. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (fresh visual PR validation)
+
+- PR #2663 latest head is c3b95d0781ec03f07d43379c4087f427667cb250; open and currently mergeable. The owner-reconfirmed Follow-up/Reminder contract is already recorded in ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md; this repeat command adds no conflicting architecture decision.
+- Fresh exact-head Build run: 38361448901. Analyze passed; test shards 0–5 and Debug/Release APK jobs were in progress at the latest poll.
+- Fresh exact-head Device Smoke run: 38361448950. Home and Quick Capture were in progress; SQL Persistence, SQL Migration, People and Backup/Restore were queued at the latest poll.
+- Prior runs are not evidence for the latest head. Do not merge PR #2663 until exact-head checks are complete and reviewed. Physical-device acceptance is still outstanding. Release remains NO-GO.
+- Current next action: poll fresh run IDs 38361448901 and 38361448950; investigate any failed job from its logs, repair safely, and require another exact-head run after any change.
