@@ -161,4 +161,58 @@ void main() {
     expect(target.tags, ['الف']);
     expect(target.checklist, ['یک']);
   });
+
+  test('applies independent Task reminders without replacing FollowUp history', () {
+    final history = FollowUp(
+      id: 'history',
+      dateTime: DateTime(2026, 10, 1, 10),
+      nextFollowUp: DateTime(2026, 10, 10, 9),
+    );
+    final target = Task(
+      id: 'reminders-apply',
+      title: 'قبل',
+      reminderDate: DateTime(2026, 10, 5, 10),
+      followUps: [history],
+      taskReminders: [
+        TaskReminder(
+          id: 'old',
+          taskId: 'reminders-apply',
+          title: 'قدیمی',
+          date: DateTime(2026, 10, 6, 10),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+    final edited = Task(
+      id: 'reminders-apply',
+      title: 'بعد',
+      reminderDate: DateTime(2026, 10, 5, 10),
+      followUps: const [],
+      taskReminders: [
+        TaskReminder(
+          id: 'new',
+          taskId: 'reminders-apply',
+          title: 'جدید',
+          date: DateTime(2026, 10, 7, 11),
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.taskReminders.single.id, 'new');
+    expect(target.taskReminders.single.title, 'جدید');
+    expect(target.nextReminderSequence, 3);
+    expect(target.reminderDate, DateTime(2026, 10, 5, 10));
+    expect(target.followUps, hasLength(1));
+    expect(target.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 9));
+
+    edited.taskReminders.clear();
+    expect(target.taskReminders, hasLength(1),
+        reason: 'the canonical Task must not alias the editor list');
+  });
+
 }

@@ -69,6 +69,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   bool _reminderFollowsDueTime = true;
   bool _reminderExplicitlyCleared = false;
   DateTime? _initialReminderDateTime;
+  late List<TaskReminder> _taskReminders;
+  late int _nextReminderSequence;
   late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
@@ -107,6 +109,13 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.reminderDate;
     _initialReminderDateTime = task?.reminderDate;
+    _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
+    _nextReminderSequence = task?.nextReminderSequence ?? 1;
+    if (_nextReminderSequence < 1) _nextReminderSequence = 1;
+    if (_taskReminders.isNotEmpty) {
+      final highest = _taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+      if (_nextReminderSequence <= highest) _nextReminderSequence = highest + 1;
+    }
     _reminderFollowsDueTime = task == null ||
         task.reminderDate == null ||
         (task.dueDate != null && !task.allDay && task.reminderDate == task.dueDate);
@@ -238,6 +247,196 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     setState(() => _followUpEnabled = value);
   }
 
+
+  void _addTaskReminder() {
+    final now = DateTime.now();
+    final sequence = _nextReminderSequence;
+    final localizedSequence = _dateFormatter.toPersianDigits(sequence.toString());
+    final taskTitle = _titleController.text.trim();
+    final titlePrefix = taskTitle.isEmpty ? 'بدون عنوان' : taskTitle;
+    final defaultDate = DateTime(now.year, now.month, now.day, now.hour, now.minute)
+        .add(const Duration(hours: 1));
+    final reminder = TaskReminder(
+      id: 'reminder-${now.microsecondsSinceEpoch}',
+      taskId: widget.task?.id ?? '',
+      title: '$titlePrefix — یادآور $localizedSequence',
+      date: defaultDate,
+      isAllDay: false,
+      sequence: sequence,
+      createdAt: now,
+      updatedAt: now,
+    );
+    setState(() {
+      _taskReminders = [..._taskReminders, reminder];
+      _nextReminderSequence = sequence + 1;
+    });
+  }
+
+  void _updateTaskReminder(int index, TaskReminder reminder) {
+    if (index < 0 || index >= _taskReminders.length) return;
+    setState(() {
+      _taskReminders = List<TaskReminder>.of(_taskReminders)
+        ..[index] = reminder.copyWith(updatedAt: DateTime.now());
+    });
+  }
+
+  Future<void> _pickTaskReminderDate(int index) async {
+    if (index < 0 || index >= _taskReminders.length) return;
+    final current = _taskReminders[index];
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: current.date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ یادآور',
+      cancelText: 'لغو',
+      confirmText: 'تأیید',
+    );
+    if (picked == null || !mounted) return;
+    _updateTaskReminder(index, current.copyWith(
+      date: DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        current.isAllDay ? 0 : current.date.hour,
+        current.isAllDay ? 0 : current.date.minute,
+      ),
+    ));
+  }
+
+  Future<void> _pickTaskReminderTime(int index) async {
+    if (index < 0 || index >= _taskReminders.length) return;
+    final current = _taskReminders[index];
+    final value = await _chooseTime(current.date, helpText: 'انتخاب ساعت یادآور');
+    if (value == null || !mounted) return;
+    final latestIndex = _taskReminders.indexWhere((item) => item.id == current.id);
+    if (latestIndex < 0) return;
+    _updateTaskReminder(latestIndex, current.copyWith(date: value, isAllDay: false));
+  }
+
+  Widget _taskRemindersEditor() {
+    return Container(
+      key: const ValueKey('task-editor-multiple-reminders'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _fieldSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
+              ),
+              FilledButton.tonalIcon(
+                key: const ValueKey('task-editor-add-reminder'),
+                onPressed: _addTaskReminder,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('افزودن یادآور'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text('هر یادآور مستقل است و می‌تواند عنوان و زمان جداگانه داشته باشد.'),
+          if (_taskReminders.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Text('هنوز یادآور مستقلی اضافه نشده است.'),
+            )
+          else
+            ..._taskReminders.asMap().entries.map((entry) {
+              final index = entry.key;
+              final reminder = entry.value;
+              final reminderKey = reminder.id;
+              return Container(
+                key: ValueKey('task-editor-reminder-$reminderKey'),
+                margin: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            key: ValueKey('task-editor-reminder-title-$reminderKey'),
+                            initialValue: reminder.title,
+                            textDirection: TextDirection.rtl,
+                            decoration: _fieldDecoration(label: 'عنوان یادآور'),
+                            onChanged: (value) => _updateTaskReminder(
+                              index,
+                              reminder.copyWith(title: value),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          key: ValueKey('task-editor-remove-reminder-$reminderKey'),
+                          tooltip: 'حذف این یادآور',
+                          onPressed: () => setState(() {
+                            _taskReminders = _taskReminders.where((item) => item.id != reminder.id).toList();
+                          }),
+                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          key: ValueKey('task-editor-reminder-date-$reminderKey'),
+                          onPressed: () => _pickTaskReminderDate(index),
+                          icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                          label: Text(_dateText(reminder.date)),
+                        ),
+                        if (!reminder.isAllDay)
+                          OutlinedButton.icon(
+                            key: ValueKey('task-editor-reminder-time-$reminderKey'),
+                            onPressed: () => _pickTaskReminderTime(index),
+                            icon: const Icon(Icons.schedule, size: 18),
+                            label: Text(_timeText(reminder.date)),
+                          ),
+                      ],
+                    ),
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      child: CheckboxListTile(
+                        key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        value: reminder.isAllDay,
+                        onChanged: (value) {
+                          final allDay = value ?? false;
+                          _updateTaskReminder(index, reminder.copyWith(
+                            isAllDay: allDay,
+                            date: allDay
+                                ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
+                                : reminder.date,
+                          ));
+                        },
+                        title: const Text('تمام‌روز (بدون ساعت)'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+
 Future<void> _pickDueDate() async {
     final value = await _chooseDate(
       _dueDateTime,
@@ -366,6 +565,18 @@ Future<void> _pickDueDate() async {
         a.active == b.active;
   }
 
+  bool _sameTaskReminders(List<TaskReminder> a, List<TaskReminder> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final left = a[i];
+      final right = b[i];
+      if (left.id != right.id || left.title != right.title || left.date != right.date ||
+          left.isAllDay != right.isAllDay || left.sequence != right.sequence ||
+          left.status != right.status) return false;
+    }
+    return true;
+  }
+
   bool get _hasChanges {
     final existing = widget.task;
     final title = _titleController.text;
@@ -386,6 +597,7 @@ Future<void> _pickDueDate() async {
           _dueDateTime != null ||
           _dueAllDay ||
           _reminderDateTime != null ||
+          _taskReminders.isNotEmpty ||
           _recurrence != null ||
           _priority != TaskPriority.none ||
           _completed;
@@ -408,6 +620,7 @@ Future<void> _pickDueDate() async {
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
+        !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _repeatEnabled != (existing.recurrence?.active ?? false) ||
         _priority != existing.priority ||
@@ -476,7 +689,7 @@ Future<void> _pickDueDate() async {
       key: const ValueKey('task-editor-checklist-section'),
       children: [
         Container(
-          key: const ValueKey('task-editor-checklist-toggle'),
+          key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFFF8F7FF),
@@ -486,6 +699,7 @@ Future<void> _pickDueDate() async {
           child: Material(
             color: Colors.transparent,
             child: SwitchListTile(
+              key: const ValueKey('task-editor-checklist-toggle'),
               value: _checklistEnabled,
               onChanged: _setChecklistEnabled,
               contentPadding: EdgeInsets.zero,
@@ -661,6 +875,8 @@ Future<void> _pickDueDate() async {
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
         reminderDate: reminderDate,
+        taskReminders: _taskReminders.map((item) => item.copyWith(taskId: id)).toList(),
+        nextReminderSequence: _nextReminderSequence,
         priority: _priority,
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
@@ -1053,6 +1269,8 @@ Future<void> _pickDueDate() async {
                         onClear: _clearReminderTime,
                         accent: ArvinColors.reminder,
                       ),
+                      const SizedBox(height: 10),
+                      _taskRemindersEditor(),
                       const SizedBox(height: 10),
                       LayoutBuilder(
                         builder: (context, constraints) {

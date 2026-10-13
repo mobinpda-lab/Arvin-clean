@@ -1,3 +1,56 @@
+# EVIDENCE UPDATE — 2026-10-13 (editor + legacy compatibility correction)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| TaskReminder model | Collection stored in canonical Task JSON | Exact-head analysis/test result not yet confirmed |
+| Legacy singular Task reminder | Kept separate; no implicit copy into collection | Old backup compatibility still requires tests |
+| Full Task editor | Add/edit title/date/time/all-day/remove wired; sequence counter saved | Compact RTL/device acceptance pending |
+| Task edit apply | Copies collection and sequence to canonical Task | Exact-head tests pending |
+| Calendar identity | Legacy ID retained; new items use task-reminder-item:<taskId>:<reminderId> | Real provider CREATE→UPDATE→DELETE not yet proven |
+| Notification identity | Legacy and collection paths remain separate | Android runtime scheduling/cancellation unvalidated |
+| Backup JSON | Added multiple-reminder round-trip regression | Does not prove physical file-provider restore/link integrity |
+| Analyze | Prior head failed on four style infos; corrected | Latest-head result unconfirmed |
+| Device / release | Not validated / NO-GO | Physical device and exact-head CI required |
+
+---
+# EVIDENCE UPDATE — 2026-10-13 (provider identity compatibility slice)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| Internal Calendar projection | Migrated legacy item retains `task-reminder:<taskId>`; new items use `task-reminder-item:<taskId>:<reminderId>` | Exact-head test result unavailable |
+| Notification candidate/delivery/alarm | Legacy/new duplicate path suppressed; new reminders use independent stable keys | Android runtime scheduling not validated |
+| Outbound sync eligibility | New ID prefix accepted by parser, feature gate and provider bridge | Existing provider-link continuity not yet tested |
+| Regression tests | Added model, Calendar, notification and ID eligibility cases | No CI runs/statuses returned for head `308ea3b...` |
+| Durable migration / backup restore | OPEN | Need durable-write and rollback tests |
+| Physical device / release | NOT VALIDATED / NO-GO | Required before release |
+
+---
+# EVIDENCE UPDATE — 2026-10-13 (legacy migration and notification projection slice)
+
+| Evidence | Result | Limitation |
+|---|---|---|
+| TaskReminder model | Implemented in PR #2667 | Some metadata remains nullable for backward compatibility; exact-head analysis pending |
+| Legacy Task reminder decode | Deterministic collection item added and legacy field retained | In-memory decode is not yet a durable transaction |
+| Notification projection/alarm | Migrated legacy item uses old delivery identity; legacy/new duplicate scheduling suppressed in pure projection/planner | Runtime Android scheduling/delivery not yet validated |
+| Calendar projection | Migrated item uses legacy Calendar ID; new items use stable Task/reminder IDs | External provider sync reconciliation still pending |
+| Regression tests | Added model, notification planner/projection and Calendar projection tests | CI execution/results not confirmed |
+| Exact-head CI | Not established for latest code head | Do not treat as PASS |
+| Device / release | Not validated / NO-GO | Physical device and real backup/restore remain mandatory |
+
+---
+# EVIDENCE UPDATE — 2026-10-13 (PR #2667 model migration slice)
+
+| Item | Result | Limitation |
+|---|---|---|
+| Canonical TaskReminder model | Implemented in draft PR #2667 | Exact-head tests/build not yet confirmed |
+| Legacy Task.reminderDate decoding | Deterministic ID and idempotent in-memory decode implemented | Durable persistence/rollback boundary and calendar duplicate suppression remain unimplemented |
+| Legacy field retention | Preserved in Task JSON alongside migrated collection item | Requires single-projection compatibility before integration |
+| Regression test | Added for deterministic migration, repeat decode, all-day semantics and nextFollowUp independence | Not yet executed/confirmed by CI |
+| Exact-head CI | No runs/statuses returned for code head at first query | Unknown/pending, not PASS |
+| Physical device | Not tested | Required before release |
+| Release | NO-GO | More integration and validation required |
+
+---
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.

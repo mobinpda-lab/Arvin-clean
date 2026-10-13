@@ -135,4 +135,17 @@ void main() {
     expect(await SystemCalendarBridge(channel: channel).insert(official), isFalse);
     expect(calls, isEmpty);
   });
+  test('accepts independent Task reminder IDs for provider sync', () {
+    expect(
+      SystemCalendarBridge.isEligible(
+        CalendarReminder(
+          id: 'task-reminder-item:task-42:reminder-7',
+          title: 'یادآور',
+          date: DateTime(2026, 10, 20, 10),
+        ),
+      ),
+      isTrue,
+    );
+  });
+
 }

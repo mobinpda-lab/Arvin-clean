@@ -24,6 +24,9 @@ class FollowUpCalendarProjection {
 
   String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
 
+  String taskReminderItemIdFor(Task task, TaskReminder reminder) =>
+      'task-reminder-item:${task.id}:${reminder.id}';
+
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
@@ -89,8 +92,7 @@ class FollowUpCalendarProjection {
       }
 
       final taskReminderDate = task.reminderDate;
-      if (taskReminderDate != null &&
-          !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
+      if (taskReminderDate != null) {
         reminders.add(
           CalendarReminder(
             id: taskReminderIdFor(task),
@@ -99,7 +101,20 @@ class FollowUpCalendarProjection {
             completed: task.completed,
           ),
         );
-        taskDatesAlreadyProjected.add(taskReminderDate);
+      }
+
+      for (final reminder in task.taskReminders) {
+        reminders.add(
+          CalendarReminder(
+            id: taskReminderItemIdFor(task, reminder),
+            title: reminder.title.trim().isEmpty
+                ? 'یادآور ${reminder.sequence}'
+                : reminder.title,
+            date: reminder.date,
+            completed: task.completed || reminder.status == 'completed',
+            isAllDay: reminder.isAllDay,
+          ),
+        );
       }
 
       final dueDate = task.dueDate;

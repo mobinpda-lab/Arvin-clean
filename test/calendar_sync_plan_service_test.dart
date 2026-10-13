@@ -4,6 +4,14 @@ import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 
 void main() {
+  test('resolves Task id for the new independent reminder identity', () {
+    expect(
+      calendarTaskIdForReminderId('task-reminder-item:task-42:reminder-7'),
+      'task-42',
+    );
+  });
+
+
   CalendarReminder reminder({
     required String id,
     String title = 'پیگیری',

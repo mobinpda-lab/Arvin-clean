@@ -1,3 +1,14 @@
+## LIVE UPDATE — 2026-10-13 (multiple Task reminders)
+
+- **Implemented on draft PR #2667:** canonical Task reminder collection, independent editor add/edit/remove controls, TaskEditApplyService copy, Calendar/notification projection identities, and JSON backup round-trip regression coverage.
+- **Compatibility correction:** automatic synthesis of collection items from legacy Task.reminderDate was removed to comply with approved design #2654/#2655. Legacy singular field remains separate; no data migration is claimed.
+- **P1 — Exact-head CI:** OPEN. Earlier head Analyze failed on four style infos and those were fixed; latest code head has no confirmed workflow result yet.
+- **P1 — Calendar Provider continuity:** OPEN. Stable IDs and eligibility are wired for new reminders, but actual create/update/delete continuity and no-duplicate behavior need exact-head tests and physical provider evidence.
+- **P1 — Backup/Restore:** model JSON round-trip test added; real file export/import restore and restored external Calendar-link integrity remain unverified.
+- **P0 — Physical device and release:** OPEN. RTL/compact-screen, notification scheduling/cancellation, and same-event provider update/no-duplicate acceptance are not done. Keep release NO-GO.
+- **Owner-reported current DB is empty.** This does not imply legacy JSON/backups are absent or waive compatibility tests.
+
+---
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.

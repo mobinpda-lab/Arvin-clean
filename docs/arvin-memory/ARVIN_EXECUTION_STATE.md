@@ -1,3 +1,48 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder editor + approved compatibility correction)
+
+This entry supersedes earlier live statements in this file that say legacy Task.reminderDate is automatically copied into taskReminders. Keep older entries as audit history only.
+
+- **Repo/PR:** mobinpda-lab/Arvin-clean; draft [PR #2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667), branch feat/task-reminder-legacy-migration-20261013.
+- **Approved design source:** [PR #2655 design document](https://github.com/mobinpda-lab/Arvin-clean/blob/feat/task-multiple-reminders-editor-20261013/docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md) and [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) explicitly require legacy Task.reminderDate and FollowUp.reminderDate to remain independently readable and prohibit silently copying legacy Task reminders into the new collection. Code has been corrected to follow this; no automatic collection migration is performed.
+- **Implemented:** TaskReminder collection stays inside canonical Task JSON; legacy singular Task reminder remains on its existing path; new collection reminders get independent Calendar and notification identities. Added the full Task editor section with add/title/date/time/all-day/remove controls, monotonic per-Task sequence allocation, default reminder one hour from current local time, and save/apply wiring. Added editor create/edit/delete tests, Task edit-apply coverage, model compatibility test, and canonical backup JSON round-trip test.
+- **Important compatibility correction:** prior draft implementation automatically synthesized legacy-task-reminder:<taskId> collection items. That was removed because it contradicted the approved design. The legacy field remains projected and scheduled by the existing legacy path; new collection items use task-reminder-item:<taskId>:<reminderId>. Same-time reminders with different stable IDs remain distinct.
+- **CI evidence:** an earlier head's Analyze failed only on four prefer_interpolation_to_compose_strings infos; these were corrected. No workflow runs were returned for the latest code head at the time of this update, so current exact-head Analyze/tests/build/provider acceptance are UNCONFIRMED, not PASS. Device Smoke is skipped for docs/code changes under current workflow rules; this does not establish physical-device acceptance.
+- **Known open work:** run latest exact-head CI and fix all failures; review provider update/create/delete behavior for new reminder IDs; ensure the canonical editor has adequate UI tests at compact RTL sizes; validate true backup file restore and Calendar event identity on a physical Android device. Owner reports current DB empty; that does not remove old JSON/backup compatibility obligations.
+- **Next action:** query PR #2667 exact head and its Build test shards, Analyze, APK jobs and Calendar Provider Acceptance; fix failures before adding more scope. Keep Draft and release NO-GO.
+
+---
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (provider identity compatibility slice)
+
+- **PR:** [#2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667), draft; current code/test head before this checkpoint: `308ea3b35c00afcee116539e948df7695a6efb07`.
+- **Additional completed work:** canonical Calendar projection now gives migrated legacy reminders the pre-existing `task-reminder:<taskId>` identity, gives new reminders `task-reminder-item:<taskId>:<reminderId>`, and keeps same-time Task reminders independent. Existing reminder notification projection, delivery service and alarm planner suppress the separate legacy path when the deterministic migrated item exists. Outbound sync task-ID parsing, feature gating and provider eligibility now recognize the new identity prefix.
+- **Added regression tests:** migrated legacy reminder appears once in internal Calendar projection; multiple same-time Task reminders remain separate; new ID parses to its Task ID and is eligible for provider sync; notification delivery/planning preserves independent identities.
+- **CI status:** GitHub query returned no workflow runs and no combined status checks for head `308ea3b...`. This means validation is unconfirmed; it is not a pass. No local Flutter execution was performed.
+- **Remaining blocker:** external Calendar link reconciliation/migration from old link ID to new ID has not been tested against real provider state. Durable migration/write-confirmation/rollback and Backup/Restore round-trip remain open; UI CRUD remains unported.
+- **Next action:** inspect link store/backup migration path and add tests proving an existing `task-reminder:<taskId>` link is reused for the migrated item and not deleted/recreated; then run exact-head CI. Keep PR Draft and release NO-GO.
+
+---
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (legacy migration and notification projection slice)
+
+- **Branch / PR:** `feat/task-reminder-legacy-migration-20261013`, draft [PR #2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667). Latest implementation/test commit before this checkpoint: `be239a66c91d1bf616d1461eff7c29c4e3931ab5`; this memory update creates a new head, so re-query that exact head.
+- **Implemented in this slice:** canonical TaskReminder model fields; deterministic legacy decode ID `legacy-task-reminder:<taskId>`; preserve legacy Task.reminderDate; suppress the legacy field when projecting the migrated reminder to the existing notification candidate/alarm planner; independent IDs for new reminder candidates; date-only reminder notification policy at 09:00 while Calendar remains date-only; Calendar projection uses the existing legacy ID for the migrated item and `task-reminder-item:<taskId>:<reminderId>` for new items.
+- **Tests added:** model migration idempotence and legacy retention; notification projection and alarm identity; multiple reminders independent; Calendar stable legacy identity and same-time independent reminders.
+- **Known limitation:** migration currently occurs during canonical JSON decoding/in-memory reconstruction. A transaction/durable-write confirmation boundary and recovery semantics are not yet implemented. Calendar provider outbound/inbound sync and actual external event reconciliation still need review against the existing bridge. UI CRUD and backup/restore round-trip are not included.
+- **Validation:** no local Flutter analyze/test/build was run. GitHub Actions query returned no workflow runs/status checks for the previous PR head at the time queried; current exact-head CI is unconfirmed, not PASS.
+- **Owner data:** owner reports the current database is raw/empty. This is not evidence that old backups or legacy JSON are absent.
+- **Next action:** inspect provider bridge and backup/restore serialization; add migration persistence/retry semantics and test; validate no duplicate outbound Calendar event across old/new identity; then add editor CRUD. Keep PR Draft and release NO-GO.
+
+---
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2667 model migration slice)
+
+- **Owner data clarification:** owner reports no information has been entered; current database is raw/empty. This narrows current owner-entered-data risk but does not waive compatibility for old backups or legacy JSON.
+- **Current main base:** `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Implementation branch:** `feat/task-reminder-legacy-migration-20261013`; draft PR [#2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667); latest code/test head at PR creation `9fdbccc5ae386ec53425d56105af6c0fadd2815f`. This memory update creates a newer head; CI must be queried again after the update.
+- **Completed slice:** added a canonical `TaskReminder` model carrying stable ID, Task ID, title, date, explicit `isAllDay`, sequence, status, createdAt and updatedAt fields; legacy `Task.reminderDate` is decoded into a deterministic `legacy-task-reminder:<taskId>` item while retaining the legacy field; added a model regression test for repeated decode/save, midnight-not-implying-all-day, and `nextFollowUp` independence.
+- **Important limitation:** this is a first code slice only. Calendar projection suppression for the legacy/migrated pair is not implemented in this PR yet; do not merge it until the old and migrated representations produce exactly one calendar event and one notification schedule. UI CRUD, backup/restore, provider acceptance and physical-device validation remain open.
+- **Validation:** no local Flutter run was executed. At first GitHub query, no workflow runs/status checks were returned for PR head `9fdbccc...`; this is NOT a pass. Exact-head Analyze, all test shards, Debug/Release builds and applicable Device Smoke/provider checks remain pending/unconfirmed.
+- **Next action:** inspect/adjust migration and sequence behavior, implement the single-projection rule in the Calendar/notification layer, then add persistence/backup round-trip tests. Keep PR #2667 Draft and release NO-GO until exact-head CI and device evidence pass.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.

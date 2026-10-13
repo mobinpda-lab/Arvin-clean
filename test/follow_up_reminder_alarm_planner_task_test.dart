@@ -68,4 +68,57 @@ void main() {
       isNull,
     );
   });
+
+  test('legacy Task reminder keeps its original alarm identity', () {
+    final task = Task.fromJson({
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-06T10:00:00.000',
+    });
+    final at = DateTime(2026, 10, 6, 10);
+
+    expect(
+      planner.nextAlarmAt(
+        [task],
+        deliveredState: const {},
+        now: now,
+      ),
+      at,
+    );
+  });
+
+  test('independent Task reminders use distinct schedule identities', () {
+    final firstAt = now.add(const Duration(hours: 1));
+    final secondAt = now.add(const Duration(hours: 2));
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          taskId: 'multi',
+          title: 'اول',
+          date: firstAt,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'multi',
+          title: 'دوم',
+          date: secondAt,
+          sequence: 2,
+        ),
+      ],
+    );
+
+    expect(
+      planner.nextAlarmAt(
+        [task],
+        deliveredState: {'task:multi:reminder:r1@${firstAt.toIso8601String()}': 'delivered'},
+        now: now,
+      ),
+      secondAt,
+    );
+  });
+
 }

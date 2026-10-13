@@ -34,6 +34,25 @@ class FollowUpReminderDeliveryService {
         }
       }
 
+      for (final reminder in task.taskReminders) {
+        if (reminder.status != 'active') continue;
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        if (scheduledAt.isAfter(now)) continue;
+        final candidate = FollowUpReminderCandidate.task(
+          taskId: task.id,
+          taskTitle: task.title,
+          taskReminderId: reminder.id,
+          label: reminder.title.trim().isEmpty
+              ? 'یادآور ${reminder.sequence}'
+              : reminder.title,
+          scheduledAt: scheduledAt,
+        );
+        if (deliveredIdentities.contains(deliveryIdentity(candidate))) continue;
+        result.add(candidate);
+      }
+
       for (final followUp in task.followUps) {
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;

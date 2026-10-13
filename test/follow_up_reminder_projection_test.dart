@@ -149,4 +149,77 @@ void main() {
 
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
+
+  test('legacy Task reminder keeps its original notification identity', () {
+    final task = Task.fromJson({
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-08-28T18:00:00.000',
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.isTaskReminder, isTrue);
+    expect(result.single.stableKey, 'task:legacy-task');
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 18));
+  });
+
+  test('projects multiple independent Task reminders with stable IDs and all-day policy', () {
+    final task = Task(
+      id: 'task-multi',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          taskId: 'task-multi',
+          title: 'تماس',
+          date: DateTime(2026, 8, 28, 18),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'task-multi',
+          title: 'روز جلسه',
+          date: DateTime(2026, 8, 29),
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey),
+        ['task:task-multi:reminder:r1', 'task:task-multi:reminder:r2']);
+    expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
+  });
+
+
+  test('legacy Task reminder and new Task reminders project independently', () {
+    final task = Task.fromJson({
+      'id': 'mixed',
+      'title': 'کار',
+      'reminderDate': '2026-08-28T18:00:00.000',
+      'taskReminders': [
+        {
+          'id': 'new-1',
+          'taskId': 'mixed',
+          'title': 'یادآور جدید',
+          'date': '2026-08-29T09:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+          'status': 'active',
+        },
+      ],
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey),
+        ['task:mixed', 'task:mixed:reminder:new-1']);
+  });
+
 }

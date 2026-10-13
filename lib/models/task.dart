@@ -57,6 +57,81 @@ extension FollowUpLegacyDate on FollowUp {
   DateTime get date => dateTime;
 }
 
+/// One independently editable reminder owned by a canonical Task.
+/// Legacy Task.reminderDate values are represented with a deterministic ID
+/// during decoding so repeated reads/restores do not create extra reminders.
+class TaskReminder {
+  const TaskReminder({
+    required this.id,
+    required this.title,
+    required this.date,
+    this.isAllDay = false,
+    required this.sequence,
+    this.taskId = '',
+    this.status = 'active',
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  final String id;
+  final String taskId;
+  final String title;
+  final DateTime date;
+  final bool isAllDay;
+  final int sequence;
+  final String status;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  TaskReminder copyWith({
+    String? taskId,
+    String? title,
+    DateTime? date,
+    bool? isAllDay,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => TaskReminder(
+        id: id,
+        taskId: taskId ?? this.taskId,
+        title: title ?? this.title,
+        date: date ?? this.date,
+        isAllDay: isAllDay ?? this.isAllDay,
+        sequence: sequence,
+        status: status ?? this.status,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'taskId': taskId,
+        'title': title,
+        'date': date.toIso8601String(),
+        'isAllDay': isAllDay,
+        'sequence': sequence,
+        'status': status,
+        'createdAt': createdAt?.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String(),
+      };
+
+  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
+        id: json['id'] as String? ?? '',
+        taskId: json['taskId'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        date: DateTime.parse(json['date'] as String),
+        isAllDay: json['isAllDay'] as bool? ?? false,
+        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+        status: json['status'] as String? ?? 'active',
+        createdAt: json['createdAt'] == null
+            ? null
+            : DateTime.tryParse(json['createdAt'] as String),
+        updatedAt: json['updatedAt'] == null
+            ? null
+            : DateTime.tryParse(json['updatedAt'] as String),
+      );
+}
+
 /// Unified product model foundation:
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.
@@ -79,6 +154,8 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    Iterable<TaskReminder> taskReminders = const [],
+    this.nextReminderSequence = 1,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -88,7 +165,8 @@ class Task {
     Iterable<PersonReference> people = const [],
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
-        people = _normalizePeople(people);
+        people = _normalizePeople(people),
+        taskReminders = List<TaskReminder>.of(taskReminders);
 
   final String id;
   String title;
@@ -115,6 +193,10 @@ class Task {
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
+  /// Multiple independent reminders, persisted inside this canonical Task.
+  List<TaskReminder> taskReminders;
+  /// Monotonic allocation counter; deleted reminder numbers are not reused.
+  int nextReminderSequence;
   TaskPriority priority;
   bool archived;
   bool trashed;
@@ -241,6 +323,10 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (taskReminders.isNotEmpty)
+          'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
+        if (nextReminderSequence > 1)
+          'nextReminderSequence': nextReminderSequence,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
@@ -260,6 +346,30 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
+    final loadedTaskReminders = <TaskReminder>[];
+    final rawTaskReminders = json['taskReminders'];
+    if (rawTaskReminders is List) {
+      for (final rawReminder in rawTaskReminders) {
+        if (rawReminder is Map) {
+          loadedTaskReminders.add(
+            TaskReminder.fromJson(Map<String, dynamic>.from(rawReminder)),
+          );
+        }
+      }
+    }
+    // Legacy Task.reminderDate remains an independent compatibility field.
+    // Do not silently convert it into the new collection: existing projection
+    // and notification paths continue to own its legacy behavior until an
+    // explicit, separately validated migration is approved.
+    final legacyReminderDate = json['reminderDate'] == null
+        ? null
+        : DateTime.tryParse(json['reminderDate'] as String);
+    final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final nextReminderSequence = [
+      storedSequence < 1 ? 1 : storedSequence,
+      if (loadedTaskReminders.isNotEmpty)
+        loadedTaskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1,
+    ].reduce((a, b) => a > b ? a : b);
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
@@ -304,9 +414,9 @@ class Task {
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
           ),
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
+      reminderDate: legacyReminderDate,
+      taskReminders: loadedTaskReminders,
+      nextReminderSequence: nextReminderSequence,
       priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,

@@ -1,3 +1,12 @@
+## 2026-10-13 — Preserve legacy Task reminder as a separate compatibility field
+
+- **Problem:** An early implementation draft synthesized a new TaskReminder collection item from legacy Task.reminderDate while decoding JSON.
+- **Decision:** Do not silently copy or normalize legacy Task.reminderDate into taskReminders. Keep legacy Task and FollowUp reminder fields unchanged on their established paths; new independent Task reminders use only the explicit collection. This follows the approved design in [PR #2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) and [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654).
+- **Reason:** Prevent implicit duplicate notifications/calendar projections and preserve backward compatibility without semantic migration.
+- **Impact:** Existing legacy reminder keeps task-reminder:<taskId> Calendar identity and the existing legacy notification key. New collection reminders use task-reminder-item:<taskId>:<reminderId> and independent notification keys.
+- **Status:** Implemented on draft PR #2667; exact-head CI and physical provider validation still pending.
+
+---
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs

@@ -11,6 +11,7 @@ import 'system_calendar_bridge.dart';
 String? calendarTaskIdForReminderId(String reminderId) {
   for (final prefix in const <String>[
     'task-due:',
+    'task-reminder-item:',
     'task-reminder:',
     'task-followup:',
     'task-recurrence:',

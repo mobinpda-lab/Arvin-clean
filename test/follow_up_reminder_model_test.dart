@@ -57,4 +57,26 @@ void main() {
       DateTime(2026, 8, 28, 11, 45),
     );
   });
+
+  test('legacy Task reminder remains separate from the new collection', () {
+    final legacyJson = <String, dynamic>{
+      'id': 'legacy-task-42',
+      'title': 'تماس با پزشک',
+      'createdAt': '2026-10-01T08:00:00.000',
+      'reminderDate': '2026-10-20T00:00:00.000',
+      'followUpDate': '2026-10-25T12:00:00.000',
+    };
+
+    final first = Task.fromJson(legacyJson);
+    expect(first.taskReminders, isEmpty,
+        reason: 'legacy reminder must not be silently copied into new collection');
+    expect(first.reminderDate, DateTime(2026, 10, 20));
+    expect(first.followUpDate, DateTime(2026, 10, 25, 12),
+        reason: 'follow-up planning remains independent');
+
+    final second = Task.fromJson(first.toJson());
+    expect(second.taskReminders, isEmpty);
+    expect(second.reminderDate, first.reminderDate);
+    expect(second.followUpDate, first.followUpDate);
+  });
 }
