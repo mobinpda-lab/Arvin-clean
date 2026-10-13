@@ -513,3 +513,21 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Settings test scrolls to the lazy-built all-day reminder setting | `lib/settings_page.dart`; `test/settings_page_test.dart`; commit `c6828c21` | ensureVisible added before asserting/tapping the setting and before later offscreen controls | Exact-head result pending |
 | Latest test-change head `e0bbf62610502498a58953c5c72f1b1349f68733` | Build run [38439948609](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948609); Calendar Provider Acceptance [38439948778](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948778); Device Smoke [38439948699](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948699) | Build and Device Smoke pending/no jobs at poll; Calendar Provider job `115443616711` in progress | Later memory commit advances HEAD; these runs do not validate that newer SHA |
 | Release gate | PR #2666 open/unmerged; no physical-device evidence recorded | **NO-GO** | Requires all gates on one exact final SHA plus device evidence |
+
+
+## 2026-10-13 — Widget-test corrections and exact-head evidence boundary
+
+| Item | Evidence | Result | Limit |
+|---|---|---|---|
+| Prior Build / merge SHA | [Run 38440096707](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096707), merge SHA `6ce2657dd090a9a3501add68838a24b86031b65c`, source head `a72eb359ee099f3e6587d26a103bd96342aac216` | Analyze and test-0/test-3 passed; test-1 and test-2 failed | test-4/test-5 and Debug/Release APK cancelled; cannot count as passing |
+| External Calendar test | Job `115444792411` | One failure: test expected an edit key but source only supplies an open action when edit callback is null | Corrected in commit `140d47f5f36e519e9ec3a5345bacbbbf6407176d`; pending rerun |
+| Calendar completion test | Job `115444792336` | Action existed but tap was outside hit-testable viewport | Visibility correction commit `849530cfa014a9d2ff7a5c1cb80f0eae76154d7e`; pending rerun |
+| Prayer action test | Job `115444792336` | Expected action text not found after long press | Added ensure-visible before long press in commit `17296f0ef5f38da320d0ac7fd13b7648370841d8`; pending rerun |
+| Settings test | Job `115444792336` | `ensureVisible` threw `Bad state: No element` for a lazily built control | Replaced with `scrollUntilVisible` in commit `ad9c444826b4c6b91b16f413f313269fc4fca44b`; pending rerun |
+| Checklist test | Job `115444792336` | Checklist block missing after enable; root cause unresolved | No fix yet; inspect product toggle and test state |
+| Calendar Provider Acceptance | [Run 38440096704](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096704), job `115444126573` | Passed on prior merge SHA | Does not validate newer test-fix commits |
+| Device Smoke | [Run 38440096441](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096441) | Home and Quick Capture passed; SQL Persistence, Backup/Restore, People, SQL Migration cancelled | Remaining lanes require new exact-head run |
+| P1 backup/restore data integrity | [Issue #2682](https://github.com/mobinPda-lab/Arvin-clean/issues/2682) | Open: standalone People directory missing from canonical backup/restore contract | Needs implementation and round-trip, compatibility, validation and rollback evidence |
+| Release | PR #2666 open/unmerged | **NO-GO** | No physical-device evidence; all gates must pass on one exact final SHA |
+
+Source branch commits after the prior run: `140d47f5`, `849530cf`, `17296f0e`, `ad9c4448`. The execution-state documentation update is commit `ad0ceee1ad16254e94faed734dd3e50c3091ee79`; none of these newer source/documentation revisions inherits the prior run's validation.
