@@ -1,3 +1,11 @@
+## 2026-10-13 — Device Smoke draft gate corrected
+
+- **Problem:** `.github/workflows/device-smoke.yml` skipped the entire six-lane Android smoke matrix whenever a pull request was Draft. This prevented required pre-merge validation from running while preserving the project's safe Draft state.
+- **Fix:** remove the draft-only job condition; the workflow still runs only on its configured pull-request events, push-to-main events, or manual dispatch.
+- **Status:** workflow correction committed on the safe integration branch. Confirm all six lanes run and pass on the exact resulting SHA; no claim of device acceptance until then.
+
+---
+
 ## 2026-10-13 — Configurable all-day reminder time
 
 - **Resolved product ambiguity:** 09:00 local is the default, not a fixed time. Users can change it in Settings; the selected minute-of-day persists in canonical AppSettingsService storage and portable backup/restore.

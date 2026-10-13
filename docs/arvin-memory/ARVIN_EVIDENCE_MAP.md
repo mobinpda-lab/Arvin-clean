@@ -1,3 +1,11 @@
+## 2026-10-13 — Draft-safe Device Smoke
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Device Smoke can validate a Draft PR | `.github/workflows/device-smoke.yml` | Removed the condition that skipped the six-lane matrix for Draft PRs | Exact-head run and all six terminal results still required |
+
+---
+
 ## 2026-10-13 — Configurable all-day notification time
 
 | Claim | Evidence | Result | Limit |

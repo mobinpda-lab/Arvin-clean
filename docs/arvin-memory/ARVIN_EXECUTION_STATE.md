@@ -1,3 +1,13 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (draft-safe Device Smoke validation)
+
+- **Reminder policy:** all-day/date-only Task reminders default to 09:00 local time, and users can change this in Settings. The preference persists through the existing AppSettingsService and is applied by alarm planning and background delivery.
+- **Validation automation correction:** `.github/workflows/device-smoke.yml` previously skipped all six Android smoke lanes while a PR was Draft. The draft-only skip has been removed so exact-head smoke validation can run without prematurely marking the PR ready for review.
+- **Branch/PR:** `integration/task-multiple-reminders-safe-20261013`, PR #2666. This CI correction creates a new head; only runs for the resulting exact SHA count as validation.
+- **Current required evidence:** Build Analyze + test shards 0–5, Debug/Release APK, Calendar Provider Acceptance, all six Device Smoke lanes, physical-device behavior, backup/restore and Calendar-link integrity.
+- **Release:** NO-GO. PR remains Draft/unmerged until required gates pass.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (all-day reminder time configurable)
 
 - **Owner decision:** all-day/date-only Task reminder notifications default to **09:00 local time**, and the user can change the time in Settings. It is not hard-coded as an unchangeable hour.
