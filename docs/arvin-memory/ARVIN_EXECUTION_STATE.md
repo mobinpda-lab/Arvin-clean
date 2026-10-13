@@ -874,3 +874,14 @@ This checkpoint continues the current projection-separation PR; it does not rest
 - **Still blocked:** PR review/merge; Calendar Provider Acceptance for CREATE → UPDATE same event/no duplicate; actual OS notification delivery/reschedule/cancel; physical-device installed-flow evidence; real file-provider Backup/Restore and Calendar-link integrity; multiple independent Task-level reminders (separate PR #2655); Persian RTL/compact-screen visual acceptance; explicit owner release approval.
 - **Release:** **NO-GO**. Green CI does not establish physical-device or external-provider behavior and does not clear the separate multi-reminder gate.
 - **Next action:** because this execution-state update itself creates another PR commit, query the resulting exact head and its Build + all six Device Smoke lanes. If green, review the diff and required provider/device gates; do not merge solely because GitHub says mergeable=true.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (projection test failure corrected; revalidation pending)
+
+- Current reviewed implementation commit before this checkpoint: `683cf2a66f43282c1150d6d2f8674aeff86f8ba1`.
+- Build run [38367352703](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38367352703) surfaced one real regression-test failure in shard 4: `test/follow_up_internal_calendar_projection_test.dart`, test `changing nextFollowUp does not mutate existing reminderDate`, failed with `Bad state: No element`. Root cause: the newly added display-precedence rule correctly returns no internal Follow-up fallback when a Reminder exists, while the old test still expected a fallback item.
+- **Correction committed:** `83d7ee4be40228ceeab7644219aa4ae82a56a974` updates that test to assert both contracts: an existing Reminder wins internal Calendar display, and `nextFollowUp` remains independently editable and visible when no Reminder exists. No production code changed in this correction.
+- Earlier poll on head `683cf2a...`: Analyze PASS; test shards 0,1,2,3,5 PASS; shard 4 FAIL; Debug APK PASS; Release APK still running. Device Smoke: Home and Quick Capture PASS; SQL Migration and SQL Persistence running; People and Backup/Restore queued. These results are historical and must not be treated as validation of the corrected head.
+- **Current state after correction:** new commit triggers fresh exact-head validation. Re-query the PR head and Build/Device Smoke workflows; require all test shards, both APK builds and all six smoke lanes to pass before considering merge.
+- PR #2665 remains open/unmerged. No physical-device or external Calendar Provider Acceptance evidence exists. Multi-reminder PR #2655 remains open and non-mergeable.
+- Release remains **NO-GO**.
