@@ -1,3 +1,13 @@
+## 2026-10-13 — Reminder projection compile blocker
+
+- **Problem:** Analyze and Flutter/Android build failed because `FollowUpReminderCandidate.taskReminderId` was not initialized in the default and `.task` constructors.
+- **Root cause:** adding the optional stable TaskReminder identity made the field required by Dart's final-field initialization rules, but two legacy constructors did not set a value.
+- **Impact:** Analyze and test shards failed early; Debug/Release APK, Calendar Provider Acceptance and multiple emulator smoke lanes could not validate product behavior because compilation failed.
+- **Repair:** explicitly initialize `taskReminderId = null` in both constructors. Commit: `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Status:** source-level fix committed; resolved only after exact-head CI passes. Keep release NO-GO until then.
+
+---
+
 ## 2026-10-13 — Draft validation contract preserved
 
 - **Finding:** `.github/workflows/device-smoke.yml` skips Device Smoke for Draft PRs by design; `tool/validate_fast_lane.py` enforces the Fast Lane workflow contract. Removing the condition caused the Parallel Wave contract job to fail.
