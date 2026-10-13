@@ -91,11 +91,8 @@ class FollowUpCalendarProjection {
         taskDatesAlreadyProjected.add(reminderDate);
       }
 
-      final legacyTaskReminderId = 'legacy-task-reminder:${task.id}';
-      final hasMigratedLegacyReminder =
-          task.taskReminders.any((item) => item.id == legacyTaskReminderId);
       final taskReminderDate = task.reminderDate;
-      if (!hasMigratedLegacyReminder && taskReminderDate != null) {
+      if (taskReminderDate != null) {
         reminders.add(
           CalendarReminder(
             id: taskReminderIdFor(task),
@@ -107,17 +104,12 @@ class FollowUpCalendarProjection {
       }
 
       for (final reminder in task.taskReminders) {
-        final isMigratedLegacy = reminder.id == legacyTaskReminderId;
         reminders.add(
           CalendarReminder(
-            id: isMigratedLegacy
-                ? taskReminderIdFor(task)
-                : taskReminderItemIdFor(task, reminder),
-            title: isMigratedLegacy
-                ? 'یادآوری: ${task.title}'
-                : reminder.title.trim().isEmpty
-                    ? 'یادآور ${reminder.sequence}'
-                    : reminder.title,
+            id: taskReminderItemIdFor(task, reminder),
+            title: reminder.title.trim().isEmpty
+                ? 'یادآور ${reminder.sequence}'
+                : reminder.title,
             date: reminder.date,
             completed: task.completed || reminder.status == 'completed',
             isAllDay: reminder.isAllDay,
