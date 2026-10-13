@@ -234,6 +234,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     if (widget.onEditTask == null) return;
     Task? task;
     for (final prefix in const <String>[
+      'task-reminder-item:',
       'task-due:',
       'task-reminder:',
       'task-followup:',
