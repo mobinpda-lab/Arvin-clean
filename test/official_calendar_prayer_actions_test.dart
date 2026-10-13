@@ -46,18 +46,14 @@ void main() {
     expect(find.text('ویرایش'), findsNothing);
     expect(find.text('تبدیل به کار'), findsNothing);
 
-    await tester.tap(find.byKey(
-      const ValueKey('prayer-completed-prayer-test-2026-09-15-fajr'),
-    ));
+    await tester.tap(find.text('ادا شد').last);
     await tester.pumpAndSettle();
     expect(find.text('ادا شد'), findsWidgets);
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(PrayerCompletionStore.key), contains('completed'));
 
-    await tester.tap(find.byKey(
-      const ValueKey('prayer-not-completed-prayer-test-2026-09-15-fajr'),
-    ));
+    await tester.tap(find.text('قضا شد').last);
     await tester.pumpAndSettle();
     expect(prefs.getString(PrayerCompletionStore.key), contains('notCompleted'));
   });
