@@ -1,3 +1,19 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (visual test failure diagnosed and repaired)
+
+This checkpoint supersedes older live-status statements below where they conflict; preserve historical entries for audit.
+
+- **PR #2663:** [visual distinction of Reminder and Follow-up](https://github.com/mobinpda-lab/Arvin-clean/pull/2663), branch `feat/calendar-home-reminder-followup-visuals-20261013`.
+- **Observed prior head:** `4ed2823c057c74326d53933bca42cc230b9c7632`. Build run [38360628679](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38360628679) reported Analyze SUCCESS, test shards 0,1,3,4 SUCCESS; shard 5 FAILED; shard 2 and Debug/Release APK still running at last poll. Device Smoke [38360628682](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38360628682) had not completed.
+- **Root cause:** the new Calendar widget test asserted `find.text('پیگیری')` was unique, but the rendered page correctly contained two labels with that text (the item-kind badge and page-level UI). This was a test selector issue, not evidence of a production behavior failure.
+- **Repair committed:** `5d3fd497135e5fda7c66fc624fe46fccf84eab4c` changes the test to locate the Follow-up item-kind label by its stable key `calendar-item-kind-task-followup:task-2`. This is a test-only fix; no product code or architecture changed.
+- **Validation status after repair:** the repaired head is `5d3fd497135e5fda7c66fc624fe46fccf84eab4c`. Exact-head workflow runs were not yet visible at the time of this checkpoint. The previous run's failure must not be presented as a passing result; the fix requires fresh CI. PR mergeability was recalculating/temporarily false immediately after the new commit.
+- **Scope retained:** Home and Calendar distinguish Reminder and Follow-up using separate icons, accent colors, and lightly tinted/bordered boxes. No Task storage, reminder scheduling, sync, migration or identity semantics changed.
+- **Other unresolved work:** multiple Task-level Reminder feature PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) remains open and mergeable=false; its exact-head CI is absent. Architecture documentation PR #2662 remains open, and its Device Smoke run [38359835858](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38359835858) ended with Backup/Restore and People cancelled; rerun/evidence is still needed if that branch is retained for validation.
+- **Release:** NO-GO. No physical-device acceptance has been evidenced.
+- **Next action:** poll exact-head CI for `5d3fd497135e5fda7c66fc624fe46fccf84eab4c`; fix any new failures, then wait for all Build and Device Smoke jobs to finish successfully. Do not merge on the basis of the previous head's results.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (Home + Calendar visual distinction)
 
 This checkpoint records the latest execution state and supersedes older live-status statements where they conflict; preserve historical entries below.
