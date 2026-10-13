@@ -500,24 +500,24 @@ void main() {
     }
     expect(card, findsOneWidget);
 
-    final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
-    final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
-    // Verify the full launcher -> projection -> Calendar card path exposes
-    // primary actions before the user expands the row.
-    expect(edit, findsOneWidget);
-    expect(register, findsOneWidget);
-
-    await tester.tap(card);
-    await tester.pump();
+    final edit = find.byKey(ValueKey('calendar-action-edit-$occurrenceId'));
+    final register = find.byKey(ValueKey('calendar-action-register-$occurrenceId'));
+    // Ordinary tap is for opening the canonical Task. Management actions are
+    // exposed only by the typed long-press menu.
+    expect(find.byKey(ValueKey('task-due-edit-$occurrenceId')), findsNothing);
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
 
     await tester.tap(edit);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(identical(edited, task), isTrue);
 
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
     await tester.tap(register);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(registered?.id, occurrenceId);
     expect(registered?.date, anchor);
 
@@ -542,7 +542,9 @@ void main() {
     }
     expect(card, findsOneWidget);
 
-    final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
+    final delete = find.byKey(ValueKey('calendar-action-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
@@ -551,6 +553,8 @@ void main() {
     await _pumpRouteTransition(tester);
     expect(deleted, isNull);
 
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
