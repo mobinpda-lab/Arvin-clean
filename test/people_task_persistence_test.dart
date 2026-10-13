@@ -202,6 +202,7 @@ void main() {
       id: 'task-reminder-persistence',
       title: 'یادآورها',
       reminderDate: DateTime(2026, 10, 20, 10),
+      legacyReminderMigrationCompleted: true,
       taskReminders: [
         TaskReminder(
           id: 'persist-r1',
@@ -222,8 +223,17 @@ void main() {
           updatedAt: DateTime(2026, 8, 1),
           sequence: 2,
         ),
+        TaskReminder(
+          id: 'legacy-task-reminder:task-reminder-persistence',
+          taskId: 'task-reminder-persistence',
+          title: 'یادآورها — یادآور ۳',
+          date: DateTime(2026, 10, 20, 10),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 3,
+        ),
       ],
-      nextReminderSequence: 3,
+      nextReminderSequence: 4,
       followUps: [
         FollowUp(
           id: 'history',
@@ -237,9 +247,9 @@ void main() {
     await store.save([task]);
     final loaded = (await TaskStore().load()).single;
 
-    expect(loaded.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2']);
-    expect(loaded.taskReminders.last.isAllDay, isTrue);
-    expect(loaded.nextReminderSequence, 3);
+    expect(loaded.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2', 'legacy-task-reminder:task-reminder-persistence']);
+    expect(loaded.taskReminders.singleWhere((item) => item.id == 'persist-r2').isAllDay, isTrue);
+    expect(loaded.nextReminderSequence, 4);
     expect(loaded.reminderDate, DateTime(2026, 10, 20, 10));
     expect(loaded.followUps.single.reminderDate, DateTime(2026, 10, 23, 11));
     expect(loaded.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 12));
@@ -258,9 +268,9 @@ void main() {
     };
 
     final restored = (await manager.restoreCanonicalTasks())!.single;
-    expect(restored.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2']);
-    expect(restored.taskReminders.last.isAllDay, isTrue);
-    expect(restored.nextReminderSequence, 3);
+    expect(restored.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2', 'legacy-task-reminder:task-reminder-persistence']);
+    expect(restored.taskReminders.singleWhere((item) => item.id == 'persist-r2').isAllDay, isTrue);
+    expect(restored.nextReminderSequence, 4);
     expect(restored.reminderDate, DateTime(2026, 10, 20, 10));
     expect(restored.followUps.single.reminderDate, DateTime(2026, 10, 23, 11));
     expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 12));
