@@ -418,4 +418,85 @@ void main() {
       DateTime(2026, 10, 17, 9),
     ]);
   });
+
+
+  test('migrated legacy reminder projects exactly once under its existing identity', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-projection',
+      'title': 'تماس',
+      'reminderDate': '2026-10-13T09:00:00.000',
+    });
+
+    final reminders = projection.project(<Task>[task]);
+    final legacyEvents = reminders
+        .where((item) => item.id == 'task-reminder:legacy-projection')
+        .toList();
+
+    expect(legacyEvents, hasLength(1));
+    expect(legacyEvents.single.title, 'تماس — یادآور ۱');
+    expect(legacyEvents.single.date, DateTime(2026, 10, 13, 9));
+    expect(task.legacyReminderMigrationCompleted, isTrue);
+  });
+
+  test('same-time Task reminders remain distinct and preserve all-day state', () {
+    final date = DateTime(2026, 10, 13, 0);
+    final createdAt = DateTime(2026, 10, 1, 10);
+    final task = Task(
+      id: 'multi-reminder',
+      title: 'کار',
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'r1',
+          taskId: 'multi-reminder',
+          title: 'کار — یادآور ۱',
+          date: date,
+          status: 'active',
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          isAllDay: true,
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          taskId: 'multi-reminder',
+          title: 'کار — یادآور ۲',
+          date: date,
+          status: 'active',
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          isAllDay: false,
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id).toSet(), {
+      'task-reminder-item:multi-reminder:r1',
+      'task-reminder-item:multi-reminder:r2',
+    });
+    expect(reminders.first.isAllDay, isTrue);
+    expect(reminders.last.isAllDay, isFalse);
+  });
+
+  test('legacy migration tombstone suppresses the old event after removal', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'deleted-legacy-reminder',
+      'title': 'کار',
+      'reminderDate': '2026-10-13T09:00:00.000',
+    });
+    task.taskReminders.clear();
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(task.reminderDate, DateTime(2026, 10, 13, 9));
+    expect(task.legacyReminderMigrationCompleted, isTrue);
+    expect(
+      reminders.any((item) => item.id == 'task-reminder:deleted-legacy-reminder'),
+      isFalse,
+    );
+  });
 }
