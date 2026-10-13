@@ -995,3 +995,14 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Device Smoke run `38361448950`: Home, Quick Capture, SQL Persistence and SQL Migration have now completed SUCCESS. People and Backup/Restore are still IN_PROGRESS at the latest poll; no conclusion is available for those two lanes yet.
 - PR #2663 remains open and mergeable at head `c3b95d0781ec03f07d43379c4087f427667cb250`. Do not treat the Device Smoke gate as complete until People and Backup/Restore conclude successfully.
 - Next: poll remaining two lanes. If either fails, retrieve logs once available and repair on a safe feature branch, then require fresh exact-head CI. Physical-device acceptance and compact RTL visual review remain outstanding. Release remains NO-GO.
+
+
+# DELIVERY BLOCKER UPDATE — 2026-10-13 (latest poll)
+
+- Per owner command, no new feature development was started; priority is evidence and blocker closure.
+- Exact-head Build run `38361448901` at PR #2663 head `c3b95d0781ec03f07d43379c4087f427667cb250`: Analyze, test shards 0–5, Debug APK and Release APK all SUCCESS.
+- Device Smoke run `38361448950`: all six lanes now completed SUCCESS — Home, Quick Capture, SQL Persistence, SQL Migration, People, Backup/Restore. This supersedes earlier notes that People and Backup/Restore were still running.
+- Artifact inventory confirms Release APK and Debug APK artifacts exist for the Build run. Device Smoke artifact listing contains Home, Quick Capture and People artifacts; it did not list dedicated SQL Migration, SQL Persistence or Backup/Restore artifacts. Their lane conclusions are SUCCESS, but do not claim separate downloadable artifacts for those lanes.
+- PR #2663 remains open/mergeable; not merged. This confirms CI and six automated device-smoke lanes for that exact head only.
+- Remaining blockers: physical-device acceptance/real-use evidence; compact RTL/small-screen visual review (Persian label truncation is recorded); Calendar end-to-end validation; multiple independent Task Reminder feature validation/integration. PR #2655 remains open and `mergeable=false`; do not merge directly.
+- Release remains **NO-GO** until remaining gates are evidenced. Next: obtain physical-device acceptance evidence, run/record Calendar and Reminder/Follow-up validation, address compact-screen UX findings, and safely reconcile PR #2655 before its own exact-head validation. No architecture change or new feature until blockers are closed.
