@@ -1251,3 +1251,13 @@ The integration branch advanced again during this audit. Latest observed parent 
 - Parent Calendar Provider Acceptance run [38454176500](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176500) succeeded on the parent SHA. Parent Device Smoke run [38454176507](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38454176507) succeeded on that SHA. These do not override failed Build quality and do not validate child-only Person backup code.
 - P1 #2682 remains OPEN: backup/restore source and regression tests are authored on child branch but exact-head tests, rollback evidence and device validation remain unverified. P1 #2683 Person-specific Report Center filtering/results remains incomplete.
 - Next action: safe branch synchronization/conflict reconciliation is the immediate blocker; then obtain child exact-head Build/Calendar/Device runs, fix concrete failures at root cause, complete #2683, and rerun all gates on one final SHA. Release remains NO-GO; no APK is declared release-ready.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (fresh source compatibility audit)
+- Fresh live audit after the previous checkpoint: PR #2681 remains open/unmerged and its current head is 4ccaa65af60079538527909ee7ed4724a05171ef; base is integration/task-multiple-reminders-safe-20261013 at base SHA c9d244d7ec45d18e5a8c89159a2eeac1c68ae9e1. No PR-triggered workflow runs/checks are associated with this child head.
+- Parent PR #2666 remains open/unmerged at 60af42f259c537fa9311dd0b195004d1dc400f2f, targeting main. Its latest Build remains failed (run 38454176741); Calendar Provider Acceptance (38454176500) and Device Smoke (38454176507) passed, but do not satisfy the full release gate.
+- New compatibility-audit finding: parent already has PersonReference and Task-scoped task_people storage, but it does **not** have the standalone people_directory table/schema, directory APIs in TaskStore, or Person directory UI. Child #2681 adds those pieces as part of the larger structured Follow-up/Person feature. Its backup fix therefore cannot be safely transplanted as a few isolated backup-file replacements; it depends on the directory/schema/TaskStore work.
+- Parent-child compare still reports 82 commits ahead / 134 behind, merge base 68724d6191590b81b2d611f59b7944a7fcbb06e0. No local checkout or Flutter toolchain is available for conflict resolution and validation here. No branch ref was force-updated, no PR merged, and no issue closed.
+- #2682 stays OPEN. Next safe action requires a reconciled branch with the directory/schema and backup changes integrated together, then exact-head CI. Release remains NO-GO.
