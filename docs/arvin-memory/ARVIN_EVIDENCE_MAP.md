@@ -1,3 +1,13 @@
+## 2026-10-13 — Follow-up architecture implementation slice
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Waiting-state edit preserves FollowUp scheduling/completion | `lib/services/waiting_for_response_service.dart`; `test/waiting_for_response_service_test.dart` | Source fix and regression assertions committed on `integration/follow-up-person-model-20261013` | Tests not yet run |
+| FollowUp creation no longer toggles legacy flag | `lib/services/task_store.dart`; `lib/follow_up_repository.dart`; `lib/task_editor_dialog.dart`; `test/task_store_followup_test.dart` | Active writes no longer derive/enable the flag | Exact-head CI pending |
+| Full Follow-up/Person architecture is accepted | `ARVIN_FOLLOW_UP_PERSON_MODEL_DECISION.md` | Decision documented | Person directory, person associations, SQL migration, reports, and device evidence remain incomplete |
+
+---
+
 ## 2026-10-13 — Follow-up analyzer repair
 
 | Claim | Evidence | Result | Limit |
