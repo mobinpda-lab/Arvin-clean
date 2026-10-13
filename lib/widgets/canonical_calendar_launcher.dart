@@ -49,7 +49,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
-  final Future<void> Function(Task task)? onOpenTaskDetail;
+  final Future<void> Function(Task task, CalendarReminder item)? onOpenTaskDetail;
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function()? onRetryCalendarSync;
@@ -224,7 +224,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       }
     }
     if (task == null) return;
-    await widget.onOpenTaskDetail!(task);
+    await widget.onOpenTaskDetail!(task, reminder);
     if (!mounted) return;
     final refreshed = await widget.onRefreshTasks?.call();
     if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
