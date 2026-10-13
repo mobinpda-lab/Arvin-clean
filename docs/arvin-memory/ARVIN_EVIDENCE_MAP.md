@@ -332,3 +332,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Existing test: `test/follow_up_reminder_model_test.dart`, blob `2d232e913812e5dc6b8ff724bc9ca8dd11c5c290`, validates one FollowUp reminder JSON round-trip and legacy missing-reminder behavior only.
 - Current exact-head docs CI for PR #2652 head `00ae93b2dba36093c4074624fe951efec51e2ab4`: Build run [38317606450](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606450) PASS (Analyze, test shards 0–5, Debug/Release APK); Device Smoke run [38317606458](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38317606458) PASS (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the documentation branch's CI only; it does not validate the unimplemented multi-reminder feature or physical-device acceptance.
 - Gap tracker: Issue #2654. Proposal is not approved; no application code/schema changed.
+
+## Follow-up & Reminder architecture v2 — evidence boundary (2026-10-13)
+
+- Decision text: `docs/arvin-memory/ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md`.
+- Read-only source audit on main inspected `lib/models/task.dart`, `lib/task_editor_dialog.dart`, `lib/quick_capture_dialog.dart`, `lib/services/follow_up_calendar_projection.dart`, `lib/services/follow_up_reminder_projection.dart`, `lib/report_center_page.dart`, and `test/task_editor_dialog_test.dart`.
+- Observed: canonical Task has distinct nullable `nextFollowUp` and singular legacy `reminderDate`; FollowUp has its own nullable `nextFollowUp` and `reminderDate`; Quick Entry has Follow-up and Checklist controls; Calendar projection currently projects reminder fields.
+- Not established by this audit: multiple Task-level reminder UI end-to-end, optional reminder creation inside Follow-up entry, complete independent report/search filters, date-only/all-day preservation across every layer, or physical-device behavior.
+- No application code, schema, or migration changed in this documentation step. This record is not test/build evidence. Release remains NO-GO.
