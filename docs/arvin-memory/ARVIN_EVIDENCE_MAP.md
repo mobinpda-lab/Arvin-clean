@@ -477,3 +477,16 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Child PR #2681 head `d87f5a3e3de72e8227b4dd6dd954149757c79774`: no PR-associated workflow runs returned; GitHub reports the stacked PR not mergeable.
 - Related PR #2679 run [38417142693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38417142693): test shard 2 failed one waiting-list test after 232 tests passed. Different merge head; use only as evidence that the old waiting-list contract is failing.
 - Follow-up P1s: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683).
+
+
+---
+
+## 2026-10-13 — Person directory backup/restore (P1 #2682)
+
+| Claim | Source / test | Status | Limitation |
+|---|---|---|---|
+| Existing portable v1 backup includes optional standalone Person records | `lib/backup_service.dart`; `test/backup_service_test.dart` | Implemented; tests authored | Exact-head execution pending |
+| Manager serializes and validates Person IDs/display names and keeps old backups compatible | `lib/backup_manager.dart`; `test/canonical_backup_manager_test.dart` | Implemented; tests authored | Exact-head execution pending |
+| Normal restore merges by stable ID and preserves local-only directory entries | `lib/services/task_store.dart`; `test/person_directory_backup_restore_test.dart` | Implemented; tests authored | Exact-head execution pending |
+| Home and BackupPage restore paths include Person records in emergency backup and rollback | `lib/main.dart`, `lib/backup_page.dart`; `test/home_restore_orchestration_test.dart`, `integration_test/android_backup_restore_sql_smoke_test.dart` | Wiring and regression cases authored | CI/device evidence pending |
+| P1 #2682 is closed/resolved | GitHub Issue #2682 | **Not claimed** | Keep open until exact-head tests/build and rollback/device evidence pass |
