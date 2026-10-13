@@ -32,6 +32,80 @@ void main() {
     expect(find.text('ثبت پیگیری'), findsOneWidget);
   });
 
+
+  testWidgets('waiting-response entry opens a real list of latest active waiting Tasks',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 'waiting-active',
+          'title': 'مشتری منتظر پاسخ',
+          'followUps': [
+            {
+              'id': 'waiting-1',
+              'dateTime': '2026-10-10T09:00:00.000',
+              'result': 'waiting_for_response',
+            },
+          ],
+        },
+        {
+          'id': 'resolved',
+          'title': 'مشتری پاسخ داده',
+          'followUps': [
+            {
+              'id': 'old-waiting',
+              'dateTime': '2026-10-08T09:00:00.000',
+              'result': 'waiting_for_response',
+            },
+            {
+              'id': 'resolved-new',
+              'dateTime': '2026-10-11T09:00:00.000',
+              'result': 'پاسخ دریافت شد',
+            },
+          ],
+        },
+        {
+          'id': 'completed-waiting',
+          'title': 'کار تمام‌شده',
+          'completed': true,
+          'followUps': [
+            {
+              'id': 'waiting-done',
+              'dateTime': '2026-10-12T09:00:00.000',
+              'result': 'waiting_for_response',
+            },
+          ],
+        },
+        {
+          'id': 'archived-waiting',
+          'title': 'کار بایگانی‌شده',
+          'archived': true,
+          'followUps': [
+            {
+              'id': 'waiting-archived',
+              'dateTime': '2026-10-12T10:00:00.000',
+              'result': 'waiting_for_response',
+            },
+          ],
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FollowUpOfficePage(initialWaitingOnly: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('منتظر پاسخ دیگران'), findsOneWidget);
+    expect(find.text('مشتری منتظر پاسخ'), findsOneWidget);
+    expect(find.text('بازکردن کار'), findsOneWidget);
+    expect(find.text('مشتری پاسخ داده'), findsNothing);
+    expect(find.text('کار تمام‌شده'), findsNothing);
+    expect(find.text('کار بایگانی‌شده'), findsNothing);
+  });
+
   testWidgets('adds and persists a follow-up for the only task',
       (tester) async {
     SharedPreferences.setMockInitialValues({
