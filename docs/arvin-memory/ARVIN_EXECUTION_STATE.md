@@ -1,3 +1,31 @@
+# CURRENT BLOCKER MATRIX — 2026-10-13 (fresh GitHub recheck)
+
+This matrix supersedes earlier "latest head" identifiers below. Historical evidence is preserved but is not current-head validation.
+
+## Repository snapshot
+- Main: `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- Multi-reminder PR #2655: OPEN, unmerged, `mergeable=false`; current observed PR head `c0eb66a22ef270f7d72bc46c7aa5f07fbeedb04a`; its base remains `8136c929237c321f2e879a80f067970c31cb0100`. Compare shows main has 3 commits not in PR branch; the feature branch also contains substantial feature work. Do not merge blindly.
+- Safe documentation PR #2666: OPEN, draft, documentation-only, based on current main; not a code integration path.
+- No check-runs were returned for current PR #2655 head `c0eb66a...`. Most recent retrieved Build/Device Smoke/Calendar Provider Acceptance runs are on older SHA `217c57ad...`; Build failed with 3 test cases failing; Device Smoke and Calendar Provider Acceptance succeeded on that old SHA only.
+- Open product gates: #2102 (release / physical-device and data-integrity acceptance) and #2535 (installed Calendar actions/recurrence behavior).
+
+## Blocker-by-blocker state
+1. **Legacy Task reminder migration — BLOCKED / implementation absent.** Current feature model is missing required `taskId/status/createdAt/updatedAt`; old `Task.reminderDate` remains separate from `taskReminders`. Approved migration contract requires deterministic, idempotent conversion and preservation/rollback safety. Next: implement at canonical persistence boundary with migration/backup/rollback tests.
+2. **Calendar duplicate projection — CODE FIX COMMITTED / validation pending.** Commits `9bf7f654...` and `bd74acab...` remove duplicate projection and add regression test. Must pass exact-head tests and provider acceptance.
+3. **Calendar mainline reconciliation — BLOCKED / not integrated.** Main adds internal Follow-up Calendar projection separation; feature overlaps `lib/calendar_page.dart` and `lib/widgets/canonical_calendar_launcher.dart`. PR branch is 3 commits behind main. Next: integrate only after migration design/code is ready; ensure internal Follow-up projection is display-only and excluded from outbound sync/notifications.
+4. **Editor checklist toggle tests — UNVERIFIED.** Older Build run has two failing assertions (block should appear on enable and disappear on disable). No current-head run establishes the fix. Next: reproduce on current head, fix behavior and test.
+5. **Reminder all-day tile Material assertion — SOURCE CHANGE PRESENT / UNVERIFIED.** Current source has local Material wrapper; older test failed due invisible background/ink splash assertion. Need exact-head test pass.
+6. **Exact-head CI — BLOCKED / no evidence.** No checks for current PR head. Old Build failed; old Device Smoke and Calendar Provider Acceptance success are not transferable.
+7. **Physical-device acceptance — OPEN / not performed for this feature.** Real-phone same-event Calendar update/no-duplicate, real-file Backup/Restore, restored link integrity and Persian RTL/compact-screen flow need evidence.
+8. **Existing release gate #2102 — OPEN.** Requires current-main exact-head/device evidence, real Calendar edit acceptance, real-file/device Backup/Restore, Home visual/RTL, broken-link recovery, golden flows and explicit owner approval.
+9. **Installed Calendar regression #2535 — OPEN.** Real installed APK must show manual register/edit actions, edit the same canonical Task/event and display recurrence occurrences on their correct dates (including the approved count up to seven); avoid duplicate records/events.
+10. **Release — NO-GO.** No release, merge or Release Ready claim until blockers and owner acceptance are evidenced.
+
+## Next action
+Start with migration contract + tests on a safe feature branch, then reconcile mainline Calendar changes; rerun all gates on the exact resulting SHA. Do not create a parallel store/scheduler or merge PR #2655 as-is.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (CI failure triage; no current-head evidence)
 
 This checkpoint supersedes live-status statements below when they conflict. Historical entries are retained for audit.
