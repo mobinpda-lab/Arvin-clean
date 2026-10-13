@@ -7,6 +7,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
@@ -120,6 +121,9 @@ void main() {
     expect(afterSave.single.tags, <String>['مهم']);
     expect(afterSave.single.category, 'فروش');
     expect(afterSave.single.checklist, <String>['مرحله ذخیره']);
+    await freshStore.savePersonDirectoryEntry(
+      PersonReference(id: 'person-runtime-local', displayName: 'شخص محلی'),
+    );
 
     final service = _RuntimeBackupService();
     final manager = ArvinBackupManager(service: service);
@@ -136,7 +140,7 @@ void main() {
               failAfterCalendarLinkWrite = false;
               throw StateError('injected failure after Calendar-link write');
             }
-            if (failAfterSettingsWrite && stage == 'settings') {
+            if (failAfterSettingsWrite && stage == 'catalogs') {
               failAfterSettingsWrite = false;
               throw StateError('injected failure after settings write');
             }
@@ -163,12 +167,18 @@ void main() {
     expect(service.document?['tasks'], isNotEmpty);
     expect(service.document?['categories'], contains('فروش'));
     expect(service.document?['tags'], contains('مهم'));
+    expect(service.document?['people'], [
+      {'id': 'person-runtime-local', 'displayName': 'شخص محلی'},
+    ]);
 
     service.document = <String, dynamic>{
       'type': ArvinBackupService.backupType,
       'formatVersion': ArvinBackupService.backupFormatVersion,
       'categories': <String>['دسته پشتیبان مستقل'],
       'tags': <String>['برچسب مستقل'],
+      'people': <Map<String, dynamic>>[
+        {'id': 'person-runtime-imported', 'displayName': 'شخص واردشده'},
+      ],
       'tasks': <Map<String, dynamic>>[
         Task(
           id: 'legacy-runtime',
@@ -199,6 +209,10 @@ void main() {
     expect(restored.single.followUps.single.note, 'پیگیری بازیابی');
     expect(await TaskStore().loadCategories(), contains('دسته پشتیبان مستقل'));
     expect(await TaskStore().loadTags(), contains('برچسب مستقل'));
+    expect(
+      (await TaskStore().loadPeopleDirectory()).map((person) => person.id).toSet(),
+      {'person-runtime-local', 'person-runtime-imported'},
+    );
 
     // The preceding successful restore shows a SnackBar. Clear it before the
     // independent failure scenario so its message cannot queue behind success.
@@ -327,6 +341,10 @@ void main() {
           'lastSyncedFingerprint': 'settings-candidate-fingerprint',
         },
       ],
+      'people': <Map<String, dynamic>>[
+        {'id': 'person-runtime-local', 'displayName': 'نام تغییرکرده در فایل'},
+        {'id': 'person-runtime-added', 'displayName': 'شخص اضافه'},
+      ],
       'settings': <String, dynamic>{
         'themeMode': 'dark',
         'usePersianDate': false,
@@ -360,6 +378,15 @@ void main() {
     expect(
       (await AppSettingsService().load()).fontSize,
       settingsBeforeFinalFailure.fontSize,
+    );
+    final peopleAfterFinalFailure = await TaskStore().loadPeopleDirectory();
+    expect(
+      peopleAfterFinalFailure.map((person) => person.id).toSet(),
+      {'person-runtime-local', 'person-runtime-imported'},
+    );
+    expect(
+      peopleAfterFinalFailure.singleWhere((person) => person.id == 'person-runtime-local').displayName,
+      'شخص محلی',
     );
     final scheduleAfterFinalFailure = await BackupSchedule.load();
     expect(scheduleAfterFinalFailure.enabled, scheduleBeforeFinalFailure.enabled);
@@ -398,6 +425,7 @@ void main() {
         );
         final linkStore = ExternalCalendarLinkStore();
         await linkStore.save([link]);
+        final person = PersonReference(id: 'person-file', displayName: 'شخص فایل');
         final task = Task(
           id: 'file-task',
           title: 'کار در پشتیبان واقعی',
@@ -410,6 +438,7 @@ void main() {
         final backupName = await manager.backupCanonicalTasks(
           [task],
           calendarLinks: [link],
+          people: [person],
         );
         expect(backupName, file.uri.pathSegments.last);
         expect(await file.exists(), isTrue);
@@ -425,6 +454,8 @@ void main() {
           candidate.tasks.single.checklist,
           <String>['مرحله ذخیره‌شده'],
         );
+        expect(candidate.people?.single.id, 'person-file');
+        expect(candidate.people?.single.displayName, 'شخص فایل');
         expect(candidate.calendarLinks, hasLength(1));
         expect(candidate.calendarLinks!.single.eventId, 'event-file');
         expect(await linkStore.load(), isEmpty);
