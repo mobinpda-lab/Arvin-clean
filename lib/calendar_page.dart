@@ -885,17 +885,40 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-reminder:') ||
     id.startsWith('task-followup:');
 
-enum _CalendarItemVisualKind { ordinary, arvinReminder, importedPhoneCalendar, prayer }
+enum _CalendarItemVisualKind {
+  ordinary,
+  arvinReminder,
+  followUp,
+  taskDue,
+  importedPhoneCalendar,
+  prayer,
+}
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
-  if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
-  if (item.id.startsWith('task-due:')) return _CalendarItemVisualKind.arvinReminder;
+  if (item.id.startsWith('external-calendar:')) {
+    return _CalendarItemVisualKind.importedPhoneCalendar;
+  }
+  if (item.id.startsWith('task-reminder:')) {
+    return _CalendarItemVisualKind.arvinReminder;
+  }
+  if (item.id.startsWith('task-followup:') ||
+      item.id.startsWith('followup:')) {
+    return _CalendarItemVisualKind.followUp;
+  }
+  if (item.id.startsWith('task-due:')) {
+    return _CalendarItemVisualKind.taskDue;
+  }
   if (item.id.startsWith('prayer-')) return _CalendarItemVisualKind.prayer;
   return _CalendarItemVisualKind.ordinary;
 }
 
 class _CalendarItemVisualStyle {
-  const _CalendarItemVisualStyle({required this.icon, required this.color, required this.label});
+  const _CalendarItemVisualStyle({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
   final IconData icon;
   final Color color;
   final String label;
@@ -904,13 +927,35 @@ class _CalendarItemVisualStyle {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
+          icon: Icons.notifications_active_outlined,
+          color: scheme.error,
+          label: 'یادآور آروین',
+        ),
+      _CalendarItemVisualKind.followUp => _CalendarItemVisualStyle(
+          icon: Icons.follow_the_signs_outlined,
+          color: scheme.tertiary,
+          label: 'پیگیری',
+        ),
+      _CalendarItemVisualKind.taskDue => _CalendarItemVisualStyle(
+          icon: Icons.event_outlined,
+          color: scheme.primary,
+          label: 'موعد کار',
+        ),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
-        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: 'واردشده از تقویم گوشی'),
+          icon: Icons.calendar_month_outlined,
+          color: scheme.secondary,
+          label: 'واردشده از تقویم گوشی',
+        ),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.event_available_outlined, color: scheme.secondary, label: 'نماز'),
+          icon: Icons.event_available_outlined,
+          color: scheme.secondary,
+          label: 'نماز',
+        ),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: 'یادآور'),
+          icon: Icons.event_outlined,
+          color: scheme.onSurfaceVariant,
+          label: 'رویداد',
+        ),
     };
   }
 }
@@ -993,6 +1038,11 @@ class _ReminderCardState extends State<_ReminderCard> {
     final visual = _CalendarItemVisualStyle.of(context, item);
 
     return Card(
+      color: visual.color.withValues(alpha: 0.055),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: visual.color.withValues(alpha: 0.32)),
+      ),
       child: Column(
         children: [
           ListTile(
