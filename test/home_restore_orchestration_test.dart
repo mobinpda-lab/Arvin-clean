@@ -4,6 +4,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
@@ -65,6 +66,9 @@ void main() {
           'title': 'کار محلی',
         }),
       ]);
+      await taskStore.savePersonDirectoryEntry(
+        PersonReference(id: 'person-local', displayName: 'شخص محلی'),
+      );
       await ProjectStore().save([
         ProjectPlan(
           id: 'local-project',
@@ -124,6 +128,10 @@ void main() {
         },
         'categories': <String>['دسته بازیابی‌شده'],
         'tags': <String>['برچسب بازیابی‌شده'],
+        'people': <Map<String, dynamic>>[
+          {'id': 'person-imported', 'displayName': 'شخص واردشده'},
+          {'id': 'person-local', 'displayName': 'نام تغییرکرده در پشتیبان'},
+        ],
       });
       final manager = ArvinBackupManager(service: backupService);
 
@@ -157,6 +165,9 @@ void main() {
       expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
       expect(await taskStore.loadTags(), contains('برچسب محلی'));
       expect(await taskStore.loadTags(), isNot(contains('برچسب بازیابی‌شده')));
+      final restoredPeople = await taskStore.loadPeopleDirectory();
+      expect(restoredPeople.map((person) => person.id), ['person-local']);
+      expect(restoredPeople.single.displayName, 'شخص محلی');
       expect(
         (await ProjectStore().load()).map((project) => project.id),
         ['local-project'],
