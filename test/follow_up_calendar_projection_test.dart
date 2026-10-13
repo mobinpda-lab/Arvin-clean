@@ -478,8 +478,14 @@ void main() {
       'task-reminder-item:multi-reminder:r1',
       'task-reminder-item:multi-reminder:r2',
     });
-    expect(reminders.first.isAllDay, isTrue);
-    expect(reminders.last.isAllDay, isFalse);
+    expect(
+      reminders.singleWhere((item) => item.id == 'task-reminder-item:multi-reminder:r1').isAllDay,
+      isTrue,
+    );
+    expect(
+      reminders.singleWhere((item) => item.id == 'task-reminder-item:multi-reminder:r2').isAllDay,
+      isFalse,
+    );
   });
 
   test('legacy migration tombstone suppresses the old event after removal', () {
