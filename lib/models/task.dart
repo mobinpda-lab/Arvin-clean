@@ -405,25 +405,25 @@ class Task {
       if (hasMigratedLegacyReminder) {
         legacyReminderMigrationCompleted = true;
       } else {
-      final sequence = nextReminderSequence;
-      final title = taskTitle.trim().isEmpty
-          ? 'یادآور کار — ${_toPersianDigits(sequence)}'
-          : '$taskTitle — یادآور ${_toPersianDigits(sequence)}';
-      loadedTaskReminders.add(
-        TaskReminder(
-          id: legacyReminderId,
-          taskId: taskId,
-          title: title,
-          date: legacyReminderDate,
-          status: 'active',
-          createdAt: reminderMetadataFallback,
-          updatedAt: reminderMetadataFallback,
-          // Midnight is not sufficient evidence of an all-day reminder.
-          isAllDay: false,
-          sequence: sequence,
-        ),
-      );
-      nextReminderSequence = sequence + 1;
+        final sequence = nextReminderSequence;
+        final title = taskTitle.trim().isEmpty
+            ? 'یادآور کار — ${_toPersianDigits(sequence)}'
+            : '$taskTitle — یادآور ${_toPersianDigits(sequence)}';
+        loadedTaskReminders.add(
+          TaskReminder(
+            id: legacyReminderId,
+            taskId: taskId,
+            title: title,
+            date: legacyReminderDate,
+            status: 'active',
+            createdAt: reminderMetadataFallback,
+            updatedAt: reminderMetadataFallback,
+            // Midnight is not sufficient evidence of an all-day reminder.
+            isAllDay: false,
+            sequence: sequence,
+          ),
+        );
+        nextReminderSequence = sequence + 1;
         legacyReminderMigrationCompleted = true;
       }
     }
