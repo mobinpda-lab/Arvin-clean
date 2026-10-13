@@ -457,3 +457,15 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Application code changed in this checkpoint | NONE | Documentation-only update |
 | Exact-head CI / device acceptance | NOT ESTABLISHED by this documentation update | Must be collected on the final code SHA; physical-device acceptance remains separate |
 | Release | NO-GO | No change to release gate |
+
+
+## 2026-10-13 — Calendar Tap / Long Press evidence (pending)
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Short tap opens canonical Task Detail | lib/calendar_page.dart; lib/widgets/canonical_calendar_launcher.dart; lib/main.dart; lib/task_detail_page.dart | Implemented in source | Exact-head widget/route tests pending |
+| Management actions only appear on item long press | lib/calendar_page.dart; test/calendar_runtime_actions_fast_track_test.dart | Implemented in source; tests updated | CI not yet terminal; no screenshot evidence |
+| Task due, Reminder and Follow-up types are distinguishable | _calendarItemVisualKind and _calendarItemLabel; widget test for distinct labels | Implemented in source; test added | Must validate selected type on actual Task Detail route |
+| Task deletion requires explicit confirmation | _confirmDeleteTask in lib/calendar_page.dart; widget test | Implemented in source; test added | Test result pending |
+| Existing Task and external Calendar identity remain stable | canonical launcher ID resolution and existing Calendar sync path | Intended; not yet accepted | Needs end-to-end regression and Calendar Provider acceptance |
+| Small screen, RTL, day/week/month and physical device | No new screenshot or device evidence yet | NOT VERIFIED | Capture genuine evidence after tests pass |
