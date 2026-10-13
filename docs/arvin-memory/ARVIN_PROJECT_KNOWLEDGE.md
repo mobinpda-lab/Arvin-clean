@@ -1,3 +1,12 @@
+## 2026-10-13 — Waiting-for-response discoverability
+
+- A control that stores a state is not a complete user-facing workflow unless the user can discover the resulting list.
+- `FollowUpOfficePage` and its `فقط منتظر پاسخ` filter already existed, but main navigation lacked a route. Connect existing UI before building a duplicate screen.
+- The waiting list must be based on the latest FollowUp for each active Task; completed, archived, or trashed Tasks are not active waiting items.
+- Branch `fix/follow-up-waiting-response-discoverability-20261013`, Issue #2677 / Draft PR #2679 connects the route and enforces the active-task filter without changing canonical storage.
+
+---
+
 ## 2026-10-13 — Waiting-for-response UX finding
 
 - A UI control is not a complete product capability unless users can discover the resulting list/workflow.
