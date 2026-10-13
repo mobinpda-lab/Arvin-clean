@@ -46,6 +46,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'follow_up_office_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -2442,6 +2443,14 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
+                key: const ValueKey('home-more-waiting-responses'),
+                leading: const Icon(Icons.hourglass_top_outlined),
+                title: const Text('منتظر پاسخ دیگران'),
+                subtitle: const Text('فهرست کارهایی که پاسخ آن‌ها باقی مانده است'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_HomeMoreAction.waitingResponses),
+              ),
+              ListTile(
                 key: const ValueKey('home-more-next-action'),
                 leading: const Icon(Icons.next_plan_outlined),
                 title: const Text('اقدام بعدی'),
@@ -2504,6 +2513,13 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.waitingResponses:
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const FollowUpOfficePage(initialWaitingOnly: true),
+          ),
+        );
         return;
       case _HomeMoreAction.nextAction:
         await _openPrimaryNextAction();
@@ -2996,6 +3012,7 @@ enum _HomeMoreAction {
   backup,
   settings,
   nextAction,
+  waitingResponses,
   about,
 }
 
