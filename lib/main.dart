@@ -12,6 +12,7 @@ import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
