@@ -185,9 +185,13 @@ void main() {
   testWidgets('new Task keeps checklist disabled until explicitly enabled', (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
-    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+    final checklistToggle = find.byKey(
+      const ValueKey('task-editor-checklist-toggle'),
+    );
+    expect(checklistToggle, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.ensureVisible(checklistToggle);
+    await tester.tap(checklistToggle);
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
     await tester.enterText(find.byKey(const ValueKey('task-editor-checklist-input')), 'کیف');
