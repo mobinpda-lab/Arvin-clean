@@ -1,3 +1,22 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (exact-head reminder sync failures triage)
+
+- Re-read this checkpoint and queried live PR #2666. It is open, ready for review, mergeable, and unmerged on `integration/task-multiple-reminders-safe-20261013`; release remains NO-GO.
+- Exact head at the start of triage: `e55a9feedf464ad553adb4dd76a948f9a9ed6b6e`.
+- Exact-head CI: Analyze passed; Debug and Release APK builds passed; Calendar Provider Acceptance passed; all six Device Smoke lanes passed. Build quality failed because five test shards failed. Do not infer product acceptance from the passing orchestration workflows.
+- Failure evidence from run 38415626957:
+  - Calendar inbound sync rejects `task-reminder-item:<taskId>:<reminderId>` as ineligible in `SystemCalendarBridge.isEligible`.
+  - Calendar task-ID parser treats the `task-reminder-item:` prefix as `task-reminder:`, yielding the wrong Task ID.
+  - Other failures remain in inbound Calendar update/delete and alarm rescheduling tests, the Task Editor checklist toggle expectation, settings widget visibility, and portable settings backup contract.
+- Safe code fixes committed on this branch:
+  - `a5f82209748ca6781873af0c73abf71352a239f7`: allow new independent Task reminder IDs through Calendar sync eligibility.
+  - `1bbdbe06260a6cf8dfaa7ea3034604d02ce0dfd8`: parse Task ID from `task-reminder-item:` before broader legacy prefixes.
+  - `66300d53e209db9e649c6d97bdb42bc35a74cec3`: align portable backup contract test with the owner-approved configurable 09:00 all-day reminder preference.
+- These are source/test changes, not yet validated. Re-query PR #2666's current head and exact-head Actions after this state update; review new test failures before any further changes.
+- Remaining work: inspect and fix real Calendar inbound/outbound and notification reschedule failures; resolve the checklist test by comparing intended UX to implementation; determine why the settings test does not find a key that exists in source; run all test shards and required build/provider/device gates on the final SHA; collect physical-device and real backup/restore + Calendar-link integrity evidence.
+- Do not merge PR #2666 until exact-head gates pass. Physical-device acceptance remains unverified; release NO-GO.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (projection compile and analyzer lint repairs)
 
 - **Product decision:** all-day/date-only Task reminders default to 09:00 local time; user can change the time in Settings. Timed reminders and FollowUp reminders are unchanged.
