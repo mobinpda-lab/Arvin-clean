@@ -547,7 +547,7 @@ void main() {
     expect(card, findsOneWidget);
 
     await tester.longPress(card);
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     final delete = find.byKey(ValueKey('calendar-action-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
     await tester.tap(delete);
@@ -558,7 +558,7 @@ void main() {
     expect(deleted, isNull);
 
     await tester.longPress(card);
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
