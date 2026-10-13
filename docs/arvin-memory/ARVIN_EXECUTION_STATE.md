@@ -987,3 +987,11 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Device Smoke run `38361448950`: Home and Quick Capture SUCCESS; SQL Persistence and SQL Migration IN_PROGRESS; People and Backup/Restore QUEUED at latest poll. Do not report the six-lane suite complete yet.
 - PR #2663 remains open/mergeable. Physical-device acceptance is still not evidenced. The UX log also records compact-phone clipping/truncation in some Persian project/category/tag and date/time chips; keep this as a P2 acceptance item, do not invent device evidence.
 - Next: poll Device Smoke; if failures appear, inspect exact job logs and repair. Then review screenshot/artifacts, run visual RTL/compact-width checks, and obtain physical-device golden-flow acceptance. Release remains NO-GO.
+
+
+# LIVE CONTINUATION — Device Smoke poll 2026-10-13
+
+- Exact-head Build run `38361448901` remains fully successful: Analyze, test shards 0–5, Debug APK, Release APK.
+- Device Smoke run `38361448950`: Home, Quick Capture, SQL Persistence and SQL Migration have now completed SUCCESS. People and Backup/Restore are still IN_PROGRESS at the latest poll; no conclusion is available for those two lanes yet.
+- PR #2663 remains open and mergeable at head `c3b95d0781ec03f07d43379c4087f427667cb250`. Do not treat the Device Smoke gate as complete until People and Backup/Restore conclude successfully.
+- Next: poll remaining two lanes. If either fails, retrieve logs once available and repair on a safe feature branch, then require fresh exact-head CI. Physical-device acceptance and compact RTL visual review remain outstanding. Release remains NO-GO.
