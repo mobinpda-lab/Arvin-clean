@@ -1,3 +1,23 @@
+# FRESH BLOCKER EVIDENCE — 2026-10-13
+
+| Gate | Latest observed state | Evidence scope | Status |
+|---|---|---|---|
+| Main SHA | `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d` | GitHub branch read | Current snapshot |
+| PR #2655 | OPEN, unmerged, mergeable=false; head `c0eb66a...`; base `8136c929...` | GitHub PR read | Integration blocked |
+| Mainline drift | Main 3 commits ahead of feature branch | Compare base checkpoint to current main | Reconcile before integration |
+| Exact-head checks | 0 check-runs returned for `c0eb66a...` | GitHub checks API | NOT VALIDATED |
+| Older Build #38346161903 | FAILED; three test cases failed; APK Debug/Release and Analyze passed | SHA `217c57ad...` only | Historical only |
+| Older Device Smoke #38346161905 | SUCCESS | SHA `217c57ad...` only | Historical only |
+| Older Calendar Provider #38346161864 | SUCCESS | SHA `217c57ad...` only | Historical only |
+| Migration metadata/idempotence | Missing from feature implementation | Source audit / architecture contract | OPEN BLOCKER |
+| Duplicate Calendar projection | Fix + regression test committed | `9bf7f654...`, `bd74acab...` | Await exact-head pass |
+| Checklist + Material tests | Two checklist failures and one ListTile assertion on older head | Build logs | Current status unverified |
+| Physical-device acceptance | No evidence supplied/found for feature branch | Release gate #2102 | OPEN |
+| Installed Calendar regression | Issue #2535 open | Owner's installed-app report | OPEN |
+| Release | Not ready | Combined gates | NO-GO |
+
+---
+
 # CURRENT VALIDATION AUDIT — 2026-10-13
 
 | Evidence | Result | Scope |
