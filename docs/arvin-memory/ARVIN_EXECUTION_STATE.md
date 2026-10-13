@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2666 exact-head validation checkpoint)
+
+This entry records the latest observed state and supersedes conflicting live-status claims below; older checkpoints remain history.
+
+- **Repository / PR:** `mobinpda-lab/Arvin-clean`, PR [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`.
+- **Validated SHA at time of poll:** `e36ad8376c71feadd6b0834ac5649d2b6aaa6b57`. The memory-only update that follows creates a new head, so all statuses below apply only to this SHA.
+- **Build:** [run 38433903830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38433903830) was still in progress overall at the latest poll. Analyze, test-0, Debug APK and Release APK succeeded; test-1, test-2 and test-3 failed; test-4 and test-5 were still in progress.
+  - test-1: `test/external_calendar_page_projection_test.dart` failed to find key `external-calendar-edit-external-calendar:calendar-7:instance-1`.
+  - test-2: `test/calendar_release_acceptance_test.dart` failed to find key `reminder-complete-followup:release-task:release-followup`; `test/official_calendar_prayer_actions_test.dart` failed to find text `ادا شد`; `test/settings_page_test.dart` failed to find key `all-day-reminder-time-setting`.
+  - test-3: `test/follow_up_office_page_test.dart`, test `waiting filter uses only each task latest follow-up result`, expected two rendered instances of `کار پاسخ‌گرفته` but found one. Its Task fixture contains two FollowUp records; inspect canonical Task loading and viewport/lazy rendering before changing the test or product code. Root cause is **not yet confirmed**.
+- **Device Smoke:** [run 38433903662](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38433903662) was still in progress overall. Home, Quick Capture, SQL Migration and Backup/Restore succeeded; SQL Persistence failed before test execution because Android SDK system-image download reported an invalid/unknown ZIP archive and emulator shutdown could not connect to port 5554; People was still in progress. Treat SQL Persistence as missing environment-blocked evidence, not a product pass or confirmed product defect.
+- **Calendar Provider Acceptance:** success on the validated SHA, but does not override failed Build/Device gates.
+- **Recorded action:** a detailed CI triage comment was posted to [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666#issuecomment-6150892524).
+- **Release:** **NO-GO**. PR remains unmerged. No product code change was made in this checkpoint.
+- **Next action:** poll test-4/test-5 and Device Smoke to terminal results; investigate the failed widget tests against exact source and fixture setup, distinguishing true regressions from off-screen/lazy-rendering assumptions; retry SQL Persistence smoke after resolving the SDK image failure; rerun all required gates on the eventual corrected exact head. Do not weaken assertions without evidence.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (latest Follow-up and reminder code checkpoint)
 
 This entry supersedes older status summaries where they conflict. Re-query live PR head after this memory write.
