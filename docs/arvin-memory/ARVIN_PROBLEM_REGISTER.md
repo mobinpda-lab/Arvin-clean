@@ -234,3 +234,8 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Still open P1:** implementation and safe reconciliation of PR #2655 onto current main. Branch divergence and overlapping Task model/editor/Calendar/notification/backup changes make blind merge unsafe.
 - **Still open data risk:** deterministic/idempotent conversion of legacy Task `reminderDate`; preserving legacy per-FollowUp reminder fields; all-day versus intentional midnight; backup/restore round-trip; prevent legacy and new Calendar identities from creating duplicate events.
 - **Next action:** continue from `integration/task-multiple-reminders-safe-20261013`, port and test the canonical model/migration first. No production code has been ported to this branch as of this update. Release remains NO-GO.
+## 2026-10-13 — Clarification to migration risk: owner database is empty
+- **Owner fact:** the owner states that no information has been entered into Arvin and the database is raw/empty.
+- **Correction:** describe the multiple-reminder migration issue as a persistence/compatibility implementation blocker, not as confirmed loss risk to existing owner-entered data.
+- **Boundary:** do not infer that all installed databases, older backups, test fixtures or legacy payloads are empty without inspection. Compatibility and rollback tests remain required before release.
+- **Status:** documentation clarified. No app code or database changed; migration, current-head CI and physical-device acceptance remain open.
