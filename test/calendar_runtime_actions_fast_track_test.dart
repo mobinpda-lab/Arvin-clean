@@ -254,7 +254,7 @@ void main() {
     await tester.tap(delete);
     await tester.pumpAndSettle();
     // Task-due deletion requires explicit confirmation; cancel must preserve the Task.
-    expect(find.text('حذف کار'), findsOneWidget);
+    expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
     expect(deleted, 0);
     await tester.ensureVisible(find.text('لغو'));
     await tester.tap(find.text('لغو'));
