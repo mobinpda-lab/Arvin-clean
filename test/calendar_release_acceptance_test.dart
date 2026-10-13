@@ -168,7 +168,7 @@ void main() {
       await tester.pump();
 
       await tester.tap(
-        find.byKey(const ValueKey('reminder-complete-followup:release-task:release-followup')),
+        find.byKey(const ValueKey('calendar-action-complete-followup:release-task:release-followup')),
       );
       await tester.pump();
 
