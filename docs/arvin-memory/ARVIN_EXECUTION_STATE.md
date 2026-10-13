@@ -1,3 +1,18 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (duplicate Calendar projection fixed; validation restarted)
+
+This entry supersedes older live-status statements below. Historical checkpoints remain for audit.
+
+- Repository: `mobinpda-lab/Arvin-clean`; main observed at `8136c929237c321f2e879a80f067970c31cb0100`; feature PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655), OPEN and unmerged; issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654).
+- Owner-approved feature: full Task editor has independent **+ افزودن یادآور**, editable title/date/time, all-day flag, stable IDs, monotonic sequence and canonical Task JSON storage. Legacy single reminders remain compatible. No merge/release authorization.
+- **P1 defect found during source review:** Calendar projection iterated the new `taskReminders` collection twice, emitting two Calendar entries for each new reminder under different IDs. This directly violated the no-duplicate-event contract.
+- **Fix committed:** `9bf7f6544d888b04efcf462a745c0151542bfb0f` removes the second projection path and retains the URI-encoded stable identity `task-reminder-item:<encodedTaskId>:<encodedReminderId>`, which matches inbound reconciliation.
+- **Regression test committed:** `bd74acabac3ef38a2b641da6d38e5872707668c6` asserts that two reminders at the same time each project exactly once, have distinct encoded IDs, and preserve the intended date. The test is committed but not yet executed locally or confirmed by CI.
+- Prior exact-head CI on SHA `806f00f2d9d0b29934dff6e50bd9e5857239c7fd`: Analyze passed; all six test shards, Debug/Release APK, Calendar Provider Acceptance and Device Smoke were still in progress/queued at last poll. Those results do **not** validate the new code commits.
+- **Next action:** wait for the workflow set triggered by the newest branch head (including this memory update), inspect Analyze/all test shards/Debug and Release APK/Calendar Provider Acceptance/all six Device Smoke lanes, repair any failures, and refresh exact-head evidence. Physical-device acceptance remains NOT DONE. Release remains **NO-GO**.
+- No local Flutter command or physical-device test was executed by this assistant in this continuation. Do not represent CI as green until confirmed for the final exact SHA.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (encoded reminder identity fix + exact-head validation refresh)
 
 This newest entry supersedes conflicting live-status statements below; historical checkpoints remain for audit.
