@@ -540,7 +540,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             children: [
-              if (_task.followUpEnabled && !(_task.completed))
+              if ((_task.followUps.isNotEmpty || _task.followUpDate != null) && !(_task.completed))
                 Expanded(
                   child: FilledButton.icon(
                     key: const ValueKey('task-detail-add-followup'),
@@ -549,7 +549,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     label: const Text('افزودن پیگیری'),
                   ),
                 ),
-              if (_task.followUpEnabled && !_task.completed) const SizedBox(width: 10),
+              if ((_task.followUps.isNotEmpty || _task.followUpDate != null) && !_task.completed) const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-complete'),
