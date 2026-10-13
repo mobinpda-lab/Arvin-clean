@@ -1,3 +1,13 @@
+## 2026-10-13 — Follow-up flag UX and waiting-list discoverability
+
+- **Problem:** Quick Entry and Full Form exposed «کار پیگیری‌دار», a flag that was not a real Follow-up record. The waiting-for-response filter existed inside the Follow-up Office but was not directly discoverable from Home.
+- **Root cause:** legacy `followUpEnabled` was still treated as a Task classification in some projections and detail badges; Home More did not route to FollowUpOfficePage.
+- **Repair committed:** removed the Quick Entry flag and Full Form checkbox, replaced the Full Form block with a real `followUps[]` section and add action, made editor writes merge new Follow-ups by ID, changed list/detail decisions to real records/legacy date, and added Home → More direct waiting-list navigation plus active/latest filtering and Task detail entry.
+- **Compatibility:** field still exists in JSON/model for legacy reads, but is deprecated and no longer a decision source. The old swipe action label is now «افزودن پیگیری» and opens the Follow-up Office.
+- **Validation status:** focused tests updated/added, but exact-head CI has not yet been polled after the last code and memory commits. Analyze, test shards, Build, Calendar acceptance, six device smoke lanes, backup/restore and physical-device acceptance remain open.
+
+---
+
 ## 2026-10-13 — Strict analyzer findings after compile repair
 
 - **Problem:** `flutter analyze` still returned exit code 1 after the uninitialized-field fix because two info-level lints are treated as blocking by the workflow.
