@@ -66,6 +66,8 @@ class FollowUpRepository {
         reminderDate: current.reminderDate,
         nextFollowUp: current.nextFollowUp,
         completed: completed,
+        waitingForResponse: current.waitingForResponse,
+        personIds: current.personIds,
       );
       final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
       task.followUps = updated;
