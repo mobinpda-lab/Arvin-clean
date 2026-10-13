@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (Home + Calendar visual distinction)
+
+This checkpoint records the latest execution state and supersedes older live-status statements where they conflict; preserve historical entries below.
+
+- **Product request:** distinguish Reminder and Follow-up only by icons, accent colors, and compact tinted/bordered boxes on both the in-app Calendar and Home task cards. Do not conflate data concepts or change scheduling/sync behavior.
+- **Implementation branch:** `feat/calendar-home-reminder-followup-visuals-20261013`.
+- **PR:** [#2663](https://github.com/mobinpda-lab/Arvin-clean/pull/2663), open/unmerged; current observed head `4ed2823c057c74326d53933bca42cc230b9c7632`, mergeable=true.
+- **Files changed:** `lib/calendar_page.dart`, `lib/main.dart`, `test/calendar_page_test.dart`, `test/widgets/home_page_test.dart`.
+- **Implemented:** Reminder uses notification icon/error accent; Follow-up uses follow-up icon/tertiary accent; calendar Reminder/Follow-up cards get subtle tint and border; Home task cards show each separately when present, including Follow-up enabled without a scheduled date. Ordinary events retain default card styling.
+- **Tests added:** Calendar distinct-item visual test; Home task-card test where one Task has both Reminder and Follow-up.
+- **Exact-head CI:** Build run [38360628679](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38360628679) on the observed head: Analyze SUCCESS; six test shards and Debug/Release APK were still in progress at last poll. Device Smoke run [38360628682](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38360628682): Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore queued. Do not claim success until all jobs finish on the same head.
+- **Architecture safety:** no model, storage, migration, notification scheduling, Calendar sync or Task ownership changes in this PR.
+- **Other blockers:** multiple Task-level Reminders PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) remains open/unmerged and mergeable=false; it has no exact-head CI. Documentation decision PR [#2662](https://github.com/mobinpda-lab/Arvin-clean/pull/2662) remains open; Build passed on its then-current head, Device Smoke was incomplete at last poll.
+- **Release:** NO-GO. This is not physical-device acceptance or release evidence.
+- **Next action:** poll exact-head runs for #2663; fix any test failures and rerun; after all required checks pass, review and merge only if safe. Then reconcile #2655 without force-updating refs or risky manual tree merge, and complete Calendar/provider, backup/restore, migration, installation and physical-device validation.
+
+---
+
 # AUTHORITATIVE EXECUTION CHECKPOINT — 2026-10-13 (Calendar Follow-up/Reminder scope resolved)
 
 This entry supersedes the prior unresolved in-app-vs-phone Calendar clarification gate; historical notes remain for audit.
