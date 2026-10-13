@@ -41,7 +41,9 @@ class WaitingForResponseService {
         dateTime: followUp.dateTime,
         note: followUp.note,
         result: canonicalResult,
+        reminderDate: followUp.reminderDate,
         nextFollowUp: followUp.nextFollowUp,
+        completed: followUp.completed,
       );
 
   String _normalize(String value) =>
