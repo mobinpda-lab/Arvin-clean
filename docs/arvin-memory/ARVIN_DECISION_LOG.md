@@ -1,3 +1,12 @@
+## 2026-10-13 — Integration gate: approved migration contract takes precedence
+
+- **Problem:** the feature PR's current implementation retains legacy `Task.reminderDate` separately and does not migrate it into a deterministic TaskReminder item, while the approved architecture decision requires idempotent migration.
+- **Decision:** do not merge or copy PR #2655 into current main as-is. First implement the approved metadata and migration contract, then prove retry/rollback and Calendar single-identity behavior with regression tests.
+- **Reason:** prevents data loss, duplicate external events, and divergence between recorded architecture and shipped behavior.
+- **Impact:** integration remains blocked; feature branch remains available for repair. No data or application code changed in this audit.
+- **Status:** ACTIVE BLOCKER; release NO-GO.
+
+---
 ## 2026-10-13 — Multiple independent Task reminders (owner approved)
 
 - **Problem:** the legacy Task model supports only one Task-level reminder. Adding more must not replace legacy values, couple reminders to `nextFollowUp`, or create duplicate Calendar events.
