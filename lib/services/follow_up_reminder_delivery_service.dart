@@ -22,13 +22,8 @@ class FollowUpReminderDeliveryService {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final legacyReminderId = 'legacy-task-reminder:${task.id}';
-      final hasMigratedLegacyReminder =
-          task.taskReminders.any((item) => item.id == legacyReminderId);
       final taskReminder = task.reminderDate;
-      if (!hasMigratedLegacyReminder &&
-          taskReminder != null &&
-          !taskReminder.isAfter(now)) {
+      if (taskReminder != null && !taskReminder.isAfter(now)) {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
