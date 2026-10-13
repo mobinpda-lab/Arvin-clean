@@ -103,6 +103,42 @@ void main() {
     expect(edited, 0);
   });
 
+  testWidgets('Reminder management never offers deletion of the parent Task', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 9, 15, 9);
+    final reminder = CalendarReminder(
+      id: 'task-reminder-item:task-1:rem-1',
+      title: 'یادآور مستقل',
+      date: day,
+    );
+    var edited = 0;
+    var deletedTask = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: <CalendarReminder>[reminder],
+          onOpenTaskDetail: (_) async {},
+          onEditTask: (_) async => edited++,
+          onDeleteTask: (_) async => deletedTask++,
+          onRegisterTaskToDeviceCalendar: (_) async {},
+        ),
+      ),
+    );
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(ValueKey('calendar-action-reminder-${reminder.id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('calendar-action-delete-${reminder.id}')), findsNothing);
+
+    await tester.tap(find.byKey(ValueKey('calendar-action-reminder-${reminder.id}')));
+    await tester.pumpAndSettle();
+    expect(edited, 1);
+    expect(deletedTask, 0);
+  });
+
   testWidgets('Task due, Reminder and Follow-up rows have distinct labels', (
     tester,
   ) async {
@@ -163,8 +199,8 @@ void main() {
   ) async {
     final day = DateTime(2026, 9, 15, 9);
     final reminder = CalendarReminder(
-      id: 'task-reminder:task-1',
-      title: 'یادآوری کار',
+      id: 'task-due:task-1',
+      title: 'موعد کار',
       date: day,
     );
     var openedId = '';
