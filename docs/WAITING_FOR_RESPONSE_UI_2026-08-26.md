@@ -7,9 +7,10 @@ This slice advances the merged Waiting for Response contract from core stage to 
 - `FollowUpEntryPage` exposes a Persian `منتظر پاسخ دیگران` switch.
 - When enabled, save persists the existing canonical `waiting_for_response` token through the current FollowUp repository path.
 - Existing waiting entries open with the switch enabled; disabling it allows a normal result to replace the waiting state without creating another FollowUp.
-- `FollowUpOfficePage` adds a `فقط منتظر پاسخ` filter.
+- `FollowUpOfficePage` adds a `فقط منتظر پاسخ` filter and Home → More now exposes a direct `منتظر پاسخ دیگران` entry that opens it in waiting-only mode.
 - The filter evaluates only each task's latest FollowUp result, so an older waiting result does not keep a task waiting after a newer resolved FollowUp exists.
-- Waiting rows display a Persian `منتظر پاسخ` chip instead of exposing the internal canonical token.
+- Waiting rows display a Persian `منتظر پاسخ` chip instead of exposing the internal canonical token, and offer `بازکردن کار` to open canonical Task detail.
+- Completed, archived and trashed Tasks are excluded from the active waiting list.
 
 ## Persistence boundary
 No new persistence path was created. Add/edit continues through `FollowUpRepository`, and the waiting state remains in the existing `FollowUp.result` field defined by the merged contract.
