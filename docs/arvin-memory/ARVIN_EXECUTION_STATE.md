@@ -1190,3 +1190,20 @@ The integration branch advanced again during this audit. Latest observed parent 
 - **Mobile UX:** RTL source widgets and RollBox usage exist, but no complete physical-device visual inspection/evidence is recorded for small-screen readability, density, icon sizing and real user flow.
 - **Audit verdict:** the repository contains meaningful implementation, but the full product is not complete or release-ready. The strongest blockers are (1) failing exact-head test shards, (2) Person directory backup/restore integrity, (3) Person-based reports, (4) safe synchronization/merge of child PR #2681 with parent #2666, and (5) missing end-to-end/device evidence for search, calendar/reminder/follow-up behavior and mobile UX.
 - **Next action:** fix the four evidenced test failures at root cause, finish remaining CI lanes, reconcile the stacked branch without overwriting parent changes, resolve #2682/#2683, then rerun all required gates on the exact final head. Release remains **NO-GO**.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (latest exact-head CI poll)
+
+- **Parent PR #2666 current observed head:** `7c830e441a75656faebb4aa63bb146f92ebfab05` on `integration/task-multiple-reminders-safe-20261013`; open and unmerged against `main`. This is newer than earlier recorded heads. Do not assume prior workflow statuses are current.
+- **Build run:** [38425808151](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38425808151) completed **failure**. Analyze and Debug/Release APK builds succeeded, but four test shards failed:
+  - test-2: two checklist UI contract failures (missing/unexpected `task-editor-checklist-block`), missing `all-day-reminder-time-setting`, and legacy reminder migration title mismatch (`جلسه — یادآور ۱` expected, `یادآوری: جلسه` actual).
+  - test-3: waiting-list test expected two `کار پاسخ‌گرفته` widgets but found one under the older latest-result semantics.
+  - test-4: two reminder projection failures (multiple Task reminders expected but only one projected; migrated legacy title mismatch), plus Calendar inbound legacy reminder edit expected one match but found zero, and RTL right-swipe acceptance timed out.
+  - test-5: Calendar inbound legacy reminder deletion expected one match but found zero; migrated reminder title mismatch; Notebook-to-Task editor conversion test failed; RTL left-swipe acceptance timed out.
+  - These are distinct regressions/contract mismatches; do not bulk-change expected values or weaken tests without checking current product intent and root cause.
+- **Calendar Provider Acceptance:** run [38425808310](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38425808310) succeeded for this head.
+- **Device Smoke:** run [38425808110](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38425808110) remains in progress at latest poll. Quick Capture, SQL migration, SQL persistence, Backup/Restore, and Home lanes succeeded; People lane is still running. This is not yet an overall completed smoke gate.
+- **Current blocker:** test failures span Task Editor/Settings, reminder projection and Calendar legacy identity, waiting-list contract, Notebook conversion, and RTL swipe acceptance. Prioritize the smallest reproducible root cause; rerun exact-head tests after each code fix. Child PR #2681 remains Draft/not mergeable and its Person backup/report gaps #2682/#2683 remain open.
+- **Next action:** fetch full failing test context and current implementation for the exact PR head; fix one confirmed root cause without changing accepted contracts, then commit and rerun targeted CI. Keep release **NO-GO** until Build is green and Device Smoke reaches a successful terminal state plus child architecture gates pass.
