@@ -39,6 +39,9 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS task_people (
   task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL,
   person_json TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
+    '''CREATE TABLE IF NOT EXISTS people_directory (
+  id TEXT NOT NULL PRIMARY KEY, display_name TEXT NOT NULL,
+  normalized_name TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
   key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
   ];
