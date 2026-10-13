@@ -55,7 +55,7 @@ void main() {
 
     await tester.longPress(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('calendar-action-edit-external-calendar:calendar-7:instance-1')));
+    await tester.tap(find.byKey(const ValueKey('calendar-action-open-external-calendar:calendar-7:instance-1')));
     await tester.pump();
     expect(opened, isTrue);
     expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
