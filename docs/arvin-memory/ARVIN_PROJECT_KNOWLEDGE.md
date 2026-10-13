@@ -1,3 +1,12 @@
+## 2026-10-13 — Waiting-state update must preserve independent fields
+
+- `WaitingForResponseService.markWaiting` previously rebuilt a FollowUp without copying `reminderDate` or `completed`, which could erase user data when changing waiting state.
+- The constructor now preserves both fields along with identity, date/time, note, and `nextFollowUp`.
+- Added regression assertions for reminder date and completion. Tests have not yet run on this branch.
+- Remaining model gap: waiting status is still encoded in result text and is not yet associated with canonical Person IDs.
+
+---
+
 ## 2026-10-13 — Analyzer lint fixes after projection compile repair
 
 - The first compiler fix exposed two additional strict-CI analyzer findings: `nextReminderSequence = nextReminderSequence` was a redundant initializer, and the reminder equality helper had an unbraced `if` return.
