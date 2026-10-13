@@ -1,3 +1,14 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (legacy migration and notification projection slice)
+
+- **Branch / PR:** `feat/task-reminder-legacy-migration-20261013`, draft [PR #2667](https://github.com/mobinpda-lab/Arvin-clean/pull/2667). Latest implementation/test commit before this checkpoint: `be239a66c91d1bf616d1461eff7c29c4e3931ab5`; this memory update creates a new head, so re-query that exact head.
+- **Implemented in this slice:** canonical TaskReminder model fields; deterministic legacy decode ID `legacy-task-reminder:<taskId>`; preserve legacy Task.reminderDate; suppress the legacy field when projecting the migrated reminder to the existing notification candidate/alarm planner; independent IDs for new reminder candidates; date-only reminder notification policy at 09:00 while Calendar remains date-only; Calendar projection uses the existing legacy ID for the migrated item and `task-reminder-item:<taskId>:<reminderId>` for new items.
+- **Tests added:** model migration idempotence and legacy retention; notification projection and alarm identity; multiple reminders independent; Calendar stable legacy identity and same-time independent reminders.
+- **Known limitation:** migration currently occurs during canonical JSON decoding/in-memory reconstruction. A transaction/durable-write confirmation boundary and recovery semantics are not yet implemented. Calendar provider outbound/inbound sync and actual external event reconciliation still need review against the existing bridge. UI CRUD and backup/restore round-trip are not included.
+- **Validation:** no local Flutter analyze/test/build was run. GitHub Actions query returned no workflow runs/status checks for the previous PR head at the time queried; current exact-head CI is unconfirmed, not PASS.
+- **Owner data:** owner reports the current database is raw/empty. This is not evidence that old backups or legacy JSON are absent.
+- **Next action:** inspect provider bridge and backup/restore serialization; add migration persistence/retry semantics and test; validate no duplicate outbound Calendar event across old/new identity; then add editor CRUD. Keep PR Draft and release NO-GO.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (PR #2667 model migration slice)
 
 - **Owner data clarification:** owner reports no information has been entered; current database is raw/empty. This narrows current owner-entered-data risk but does not waive compatibility for old backups or legacy JSON.
