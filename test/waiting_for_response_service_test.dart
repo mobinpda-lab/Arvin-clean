@@ -11,11 +11,15 @@ void main() {
     required DateTime date,
     String? result,
     String note = '',
+    bool waitingForResponse = false,
+    List<String> personIds = const <String>[],
   }) => FollowUp(
         id: id,
         dateTime: date,
         note: note,
         result: result,
+        waitingForResponse: waitingForResponse,
+        personIds: personIds,
       );
 
   test('uses the latest follow-up result as the waiting state source', () {
@@ -27,6 +31,8 @@ void main() {
           id: 'old',
           date: now.subtract(const Duration(days: 1)),
           result: WaitingForResponseService.canonicalResult,
+          waitingForResponse: true,
+          personIds: const <String>['person-1'],
         ),
         followUp(
           id: 'new',
@@ -39,7 +45,7 @@ void main() {
     expect(service.isWaiting(task), isFalse);
   });
 
-  test('recognizes canonical and Persian legacy aliases', () {
+  test('recognizes canonical and Persian legacy result aliases', () {
     for (final result in [
       'waiting_for_response',
       'waiting',
@@ -47,13 +53,38 @@ void main() {
       'منتظر پاسخ',
       'در انتظار پاسخ',
     ]) {
+      expect(service.isWaitingResult(result), isTrue, reason: result);
       final task = Task(
         id: result,
         title: 'کار',
-        followUps: [followUp(id: 'f', date: now, result: result)],
+        followUps: [
+          followUp(
+            id: 'f',
+            date: now,
+            result: result,
+            waitingForResponse: true,
+            personIds: const <String>['person-1'],
+          ),
+        ],
       );
       expect(service.isWaiting(task), isTrue, reason: result);
     }
+  });
+
+  test('legacy waiting text without a Person is not an active waiting state', () {
+    final task = Task(
+      id: 'legacy-waiting',
+      title: 'کار قدیمی',
+      followUps: [
+        followUp(
+          id: 'f',
+          date: now,
+          result: WaitingForResponseService.canonicalResult,
+        ),
+      ],
+    );
+
+    expect(service.isWaiting(task), isFalse);
   });
 
   test('completed archived and trashed tasks are never active waiting items', () {
@@ -94,6 +125,7 @@ void main() {
       reminderDate: now.add(const Duration(hours: 1)),
       nextFollowUp: now.add(const Duration(days: 2)),
       completed: true,
+      personIds: const <String>['person-1'],
     );
 
     final marked = service.markWaiting(original);
@@ -104,6 +136,8 @@ void main() {
     expect(marked.reminderDate, original.reminderDate);
     expect(marked.nextFollowUp, original.nextFollowUp);
     expect(marked.completed, original.completed);
+    expect(marked.waitingForResponse, isTrue);
+    expect(marked.personIds, original.personIds);
     expect(marked.result, WaitingForResponseService.canonicalResult);
   });
 }
