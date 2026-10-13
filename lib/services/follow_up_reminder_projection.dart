@@ -119,10 +119,21 @@ class FollowUpReminderProjection {
   }
 }
 
-/// Date-only reminders remain all-day calendar events but notify at 09:00
-/// local time. This function never changes the canonical stored date.
-DateTime taskReminderNotificationTime(TaskReminder reminder, {int allDayNotificationMinutes = defaultAllDayReminderNotificationMinutes}) {
+/// Date-only reminders remain all-day calendar events. Notifications use the
+/// user's configured local time (09:00 by default) without changing the date.
+DateTime taskReminderNotificationTime(
+  TaskReminder reminder, {
+  int allDayNotificationMinutes = defaultAllDayReminderNotificationMinutes,
+}) {
   if (!reminder.isAllDay) return reminder.date;
-  final minutes = normalizeAllDayReminderNotificationMinutes(allDayNotificationMinutes);
-  return DateTime(reminder.date.year, reminder.date.month, reminder.date.day, minutes ~/ 60, minutes % 60);
+  final minutes = normalizeAllDayReminderNotificationMinutes(
+    allDayNotificationMinutes,
+  );
+  return DateTime(
+    reminder.date.year,
+    reminder.date.month,
+    reminder.date.day,
+    minutes ~/ 60,
+    minutes % 60,
+  );
 }

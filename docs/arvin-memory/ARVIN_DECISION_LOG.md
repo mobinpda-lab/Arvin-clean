@@ -10,7 +10,7 @@
 
 ## 2026-10-13 — Owner decision: all-day reminder notification time APPROVED
 
-- **Owner decision:** use **09:00 in the user's local time zone** for notification delivery for date-only/all-day Task reminders.
+- **Initial owner decision (amended 2026-10-13):** 09:00 local time is the default for date-only/all-day Task reminders; users can change it in Settings.
 - **Scope:** this selects notification delivery time only; Calendar representation remains all-day/date-only. Timed reminders keep their selected time.
 - **Status:** product-policy ambiguity is resolved. This does not imply CI, Calendar Provider Acceptance, device smoke, physical-device validation, backup/restore, or release gates have passed.
 - **Next:** re-query PR #2666's live head after this memory write and verify required validation on that exact SHA. Keep PR Draft and release NO-GO until gates pass.
