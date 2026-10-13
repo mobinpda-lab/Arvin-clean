@@ -1,3 +1,19 @@
+# AUTHORITATIVE EXECUTION CHECKPOINT — 2026-10-13 (Calendar Follow-up/Reminder scope resolved)
+
+This entry supersedes the prior unresolved in-app-vs-phone Calendar clarification gate; historical notes remain for audit.
+
+- **Owner decision:** The owner supplied `ARVIN CALENDAR FOLLOW-UP & REMINDER INTEGRATION COMMAND v1.0`. The complete decision is recorded in `docs/arvin-memory/ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md`.
+- **Internal Calendar:** show Reminder item(s) when a Task has Reminder(s); if no Reminder exists and `nextFollowUp` exists, show a clearly labeled Follow-up Action. Internal display of Follow-up is presentation only.
+- **External/device Calendar:** sync only authorized Reminders and explicitly sync-enabled Events. Never create an external event or OS notification solely from `nextFollowUp`. Reminder entries must link to their parent Task and update existing events by stable identity without duplicates.
+- **Independence:** `nextFollowUp` and `reminderDate` remain separate. Editing/deleting one must not silently edit/delete the other, reminder siblings, or follow-up history.
+- **UI:** retain «کار پیگیری‌دار», remove the obsolete automatically generated Follow-up time, keep optional explicit Reminder creation, and preserve compact Quick Entry Follow-up/Checklist toggles with progressive disclosure.
+- **GitHub change:** added `ARVIN_CALENDAR_FOLLOWUP_REMINDER_DECISION.md` and updated `ARVIN_FOLLOW_UP_REMINDER_ARCHITECTURE_DECISION.md` on branch `docs/follow-up-reminder-architecture-v2-20261013`, PR #2662.
+- **Validation boundary:** documentation only; no app code/schema/migration changed in this step. Exact-head workflows on prior head `a63a1828ec57912e0001b8506983b44cbf52f890` showed Orchestrator, Production Loop, G1 lock sync, PR Wakeup and Build success, while Device Smoke was still in progress at last poll. These results do not validate the new documentation commits or the reminder feature. Poll current head before reporting final CI.
+- **Other blocker:** feature PR #2655 remains unmerged with unresolved branch divergence and no exact-head validation evidence. Do not force-update refs or merge unvalidated feature code.
+- **Release:** **NO-GO** pending exact-head checks, Calendar Provider Acceptance, six Device Smoke lanes, data compatibility and required physical-device evidence.
+
+---
+
 # AUTHORITATIVE EXECUTION CHECKPOINT — 2026-10-13 (Follow-up & Reminder v2.0)
 
 This entry supersedes conflicting older decision-status text; older entries remain historical evidence.
