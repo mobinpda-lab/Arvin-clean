@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'follow_up_entry_page.dart';
 
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
@@ -71,7 +72,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   DateTime? _initialReminderDateTime;
   late List<TaskReminder> _taskReminders;
   late int _nextReminderSequence;
-  late bool _followUpEnabled;
+  late List<FollowUp> _followUps;
   late bool _completed;
   late List<String> _tags;
   late List<String> _checklist;
@@ -126,10 +127,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 (task.dueDate != null &&
                     !task.allDay &&
                     task.reminderDate == task.dueDate)));
-    _followUpEnabled =
-        task?.followUpEnabled == true ||
-        (task?.followUps.isNotEmpty ?? false) ||
-        task?.followUpDate != null;
+    _followUps = List<FollowUp>.of(task?.followUps ?? const []);
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
@@ -249,11 +247,15 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
 
-  void _setFollowUpEnabled(bool value) {
-    // Enabling follow-up is a state choice only; it must not invent a timestamp.
-    setState(() => _followUpEnabled = value);
+  Future<void> _addFollowUpEntry() async {
+    final followUp = await Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute<FollowUp>(
+        builder: (_) => FollowUpEntryPage(initialDateTime: DateTime.now()),
+      ),
+    );
+    if (!mounted || followUp == null) return;
+    setState(() => _followUps.add(followUp));
   }
-
 
   void _addTaskReminder() {
     final now = DateTime.now();
@@ -601,7 +603,7 @@ Future<void> _pickDueDate() async {
           _checklistEnabled ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
-          _followUpEnabled ||
+          _followUps.isNotEmpty ||
           _followUpDateTime != null ||
           _dueDateTime != null ||
           _dueAllDay ||
@@ -612,10 +614,6 @@ Future<void> _pickDueDate() async {
           _completed;
     }
 
-    final initialFollowUpEnabled =
-        existing.followUpEnabled ||
-        existing.followUps.isNotEmpty ||
-        existing.followUpDate != null;
     return title != existing.title ||
         description != existing.description ||
         pendingTag.isNotEmpty ||
@@ -624,7 +622,7 @@ Future<void> _pickDueDate() async {
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
-        _followUpEnabled != initialFollowUpEnabled ||
+        !listEquals(_followUps, existing.followUps) ||
         _followUpDateTime != existing.followUpDate ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
@@ -878,7 +876,7 @@ Future<void> _pickDueDate() async {
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUpEnabled,
+        followUpEnabled: _followUps.isNotEmpty || existing?.followUpDate != null,
         followUpDate: existing?.followUpDate ?? _followUpDateTime,
         tags: List<String>.of(_tags),
         category: _category,
@@ -893,7 +891,7 @@ Future<void> _pickDueDate() async {
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
-        followUps: List<FollowUp>.of(existing?.followUps ?? const []),
+        followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
         createdAt: existing?.createdAt ?? now,
@@ -1494,40 +1492,56 @@ Future<void> _pickDueDate() async {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: CheckboxListTile(
-                            key: const ValueKey('task-editor-followup-enabled'),
-                            value: _followUpEnabled,
-                            onChanged: (value) =>
-                                _setFollowUpEnabled(value ?? false),
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            activeColor: _brand,
-                            title: const Text(
-                              'کار پیگیری‌دار',
-                              style: TextStyle(
-                                color: _brand,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'پیگیری‌ها',
+                                style: TextStyle(
+                                  color: _brand,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                            subtitle: const Text(
-                              'فعال‌سازی بدون ساخت زمان خودکار؛ سوابق قبلی حفظ می‌شوند',
+                            Text(
+                              _dateFormatter.toPersianDigits(_followUps.length.toString()),
+                              style: const TextStyle(color: Color(0xFF77778A)),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'برای هر اقدام یا نتیجه، یک پیگیری مستقل ثبت کنید. زمان اقدام بعدی و یادآور همچنان جدا هستند.',
+                          style: TextStyle(
+                            color: Color(0xFF77778A),
+                            fontSize: 12,
                           ),
                         ),
-                        if (!_followUpEnabled && hasHistory)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4, bottom: 6),
-                            child: Text(
-                              'سوابق پیگیری قبلی حفظ می‌شوند.',
-                              style: TextStyle(
-                                color: Color(0xFF77778A),
-                                fontSize: 12,
-                              ),
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          key: const ValueKey('task-editor-add-follow-up'),
+                          onPressed: _saving ? null : _addFollowUpEntry,
+                          icon: const Icon(Icons.add),
+                          label: const Text('افزودن پیگیری'),
+                        ),
+                        for (final followUp in _followUps) ...[
+                          const SizedBox(height: 6),
+                          ListTile(
+                            key: ValueKey('task-editor-follow-up-${followUp.id}'),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.history),
+                            title: Text(
+                              followUp.note.trim().isEmpty
+                                  ? 'پیگیری'
+                                  : followUp.note.trim(),
+                            ),
+                            subtitle: Text(
+                              '${_dateText(followUp.dateTime)}، ساعت ${_timeText(followUp.dateTime)}',
                             ),
                           ),
+                        ],
 
                       ],
                     ),
