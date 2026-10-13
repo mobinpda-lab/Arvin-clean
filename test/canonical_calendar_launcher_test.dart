@@ -550,6 +550,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     final delete = find.byKey(ValueKey('calendar-action-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
+    // The long-press menu can extend below the 600px test viewport.
+    // Bring the action into the hit-testable viewport before interacting.
+    await tester.ensureVisible(delete);
+    await tester.pump();
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
@@ -559,6 +563,8 @@ void main() {
 
     await tester.longPress(card);
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(delete);
+    await tester.pump();
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
