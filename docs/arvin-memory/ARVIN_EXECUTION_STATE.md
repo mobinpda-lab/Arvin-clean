@@ -1,3 +1,21 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (terminology audit follow-through)
+
+This entry is the newest terminology checkpoint. Historical entries below remain historical; re-check live GitHub before any merge/release decision.
+
+- **Repository/main:** `mobinpda-lab/Arvin-clean`; observed main SHA `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Issue #2669:** open; terminology glossary and repository-wide UI-label audit.
+- **PR #2670:** open, Draft; glossary document. URL: https://github.com/mobinpda-lab/Arvin-clean/pull/2670.
+- **PR #2671:** open, Draft; text-only due-date terminology changes. Latest commit observed during this checkpoint: `67ae6fcdb09b6ac09b7902d391f2a7a11e80265a`. URL: https://github.com/mobinpda-lab/Arvin-clean/pull/2671.
+- **New source evidence:** `lib/task_editor_dialog.dart` uses `_dueDateTime` for the date picker, yet its field label was “تاریخ انجام” and its time picker said “انتخاب ساعت انجام کار”. On PR #2671 these now read “موعد کار” and “انتخاب ساعت موعد کار”; date-picker help text reads “انتخاب موعد کار”. The editor subtitle was already changed to “موعد کار، یادآور، تکرار، اهمیت و وضعیت”. `lib/task_detail_page.dart`'s “بدون موعد انجام” is also corrected on PR #2671.
+- **Validation:** post-update file readback confirmed the canonical labels on PR #2671. Exact-head Build run [38393338853](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38393338853) was IN_PROGRESS at checkpoint; Device Smoke [38393338851](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38393338851) was SKIPPED. Orchestrator/Production Loop/Parallel Wave succeeded but are not product validation. No claim that the new commit passed Build or device acceptance.
+- **Durable record:** new audit findings/comment posted to Issue #2669 (comment ID 6144941487).
+- **Completed:** source-level follow-through for the due-date wording and updated issue evidence.
+- **In progress:** full string audit across Home, Calendar, Notebook, Next Action, More, Reports, Search, Settings, errors, empty states, tooltips, accessibility labels, guides, tests and docs.
+- **Release:** NO-GO; this terminology work does not establish device acceptance or release readiness.
+- **Next action:** poll exact-head Build for `67ae6fc...`; continue targeted string audit and record exact file/string/canonical label/risk. Keep both terminology PRs Draft until full audit and exact-head checks are reviewed.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
