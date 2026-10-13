@@ -402,7 +402,9 @@ class Task {
     final legacyReminderId = 'legacy-task-reminder:$taskId';
     final hasMigratedLegacyReminder =
         loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId);
-    if (legacyReminderDate != null && !legacyReminderMigrationCompleted) {
+    if (legacyReminderDate != null &&
+        taskId.trim().isNotEmpty &&
+        !legacyReminderMigrationCompleted) {
       if (hasMigratedLegacyReminder) {
         legacyReminderMigrationCompleted = true;
       } else {
