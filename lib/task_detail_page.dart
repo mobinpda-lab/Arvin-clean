@@ -19,6 +19,7 @@ class TaskDetailPage extends StatefulWidget {
     super.key,
     required this.task,
     this.projectTitle,
+    this.calendarItemLabel,
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
@@ -29,6 +30,7 @@ class TaskDetailPage extends StatefulWidget {
 
   final Task task;
   final String? projectTitle;
+  final String? calendarItemLabel;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
@@ -508,7 +510,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
         appBar: AppBar(
-          title: const Text('جزئیات کار'),
+          title: Text(widget.calendarItemLabel == null
+              ? 'جزئیات کار'
+              : 'جزئیات کار · ${widget.calendarItemLabel}'),
           actions: [
             IconButton(
               key: const ValueKey('task-detail-edit'),
