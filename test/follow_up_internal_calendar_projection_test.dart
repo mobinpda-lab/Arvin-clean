@@ -58,6 +58,37 @@ void main() {
     expect(task.toJson(), before);
   });
 
+  test('Reminder precedence is scoped to its own Task', () {
+    final withReminder = Task(
+      id: 'task-with-reminder',
+      title: 'دارای یادآور',
+      reminderDate: DateTime(2026, 10, 20, 9),
+      followUps: [
+        FollowUp(
+          id: 'follow-with-reminder',
+          dateTime: DateTime(2026, 10, 13, 8),
+          nextFollowUp: DateTime(2026, 10, 20, 10),
+        ),
+      ],
+    );
+    final withoutReminder = Task(
+      id: 'task-without-reminder',
+      title: 'بدون یادآور',
+      followUps: [
+        FollowUp(
+          id: 'follow-without-reminder',
+          dateTime: DateTime(2026, 10, 13, 8),
+          nextFollowUp: DateTime(2026, 10, 21, 10),
+        ),
+      ],
+    );
+
+    final items = internal.project([withReminder, withoutReminder]);
+    expect(items, hasLength(1));
+    expect(items.single.id,
+        'task-followup-action:task-without-reminder:follow-without-reminder');
+  });
+
   test('changing nextFollowUp does not mutate existing reminderDate', () {
     final originalReminder = DateTime(2026, 10, 20, 9, 55);
     final task = Task(
