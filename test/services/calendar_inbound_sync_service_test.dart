@@ -381,7 +381,9 @@ void main() {
     expect(result.updated, 1);
     final refreshed = (await taskStore.load()).single;
     expect(refreshed.title, 'کار');
-    expect(refreshed.reminderDate, legacyDate);
+    // The migrated legacy mirror follows the edited canonical reminder date;
+    // the stable legacy identity is retained without renaming the parent Task.
+    expect(refreshed.reminderDate, DateTime(2026, 10, 9, 11));
     expect(refreshed.legacyReminderMigrationCompleted, isTrue);
     expect(refreshed.taskReminders.single.title, 'یادآور قدیمی ویرایش‌شده');
     expect(refreshed.taskReminders.single.date, DateTime(2026, 10, 9, 11));
