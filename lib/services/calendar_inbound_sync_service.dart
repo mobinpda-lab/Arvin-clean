@@ -366,9 +366,10 @@ class CalendarInboundSyncService {
         reminderDate: current.reminderDate,
         nextFollowUp: current.nextFollowUp,
         completed: current.completed,
+        waitingForResponse: current.waitingForResponse,
+        personIds: current.personIds,
       );
       task.followUps = next;
-      task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
       return true;
     }
