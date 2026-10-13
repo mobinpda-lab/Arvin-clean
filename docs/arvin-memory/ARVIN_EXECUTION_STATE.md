@@ -1,3 +1,19 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-13 (approved migration contract reconciliation)
+
+This entry is the newest operational checkpoint. Older entries are historical and must not override these live findings.
+
+- **Owner data state:** owner reports no information has been entered; current database is raw/empty. Do not describe owner-entered records as currently at risk. Do not assume all old backups/fixtures/installed copies are empty.
+- **Main:** `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Safe integration branch:** `integration/task-multiple-reminders-safe-20261013`, 11 commits ahead of main, 0 behind at the latest compare. Latest known head before this checkpoint: `4e83cdc9133a94a37cc1aa40eb28e7b887505754`; this update creates a new head, so its own CI must be rechecked.
+- **Owner decision:** `docs/arvin-memory/ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md` says OWNER DECISION APPROVED. The approved contract requires migration of legacy `Task.reminderDate` into exactly one stable-ID TaskReminder, idempotent retry, preserving the legacy value until the new record is durably written/validated, and no duplicate Calendar projection.
+- **Critical contradiction found:** `docs/arvin-memory/ARVIN_MULTIPLE_REMINDERS_DESIGN.md` and PR #2655 currently say not to auto-migrate the legacy Task reminder. This conflicts with the approved architecture decision. The architecture decision is authoritative; reconcile the design and code before integration. Do not merge PR #2655 as-is.
+- **Current source audit:** main Task model has singular `Task.reminderDate`; no Task-level reminder collection. PR #2655 adds a collection and editor/notification/calendar changes, but its current model lacks required `taskId`, `status`, `createdAt`, `updatedAt` metadata and leaves the legacy reminder outside the collection.
+- **CI checkpoint for docs-only branch head `4e83cdc...`:** Analyze succeeded; six test shards and Debug/Release APK jobs were still in progress at the last poll. Device Smoke was skipped for this docs-only branch. These results are not evidence for feature code or physical-device acceptance.
+- **Completed this run:** re-read execution state, owner decision, Issues #2654/#2635, PRs #2655/#2666, Task model and reminder projection. No app code, database, backup, or owner data was changed in this checkpoint.
+- **Next action:** on a fresh code branch from current main, port the feature in slices and reconcile the migration contract first. Add required reminder metadata, deterministic legacy identity, idempotent migration and tests; then ensure the legacy and migrated record project to exactly one Calendar event/notification. Follow with editor CRUD, backup/restore, notifications, and provider tests. Keep PR #2666 Draft and PR #2655 unmerged until exact-head checks pass.
+- **Release:** NO-GO. Physical-device Calendar, real-file Backup/Restore and Persian RTL/compact-screen acceptance are still separate mandatory gates.
+
+---
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (reminder-model gate and CI poll)
 
 This checkpoint supersedes live-status statements below where conflicting; preserve older entries as history.
