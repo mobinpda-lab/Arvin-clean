@@ -285,4 +285,65 @@ void main() {
     expect(afterRemoval.reminderDate, DateTime(2026, 10, 20, 10));
   });
 
+  test('Follow-up Person links and waiting state survive canonical SQL persistence', () async {
+    final store = TaskStore();
+    final person = _person('person-followup', 'علی');
+    await store.savePersonDirectoryEntry(person);
+    await store.save([
+      Task(
+        id: 'task-followup-person',
+        title: 'تماس با علی',
+        followUps: [
+          FollowUp(
+            id: 'followup-person',
+            dateTime: DateTime(2026, 10, 14, 9),
+            waitingForResponse: true,
+            personIds: [person.id],
+            nextFollowUp: DateTime(2026, 10, 15, 10),
+            reminderDate: DateTime(2026, 10, 14, 18),
+          ),
+        ],
+      ),
+    ]);
+
+    final loaded = (await store.load()).single.followUps.single;
+    expect(loaded.waitingForResponse, isTrue);
+    expect(loaded.personIds, [person.id]);
+    expect(loaded.nextFollowUp, DateTime(2026, 10, 15, 10));
+    expect(loaded.reminderDate, DateTime(2026, 10, 14, 18));
+    expect((await store.loadPeopleDirectory()).single.displayName, 'علی');
+  });
+
+  test('Person deletion detaches references but preserves Task and Follow-up records', () async {
+    final store = TaskStore();
+    final person = _person('person-delete', 'سارا');
+    await store.savePersonDirectoryEntry(person);
+    await store.save([
+      Task(
+        id: 'task-person-delete',
+        title: 'پیگیری قرارداد',
+        people: [person],
+        followUps: [
+          FollowUp(
+            id: 'follow-up-person-delete',
+            dateTime: DateTime(2026, 10, 10, 9),
+            waitingForResponse: true,
+            personIds: [person.id],
+          ),
+        ],
+      ),
+    ]);
+
+    await store.deletePersonDirectoryEntry(person.id);
+    final tasks = await store.load();
+    expect(tasks, hasLength(1));
+    expect(tasks.single.id, 'task-person-delete');
+    expect(tasks.single.followUps, hasLength(1));
+    expect(tasks.single.followUps.single.id, 'follow-up-person-delete');
+    expect(tasks.single.followUps.single.waitingForResponse, isTrue);
+    expect(tasks.single.followUps.single.personIds, isEmpty);
+    expect(tasks.single.people, isEmpty);
+    expect(await store.loadPeopleDirectory(), isEmpty);
+  });
+
 }
