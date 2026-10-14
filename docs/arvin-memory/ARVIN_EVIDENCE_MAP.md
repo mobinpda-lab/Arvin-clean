@@ -502,3 +502,11 @@ Do not close the smoke gate until all six lanes are terminal-success on the exac
 | Person backup/restore source review | PR #2695 code and tests reviewed | Preflight rejects missing directory for structured Person references, duplicate Person IDs and dangling references; rollback test exercises restoration of Tasks and Person directory after an injected failure. Runtime acceptance still depends on terminal smoke evidence and complete test coverage. |
 | Person integration status | [PR #2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) and [PR #2696](https://github.com/mobinpda-lab/Arvin-clean/pull/2696) | Both remain open/Draft. Shared persistence/schema surface remains a duplicate-integration risk; neither was merged or closed. |
 | Release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO: physical-device evidence and final integrated acceptance gates are outstanding. |
+
+
+## Latest lane update — 2026-10-14 14:33 UTC
+
+The row above describing Backup/Restore as in progress is superseded by this update:
+- Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) is terminal SUCCESS on SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46`.
+- Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore are SUCCESS. Only People remains IN_PROGRESS. The overall run is still non-terminal.
+- Release remains NO-GO pending People lane, physical-device acceptance, Calendar/data-integrity gates and final integrated frozen-SHA validation.
