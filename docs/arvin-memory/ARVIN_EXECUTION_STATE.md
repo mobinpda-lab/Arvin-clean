@@ -1033,3 +1033,34 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Validation status:** implementation only; CI is being triggered by these commits and must finish on the final resulting head. Operational dispatcher acceptance remains unproven until the workflow is on default branch and a controlled dispatch completes with exact checkout assertions. Do not merge solely to bypass a gate.
 - **Person PR #2695:** still requires exact-head CI; the current live head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` previously returned zero runs/checks. No app code changed in this correction.
 - **Next action:** inspect the final PR #2699 head, wait for terminal Build and six-lane Device Smoke, then review job logs for YAML/runtime errors. Keep Person and release gates open until their own evidence is available.
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI completion and smoke queue
+
+This update supersedes older contradictory pending states only for the exact SHAs/runs listed below. No release approval is implied.
+
+## Live repository state
+- Default branch `main`: `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` (`ci: validate Device Smoke on integration and draft PRs`).
+- Recovery dispatcher PR #2699 is **merged/closed** (live PR metadata), but the live release workflows on main still show Release Closure and Final Head Release Validation as `skipped`; operational dispatcher acceptance and release acceptance must not be inferred from the merge alone.
+- Release candidate issue [#2702](https://github.com/mobinpda-lab/Arvin-clean/issues/2702) remains OPEN and records candidate SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` as validation-only. Current main is a different SHA, so candidate evidence is not current-main evidence.
+
+## Person PR #2695
+- Exact head: `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9`; PR remains OPEN/Draft.
+- Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) is terminal SUCCESS, all 9 jobs passed (Analyze, six test shards, Debug APK, Release APK).
+- No Device Smoke run is listed for this exact head. The report-filter test interaction repair is validated by Build, but Person feature acceptance and physical-device acceptance are still open.
+
+## Device Smoke workflow PR #2709
+- Exact head: `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; PR remains OPEN/Draft, targeting `integration/task-multiple-reminders-safe-20261013`.
+- Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) is now terminal SUCCESS: Analyze, test-0..5, Debug APK and Release APK all passed. Versioned APK artifacts were generated; the artifact identity contract remains enforced.
+- Device Smoke [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) is **not terminal** at the latest poll: Home and Quick Capture passed; SQL Persistence and SQL Migration were in progress; People and Backup/Restore were queued. Do not mark this PR validated until all six lanes are terminal-success on this exact SHA.
+- Parallel Wave [38568677675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568677675) passed, but it does not substitute for the incomplete Device Smoke run.
+
+## Current main / release evidence
+- The latest main-head query showed the Release Closure and Final Head Release Validation runs completing as `skipped`, not success. Production Loop and Factory REST Promotion Bridge runs succeeded, but those are orchestration evidence, not product acceptance.
+- Do not equate a successful Build, a successful orchestration workflow, or a skipped release gate with a releasable product.
+
+## Remaining blockers
+1. Complete all six Device Smoke lanes on #2709 exact head.
+2. Once the workflow trigger change is reviewed and integrated into the intended integration base, require fresh exact-head Device Smoke for #2695.
+3. Reconcile #2666/#2655 stacked reminder and Follow-up branches safely against live main; rerun relevant Build, smoke, and Calendar Provider Acceptance.
+4. Complete Person settings, multi-Person Follow-up, Person report filters, backup/restore relationship integrity, Calendar same-event update/no-duplicate behavior, physical-device validation, Persian RTL/compact-screen evidence, and release guides.
+5. Keep release NO-GO until all gates are checked with evidence matching the final candidate SHA.
