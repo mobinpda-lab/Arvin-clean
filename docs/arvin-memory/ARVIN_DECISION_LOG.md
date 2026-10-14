@@ -1,3 +1,13 @@
+## 2026-10-14 — Exact-head CI evidence must prove checkout
+
+- **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.
+- **Decision:** Only accept a recovery `workflow_dispatch` run as exact-head evidence when its run head SHA and declared target SHA both match the current PR head; the Build's quality and APK jobs must assert the actual checked-out SHA.
+- **Reason:** Run metadata, requested target and actual checkout are distinct evidence. All must align before declaring exact-head validation.
+- **Impact:** A green merge-ref run or historical run cannot mask missing validation of the exact PR head.
+- **Status:** Implemented in PR #2699 commit `af3e3724ae08a956bb91fcbd82174ec23a2d2066`; final-head CI and operational dispatcher acceptance pending.
+
+---
+
 ## 2026-10-14 — Exact-head CI recovery dispatcher
 
 - **Problem:** Some current PR heads have no visible Arvin Build run/checks, so older green runs cannot validate current changes.
