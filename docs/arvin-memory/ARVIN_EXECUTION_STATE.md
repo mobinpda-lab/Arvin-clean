@@ -1064,3 +1064,18 @@ This update supersedes older contradictory pending states only for the exact SHA
 3. Reconcile #2666/#2655 stacked reminder and Follow-up branches safely against live main; rerun relevant Build, smoke, and Calendar Provider Acceptance.
 4. Complete Person settings, multi-Person Follow-up, Person report filters, backup/restore relationship integrity, Calendar same-event update/no-duplicate behavior, physical-device validation, Persian RTL/compact-screen evidence, and release guides.
 5. Keep release NO-GO until all gates are checked with evidence matching the final candidate SHA.
+
+# AUTHORITATIVE POLL UPDATE — 2026-10-14 — Device Smoke progressed
+
+This poll supersedes only the prior lane-status snapshot for Device Smoke run `38568684934`; the run is still non-terminal.
+
+- Exact tested head: `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`.
+- Build run `38568685043`: terminal SUCCESS, 9/9 jobs.
+- Device Smoke run `38568684934`: Home PASS; Quick Capture PASS; SQL Persistence PASS; SQL Migration PASS; People IN PROGRESS; Backup/Restore IN PROGRESS.
+- Four of six smoke lanes are terminal-success. Wait for both remaining lanes to finish; if either fails, inspect its failing step/log and repair the root cause without removing tests.
+- PR #2709 remains Draft/unmerged. This workflow-only branch is not release approval and does not validate Person PR #2695 by itself.
+- PR #2695 head `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9` has Build SUCCESS (run `38568442359`, 9/9 jobs) and 13 check-runs including successful quality/APK lanes; feedback-loop is skipped. No Device Smoke run was returned for that exact head.
+- Current main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release gate remains NO-GO.
+- Work performed in this poll: rechecked repository state, open PRs/issues, exact-head run/check metadata, and smoke jobs; updated this execution checkpoint and the evidence map on PR #2701's branch. No app code changed and no tests were weakened.
+
+**Current bottleneck:** complete People and Backup/Restore smoke lanes on the exact #2709 head, then enable/obtain exact-head smoke for #2695 and continue feature/data-integrity acceptance.
