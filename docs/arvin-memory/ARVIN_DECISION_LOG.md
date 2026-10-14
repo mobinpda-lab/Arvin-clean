@@ -1,3 +1,13 @@
+## 2026-10-14 — Exact-head CI recovery dispatcher
+
+- **Problem:** Some current PR heads have no visible Arvin Build run/checks, so older green runs cannot validate current changes.
+- **Decision:** Add a scheduled/manual recovery dispatcher as a backstop, with explicit `target_sha` input, pinned checkout, run-name evidence and a checkout assertion in all Build lanes. The dispatcher must exclude forks, never merge/release, avoid duplicate active runs, rate-limit recent failures, and require the latest exact-head result.
+- **Reason:** A branch ref can move between discovery and dispatch. Branch-only dispatch is insufficient evidence that the intended SHA was tested.
+- **Impact:** Makes recovery possible without depending solely on the ordinary PR event, while preserving the product release gates.
+- **Status:** Implemented in PR #2699 but **not yet validated**. Missing CI on PR #2695 remains unexplained; this is mitigation, not proven root-cause closure.
+
+---
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs

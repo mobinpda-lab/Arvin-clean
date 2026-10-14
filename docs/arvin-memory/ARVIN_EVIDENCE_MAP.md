@@ -1,3 +1,18 @@
+## 2026-10-14 — CI recovery dispatcher evidence
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Recovery dispatcher implementation | PR #2699; parent before memory checkpoint `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending validation | [PR #2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699) |
+| Arvin Build | Run [38514863822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863822), parent SHA `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending at last poll | Not terminal; does not validate the next commit |
+| Device Smoke | Run [38514863806](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863806), parent SHA `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending at last poll | Emulator/CI evidence only; not physical-device acceptance |
+| Person PR exact-head runs | `6d01c603...`, `0432e3a...` | No runs returned | Absence confirmed in Actions query; cause not proven |
+| Main Build / Device Smoke | `de795419be2c39775119af8eaa37c53744820d93` | Previously successful | Main-only evidence; not Person PR validation |
+| Release Closure / Final Head Validation | Runs [38512839311](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38512839311), [38512853231](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38512853231) | Skipped | Release remains NO-GO |
+
+**Evidence rule:** refresh all rows against the final integrated SHA. Pending, queued, skipped and older SHA results are not passes.
+
+---
+
 # LIVE EVIDENCE UPDATE — 2026-10-14 — Person integration repair
 
 - **Parent multiple-reminder integration:** PR #2666 head `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; Build [38507091410](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091410) SUCCESS, Device Smoke [38507091345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091345) SUCCESS across all six lanes, Calendar Provider Acceptance [38507091333](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091333) SUCCESS. CI/emulator evidence only; no physical-device acceptance.

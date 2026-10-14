@@ -1,3 +1,14 @@
+## 2026-10-14 — CI recovery learning
+
+- A queued workflow is not a pass. Evidence must name the exact commit SHA and reach a terminal result.
+- Workflow dispatch should carry an explicit target SHA, and every build lane should assert the checkout equals that SHA. The run name should expose the requested target for audit.
+- When a branch moves between PR discovery and dispatch, the dispatcher must not mistake a run on the new branch head for a build of the earlier requested commit, or vice versa.
+- Historical success must not mask a newer failure for the same SHA; use the latest exact-head result and avoid rapid retry loops.
+- Zero runs for an exact SHA proves absence of returned run evidence, not the reason for absence. Investigate event history, workflow state, permissions and policy before declaring a root cause.
+- The recovery dispatcher does not replace normal CI, product acceptance, physical-device validation or release gates.
+
+---
+
 # Arvin Project Knowledge
 
 Updated: 2026-10-11

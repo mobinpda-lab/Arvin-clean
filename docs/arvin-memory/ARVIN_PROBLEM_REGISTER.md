@@ -1,3 +1,15 @@
+## 2026-10-14 — Missing exact-head Build evidence
+
+- **Problem:** PR #2695 exact heads `6d01c603...` and `0432e3a...` returned no Actions runs; older failed/successful runs are not valid evidence for those heads.
+- **Classification:** Infrastructure / CI orchestration (root cause unconfirmed).
+- **Impact:** Cannot promote the Person integration; stacked branch and product acceptance remain blocked.
+- **Mitigation:** PR #2699 adds a scheduled/manual recovery dispatcher and SHA-pinned Build dispatch.
+- **Root cause:** Unknown. Do not infer token suppression or a permission fault without event-level evidence.
+- **Validation required:** Exact-head Build and Device Smoke on final PR #2699 head; after merge, run the dispatcher against a controlled missing-evidence PR and confirm requested SHA = checked-out SHA = accepted run SHA, with terminal checks.
+- **Status:** OPEN / UNDER VALIDATION. Release remains NO-GO.
+
+---
+
 # LIVE PROBLEM UPDATE — 2026-10-14 — Person integration CI failures
 
 - **Problem:** Person-linked Follow-up integration head `07c7f9005b7331f07468e20d13b3939c990bd9fd` failed all six test shards; Analyze and Debug/Release APK succeeded.
