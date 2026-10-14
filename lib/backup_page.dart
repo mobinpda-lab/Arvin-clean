@@ -406,12 +406,13 @@ class _BackupPageState extends State<BackupPage> {
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
         apply: () async {
-          // Keep the canonical Person directory in the same restore transaction
-          // boundary as Tasks; legacy backups without a directory preserve local people.
+          // Merge stable Person IDs with the same preservation policy as Tasks:
+          // local-only Tasks may still reference people absent from this backup.
+          // Legacy backups without a directory preserve the current directory.
           if (candidate.people != null) {
             await TaskStore().restorePeopleDirectoryEntries(
               candidate.people!,
-              replace: true,
+              replace: false,
             );
           }
           await widget.restoreStageHook?.call('people');
