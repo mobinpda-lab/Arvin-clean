@@ -648,3 +648,12 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Successful restore preserves local-only Task/Person references while importing backup entries | 0335a0c7e8bfb0c99f466b87b9af3a4cb3682e45, 84a97c23a4547f0a4f891398116aa40b083aa67e | Merge semantics + Home widget test added, **not CI-validated** | Must confirm all test shards on final candidate SHA. |
 | Exact-head Build / six-lane Device Smoke | Head 84a97c23a4547f0a4f891398116aa40b083aa67e | **NO RUN VISIBLE** | Do not treat missing workflow evidence as a pass; PR #2695 remains Draft/unmergeable. |
 | Physical-device acceptance / release | — | **NO-GO** | Not evidenced by these source/test changes. |
+
+
+## LIVE EVIDENCE OVERRIDE — 2026-10-14 — Person PR exact-head CI access
+
+- PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695): before the memory-only checkpoint, exact head `effa6722d4b6fa7cc15f036da2bb4b70d637d4f0`, base `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; open/Draft/unmerged/mergeable=false. Exact-head PR-run query returned **zero runs**; historical failed Build [38506153872](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38506153872) is on older SHA `07c7f900...` and must not be attributed to the current head.
+- PR #2695 base/head compare: 40 ahead / 1 behind, merge base `e626dae...`; no blind rebase/merge. The one behind commit previously inspected was documentation-only.
+- Available GitHub tools do not expose workflow dispatch/create-run; rerunning an old failed job would target the wrong SHA. Exact-head Build, Calendar Provider Acceptance and Device Smoke for #2695 therefore remain **NOT VERIFIED**.
+- Recovery PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), head `555541a5426b02e483bf2168fcc78a57ddc8c3a6`: Build [38523576951](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523576951) SUCCESS (Analyze, all six test shards, Debug/Release APK); Device Smoke [38523577094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523577094) IN_PROGRESS at latest poll, with Home, Quick Capture, SQL Persistence and SQL Migration passed; People and Backup/Restore in progress. This is not evidence for #2695.
+- Person backup/restore/rollback, dangling-reference validation, Person report acceptance, final integrated-SHA validation and physical-device acceptance remain open. Release **NO-GO**.
