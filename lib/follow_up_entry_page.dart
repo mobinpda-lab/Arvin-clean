@@ -57,8 +57,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _noteController.text = initial?.note ?? '';
-    _waitingForResponse = initial?.waitingForResponse == true ||
-        _waitingService.isWaitingResult(initial?.result);
+    // Legacy result aliases remain readable/editable, but only the structured
+    // state activates the Person-linked waiting workflow.
+    _waitingForResponse = initial?.waitingForResponse == true;
     _selectedPersonIds.addAll(initial?.personIds ?? const <String>[]);
     _initialPersonIds = Set<String>.of(_selectedPersonIds);
     if (_waitingForResponse) _loadPeopleDirectory();
