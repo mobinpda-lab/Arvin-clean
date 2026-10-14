@@ -1111,3 +1111,46 @@ Do not attach emulator screenshots as if they were physical-phone screenshots. L
 6. Update the matrix and evidence map with actual results. Leave unresolved items open and keep release NO-GO until all required gates and owner acceptance pass.
 
 **Next action:** use the existing #1901 and related UX contracts as the source of reported gaps; inspect current code and candidate APK before making app changes. The present run provides green automated CI and three screen artifacts, but it does not close the six-screen physical-device visual gate.
+
+
+# OWNER POST-INSTALL UX ACCEPTANCE — 2026-10-14
+
+This section records direct owner observations after installing a newer Arvin build. The owner did not provide the installed app version, device model, or APK/source SHA in this report; therefore these observations are valuable user acceptance feedback but are not yet reproducibly linked to a specific build artifact.
+
+## Confirmed by owner after installation
+
+- **Calendar short tap / long press:** working correctly. Mark this interaction as owner-confirmed for the installed build observed; retain regression coverage so a short tap opens the Task and a long press opens actions.
+- **Quick Entry Checklist option:** now present in the form.
+- **Follow-up creation:** the “add follow-up” capability is now available for all Tasks. Preserve the canonical child-record model; do not reintroduce the legacy “follow-up-enabled Task” flag or automatic follow-up-time field.
+
+## Still visibly incomplete according to owner
+
+1. **Notebook appearance:** the planned visual redesign has not appeared; inspect current installed screen against the approved UX reference before implementing.
+2. **Reports appearance:** the planned redesign is not present / has not been completed.
+3. **Reports bottom navigation icon:** the Reports icon was expected in Arvin's bottom navigation but is absent. Add it through the canonical navigation structure, verify selection state and navigation behavior, and ensure it does not crowd or displace existing destinations.
+4. **Calendar typography / one-line time:** the calendar time currently wraps to a second line. Tune the event typography and available layout width so time remains on the intended line where feasible without clipping or making the title unreadable.
+5. **Calendar typography hierarchy (owner proposal):** make the Task/news title visually prominent; make date, time and description smaller and better balanced. Treat “news title” as the title/header text in the calendar item until the exact component terminology is confirmed by inspecting the UI. Validate Persian/RTL and narrow-screen behavior.
+
+## Updated UX acceptance statuses
+
+| Item | Status after owner observation | Required next proof |
+|---|---|---|
+| Calendar tap vs long press | IMPLEMENTED for observed installed build | Capture version/SHA and retain automated + physical-device regression test |
+| Quick Entry Checklist option | IMPLEMENTED for observed installed build | Verify toggle/data preservation and visual layout on exact candidate |
+| Add Follow-up on all Tasks | IMPLEMENTED for observed installed build | Verify zero/one/multiple Follow-ups and canonical Task-child relationships |
+| Notebook redesign | NOT IMPLEMENTED per owner observation | Compare against approved reference; implement on feature branch and capture before/after |
+| Reports redesign | NOT IMPLEMENTED per owner observation | Inspect Reports UI and UX contract; implement and visually validate |
+| Reports bottom navigation icon | NOT IMPLEMENTED per owner observation | Add to canonical bottom navigation and test route/state/accessibility |
+| Calendar time stays on one line | NOT IMPLEMENTED per owner observation | Adjust typography/layout and validate on physical device at relevant font sizes |
+| Calendar typography hierarchy | NOT IMPLEMENTED per owner observation | Title prominent; date/time/description smaller; preserve readability and RTL |
+
+## Required next execution
+
+- First, record the exact installed app version/build, device model, Android version, locale, and APK/source SHA if available.
+- Inspect current main and existing UX references / related issues before editing; avoid duplicate work and parallel navigation/settings/data models.
+- Prioritize the three concrete visible misses: Notebook redesign, Reports redesign plus bottom-navigation icon, and Calendar typography/layout.
+- Make changes in focused branch/PR; run Analyze, full tests, Debug/Release build, relevant Device Smoke and inspect screenshots.
+- Install the exact candidate APK on the same physical device and re-check all three changes, including narrow width, Persian/RTL and font-size variations.
+- Keep release NO-GO until remaining product gates, integrated data flows and required physical-device evidence are accepted.
+
+This owner report updates UX status only; it does not establish the candidate SHA or prove that the latest CI artifacts correspond to the APK the owner installed.
