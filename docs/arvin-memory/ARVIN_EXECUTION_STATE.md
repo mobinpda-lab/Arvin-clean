@@ -1,3 +1,16 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Device Smoke contract test parser repaired
+
+This update supersedes the previous PR #2704 poll where it conflicts.
+
+- Latest workflow-repair commit: `8e4d5d1feaa8a12db930a60ddb4438bbc279c890` on PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704).
+- The previous-head Build [38558282511](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558282511) found 233 passing tests and one failing contract test. Root cause: `test/device_smoke_workflow_contract_test.dart` used a literal backslash-n delimiter while splitting the Device Smoke workflow; it did not parse the `pull_request` block correctly.
+- Corrected the test parser in the latest commit; no tests were removed. The Fast Lane contract had succeeded on prior head `f8b478...`, but that result does not prove the latest test change.
+- New exact-head Build [38558652079](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558652079) and Device Smoke [38558652445](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558652445) were pending at the initial poll. Must inspect terminal outcomes and verify all six Device Smoke lanes on the same exact head before merge.
+- This correction and evidence requirements were recorded in comments on PR #2704 and release lock Issue #2702.
+- PR #2704 remains Draft/unmerged; Person PR #2695 remains independently blocked pending exact-head Build/Device Smoke and product acceptance. Release remains **NO-GO**.
+
+---
+
 # LIVE POLL — 2026-10-14 — Revised contract test accepted by Fast Lane
 
 - Current PR #2704 head: `f8b4782809c6bde27e78e30a3619624d565ea2c1`.
