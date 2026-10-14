@@ -3,6 +3,7 @@ import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
@@ -19,6 +20,7 @@ class _HomeRestoreBackupService extends ArvinBackupService {
   final Map<String, dynamic> document;
   int writeCount = 0;
   int readCount = 0;
+  Map<String, dynamic>? writtenPayload;
 
   @override
   String createBackupFileName(DateTime dateTime) => 'emergency-backup.json';
@@ -32,6 +34,7 @@ class _HomeRestoreBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writeCount += 1;
+    writtenPayload = Map<String, dynamic>.from(payload);
   }
 
   @override
@@ -56,14 +59,27 @@ void main() {
   });
 
   testWidgets(
-    'Home restore rolls back Task, Project, calendar links and settings after a late failure',
+    'Home restore rolls back Task, Person directory, Project, calendar links and settings after a late failure',
     (tester) async {
       final taskStore = TaskStore();
+      final localPerson = PersonReference(
+        id: 'local-person',
+        displayName: 'شخص محلی',
+      );
+      await taskStore.savePersonDirectoryEntry(localPerson);
       await taskStore.save([
-        Task.fromJson(<String, dynamic>{
-          'id': 'local-task',
-          'title': 'کار محلی',
-        }),
+        Task(
+          id: 'local-task',
+          title: 'کار محلی',
+          followUps: [
+            FollowUp(
+              id: 'local-follow-up',
+              dateTime: DateTime(2026, 10, 14, 9),
+              waitingForResponse: true,
+              personIds: [localPerson.id],
+            ),
+          ],
+        ),
       ]);
       await ProjectStore().save([
         ProjectPlan(
@@ -89,10 +105,24 @@ void main() {
         'type': ArvinBackupService.backupType,
         'formatVersion': ArvinBackupService.backupFormatVersion,
         'tasks': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': 'restored-task',
-            'title': 'کار بازیابی‌شده',
-          },
+          Task(
+            id: 'restored-task',
+            title: 'کار بازیابی‌شده',
+            followUps: [
+              FollowUp(
+                id: 'restored-follow-up',
+                dateTime: DateTime(2026, 10, 15, 9),
+                waitingForResponse: true,
+                personIds: const ['restored-person'],
+              ),
+            ],
+          ).toJson(),
+        ],
+        'people': <Map<String, dynamic>>[
+          PersonReference(
+            id: 'restored-person',
+            displayName: 'شخص بازیابی‌شده',
+          ).toJson(),
         ],
         'projects': <Map<String, dynamic>>[
           <String, dynamic>{
@@ -152,7 +182,20 @@ void main() {
 
       expect(backupService.readCount, 1);
       expect(backupService.writeCount, 1);
-      expect((await taskStore.load()).map((task) => task.id), ['local-task']);
+      expect(
+        ((backupService.writtenPayload!['people'] as List<dynamic>)
+            .cast<Map<String, dynamic>>())
+            .map((person) => person['id']),
+        ['local-person'],
+      );
+      final restoredTasks = await taskStore.load();
+      expect(restoredTasks.map((task) => task.id), ['local-task']);
+      expect(restoredTasks.single.followUps.single.id, 'local-follow-up');
+      expect(restoredTasks.single.followUps.single.personIds, ['local-person']);
+      expect(
+        (await taskStore.loadPeopleDirectory()).map((person) => person.id),
+        ['local-person'],
+      );
       expect(await taskStore.loadCategories(), contains('دسته محلی'));
       expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
       expect(await taskStore.loadTags(), contains('برچسب محلی'));
