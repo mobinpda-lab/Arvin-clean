@@ -100,12 +100,10 @@ class FollowUpCalendarProjection {
             id: reminder.isLegacyTaskReminder
                 ? taskReminderIdFor(task)
                 : independentTaskReminderIdFor(task, reminder),
-            title: reminder.isLegacyTaskReminder
-                ? 'یادآوری: ${task.title}'
-                : reminder.title,
+            title: reminder.title,
             date: reminder.date,
             completed: task.completed,
-            isAllDay: reminder.isLegacyTaskReminder ? false : reminder.isAllDay,
+            isAllDay: reminder.isAllDay,
           ),
         );
       }
