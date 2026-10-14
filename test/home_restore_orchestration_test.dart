@@ -92,7 +92,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('پشتیبان‌گیری'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('ایجاد پشتیبان'));
+      await tester.tap(find.text('ایجاد Backup'));
       await tester.pumpAndSettle();
 
       expect(backupService.writeCount, 1);
@@ -176,7 +176,7 @@ void main() {
       expect(people, hasLength(2));
       expect(people.map((person) => person.id), containsAll(['local-person', 'restored-person']));
       expect(
-        find.textContaining('بازیابی انجام شد'),
+        find.textContaining('با همه جزئیات بازیابی شد'),
         findsOneWidget,
       );
     },
