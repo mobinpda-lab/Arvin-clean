@@ -1019,3 +1019,25 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Validation status:** implementation only; CI is being triggered by these commits and must finish on the final resulting head. Operational dispatcher acceptance remains unproven until the workflow is on default branch and a controlled dispatch completes with exact checkout assertions. Do not merge solely to bypass a gate.
 - **Person PR #2695:** still requires exact-head CI; the current live head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` previously returned zero runs/checks. No app code changed in this correction.
 - **Next action:** inspect the final PR #2699 head, wait for terminal Build and six-lane Device Smoke, then review job logs for YAML/runtime errors. Keep Person and release gates open until their own evidence is available.
+
+
+---
+
+# AUTHORITATIVE RELEASE CANDIDATE LOCK — 2026-10-14 — SHA reconciliation
+
+This addendum is the single authority for the current release-candidate lock and supersedes older live-status checkpoints wherever their candidate/main SHA differs. Historical entries remain for audit history only.
+
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Candidate branch: `main`.
+- **Canonical candidate SHA:** `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`.
+- Commit: https://github.com/mobinpda-lab/Arvin-clean/commit/747b1831eddc60f99c1c14a5bbc4a4c0049667ec
+- Recovery PR #2699 is merged; its merge commit is exactly the canonical candidate SHA above.
+- Candidate Build: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465. All nine jobs passed (Analyze, test-0..5, Debug APK, Release APK); Debug and Release artifacts exist and are not expired.
+- PR #2701 remains open and targets `main` at this same SHA. Its head `46997f8934ead58d67b45d6e58a15df9ad6d3963` is a separate documentation PR head and is **not** the candidate SHA.
+- Device Smoke evidence inspected during reconciliation was skipped on a different SHA; it does not qualify for this candidate. No claim of candidate-SHA Device Smoke acceptance is made.
+- Candidate lock is **VALIDATION ONLY**. Release decision remains **NO-GO** pending six-lane Device Smoke on the exact SHA, Person integration acceptance, backup/restore integrity, Calendar acceptance, physical-device validation, handover documents, and end-to-end dispatcher acceptance.
+- If `main` advances, this lock is invalidated. Record a new candidate SHA and rerun all required gates; never transfer evidence across SHAs.
+- Official reconciliation was also recorded in Issue #2702: https://github.com/mobinpda-lab/Arvin-clean/issues/2702#issuecomment-6166209398
+
+Current bottleneck: candidate-specific Device Smoke and remaining product/physical-device acceptance evidence.
+Next action: obtain terminal Build plus all six Device Smoke lanes for the exact canonical SHA, then close remaining acceptance gates. Do not release until all gates are evidenced.
