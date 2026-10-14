@@ -54,7 +54,9 @@ class FollowUpReminderProjection {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isBefore(now)) {
+      if (task.legacyTaskReminderMigrationVersion < 1 &&
+          taskReminder != null &&
+          !taskReminder.isBefore(now)) {
         result.add(
           FollowUpReminderCandidate.task(
             taskId: task.id,
@@ -73,10 +75,12 @@ class FollowUpReminderProjection {
           FollowUpReminderCandidate.task(
             taskId: task.id,
             taskTitle: task.title,
-            taskReminderId: reminder.id,
-            label: reminder.title.trim().isEmpty
-                ? 'یادآور ${reminder.sequence}'
-                : reminder.title,
+            taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
+            label: reminder.isLegacyTaskReminder
+                ? 'یادآوری'
+                : reminder.title.trim().isEmpty
+                    ? 'یادآور ${reminder.sequence}'
+                    : reminder.title,
             scheduledAt: scheduledAt,
           ),
         );
