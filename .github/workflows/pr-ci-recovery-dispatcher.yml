@@ -26,6 +26,8 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const repository = await github.rest.repos.get({ owner, repo });
+            const defaultBranch = repository.data.default_branch;
             const workflowId = 'build.yml';
             const staleFailureMs = 6 * 60 * 60 * 1000;
             const maxPrAgeMs = 14 * 24 * 60 * 60 * 1000;
@@ -66,22 +68,25 @@ jobs:
               }
 
               const sha = pr.head.sha;
+              // Run the workflow definition from the default branch so every target
+              // branch receives the target_sha input and checkout assertion, even when
+              // its own build.yml is older. The target SHA is checked out explicitly.
               const runsResponse = await github.rest.actions.listWorkflowRuns({
                 owner,
                 repo,
                 workflow_id: workflowId,
-                head_sha: sha,
-                per_page: 20
+                branch: defaultBranch,
+                event: 'workflow_dispatch',
+                per_page: 100
               });
               const exactRuns = runsResponse.data.workflow_runs
-                // A normal pull_request run checks out github.sha (the synthetic PR merge
-                // ref), so its run.head_sha alone is not proof that the PR head SHA itself
-                // was checked out. Only accept recovery dispatches, whose Build jobs assert
-                // git rev-parse HEAD === inputs.target_sha in every quality/APK lane.
+                // Dispatches run the workflow definition from the default branch, so the
+                // target_sha input and checkout assertion are guaranteed to be present.
+                // run.head_sha identifies the workflow ref (default branch), NOT the target
+                // commit. The run name plus successful checkout assertions in every quality
+                // and APK lane are the exact-target evidence.
                 .filter(run => run.event === 'workflow_dispatch')
-                .filter(run => run.head_sha === sha)
-                // The run name records the pinned target SHA. This rejects a branch-move
-                // race where GitHub's dispatch ref resolves to a different commit.
+                .filter(run => run.head_branch === defaultBranch)
                 .filter(run => run.display_title === `Arvin Build (${sha})`)
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -111,10 +116,10 @@ jobs:
                 owner,
                 repo,
                 workflow_id: workflowId,
-                ref: pr.head.ref,
+                ref: defaultBranch,
                 inputs: { target_sha: sha }
               });
-              core.warning(`DISPATCHED_EXACT_HEAD_RECOVERY=PR#${pr.number} REF=${pr.head.ref} REQUESTED_SHA=${sha}`);
+              core.warning(`DISPATCHED_EXACT_HEAD_RECOVERY=PR#${pr.number} WORKFLOW_REF=${defaultBranch} TARGET_REF=${pr.head.ref} REQUESTED_SHA=${sha}`);
               dispatched++;
             }
 
