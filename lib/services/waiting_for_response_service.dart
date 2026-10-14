@@ -20,9 +20,14 @@ class WaitingForResponseService {
 
   bool isWaiting(Task task) {
     if (task.completed || task.archived || task.trashed) return false;
-    final latest = task.lastFollowUp;
-    return latest != null && isWaitingResult(latest.result);
+    return task.followUps.any(isWaitingFollowUp);
   }
+
+  /// A valid active waiting relationship always identifies at least one Person.
+  bool isWaitingFollowUp(FollowUp followUp) =>
+      followUp.waitingForResponse &&
+      !followUp.completed &&
+      followUp.personIds.isNotEmpty;
 
   bool isWaitingResult(String? result) {
     if (result == null) return false;
@@ -41,7 +46,11 @@ class WaitingForResponseService {
         dateTime: followUp.dateTime,
         note: followUp.note,
         result: canonicalResult,
+        reminderDate: followUp.reminderDate,
         nextFollowUp: followUp.nextFollowUp,
+        completed: followUp.completed,
+        waitingForResponse: true,
+        personIds: followUp.personIds,
       );
 
   String _normalize(String value) =>
