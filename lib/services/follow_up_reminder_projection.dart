@@ -9,24 +9,31 @@ class FollowUpReminderCandidate {
     required this.followUpId,
     required this.label,
     required this.scheduledAt,
+    this.taskReminderId,
   });
 
   const FollowUpReminderCandidate.task({
     required this.taskId,
     required this.taskTitle,
     required this.scheduledAt,
-  })  : followUpId = null,
-        label = 'یادآوری';
+    this.taskReminderId,
+    this.label = 'یادآوری',
+  }) : followUpId = null;
 
   final String taskId;
   final String taskTitle;
   final String? followUpId;
+  final String? taskReminderId;
   final String label;
   final DateTime scheduledAt;
 
   bool get isTaskReminder => followUpId == null;
 
-  String get stableKey => isTaskReminder ? 'task:$taskId' : '$taskId:$followUpId';
+  String get stableKey => followUpId != null
+      ? '$taskId:$followUpId'
+      : taskReminderId == null
+          ? 'task:$taskId'
+          : 'task:$taskId:reminder:$taskReminderId';
 }
 
 /// Projects canonical FollowUp reminder state into deterministic pending work.
@@ -47,12 +54,32 @@ class FollowUpReminderProjection {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isBefore(now)) {
+      if (task.legacyTaskReminderMigrationVersion < 1 &&
+          taskReminder != null &&
+          !taskReminder.isBefore(now)) {
         result.add(
           FollowUpReminderCandidate.task(
             taskId: task.id,
             taskTitle: task.title,
             scheduledAt: taskReminder,
+          ),
+        );
+      }
+
+      for (final reminder in task.taskReminders) {
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        if (scheduledAt.isBefore(now)) continue;
+        result.add(
+          FollowUpReminderCandidate.task(
+            taskId: task.id,
+            taskTitle: task.title,
+            taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
+            label: reminder.title.trim().isEmpty
+                ? 'یادآور ${reminder.sequence}'
+                : reminder.title,
+            scheduledAt: scheduledAt,
           ),
         );
       }
