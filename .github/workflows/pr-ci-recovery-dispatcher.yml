@@ -61,21 +61,25 @@ jobs:
               });
               const exactRuns = runsResponse.data.workflow_runs
                 .filter(run => run.head_sha === sha)
+                // A dispatched build must also declare the same pinned SHA in its run name.
+                // This prevents a branch-move race from making a build of an older target
+                // look like validation of the newer PR head.
+                .filter(run => run.event !== 'workflow_dispatch' || run.display_title === `Arvin Build (${sha})`)
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-              if (exactRuns.some(run => run.conclusion === 'success')) {
-                core.info(`SKIP_EXACT_HEAD_ALREADY_GREEN=PR#${pr.number} SHA=${sha}`);
-                skipped++;
-                continue;
-              }
-
-              if (exactRuns.some(run => ['queued', 'in_progress', 'requested', 'waiting', 'pending'].includes(run.status))) {
+              const latest = exactRuns[0];
+              if (latest && ['queued', 'in_progress', 'requested', 'waiting', 'pending'].includes(latest.status)) {
                 core.info(`SKIP_EXACT_HEAD_BUILD_ACTIVE=PR#${pr.number} SHA=${sha}`);
                 skipped++;
                 continue;
               }
 
-              const latest = exactRuns[0];
+              if (latest && latest.conclusion === 'success') {
+                core.info(`SKIP_EXACT_HEAD_ALREADY_GREEN=PR#${pr.number} SHA=${sha}`);
+                skipped++;
+                continue;
+              }
+
               if (latest && now - new Date(latest.updated_at || latest.created_at).getTime() < staleFailureMs) {
                 core.info(`SKIP_RECENT_EXACT_HEAD_RESULT=PR#${pr.number} SHA=${sha} CONCLUSION=${latest.conclusion || 'unknown'}`);
                 skipped++;
@@ -89,7 +93,8 @@ jobs:
                 owner,
                 repo,
                 workflow_id: workflowId,
-                ref: pr.head.ref
+                ref: pr.head.ref,
+                inputs: { target_sha: sha }
               });
               core.warning(`DISPATCHED_EXACT_HEAD_RECOVERY=PR#${pr.number} REF=${pr.head.ref} REQUESTED_SHA=${sha}`);
               dispatched++;
