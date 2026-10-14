@@ -436,3 +436,26 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Release | main `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO | Release Closure and Final Head Release Validation were skipped; physical-device and product acceptance remain open |
 
 Do not close the smoke gate until all six lanes are terminal-success on the exact head. A workflow PR Build is not a substitute for Person feature, backup/restore, calendar, or physical-device acceptance.
+
+
+## 2026-10-14 — Device Smoke completed and parallel product plan
+
+| Gate | Exact SHA / run | Result | What it proves / does not prove |
+|---|---|---|---|
+| PR #2709 Build | b97506ab41e72c4dd932e1777bb6be5c07f2aca8; [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) | PASS — 9/9 jobs | Analyze, six test shards, Debug/Release APK; workflow branch only |
+| PR #2709 Device Smoke | same SHA; [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) | PASS — 6/6 lanes | Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore |
+| PR #2695 Person Build | f9c5e5598505a2348aaf29b7fdb4962ef1c756a9; [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) | PASS — 9/9 jobs | Build/test evidence only; no Device Smoke run listed for this exact head |
+| Current main | 658aa85fc4b7d24bfe191016c86c739f61bf3bf5 | Baseline only | PR evidence above is not main evidence |
+| Release | Issue [#2702](https://github.com/mobinpda-lab/Arvin-clean/issues/2702) | NO-GO | Person acceptance, backup/restore integrity, Calendar behavior, physical-device test and handover docs remain open |
+
+### Parallel workstream register
+- A — CI/integration (P0): review/integrate #2709 through normal policy; refresh #2695 on updated base; obtain exact-head six-lane smoke; prove dispatcher operation. Do not equate workflow-branch success with app acceptance.
+- B — Person feature (P0): Settings CRUD/search; multi-Person Follow-up and Waiting Response; safe relation behavior on edit/delete; Person report filtering; migration/invalid-ID coverage.
+- C — Data safety (P0): full backup/restore round-trip, referential integrity, legacy backups, preflight validation and rollback; independent deletion semantics.
+- D — Task/Follow-up/Reminder (P1): multiple independent stable-ID Task reminders, nextFollowUp distinction, legacy JSON/SQL/backup compatibility, Quick Entry/full-form separation; reconcile #2666/#2655 without blind merges.
+- E — Calendar/reporting (P1): short tap opens Task, long press actions, update existing event by Task ID + External Event ID, no duplicates, filters by Person/Follow-up/Reminder/date; provider acceptance.
+- F — Persian UX (P1): RTL, Persian terminology/numerals, compact screens, Quick Entry vs Full Form consistency and screenshots.
+- G — Physical device + handover (P0 release gate): install frozen candidate; record model/OS/app version/SHA/screenshots; end-to-end Task→Follow-up→Person→Reminder→Calendar→Reports→Backup→Restore; publish Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary, Evidence Report.
+- Dependencies: A unlocks reliable integration; B and D determine canonical data contract; C depends on final model and Reminder semantics; E depends on stable Task/event identity; F coordinates with UI owners; G starts after candidate freeze and reruns if SHA changes.
+- Policy: no release until every gate passes on one exact final candidate SHA. Physical-device evidence is not supplied by emulator smoke.
+
