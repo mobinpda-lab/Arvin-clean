@@ -161,4 +161,19 @@ void main() {
     expect(restored.taskReminders, isEmpty);
     expect(restored.legacyTaskReminderMigrationVersion, 0);
   });
+
+  test('deleted migrated reminder does not reappear from the retained legacy field', () {
+    final migrated = Task.fromJson({
+      'id': 'deleted-legacy',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+    migrated.taskReminders.clear();
+
+    final restored = Task.fromJson(migrated.toJson());
+
+    expect(restored.taskReminders, isEmpty);
+    expect(restored.legacyTaskReminderMigrationVersion, 1);
+    expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
+  });
 }
