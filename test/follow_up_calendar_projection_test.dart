@@ -497,4 +497,20 @@ void main() {
     );
     expect(reminders.map((item) => item.date), everyElement(sameTime));
   });
+
+  test('migrated legacy Task reminder keeps the existing Calendar identity once', () {
+    final task = Task.fromJson({
+      'id': 'legacy-calendar-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-12-05T09:30:00.000',
+    });
+
+    final reminders = projection.project([task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'task-reminder:legacy-calendar-task');
+    expect(reminders.single.title, 'یادآوری: کار قدیمی');
+    expect(reminders.single.date, DateTime(2026, 12, 5, 9, 30));
+    expect(reminders.single.isAllDay, isFalse);
+  });
 }
