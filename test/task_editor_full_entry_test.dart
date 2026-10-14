@@ -252,4 +252,36 @@ void main() {
     expect(result!.nextReminderSequence, 3);
   });
 
+
+  testWidgets('editor keeps a migrated legacy reminder in the independent collection', (tester) async {
+    Task? result;
+    final legacyDate = DateTime(2026, 10, 20, 9, 30);
+    final task = Task.fromJson({
+      'id': 'editor-migrated-legacy',
+      'title': 'کار قدیمی',
+      'reminderDate': legacyDate.toIso8601String(),
+    });
+
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final migratedTitle = find.byKey(
+      const ValueKey('task-editor-reminder-title-legacy-task-reminder'),
+    );
+    expect(migratedTitle, findsOneWidget);
+    await tester.enterText(migratedTitle, 'یادآور مستقل ویرایش‌شده');
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.title, 'کار قدیمی');
+    expect(result!.reminderDate, legacyDate);
+    expect(result!.legacyTaskReminderMigrationVersion, 1);
+    expect(result!.taskReminders, hasLength(1));
+    expect(result!.taskReminders.single.id, 'legacy-task-reminder');
+    expect(result!.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(result!.taskReminders.single.title, 'یادآور مستقل ویرایش‌شده');
+  });
 }
