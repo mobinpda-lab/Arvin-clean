@@ -49,10 +49,13 @@ forbid(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
 
-require(device, "branches: [main, master]", str(device_path))
+# Device Smoke must cover PRs targeting integration branches and Draft PRs too.
+forbid(device, "branches: [main, master]", str(device_path))
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
-require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
+require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
+require(device, '# Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.', str(device_path))
+forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
 for scenario in [
     'home',
     'quick-capture',
