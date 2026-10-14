@@ -2040,7 +2040,7 @@ class _HomePageState extends State<HomePage> {
         rollback: () async {
           await taskStore.save(previousTasks!);
           if (previousPeople != null) {
-            await taskStore.restorePeopleDirectoryEntries(previousPeople!, replace: true);
+            await taskStore.restorePeopleDirectoryEntries(previousPeople, replace: true);
           }
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
@@ -2574,6 +2574,7 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.report:
         final people = await taskStore.loadPeopleDirectory();
+        if (!mounted) return;
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => ReportCenterPage(
