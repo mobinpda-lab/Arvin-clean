@@ -3,14 +3,23 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('device smoke stays Ready-only and runs real Android integration flows', () {
+  test('device smoke covers integration-base and Draft PRs with real Android flows', () {
     final workflow =
         File('.github/workflows/device-smoke.yml').readAsStringSync();
 
     expect(workflow, contains('name: Arvin Device Smoke'));
+
+    // Pull requests targeting integration branches must receive smoke coverage.
+    // Keep the main/master restriction for push events, but not for pull_request.
+    final pullRequestTrigger = workflow
+        .split('  pull_request:\n')
+        .last
+        .split('  workflow_dispatch:')
+        .first;
+    expect(pullRequestTrigger, isNot(contains('branches: [main, master]')));
     expect(
       workflow,
-      contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false"),
+      isNot(contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false")),
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));

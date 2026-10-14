@@ -1,4 +1,5 @@
 name: Arvin Build
+run-name: Arvin Build (${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }})
 
 on:
   push:
@@ -6,12 +7,17 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: arvin-build-${{ github.event.pull_request.number || github.ref_name }}
+  group: arvin-build-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -29,6 +35,17 @@ jobs:
         lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+      - name: Verify exact requested revision
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
         uses: actions/cache@v4
         with:
@@ -106,6 +123,18 @@ jobs:
     name: apk (${{ matrix.variant }})
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+      - name: Verify exact requested revision
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+
       - name: Cache pinned VazirHarf
         uses: actions/cache@v4
         with:
@@ -149,6 +178,8 @@ jobs:
       - name: Apply permanent versioned APK identity
         id: apk_identity
         shell: bash
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           version_line="$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | head -n 1)"
@@ -157,7 +188,7 @@ jobs:
           app_version="${version_line%%+*}"
           build_number="${version_line#*+}"
           [[ -n "$app_version" && -n "$build_number" ]]
-          short_sha="${GITHUB_SHA::7}"
+          short_sha="${TARGET_SHA::7}"
           apk_name="arvin-${app_version}-build${build_number}-${{ matrix.variant }}-${short_sha}.apk"
           apk_path="build/app/outputs/flutter-apk/$apk_name"
           mv "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk" "$apk_path"

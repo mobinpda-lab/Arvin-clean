@@ -32,7 +32,10 @@ require(build, 'variant: [release, debug]', str(build_path))
 require(build, '- name: Android V2 audit', str(build_path))
 require(build, '- name: Build APK', str(build_path))
 require(build, 'flutter build apk --${{ matrix.variant }}', str(build_path))
-require(build, 'arvin-${{ matrix.variant }}-apk', str(build_path))
+require(build, '- name: Apply permanent versioned APK identity', str(build_path))
+require(build, 'artifact_name=arvin-${app_version}-build${build_number}-${{ matrix.variant }}-${short_sha}', str(build_path))
+require(build, 'name: ${{ steps.apk_identity.outputs.artifact_name }}', str(build_path))
+forbid(build, 'name: arvin-${{ matrix.variant }}-apk', str(build_path))
 forbid(build, '- name: Build release APK', str(build_path))
 forbid(build, '- name: Build debug APK', str(build_path))
 
@@ -49,10 +52,14 @@ forbid(parallel, 'flutter analyze --no-fatal-infos', str(parallel_path))
 forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
 
-require(device, "branches: [main, master]", str(device_path))
+# Device Smoke must cover PRs targeting integration branches and Draft PRs too.
+device_pull_request = device.split("  pull_request:\n", 1)[1].split("  workflow_dispatch:", 1)[0]
+forbid(device_pull_request, "branches: [main, master]", str(device_path) + " pull_request")
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
-require(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
+require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
+require(device, '# Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.', str(device_path))
+forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
 for scenario in [
     'home',
     'quick-capture',
