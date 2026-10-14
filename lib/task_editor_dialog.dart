@@ -869,6 +869,13 @@ Future<void> _pickDueDate() async {
         ? _dueDateTime
         : (_reminderDateTime ??
             (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
+    DateTime? migratedLegacyReminderDate;
+    for (final reminder in _taskReminders) {
+      if (reminder.isLegacyTaskReminder) {
+        migratedLegacyReminderDate = reminder.date;
+        break;
+      }
+    }
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
@@ -888,7 +895,7 @@ Future<void> _pickDueDate() async {
         checklistEnabled: _checklistEnabled,
         reminderDate: existing != null &&
                 existing.legacyTaskReminderMigrationVersion >= 1
-            ? existing.reminderDate
+            ? migratedLegacyReminderDate
             : reminderDate,
         taskReminders: List<TaskReminder>.of(_taskReminders),
         nextReminderSequence: _nextReminderSequence,
