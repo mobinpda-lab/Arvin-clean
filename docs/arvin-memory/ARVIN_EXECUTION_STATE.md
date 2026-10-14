@@ -1536,3 +1536,40 @@ This checkpoint supersedes conflicting live-status statements above; older entri
 - **No product code was changed in this execution.** The child patch was inspected file-by-file; merge remains blocked pending reviewed reconciliation, referential-integrity validation, Report Center implementation, and exact-head test evidence.
 - **Release:** NO-GO. Physical-device acceptance and the full Task → Follow-up → Person → Reminder → Calendar → Person report → Backup/Restore integrity scenario remain outstanding.
 - **Next action:** make a reviewed, minimal synchronization plan for the Person backup/restore slice onto the current parent, including referential validation and rollback tests; then implement Person-specific per-Follow-up reporting. Run all gates on the resulting exact SHA.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Person directory safe port, Version 9.0)
+
+## Execution identity
+- Parent integration PR: [#2666](https://github.com/mobinPda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`.
+- Isolated Person integration PR: [#2693](https://github.com/mobinPda-lab/Arvin-clean/pull/2693), draft, base `integration/task-multiple-reminders-safe-20261013`, branch `integration/person-directory-safe-port-20261014`.
+- Code/test SHA before this memory entry: `afbf7e43e2475a6151aff89506fc6b78b545f027`.
+- Branch is based on validated parent code SHA `a7be929a844038d64fcf20e5a6681a1c8732b2fc`; the current base branch has only the subsequent memory/documentation commit `e626daeecb3851024f2ceab820d1868ba582c860) beyond that code checkpoint.
+
+## Work executed on the isolated branch
+- Added strict Follow-up `waitingForResponse` and `personIds` JSON validation while retaining compatibility defaults for old records.
+- Added additive SQL schema upgrade for `waiting_for_response`, `person_ids_json`, and the standalone `people_directory` table; old tables are upgraded with guarded ALTER TABLE statements.
+- Added TaskStore APIs to load, save, merge/replace, and delete directory entries; deletion detaches Person associations but preserves the Task and Follow-up records.
+- Added Settings → «اشخاص» directory entry and lightweight directory UI.
+- Extended portable backup payload with the Person directory. Restore preflight rejects malformed/duplicate Person entries and dangling Follow-up Person IDs; legacy backups without `people` remain readable only when no structured Follow-up Person links require it.
+- Integrated Person directory into restore snapshots and rollback.
+- Added Person/waiting-response report filters and per-Follow-up rows that display result, waiting state, Person labels, `nextFollowUp` (next action), and `reminderDate` (notification) separately.
+- Added tests for SQL persistence/deletion, backup preflight and legacy compatibility, Person backup payload, report filters, and independent action/reminder timing.
+
+## Validation status
+- PR [#2693](https://github.com/mobinPda-lab/Arvin-clean/pull/2693) remains **Draft**.
+- Build run [38504809868](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38504809868) was pending/queued when polled for SHA `afbf7e43e2475a6151aff89506fc6b78b545f027); no test or build pass is claimed for this branch.
+- No local Flutter test run or physical-device acceptance was available in this tool session.
+- The memory commit that follows advances HEAD; all validation must be re-polled against the new exact SHA.
+
+## Current bottleneck
+Exact-head CI and data-integrity validation of the isolated Person branch. Particular gates: SQL schema upgrade from existing databases; TaskStore Follow-up round-trip; backup/restore cross-reference validation; injected restore failure rollback; report filtering; all Build shards, Debug/Release APK, Calendar Provider Acceptance, six Device Smoke lanes; then physical-device acceptance.
+
+## Next action
+1. Poll exact-head Build and inspect each failed step/job rather than weakening tests.
+2. Fix any confirmed defects and add an injected-failure rollback test for Person directory + Task/Follow-up state.
+3. Re-run every required gate on one final exact SHA; update the evidence map with the SHA and results.
+4. Keep PR #2693 Draft until review and exact-head gates pass. Do not merge PR #2681 wholesale.
+5. Release remains **NO-GO** pending Person backup/restore, report acceptance, complete end-to-end scenario, and physical-device evidence.
