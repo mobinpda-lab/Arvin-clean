@@ -1029,3 +1029,17 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Remaining blockers:** physical-device acceptance; integrated Person + Follow-up + report + backup/restore acceptance; controlled end-to-end recovery-dispatch proof. Release issues #2102 and #1901 remain open. Release remains **NO-GO**.
 - **Current bottleneck:** product/data-integrity and physical-device acceptance, plus controlled dispatcher proof. Do not merge Person PR or publish a release solely on CI success.
 - **Next action:** inspect PR #2695 changed files and test coverage against owner contracts; verify backup/restore round-trip and referential integrity for Person IDs and Task/FollowUp preservation; then complete physical-device acceptance. Separately prove dispatcher operation on a known target SHA.
+
+
+# AUTHORITATIVE CONTINUATION OVERRIDE — 2026-10-15 — Reminder migration decision resolved
+
+This entry supersedes earlier statements in this file that the owner must still choose between migration options A and B. Preserve older checkpoints as history; do not treat them as the current blocker.
+
+- **Owner decision:** Option B selected. Migrate legacy Task.reminderDate into the canonical TaskReminder collection through a deterministic, one-time, idempotent migration.
+- **Owner-reported data context:** Current Arvin app database is empty and the product has not yet been populated with user data. Do not generalize this to every backup, fixture, test database or other installation.
+- **Completed in this execution:** Recorded the durable decision in Issue #2654, this execution-state addendum, decision log, project knowledge, evidence map, and the dedicated file ARVIN_REMINDER_MIGRATION_DECISION_2026-10-15.md.
+- **Current code status:** No app code or database migration was changed in this documentation pass. No tests/build/device results are claimed.
+- **Current bottleneck:** PR #2655 conflicts with the selected migration policy; its current description explicitly preserves legacy Task.reminderDate without automatic migration. Inspect its exact diff and current canonical source before implementation.
+- **Next actions:** (1) reconcile PR #2655 on a dedicated branch; (2) implement stable ID + explicit migration marker/version; (3) preserve/map Calendar identity task-reminder:<taskId> without duplicate events; (4) cover JSON, SQL, backup/restore, idempotence, rollback/failure and Calendar no-duplicate cases; (5) run exact-head Analyze, all test shards, Debug/Release APK, all six Device Smoke lanes and Calendar provider acceptance; (6) complete physical-device and remaining release gates.
+- **Release status:** NO-GO until all required product, data-integrity and physical-device acceptance gates pass.
+- **Decision evidence:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
