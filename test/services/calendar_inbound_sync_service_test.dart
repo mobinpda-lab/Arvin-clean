@@ -123,8 +123,11 @@ void main() {
     final refreshed = (await taskStore.load()).single;
     expect(refreshed.reminderDate, DateTime(2026, 10, 9, 11));
     expect(refreshed.legacyTaskReminderMigrationVersion, 1);
+    expect(refreshed.title, 'کار',
+        reason: 'editing the migrated reminder title must not rename its Task');
     expect(refreshed.taskReminders, hasLength(1));
     expect(refreshed.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(refreshed.taskReminders.single.title, 'یادآوری: کار تغییر یافته');
     expect(refreshed.taskReminders.single.date, DateTime(2026, 10, 9, 11));
   });
 
