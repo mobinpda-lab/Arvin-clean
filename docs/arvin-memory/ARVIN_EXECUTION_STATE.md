@@ -1610,3 +1610,22 @@ Exact-head CI and data-integrity validation of the isolated Person branch. Parti
 3. Re-run every required gate on one final exact SHA; update the evidence map with the SHA and results.
 4. Keep PR #2693 Draft until review and exact-head gates pass. Do not merge PR #2681 wholesale.
 5. Release remains **NO-GO** pending Person backup/restore, report acceptance, complete end-to-end scenario, and physical-device evidence.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Person safe-port branch reconciliation and first Analyze repair)
+
+This entry supersedes the earlier Person safe-port branch/PR identifier in the preceding checkpoint.
+
+- **Current integration PR:** [#2695](https://github.com/mobinPda-lab/Arvin-clean/pull/2695), Draft, base `integration/task-multiple-reminders-safe-20261013`; branch `integration/person-directory-safe-port-20261014-v2`.
+- **Superseded PR:** [#2693](https://github.com/mobinPda-lab/Arvin-clean/pull/2693) closed without merge because its branch diverged from the current parent by a memory-only commit. Its work was replayed onto the current base using a new branch; no force push or wholesale child-PR merge occurred.
+- **Current code/test head before this memory update:** `f05a217dde873030deeb5e5046e5dbd215bd4796`.
+- **First Build:** [run 38505284979](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38505284979), run initially against older code/test head `d7b00a7db283c55cda4034b55bbc6c2929b4ae21), was cancelled after branch updates. Its Analyze logs did identify and confirm:
+  1. Missing closing brackets around the Report Center result Column/Scaffold boundary.
+  2. The ProjectBackupBridge test fake did not implement the new optional `people` parameter.
+  3. A `CanonicalBackupCandidate` test fixture lacked the new `people` field.
+- **Repairs committed after that run:** Report Center widget closure repaired in commit `ced76930d64e1b8de5f7344cb7496e79429dab18); ProjectBackupBridge now includes the canonical Person directory in commit `ca6a67bb221b847763743fc9158f233eb649a329); the test fake and candidate fixture updated in commit `f05a217dde873030deeb5e5046e5dbd215bd4796`.
+- These repairs have **not yet passed Analyze or test shards**. The previous Build was cancelled; do not claim it validates the fixes.
+- The following memory commit advances HEAD again. Trigger a fresh Build on the resulting exact SHA and inspect all failures. Device Smoke/Calendar Provider Acceptance are not evidenced on this branch; parent integration and physical-device gates remain required.
+- **Release: NO-GO.** Keep PR #2695 Draft until exact-head validation and data-integrity tests pass.
