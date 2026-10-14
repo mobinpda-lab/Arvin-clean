@@ -199,3 +199,13 @@
 - **Reason:** The workflow definition/input schema must be dependable, and metadata SHA is not the same as the checked-out source SHA.
 - **Impact:** More reliable exact-head evidence and no cancellation between different targets.
 - **Status:** Implemented in PR #2699; exact-head CI and post-merge operational acceptance pending.
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+### Person directory dialog controller lifetime
+- **Problem:** New widget acceptance test found a Flutter assertion, `A TextEditingController was used after being disposed`, when saving an edited Person. The failure occurred during the dialog route's reverse transition: `showDialog` returned before the TextField had finished its exit lifecycle.
+- **Decision:** The edit/add dialog owns its controller inside a dedicated StatefulWidget. Dispose the controller from that widget's `dispose()`, not immediately after awaiting `showDialog`.
+- **Reason:** Controller lifetime must match the widget lifecycle; a post-frame or arbitrary delay would be brittle.
+- **Impact:** Prevents use-after-dispose during dialog transitions and allows the Person edit flow to be tested honestly.
+- **Status:** Implemented on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a`; exact-head CI revalidation pending.
