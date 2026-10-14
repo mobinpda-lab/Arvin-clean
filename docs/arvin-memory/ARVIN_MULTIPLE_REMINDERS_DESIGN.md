@@ -37,3 +37,14 @@ Status: Owner approved feature and full Task editor entry point. UX numbering re
 ## Delivery discipline
 
 Implementation is tracked on `feat/task-multiple-reminders-editor-20261013` in PR #2655. Keep changes scoped to the canonical model/editor/projection/tests. Do not merge automatically. Release remains NO-GO until the required CI and device evidence is available.
+
+
+## AUTHORITATIVE SUPERSESSION — 2026-10-15 — Owner-selected legacy migration Option B
+
+This section supersedes earlier statements in this design that prohibit automatic migration of legacy Task.reminderDate. Preserve those older entries as history only.
+
+The owner explicitly selected Option B. On decoding legacy canonical Task JSON, migrate a non-null legacy Task.reminderDate into a TaskReminder record with stable ID legacy-task-reminder, explicit isLegacyTaskReminder metadata, preserved timestamp, and a persisted legacyTaskReminderMigrationVersion marker. Do not infer all-day from midnight. Keep the old date field during the compatibility transition, but do not project or schedule it a second time once the migration marker is set. The migrated reminder must retain the old Calendar ID task-reminder:<taskId> and the old scheduler delivery key so an existing event/alarm is reconciled rather than duplicated. Re-reading or restoring the same JSON must not add another reminder. Existing independent TaskReminder entries must remain unchanged; the migrated entry gets a sequence after the existing maximum.
+
+The owner reports that the current app database is empty and Arvin is not yet populated with real user data. This does not prove that every backup, fixture, test database or other installation is empty, so compatibility tests remain required.
+
+**Status:** Candidate implementation and regression tests are on this PR branch; exact-head CI, SQL/backup integration, Calendar provider and physical-device acceptance remain unverified. Do not merge or release until the final exact SHA passes all required gates.
