@@ -1029,3 +1029,17 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Remaining blockers:** physical-device acceptance; integrated Person + Follow-up + report + backup/restore acceptance; controlled end-to-end recovery-dispatch proof. Release issues #2102 and #1901 remain open. Release remains **NO-GO**.
 - **Current bottleneck:** product/data-integrity and physical-device acceptance, plus controlled dispatcher proof. Do not merge Person PR or publish a release solely on CI success.
 - **Next action:** inspect PR #2695 changed files and test coverage against owner contracts; verify backup/restore round-trip and referential integrity for Person IDs and Task/FollowUp preservation; then complete physical-device acceptance. Separately prove dispatcher operation on a known target SHA.
+
+
+# AUTHORITATIVE CONTINUATION OVERRIDE — 2026-10-15 — Option B implementation candidate
+
+This entry supersedes older statements that the owner decision is pending or that automatic migration is prohibited.
+
+- **Owner decision:** Option B — migrate non-null legacy Task.reminderDate into canonical TaskReminder on Task JSON decode with stable ID legacy-task-reminder, explicit isLegacyTaskReminder metadata, and persisted legacyTaskReminderMigrationVersion.
+- **Owner-reported data state:** current app database is empty and Arvin has not yet been populated with real user data. Do not generalize this to all backups, fixtures, test databases or other installations.
+- **Completed in this execution:** candidate migration logic, Calendar identity preservation, scheduler-key preservation, inbound Calendar edit/delete reconciliation, editor preservation and regression tests have been added on the current-main-based feature branch.
+- **Not yet validated:** exact-head CI, SQL save/reload, actual backup/restore round-trip, Calendar Provider Acceptance, Device Smoke and physical-device behavior. No DONE claim.
+- **Current bottleneck:** terminal validation of the current branch and verification that all integration gates pass.
+- **Next actions:** Analyze; all test shards; Debug/Release APK; six Device Smoke lanes; Calendar Provider Acceptance; inspect failures; then complete physical-device and integrated backup/restore acceptance.
+- **Release:** NO-GO.
+- **Decision source:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
