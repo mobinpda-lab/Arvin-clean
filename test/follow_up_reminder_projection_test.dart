@@ -181,4 +181,19 @@ void main() {
     expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
     expect(result.last.label, 'یادآور تمام‌روز');
   });
+
+  test('migrated legacy reminder keeps its existing scheduler delivery key', () {
+    final task = Task.fromJson({
+      'id': 'legacy-scheduler-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy-scheduler-task');
+    expect(result.single.taskReminderId, isNull);
+    expect(result.single.scheduledAt, DateTime(2026, 10, 20, 9, 30));
+  });
 }
