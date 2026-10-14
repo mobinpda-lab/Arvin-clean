@@ -385,3 +385,18 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Device Smoke | same SHA; [run 38517351453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351453) | PASS | Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore all successful; CI/emulator evidence only, not physical-device validation |
 | Recovery dispatcher end-to-end | PR #2699 | BLOCKED / NOT YET PROVEN | Must observe a real `workflow_dispatch` on a controlled same-repository PR lacking exact-head evidence and verify requested SHA equals checked-out SHA |
 | Release acceptance | Current product | NO-GO | Physical-device validation and remaining product acceptance gates are still outstanding |
+
+
+## 2026-10-14 — Fresh autonomous live recheck
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Default branch snapshot | `main` — `de795419be2c39775119af8eaa37c53744820d93` | Observed | Live branch API; supersedes older main SHA for current-state decisions |
+| Recovery dispatcher Build | PR #2699 head `379f4e645662c5c0d911fe168d27aa44e69ba9ab`; [run 38519665323](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665323) | PASS | Analyze, six test shards and Debug/Release APK; event is ordinary PR CI, not workflow_dispatch proof |
+| Recovery dispatcher Device Smoke | Same PR head; [run 38519665528](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665528) | PASS | All six lanes: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore; emulator/CI evidence only |
+| Dispatcher operational acceptance | PR #2699 | NOT PROVEN | Workflow file absent on main; no controlled workflow_dispatch execution verified |
+| Person feature exact-head CI | PR #2695 head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / NO CHECKS | Live Actions and check-runs queries both returned zero; old SHA results do not validate this head |
+| Release closure | `de795419...`; runs [38521172475](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38521172475) and [38521176998](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38521176998) | SKIPPED | Skipped is not pass; issues #2102 and #1901 remain open |
+| Physical-device / integrated Person acceptance | Current product | OPEN | CI/emulator evidence does not replace real-device and data-integrity acceptance |
+
+**Decision:** keep PR #2695 Draft and both PRs unmerged; no release. Recheck all evidence against the final resulting SHA after any update.
