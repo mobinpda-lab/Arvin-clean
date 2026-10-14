@@ -481,3 +481,13 @@ Do not close the smoke gate until all six lanes are terminal-success on the exac
 | Fresh exact-head Device Smoke | [Run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201), same SHA | IN PROGRESS / queued at checkpoint | Home and Quick Capture in progress; remaining lanes queued at last poll. |
 | Previous-SHA Device Smoke | [Run 38573235964](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38573235964), SHA `a162941fdf824463162ac6198a30b4373bfb751a` | 6/6 lanes success | Evidence is strictly for the previous SHA and must not be reused as new-head proof. |
 | Product release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO | Person storage overlap (#2695/#2696), Person reports and backup/restore acceptance, Calendar/data integrity and physical-device gates remain open. |
+
+
+## Live checkpoint — Person integration SHA 93202e9e
+
+| Feature / gate | Evidence | Result at checkpoint |
+|---|---|---|
+| Analyze + test shards 0–5 | [Build 38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120), SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46` | All seven jobs passed; Debug and Release APK jobs still running. Build not terminal. |
+| Device Smoke | [Run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201), same SHA | Quick Capture passed; Home and SQL Persistence running; Backup/Restore, People, SQL Migration queued. Not a six-lane pass. |
+| Person persistence anti-duplication | PR patches #2695 and #2696 reviewed | Both duplicate table/API surface; #2695 is broader integrated slice. Comments posted to both PRs; neither merged or closed. |
+| Release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO: current feature SHA not integrated; physical-device and full acceptance gates remain open. |
