@@ -1,3 +1,12 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Validator newline parsing repair
+
+- PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704) latest workflow-repair commit: `6762dba1c0b36128cb8e2da1c6e825e5fae2d6ee`.
+- Exact-head contract run [38557611968](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557611968) failed with `IndexError: list index out of range`. Root cause: a previous patch used a literal backslash-n delimiter rather than Python's newline escape while isolating the Device Smoke `pull_request` trigger section.
+- Corrected the delimiter in `tool/validate_fast_lane.py` in the latest commit above. This fixes the validator implementation only; it is not yet validated on the new head.
+- Status: PR #2704 remains Draft/unmerged. The next required evidence is a passing Fast Lane contract on the latest exact head, followed by successful Build and all six Device Smoke lanes. Person PR #2695 remains Draft/unmerged and needs independent exact-head evidence. Release remains **NO-GO**.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Fast Lane validator scope correction
 
 This checkpoint supersedes the previous PR #2704 validation update where it conflicts. Validation remains SHA-specific.
