@@ -423,3 +423,10 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Person exact-head smoke | [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) | SUCCESS | All six lanes passed, including People, SQL persistence/migration and backup/restore; physical-device validation remains open |
 | Person delete-title test assertion | `test/person_directory_page_test.dart` at current PR #2695 head | CORRECTED / CI PASS | Assertion scoped to AlertDialog; do not reuse closed divergent PR #2715 |
 | Physical device and release closure | Product acceptance; issues #2102 and #1901 | OPEN / NO-GO | Verify real-device behavior, integrated flow and backup/restore integrity before release |
+
+## 2026-10-14 — Owner contract capture is not implementation evidence
+| Area | Evidence | Result | Validation | Status |
+|---|---|---|---|---|
+| Follow-up/Reminder contract capture | Issue #2654 comment [6176411140](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6176411140); Issue #1901 comment [6176412001](https://github.com/mobinpda-lab/Arvin-clean/issues/1901#issuecomment-6176412001); PR #2717 documentation branch | Owner requirements recorded; source code not changed by this work | No code/build/device validation claimed | DOCUMENTED ONLY |
+| Legacy Task reminder migration | Conflicting prior records in issue #2654 | No migration performed | Requires explicit reconciliation, idempotence/rollback tests, JSON/SQL and Backup/Restore validation, Calendar no-duplicate validation | BLOCKED / NO-GO |
+| Follow-up checkbox removal and child-record model | Owner contract captured; current main still has `followUpEnabled` consumers | Not yet fixed in app | Audit all source consumers and test old data compatibility before implementation | OPEN |
