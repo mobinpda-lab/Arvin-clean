@@ -411,3 +411,17 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Recovery concurrency | Key Build concurrency by target SHA | IMPLEMENTED / CI PENDING | Prevents separate recovery targets on main from cancelling one another |
 | Operational dispatcher acceptance | Controlled dispatch with terminal successful Build and verified exact checkout | OPEN | Requires reviewed activation on default branch; not proven by ordinary PR CI |
 | Person feature validation | PR #2695 current head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / OPEN | Separate feature; recovery workflow changes do not validate it |
+
+## 2026-10-14 — Exact-head validation refresh
+
+| Feature / Gate | Exact SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Person report filter test repair | #2695 head `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9`; Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) | PASS — 9/9 jobs | Analyze, six test shards, Debug APK and Release APK passed. No Device Smoke run returned for this exact head. |
+| CI / APK artifact identity | #2709 head `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) | PASS — 9/9 jobs | Versioned Debug and Release APK artifacts built successfully; traceable artifact naming retained. |
+| Device Smoke on #2709 | Run [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934), same SHA `b97506ab41e72c4dd932e1777bb6be5c07f2aca8) | INCOMPLETE | Home and Quick Capture PASS; SQL Persistence and SQL Migration IN_PROGRESS; People and Backup/Restore QUEUED at latest poll. |
+| Current main release gate | main `658aa85fc4b7d24bfe191016c86c739f61bf3bf5) | NOT PASSED | Recent Release Closure and Final Head Release Validation workflows were SKIPPED; Production Loop success is not release acceptance. |
+| Physical-device acceptance | Final candidate not yet established | OPEN | No real-device result/model/OS/screenshots recorded in this checkpoint. |
+| Product Person acceptance | Current integrated final SHA not established | OPEN | Settings CRUD/search, multi-Person relations, report filtering, and Backup/Restore integrity remain unaccepted. |
+| Release decision | Issue #2702 candidate `747b1831eddc60f99c1c14a5bbc4a4c0049667ec) | NO-GO | Candidate differs from current main; exact-SHA evidence cannot transfer. |
+
+**Execution rule:** a green Build or partial Device Smoke is not product acceptance. All six smoke lanes, feature-specific data integrity, physical-device acceptance, and release documentation must be validated against the final candidate SHA before GO.
