@@ -1,3 +1,16 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — CI workflow fix merged; Person PR still blocked
+
+This update supersedes older pending statements about PR #2704. It does not supersede the immutable RC-01 SHA lock.
+
+- **Completed:** PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704) merged to `main` as `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. It removes the Device Smoke pull-request base-branch filter and Draft skip, and updates the workflow contract test plus fast-lane validator.
+- **Exact-head evidence before merge:** Build [38558652079](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558652079) passed all 9 jobs on `8e4d5d1feaa8a12db930a60ddb4438bbc279c890`; Device Smoke [38558652445](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558652445) passed all six lanes on that same SHA. These are workflow/CI validation, not physical-device acceptance or full Person product acceptance.
+- **Post-merge main validation:** Build [38562963391](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963391) and Device Smoke [38562963211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963211) were started on merge SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; inspect terminal outcomes before claiming main is green.
+- **Current bottleneck:** Person integration PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) remains Draft/open/unmerged, base `integration/task-multiple-reminders-safe-20261013`, head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99`, `mergeable=false`. Exact-head Actions run and check-run queries still return zero. The Device Smoke trigger gap has been fixed on main, but that change does not retroactively create runs for an existing PR; Build trigger absence remains unresolved and must not be guessed.
+- **Next action:** poll the merge-SHA Build and Device Smoke; then find an approved way to trigger and validate PR #2695's exact current head (Build plus all six Device Smoke lanes), while diagnosing why no Build run exists. Review Person report/backup restore evidence and physical-device acceptance separately.
+- **Release status:** **NO-GO**. RC-01 remains locked to `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; validation on later SHAs does not transfer to RC-01 or a new release candidate.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Device Smoke contract test parser repaired
 
 This update supersedes the previous PR #2704 poll where it conflicts.
