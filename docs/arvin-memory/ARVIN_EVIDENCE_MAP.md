@@ -423,3 +423,14 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Person exact-head smoke | [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) | SUCCESS | All six lanes passed, including People, SQL persistence/migration and backup/restore; physical-device validation remains open |
 | Person delete-title test assertion | `test/person_directory_page_test.dart` at current PR #2695 head | CORRECTED / CI PASS | Assertion scoped to AlertDialog; do not reuse closed divergent PR #2715 |
 | Physical device and release closure | Product acceptance; issues #2102 and #1901 | OPEN / NO-GO | Verify real-device behavior, integrated flow and backup/restore integrity before release |
+
+
+## 2026-10-15 — Legacy Task reminder migration candidate
+| Area | Evidence | Result | Remaining proof |
+|---|---|---|---|
+| Owner decision | Issue #2654 comment 6178475884 | Option B selected | Decision recorded |
+| Model migration | lib/models/task.dart on current-main-based feature branch | Candidate stable ID + version marker + timestamp preservation | Exact-head tests; SQL and backup/restore |
+| Calendar identity | lib/services/follow_up_calendar_projection.dart and calendar_inbound_sync_service.dart | Candidate preserves task-reminder:<taskId> and edits/deletes migrated record | Calendar Provider Acceptance/no duplicates |
+| Scheduler identity | lib/services/follow_up_reminder_projection.dart | Candidate preserves existing delivery key | Alarm/restart/reschedule regression |
+| Current-head validation | No terminal results observed yet | NOT VALIDATED | Analyze, all tests, Debug/Release, six smoke lanes, Calendar provider |
+| Physical-device/release | No new device evidence | OPEN / NO-GO | Real-device acceptance and owner release approval |
