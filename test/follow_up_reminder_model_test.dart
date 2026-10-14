@@ -93,15 +93,66 @@ void main() {
     expect(restored.nextReminderSequence, 4);
   });
 
-  test('legacy Task JSON without a reminder collection remains valid', () {
+  test('legacy Task reminder migrates once and preserves its timestamp', () {
     final restored = Task.fromJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-10-20T09:30:00.000',
     });
 
-    expect(restored.taskReminders, isEmpty);
     expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
-    expect(restored.nextReminderSequence, 1);
+    expect(restored.taskReminders, hasLength(1));
+    expect(restored.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(restored.taskReminders.single.date, restored.reminderDate);
+    expect(restored.taskReminders.single.isAllDay, isFalse,
+        reason: 'midnight alone must not be interpreted as all-day');
+    expect(restored.legacyTaskReminderMigrationVersion, 1);
+    expect(restored.nextReminderSequence, 2);
+
+    final restoredAgain = Task.fromJson(restored.toJson());
+    expect(restoredAgain.taskReminders, hasLength(1),
+        reason: 'reloading a migrated Task must not create a duplicate');
+    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restoredAgain.legacyTaskReminderMigrationVersion, 1);
+  });
+
+  test('legacy migration appends after existing reminders without overwriting them', () {
+    final restored = Task.fromJson({
+      'id': 'legacy-with-new',
+      'title': 'کار ترکیبی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+      'taskReminders': [
+        {
+          'id': 'new-reminder',
+          'title': 'یادآور مستقل',
+          'date': '2026-10-21T11:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+        }
+      ],
+      'nextReminderSequence': 2,
+    });
+
+    expect(restored.taskReminders, hasLength(2));
+    expect(restored.taskReminders.first.id, 'new-reminder');
+    expect(restored.taskReminders.last.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.last.sequence, 2);
+    expect(restored.nextReminderSequence, 3);
+
+    final restoredAgain = Task.fromJson(restored.toJson());
+    expect(restoredAgain.taskReminders, hasLength(2));
+    expect(restoredAgain.taskReminders.map((item) => item.id).toSet(),
+        {'new-reminder', 'legacy-task-reminder'});
+  });
+
+  test('Task without a legacy reminder does not prematurely mark migration complete', () {
+    final restored = Task.fromJson({
+      'id': 'no-legacy-reminder',
+      'title': 'کار جدید',
+    });
+
+    expect(restored.taskReminders, isEmpty);
+    expect(restored.legacyTaskReminderMigrationVersion, 0);
   });
 }
