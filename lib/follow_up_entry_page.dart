@@ -39,7 +39,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   List<PersonReference> _availablePeople = const <PersonReference>[];
   final Set<String> _selectedPersonIds = <String>{};
   Set<String> _initialPersonIds = <String>{};
-  bool _peopleLoading = true;
+  bool _peopleLoading = false;
+  bool _peopleLoadStarted = false;
   String? _personError;
   late DateTime _initialDateTime;
   late String _initialNote;
@@ -60,7 +61,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
         _waitingService.isWaitingResult(initial?.result);
     _selectedPersonIds.addAll(initial?.personIds ?? const <String>[]);
     _initialPersonIds = Set<String>.of(_selectedPersonIds);
-    _loadPeopleDirectory();
+    if (_waitingForResponse) _loadPeopleDirectory();
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _reminderDate = initial?.reminderDate;
     _nextFollowUp = initial?.nextFollowUp;
@@ -73,6 +74,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   Future<void> _loadPeopleDirectory() async {
+    if (_peopleLoadStarted) return;
+    _peopleLoadStarted = true;
+    if (mounted) {
+      setState(() {
+        _peopleLoading = true;
+        _personError = null;
+      });
+    }
     try {
       final people = await (widget.store ?? TaskStore()).loadPeopleDirectory();
       if (!mounted) return;
@@ -374,45 +383,49 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 'این پیگیری در فهرست موارد منتظر پاسخ نمایش داده می‌شود.',
               ),
               value: _waitingForResponse,
-              onChanged: (value) =>
-                  setState(() => _waitingForResponse = value),
+              onChanged: (value) {
+                setState(() => _waitingForResponse = value);
+                if (value) _loadPeopleDirectory();
+              },
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'اشخاص مرتبط',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            if (_peopleLoading)
-              const LinearProgressIndicator()
-            else if (_availablePeople.isEmpty)
+            if (_waitingForResponse) ...[
+              const SizedBox(height: 8),
               const Text(
-                'هنوز شخصی در دفترچه اشخاص ثبت نشده است. ابتدا از تنظیمات، بخش «اشخاص»، فرد موردنظر را اضافه کنید.',
-              )
-            else
-              ..._availablePeople.map(
-                (person) => CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(person.displayName),
-                  value: _selectedPersonIds.contains(person.id),
-                  onChanged: (selected) {
-                    setState(() {
-                      if (selected == true) {
-                        _selectedPersonIds.add(person.id);
-                      } else {
-                        _selectedPersonIds.remove(person.id);
-                      }
-                      _personError = null;
-                    });
-                  },
-                ),
+                'اشخاص مرتبط',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-            if (_personError != null) ...[
               const SizedBox(height: 4),
-              Text(
-                _personError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+              if (_peopleLoading)
+                const LinearProgressIndicator()
+              else if (_availablePeople.isEmpty)
+                const Text(
+                  'هنوز شخصی در دفترچه اشخاص ثبت نشده است. ابتدا از تنظیمات، بخش «اشخاص»، فرد موردنظر را اضافه کنید.',
+                )
+              else
+                ..._availablePeople.map(
+                  (person) => CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(person.displayName),
+                    value: _selectedPersonIds.contains(person.id),
+                    onChanged: (selected) {
+                      setState(() {
+                        if (selected == true) {
+                          _selectedPersonIds.add(person.id);
+                        } else {
+                          _selectedPersonIds.remove(person.id);
+                        }
+                        _personError = null;
+                      });
+                    },
+                  ),
+                ),
+              if (_personError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _personError!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
             ],
             const SizedBox(height: 4),
             TextField(
