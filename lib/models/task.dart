@@ -346,6 +346,8 @@ class Task {
     final legacyReminderDate = rawLegacyReminderDate == null
         ? null
         : DateTime.tryParse(rawLegacyReminderDate as String);
+    final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final sequenceFromJson = storedSequence < 1 ? 1 : storedSequence;
     final storedMigrationVersion =
         (json['legacyTaskReminderMigrationVersion'] as num?)?.toInt() ?? 0;
     var migrationVersion = storedMigrationVersion < 0 ? 0 : storedMigrationVersion;
@@ -356,13 +358,16 @@ class Task {
             : loadedTaskReminders
                 .map((item) => item.sequence)
                 .reduce((a, b) => a > b ? a : b);
+        final migrationSequence = highestSequence + 1 > sequenceFromJson
+            ? highestSequence + 1
+            : sequenceFromJson;
         final taskTitle = json['title'] as String? ?? '';
         loadedTaskReminders.add(
           TaskReminder(
             id: 'legacy-task-reminder',
             title: 'یادآوری: $taskTitle',
             date: legacyReminderDate,
-            sequence: highestSequence + 1,
+            sequence: migrationSequence,
             isLegacyTaskReminder: true,
           ),
         );
@@ -370,8 +375,6 @@ class Task {
       migrationVersion = 1;
     }
 
-    final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
-    final sequenceFromJson = storedSequence < 1 ? 1 : storedSequence;
     final nextReminderSequence = [
       sequenceFromJson,
       if (loadedTaskReminders.isNotEmpty)
