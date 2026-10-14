@@ -1,3 +1,46 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 17:16 UTC — Exact-head documentation CI complete
+
+This entry supersedes the immediately preceding in-progress status for documentation PR #2701.
+
+- Repository default branch `main` remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; no merge to main occurred in this cycle.
+- PR #2701 head `f5454ca006d81f3e4b07f537e1a4117f207222b2` has terminal exact-head Build SUCCESS: [run 38602980485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980485), all 9 jobs passed, including Analyze, test shards 0–5, Debug APK and Release APK.
+- The same SHA has terminal exact-head Device Smoke SUCCESS: [run 38602980136](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980136), all six lanes passed: home, quick-capture, people, backup-restore, sql-persistence and sql-migration.
+- This validates the documentation PR's current head only. PR #2701 remains open, Draft, and unmerged; these CI results do not establish full product acceptance or physical-device validation.
+- Person integration PR #2695 remains open Draft at `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, based on integration branch `integration/task-multiple-reminders-safe-20261013`, not main. Its current CI evidence is green on that head, but the PR changes application code across 27 files and is not merged. Do not equate smoke coverage with manual Person/report/calendar acceptance or full standalone-Person backup integrity.
+- Open product/data gates include #2682 (standalone Person backup/restore), #2683 (Person-specific Follow-up/report filters), #2685 (Calendar tap/long-press behavior), and #2654 (multiple independent reminders). Physical-device validation and complete handover evidence remain outstanding.
+- Candidate `ARVIN-RC-01` remains immutably bound to `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; do not silently retarget it.
+- **Release decision: NO-GO.** Next action: continue product-level acceptance and data-integrity verification against a single explicitly selected candidate; do not merge Draft PRs or release on CI alone.
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Documentation PR exact-head validation complete
+
+This entry supersedes the earlier in-progress status for PR #2701; those earlier notes remain historical observations.
+
+- **Repository main:** `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`.
+- **Documentation PR #2701:** branch `docs/reconcile-ci-evidence-20261014`, validated head before this checkpoint `b5fcac43c8117d300c6222d0fb63380e14b62a42`. Exact-head Build [38600429834](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38600429834) completed SUCCESS.
+- **Exact-head Device Smoke:** [run 38600429819](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38600429819) is now terminal SUCCESS on the same SHA. All six lanes passed: home, quick-capture, sql-migration, sql-persistence, people, backup-restore. The backup/restore canonical smoke step passed; the earlier delay was in post-step Flutter action cleanup, not a product smoke failure.
+- **Post-merge main evidence:** Build [38562963391](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963391) and Device Smoke [38562963211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963211) both completed SUCCESS on main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`.
+- **Person integration PR #2695:** current exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) completed SUCCESS, including all six smoke lanes. This is automated CI/emulator evidence only; it does not close manual product acceptance or physical-device validation.
+- **Release remains NO-GO.** Outstanding gates remain Person create/edit/delete/search and relation behavior, Person-filtered reports, Calendar tap/long-press/update/no-duplicates, end-to-end Backup/Restore integrity for IDs and relations, physical-device installation/validation, and complete handover documentation. Candidate `ARVIN-RC-01` remains immutably bound to SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; this documentation PR does not replace or silently retarget that candidate.
+- **Next action:** append this checkpoint to project memory, rerun exact-head Build and all six Device Smoke lanes for the resulting documentation commit, then review the documentation diff and CI conclusion. Do not merge solely because the previous SHA was green. Continue product acceptance and physical-device gates.
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Post-merge CI evidence reconciliation
+
+This entry supersedes older live-status claims below where they conflict; retain them as historical records.
+
+- **Repository / branch:** `mobinpda-lab/Arvin-clean`, default branch `main`.
+- **Latest verified merge:** PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699) is CLOSED and merged. Merge commit: [`747b1831eddc60f99c1c14a5bbc4a4c0049667ec`](https://github.com/mobinpda-lab/Arvin-clean/commit/747b1831eddc60f99c1c14a5bbc4a4c0049667ec). Older entries that say PR #2699 is open/unmerged are stale history.
+- **Build evidence reconciliation:** Arvin Build run [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465) has nine latest-attempt jobs visible through the GitHub connector; all nine report `completed / success`: Analyze, test shards 0–5, Debug APK, and Release APK. Artifacts exist for both APKs and identify exact head SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`. Release APK artifact SHA-256: `37e12b9c4bf90ee8be94721d6a91c53b33529b344af9ef6061b8e89fec6d5629`; Debug APK artifact SHA-256: `79a24aa8aff6f916de3b0384114d3cb16123666b942f3ead07556f62dfb7d72a`. Auto-fix issue #2700 was generated with an earlier failure conclusion; its body conflicts with the currently visible successful job results. The connector does not expose the workflow-run-level conclusion here, so treat Build as **job-level green, run-level summary needs confirmation**.
+- **Device Smoke / dispatcher:** the merged commit message records that the PR head passed all six Device Smoke lanes, but this execution has not independently retrieved the corresponding run IDs and per-lane evidence. Dispatcher end-to-end remains unproven until a real workflow-dispatch run logs the requested PR head, matching run-name target SHA, and checkout assertion.
+- **Person integration:** PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) remains open, Draft, and non-mergeable. Its current source, exact-head Build, six Device Smoke lanes, standalone-Person backup/restore, Person-based reports, and physical-device acceptance remain unvalidated/incomplete. Do not merge it or claim the Person feature complete.
+- **Release decision:** **NO-GO**. Passing Build jobs and APK artifacts do not close Person, data-integrity, dispatcher end-to-end, physical-device, and product acceptance gates.
+- **Next action:** reconcile the run-level conclusion for Build run `38525486465`; independently identify the six-lane Device Smoke run for exact SHA `747b1831...`; then prove dispatcher recovery with a controlled same-repository PR. Keep Person PR #2695 Draft until its current head has full exact-head validation and safe integration review. This documentation commit must receive fresh exact-head CI evidence.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
@@ -1019,3 +1062,239 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Validation status:** implementation only; CI is being triggered by these commits and must finish on the final resulting head. Operational dispatcher acceptance remains unproven until the workflow is on default branch and a controlled dispatch completes with exact checkout assertions. Do not merge solely to bypass a gate.
 - **Person PR #2695:** still requires exact-head CI; the current live head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` previously returned zero runs/checks. No app code changed in this correction.
 - **Next action:** inspect the final PR #2699 head, wait for terminal Build and six-lane Device Smoke, then review job logs for YAML/runtime errors. Keep Person and release gates open until their own evidence is available.
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI completion and smoke queue
+
+This update supersedes older contradictory pending states only for the exact SHAs/runs listed below. No release approval is implied.
+
+## Live repository state
+- Default branch `main`: `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` (`ci: validate Device Smoke on integration and draft PRs`).
+- Recovery dispatcher PR #2699 is **merged/closed** (live PR metadata), but the live release workflows on main still show Release Closure and Final Head Release Validation as `skipped`; operational dispatcher acceptance and release acceptance must not be inferred from the merge alone.
+- Release candidate issue [#2702](https://github.com/mobinpda-lab/Arvin-clean/issues/2702) remains OPEN and records candidate SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` as validation-only. Current main is a different SHA, so candidate evidence is not current-main evidence.
+
+## Person PR #2695
+- Exact head: `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9`; PR remains OPEN/Draft.
+- Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) is terminal SUCCESS, all 9 jobs passed (Analyze, six test shards, Debug APK, Release APK).
+- No Device Smoke run is listed for this exact head. The report-filter test interaction repair is validated by Build, but Person feature acceptance and physical-device acceptance are still open.
+
+## Device Smoke workflow PR #2709
+- Exact head: `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; PR remains OPEN/Draft, targeting `integration/task-multiple-reminders-safe-20261013`.
+- Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) is now terminal SUCCESS: Analyze, test-0..5, Debug APK and Release APK all passed. Versioned APK artifacts were generated; the artifact identity contract remains enforced.
+- Device Smoke [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) is **not terminal** at the latest poll: Home and Quick Capture passed; SQL Persistence and SQL Migration were in progress; People and Backup/Restore were queued. Do not mark this PR validated until all six lanes are terminal-success on this exact SHA.
+- Parallel Wave [38568677675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568677675) passed, but it does not substitute for the incomplete Device Smoke run.
+
+## Current main / release evidence
+- The latest main-head query showed the Release Closure and Final Head Release Validation runs completing as `skipped`, not success. Production Loop and Factory REST Promotion Bridge runs succeeded, but those are orchestration evidence, not product acceptance.
+- Do not equate a successful Build, a successful orchestration workflow, or a skipped release gate with a releasable product.
+
+## Remaining blockers
+1. Complete all six Device Smoke lanes on #2709 exact head.
+2. Once the workflow trigger change is reviewed and integrated into the intended integration base, require fresh exact-head Device Smoke for #2695.
+3. Reconcile #2666/#2655 stacked reminder and Follow-up branches safely against live main; rerun relevant Build, smoke, and Calendar Provider Acceptance.
+4. Complete Person settings, multi-Person Follow-up, Person report filters, backup/restore relationship integrity, Calendar same-event update/no-duplicate behavior, physical-device validation, Persian RTL/compact-screen evidence, and release guides.
+5. Keep release NO-GO until all gates are checked with evidence matching the final candidate SHA.
+
+# AUTHORITATIVE POLL UPDATE — 2026-10-14 — Device Smoke progressed
+
+This poll supersedes only the prior lane-status snapshot for Device Smoke run `38568684934`; the run is still non-terminal.
+
+- Exact tested head: `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`.
+- Build run `38568685043`: terminal SUCCESS, 9/9 jobs.
+- Device Smoke run `38568684934`: Home PASS; Quick Capture PASS; SQL Persistence PASS; SQL Migration PASS; People IN PROGRESS; Backup/Restore IN PROGRESS.
+- Four of six smoke lanes are terminal-success. Wait for both remaining lanes to finish; if either fails, inspect its failing step/log and repair the root cause without removing tests.
+- PR #2709 remains Draft/unmerged. This workflow-only branch is not release approval and does not validate Person PR #2695 by itself.
+- PR #2695 head `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9` has Build SUCCESS (run `38568442359`, 9/9 jobs) and 13 check-runs including successful quality/APK lanes; feedback-loop is skipped. No Device Smoke run was returned for that exact head.
+- Current main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release gate remains NO-GO.
+- Work performed in this poll: rechecked repository state, open PRs/issues, exact-head run/check metadata, and smoke jobs; updated this execution checkpoint and the evidence map on PR #2701's branch. No app code changed and no tests were weakened.
+
+**Current bottleneck:** complete People and Backup/Restore smoke lanes on the exact #2709 head, then enable/obtain exact-head smoke for #2695 and continue feature/data-integrity acceptance.
+
+
+# AUTHORITATIVE EXECUTION PLAN — 2026-10-14 — Product-first parallel workstreams
+
+This checkpoint supersedes the previous Device Smoke lane snapshot for run 38568684934 only. No release approval is implied.
+
+## Verified current baseline
+- main: 658aa85fc4b7d24bfe191016c86c739f61bf3bf5.
+- PR #2709 head b97506ab41e72c4dd932e1777bb6be5c07f2aca8: Build run [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) terminal SUCCESS, 9/9 jobs; Device Smoke run [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) terminal SUCCESS, 6/6 lanes (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the workflow branch only; it does not validate Person feature integration or main.
+- PR #2695 head f9c5e5598505a2348aaf29b7fdb4962ef1c756a9: Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) terminal SUCCESS, 9/9 jobs. No Device Smoke run is listed for this exact head. PR remains Draft/open and targets integration branch integration/task-multiple-reminders-safe-20261013 at ad762774009e5b5c7ee341146a8160c52e2b9bb2.
+- Release candidate issue #2702 still says NO-GO. Historical candidate 747b1831eddc60f99c1c14a5bbc4a4c0049667ec differs from current main; do not transfer its evidence.
+
+## Parallel execution plan (product outcomes, dependencies explicit)
+
+### Lane A — CI and integration enablement (P0; parallel)
+1. Review PR #2709 and its exact-head green Build + all six Device Smoke lanes; integrate only through the repository's normal review/policy path.
+2. Once the integration base contains the trigger change, refresh/synchronize PR #2695 and obtain Build plus all six Device Smoke lanes on its new exact head.
+3. Verify the recovery dispatcher operationally on default branch with a controlled missing-evidence PR and exact checkout assertions. A merged workflow or ordinary PR CI is not sufficient proof.
+Exit evidence: exact SHA, terminal Build, six terminal-success smoke lanes, dispatcher run logs/checkout SHA.
+
+### Lane B — Person feature acceptance (P0; parallel with Lane A)
+1. Settings Person directory: create, read/list, edit, delete, search.
+2. Follow-up supports multiple Person IDs and Waiting Response with valid structured state; Person edits/deletes preserve or safely resolve references.
+3. Reports filter by Person and show the correct associated Follow-ups.
+4. Test legacy records, empty/invalid/dangling/duplicate IDs and migration behavior.
+Exit evidence: focused tests + full Build + Device Smoke on the final integrated SHA; no acceptance inferred from CI-only People smoke.
+
+### Lane C — Data safety / Backup-Restore (P0; parallel with B)
+1. Round-trip Task, checklist, repeat, tracking, Follow-up, independent Reminder, Person, History and Calendar links.
+2. Validate duplicate/dangling references before restore; preserve relations; prove rollback after failed restore and safe handling of legacy backups.
+3. Verify deleting a Reminder never deletes its Task, Follow-ups, or other Reminders.
+Dependency: final integrated data model from Lane B and reminder lane D.
+Exit evidence: automated round-trip/rollback/integrity tests and real-device restore evidence.
+
+### Lane D — Task / Follow-up / independent Reminder contract (P1; parallel design/test audit)
+1. Preserve Task as sole source of truth; Follow-ups remain independent records and nextFollowUp is an action time, not a reminder.
+2. Resolve stacked PRs #2666/#2655 and reminder-editor dependencies against the live base without blind merges or wholesale cherry-picks.
+3. Support multiple independently identified Task-level Reminders with explicit edit/delete isolation and legacy JSON/SQL/backup compatibility; keep any schema change behind a documented migration and tests.
+4. Quick Entry retains checklist and removes Follow-up toggle; full form owns Follow-up creation/management.
+Exit evidence: reviewed model contract, migration/legacy tests, full Build and relevant smoke on final SHA.
+
+### Lane E — Calendar and reports (P1; parallel, merge after canonical data contract)
+1. Calendar is a projection: short tap opens Task; long press exposes actions.
+2. Update existing event by Task ID + External Event ID; prove repeated sync does not create duplicates.
+3. Keep nextFollowUp internal unless explicitly opted in; no accidental reminder or external sync.
+4. Validate report filters across Project, Category, Tag, Person, Follow-up, Reminder and date.
+Exit evidence: Calendar Provider Acceptance, duplicate/identity tests, report tests on final SHA.
+
+### Lane F — Persian daily-use UX (P1; parallel)
+1. Validate RTL, Persian labels/numerals, spacing, compact-screen layouts and accessibility of primary actions.
+2. Keep Quick Entry concise and Full Form complete; make Follow-up/Waiting Response and Reminder terminology consistent.
+3. Capture before/after and acceptance screenshots on the final build.
+Dependency: coordinate with lanes B, D and E; avoid competing edits to the same screens.
+
+### Lane G — Physical device and handover (P0 release gate; starts with a candidate only)
+1. Install candidate APK on a real Android device and record device model, OS, app version, commit SHA, screenshots and outcome.
+2. Run end-to-end: Task → Follow-up → Person → independent Reminder → Calendar → Reports → Backup → Restore; verify IDs/relations and no duplicate events.
+3. Finalize Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report against the exact candidate SHA.
+Dependency: lanes A–F integrated and candidate frozen; every candidate change resets exact-SHA validation.
+
+## Execution ordering and release rule
+- Work concurrently on non-overlapping lanes; assign one owner/branch per conflicting file area.
+- Integration sequence: CI enablement → validated feature integration → full exact-head Build + six-lane Smoke + Calendar acceptance → candidate freeze → physical-device/data-integrity acceptance → docs/evidence reconciliation.
+- Never weaken/delete tests to obtain green CI. Never merge a Draft PR or promote based only on a successful workflow branch.
+- Release decision remains NO-GO until all required gates and real-device evidence pass on one final candidate SHA.
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+### Completed in this execution
+- PR #2709 was moved from Draft to ready and safely squash-merged into integration branch `integration/task-multiple-reminders-safe-20261013`; merge commit: `b75e2427f5e06c49553f064f26376a9e70fcbd7c`. Scope: exact-head Build recovery contract, versioned APK artifact identity, and Device Smoke for integration-base/Draft PRs. Exact head had Build SUCCESS (9/9) and Device Smoke SUCCESS (6/6) before merge. This is integration-branch CI enablement, not main/release approval.
+- New Person directory widget test on PR #2695 exposed a real lifecycle defect: edit dialog disposed its TextEditingController as soon as showDialog returned, while reverse route transition could still build the TextField. Result: disposed-controller assertion and edit test failure.
+- Fixed on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a`: moved controller ownership into a dedicated StatefulWidget dialog so disposal follows widget lifecycle.
+- PR #2695 exact-head Build run `38572366122` exposed 2 separate failures: (1) test shard 2 failed due to the above Person edit-dialog lifecycle bug; (2) Debug APK failed while Gradle distribution endpoint returned HTTP 500. The Person code defect is fixed in the newer head; the new run `38573235905` Build and `38573235964` Device Smoke were observed pending/queued at checkpoint. Do not carry prior SHA results forward.
+- PR #2701 docs Build `38571362850` succeeded 9/9; docs Device Smoke `38571362840` had 4/6 lanes successful (Home, Quick Capture, SQL Persistence, SQL Migration), while People and Backup/Restore were still running at checkpoint.
+
+### Current bottleneck
+1. Finish exact-head Build and all six Device Smoke lanes on current Person PR head `a162941fdf824463162ac6198a30b4373bfb751a`.
+2. If the Gradle HTTP 500 persists, retry the failed APK job after the active run terminates; do not modify Gradle versions or tests based on a transient upstream 500.
+3. Resolve overlap between PR #2695 and #2696 before integrating canonical Person persistence; do not merge both schema/store implementations independently.
+4. Release gates remain open: Issue #2102 and real-device regression Issue #1901 are open. Main SHA remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; Release Closure and Final Head Release Validation runs are `skipped`, not passed.
+5. Physical-device acceptance, Calendar same-event update/no-duplicates, backup/restore integrity, and final handover docs remain release blockers.
+
+### Next action
+- Poll exact-head Build run `38573235905` and Device Smoke run `38573235964`; inspect and fix any remaining product-test failure; then record terminal evidence. Keep release NO-GO.
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+### Completed
+- PR #2709 was marked ready and squash-merged into integration branch `integration/task-multiple-reminders-safe-20261013`; merge commit `b75e2427f5e06c49553f064f26376a9e70fcbd7c`. Before merge, exact head Build passed 9/9 and Device Smoke passed 6/6. This enables integration-base smoke coverage; it is not main/release approval.
+- Added Person directory UI acceptance test to PR #2695. It found a real controller-lifecycle bug: the edit dialog disposed its TextEditingController while the route's reverse transition still had a TextField alive.
+- Fixed this on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a` by moving controller ownership into a StatefulWidget dialog whose dispose lifecycle matches the route.
+- Prior Build `38572366122` had two failures: test shard 2 due to the now-fixed dialog lifecycle bug, and Debug APK because the Gradle distribution endpoint returned HTTP 500. Do not treat the transient Gradle failure as a product-code failure.
+
+### Current bottleneck
+1. New exact-head Build `38573235905` and Device Smoke `38573235964` are running on `a162941fdf824463162ac6198a30b4373bfb751a`; all results must be terminal before deciding next action.
+2. If Gradle HTTP 500 recurs, retry only the failed APK job after the workflow terminates; do not change pinned Gradle based on a transient upstream response.
+3. PR #2695 and #2696 overlap in canonical Person persistence/schema. Reconcile to one implementation before merging either storage slice.
+4. Main SHA remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. Release Closure `38572288868` and Final Head Release Validation `38572304475` were skipped, not passed.
+5. Product release gate #2102 and real-device regression #1901 remain open. Real-device acceptance, Calendar same-event update/no-duplicates, backup/restore relationship integrity, and final handover documentation remain required.
+
+### Next action
+Poll `38573235905` and `38573235964`; inspect/fix any remaining product-test failure; then record terminal evidence. Release remains NO-GO.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Person dialog test assertion and fresh CI
+
+- PR #2695 remains OPEN and Draft, targeting `integration/task-multiple-reminders-safe-20261013`; it is not release-approved.
+- Previous exact head `a162941fdf824463162ac6198a30b4373bfb751a`: Build run [38573235905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38573235905) completed with 8/9 jobs successful. Analyze, five other test shards, Debug APK and Release APK passed. Test shard 2 failed one test in `test/person_directory_page_test.dart`: the test expected one widget named `حذف شخص`, but the confirmation AlertDialog correctly renders that text both as the dialog title and the FilledButton label. This is a test-finder ambiguity, not evidence of a production deletion failure. All 243 other tests in that shard passed.
+- On branch `integration/person-directory-safe-port-20261014-v2`, commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` updates the test to target the AlertDialog descendant explicitly; no production code or test coverage was removed.
+- Fresh exact-head Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) have started on `93202e9e24e33bff31daaf933b2c4fb1417dfb46). At this checkpoint, Build jobs are still in progress and Device Smoke has Home/Quick Capture in progress with remaining lanes queued. Do not claim the assertion repair validated until both runs are terminal and successful.
+- Device Smoke on the preceding SHA `a162941f...` completed all six lanes successfully (Home, Quick Capture, Backup/Restore, People, SQL Persistence, SQL Migration); this evidence does not transfer to the new SHA.
+- PR #2695 is still not to be merged: Person persistence overlaps PR #2696 and needs one canonical implementation; standalone Person backup/restore, Person report acceptance and physical-device validation remain open. Main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO**.
+- Next action: poll runs `38579471120` and `38579471201`; inspect any failures and fix root causes without weakening tests. Then reconcile #2695/#2696 storage overlap and rerun all acceptance gates on the resulting exact SHA.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Latest live checkpoint
+
+## Completed this cycle
+- Re-read this execution state before continuing; no project restart performed.
+- Re-polled exact-head runs for Person PR #2695 at SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46`.
+- Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120): Analyze and test shards 0–5 are successful; Debug and Release APK jobs are still in progress at this checkpoint. Thus the corrected Person widget test is now green on the observed shard results, but the Build is not yet terminal.
+- Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Quick Capture passed; Home and SQL Persistence are in progress; Backup/Restore, People, SQL Migration remain queued. Do not claim six-lane success yet.
+- Inspected actual PR patches for #2695 and #2696. Both independently introduce `people_directory` schema and overlapping TaskStore APIs. #2695 is the broader integrated slice: adds Follow-up waiting/person IDs, safe detach on delete, directory UI, backup/restore and reporting work. #2696 is a smaller older-base persistence slice and does not include the complete feature path.
+- Posted anti-duplication comments to both PRs recommending not to merge both wholesale; leave #2696 open until #2695 validates, then close as superseded or extract only unique necessary tests after comparison. No PR was closed or merged.
+
+## Current bottleneck
+1. Exact-head Build and all six Device Smoke lanes for #2695 have not reached terminal success.
+2. PR #2695 remains Draft and must be reviewed for persistence/migration/backup integrity after CI.
+3. PR #2696 overlaps canonical persistence and should not be merged independently.
+4. Main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO** until full frozen-SHA gates and physical-device evidence pass.
+
+## Next action
+Poll runs `38579471120` and `38579471201` to terminal status. If green, perform deeper integration review of #2695's schema migration, backup rollback and report semantics, then resolve #2696 redundancy without losing unique coverage. If any job fails, classify as infrastructure/product/test/data-migration and fix the root cause without weakening tests.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Person CI terminal recheck
+
+## Evidence confirmed
+- Person PR #2695 remains OPEN and Draft at exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, base `integration/task-multiple-reminders-safe-20261013`. It has not been merged.
+- Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) is now terminal SUCCESS. Analyze, all six test shards, Debug APK, and Release APK all passed on that exact head.
+- Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) is still IN_PROGRESS at the latest check. Home, Quick Capture, SQL Persistence, and SQL Migration are SUCCESS; People and Backup/Restore remain IN_PROGRESS. Do not claim six-lane success until both remaining jobs and the run itself are terminal.
+- Current main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; no application PR was merged in this cycle.
+- #2695/#2696 still overlap in canonical Person persistence. Do not merge both. After #2695's smoke run completes, inspect schema migration and backup/restore integrity, then resolve #2696 as superseded or preserve only unique required coverage.
+- Release remains **NO-GO**: physical-device validation, final calendar acceptance, and complete frozen-SHA data-integrity gates are still outstanding.
+
+## Current bottleneck / next action
+Wait for Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) to reach terminal status. Investigate any failed lane using its logs and fix root cause without weakening tests. Then refresh the exact-head evidence after any further code change and update the evidence map.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Smoke partial completion update
+
+- Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) on Person PR #2695 exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` is terminal SUCCESS, including Analyze, all six test shards and Debug/Release APK.
+- Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Home, Quick Capture, SQL Persistence, SQL Migration and Backup/Restore are now SUCCESS. The People lane remains IN_PROGRESS; run-level result is not terminal.
+- People lane is currently running the canonical Android emulator smoke command; setup, dependencies and repository-owned input checks passed. The smoke command and screenshot upload have not completed. No failure is confirmed at this point.
+- Source review of #2695 confirmed Person-directory schema is additive/idempotent, Follow-up structured Person references are preflight-validated against the backup directory, duplicate/dangling IDs are rejected before restore mutation, and rollback test checks original Task and Person state after an injected failure. This is source/test evidence, not a substitute for the outstanding People lane or physical-device acceptance.
+- No application code changed; no PR merged. #2695 and #2696 remain open/Draft due overlapping persistence implementation. Main stays `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO**.
+- **Next action:** poll People lane and run to terminal status. If it fails, inspect the failure logs and fix root cause without weakening tests. If it passes, reconcile the latest evidence map and proceed to physical-device and final integration gates.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Person CI terminal and workflow contract validation
+
+This checkpoint supersedes the earlier note that the People smoke lane was still in progress.
+
+- **Main:** `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. No product PR was merged into main in this execution.
+- **Person integration PR #2695:** current exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, Draft, open, base `integration/task-multiple-reminders-safe-20261013`, GitHub reports mergeable=true.
+- **Exact-head Build:** [run 38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) terminal SUCCESS; Analyze, test shards 0–5, Debug APK and Release APK all passed on `93202e9e24e33bff31daaf933b2c4fb1417dfb46).
+- **Exact-head Device Smoke:** [run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) terminal SUCCESS; all six lanes passed: Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People.
+- **CI workflow contract repair:** PR [#2709](https://github.com/mobinpda-lab/Arvin-clean/pull/2709) was merged into integration branch `integration/task-multiple-reminders-safe-20261013`, not main. Its resulting SHA `b97506ab41e72c4dd932e1777bb6be5c07f2aca8` has successful Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043), all six Device Smoke lanes in [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934), and Fast Lane contract [38568677675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568677675). This proves CI/emulator behavior on that integration commit only.
+- **Completed step:** exact-head automated Build and all six Device Smoke lanes are now terminal green for the current Person PR head.
+- **Current bottleneck:** product acceptance still requires physical-device install/use with recorded model/OS/version/SHA/screenshots, explicit Person create/edit/delete/search and multi-Person waiting-response/report acceptance, backup/restore relation/history integrity, and Calendar tap/long-press plus CREATE→UPDATE/no-duplicate provider acceptance on the final integrated frozen SHA.
+- **Release decision:** NO-GO. Green automated CI does not establish physical-device acceptance or complete the manual/product gates.
+- **Next action:** preserve #2695 as Draft; complete or collect the remaining acceptance evidence, inspect Calendar Provider Acceptance against the final exact head, then refresh every gate if any code changes. Do not merge overlapping Person persistence PR #2696 wholesale; compare for unique tests/capabilities first.
+
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 17:58 UTC — exact-head CI poll and migration decision conflict
+
+This checkpoint supersedes earlier live-status claims where they conflict; older entries remain historical.
+
+- Repository `mobinpda-lab/Arvin-clean`; `main` remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. No app merge or release occurred.
+- Documentation PR #2701 exact head `4a4e531bee86b2a7e4189af166569be947f32b41`: Build [38609443902](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443902) is terminal SUCCESS, all 9 jobs passed (Analyze, test shards 0–5, Debug APK, Release APK).
+- Exact-head Device Smoke [38609443810](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443810) remains IN_PROGRESS. Four lanes are terminal SUCCESS: home, quick-capture, sql-persistence, sql-migration. The people and backup-restore emulator smoke commands are still running; neither lane has a terminal conclusion. No failures observed at this poll. Do not claim all-six-lane success until both jobs and the workflow are terminal-success.
+- PR #2655 (multiple reminders) remains OPEN/unmerged, mergeable=false, head `751c659e5788d312d83eef0d4b1d09dc19f2217d`, base `main` with an old base checkpoint; compare is DIVERGED (68 commits ahead, 6 behind). Do not merge blindly.
+- **Critical data-contract conflict identified:** the owner-approved Issue #2654 UX/compatibility comments and `ARVIN_MULTIPLE_REMINDERS_DESIGN.md` / `ARVIN_DECISION_LOG.md` say preserve legacy `Task.reminderDate` and `FollowUp.reminderDate`, do not auto-migrate or duplicate them, and keep the legacy Calendar identity until a tested mapping exists. A later integration-blocker comment and older execution-state text instead assert an approved requirement to migrate the legacy Task reminder into exactly one new TaskReminder. These are materially conflicting migration instructions. No source or migration change was made because guessing could lose or duplicate reminder/calendar data. Resolve the canonical migration rule explicitly before implementation.
+- **Current bottleneck:** finish exact-head Device Smoke; then resolve the legacy reminder migration contract and safely reconcile PR #2655 with current main, including Calendar projection changes. Required acceptance still includes backup/restore integrity, Calendar stable-ID CREATE→UPDATE/no-duplicates, Person/report gates and physical-device validation.
+- **Next action:** poll the same Device Smoke run (do not duplicate it); ask the owner to confirm whether legacy Task reminder remains a separate compatibility record or is idempotently converted into a TaskReminder while preserving its existing Calendar identity. Until that decision is explicit and tested, keep PR #2655 unmerged.
+- Release remains **NO-GO**.

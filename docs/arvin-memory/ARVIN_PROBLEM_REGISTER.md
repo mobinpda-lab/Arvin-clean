@@ -270,3 +270,29 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** Recovery could fail to start a verifiable exact-target Build or incorrectly classify a run; multiple targets could cancel one another.
 - **Solution:** Run the workflow from the default branch, pass and assert the explicit target SHA in every quality/APK job, match runs by target-SHA run name, and isolate concurrency per target.
 - **Status:** Fix committed to PR #2699; exact-head CI pending and operational acceptance remains open until controlled dispatch evidence exists.
+
+
+## 2026-10-14 — Person delete confirmation test selector
+
+- **Problem:** Person directory widget test failed because `find.text('حذف شخص')` matched both the AlertDialog title and the confirmation button.
+- **Root cause:** identical localized copy is intentionally used in two widgets; the test finder was not scoped to the title's semantic container.
+- **Impact:** one test failed in shard 2; 243 tests in that shard passed. This did not establish a product deletion defect.
+- **Fix:** commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title assertion to the AlertDialog subtree. No tests were removed or weakened.
+- **Status:** code change committed; fresh Build `38579471120` and Device Smoke `38579471201` were still running/queued at the latest checkpoint. Mark resolved only after terminal exact-head CI confirms.
+
+
+## 2026-10-14 — Duplicate Person persistence slices
+
+- **Problem:** PR #2695 and #2696 each create `people_directory` and overlapping directory persistence methods on different base histories.
+- **Root cause:** parallel work started as a persistence-only slice and later expanded into an integrated Person/Follow-up/backup/report slice without retiring the first lane.
+- **Impact:** merging both wholesale risks duplicated implementation or migration conflicts; neither PR is release evidence.
+- **Resolution path:** #2695 is the current leading candidate because it includes the broader feature integration; validate its exact head, compare schema/migration and backup rollback carefully, then supersede #2696 or preserve only unique tests.
+- **Status:** Identified; anti-duplication comments posted to both PRs; no merge/closure performed. Build and Device Smoke remain non-terminal.
+
+
+## 2026-10-14 — Person exact-head automated validation completed
+
+- **Problem:** The latest Person integration head had an unresolved widget-test interaction failure and incomplete smoke evidence at the prior checkpoint.
+- **Root cause / fix:** The report-filter test now scrolls the existing Apply action into view before tapping; the Person delete-title test scopes its finder to the AlertDialog; the Person edit dialog controller lifetime is owned by its StatefulWidget. No tests were deleted or weakened.
+- **Evidence:** PR #2695 exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) passed all nine jobs; Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) passed all six lanes.
+- **Status:** These automated blockers are resolved for this exact SHA. Physical-device and manual product acceptance remain open; release remains NO-GO.
