@@ -459,3 +459,13 @@ Do not close the smoke gate until all six lanes are terminal-success on the exac
 - Dependencies: A unlocks reliable integration; B and D determine canonical data contract; C depends on final model and Reminder semantics; E depends on stable Task/event identity; F coordinates with UI owners; G starts after candidate freeze and reruns if SHA changes.
 - Policy: no release until every gate passes on one exact final candidate SHA. Physical-device evidence is not supplied by emulator smoke.
 
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+| Product/CI area | Exact evidence | Result / meaning |
+|---|---|---|
+| Integration CI enablement | PR #2709 merged to integration at `b75e2427f5e06c49553f064f26376a9e70fcbd7c`; pre-merge Build run `38568685043` SUCCESS 9/9; Device Smoke run `38568684934` SUCCESS 6/6 on `b97506ab41e72c4dd932e1777bb6be5c07f2aca8` | Integration trigger fix merged; does not validate current main or product release. |
+| Person UI regression | PR #2695 Build `38572366122`, test shard 2: `person_directory_page_test.dart` failed because edit dialog TextEditingController was disposed during route reverse transition; Debug APK also saw HTTP 500 from Gradle distribution URL | Real UI lifecycle defect identified and fixed in new head `a162941fdf824463162ac6198a30b4373bfb751a`; new Build `38573235905` and Device Smoke `38573235964` were pending/queued at last check. |
+| Documentation CI | PR #2701 Build `38571362850` SUCCESS 9/9; Device Smoke `38571362840`: Home, Quick Capture, SQL Persistence, SQL Migration SUCCESS; People + Backup/Restore still in progress | Not terminal 6/6 at checkpoint. |
+| Release gates | Main `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; runs `38572288868` Release Closure and `38572304475` Final Head Release Validation both `skipped`; issues #2102 and #1901 remain open | NO-GO. Skipped workflows are not evidence of release success. Physical-device and product acceptance remain outstanding. |
