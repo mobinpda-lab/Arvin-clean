@@ -45,11 +45,20 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     for (final task in _filtered) {
       for (final followUp in task.followUps) {
         if (_filter.personIds.isNotEmpty &&
-            !followUp.personIds.any(_filter.personIds.contains)) continue;
+            !followUp.personIds.any(_filter.personIds.contains)) {
+          continue;
+        }
         if (_filter.waitingForResponseOnly &&
-            (task.completed || task.archived || task.trashed ||
-                followUp.completed || !followUp.waitingForResponse)) continue;
-        if (!_filter.matchesFollowUpTime(followUp, now: _now)) continue;
+            (task.completed ||
+                task.archived ||
+                task.trashed ||
+                followUp.completed ||
+                !followUp.waitingForResponse)) {
+          continue;
+        }
+        if (!_filter.matchesFollowUpTime(followUp, now: _now)) {
+          continue;
+        }
         result.add(_FollowUpReportEntry(task: task, followUp: followUp));
       }
     }
