@@ -106,6 +106,10 @@ class FollowUpCalendarProjection {
             isAllDay: reminder.isAllDay,
           ),
         );
+        if (reminder.isLegacyTaskReminder) {
+          // Preserve the legacy projection's due-date de-duplication behavior.
+          taskDatesAlreadyProjected.add(reminder.date);
+        }
       }
 
       final taskReminderDate = task.reminderDate;
