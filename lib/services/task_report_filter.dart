@@ -23,6 +23,8 @@ class TaskReportFilter {
     this.hasRepeat,
     this.hasFollowUp,
     this.hasChecklist,
+    this.personIds = const <String>{},
+    this.waitingForResponseOnly = false,
   });
 
   final ReportTimePreset timePreset;
@@ -41,6 +43,8 @@ class TaskReportFilter {
   final bool? hasRepeat;
   final bool? hasFollowUp;
   final bool? hasChecklist;
+  final Set<String> personIds;
+  final bool waitingForResponseOnly;
 
   bool get isActive =>
       timePreset != ReportTimePreset.all ||
@@ -58,12 +62,15 @@ class TaskReportFilter {
       priority != null ||
       hasRepeat != null ||
       hasFollowUp != null ||
-      hasChecklist != null;
+      hasChecklist != null ||
+      personIds.isNotEmpty ||
+      waitingForResponseOnly;
 
   List<Task> apply(
     Iterable<Task> tasks, {
     required DateTime now,
     Iterable<ProjectPlan> projects = const [],
+    bool ignoreTaskTime = false,
   }) {
     final selectedProjectIds = <String>{
       ...projectIds,
@@ -94,6 +101,22 @@ class TaskReportFilter {
           (task.checklist.isNotEmpty) != hasChecklist) {
         return false;
       }
+      if (waitingForResponseOnly &&
+          (task.completed ||
+              task.archived ||
+              !task.followUps.any(
+                (followUp) =>
+                    followUp.waitingForResponse &&
+                    !followUp.completed &&
+                    (personIds.isEmpty || followUp.personIds.any(personIds.contains)),
+              ))) {
+        return false;
+      }
+      if (personIds.isNotEmpty &&
+          !waitingForResponseOnly &&
+          !task.followUps.any((followUp) => followUp.personIds.any(personIds.contains))) {
+        return false;
+      }
       if (selectedCategories.isNotEmpty &&
           !selectedCategories.contains(task.category?.trim())) {
         return false;
@@ -106,7 +129,7 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
-      if (!_matchesTime(task.dueDate, now)) return false;
+      if (!ignoreTaskTime && !_matchesTime(task.dueDate, now)) return false;
       return true;
     }).toList(growable: false);
   }
@@ -123,6 +146,9 @@ class TaskReportFilter {
         return task.archived;
     }
   }
+
+  bool matchesFollowUpTime(FollowUp followUp, {required DateTime now}) =>
+      _matchesTime(followUp.nextFollowUp, now);
 
   bool _matchesTime(DateTime? value, DateTime now) {
     if (value == null) {
