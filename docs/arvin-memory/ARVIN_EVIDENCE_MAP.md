@@ -375,3 +375,13 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Device Smoke:** [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) — SUCCESS. Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
 - These are exact-head automated/emulator results for the queried SHA only. They do not prove physical-device acceptance, provider same-event update/no-duplicate, actual OS notification behavior, or release approval.
 - The memory update itself creates a newer branch head; re-check exact-head Build and all six Device Smoke lanes before merge.
+
+
+## 2026-10-14 — Latest-head terminal CI evidence
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Arvin Build | `db60759072b53ef215f07ce28ef69803cdfe0c3b`; [run 38517351542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351542) | PASS | Analyze, six test shards, Debug APK, Release APK all successful; event was `pull_request`, so this is not dispatcher-path proof |
+| Device Smoke | same SHA; [run 38517351453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351453) | PASS | Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore all successful; CI/emulator evidence only, not physical-device validation |
+| Recovery dispatcher end-to-end | PR #2699 | BLOCKED / NOT YET PROVEN | Must observe a real `workflow_dispatch` on a controlled same-repository PR lacking exact-head evidence and verify requested SHA equals checked-out SHA |
+| Release acceptance | Current product | NO-GO | Physical-device validation and remaining product acceptance gates are still outstanding |
