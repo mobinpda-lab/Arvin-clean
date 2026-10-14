@@ -1164,3 +1164,22 @@ Dependency: lanes A–F integrated and candidate frozen; every candidate change 
 
 ### Next action
 - Poll exact-head Build run `38573235905` and Device Smoke run `38573235964`; inspect and fix any remaining product-test failure; then record terminal evidence. Keep release NO-GO.
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+### Completed
+- PR #2709 was marked ready and squash-merged into integration branch `integration/task-multiple-reminders-safe-20261013`; merge commit `b75e2427f5e06c49553f064f26376a9e70fcbd7c`. Before merge, exact head Build passed 9/9 and Device Smoke passed 6/6. This enables integration-base smoke coverage; it is not main/release approval.
+- Added Person directory UI acceptance test to PR #2695. It found a real controller-lifecycle bug: the edit dialog disposed its TextEditingController while the route's reverse transition still had a TextField alive.
+- Fixed this on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a` by moving controller ownership into a StatefulWidget dialog whose dispose lifecycle matches the route.
+- Prior Build `38572366122` had two failures: test shard 2 due to the now-fixed dialog lifecycle bug, and Debug APK because the Gradle distribution endpoint returned HTTP 500. Do not treat the transient Gradle failure as a product-code failure.
+
+### Current bottleneck
+1. New exact-head Build `38573235905` and Device Smoke `38573235964` are running on `a162941fdf824463162ac6198a30b4373bfb751a`; all results must be terminal before deciding next action.
+2. If Gradle HTTP 500 recurs, retry only the failed APK job after the workflow terminates; do not change pinned Gradle based on a transient upstream response.
+3. PR #2695 and #2696 overlap in canonical Person persistence/schema. Reconcile to one implementation before merging either storage slice.
+4. Main SHA remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. Release Closure `38572288868` and Final Head Release Validation `38572304475` were skipped, not passed.
+5. Product release gate #2102 and real-device regression #1901 remain open. Real-device acceptance, Calendar same-event update/no-duplicates, backup/restore relationship integrity, and final handover documentation remain required.
+
+### Next action
+Poll `38573235905` and `38573235964`; inspect/fix any remaining product-test failure; then record terminal evidence. Release remains NO-GO.
