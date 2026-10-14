@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 
 void main() {
@@ -196,6 +197,61 @@ void main() {
     expect(await store.loadCategories(), isNot(contains('بدون استفاده')));
     expect(await store.loadTags(), isNot(contains('برچسب مستقل')));
     expect(await store.load(), hasLength(1));
+  });
+
+  test('Person directory persists independently of Tasks and supports stable-ID edits', () async {
+    final store = TaskStore();
+    await store.save(<Task>[Task(id: 'person-linked-task', title: 'Keep this task')]);
+    await store.savePersonDirectoryEntry(
+      PersonReference(id: 'person-1', displayName: '  علی رضایی  '),
+    );
+    await store.savePersonDirectoryEntry(
+      PersonReference(id: 'person-2', displayName: 'سارا'),
+    );
+    await store.savePersonDirectoryEntry(
+      PersonReference(id: 'person-1', displayName: 'علی رضایی ویرایش‌شده'),
+    );
+
+    final people = await TaskStore().loadPeopleDirectory();
+    expect(people.map((person) => person.id), <String>['person-2', 'person-1']);
+    expect(people.last.displayName, 'علی رضایی ویرایش‌شده');
+    expect((await TaskStore().load()).single.id, 'person-linked-task');
+
+    await store.deletePersonDirectoryEntry('person-2');
+    expect((await store.loadPeopleDirectory()).map((person) => person.id), <String>['person-1']);
+    expect((await store.load()).single.title, 'Keep this task');
+  });
+
+  test('Person directory restore merges local-only entries and replace restores exact snapshot', () async {
+    final store = TaskStore();
+    await store.savePersonDirectoryEntry(PersonReference(id: 'local', displayName: 'محلی'));
+    await store.restorePeopleDirectoryEntries(<PersonReference>[
+      PersonReference(id: 'backup', displayName: 'پشتیبان'),
+    ]);
+    expect(
+      (await store.loadPeopleDirectory()).map((person) => person.id).toSet(),
+      <String>{'local', 'backup'},
+    );
+
+    await store.restorePeopleDirectoryEntries(
+      <PersonReference>[PersonReference(id: 'snapshot', displayName: 'بازگشت')],
+      replace: true,
+    );
+    final restored = await store.loadPeopleDirectory();
+    expect(restored.map((person) => person.id), <String>['snapshot']);
+  });
+
+  test('Person directory restore rejects duplicate IDs before mutation', () async {
+    final store = TaskStore();
+    await store.savePersonDirectoryEntry(PersonReference(id: 'existing', displayName: 'موجود'));
+    await expectLater(
+      store.restorePeopleDirectoryEntries(<PersonReference>[
+        PersonReference(id: 'duplicate', displayName: 'یک'),
+        PersonReference(id: 'duplicate', displayName: 'دو'),
+      ]),
+      throwsA(isA<FormatException>()),
+    );
+    expect((await store.loadPeopleDirectory()).map((person) => person.id), <String>['existing']);
   });
 
   test('TaskStore rejects malformed canonical document instead of empty fallback',

@@ -8,6 +8,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/task.dart';
+import '../models/person_reference.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
@@ -58,6 +59,151 @@ class TaskStore {
       return rows.map((row) => row['name'] as String).toList(growable: false);
     });
   }
+
+  Future<List<PersonReference>> loadPeopleDirectory() async {
+    return TaskStorageLock.synchronized<List<PersonReference>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT id, display_name FROM people_directory ORDER BY normalized_name, display_name',
+        const [],
+      );
+      return rows
+          .map((row) => PersonReference(
+                id: row['id'] as String,
+                displayName: row['display_name'] as String,
+              ))
+          .toList(growable: false);
+    });
+  }
+
+  Future<PersonReference> savePersonDirectoryEntry(
+    PersonReference person,
+  ) async {
+    return TaskStorageLock.synchronized<PersonReference>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final normalizedName = _normalizePersonName(person.displayName);
+      final existing = await executor.runSelect(
+        'SELECT created_at FROM people_directory WHERE id = ? LIMIT 1',
+        <Object?>[person.id],
+      );
+      final now = DateTime.now().toIso8601String();
+      final createdAt = existing.isEmpty
+          ? now
+          : existing.single['created_at'] as String;
+      await executor.runInsert(
+        '''INSERT INTO people_directory
+           (id, display_name, normalized_name, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             display_name = excluded.display_name,
+             normalized_name = excluded.normalized_name,
+             updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, normalizedName, createdAt, now],
+      );
+      await executor.runUpdate(
+        'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+        <Object?>[jsonEncode(person.toJson()), person.id],
+      );
+      return person;
+    });
+  }
+
+  /// Imports directory entries by stable ID and retains local-only people.
+  /// [replace] is reserved for exact rollback snapshots.
+  Future<void> restorePeopleDirectoryEntries(
+    Iterable<PersonReference> people, {
+    bool replace = false,
+  }) async {
+    final entries = List<PersonReference>.of(people);
+    final ids = <String>{};
+    for (final person in entries) {
+      if (person.id.trim().isEmpty || person.displayName.trim().isEmpty) {
+        throw const FormatException('Person ID and display name must not be empty');
+      }
+      if (!ids.add(person.id)) {
+        throw FormatException('Duplicate Person id: ${person.id}');
+      }
+    }
+
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        if (replace) {
+          await executor.runDelete('DELETE FROM people_directory', const []);
+        }
+        for (final person in entries) {
+          final normalizedName = _normalizePersonName(person.displayName);
+          final existing = await executor.runSelect(
+            'SELECT created_at FROM people_directory WHERE id = ? LIMIT 1',
+            <Object?>[person.id],
+          );
+          final now = DateTime.now().toIso8601String();
+          final createdAt = existing.isEmpty
+              ? now
+              : existing.single['created_at'] as String;
+          await executor.runInsert(
+            '''INSERT INTO people_directory
+               (id, display_name, normalized_name, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                 display_name = excluded.display_name,
+                 normalized_name = excluded.normalized_name,
+                 updated_at = excluded.updated_at''',
+            <Object?>[person.id, person.displayName, normalizedName, createdAt, now],
+          );
+          await executor.runUpdate(
+            'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+            <Object?>[jsonEncode(person.toJson()), person.id],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try {
+          await executor.runCustom('ROLLBACK');
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  /// Removing a directory entry only detaches the lightweight relation.
+  /// It never deletes or mutates a canonical Task.
+  Future<void> deletePersonDirectoryEntry(String personId) async {
+    final id = personId.trim();
+    if (id.isEmpty) throw ArgumentError.value(personId, 'personId');
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        await executor.runDelete(
+          'DELETE FROM task_people WHERE person_id = ?',
+          <Object?>[id],
+        );
+        await executor.runDelete(
+          'DELETE FROM people_directory WHERE id = ?',
+          <Object?>[id],
+        );
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try {
+          await executor.runCustom('ROLLBACK');
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  static String _normalizePersonName(String value) => value
+      .trim()
+      .toLowerCase()
+      .replaceAll('ي', 'ی')
+      .replaceAll('ك', 'ک')
+      .replaceAll(RegExp(r'\s+'), ' ');
 
   Future<String> createCategory(String value) async {
     final name = value.trim();
