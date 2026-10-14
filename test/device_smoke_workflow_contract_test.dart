@@ -12,7 +12,7 @@ void main() {
     // Pull requests targeting integration branches must receive smoke coverage.
     // Keep the main/master restriction for push events, but not for pull_request.
     final pullRequestTrigger = workflow
-        .split('  pull_request:\\n')
+        .split('  pull_request:\n')
         .last
         .split('  workflow_dispatch:')
         .first;
