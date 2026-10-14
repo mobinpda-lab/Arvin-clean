@@ -69,35 +69,10 @@ class _PersonDirectoryPageState extends State<PersonDirectoryPage> {
       .replaceAll(RegExp(r'\s+'), ' ');
 
   Future<void> _editPerson([PersonReference? existing]) async {
-    final controller = TextEditingController(text: existing?.displayName ?? '');
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(existing == null ? 'افزودن شخص' : 'ویرایش شخص'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textDirection: TextDirection.rtl,
-          decoration: const InputDecoration(
-            labelText: 'نام شخص',
-            hintText: 'مثلاً سارا احمدی',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('ذخیره'),
-          ),
-        ],
-      ),
+      builder: (_) => _PersonNameDialog(existingName: existing?.displayName),
     );
-    controller.dispose();
     if (name == null || name.trim().isEmpty || !mounted) return;
 
     setState(() => _saving = true);
@@ -231,4 +206,58 @@ class _PersonDirectoryPageState extends State<PersonDirectoryPage> {
       ),
     );
   }
+}
+
+
+/// Owns the text controller for the full lifetime of the dialog route,
+/// including its reverse transition after the user taps Save or Cancel.
+class _PersonNameDialog extends StatefulWidget {
+  const _PersonNameDialog({this.existingName});
+
+  final String? existingName;
+
+  @override
+  State<_PersonNameDialog> createState() => _PersonNameDialogState();
+}
+
+class _PersonNameDialogState extends State<_PersonNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.existingName ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: Text(widget.existingName == null ? 'افزودن شخص' : 'ویرایش شخص'),
+        content: TextField(
+          controller: _controller,
+          autofocus: true,
+          textDirection: TextDirection.rtl,
+          decoration: const InputDecoration(
+            labelText: 'نام شخص',
+            hintText: 'مثلاً سارا احمدی',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+            child: const Text('ذخیره'),
+          ),
+        ],
+      );
 }
