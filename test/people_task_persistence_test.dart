@@ -346,4 +346,34 @@ void main() {
     expect(await store.loadPeopleDirectory(), isEmpty);
   });
 
+  test('portable backup includes the Person directory alongside canonical Follow-ups', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      ArvinBackupManager.directoryKey: 'content://arvin-backups',
+    });
+    final person = _person('person-backup-ali', 'علی رضایی');
+    final task = Task(
+      id: 'task-backup-ali',
+      title: 'تماس با علی',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-backup-ali',
+          dateTime: DateTime(2026, 10, 14, 9),
+          waitingForResponse: true,
+          personIds: [person.id],
+          nextFollowUp: DateTime(2026, 10, 15, 10),
+          reminderDate: DateTime(2026, 10, 14, 18),
+        ),
+      ],
+    );
+    final service = _PeopleBackupService();
+    final manager = ArvinBackupManager(service: service);
+    await manager.backupCanonicalTasks([task], people: [person]);
+
+    expect(service.writtenPayload!['people'], [person.toJson()]);
+    service.restoreDocument = service.writtenPayload;
+    final candidate = await manager.restoreCanonicalBackup();
+    expect(candidate!.people!.single.id, person.id);
+    expect(candidate.tasks.single.followUps.single.personIds, [person.id]);
+  });
+
 }
