@@ -85,12 +85,17 @@ void main() {
 
     expect(restored.reminderDate, task.reminderDate,
         reason: 'legacy singular reminder must remain unchanged');
-    expect(restored.taskReminders, hasLength(2));
+    expect(restored.taskReminders, hasLength(3));
     expect(restored.taskReminders.map((item) => item.id),
-        ['reminder-a', 'reminder-c']);
-    expect(restored.taskReminders.last.isAllDay, isTrue);
-    expect(restored.taskReminders.last.date, DateTime(2026, 10, 22));
-    expect(restored.nextReminderSequence, 4);
+        ['reminder-a', 'reminder-c', 'legacy-task-reminder']);
+    final independentAllDay = restored.taskReminders.singleWhere(
+      (item) => item.id == 'reminder-c',
+    );
+    expect(independentAllDay.isAllDay, isTrue);
+    expect(independentAllDay.date, DateTime(2026, 10, 22));
+    expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
+    expect(restored.taskReminders.last.date, task.reminderDate);
+    expect(restored.nextReminderSequence, 5);
   });
 
   test('legacy Task reminder migrates once and preserves its timestamp', () {
