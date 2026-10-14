@@ -1144,3 +1144,23 @@ Dependency: lanes A–F integrated and candidate frozen; every candidate change 
 - Integration sequence: CI enablement → validated feature integration → full exact-head Build + six-lane Smoke + Calendar acceptance → candidate freeze → physical-device/data-integrity acceptance → docs/evidence reconciliation.
 - Never weaken/delete tests to obtain green CI. Never merge a Draft PR or promote based only on a successful workflow branch.
 - Release decision remains NO-GO until all required gates and real-device evidence pass on one final candidate SHA.
+
+
+## Autonomous continuation checkpoint — 2026-10-14 (latest verified)
+
+### Completed in this execution
+- PR #2709 was moved from Draft to ready and safely squash-merged into integration branch `integration/task-multiple-reminders-safe-20261013`; merge commit: `b75e2427f5e06c49553f064f26376a9e70fcbd7c`. Scope: exact-head Build recovery contract, versioned APK artifact identity, and Device Smoke for integration-base/Draft PRs. Exact head had Build SUCCESS (9/9) and Device Smoke SUCCESS (6/6) before merge. This is integration-branch CI enablement, not main/release approval.
+- New Person directory widget test on PR #2695 exposed a real lifecycle defect: edit dialog disposed its TextEditingController as soon as showDialog returned, while reverse route transition could still build the TextField. Result: disposed-controller assertion and edit test failure.
+- Fixed on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a`: moved controller ownership into a dedicated StatefulWidget dialog so disposal follows widget lifecycle.
+- PR #2695 exact-head Build run `38572366122` exposed 2 separate failures: (1) test shard 2 failed due to the above Person edit-dialog lifecycle bug; (2) Debug APK failed while Gradle distribution endpoint returned HTTP 500. The Person code defect is fixed in the newer head; the new run `38573235905` Build and `38573235964` Device Smoke were observed pending/queued at checkpoint. Do not carry prior SHA results forward.
+- PR #2701 docs Build `38571362850` succeeded 9/9; docs Device Smoke `38571362840` had 4/6 lanes successful (Home, Quick Capture, SQL Persistence, SQL Migration), while People and Backup/Restore were still running at checkpoint.
+
+### Current bottleneck
+1. Finish exact-head Build and all six Device Smoke lanes on current Person PR head `a162941fdf824463162ac6198a30b4373bfb751a`.
+2. If the Gradle HTTP 500 persists, retry the failed APK job after the active run terminates; do not modify Gradle versions or tests based on a transient upstream 500.
+3. Resolve overlap between PR #2695 and #2696 before integrating canonical Person persistence; do not merge both schema/store implementations independently.
+4. Release gates remain open: Issue #2102 and real-device regression Issue #1901 are open. Main SHA remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; Release Closure and Final Head Release Validation runs are `skipped`, not passed.
+5. Physical-device acceptance, Calendar same-event update/no-duplicates, backup/restore integrity, and final handover docs remain release blockers.
+
+### Next action
+- Poll exact-head Build run `38573235905` and Device Smoke run `38573235964`; inspect and fix any remaining product-test failure; then record terminal evidence. Keep release NO-GO.
