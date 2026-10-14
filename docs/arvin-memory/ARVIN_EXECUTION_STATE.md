@@ -956,3 +956,19 @@ This checkpoint supersedes earlier live status for PR #2665 where conflicting; p
 - **Safe next step:** inspect/reconcile PR #2655's 58-ahead/2-behind divergence against current main without blind merge/rebase. Its Task model, editor, Calendar inbound/outbound, backup and reminder scheduling changes overlap newer main and require path-by-path compatibility review.
 - Release remains **NO-GO** pending multi-reminder integration, provider CREATE→UPDATE/no-duplicate evidence, real-device notification and backup/restore validation, Persian RTL/compact UX acceptance, and owner approval.
 - This memory write creates a new PR head; re-query Build and all six Device Smoke lanes for that resulting exact head before any merge/readiness decision.
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (PR CI recovery dispatcher exact-head validation)
+
+This checkpoint supersedes earlier live status for PR #2699, while retaining older entries as history.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`.
+- **PR:** [#2699 — ci: recover missing exact-head PR builds automatically](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), branch `fix/ci-exact-head-recovery-dispatcher-20261014`, target `main`. At this checkpoint it is OPEN, non-draft, unmerged; GitHub reports mergeable=true.
+- **Validated head before this memory-only update:** `b1e7b50c87ac21c7e50926cc88fb8db7ed551229`.
+- **Build:** [run #38515272044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38515272044) completed SUCCESS on that exact SHA; Analyze, test shards 0–5, Debug APK and Release APK passed.
+- **Device Smoke:** [run #38515272058](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38515272058) completed SUCCESS on that exact SHA. All six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, People, and Backup/Restore. The Backup/Restore lane completed successfully; no failure was observed.
+- **Evidence limitation:** these are GitHub CI/emulator results. They do not prove acceptance on a physical phone or external Calendar/notification providers.
+- **Dispatcher review:** the workflow scans open PRs, limits work to same-repository branches updated within 14 days, caps dispatches at three per run, avoids active/green/recent exact-head runs, passes `target_sha`, and logs requested SHA metadata. Permissions are `actions: write`, `pull-requests: read`, `contents: read`; it does not merge or release. PR review submissions and inline review threads were empty at this checkpoint.
+- **Current bottleneck:** operational acceptance is still incomplete. PR acceptance requires a dispatcher run to log decisions and dispatch Build for a controlled PR lacking exact-head evidence, then compare the resulting Build SHA with the current PR head. The available GitHub connector exposes no workflow-dispatch action, so that controlled run could not be triggered from this session. Do not claim this acceptance item passed.
+- **No merge or release:** remain NO-GO. Do not merge solely because the PR is mergeable or Build/Device Smoke are green. The dispatcher’s after-merge proof and broader product gates remain open.
+- **Recorded evidence:** the terminal CI checkpoint and gate status were posted to [PR #2699 comments](https://github.com/mobinpda-lab/Arvin-clean/pull/2699).
+- **Next action:** obtain a permitted manual/scheduled dispatcher run after this workflow is integrated through an independently justified review path, using a controlled same-repository PR with no exact-head Build evidence; verify logs, requested SHA, resulting run metadata, checked-out SHA and terminal result. Separately continue the existing product integration and physical-device/provider acceptance gates. This memory-only commit changes the PR head, so re-query Build and all six Device Smoke lanes for the new exact head before considering any further gate decision.
