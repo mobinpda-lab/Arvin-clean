@@ -1108,3 +1108,17 @@ This entry supersedes the earlier sentence above saying the six Device Smoke lan
 - **Change control:** if PR head changes, record the new full SHA and repeat required checks on that SHA only. Do not merge while Draft/unmergeable or without evidence.
 - **Current state:** `BLOCKED` on exact-head CI evidence. Release remains `NO-GO`.
 - GitHub assignment/comment evidence: PR #2695 comment [#6166344947](https://github.com/mobinpda-lab/Arvin-clean/pull/2695#issuecomment-6166344947); canonical lock Issue #2702 comment [#6166345564](https://github.com/mobinpda-lab/Arvin-clean/issues/2702#issuecomment-6166345564).
+
+
+## STATUS SEMANTICS CORRECTION — 2026-10-14
+
+This section is authoritative for reporting status and supersedes any broad DONE label that could be read as completion of the whole next action.
+
+### Separate work-item status from project-gate status
+- **DONE (recordkeeping only):** accountable GitHub account `mobinpda-lab` was assigned to PR #2695 and Issue #2702; ownership and acceptance criteria were posted in the respective comments. This means assignment/documentation is complete only.
+- **BLOCKED (delivery action):** exact-head Build/test evidence is not yet available for PR #2695 head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99`. The connected GitHub tools available in this execution do not expose a workflow-dispatch action. Do not state or imply the Build was triggered.
+- **NEXT ACTION:** repository owner `mobinpda-lab` must start/enable the controlled exact-head workflow in GitHub Actions and record the run URL, checked-out SHA, terminal conclusion, required jobs and six Device Smoke lane results. Then attach evidence to PR #2695 and Issues #2682/#2683.
+- **Candidate status:** `ARVIN-RC-01` remains validation-only. Its previously verified green Build and six-lane Device Smoke are evidence for SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` only; they do not validate PR #2695's different head SHA.
+- **Release status:** `NO-GO`. No merge or release authorization was performed.
+
+Reporting rule: always scope `DONE` to the exact completed subtask. If the overall deliverable still depends on missing evidence, the overall state must remain `BLOCKED`; do not place an unqualified DONE next to a blocked action.
