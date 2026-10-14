@@ -1,3 +1,17 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Documentation PR exact-head validation complete
+
+This entry supersedes the earlier in-progress status for PR #2701; those earlier notes remain historical observations.
+
+- **Repository main:** `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`.
+- **Documentation PR #2701:** branch `docs/reconcile-ci-evidence-20261014`, validated head before this checkpoint `b5fcac43c8117d300c6222d0fb63380e14b62a42`. Exact-head Build [38600429834](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38600429834) completed SUCCESS.
+- **Exact-head Device Smoke:** [run 38600429819](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38600429819) is now terminal SUCCESS on the same SHA. All six lanes passed: home, quick-capture, sql-migration, sql-persistence, people, backup-restore. The backup/restore canonical smoke step passed; the earlier delay was in post-step Flutter action cleanup, not a product smoke failure.
+- **Post-merge main evidence:** Build [38562963391](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963391) and Device Smoke [38562963211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963211) both completed SUCCESS on main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`.
+- **Person integration PR #2695:** current exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) completed SUCCESS, including all six smoke lanes. This is automated CI/emulator evidence only; it does not close manual product acceptance or physical-device validation.
+- **Release remains NO-GO.** Outstanding gates remain Person create/edit/delete/search and relation behavior, Person-filtered reports, Calendar tap/long-press/update/no-duplicates, end-to-end Backup/Restore integrity for IDs and relations, physical-device installation/validation, and complete handover documentation. Candidate `ARVIN-RC-01` remains immutably bound to SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; this documentation PR does not replace or silently retarget that candidate.
+- **Next action:** append this checkpoint to project memory, rerun exact-head Build and all six Device Smoke lanes for the resulting documentation commit, then review the documentation diff and CI conclusion. Do not merge solely because the previous SHA was green. Continue product acceptance and physical-device gates.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Post-merge CI evidence reconciliation
 
 This entry supersedes older live-status claims below where they conflict; retain them as historical records.
