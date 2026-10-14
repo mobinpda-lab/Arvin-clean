@@ -191,6 +191,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           },
                         )),
             ),
+          ],
+        ),
         floatingActionButton: _showFollowUpRows || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
