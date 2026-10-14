@@ -1282,3 +1282,19 @@ This checkpoint supersedes the earlier note that the People smoke lane was still
 - **Current bottleneck:** product acceptance still requires physical-device install/use with recorded model/OS/version/SHA/screenshots, explicit Person create/edit/delete/search and multi-Person waiting-response/report acceptance, backup/restore relation/history integrity, and Calendar tap/long-press plus CREATE→UPDATE/no-duplicate provider acceptance on the final integrated frozen SHA.
 - **Release decision:** NO-GO. Green automated CI does not establish physical-device acceptance or complete the manual/product gates.
 - **Next action:** preserve #2695 as Draft; complete or collect the remaining acceptance evidence, inspect Calendar Provider Acceptance against the final exact head, then refresh every gate if any code changes. Do not merge overlapping Person persistence PR #2696 wholesale; compare for unique tests/capabilities first.
+
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 17:58 UTC — exact-head CI poll and migration decision conflict
+
+This checkpoint supersedes earlier live-status claims where they conflict; older entries remain historical.
+
+- Repository `mobinpda-lab/Arvin-clean`; `main` remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. No app merge or release occurred.
+- Documentation PR #2701 exact head `4a4e531bee86b2a7e4189af166569be947f32b41`: Build [38609443902](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443902) is terminal SUCCESS, all 9 jobs passed (Analyze, test shards 0–5, Debug APK, Release APK).
+- Exact-head Device Smoke [38609443810](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443810) remains IN_PROGRESS. Four lanes are terminal SUCCESS: home, quick-capture, sql-persistence, sql-migration. The people and backup-restore emulator smoke commands are still running; neither lane has a terminal conclusion. No failures observed at this poll. Do not claim all-six-lane success until both jobs and the workflow are terminal-success.
+- PR #2655 (multiple reminders) remains OPEN/unmerged, mergeable=false, head `751c659e5788d312d83eef0d4b1d09dc19f2217d`, base `main` with an old base checkpoint; compare is DIVERGED (68 commits ahead, 6 behind). Do not merge blindly.
+- **Critical data-contract conflict identified:** the owner-approved Issue #2654 UX/compatibility comments and `ARVIN_MULTIPLE_REMINDERS_DESIGN.md` / `ARVIN_DECISION_LOG.md` say preserve legacy `Task.reminderDate` and `FollowUp.reminderDate`, do not auto-migrate or duplicate them, and keep the legacy Calendar identity until a tested mapping exists. A later integration-blocker comment and older execution-state text instead assert an approved requirement to migrate the legacy Task reminder into exactly one new TaskReminder. These are materially conflicting migration instructions. No source or migration change was made because guessing could lose or duplicate reminder/calendar data. Resolve the canonical migration rule explicitly before implementation.
+- **Current bottleneck:** finish exact-head Device Smoke; then resolve the legacy reminder migration contract and safely reconcile PR #2655 with current main, including Calendar projection changes. Required acceptance still includes backup/restore integrity, Calendar stable-ID CREATE→UPDATE/no-duplicates, Person/report gates and physical-device validation.
+- **Next action:** poll the same Device Smoke run (do not duplicate it); ask the owner to confirm whether legacy Task reminder remains a separate compatibility record or is idempotently converted into a TaskReminder while preserving its existing Calendar identity. Until that decision is explicit and tested, keep PR #2655 unmerged.
+- Release remains **NO-GO**.
