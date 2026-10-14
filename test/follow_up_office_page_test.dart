@@ -434,12 +434,17 @@ void main() {
               'dateTime': '2026-08-25T10:00:00.000',
               'note': 'تماس اولیه',
               'result': 'منتظر پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-1'],
               'nextFollowUp': null,
             },
           ],
         },
       ]),
     });
+    await TaskStore().savePersonDirectoryEntry(
+      PersonReference(id: 'person-1', displayName: 'علی'),
+    );
 
     await tester.pumpWidget(
       const MaterialApp(home: FollowUpOfficePage()),
