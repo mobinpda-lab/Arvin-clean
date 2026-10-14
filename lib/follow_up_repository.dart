@@ -23,7 +23,7 @@ class FollowUpRepository {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
       task.followUps = [..._decodeFollowUps(task), followUp];
-      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
+      // Follow-up is a native Task capability; do not write the legacy flag.
       task.updatedAt = DateTime.now();
     });
   }
@@ -66,10 +66,12 @@ class FollowUpRepository {
         reminderDate: current.reminderDate,
         nextFollowUp: current.nextFollowUp,
         completed: completed,
+        waitingForResponse: current.waitingForResponse,
+        personIds: current.personIds,
       );
       final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
       task.followUps = updated;
-      task.followUpEnabled = true;
+      // Completion updates a Follow-up record; it does not enable a Task flag.
       task.updatedAt = DateTime.now();
       return updatedFollowUp;
     });
