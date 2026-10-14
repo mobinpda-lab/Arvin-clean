@@ -1,3 +1,13 @@
+# LIVE POLL — 2026-10-14 — Revised contract test accepted by Fast Lane
+
+- Current PR #2704 head: `f8b4782809c6bde27e78e30a3619624d565ea2c1`.
+- Fast Lane contract run [38558282270](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558282270) completed **SUCCESS** on this head, including the revised contract implementation.
+- Build [38558282511](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558282511) remains **in progress** at latest poll. Analyze, test shards, and APK jobs have started; terminal outcomes are not yet available.
+- Device Smoke [38558282253](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38558282253) remains **queued** at latest poll; quick-capture and home lanes have started, with other lanes queued.
+- PR #2704 is still Draft/open/unmerged. Do not merge until the Build completes and all six Device Smoke lanes pass on the reviewed final head. Then address the separate Person integration branch workflow/CI gap. Release remains **NO-GO**.
+
+---
+
 # LIVE POLL — 2026-10-14 — Device Smoke product contract test repair
 
 - The Fast Lane workflow contract passed on prior PR #2704 head `6762dba1c0b36128cb8e2da1c6e825e5fae2d6ee`, but Build shard test-2 failed because `test/device_smoke_workflow_contract_test.dart` still required the old Draft-skip condition. Run [38557722261](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557722261) reported 233 tests passed and one failed contract assertion.
