@@ -241,8 +241,9 @@ class CalendarInboundSyncService {
         if (migrated == null) return null;
         return CalendarReminder(
           id: reminderId,
-          title: 'یادآوری: ${task.title}',
+          title: migrated.title,
           date: migrated.date,
+          isAllDay: migrated.isAllDay,
           completed: task.completed,
         );
       }
@@ -332,17 +333,22 @@ class CalendarInboundSyncService {
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
-      task.title = revision.title.replaceFirst('یادآوری: ', '');
-      task.reminderDate = revision.start;
       if (task.legacyTaskReminderMigrationVersion >= 1) {
         final index = task.taskReminders.indexWhere(
           (item) => item.isLegacyTaskReminder,
         );
         if (index < 0) return false;
         final next = List<TaskReminder>.of(task.taskReminders);
-        next[index] = next[index].copyWith(date: revision.start);
+        next[index] = next[index].copyWith(
+          title: revision.title,
+          date: revision.start,
+          isAllDay: revision.allDay,
+        );
         task.taskReminders = next;
+      } else {
+        task.title = revision.title.replaceFirst('یادآوری: ', '');
       }
+      task.reminderDate = revision.start;
       task.updatedAt = DateTime.now();
       return true;
     }
