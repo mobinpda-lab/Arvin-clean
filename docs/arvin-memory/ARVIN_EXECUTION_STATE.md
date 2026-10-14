@@ -1183,3 +1183,14 @@ Dependency: lanes A–F integrated and candidate frozen; every candidate change 
 
 ### Next action
 Poll `38573235905` and `38573235964`; inspect/fix any remaining product-test failure; then record terminal evidence. Release remains NO-GO.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Person dialog test assertion and fresh CI
+
+- PR #2695 remains OPEN and Draft, targeting `integration/task-multiple-reminders-safe-20261013`; it is not release-approved.
+- Previous exact head `a162941fdf824463162ac6198a30b4373bfb751a`: Build run [38573235905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38573235905) completed with 8/9 jobs successful. Analyze, five other test shards, Debug APK and Release APK passed. Test shard 2 failed one test in `test/person_directory_page_test.dart`: the test expected one widget named `حذف شخص`, but the confirmation AlertDialog correctly renders that text both as the dialog title and the FilledButton label. This is a test-finder ambiguity, not evidence of a production deletion failure. All 243 other tests in that shard passed.
+- On branch `integration/person-directory-safe-port-20261014-v2`, commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` updates the test to target the AlertDialog descendant explicitly; no production code or test coverage was removed.
+- Fresh exact-head Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) have started on `93202e9e24e33bff31daaf933b2c4fb1417dfb46). At this checkpoint, Build jobs are still in progress and Device Smoke has Home/Quick Capture in progress with remaining lanes queued. Do not claim the assertion repair validated until both runs are terminal and successful.
+- Device Smoke on the preceding SHA `a162941f...` completed all six lanes successfully (Home, Quick Capture, Backup/Restore, People, SQL Persistence, SQL Migration); this evidence does not transfer to the new SHA.
+- PR #2695 is still not to be merged: Person persistence overlaps PR #2696 and needs one canonical implementation; standalone Person backup/restore, Person report acceptance and physical-device validation remain open. Main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO**.
+- Next action: poll runs `38579471120` and `38579471201`; inspect any failures and fix root causes without weakening tests. Then reconcile #2695/#2696 storage overlap and rerun all acceptance gates on the resulting exact SHA.
