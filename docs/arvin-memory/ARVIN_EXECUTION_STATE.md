@@ -1629,3 +1629,22 @@ This entry supersedes the earlier Person safe-port branch/PR identifier in the p
 - These repairs have **not yet passed Analyze or test shards**. The previous Build was cancelled; do not claim it validates the fixes.
 - The following memory commit advances HEAD again. Trigger a fresh Build on the resulting exact SHA and inspect all failures. Device Smoke/Calendar Provider Acceptance are not evidenced on this branch; parent integration and physical-device gates remain required.
 - **Release: NO-GO.** Keep PR #2695 Draft until exact-head validation and data-integrity tests pass.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Person backup/restore orchestration repair)
+
+This checkpoint supersedes earlier Person restore status where it conflicts.
+
+- **Finding:** the canonical backup manager could decode and validate the Person directory, but the actual BackupPage path omitted the directory from user-created backups and did not apply/rollback it during restore. The previous rollback test exercised only the helper, not the Home → Backup/Restore orchestration.
+- **Changes on PR #2695 branch** (integration/person-directory-safe-port-20261014-v2):
+  - 7016f74027f8a1f22c07d10a28cad77470f18f96: snapshot Person directory before restore, include it in emergency recovery backup, apply imported people, and restore the prior directory on rollback.
+  - aed26c85a2fa7de5ba0dd01e7bbeb4ac1c495e44: include the canonical Person directory in normal portable backups.
+  - 28440c156df2bd448de608f1f2f1835b25cdfc2a: add a Home-level backup payload test and strengthen late-failure rollback coverage for Person + Task/Follow-up.
+  - 0335a0c7e8bfb0c99f466b87b9af3a4cb3682e45: merge incoming Person records instead of replacing the entire directory, preserving Person IDs still referenced by local-only Tasks.
+  - 84a97c23a4547f0a4f891398116aa40b083aa67e: add successful Home restore coverage proving local-only Tasks/People survive while backup Tasks/People are imported.
+- **Data-safety rule:** portable restore reconciles Task records and preserves local-only Tasks; therefore it must also preserve local Person entries that those Tasks reference. An incoming backup may update matching stable Person IDs but must not silently delete unrelated local directory entries.
+- **Validation:** these commits were authored through the GitHub contents API. No Build or Device Smoke run is visible for exact head 84a97c23a4547f0a4f891398116aa40b083aa67e; no pass is claimed. The current branch remains Draft, stacked on PR #2666, and GitHub reports mergeable=false.
+- **Current bottleneck:** obtain valid exact-head Build and six-lane Device Smoke evidence for the integrated branch; resolve the stacked-branch mergeability issue only after validation. Do not mark ready, merge, or release while these gates are absent.
+- **Next action:** run Analyze, all six test shards, Debug/Release APK, then Device Smoke on the final reconciled candidate SHA. Specifically inspect the new Home-level backup/restore tests and Person SQL/report tests. Keep release **NO-GO** pending physical-device and end-to-end acceptance.
