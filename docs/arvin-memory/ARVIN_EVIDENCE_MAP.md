@@ -469,3 +469,15 @@ Do not close the smoke gate until all six lanes are terminal-success on the exac
 | Person UI regression | PR #2695 Build `38572366122`, test shard 2: `person_directory_page_test.dart` failed because edit dialog TextEditingController was disposed during route reverse transition; Debug APK also saw HTTP 500 from Gradle distribution URL | Real UI lifecycle defect identified and fixed in new head `a162941fdf824463162ac6198a30b4373bfb751a`; new Build `38573235905` and Device Smoke `38573235964` were pending/queued at last check. |
 | Documentation CI | PR #2701 Build `38571362850` SUCCESS 9/9; Device Smoke `38571362840`: Home, Quick Capture, SQL Persistence, SQL Migration SUCCESS; People + Backup/Restore still in progress | Not terminal 6/6 at checkpoint. |
 | Release gates | Main `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; runs `38572288868` Release Closure and `38572304475` Final Head Release Validation both `skipped`; issues #2102 and #1901 remain open | NO-GO. Skipped workflows are not evidence of release success. Physical-device and product acceptance remain outstanding. |
+
+
+## 2026-10-14 — Person directory delete-dialog test selector
+
+| Feature / gate | Exact SHA / run | Result | Evidence / limitation |
+|---|---|---|---|
+| Person directory CRUD and safe delete widget test | Previous SHA `a162941fdf824463162ac6198a30b4373bfb751a`, Build `38573235905` | One test failed; 243 tests passed in failing shard | Failure was ambiguous finder: AlertDialog title and confirm button both say `حذف شخص`; production path not shown to fail. |
+| Corrected widget-test selector | Commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` | Implemented, validation pending | Test now scopes the title assertion to AlertDialog descendants; no tests removed or weakened. |
+| Fresh exact-head Build | [Run 38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120), SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46` | IN PROGRESS at checkpoint | Poll all nine jobs to terminal result. |
+| Fresh exact-head Device Smoke | [Run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201), same SHA | IN PROGRESS / queued at checkpoint | Home and Quick Capture in progress; remaining lanes queued at last poll. |
+| Previous-SHA Device Smoke | [Run 38573235964](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38573235964), SHA `a162941fdf824463162ac6198a30b4373bfb751a` | 6/6 lanes success | Evidence is strictly for the previous SHA and must not be reused as new-head proof. |
+| Product release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO | Person storage overlap (#2695/#2696), Person reports and backup/restore acceptance, Calendar/data integrity and physical-device gates remain open. |
