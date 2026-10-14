@@ -392,3 +392,13 @@ Recorded on release gate Issue #2102 in comment [6114324441](https://github.com/
 | Execution validation | Current assistant run | Read-only audit only; no Flutter test/analyze/build/device run |
 
 PR #2650 is documentation-only and must be revalidated on its final exact head; no green check is claimed for a new post-audit commit.
+
+
+## 2026-10-15 — Legacy Task reminder migration candidate
+| Area | Evidence | Result | Remaining proof |
+|---|---|---|---|
+| Owner decision | Issue #2654 comment 6178475884 | Option B selected | None for decision; implement as recorded |
+| Model migration | lib/models/task.dart on feature branch | Candidate: stable ID + migration version + preserved timestamp | Exact-head tests; malformed/old JSON; SQL and backup/restore |
+| Calendar identity | lib/services/follow_up_calendar_projection.dart | Candidate preserves task-reminder:<taskId> | Provider create/update/no-duplicate acceptance |
+| Notification identity | lib/services/follow_up_reminder_projection.dart | Candidate retains old stable scheduler key | Alarm delivery/restart/reschedule regression tests |
+| Validation | Current feature head | Not yet terminally validated | Analyze, all test shards, Debug/Release, six Device Smoke lanes, Calendar provider and physical device |
