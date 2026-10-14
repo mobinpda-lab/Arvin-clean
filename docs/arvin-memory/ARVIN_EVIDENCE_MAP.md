@@ -1,3 +1,13 @@
+# LIVE EVIDENCE UPDATE — 2026-10-14 — Person integration repair
+
+- **Parent multiple-reminder integration:** PR #2666 head `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; Build [38507091410](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091410) SUCCESS, Device Smoke [38507091345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091345) SUCCESS across all six lanes, Calendar Provider Acceptance [38507091333](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091333) SUCCESS. CI/emulator evidence only; no physical-device acceptance.
+- **Person integration prior head:** `07c7f9005b7331f07468e20d13b3939c990bd9fd`; Build [38506153872](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38506153872) FAILED test shards 0–5; Analyze, Debug APK and Release APK SUCCESS.
+- **Person repair head:** `0432e3a7874ce5bc0f798345e232a480dc3d65b3`; changes recorded in PR #2695 commits `e57df8e`, `d2de8f2`, `c169b1c`, `dc5a9a5`, `a612dde`, `0432e3a`. Exact-head Build/Device Smoke: **NO RUN RETURNED at latest poll; validation unknown, not passed**.
+- **Plan PR:** PR #2698 head `6c4e99b29e6d27f3458b5e84a608175311ab08c5`; Build [38508441738](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38508441738) Analyze + all six test shards SUCCESS, Debug/Release APK IN_PROGRESS at last poll; Device Smoke [38508441722](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38508441722) QUEUED. Evidence applies only to that head; this evidence-map update creates a newer head.
+- **Release:** NO-GO. No evidence here proves physical-device behavior, final Person backup/restore integrity, or final integrated feature acceptance.
+
+---
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
