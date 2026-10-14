@@ -260,3 +260,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **P1 — Editor incompleteness:** Next Follow-up inherits the history timestamp's time and has no clear-next action in inspected code; implement only after all-day representation is agreed.
 - **BLOCKED — Existing reminder at first activation:** product owner must choose whether to preserve it, ask, or take another explicit action. Never overwrite or create a duplicate by assumption.
 - No product code changed in the 2026-10-13 audit. Release remains NO-GO.
+
+
+## 2026-10-15 — Legacy Task reminder migration decision resolved; validation open
+- **Problem:** prior documentation blocked implementation due to conflicting legacy Task.reminderDate migration rules.
+- **Owner decision:** Option B, deterministic one-time migration to canonical TaskReminder, recorded at Issue #2654 comment 6178475884.
+- **Candidate mitigation:** Task JSON decode migrates the legacy reminder with stable ID and version marker; Calendar and scheduler projections retain legacy identities; editor preserves the marker and exposes the migrated reminder in the independent reminder list; inbound Calendar edits update the migrated reminder rather than mutating the Task title.
+- **Risk still open:** code has not yet passed exact-head CI. SQL save/reload, real backup/restore, Calendar provider duplicate prevention, rollback/retry, and physical-device behavior still require evidence.
+- **Status:** Implementation candidate on this PR branch; BLOCKED pending exact-head validation and branch integration. Release NO-GO.
