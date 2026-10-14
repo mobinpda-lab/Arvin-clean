@@ -28,6 +28,8 @@ jobs:
             const { owner, repo } = context.repo;
             const workflowId = 'build.yml';
             const staleFailureMs = 6 * 60 * 60 * 1000;
+            const maxPrAgeMs = 14 * 24 * 60 * 60 * 1000;
+            const maxDispatchesPerRun = 3;
             const now = Date.now();
 
             const pulls = await github.paginate(github.rest.pulls.list, {
@@ -43,6 +45,18 @@ jobs:
             let skipped = 0;
 
             for (const pr of pulls) {
+              if (dispatched >= maxDispatchesPerRun) {
+                core.info(`SKIP_DISPATCH_BUDGET_EXHAUSTED=PR#${pr.number}`);
+                skipped++;
+                continue;
+              }
+
+              if (now - new Date(pr.updated_at).getTime() > maxPrAgeMs) {
+                core.info(`SKIP_STALE_PR=PR#${pr.number} UPDATED_AT=${pr.updated_at}`);
+                skipped++;
+                continue;
+              }
+
               // Only dispatch trusted branches in this same repository.
               // Fork PRs are deliberately excluded from this privileged dispatcher.
               if (!pr.head.repo || pr.head.repo.full_name !== `${owner}/${repo}`) {
