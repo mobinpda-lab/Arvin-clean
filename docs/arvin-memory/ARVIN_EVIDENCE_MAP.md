@@ -510,3 +510,17 @@ The row above describing Backup/Restore as in progress is superseded by this upd
 - Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) is terminal SUCCESS on SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46`.
 - Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore are SUCCESS. Only People remains IN_PROGRESS. The overall run is still non-terminal.
 - Release remains NO-GO pending People lane, physical-device acceptance, Calendar/data-integrity gates and final integrated frozen-SHA validation.
+
+
+## AUTHORITATIVE EVIDENCE UPDATE — 2026-10-14 — terminal Person head
+
+| Feature / gate | Exact SHA / run | Result | Limitation |
+|---|---|---|---|
+| Person integration Build | PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; [run 38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) | PASS — Analyze, test shards 0–5, Debug APK and Release APK | Applies only to this exact head; PR remains Draft/unmerged |
+| Person integration Device Smoke | Same SHA; [run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) | PASS — all six lanes: Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People | Android emulator CI evidence, not physical-device acceptance |
+| CI workflow contract / versioned APK artifact naming | Integration SHA `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043), Device Smoke [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934), Fast Lane contract [38568677675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568677675) | PASS — Build jobs and all six smoke lanes succeeded; contract job succeeded | PR #2709 merged into the integration branch, not main; evidence is SHA-specific |
+| Person Settings CRUD/search and multi-Person waiting/report acceptance | Final integrated build | OPEN | Automated smoke is not proof of every CRUD/report scenario |
+| Backup/Restore integrity for Task, Follow-up, Person, Reminder IDs/relations and History | Final integrated build | OPEN | Requires complete acceptance evidence, not source inspection alone |
+| Calendar tap/long-press and provider CREATE→UPDATE/no duplicates | Final integrated build | OPEN | Requires provider acceptance on the frozen final SHA |
+| Physical-device installation and use | Real device | OPEN | Record model, OS, app version, APK SHA-256, screenshots and outcome |
+| Release decision | Candidate not yet accepted | NO-GO | Do not publish until all required gates pass |
