@@ -130,3 +130,11 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
 - Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
 - Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
+
+## 2026-10-15 — Reminder migration decision and clean-start context
+- Owner selected Option B: migrate legacy Task.reminderDate into canonical independent TaskReminder records using stable deterministic IDs and an explicit idempotence marker/version.
+- Owner reports the current Arvin app database is empty and the app is not yet populated with user data. Do not assume every backup, fixture, test database or other installation is empty.
+- Preserve reminder date/time and safely preserve/map Calendar identity task-reminder:<taskId>; retries must not create duplicate reminders/events.
+- Keep FollowUp.reminderDate, Follow-up history and nextFollowUp independent. No implicit reminder creation from nextFollowUp. No parallel store or scheduler.
+- Validate JSON, SQL, backup/restore, rollback and Calendar no-duplicate behavior. PR #2655 conflicts with this decision and must be reconciled. Release remains NO-GO.
+- Source: [Issue #2654 decision](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884).
