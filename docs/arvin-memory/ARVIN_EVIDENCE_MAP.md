@@ -411,3 +411,15 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Recovery concurrency | Key Build concurrency by target SHA | IMPLEMENTED / CI PENDING | Prevents separate recovery targets on main from cancelling one another |
 | Operational dispatcher acceptance | Controlled dispatch with terminal successful Build and verified exact checkout | OPEN | Requires reviewed activation on default branch; not proven by ordinary PR CI |
 | Person feature validation | PR #2695 current head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / OPEN | Separate feature; recovery workflow changes do not validate it |
+
+
+## 2026-10-14 — Live exact-head validation recheck
+
+| Feature / Gate | Exact evidence | Result | Limitation / next action |
+|---|---|---|---|
+| Recovery dispatcher PR CI | PR #2699 head `555541a5426b02e483bf2168fcc78a57ddc8c3a6`; Build [38523576951](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523576951) | SUCCESS | PR merged; controlled dispatch for a distinct target SHA still needed |
+| Recovery dispatcher device smoke | [38523577094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523577094), six lanes | SUCCESS | Does not prove controlled dispatch of a target branch |
+| Person exact-head Build | PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) | SUCCESS | Analyze, six test shards, Debug APK and Release APK passed; review product acceptance and data-integrity coverage |
+| Person exact-head smoke | [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) | SUCCESS | All six lanes passed, including People, SQL persistence/migration and backup/restore; physical-device validation remains open |
+| Person delete-title test assertion | `test/person_directory_page_test.dart` at current PR #2695 head | CORRECTED / CI PASS | Assertion scoped to AlertDialog; do not reuse closed divergent PR #2715 |
+| Physical device and release closure | Product acceptance; issues #2102 and #1901 | OPEN / NO-GO | Verify real-device behavior, integrated flow and backup/restore integrity before release |

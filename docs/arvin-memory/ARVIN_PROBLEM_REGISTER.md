@@ -270,3 +270,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** Recovery could fail to start a verifiable exact-target Build or incorrectly classify a run; multiple targets could cancel one another.
 - **Solution:** Run the workflow from the default branch, pass and assert the explicit target SHA in every quality/APK job, match runs by target-SHA run name, and isolate concurrency per target.
 - **Status:** Fix committed to PR #2699; exact-head CI pending and operational acceptance remains open until controlled dispatch evidence exists.
+
+
+## 2026-10-14 — Person directory delete-title test failure: current status
+
+- **Original failure:** Build [38573235905](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38573235905) on older SHA `a162941fdf824463162ac6198a30b4373bfb751a` failed one widget test because the title assertion matched both the AlertDialog title and confirmation button.
+- **Correction status:** current PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title finder to the AlertDialog; exact-head Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) passes all six test shards.
+- **Safety:** PR #2715 was closed without merge after its base produced an unexpectedly broad/diverged diff. Do not cherry-pick it.
+- **Remaining status:** this specific test issue is resolved on the current Person PR head; physical-device and integrated product acceptance remain open. Release remains NO-GO.
