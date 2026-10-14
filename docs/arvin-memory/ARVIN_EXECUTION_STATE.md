@@ -1,3 +1,17 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Post-merge CI evidence reconciliation
+
+This entry supersedes older live-status claims below where they conflict; retain them as historical records.
+
+- **Repository / branch:** `mobinpda-lab/Arvin-clean`, default branch `main`.
+- **Latest verified merge:** PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699) is CLOSED and merged. Merge commit: [`747b1831eddc60f99c1c14a5bbc4a4c0049667ec`](https://github.com/mobinpda-lab/Arvin-clean/commit/747b1831eddc60f99c1c14a5bbc4a4c0049667ec). Older entries that say PR #2699 is open/unmerged are stale history.
+- **Build evidence reconciliation:** Arvin Build run [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465) has nine latest-attempt jobs visible through the GitHub connector; all nine report `completed / success`: Analyze, test shards 0–5, Debug APK, and Release APK. Artifacts exist for both APKs and identify exact head SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`. Release APK artifact SHA-256: `37e12b9c4bf90ee8be94721d6a91c53b33529b344af9ef6061b8e89fec6d5629`; Debug APK artifact SHA-256: `79a24aa8aff6f916de3b0384114d3cb16123666b942f3ead07556f62dfb7d72a`. Auto-fix issue #2700 was generated with an earlier failure conclusion; its body conflicts with the currently visible successful job results. The connector does not expose the workflow-run-level conclusion here, so treat Build as **job-level green, run-level summary needs confirmation**.
+- **Device Smoke / dispatcher:** the merged commit message records that the PR head passed all six Device Smoke lanes, but this execution has not independently retrieved the corresponding run IDs and per-lane evidence. Dispatcher end-to-end remains unproven until a real workflow-dispatch run logs the requested PR head, matching run-name target SHA, and checkout assertion.
+- **Person integration:** PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) remains open, Draft, and non-mergeable. Its current source, exact-head Build, six Device Smoke lanes, standalone-Person backup/restore, Person-based reports, and physical-device acceptance remain unvalidated/incomplete. Do not merge it or claim the Person feature complete.
+- **Release decision:** **NO-GO**. Passing Build jobs and APK artifacts do not close Person, data-integrity, dispatcher end-to-end, physical-device, and product acceptance gates.
+- **Next action:** reconcile the run-level conclusion for Build run `38525486465`; independently identify the six-lane Device Smoke run for exact SHA `747b1831...`; then prove dispatcher recovery with a controlled same-repository PR. Keep Person PR #2695 Draft until its current head has full exact-head validation and safe integration review. This documentation commit must receive fresh exact-head CI evidence.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
