@@ -1,3 +1,16 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
+
+This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
+
+- **Root cause found in dispatcher logic:** ordinary `pull_request` Build runs were eligible to satisfy the “exact-head” check solely because GitHub run metadata matched the PR head SHA. However, the Build workflow checks out `github.sha` for a pull request, which is the synthetic PR merge ref; the metadata alone did not prove the PR head SHA itself was checked out.
+- **Correction committed:** [`af3e3724ae08a956bb91fcbd82174ec23a2d2066`](https://github.com/mobinpda-lab/Arvin-clean/commit/af3e3724ae08a956bb91fcbd82174ec23a2d2066) changes the dispatcher to count only `workflow_dispatch` runs whose run head SHA and run-name target SHA both match the current PR head. The dispatched Build independently asserts `git rev-parse HEAD == inputs.target_sha` in each quality and APK job.
+- **Expected effect:** a green synthetic-merge PR run or historical run can no longer suppress recovery of a missing exact-head Build.
+- **Validation:** the correction is implemented but not yet proven until Build and all six Device Smoke lanes complete on the final PR head and the dispatcher is observed operating in GitHub Actions.
+- **Current PR:** [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), open and unmerged. Do not merge or release based on implementation alone.
+- **Next action:** record this checkpoint, then inspect terminal exact-head Build and six-lane Device Smoke results for the final resulting SHA. After integration through an approved path, run the dispatcher against a controlled same-repository PR with no exact-head Build and verify its logs and resulting checkout SHA. Product release remains NO-GO pending all product and physical-device gates.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — CI recovery work
 
 This addendum is the newest live checkpoint and supersedes conflicting older status lines below. It was prepared against parent commit `718e8cf730305e98aee3f9b12f4c239a80a06190`; the memory commit itself will create a new PR head, so all CI evidence must be refreshed for that resulting SHA.
