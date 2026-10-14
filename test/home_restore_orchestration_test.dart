@@ -59,6 +59,53 @@ void main() {
   });
 
   testWidgets(
+    'Home portable backup includes the canonical Person directory',
+    (tester) async {
+      final taskStore = TaskStore();
+      final person = PersonReference(
+        id: 'backup-person',
+        displayName: 'شخص پشتیبان',
+      );
+      await taskStore.savePersonDirectoryEntry(person);
+      await taskStore.save([
+        Task(
+          id: 'backup-task',
+          title: 'کار پشتیبان',
+          followUps: [
+            FollowUp(
+              id: 'backup-follow-up',
+              dateTime: DateTime(2026, 10, 14, 9),
+              waitingForResponse: true,
+              personIds: [person.id],
+            ),
+          ],
+        ),
+      ]);
+      final backupService = _HomeRestoreBackupService(<String, dynamic>{});
+      final manager = ArvinBackupManager(service: backupService);
+
+      await tester.pumpWidget(
+        MaterialApp(home: HomePage(backupManager: manager)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('پشتیبان‌گیری'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ایجاد پشتیبان'));
+      await tester.pumpAndSettle();
+
+      expect(backupService.writeCount, 1);
+      expect(
+        ((backupService.writtenPayload!['people'] as List<dynamic>)
+            .cast<Map<String, dynamic>>())
+            .map((entry) => entry['id']),
+        ['backup-person'],
+      );
+    },
+  );
+
+  testWidgets(
     'Home restore rolls back Task, Person directory, Project, calendar links and settings after a late failure',
     (tester) async {
       final taskStore = TaskStore();
