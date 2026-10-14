@@ -1,3 +1,14 @@
+# LIVE PROBLEM UPDATE — 2026-10-14 — Person integration CI failures
+
+- **Problem:** Person-linked Follow-up integration head `07c7f9005b7331f07468e20d13b3939c990bd9fd` failed all six test shards; Analyze and Debug/Release APK succeeded.
+- **Confirmed failure clusters:** ordinary Follow-up editor and Task Detail widget tests timed out in `pumpAndSettle` while the editor always displayed a Person-directory loading animation; waiting-response service/list fixtures used result-only legacy aliases instead of structured `waitingForResponse + personIds`; report filter tests attempted to tap lazy controls before those controls were built; report waiting logic did not require Person IDs.
+- **Changes committed on PR #2695 branch, not yet validated:** `e57df8e`, `0432e3a`, `d2de8f2`, `c169b1c`, `dc5a9a5`, `a612dde`.
+- **Status:** OPEN / VALIDATION BLOCKED. No exact-head workflow run was returned for `0432e3a7874ce5bc0f798345e232a480dc3d65b3`. Do not call the repairs successful until tests and build run on that exact SHA.
+- **Safety rule:** keep tests; do not restore result-only legacy values as the active waiting-state source; do not merge the non-mergeable draft. Preserve the canonical Task store and backup/restore path.
+- **Next:** trigger or obtain exact-head Build + all six Device Smoke lanes, review remaining failures, then reconcile against current parent PR #2666 head `ad762774009e5b5c7ee341146a8160c52e2b9bb2` and rerun on the final head.
+
+---
+
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
