@@ -1,3 +1,15 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Integration-base CI restored; Person head needs fresh evidence
+
+This update supersedes conflicting older live-status claims.
+
+- Mainline Device Smoke workflow repair PR #2704 is merged as `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`. Its pre-merge exact-head Build passed 9/9 jobs and Device Smoke passed all six lanes.
+- Mainline Build [38562963391](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963391) completed successfully on merge SHA `658aa85...` (all six test shards, Analyze, Debug APK, Release APK). Mainline Device Smoke [38562963211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38562963211) was still queued at the last poll; no physical-device result is implied.
+- The integration base still had older `.github/workflows/build.yml`, `tool/validate_fast_lane.py`, and `.github/workflows/device-smoke.yml` contracts. The integration-base workflow PR [#2709](https://github.com/mobinpda-lab/Arvin-clean/pull/2709) now aligns those CI files with main. Its Fast Lane contract passed on current head `6a87f4656a7c5bb70fe45ee2bdf302f4b9f2ee1f`; Build [38564169274](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38564169274) and Device Smoke [38564169308](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38564169308) are pending and must reach terminal success before merge.
+- Person PR #2695 current prior head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99` had no Actions runs on exact-head query. Earlier Build [38506153872](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38506153872) on older head `07c7f900...` failed Follow-up editor, Person-report, waiting-state alias, and Follow-up office tests. These are unresolved until the newest head is tested; no pass is inferred from source inspection.
+- Next: validate #2709 exact-head Build and six Device Smoke lanes; then run fresh exact-head Build/Device Smoke for Person PR #2695 and repair actual failures. Keep PRs Draft until evidence is reviewed. Release remains **NO-GO**.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-13 (prayer-action regression repair)
 
 This checkpoint supersedes prior live-status statements where they conflict; retain older entries as history.
