@@ -81,6 +81,12 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
+      // The Apply action is below the visible bottom-sheet viewport.
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-apply')),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
       await tester.pumpAndSettle();
 
