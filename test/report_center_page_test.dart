@@ -72,8 +72,11 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
-      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-category-کار')),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
 
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
@@ -213,7 +216,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('پیگیری باز'), findsOneWidget);
-    expect(find.textContaining('شخص حذف‌شده'), findsOneWidget);
+    expect(find.textContaining('اشخاص: شخص حذف‌شده'), findsOneWidget);
   });
 
 }
