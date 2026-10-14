@@ -524,3 +524,12 @@ The row above describing Backup/Restore as in progress is superseded by this upd
 | Calendar tap/long-press and provider CREATE→UPDATE/no duplicates | Final integrated build | OPEN | Requires provider acceptance on the frozen final SHA |
 | Physical-device installation and use | Real device | OPEN | Record model, OS, app version, APK SHA-256, screenshots and outcome |
 | Release decision | Candidate not yet accepted | NO-GO | Do not publish until all required gates pass |
+
+
+## 2026-10-14 — Documentation PR exact-head CI after checkpoint
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Documentation branch Build | `f5454ca006d81f3e4b07f537e1a4117f207222b2`; [run 38602980485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980485) | SUCCESS, 9/9 jobs | Analyze, six test shards, Debug APK, Release APK. Documentation-only branch validation, not release acceptance. |
+| Documentation branch Device Smoke | `f5454ca006d81f3e4b07f537e1a4117f207222b2`; [run 38602980136](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980136) | SUCCESS, 6/6 lanes | Home, Quick Capture, People, Backup/Restore, SQL Persistence, SQL Migration. Emulator CI only; not physical-device validation. |
+| Release acceptance | Candidate `ARVIN-RC-01` = `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` | NO-GO | Person-specific backup/restore and reporting, Calendar interaction/update/no-duplicate checks, physical-device evidence, and final handover gates remain open. |
