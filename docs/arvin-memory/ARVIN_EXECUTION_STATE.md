@@ -1041,3 +1041,39 @@ This addendum is the single authority for the current release-candidate lock and
 
 Current bottleneck: candidate-specific Device Smoke and remaining product/physical-device acceptance evidence.
 Next action: obtain terminal Build plus all six Device Smoke lanes for the exact canonical SHA, then close remaining acceptance gates. Do not release until all gates are evidenced.
+
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — ARVIN-RC-01 and current bottleneck
+
+This checkpoint supersedes conflicting older live-status statements above where they disagree. Historical records are retained for audit. No application code was changed in this checkpoint.
+
+## Current canonical candidate
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Default branch `main` currently resolves to `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`.
+- Stable candidate label: `ARVIN-RC-01`, permanently bound to that full SHA. Do not reassign this label.
+- Build: [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465). The run's jobs show Analyze, six test shards, Debug APK and Release APK succeeded; Debug and Release artifacts are present and unexpired.
+- Artifact digests: Release `sha256:37e12b9c4bf90ee8be94721d6a91c53b33529b344af9ef6061b8e89fec6d5629`; Debug `sha256:79a24aa8aff6f916de3b0384114d3cb16123666b942f3ead07556f62dfb7d72a`.
+- The commit message reports all six Device Smoke lanes passed on this head, but the candidate lock checklist still lacks individually linked, independently inspected lane/run evidence. Keep that gate open until each exact-SHA lane is linked and verified; do not promote from the commit message alone.
+- Candidate status: `VALIDATING` / release `NO-GO`.
+
+## Current product bottleneck
+- Person integration PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) is still Draft, open and unmerged; current head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99`; base branch `integration/task-multiple-reminders-safe-20261013`. Exact-head workflow-run query returned no runs. Do not merge or claim Person complete without exact-head Build, tests, backup/restore, report and device acceptance.
+- Existing acceptance issues remain open: [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) standalone Person directory backup/restore integrity; [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) Person-based per-Follow-up reports; [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) overall release/data-safety gates; [#1901](https://github.com/mobinpda-lab/Arvin-clean/pull/1901) owner-observed physical-device regressions.
+- Calendar automated evidence exists on earlier named heads, but physical-device interaction and final-SHA evidence are still required.
+- Recovery dispatcher implementation exists in the current main commit; operational controlled-dispatch acceptance is not proven by the available connector evidence. The commit-associated workflow-run wrapper is PR-triggered-only and returns no runs for main, so that empty result is not evidence that no Actions run exists.
+
+## Completed in this continuation
+- Re-read current execution memory, decision log, knowledge, evidence map, current main commit, candidate Build jobs/artifacts, open issues, and PRs #2695/#2703.
+- Reconfirmed exact candidate SHA and artifact digests.
+- Recorded stable name `ARVIN-RC-01` and immutable sequence rules in Issue #2702 comments.
+- Updated this checkpoint on the documentation PR branch only. No application code change, merge, or release was performed.
+
+## Current bottleneck
+Exact-head validation and acceptance evidence for Person integration and the remaining final-release gates. The candidate Build is green, but release acceptance is incomplete.
+
+## Next action
+1. Obtain terminal Build/test and the full six-lane Device Smoke evidence for current Person PR #2695 head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99`; if the branch advances, re-pin to its new SHA and rerun.
+2. Validate Person directory round-trip/legacy-backup compatibility/dangling-reference rejection/rollback and per-Follow-up Person reporting on the same exact head.
+3. Link and independently verify all six Device Smoke runs for `ARVIN-RC-01` rather than relying on commit-message summary.
+4. Continue Calendar, backup/restore, migration and physical-device acceptance; preserve release `NO-GO` until all required gates have exact-SHA evidence.
