@@ -191,3 +191,11 @@
 - Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
 - Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
 - Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
+
+## 2026-10-14 — Run recovery from the default workflow definition
+
+- **Problem:** A recovery dispatch sent to a PR branch may use a stale `build.yml` without the `target_sha` input or checkout assertion. A dispatch sent to the default branch has `run.head_sha` for the workflow ref, not the target code SHA; treating those as identical is incorrect. Shared concurrency can also cancel separate recovery runs.
+- **Decision:** Dispatch `build.yml` on the repository default branch, pass the target commit as `target_sha`, pin checkout to that SHA, and assert `git rev-parse HEAD == target_sha` in every quality/APK lane. Identify a target run by its explicit target-SHA run name and successful asserted jobs; do not infer target identity from workflow-run `head_sha`. Use per-target concurrency.
+- **Reason:** The workflow definition/input schema must be dependable, and metadata SHA is not the same as the checked-out source SHA.
+- **Impact:** More reliable exact-head evidence and no cancellation between different targets.
+- **Status:** Implemented in PR #2699; exact-head CI and post-merge operational acceptance pending.
