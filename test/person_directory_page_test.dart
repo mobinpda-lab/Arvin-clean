@@ -60,7 +60,13 @@ void main() {
       // Deleting a Person removes only the relation and directory record.
       await tester.tap(find.byTooltip('حذف'));
       await tester.pumpAndSettle();
-      expect(find.text('حذف شخص'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('حذف شخص'),
+        ).first,
+        findsOneWidget,
+      );
       expect(find.textContaining('خود کارها و پیگیری‌ها حذف نمی‌شوند'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'حذف شخص'));
       await tester.pumpAndSettle();
