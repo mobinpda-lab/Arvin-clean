@@ -423,3 +423,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Person exact-head smoke | [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) | SUCCESS | All six lanes passed, including People, SQL persistence/migration and backup/restore; physical-device validation remains open |
 | Person delete-title test assertion | `test/person_directory_page_test.dart` at current PR #2695 head | CORRECTED / CI PASS | Assertion scoped to AlertDialog; do not reuse closed divergent PR #2715 |
 | Physical device and release closure | Product acceptance; issues #2102 and #1901 | OPEN / NO-GO | Verify real-device behavior, integrated flow and backup/restore integrity before release |
+
+
+## 2026-10-15 — Option B decision (documentation evidence only)
+| Area | Evidence | Result | Remaining proof |
+|---|---|---|---|
+| Legacy Task reminder migration decision | [Issue #2654 comment](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884); [decision addendum](ARVIN_REMINDER_MIGRATION_DECISION_2026-10-15.md) | Option B selected; owner reports current app DB empty | Does not imply all backups/fixtures/installations are empty |
+| Migration implementation | No source change in this documentation update | OPEN / NOT IMPLEMENTED | Stable ID, explicit marker, legacy Calendar mapping, JSON/SQL and backup/restore compatibility |
+| Validation | No test/build/device run in this documentation update | NOT CLAIMED | Exact-head tests/build/smoke, Calendar no-duplicate tests and physical-device acceptance |
