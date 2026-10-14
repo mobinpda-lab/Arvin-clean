@@ -1575,3 +1575,20 @@ This checkpoint supersedes conflicting live-status statements above; older entri
 5. Preserve the owner-approved distinctions: `nextFollowUp` is next action time; `reminderDate` is notification time. Neither may substitute for the other.
 
 **Release: NO-GO.** Parent automated gates are green on the stated head, but Person backup/restore integrity, Person reporting, complete acceptance scenario, and physical-device acceptance remain outstanding.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Person workstream exact-head recheck)
+
+This checkpoint supersedes earlier live-status claims where they conflict; earlier entries remain historical.
+
+- **Parent integration PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`, exact head at this checkpoint: `a7be929a844038d64fcf20e5a6681a1c8732b2fc`.
+- **Exact-head automated validation on that SHA:** [Arvin Build run 38477701769](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38477701769) passed; [Arvin Device Smoke run 38477701760](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38477701760) passed; [Calendar Provider Acceptance run 38477701747](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38477701747) passed. This evidence applies only to that exact SHA and does not cover the child PR's separate code.
+- **Child PR:** [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), current inspected head `4c2795e92d70cee208f38a150a28b1f63f31c7f2`. Current comparison against parent SHA `a7be929...` reports **diverged**, 101 commits ahead / 159 behind, merge base `68724d6191590b81b2d611f59b7944a7fcbb06e0`. No PR-triggered workflow runs or combined status checks were returned for the child SHA.
+- **Action recorded:** refreshed the child PR discussion with the exact-head evidence and synchronization decision: [comment 6160303936](https://github.com/mobinpda-lab/Arvin-clean/pull/2681#issuecomment-6160303936).
+- **P1 blockers remain open:** [#2682 Person directory backup/restore integrity](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) requires cross-reference preflight validation and injected-failure rollback evidence; [#2683 Person-specific per-Follow-up reporting](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) remains incomplete. Calendar physical-device UX evidence in [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685) is also not established.
+- **Completed this execution:** re-read project memory, refreshed parent/child PR and CI status, compared exact commit ancestry, and posted the child-PR evidence update. No product code was changed.
+- **Current bottleneck:** safely reconcile the heavily diverged Person branch without losing parent reminder/Calendar changes; close backup referential-integrity and rollback tests; complete Person-based per-Follow-up reports; then run exact-head CI and physical-device acceptance.
+- **Next action:** do not merge, force-update, or blindly cherry-pick PR #2681. Create a dedicated reconciliation from the current parent head, port the minimal reviewed Person changes with file-level checks, and validate the data integrity/report acceptance contracts. Keep release **NO-GO** until all gates pass on one final exact SHA.
+
