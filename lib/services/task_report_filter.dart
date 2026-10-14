@@ -108,6 +108,7 @@ class TaskReportFilter {
                 (followUp) =>
                     followUp.waitingForResponse &&
                     !followUp.completed &&
+                    followUp.personIds.isNotEmpty &&
                     (personIds.isEmpty || followUp.personIds.any(personIds.contains)),
               ))) {
         return false;
