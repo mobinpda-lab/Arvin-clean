@@ -1079,3 +1079,68 @@ This poll supersedes only the prior lane-status snapshot for Device Smoke run `3
 - Work performed in this poll: rechecked repository state, open PRs/issues, exact-head run/check metadata, and smoke jobs; updated this execution checkpoint and the evidence map on PR #2701's branch. No app code changed and no tests were weakened.
 
 **Current bottleneck:** complete People and Backup/Restore smoke lanes on the exact #2709 head, then enable/obtain exact-head smoke for #2695 and continue feature/data-integrity acceptance.
+
+
+# AUTHORITATIVE EXECUTION PLAN — 2026-10-14 — Product-first parallel workstreams
+
+This checkpoint supersedes the previous Device Smoke lane snapshot for run 38568684934 only. No release approval is implied.
+
+## Verified current baseline
+- main: 658aa85fc4b7d24bfe191016c86c739f61bf3bf5.
+- PR #2709 head b97506ab41e72c4dd932e1777bb6be5c07f2aca8: Build run [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) terminal SUCCESS, 9/9 jobs; Device Smoke run [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) terminal SUCCESS, 6/6 lanes (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore). This validates the workflow branch only; it does not validate Person feature integration or main.
+- PR #2695 head f9c5e5598505a2348aaf29b7fdb4962ef1c756a9: Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) terminal SUCCESS, 9/9 jobs. No Device Smoke run is listed for this exact head. PR remains Draft/open and targets integration branch integration/task-multiple-reminders-safe-20261013 at ad762774009e5b5c7ee341146a8160c52e2b9bb2.
+- Release candidate issue #2702 still says NO-GO. Historical candidate 747b1831eddc60f99c1c14a5bbc4a4c0049667ec differs from current main; do not transfer its evidence.
+
+## Parallel execution plan (product outcomes, dependencies explicit)
+
+### Lane A — CI and integration enablement (P0; parallel)
+1. Review PR #2709 and its exact-head green Build + all six Device Smoke lanes; integrate only through the repository's normal review/policy path.
+2. Once the integration base contains the trigger change, refresh/synchronize PR #2695 and obtain Build plus all six Device Smoke lanes on its new exact head.
+3. Verify the recovery dispatcher operationally on default branch with a controlled missing-evidence PR and exact checkout assertions. A merged workflow or ordinary PR CI is not sufficient proof.
+Exit evidence: exact SHA, terminal Build, six terminal-success smoke lanes, dispatcher run logs/checkout SHA.
+
+### Lane B — Person feature acceptance (P0; parallel with Lane A)
+1. Settings Person directory: create, read/list, edit, delete, search.
+2. Follow-up supports multiple Person IDs and Waiting Response with valid structured state; Person edits/deletes preserve or safely resolve references.
+3. Reports filter by Person and show the correct associated Follow-ups.
+4. Test legacy records, empty/invalid/dangling/duplicate IDs and migration behavior.
+Exit evidence: focused tests + full Build + Device Smoke on the final integrated SHA; no acceptance inferred from CI-only People smoke.
+
+### Lane C — Data safety / Backup-Restore (P0; parallel with B)
+1. Round-trip Task, checklist, repeat, tracking, Follow-up, independent Reminder, Person, History and Calendar links.
+2. Validate duplicate/dangling references before restore; preserve relations; prove rollback after failed restore and safe handling of legacy backups.
+3. Verify deleting a Reminder never deletes its Task, Follow-ups, or other Reminders.
+Dependency: final integrated data model from Lane B and reminder lane D.
+Exit evidence: automated round-trip/rollback/integrity tests and real-device restore evidence.
+
+### Lane D — Task / Follow-up / independent Reminder contract (P1; parallel design/test audit)
+1. Preserve Task as sole source of truth; Follow-ups remain independent records and nextFollowUp is an action time, not a reminder.
+2. Resolve stacked PRs #2666/#2655 and reminder-editor dependencies against the live base without blind merges or wholesale cherry-picks.
+3. Support multiple independently identified Task-level Reminders with explicit edit/delete isolation and legacy JSON/SQL/backup compatibility; keep any schema change behind a documented migration and tests.
+4. Quick Entry retains checklist and removes Follow-up toggle; full form owns Follow-up creation/management.
+Exit evidence: reviewed model contract, migration/legacy tests, full Build and relevant smoke on final SHA.
+
+### Lane E — Calendar and reports (P1; parallel, merge after canonical data contract)
+1. Calendar is a projection: short tap opens Task; long press exposes actions.
+2. Update existing event by Task ID + External Event ID; prove repeated sync does not create duplicates.
+3. Keep nextFollowUp internal unless explicitly opted in; no accidental reminder or external sync.
+4. Validate report filters across Project, Category, Tag, Person, Follow-up, Reminder and date.
+Exit evidence: Calendar Provider Acceptance, duplicate/identity tests, report tests on final SHA.
+
+### Lane F — Persian daily-use UX (P1; parallel)
+1. Validate RTL, Persian labels/numerals, spacing, compact-screen layouts and accessibility of primary actions.
+2. Keep Quick Entry concise and Full Form complete; make Follow-up/Waiting Response and Reminder terminology consistent.
+3. Capture before/after and acceptance screenshots on the final build.
+Dependency: coordinate with lanes B, D and E; avoid competing edits to the same screens.
+
+### Lane G — Physical device and handover (P0 release gate; starts with a candidate only)
+1. Install candidate APK on a real Android device and record device model, OS, app version, commit SHA, screenshots and outcome.
+2. Run end-to-end: Task → Follow-up → Person → independent Reminder → Calendar → Reports → Backup → Restore; verify IDs/relations and no duplicate events.
+3. Finalize Release Notes, Installation Guide, User Guide, Known Issues, Architecture Summary and Evidence Report against the exact candidate SHA.
+Dependency: lanes A–F integrated and candidate frozen; every candidate change resets exact-SHA validation.
+
+## Execution ordering and release rule
+- Work concurrently on non-overlapping lanes; assign one owner/branch per conflicting file area.
+- Integration sequence: CI enablement → validated feature integration → full exact-head Build + six-lane Smoke + Calendar acceptance → candidate freeze → physical-device/data-integrity acceptance → docs/evidence reconciliation.
+- Never weaken/delete tests to obtain green CI. Never merge a Draft PR or promote based only on a successful workflow branch.
+- Release decision remains NO-GO until all required gates and real-device evidence pass on one final candidate SHA.
