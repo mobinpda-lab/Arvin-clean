@@ -127,40 +127,71 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text('نتیجه: ${tasks.length} کار'),
+                child: Text(_showFollowUpRows
+                    ? 'نتیجه: ${_followUpRows.length} پیگیری'
+                    : 'نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: tasks.isEmpty
-                  ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      itemCount: tasks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (_, index) {
-                        final task = tasks[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(
-                              task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
-                            ),
-                            subtitle: Text(
-                              [
-                                if (task.category?.trim().isNotEmpty == true)
-                                  'دسته: ${task.category}',
-                                if (task.tags.isNotEmpty)
-                                  'برچسب: ${task.tags.join('، ')}',
-                                if (task.completed) 'انجام‌شده' else 'باز',
-                              ].join(' • '),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              child: _showFollowUpRows
+                  ? (_followUpRows.isEmpty
+                      ? const Center(child: Text('پیگیری‌ای با این فیلترها پیدا نشد'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: _followUpRows.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (_, index) {
+                            final entry = _followUpRows[index];
+                            final peopleById = <String, String>{
+                              for (final person in widget.people) person.id: person.displayName,
+                            };
+                            final names = entry.followUp.personIds
+                                .map((id) => peopleById[id] ?? 'شخص حذف‌شده')
+                                .toSet()
+                                .toList(growable: false);
+                            return Card(
+                              key: ValueKey('report-follow-up-${entry.task.id}-${entry.followUp.id}'),
+                              child: ListTile(
+                                title: Text(entry.task.title.trim().isEmpty
+                                    ? 'بدون عنوان'
+                                    : entry.task.title),
+                                subtitle: Text([
+                                  'پیگیری: ${entry.followUp.note.trim().isEmpty ? 'پیگیری' : entry.followUp.note}',
+                                  if (entry.followUp.result?.trim().isNotEmpty == true)
+                                    'نتیجه: ${entry.followUp.result}',
+                                  'وضعیت: ${entry.followUp.completed ? 'انجام‌شده' : entry.followUp.waitingForResponse ? 'منتظر پاسخ' : 'باز'}',
+                                  if (names.isNotEmpty) 'اشخاص: ${names.join('، ')}',
+                                  if (entry.followUp.nextFollowUp != null)
+                                    'اقدام بعدی: ${_formatDateTime(entry.followUp.nextFollowUp!)}',
+                                  if (entry.followUp.reminderDate != null)
+                                    'یادآور: ${_formatDateTime(entry.followUp.reminderDate!)}',
+                                ].join(' • ')),
+                              ),
+                            );
+                          },
+                        ))
+                  : (tasks.isEmpty
+                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: tasks.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (_, index) {
+                            final task = tasks[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                                subtitle: Text([
+                                  if (task.category?.trim().isNotEmpty == true) 'دسته: ${task.category}',
+                                  if (task.tags.isNotEmpty) 'برچسب: ${task.tags.join('، ')}',
+                                  if (task.completed) 'انجام‌شده' else 'باز',
+                                ].join(' • ')),
+                              ),
+                            );
+                          },
+                        )),
             ),
-          ],
-        ),
-        floatingActionButton: tasks.isEmpty
+        floatingActionButton: _showFollowUpRows || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
