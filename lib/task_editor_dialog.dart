@@ -107,8 +107,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _followUpDateTime = task?.followUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
-    _reminderDateTime = task?.reminderDate;
-    _initialReminderDateTime = task?.reminderDate;
+    _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
+        ? null
+        : task?.reminderDate;
+    _initialReminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
+        ? null
+        : task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
     if (_nextReminderSequence < 1) {
@@ -121,8 +125,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       }
     }
     _reminderFollowsDueTime = task == null ||
-        task.reminderDate == null ||
-        (task.dueDate != null && !task.allDay && task.reminderDate == task.dueDate);
+        (task.legacyTaskReminderMigrationVersion < 1 &&
+            (task.reminderDate == null ||
+                (task.dueDate != null &&
+                    !task.allDay &&
+                    task.reminderDate == task.dueDate)));
     _followUpEnabled =
         task?.followUpEnabled == true ||
         (task?.followUps.isNotEmpty ?? false) ||
@@ -879,9 +886,14 @@ Future<void> _pickDueDate() async {
         category: _category,
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
-        reminderDate: reminderDate,
+        reminderDate: existing != null &&
+                existing.legacyTaskReminderMigrationVersion >= 1
+            ? existing.reminderDate
+            : reminderDate,
         taskReminders: List<TaskReminder>.of(_taskReminders),
         nextReminderSequence: _nextReminderSequence,
+        legacyTaskReminderMigrationVersion:
+            existing?.legacyTaskReminderMigrationVersion ?? 0,
         priority: _priority,
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
@@ -1265,16 +1277,18 @@ Future<void> _pickDueDate() async {
                         onToggleAllDay: _toggleDueAllDay,
                       ),
                       const SizedBox(height: 10),
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-reminder',
-                        title: 'یادآوری',
-                        value: _reminderDateTime,
-                        onPickDate: _pickReminderDate,
-                        onPickTime: _pickReminderTime,
-                        onClear: _clearReminderTime,
-                        accent: ArvinColors.reminder,
-                      ),
-                      const SizedBox(height: 10),
+                      if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
+                        _dateTimeEditor(
+                          keyPrefix: 'task-editor-reminder',
+                          title: 'یادآوری',
+                          value: _reminderDateTime,
+                          onPickDate: _pickReminderDate,
+                          onPickTime: _pickReminderTime,
+                          onClear: _clearReminderTime,
+                          accent: ArvinColors.reminder,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
                       _taskRemindersEditor(),
                       const SizedBox(height: 10),
                       LayoutBuilder(
