@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
+import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
@@ -11,11 +12,13 @@ class ReportCenterPage extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projects = const [],
+    this.people = const [],
     this.now,
   });
 
   final List<Task> tasks;
   final List<ProjectPlan> projects;
+  final List<PersonReference> people;
   final DateTime? now;
 
   @override
@@ -31,7 +34,30 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         widget.tasks,
         now: _now,
         projects: widget.projects,
+        ignoreTaskTime: _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly,
       );
+
+  List<_FollowUpReportEntry> get _followUpRows {
+    if (_filter.personIds.isEmpty && !_filter.waitingForResponseOnly) {
+      return const <_FollowUpReportEntry>[];
+    }
+    final result = <_FollowUpReportEntry>[];
+    for (final task in _filtered) {
+      for (final followUp in task.followUps) {
+        if (_filter.personIds.isNotEmpty &&
+            !followUp.personIds.any(_filter.personIds.contains)) continue;
+        if (_filter.waitingForResponseOnly &&
+            (task.completed || task.archived || task.trashed ||
+                followUp.completed || !followUp.waitingForResponse)) continue;
+        if (!_filter.matchesFollowUpTime(followUp, now: _now)) continue;
+        result.add(_FollowUpReportEntry(task: task, followUp: followUp));
+      }
+    }
+    return List<_FollowUpReportEntry>.unmodifiable(result);
+  }
+
+  bool get _showFollowUpRows =>
+      _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly;
 
   Future<void> _openFilters() async {
     final result = await showModalBottomSheet<TaskReportFilter>(
@@ -42,6 +68,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         initial: _filter,
         projects: widget.projects,
         tasks: widget.tasks,
+        people: widget.people,
         now: _now,
       ),
     );
