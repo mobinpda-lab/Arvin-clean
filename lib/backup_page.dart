@@ -247,9 +247,11 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => busy = true);
     try {
       final tasks = await widget.loadTasks();
+      final people = await TaskStore().loadPeopleDirectory();
       final fileName = await manager.backupTasks(
         tasks,
         settings: await _portableBackupSettings(),
+        people: people.map((person) => person.toJson()).toList(growable: false),
         calendarLinks: (await ExternalCalendarLinkStore().load())
             .map((link) => link.toJson())
             .toList(growable: false),
