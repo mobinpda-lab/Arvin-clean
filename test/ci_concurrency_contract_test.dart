@@ -42,7 +42,7 @@ void main() {
     expect(dispatcher, contains("event: 'workflow_dispatch'"));
     expect(dispatcher, contains('ref: defaultBranch'));
     expect(dispatcher, contains('inputs: { target_sha: sha }'));
-    expect(dispatcher, contains('run.display_title === `Arvin Build (${sha})`'));
+    expect(dispatcher, contains('run.display_title === `Arvin Build (\${sha})`'));
     expect(dispatcher, isNot(contains('run.head_sha === sha')));
     expect(build, contains('name: Verify exact requested revision'));
     expect(build, contains('test "$actual" = "$TARGET_SHA"'));
