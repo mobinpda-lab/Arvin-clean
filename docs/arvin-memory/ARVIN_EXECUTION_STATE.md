@@ -1010,3 +1010,12 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Work performed in this continuation:** re-read execution state and evidence map, queried live default branch, both PRs, Actions runs/jobs, exact-head runs/checks, and release blockers. No application code changed; no tests were weakened; no merge or release performed.
 - **Current bottleneck:** no exact-head validation for Person PR #2695 and no operational proof of the recovery dispatcher.
 - **Next action:** record the live evidence in the evidence map; then poll CI for the new memory-update head of PR #2699. Continue to keep both PRs unmerged until their specific acceptance gates are satisfied. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Recovery dispatch correctness repair
+
+- **Newly identified implementation flaw:** dispatching Arvin Build on each target PR branch can select that branch's older `.github/workflows/build.yml`, which may not declare `target_sha` or include the exact-checkout assertion. Also, if recovery dispatches are moved to the default branch, the Build run's `head_sha` identifies the workflow ref, not the requested target commit; filtering by `run.head_sha === target_sha` would reject valid runs. Multiple recovery runs on `main` would also collide under the old shared concurrency group.
+- **Correction implemented on PR #2699 branch:** dispatcher now resolves the repository default branch and dispatches Build against that workflow ref while passing the exact target SHA; it finds target runs by the explicit run name and default-branch `workflow_dispatch` metadata. The Build workflow checks out `inputs.target_sha` and asserts the actual checkout in every quality and APK lane. Recovery concurrency is now keyed by target SHA to avoid cancelling other targets.
+- **Validation status:** implementation only; CI is being triggered by these commits and must finish on the final resulting head. Operational dispatcher acceptance remains unproven until the workflow is on default branch and a controlled dispatch completes with exact checkout assertions. Do not merge solely to bypass a gate.
+- **Person PR #2695:** still requires exact-head CI; the current live head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` previously returned zero runs/checks. No app code changed in this correction.
+- **Next action:** inspect the final PR #2699 head, wait for terminal Build and six-lane Device Smoke, then review job logs for YAML/runtime errors. Keep Person and release gates open until their own evidence is available.
