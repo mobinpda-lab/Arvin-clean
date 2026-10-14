@@ -5,6 +5,7 @@ import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'models/goal_project.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/calendar_sync_plan_service.dart';
@@ -315,6 +316,7 @@ class _BackupPageState extends State<BackupPage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await manager.restoreCanonicalBackup(
@@ -359,6 +361,7 @@ class _BackupPageState extends State<BackupPage> {
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
       previousCategories = await TaskStore().loadCategories();
       previousTags = await TaskStore().loadTags();
+      previousPeople = await TaskStore().loadPeopleDirectory();
       previousSettings = await _portableBackupSettings();
       final currentTasks = tasksBeforeRestore
           .map((value) => Task.fromJson(value))
@@ -370,6 +373,7 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: previousCalendarLinks,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -400,6 +404,15 @@ class _BackupPageState extends State<BackupPage> {
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
         apply: () async {
+          // Keep the canonical Person directory in the same restore transaction
+          // boundary as Tasks; legacy backups without a directory preserve local people.
+          if (candidate.people != null) {
+            await TaskStore().restorePeopleDirectoryEntries(
+              candidate.people!,
+              replace: true,
+            );
+          }
+          await widget.restoreStageHook?.call('people');
           await widget.replaceTasks(
             reconciledTasks.map((task) => task.toJson()).toList(growable: false),
           );
@@ -443,6 +456,10 @@ class _BackupPageState extends State<BackupPage> {
           await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
+          await TaskStore().restorePeopleDirectoryEntries(
+            previousPeople!,
+            replace: true,
+          );
           await widget.replaceTasks(previousTasks!);
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
