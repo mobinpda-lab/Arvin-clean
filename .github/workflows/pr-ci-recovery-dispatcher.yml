@@ -74,11 +74,15 @@ jobs:
                 per_page: 20
               });
               const exactRuns = runsResponse.data.workflow_runs
+                // A normal pull_request run checks out github.sha (the synthetic PR merge
+                // ref), so its run.head_sha alone is not proof that the PR head SHA itself
+                // was checked out. Only accept recovery dispatches, whose Build jobs assert
+                // git rev-parse HEAD === inputs.target_sha in every quality/APK lane.
+                .filter(run => run.event === 'workflow_dispatch')
                 .filter(run => run.head_sha === sha)
-                // A dispatched build must also declare the same pinned SHA in its run name.
-                // This prevents a branch-move race from making a build of an older target
-                // look like validation of the newer PR head.
-                .filter(run => run.event !== 'workflow_dispatch' || run.display_title === `Arvin Build (${sha})`)
+                // The run name records the pinned target SHA. This rejects a branch-move
+                // race where GitHub's dispatch ref resolves to a different commit.
+                .filter(run => run.display_title === `Arvin Build (${sha})`)
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
               const latest = exactRuns[0];
