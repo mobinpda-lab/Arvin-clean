@@ -1648,3 +1648,17 @@ This checkpoint supersedes earlier Person restore status where it conflicts.
 - **Validation:** these commits were authored through the GitHub contents API. No Build or Device Smoke run is visible for exact head 84a97c23a4547f0a4f891398116aa40b083aa67e; no pass is claimed. The current branch remains Draft, stacked on PR #2666, and GitHub reports mergeable=false.
 - **Current bottleneck:** obtain valid exact-head Build and six-lane Device Smoke evidence for the integrated branch; resolve the stacked-branch mergeability issue only after validation. Do not mark ready, merge, or release while these gates are absent.
 - **Next action:** run Analyze, all six test shards, Debug/Release APK, then Device Smoke on the final reconciled candidate SHA. Specifically inspect the new Home-level backup/restore tests and Person SQL/report tests. Keep release **NO-GO** pending physical-device and end-to-end acceptance.
+
+
+---
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (live exact-head recheck)
+
+- **Live default branch:** `main` = `de795419be2c39775119af8eaa37c53744820d93`.
+- **Person PR #2695 before this checkpoint:** head `6d01c603edf897f813ceb94d15bc7d36b5c058c2`; Actions query returned zero workflow runs and combined status returned no checks. This is absence of evidence, not a pass.
+- **Branch relationship:** PR #2695 base is `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; comparison reports 39 commits ahead / 1 behind, merge base `e626daeecb3851024f2ceab820d1868ba582c860`. The single base-only commit inspected is documentation-only (`docs(arvin-memory)/ARVIN_EXECUTION_STATE.md`). Do not blindly rebase or merge; the application changes still need a controlled reconciliation and final-head validation.
+- **Recovery PR #2699:** Build on head `ef96973068fe2c8e8fa7cb865e88834b09e1a49b` failed because a new Dart contract test used normal strings for shell variables, producing undefined `actual` and `TARGET_SHA` interpolation errors. The test was corrected to use raw strings in commit `555541a5426b02e483bf2168fcc78a57ddc8c3a6`; Build run [38523576951](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523576951) and Device Smoke [38523577094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523577094) were queued/in progress at this checkpoint. No pass is claimed.
+- **Release workflow:** recent Release Closure and Final Head Release Validation runs on main were `skipped`, not successful. Issues #2102 and #1901 remain open. Physical-device, Calendar provider, notification, Person reporting and backup/restore integrity acceptance are still release blockers.
+- **Current bottleneck:** obtain exact-head Build/Device Smoke evidence for the corrected recovery PR and a fresh Build/Device Smoke run for the Person PR; then reconcile the one-commit base divergence and validate the final integrated SHA.
+- **Work in this continuation:** inspected latest Build logs, identified the raw-string test compile error, corrected it without deleting/weakening tests, and recorded the diagnosis on PR #2699. No application code changed; no merge/release.
+- **Next action:** re-poll the latest PR #2699 head until all required Build lanes and six Device Smoke lanes are terminal. Keep PR #2695 Draft and both PRs unmerged until exact-head evidence and data-integrity/product acceptance are available. Release **NO-GO**.
