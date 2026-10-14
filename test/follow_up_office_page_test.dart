@@ -10,6 +10,7 @@ import 'package:arvin/follow_up_office_page.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/follow_up.dart';
+import 'package:arvin/models/person_reference.dart';
 
 void main() {
   setUp(() async {
@@ -46,6 +47,8 @@ void main() {
               'id': 'waiting-1',
               'dateTime': '2026-10-10T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
             },
           ],
         },
@@ -57,6 +60,9 @@ void main() {
               'id': 'old-waiting',
               'dateTime': '2026-10-08T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
+              'completed': true,
             },
             {
               'id': 'resolved-new',
@@ -74,6 +80,8 @@ void main() {
               'id': 'waiting-done',
               'dateTime': '2026-10-12T09:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
             },
           ],
         },
@@ -86,6 +94,8 @@ void main() {
               'id': 'waiting-archived',
               'dateTime': '2026-10-12T10:00:00.000',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
             },
           ],
         },
@@ -162,6 +172,10 @@ void main() {
       ]),
     });
 
+    await TaskStore().savePersonDirectoryEntry(
+      PersonReference(id: 'person-ali', displayName: 'علی'),
+    );
+
     await tester.pumpWidget(
       const MaterialApp(home: FollowUpOfficePage()),
     );
@@ -171,6 +185,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'پیام ارسال شد');
     await tester.tap(find.text('منتظر پاسخ دیگران'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('علی'));
     await tester.pump();
 
     final switchTile = tester.widget<SwitchListTile>(
@@ -258,6 +274,8 @@ void main() {
               'dateTime': '2026-08-25T10:00:00.000',
               'note': 'ارسال شد',
               'result': 'waiting_for_response',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
               'nextFollowUp': null,
             },
           ],
@@ -271,6 +289,9 @@ void main() {
               'dateTime': '2026-08-24T10:00:00.000',
               'note': 'قدیمی',
               'result': 'منتظر پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
+              'completed': true,
               'nextFollowUp': null,
             },
             {
@@ -291,6 +312,8 @@ void main() {
               'dateTime': '2026-08-26T09:00:00.000',
               'note': 'پیام',
               'result': 'در انتظار پاسخ',
+              'waitingForResponse': true,
+              'personIds': ['person-ali'],
               'nextFollowUp': null,
             },
           ],
