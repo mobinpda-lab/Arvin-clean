@@ -321,6 +321,15 @@ void main() {
     expect(result.conflicts, 1);
     expect((await taskStore.load()).single.dueDate, DateTime(2026, 10, 8, 12));
   });
+
+  test('calendar reminder link parser decodes encoded Task IDs', () {
+    expect(
+      calendarTaskIdForReminderId(
+        'task-reminder-item:task%3Awith%3Acolons:reminder%3Aone',
+      ),
+      'task:with:colons',
+    );
+  });
 }
 
 class _Links extends ExternalCalendarLinkStore {
@@ -352,13 +361,4 @@ class _Bridge extends SystemCalendarBridge {
     required DateTime start,
     required DateTime end,
   }) async => events;
-
-  test('calendar reminder link parser decodes encoded Task IDs', () {
-    expect(
-      calendarTaskIdForReminderId(
-        'task-reminder-item:task%3Awith%3Acolons:reminder%3Aone',
-      ),
-      'task:with:colons',
-    );
-  });
 }
