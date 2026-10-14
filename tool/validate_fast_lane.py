@@ -50,7 +50,8 @@ forbid(parallel, 'android-release:', str(parallel_path))
 forbid(parallel, '- name: Build release APK', str(parallel_path))
 
 # Device Smoke must cover PRs targeting integration branches and Draft PRs too.
-forbid(device, "branches: [main, master]", str(device_path))
+device_pull_request = device.split("  pull_request:\\n", 1)[1].split("  workflow_dispatch:", 1)[0]
+forbid(device_pull_request, "branches: [main, master]", str(device_path) + " pull_request")
 require(device, 'types: [opened, synchronize, reopened, ready_for_review]', str(device_path))
 require(device, 'workflow_dispatch:', str(device_path))
 require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
