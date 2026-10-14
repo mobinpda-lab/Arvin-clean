@@ -121,3 +121,11 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - CalendarReminder and provider sync already support `isAllDay/allDay`; FollowUp Calendar projection currently leaves the flag at its false default.
 - Never use hour==0 as proof of all-day for FollowUp reminders. New explicit metadata is required to distinguish intentional midnight from date-only intent; old ambiguous values should remain unchanged unless a separately approved migration rule exists.
 - Existing editor does not create an initial reminder when Next Follow-up is first set, does not offer date-only selection for Next Follow-up, and does not expose clear-next in the inspected UI. Existing reminder edit/clear is already tested as independent behavior.
+
+
+## 2026-10-15 — Authoritative legacy reminder migration rule
+- Owner selected Option B; this supersedes older statements that legacy Task.reminderDate must never be automatically migrated.
+- Candidate implementation uses Task.fromJson as the canonical migration boundary: stable per-Task ID legacy-task-reminder, marker legacyTaskReminderMigrationVersion, and isLegacyTaskReminder metadata. The legacy timestamp is preserved; midnight is not assumed to mean all-day.
+- Calendar projection retains task-reminder:<taskId> for the migrated record, and notification projection retains the existing scheduler key. The old field is retained for compatibility but suppressed as a second projection after migration.
+- Current app DB is owner-reported empty, but backups/test fixtures/other installations are not assumed empty.
+- Required proof remains exact-head tests/build, SQL and backup/restore, idempotence/rollback, Calendar no-duplicate, device smoke and physical-device acceptance.
