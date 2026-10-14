@@ -210,6 +210,18 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   }
 }
 
+class _FollowUpReportEntry {
+  const _FollowUpReportEntry({required this.task, required this.followUp});
+  final Task task;
+  final FollowUp followUp;
+}
+
+String _formatDateTime(DateTime value) {
+  final date = const PersianDateFormatter().format(value, usePersianDate: true);
+  final time = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  return '$date ساعت $time';
+}
+
 class _ActiveFilterChips extends StatelessWidget {
   const _ActiveFilterChips({required this.filter, required this.onClear});
 
@@ -241,6 +253,10 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری')),
           if (filter.hasChecklist != null)
             Chip(label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist')),
+          if (filter.personIds.isNotEmpty)
+            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
+          if (filter.waitingForResponseOnly)
+            const Chip(label: Text('منتظر پاسخ')),
           if (filter.fromDate != null || filter.toDate != null)
             const Chip(label: Text('بازه تاریخ')),
           if (filter.fromTime != null || filter.toTime != null)
@@ -257,12 +273,14 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.initial,
     required this.projects,
     required this.tasks,
+    required this.people,
     required this.now,
   });
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<Task> tasks;
+  final List<PersonReference> people;
   final DateTime now;
 
   @override
@@ -283,6 +301,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   bool? _hasRepeat;
   bool? _hasFollowUp;
   bool? _hasChecklist;
+  Set<String> _personIds = <String>{};
+  bool _waitingForResponseOnly = false;
 
   @override
   void initState() {
@@ -301,6 +321,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _hasRepeat = f.hasRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
+    _personIds = <String>{...f.personIds};
+    _waitingForResponseOnly = f.waitingForResponseOnly;
   }
 
   Future<void> _pickDate(bool from) async {
@@ -365,6 +387,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
+        personIds: Set<String>.of(_personIds),
+        waitingForResponseOnly: _waitingForResponseOnly,
       ),
     );
   }
@@ -498,6 +522,27 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              title: 'شخص',
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
+              ),
+            ),
+            _Section(
+              title: 'پیگیری',
+              child: FilterChip(
+                key: const ValueKey('report-filter-waiting-response-only'),
+                label: const Text('فقط منتظر پاسخ'),
+                selected: _waitingForResponseOnly,
+                onSelected: (value) => setState(() => _waitingForResponseOnly = value),
+              ),
+            ),
+            _Section(
               title: 'وضعیت',
               child: Wrap(
                 spacing: 6,
@@ -573,6 +618,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _hasRepeat = null;
                       _hasFollowUp = null;
                       _hasChecklist = null;
+                      _personIds = <String>{};
+                      _waitingForResponseOnly = false;
                     }),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 40),
