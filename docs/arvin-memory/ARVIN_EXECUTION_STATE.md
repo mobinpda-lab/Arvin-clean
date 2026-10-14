@@ -1096,3 +1096,15 @@ This entry supersedes the earlier sentence above saying the six Device Smoke lan
   - `arvin-device-smoke-quick-capture-747b1831eddc60f99c1c14a5bbc4a4c0049667ec`, SHA-256 `3fb6fbc143fc0a51191d81362a7470b26c1da74ee5b59a08ba92a750b3128c87`.
 - Together with Build run [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465), the automated Build and six Device Smoke gates for `ARVIN-RC-01` are now verified green on the same exact SHA.
 - This is automated CI/emulator smoke evidence, not physical-device/user acceptance. Product gates for Person integration, physical-device installation, Calendar final-SHA acceptance, and complete backup/restore/data integrity remain open. Release remains `NO-GO`.
+
+
+
+## OWNER-ASSIGNED NEXT ACTION — 2026-10-14
+
+- **Accountable GitHub owner assigned:** `mobinpda-lab` on [PR #2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) and tracking Issue #2702. This is the repository owner account, not a named individual engineer; current PR metadata does not identify a separate person.
+- **Primary next action:** obtain and review terminal exact-head Build/test evidence for PR #2695 SHA `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99`. Verify the actual checked-out SHA and all required jobs. The connector did not return an exact-head run, and it exposes no workflow-dispatch action; no run is claimed as started.
+- **Acceptance scope:** Person CRUD/persistence; canonical backup/restore round-trip and legacy compatibility; duplicate/dangling-reference preflight; injected-failure rollback; Person-based per-Follow-up reporting; six Device Smoke lanes on final exact SHA; physical-device acceptance.
+- **Evidence destinations:** attach run URLs and results to [PR #2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) and update [Issue #2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [Issue #2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683).
+- **Change control:** if PR head changes, record the new full SHA and repeat required checks on that SHA only. Do not merge while Draft/unmergeable or without evidence.
+- **Current state:** `BLOCKED` on exact-head CI evidence. Release remains `NO-GO`.
+- GitHub assignment/comment evidence: PR #2695 comment [#6166344947](https://github.com/mobinpda-lab/Arvin-clean/pull/2695#issuecomment-6166344947); canonical lock Issue #2702 comment [#6166345564](https://github.com/mobinpda-lab/Arvin-clean/issues/2702#issuecomment-6166345564).
