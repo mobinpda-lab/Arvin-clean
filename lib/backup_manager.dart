@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backup_service.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'services/project_plan_codec.dart';
 import 'services/calendar_sync_plan_service.dart';
 
@@ -14,6 +15,7 @@ typedef CanonicalBackupCandidate = ({
   List<ExternalCalendarEventLink>? calendarLinks,
   List<String>? categories,
   List<String>? tags,
+  List<PersonReference>? people,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -161,6 +163,7 @@ class ArvinBackupManager {
     List<Map<String, dynamic>>? calendarLinks,
     List<String>? categories,
     List<String>? tags,
+    List<Map<String, dynamic>>? people,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -176,6 +179,7 @@ class ArvinBackupManager {
         if (calendarLinks != null) 'calendarLinks': calendarLinks,
         if (categories != null) 'categories': categories,
         if (tags != null) 'tags': tags,
+        if (people != null) 'people': people,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -193,6 +197,7 @@ class ArvinBackupManager {
     Iterable<ExternalCalendarEventLink>? calendarLinks,
     Iterable<String>? categories,
     Iterable<String>? tags,
+    Iterable<PersonReference>? people,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
@@ -202,6 +207,7 @@ class ArvinBackupManager {
       calendarLinks: calendarLinks?.map(_encodeCalendarLink).toList(growable: false),
       categories: categories?.toList(growable: false),
       tags: tags?.toList(growable: false),
+      people: people?.map((person) => person.toJson()).toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -223,6 +229,7 @@ class ArvinBackupManager {
     final calendarLinks = _decodeCalendarLinks(document);
     final categories = _decodeCatalog(document, 'categories', 'Category');
     final tags = _decodeCatalog(document, 'tags', 'Tag');
+    final people = _decodePeople(document, tasks);
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -238,7 +245,56 @@ class ArvinBackupManager {
       calendarLinks: calendarLinks,
       categories: categories,
       tags: tags,
+      people: people,
     );
+  }
+
+    /// Validates the Person directory before any restore mutation is allowed.
+  /// Older backups without this field remain supported only when they contain
+  /// no structured Follow-up Person references.
+  List<PersonReference>? _decodePeople(
+    Map<String, dynamic> document,
+    List<Task> tasks,
+  ) {
+    if (!document.containsKey('people')) {
+      if (tasks.any((task) => task.followUps.any((followUp) => followUp.personIds.isNotEmpty))) {
+        throw const FormatException(
+          'Arvin backup omits the Person directory required by Follow-up references',
+        );
+      }
+      return null;
+    }
+    final rawPeople = document['people'];
+    if (rawPeople is! List) {
+      throw const FormatException('Arvin backup Person directory is invalid');
+    }
+    final ids = <String>{};
+    final people = <PersonReference>[];
+    for (final raw in rawPeople) {
+      if (raw is! Map) {
+        throw const FormatException('Arvin backup Person directory entry is invalid');
+      }
+      final person = PersonReference.fromJson(Map<String, dynamic>.from(raw));
+      if (!ids.add(person.id)) {
+        throw FormatException('Arvin backup contains duplicate Person id: ${person.id}');
+      }
+      people.add(person);
+    }
+    final missingIds = <String>{};
+    for (final task in tasks) {
+      for (final followUp in task.followUps) {
+        for (final personId in followUp.personIds) {
+          if (!ids.contains(personId)) missingIds.add(personId);
+        }
+      }
+    }
+    if (missingIds.isNotEmpty) {
+      final ordered = missingIds.toList()..sort();
+      throw FormatException(
+        'Arvin backup contains Follow-up references to unknown Person ids: ${ordered.join(', ')}',
+      );
+    }
+    return List<PersonReference>.unmodifiable(people);
   }
 
   /// Compatibility helper for callers that only need tasks.
