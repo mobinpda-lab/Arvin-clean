@@ -352,4 +352,13 @@ class _Bridge extends SystemCalendarBridge {
     required DateTime start,
     required DateTime end,
   }) async => events;
+
+  test('calendar reminder link parser decodes encoded Task IDs', () {
+    expect(
+      calendarTaskIdForReminderId(
+        'task-reminder-item:task%3Awith%3Acolons:reminder%3Aone',
+      ),
+      'task:with:colons',
+    );
+  });
 }
