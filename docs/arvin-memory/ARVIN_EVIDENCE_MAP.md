@@ -636,3 +636,15 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Person directory backup/restore + dangling-reference preflight | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | PR #2681; sync plan PR #2692 | Must be ported and tested on current parent |
 | Person-based per-Follow-up reporting | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | Issue #2683; PR #2681 | Must be ported and tested on current parent |
 | Release | — | **NO-GO** | Issues #2682, #2683, #2685 | End-to-end integrity and physical-device acceptance remain open |
+
+
+## Person backup/restore orchestration — 2026-10-14
+
+| Feature / acceptance | Code/test change | Result | Evidence / limitation |
+|---|---|---|---|
+| Normal portable backup includes Person directory | aed26c85a2fa7de5ba0dd01e7bbeb4ac1c495e44 | Implemented, **not CI-validated** | Home widget test added; exact-head Actions run not visible. |
+| Restore imports Person directory and emergency backup preserves current people | 7016f74027f8a1f22c07d10a28cad77470f18f96 | Implemented, **not CI-validated** | BackupPage orchestration source reviewed; requires exact-head Build. |
+| Late restore failure rolls back Person directory plus Task/Follow-up state | 28440c156df2bd448de608f1f2f1835b25cdfc2a | Regression test added, **not CI-validated** | test/home_restore_orchestration_test.dart, injected failure after catalogs. |
+| Successful restore preserves local-only Task/Person references while importing backup entries | 0335a0c7e8bfb0c99f466b87b9af3a4cb3682e45, 84a97c23a4547f0a4f891398116aa40b083aa67e | Merge semantics + Home widget test added, **not CI-validated** | Must confirm all test shards on final candidate SHA. |
+| Exact-head Build / six-lane Device Smoke | Head 84a97c23a4547f0a4f891398116aa40b083aa67e | **NO RUN VISIBLE** | Do not treat missing workflow evidence as a pass; PR #2695 remains Draft/unmergeable. |
+| Physical-device acceptance / release | — | **NO-GO** | Not evidenced by these source/test changes. |
