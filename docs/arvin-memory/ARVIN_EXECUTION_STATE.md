@@ -985,3 +985,15 @@ This checkpoint supersedes earlier live status for PR #2699, while retaining old
 - **No merge or release:** remain NO-GO. Do not merge solely because the PR is mergeable or Build/Device Smoke are green. The dispatcher’s after-merge proof and broader product gates remain open.
 - **Recorded evidence:** the terminal CI checkpoint and gate status were posted to [PR #2699 comments](https://github.com/mobinpda-lab/Arvin-clean/pull/2699).
 - **Next action:** obtain a permitted manual/scheduled dispatcher run after this workflow is integrated through an independently justified review path, using a controlled same-repository PR with no exact-head Build evidence; verify logs, requested SHA, resulting run metadata, checked-out SHA and terminal result. Separately continue the existing product integration and physical-device/provider acceptance gates. This memory-only commit changes the PR head, so re-query Build and all six Device Smoke lanes for the new exact head before considering any further gate decision.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Latest-head CI terminal results
+
+- Latest PR head checked: `db60759072b53ef215f07ce28ef69803cdfe0c3b` on PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699); PR remains open and unmerged.
+- **Arvin Build passed:** [run 38517351542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351542), event `pull_request`, conclusion `success`. Analyze, all six test shards (`test-0` through `test-5`), Debug APK, and Release APK jobs all completed successfully.
+- **Device Smoke passed:** [run 38517351453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351453), event `pull_request`, conclusion `success`. All six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore.
+- These are terminal CI/emulator results for the listed PR head metadata. They do **not** prove physical-device acceptance, nor do they exercise the new dispatcher: both runs were triggered by `pull_request`, not `workflow_dispatch`.
+- **Completed:** current-head Build and six-lane smoke evidence collected; this closes the immediate CI pending item for this head.
+- **Still blocked:** end-to-end dispatcher validation remains outstanding. The connected GitHub toolset has no workflow-dispatch operation, and the dispatcher only becomes operational after integration on the default branch. Do not merge solely to test it without satisfying review and required gates.
+- **Current bottleneck:** prove dispatcher dispatches a controlled same-repository PR missing exact-head evidence, and confirm requested SHA = checked-out SHA = accepted run SHA. Physical-device and full product release gates also remain open.
+- **Next action:** safely establish a supported dispatch path and test the dispatcher after approved integration; separately complete remaining product acceptance and physical-device evidence. Release remains NO-GO.
