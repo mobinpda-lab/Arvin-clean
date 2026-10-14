@@ -25,6 +25,8 @@ class TaskEditApplyService {
     target.reminderDate = edited.reminderDate;
     target.taskReminders = List<TaskReminder>.of(edited.taskReminders);
     target.nextReminderSequence = edited.nextReminderSequence;
+    target.legacyTaskReminderMigrationVersion =
+        edited.legacyTaskReminderMigrationVersion;
     target.priority = edited.priority;
     target.completed = edited.completed;
     target.recurrence = edited.recurrence;
