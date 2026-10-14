@@ -123,4 +123,61 @@ void main() {
     expect(legacy!.people, isNull);
     expect(legacy.tasks.single.id, 'legacy-task');
   });
+  test('injected restore failure rolls back both Person directory and canonical Task/Follow-up data', () async {
+    final store = TaskStore();
+    final originalPerson = PersonReference(id: 'person-original', displayName: 'شخص اصلی');
+    await store.savePersonDirectoryEntry(originalPerson);
+    await store.save([
+      Task(
+        id: 'task-original',
+        title: 'کار اصلی',
+        followUps: [
+          FollowUp(
+            id: 'follow-up-original',
+            dateTime: DateTime(2026, 10, 14, 9),
+            waitingForResponse: true,
+            personIds: [originalPerson.id],
+          ),
+        ],
+      ),
+    ]);
+    final beforeTasks = await store.load();
+    final beforePeople = await store.loadPeopleDirectory();
+
+    await expectLater(
+      runRestoreWithRollback<void>(
+        recoveryBackup: 'in-memory-recovery',
+        apply: () async {
+          await store.save([
+            Task(
+              id: 'task-incoming',
+              title: 'کار واردشده',
+              followUps: [
+                FollowUp(
+                  id: 'follow-up-incoming',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                ),
+              ],
+            ),
+          ]);
+          await store.restorePeopleDirectoryEntries([
+            PersonReference(id: 'person-incoming', displayName: 'شخص واردشده'),
+          ], replace: true);
+          throw StateError('injected failure after Person restore');
+        },
+        rollback: () async {
+          await store.save(beforeTasks);
+          await store.restorePeopleDirectoryEntries(beforePeople, replace: true);
+        },
+      ),
+      throwsA(isA<RestoreExecutionFailure>()),
+    );
+
+    final restoredTasks = await store.load();
+    expect(restoredTasks.map((task) => task.id), ['task-original']);
+    expect(restoredTasks.single.followUps.single.id, 'follow-up-original');
+    expect(restoredTasks.single.followUps.single.personIds, [originalPerson.id]);
+    expect((await store.loadPeopleDirectory()).map((person) => person.id), [originalPerson.id]);
+  });
+
 }
