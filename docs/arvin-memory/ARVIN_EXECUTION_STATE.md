@@ -1257,3 +1257,39 @@ This checkpoint supersedes prior live statements only where its exact SHA-specif
 - PRs #2695 (Person integration) and #2709 (Device Smoke workflow propagation) both target the #2666 integration branch. Even after their exact-head CI succeeds, their branch relationship must be reconciled with the current mainline before product promotion. No blind rebase, merge, or cherry-pick of the heavily diverged #2681 branch.
 - Current promotion order: finish exact-head validation of #2709; integrate its CI-only change through the reviewed integration path; then reconcile #2666 against current main and rerun its complete Build, six Device Smoke lanes, and Calendar Provider Acceptance. Rebase/reconcile #2695 onto the resulting validated parent, rerun all gates, and only then proceed to Person data-integrity and physical-device acceptance.
 - This dependency is an additional integration bottleneck, not an owner decision and not release approval. Release remains NO-GO.
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Latest Person and CI integration checks
+
+This checkpoint supersedes earlier pending-state claims only for the exact SHAs and run IDs listed here. It does not authorize merging or release.
+
+## Repository / release
+- Current default branch `main`: `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` (`ci: validate Device Smoke on integration and draft PRs`).
+- Release candidate issue [#2702](https://github.com/mobinpda-lab/Arvin-clean/issues/2702) remains OPEN with candidate `747b1831eddc60f99c1c14a5bbc4a4c0049667ec), validation-only. That candidate has historical exact-SHA Build and six-lane Device Smoke evidence, but it is not current main and is not release-approved. Person, Calendar UX, real-device and release-doc gates remain unchecked. Release stays **NO-GO**.
+
+## Person PR #2695
+- Current PR head: `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9`; PR is OPEN/Draft and targets `integration/task-multiple-reminders-safe-20261013` at base `ad762774009e5b5c7ee341146a8160c52e2b9bb2`.
+- Exact-head Build [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) is now terminal SUCCESS. All nine jobs passed: Analyze, test-0 through test-5, Debug APK and Release APK. The scroll-to-Apply test repair is validated by this Build.
+- No Device Smoke run is currently listed for this exact Person head. Do not transfer six-lane smoke evidence from another SHA or PR. The intended trigger propagation change is in PR #2709; its base integration branch must receive the approved workflow change before expecting this stacked Person PR to run Device Smoke reliably.
+- Person feature acceptance remains open: Settings create/edit/delete/search; multiple Person relations and Waiting Response; Person-based report filters; backup/restore integrity of standalone Persons, IDs, references, Tasks, Follow-ups, Reminders and History.
+
+## Device Smoke workflow PR #2709
+- Current exact head: `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; PR remains OPEN/Draft, base `integration/task-multiple-reminders-safe-20261013`.
+- Build [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043): Analyze and test shards 0–5 are SUCCESS; Debug and Release APK jobs were still IN_PROGRESS at last poll. Not terminal-success yet.
+- Device Smoke [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934): Home is SUCCESS; Quick Capture and SQL Persistence were IN_PROGRESS; People, SQL Migration and Backup/Restore were QUEUED at last poll. Not terminal-success yet.
+- Parallel Wave [38568677675](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568677675) is SUCCESS; Fast Lane contract and G1 lock sync are also SUCCESS on this head. These do not replace Build or the six smoke lanes.
+- APK artifact naming is intentionally version/build/variant/short-SHA based; the validator now requires this traceability and rejects the generic artifact name. Do not weaken this contract to make CI green.
+
+## Release candidate lock PR #2703
+- Current head at this checkpoint: `8d4d1e4ad55030b4ac037f927d220b387750abeb`, targeting `main` at `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`.
+- Its documentation-only content must not be treated as product acceptance. Build [38568909290](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568909290) and Device Smoke [38568909271](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568909271) were still running/queued at last poll. Any update to this memory file changes its head; exact-head validation must be rechecked after the update.
+
+## Integration dependency
+- PR #2666 (multiple reminders / record-based Follow-ups) remains OPEN, unmerged and non-mergeable against current main. Its previous successful Build, six-lane smoke and Calendar Provider Acceptance were on its earlier exact head `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; current dependency state must be reconciled against main before promotion.
+- PR #2655 (multiple independent Task reminders) remains OPEN and non-mergeable, with no current exact-head runs returned. Do not blindly merge or rebase the divergent branch.
+- Promotion order: finish #2709 exact-head Build and all six Device Smoke lanes; apply the workflow trigger change to the integration base only through the reviewed PR path; rerun #2695 smoke on its exact head; reconcile #2666 and #2655 safely against current main and rerun all relevant gates. Then complete feature-specific data-integrity and real-device acceptance.
+
+## Next action
+1. Poll Build [38568685043] and Device Smoke [38568684934] until terminal; inspect logs for any failures and fix without removing tests or artifact traceability.
+2. After the workflow change is accepted into the integration base, require exact-head six-lane Device Smoke for #2695.
+3. Reconcile stacked reminder/follow-up work against live main without blind merges; update release issue #2702 with new SHA-specific evidence.
+4. Do not publish or claim delivery until physical-device acceptance, Calendar edit/no-duplicate acceptance, backup/restore integrity, Persian RTL/compact UX, guides and evidence report are complete.
