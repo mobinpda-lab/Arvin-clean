@@ -45,8 +45,8 @@ void main() {
     expect(dispatcher, contains('run.display_title === `Arvin Build (\${sha})`'));
     expect(dispatcher, isNot(contains('run.head_sha === sha')));
     expect(build, contains('name: Verify exact requested revision'));
-    expect(build, contains('test "$actual" = "$TARGET_SHA"'));
-    expect(build, contains('EXACT_TARGET_SHA=$actual'));
+    expect(build, contains(r'test "$actual" = "$TARGET_SHA"'));
+    expect(build, contains(r'EXACT_TARGET_SHA=$actual'));
     expect(build, contains('inputs.target_sha'));
   });
 
