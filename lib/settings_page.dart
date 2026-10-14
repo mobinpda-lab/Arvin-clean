@@ -7,6 +7,7 @@ import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
 import 'theme/app_fonts.dart';
 import 'task_taxonomy_management_page.dart';
+import 'person_directory_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -98,6 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _openCalendarIntegrationSettings() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => CalendarIntegrationSettingsPage(service: widget.service))); await _load(); }
   Future<void> _openProjectsManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const ProjectsLauncher())); }
   Future<void> _openTaxonomyManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const TaskTaxonomyManagementPage())); }
+  Future<void> _openPeopleManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const PersonDirectoryPage())); }
   Future<void> _showBackupHelp() => showContextualHelp(context, title: 'راهنمای پشتیبان‌گیری', steps: _backupHelpSteps);
   @override Widget build(BuildContext context) {
     final current = settings;
@@ -111,6 +113,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const Divider(height: 32), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: Text(current.fontFamily == 'system' ? 'فونت دستگاه' : 'VazirHarf'), trailing: const Icon(Icons.chevron_left), onTap: _showFontPicker),
       const SizedBox(height: 12), ListTile(contentPadding: EdgeInsets.zero, title: const Text('اندازه متن'), subtitle: Text(current.fontSize.toStringAsFixed(0)), leading: const Icon(Icons.format_size), trailing: SizedBox(width: 180, child: Slider(min: 12, max: 24, divisions: 12, value: current.fontSize.clamp(12, 24), label: current.fontSize.toStringAsFixed(0), onChanged: _setFontSize)),), const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
+      const Divider(height: 24), ListTile(key: const ValueKey('people-directory-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.people_outline), title: const Text('اشخاص'), subtitle: const Text('افزودن، ویرایش، جست‌وجو و حذف اشخاص مرتبط با پیگیری‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openPeopleManagement),
       const SizedBox(height: 20), const Text('تقویم و همگام‌سازی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
       const SizedBox(height: 20), const Divider(height: 32), const Text('یادآورها و اعلان‌ها', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       ListTile(key: const ValueKey('all-day-reminder-time-setting'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notifications_active_outlined), title: const Text('ساعت اعلان یادآورهای تمام‌روزه'), subtitle: Text('زمان فعلی: ${TimeOfDay(hour: current.allDayReminderNotificationMinutes ~/ 60, minute: current.allDayReminderNotificationMinutes % 60).format(context)}؛ پیش‌فرض ۹:۰۰ صبح'), trailing: const Icon(Icons.chevron_left), onTap: _setAllDayReminderNotificationTime),
