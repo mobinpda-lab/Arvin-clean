@@ -130,3 +130,10 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
 - Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
 - Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
+
+## 2026-10-15 — Authoritative reminder migration rule
+- Owner selected Option B. This supersedes older statements that legacy Task.reminderDate must never be automatically migrated.
+- Candidate migration occurs at canonical Task JSON decode and uses stable ID legacy-task-reminder, isLegacyTaskReminder metadata, and legacyTaskReminderMigrationVersion.
+- Preserve the legacy timestamp; midnight is not evidence of all-day intent. The migrated reminder keeps Calendar identity task-reminder:<taskId> and the existing scheduler key; the old field remains for compatibility but is not emitted/scheduled a second time after migration.
+- The owner reports that the current app DB is empty. Do not assume all backups, test fixtures or other installations are empty.
+- SQL, backup/restore, rollback/retry, Calendar no-duplicate, exact-head CI and physical-device acceptance remain required.
