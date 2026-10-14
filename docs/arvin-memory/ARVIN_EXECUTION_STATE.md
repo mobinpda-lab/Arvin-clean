@@ -1214,3 +1214,17 @@ Poll `38573235905` and `38573235964`; inspect/fix any remaining product-test fai
 
 ## Next action
 Poll runs `38579471120` and `38579471201` to terminal status. If green, perform deeper integration review of #2695's schema migration, backup rollback and report semantics, then resolve #2696 redundancy without losing unique coverage. If any job fails, classify as infrastructure/product/test/data-migration and fix the root cause without weakening tests.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Person CI terminal recheck
+
+## Evidence confirmed
+- Person PR #2695 remains OPEN and Draft at exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, base `integration/task-multiple-reminders-safe-20261013`. It has not been merged.
+- Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) is now terminal SUCCESS. Analyze, all six test shards, Debug APK, and Release APK all passed on that exact head.
+- Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) is still IN_PROGRESS at the latest check. Home, Quick Capture, SQL Persistence, and SQL Migration are SUCCESS; People and Backup/Restore remain IN_PROGRESS. Do not claim six-lane success until both remaining jobs and the run itself are terminal.
+- Current main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; no application PR was merged in this cycle.
+- #2695/#2696 still overlap in canonical Person persistence. Do not merge both. After #2695's smoke run completes, inspect schema migration and backup/restore integrity, then resolve #2696 as superseded or preserve only unique required coverage.
+- Release remains **NO-GO**: physical-device validation, final calendar acceptance, and complete frozen-SHA data-integrity gates are still outstanding.
+
+## Current bottleneck / next action
+Wait for Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) to reach terminal status. Investigate any failed lane using its logs and fix root cause without weakening tests. Then refresh the exact-head evidence after any further code change and update the evidence map.
