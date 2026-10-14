@@ -1,3 +1,19 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Device Smoke workflow scope repair and validator follow-up
+
+This checkpoint supersedes earlier status for PR #2704 where it conflicts. All CI evidence is commit-specific.
+
+- Repository: `mobinpda-lab/Arvin-clean`; current locked release candidate remains `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` and is validation-only, not release-approved.
+- PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704) proposes removing the Device Smoke pull_request base-branch filter and allowing Draft PRs to run. Initial workflow run [38557186362](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557186362) was queued and jobs began on commit `61d99682c9d7170a44480a3d6df8c36d5dd8b2cb`, showing the event scope now admits a Draft PR targeting main.
+- Initial contract run [38557186335](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557186335) FAILED because `tool/validate_fast_lane.py` still required the old main/master-only Device Smoke PR filter and the Draft-skip condition. Logs explicitly identify the stale required condition; this is a workflow-contract mismatch, not evidence of a product test failure.
+- Validator correction committed on PR #2704 as `e813aff970f41104ace64aca5a1488998af1ae87`: the contract now forbids the old branch filter and old Draft-skip condition and requires documentation of intended coverage.
+- At latest poll, no Actions run was visible for the new exact head `e813aff970f41104ace64aca5a1488998af1ae87`. Build [38557186430](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557186430) remained in progress and Device Smoke [38557186362](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557186362) remained queued on prior head `61d99682...`; neither can validate the newer commit.
+- Person PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) remains Draft/unmerged and non-mergeable. Latest exact-head query for its recorded head `3ddcc6dc551bb662c2d75b57a1d33fdfd537af99` returned zero workflow runs. Do not infer Person feature success from PR #2704 workflow changes.
+- Comments recording this failure and correction were added to PR #2704, PR #2695, and release lock Issue #2702 on 2026-10-14.
+- Current bottleneck: obtain terminal CI on exact PR #2704 head `e813aff...`, including contract, Build, and all six Device Smoke lanes; then establish valid exact-head evidence for Person PR #2695. The current GitHub connector has no workflow-dispatch action exposed; do not claim manual dispatch or successful validation without observed runs.
+- Release decision remains **NO-GO**. Real-device installation, Person settings/follow-up/report acceptance, Backup/Restore integrity, Calendar UX/no-duplicates, and final handover documentation remain outstanding.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
