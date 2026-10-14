@@ -270,3 +270,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** Recovery could fail to start a verifiable exact-target Build or incorrectly classify a run; multiple targets could cancel one another.
 - **Solution:** Run the workflow from the default branch, pass and assert the explicit target SHA in every quality/APK job, match runs by target-SHA run name, and isolate concurrency per target.
 - **Status:** Fix committed to PR #2699; exact-head CI pending and operational acceptance remains open until controlled dispatch evidence exists.
+
+
+## 2026-10-14 — Person delete confirmation test selector
+
+- **Problem:** Person directory widget test failed because `find.text('حذف شخص')` matched both the AlertDialog title and the confirmation button.
+- **Root cause:** identical localized copy is intentionally used in two widgets; the test finder was not scoped to the title's semantic container.
+- **Impact:** one test failed in shard 2; 243 tests in that shard passed. This did not establish a product deletion defect.
+- **Fix:** commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title assertion to the AlertDialog subtree. No tests were removed or weakened.
+- **Status:** code change committed; fresh Build `38579471120` and Device Smoke `38579471201` were still running/queued at the latest checkpoint. Mark resolved only after terminal exact-head CI confirms.
