@@ -1,3 +1,14 @@
+## AUTHORITATIVE UPDATE — 2026-10-14 — Exact-head CI false-positive
+
+- **Problem:** The recovery dispatcher could treat a normal PR-triggered Build as exact-head evidence when run metadata named the PR head, even though the Build checkout uses the synthetic merge SHA for `pull_request`.
+- **Classification:** CI orchestration / evidence identity.
+- **Root cause:** Metadata SHA was treated as checkout proof; those are not equivalent for normal pull-request runs.
+- **Fix:** PR #2699 commit `af3e3724ae08a956bb91fcbd82174ec23a2d2066` only accepts matching `workflow_dispatch` runs as exact-head evidence. Those Build jobs pin and assert the requested `target_sha`.
+- **Status:** FIX IMPLEMENTED; exact-head CI and end-to-end dispatcher validation pending. No release/merge claim until the final SHA passes required checks and the dispatcher is exercised.
+- **Remaining distinction:** This fixes the false-positive in recovery logic. It does not by itself prove why some earlier PR heads had no workflow runs, nor replace product acceptance or physical-device validation.
+
+---
+
 ## 2026-10-14 — Missing exact-head Build evidence
 
 - **Problem:** PR #2695 exact heads `6d01c603...` and `0432e3a...` returned no Actions runs; older failed/successful runs are not valid evidence for those heads.
