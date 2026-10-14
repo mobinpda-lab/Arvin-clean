@@ -1194,3 +1194,23 @@ Poll `38573235905` and `38573235964`; inspect/fix any remaining product-test fai
 - Device Smoke on the preceding SHA `a162941f...` completed all six lanes successfully (Home, Quick Capture, Backup/Restore, People, SQL Persistence, SQL Migration); this evidence does not transfer to the new SHA.
 - PR #2695 is still not to be merged: Person persistence overlaps PR #2696 and needs one canonical implementation; standalone Person backup/restore, Person report acceptance and physical-device validation remain open. Main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO**.
 - Next action: poll runs `38579471120` and `38579471201`; inspect any failures and fix root causes without weakening tests. Then reconcile #2695/#2696 storage overlap and rerun all acceptance gates on the resulting exact SHA.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Latest live checkpoint
+
+## Completed this cycle
+- Re-read this execution state before continuing; no project restart performed.
+- Re-polled exact-head runs for Person PR #2695 at SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46`.
+- Build run [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120): Analyze and test shards 0–5 are successful; Debug and Release APK jobs are still in progress at this checkpoint. Thus the corrected Person widget test is now green on the observed shard results, but the Build is not yet terminal.
+- Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Quick Capture passed; Home and SQL Persistence are in progress; Backup/Restore, People, SQL Migration remain queued. Do not claim six-lane success yet.
+- Inspected actual PR patches for #2695 and #2696. Both independently introduce `people_directory` schema and overlapping TaskStore APIs. #2695 is the broader integrated slice: adds Follow-up waiting/person IDs, safe detach on delete, directory UI, backup/restore and reporting work. #2696 is a smaller older-base persistence slice and does not include the complete feature path.
+- Posted anti-duplication comments to both PRs recommending not to merge both wholesale; leave #2696 open until #2695 validates, then close as superseded or extract only unique necessary tests after comparison. No PR was closed or merged.
+
+## Current bottleneck
+1. Exact-head Build and all six Device Smoke lanes for #2695 have not reached terminal success.
+2. PR #2695 remains Draft and must be reviewed for persistence/migration/backup integrity after CI.
+3. PR #2696 overlaps canonical persistence and should not be merged independently.
+4. Main remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO** until full frozen-SHA gates and physical-device evidence pass.
+
+## Next action
+Poll runs `38579471120` and `38579471201` to terminal status. If green, perform deeper integration review of #2695's schema migration, backup rollback and report semantics, then resolve #2696 redundancy without losing unique coverage. If any job fails, classify as infrastructure/product/test/data-migration and fix the root cause without weakening tests.
