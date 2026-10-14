@@ -76,11 +76,9 @@ class FollowUpReminderProjection {
             taskId: task.id,
             taskTitle: task.title,
             taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
-            label: reminder.isLegacyTaskReminder
-                ? 'یادآوری'
-                : reminder.title.trim().isEmpty
-                    ? 'یادآور ${reminder.sequence}'
-                    : reminder.title,
+            label: reminder.title.trim().isEmpty
+                ? 'یادآور ${reminder.sequence}'
+                : reminder.title,
             scheduledAt: scheduledAt,
           ),
         );
