@@ -1,3 +1,18 @@
+## 2026-10-14 — CI recovery dispatcher evidence
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Recovery dispatcher implementation | PR #2699; parent before memory checkpoint `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending validation | [PR #2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699) |
+| Arvin Build | Run [38514863822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863822), parent SHA `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending at last poll | Not terminal; does not validate the next commit |
+| Device Smoke | Run [38514863806](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863806), parent SHA `718e8cf730305e98aee3f9b12f4c239a80a06190` | Pending at last poll | Emulator/CI evidence only; not physical-device acceptance |
+| Person PR exact-head runs | `6d01c603...`, `0432e3a...` | No runs returned | Absence confirmed in Actions query; cause not proven |
+| Main Build / Device Smoke | `de795419be2c39775119af8eaa37c53744820d93` | Previously successful | Main-only evidence; not Person PR validation |
+| Release Closure / Final Head Validation | Runs [38512839311](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38512839311), [38512853231](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38512853231) | Skipped | Release remains NO-GO |
+
+**Evidence rule:** refresh all rows against the final integrated SHA. Pending, queued, skipped and older SHA results are not passes.
+
+---
+
 # LIVE EVIDENCE UPDATE — 2026-10-14 — Person integration repair
 
 - **Parent multiple-reminder integration:** PR #2666 head `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; Build [38507091410](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091410) SUCCESS, Device Smoke [38507091345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091345) SUCCESS across all six lanes, Calendar Provider Acceptance [38507091333](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091333) SUCCESS. CI/emulator evidence only; no physical-device acceptance.
@@ -360,3 +375,39 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Device Smoke:** [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) — SUCCESS. Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
 - These are exact-head automated/emulator results for the queried SHA only. They do not prove physical-device acceptance, provider same-event update/no-duplicate, actual OS notification behavior, or release approval.
 - The memory update itself creates a newer branch head; re-check exact-head Build and all six Device Smoke lanes before merge.
+
+
+## 2026-10-14 — Latest-head terminal CI evidence
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Arvin Build | `db60759072b53ef215f07ce28ef69803cdfe0c3b`; [run 38517351542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351542) | PASS | Analyze, six test shards, Debug APK, Release APK all successful; event was `pull_request`, so this is not dispatcher-path proof |
+| Device Smoke | same SHA; [run 38517351453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351453) | PASS | Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore all successful; CI/emulator evidence only, not physical-device validation |
+| Recovery dispatcher end-to-end | PR #2699 | BLOCKED / NOT YET PROVEN | Must observe a real `workflow_dispatch` on a controlled same-repository PR lacking exact-head evidence and verify requested SHA equals checked-out SHA |
+| Release acceptance | Current product | NO-GO | Physical-device validation and remaining product acceptance gates are still outstanding |
+
+
+## 2026-10-14 — Fresh autonomous live recheck
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Default branch snapshot | `main` — `de795419be2c39775119af8eaa37c53744820d93` | Observed | Live branch API; supersedes older main SHA for current-state decisions |
+| Recovery dispatcher Build | PR #2699 head `379f4e645662c5c0d911fe168d27aa44e69ba9ab`; [run 38519665323](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665323) | PASS | Analyze, six test shards and Debug/Release APK; event is ordinary PR CI, not workflow_dispatch proof |
+| Recovery dispatcher Device Smoke | Same PR head; [run 38519665528](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665528) | PASS | All six lanes: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore; emulator/CI evidence only |
+| Dispatcher operational acceptance | PR #2699 | NOT PROVEN | Workflow file absent on main; no controlled workflow_dispatch execution verified |
+| Person feature exact-head CI | PR #2695 head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / NO CHECKS | Live Actions and check-runs queries both returned zero; old SHA results do not validate this head |
+| Release closure | `de795419...`; runs [38521172475](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38521172475) and [38521176998](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38521176998) | SKIPPED | Skipped is not pass; issues #2102 and #1901 remain open |
+| Physical-device / integrated Person acceptance | Current product | OPEN | CI/emulator evidence does not replace real-device and data-integrity acceptance |
+
+**Decision:** keep PR #2695 Draft and both PRs unmerged; no release. Recheck all evidence against the final resulting SHA after any update.
+
+
+## 2026-10-14 — Recovery dispatch correctness fix (pending validation)
+
+| Feature / Gate | Change | Result | Evidence / limitation |
+|---|---|---|---|
+| Dispatcher workflow selection | Dispatch Build using the default branch workflow definition and pass the exact target SHA | IMPLEMENTED / CI PENDING | PR #2699; avoids relying on stale workflow inputs in the target PR branch |
+| Exact target evidence | Match default-branch workflow_dispatch run by target-SHA run name; Build jobs assert checked-out SHA | IMPLEMENTED / CI PENDING | Workflow code now distinguishes workflow-ref SHA from requested target SHA |
+| Recovery concurrency | Key Build concurrency by target SHA | IMPLEMENTED / CI PENDING | Prevents separate recovery targets on main from cancelling one another |
+| Operational dispatcher acceptance | Controlled dispatch with terminal successful Build and verified exact checkout | OPEN | Requires reviewed activation on default branch; not proven by ordinary PR CI |
+| Person feature validation | PR #2695 current head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / OPEN | Separate feature; recovery workflow changes do not validate it |

@@ -1,3 +1,30 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
+
+This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
+
+- **Root cause found in dispatcher logic:** ordinary `pull_request` Build runs were eligible to satisfy the “exact-head” check solely because GitHub run metadata matched the PR head SHA. However, the Build workflow checks out `github.sha` for a pull request, which is the synthetic PR merge ref; the metadata alone did not prove the PR head SHA itself was checked out.
+- **Correction committed:** [`af3e3724ae08a956bb91fcbd82174ec23a2d2066`](https://github.com/mobinpda-lab/Arvin-clean/commit/af3e3724ae08a956bb91fcbd82174ec23a2d2066) changes the dispatcher to count only `workflow_dispatch` runs whose run head SHA and run-name target SHA both match the current PR head. The dispatched Build independently asserts `git rev-parse HEAD == inputs.target_sha` in each quality and APK job.
+- **Expected effect:** a green synthetic-merge PR run or historical run can no longer suppress recovery of a missing exact-head Build.
+- **Validation:** the correction is implemented but not yet proven until Build and all six Device Smoke lanes complete on the final PR head and the dispatcher is observed operating in GitHub Actions.
+- **Current PR:** [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), open and unmerged. Do not merge or release based on implementation alone.
+- **Next action:** record this checkpoint, then inspect terminal exact-head Build and six-lane Device Smoke results for the final resulting SHA. After integration through an approved path, run the dispatcher against a controlled same-repository PR with no exact-head Build and verify its logs and resulting checkout SHA. Product release remains NO-GO pending all product and physical-device gates.
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — CI recovery work
+
+This addendum is the newest live checkpoint and supersedes conflicting older status lines below. It was prepared against parent commit `718e8cf730305e98aee3f9b12f4c239a80a06190`; the memory commit itself will create a new PR head, so all CI evidence must be refreshed for that resulting SHA.
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main` at `de795419be2c39775119af8eaa37c53744820d93`.
+- Current focus: PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), “ci: recover missing exact-head PR builds automatically”. The PR is open, targets main, and contains only CI workflow changes plus this memory checkpoint; no application code is changed.
+- Recovery design: scheduled/manual dispatcher checks open same-repository PR heads, asks Arvin Build to run when exact-head evidence is absent or stale, and never merges/releases. Build accepts optional `target_sha`, pins checkout to it for workflow_dispatch, records it in the run name, and asserts the checked-out revision in the quality matrix and both APK jobs. Dispatcher requires run head SHA and declared target SHA to agree, and uses the latest exact-head result rather than any historical green run.
+- Evidence immediately before this memory checkpoint: Arvin Build run [38514863822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863822) was pending and Device Smoke [38514863806](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38514863806) was pending for parent SHA `718e8cf730305e98aee3f9b12f4c239a80a06190`. These are not terminal results and do not validate the new memory commit.
+- Person PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) exact heads `6d01c603...` and `0432e3a...` returned zero Actions runs when queried. The underlying cause of the missing runs is **not yet proven**; do not assert a token-suppression or permissions cause without evidence.
+- Current bottleneck: validate the recovery PR on its final exact head, then after an approved merge exercise the dispatcher against a controlled PR with missing exact-head Build evidence. Compare requested SHA, run metadata, checkout assertion and terminal result. Do not infer success from workflow creation or queued status.
+- Next action: refresh PR #2699 head and terminal Build/Device Smoke checks; inspect any failures; only then consider merge. After merge, prove the dispatcher works in GitHub Actions. Keep product release NO-GO until the integrated app gates and physical/data-integrity acceptance are complete.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-14 (Person integration repair attempt)
 
 This entry supersedes earlier live-status claims where they conflict; older entries remain as history. Refresh exact-head CI before any merge/readiness decision.
@@ -942,3 +969,53 @@ This checkpoint supersedes earlier live status for PR #2665 where conflicting; p
 - **Safe next step:** inspect/reconcile PR #2655's 58-ahead/2-behind divergence against current main without blind merge/rebase. Its Task model, editor, Calendar inbound/outbound, backup and reminder scheduling changes overlap newer main and require path-by-path compatibility review.
 - Release remains **NO-GO** pending multi-reminder integration, provider CREATE→UPDATE/no-duplicate evidence, real-device notification and backup/restore validation, Persian RTL/compact UX acceptance, and owner approval.
 - This memory write creates a new PR head; re-query Build and all six Device Smoke lanes for that resulting exact head before any merge/readiness decision.
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (PR CI recovery dispatcher exact-head validation)
+
+This checkpoint supersedes earlier live status for PR #2699, while retaining older entries as history.
+
+- **Repository:** `mobinpda-lab/Arvin-clean`.
+- **PR:** [#2699 — ci: recover missing exact-head PR builds automatically](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), branch `fix/ci-exact-head-recovery-dispatcher-20261014`, target `main`. At this checkpoint it is OPEN, non-draft, unmerged; GitHub reports mergeable=true.
+- **Validated head before this memory-only update:** `b1e7b50c87ac21c7e50926cc88fb8db7ed551229`.
+- **Build:** [run #38515272044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38515272044) completed SUCCESS on that exact SHA; Analyze, test shards 0–5, Debug APK and Release APK passed.
+- **Device Smoke:** [run #38515272058](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38515272058) completed SUCCESS on that exact SHA. All six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, People, and Backup/Restore. The Backup/Restore lane completed successfully; no failure was observed.
+- **Evidence limitation:** these are GitHub CI/emulator results. They do not prove acceptance on a physical phone or external Calendar/notification providers.
+- **Dispatcher review:** the workflow scans open PRs, limits work to same-repository branches updated within 14 days, caps dispatches at three per run, avoids active/green/recent exact-head runs, passes `target_sha`, and logs requested SHA metadata. Permissions are `actions: write`, `pull-requests: read`, `contents: read`; it does not merge or release. PR review submissions and inline review threads were empty at this checkpoint.
+- **Current bottleneck:** operational acceptance is still incomplete. PR acceptance requires a dispatcher run to log decisions and dispatch Build for a controlled PR lacking exact-head evidence, then compare the resulting Build SHA with the current PR head. The available GitHub connector exposes no workflow-dispatch action, so that controlled run could not be triggered from this session. Do not claim this acceptance item passed.
+- **No merge or release:** remain NO-GO. Do not merge solely because the PR is mergeable or Build/Device Smoke are green. The dispatcher’s after-merge proof and broader product gates remain open.
+- **Recorded evidence:** the terminal CI checkpoint and gate status were posted to [PR #2699 comments](https://github.com/mobinpda-lab/Arvin-clean/pull/2699).
+- **Next action:** obtain a permitted manual/scheduled dispatcher run after this workflow is integrated through an independently justified review path, using a controlled same-repository PR with no exact-head Build evidence; verify logs, requested SHA, resulting run metadata, checked-out SHA and terminal result. Separately continue the existing product integration and physical-device/provider acceptance gates. This memory-only commit changes the PR head, so re-query Build and all six Device Smoke lanes for the new exact head before considering any further gate decision.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Latest-head CI terminal results
+
+- Latest PR head checked: `db60759072b53ef215f07ce28ef69803cdfe0c3b` on PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699); PR remains open and unmerged.
+- **Arvin Build passed:** [run 38517351542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351542), event `pull_request`, conclusion `success`. Analyze, all six test shards (`test-0` through `test-5`), Debug APK, and Release APK jobs all completed successfully.
+- **Device Smoke passed:** [run 38517351453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38517351453), event `pull_request`, conclusion `success`. All six lanes passed: Home, Quick Capture, SQL Migration, SQL Persistence, People, Backup/Restore.
+- These are terminal CI/emulator results for the listed PR head metadata. They do **not** prove physical-device acceptance, nor do they exercise the new dispatcher: both runs were triggered by `pull_request`, not `workflow_dispatch`.
+- **Completed:** current-head Build and six-lane smoke evidence collected; this closes the immediate CI pending item for this head.
+- **Still blocked:** end-to-end dispatcher validation remains outstanding. The connected GitHub toolset has no workflow-dispatch operation, and the dispatcher only becomes operational after integration on the default branch. Do not merge solely to test it without satisfying review and required gates.
+- **Current bottleneck:** prove dispatcher dispatches a controlled same-repository PR missing exact-head evidence, and confirm requested SHA = checked-out SHA = accepted run SHA. Physical-device and full product release gates also remain open.
+- **Next action:** safely establish a supported dispatch path and test the dispatcher after approved integration; separately complete remaining product acceptance and physical-device evidence. Release remains NO-GO.
+
+
+# AUTHORITATIVE LIVE RECHECK — 2026-10-14 — Autonomous continuation
+
+This addendum records the latest observed GitHub state and supersedes conflicting live-status claims above. Evidence is SHA-specific.
+
+- **Observed default branch:** `main` at `de795419be2c39775119af8eaa37c53744820d93`. This differs from the older main SHA recorded in prior checkpoints; use the live branch SHA for future promotion decisions.
+- **Recovery dispatcher PR #2699:** open, non-draft, unmerged, GitHub reports mergeable=true; head `379f4e645662c5c0d911fe168d27aa44e69ba9ab` before this memory update. Arvin Build [38519665323](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665323) SUCCESS and Device Smoke [38519665528](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38519665528) SUCCESS on that head; all six smoke lanes are terminal-success. This does not prove the workflow_dispatch recovery path works operationally. The dispatcher workflow file is absent from `main` at this recheck, and the available GitHub connector exposes no workflow-dispatch action. Do not merge solely to bypass this limitation; normal review and post-merge controlled acceptance remain required.
+- **Person PR #2695:** open, Draft, unmerged, mergeable=false; current head `6d01c603edf897f813ceb94d15bc7d36b5c058c2`, base branch `integration/task-multiple-reminders-safe-20261013` at `ad762774009e5b5c7ee341146a8160c52e2b9bb2`. The exact-head Actions run query and check-runs query both returned zero results. Do not treat runs on older SHAs or PR #2699 as evidence for Person code. The recorded repair checkpoint `0432e3a...` does not match the current live PR head; verify branch contents and obtain exact-head CI before changing or integrating code.
+- **Release blockers:** Issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) and [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) remain open. Recent Release Closure and Final Head Release Validation runs on `de795419...` were skipped, not passed. Physical-device acceptance, integrated Person backup/restore/report validation, and release-gate closure remain outstanding.
+- **Work performed in this continuation:** re-read execution state and evidence map, queried live default branch, both PRs, Actions runs/jobs, exact-head runs/checks, and release blockers. No application code changed; no tests were weakened; no merge or release performed.
+- **Current bottleneck:** no exact-head validation for Person PR #2695 and no operational proof of the recovery dispatcher.
+- **Next action:** record the live evidence in the evidence map; then poll CI for the new memory-update head of PR #2699. Continue to keep both PRs unmerged until their specific acceptance gates are satisfied. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Recovery dispatch correctness repair
+
+- **Newly identified implementation flaw:** dispatching Arvin Build on each target PR branch can select that branch's older `.github/workflows/build.yml`, which may not declare `target_sha` or include the exact-checkout assertion. Also, if recovery dispatches are moved to the default branch, the Build run's `head_sha` identifies the workflow ref, not the requested target commit; filtering by `run.head_sha === target_sha` would reject valid runs. Multiple recovery runs on `main` would also collide under the old shared concurrency group.
+- **Correction implemented on PR #2699 branch:** dispatcher now resolves the repository default branch and dispatches Build against that workflow ref while passing the exact target SHA; it finds target runs by the explicit run name and default-branch `workflow_dispatch` metadata. The Build workflow checks out `inputs.target_sha` and asserts the actual checkout in every quality and APK lane. Recovery concurrency is now keyed by target SHA to avoid cancelling other targets.
+- **Validation status:** implementation only; CI is being triggered by these commits and must finish on the final resulting head. Operational dispatcher acceptance remains unproven until the workflow is on default branch and a controlled dispatch completes with exact checkout assertions. Do not merge solely to bypass a gate.
+- **Person PR #2695:** still requires exact-head CI; the current live head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` previously returned zero runs/checks. No app code changed in this correction.
+- **Next action:** inspect the final PR #2699 head, wait for terminal Build and six-lane Device Smoke, then review job logs for YAML/runtime errors. Keep Person and release gates open until their own evidence is available.

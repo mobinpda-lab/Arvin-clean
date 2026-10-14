@@ -1,3 +1,23 @@
+## 2026-10-14 — Exact-head CI evidence must prove checkout
+
+- **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.
+- **Decision:** Only accept a recovery `workflow_dispatch` run as exact-head evidence when its run head SHA and declared target SHA both match the current PR head; the Build's quality and APK jobs must assert the actual checked-out SHA.
+- **Reason:** Run metadata, requested target and actual checkout are distinct evidence. All must align before declaring exact-head validation.
+- **Impact:** A green merge-ref run or historical run cannot mask missing validation of the exact PR head.
+- **Status:** Implemented in PR #2699 commit `af3e3724ae08a956bb91fcbd82174ec23a2d2066`; final-head CI and operational dispatcher acceptance pending.
+
+---
+
+## 2026-10-14 — Exact-head CI recovery dispatcher
+
+- **Problem:** Some current PR heads have no visible Arvin Build run/checks, so older green runs cannot validate current changes.
+- **Decision:** Add a scheduled/manual recovery dispatcher as a backstop, with explicit `target_sha` input, pinned checkout, run-name evidence and a checkout assertion in all Build lanes. The dispatcher must exclude forks, never merge/release, avoid duplicate active runs, rate-limit recent failures, and require the latest exact-head result.
+- **Reason:** A branch ref can move between discovery and dispatch. Branch-only dispatch is insufficient evidence that the intended SHA was tested.
+- **Impact:** Makes recovery possible without depending solely on the ordinary PR event, while preserving the product release gates.
+- **Status:** Implemented in PR #2699 but **not yet validated**. Missing CI on PR #2695 remains unexplained; this is mitigation, not proven root-cause closure.
+
+---
+
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
@@ -171,3 +191,11 @@
 - Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
 - Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
 - Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
+
+## 2026-10-14 — Run recovery from the default workflow definition
+
+- **Problem:** A recovery dispatch sent to a PR branch may use a stale `build.yml` without the `target_sha` input or checkout assertion. A dispatch sent to the default branch has `run.head_sha` for the workflow ref, not the target code SHA; treating those as identical is incorrect. Shared concurrency can also cancel separate recovery runs.
+- **Decision:** Dispatch `build.yml` on the repository default branch, pass the target commit as `target_sha`, pin checkout to that SHA, and assert `git rev-parse HEAD == target_sha` in every quality/APK lane. Identify a target run by its explicit target-SHA run name and successful asserted jobs; do not infer target identity from workflow-run `head_sha`. Use per-target concurrency.
+- **Reason:** The workflow definition/input schema must be dependable, and metadata SHA is not the same as the checked-out source SHA.
+- **Impact:** More reliable exact-head evidence and no cancellation between different targets.
+- **Status:** Implemented in PR #2699; exact-head CI and post-merge operational acceptance pending.

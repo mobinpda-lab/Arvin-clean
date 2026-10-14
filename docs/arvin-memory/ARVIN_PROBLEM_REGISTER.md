@@ -1,3 +1,26 @@
+## AUTHORITATIVE UPDATE — 2026-10-14 — Exact-head CI false-positive
+
+- **Problem:** The recovery dispatcher could treat a normal PR-triggered Build as exact-head evidence when run metadata named the PR head, even though the Build checkout uses the synthetic merge SHA for `pull_request`.
+- **Classification:** CI orchestration / evidence identity.
+- **Root cause:** Metadata SHA was treated as checkout proof; those are not equivalent for normal pull-request runs.
+- **Fix:** PR #2699 commit `af3e3724ae08a956bb91fcbd82174ec23a2d2066` only accepts matching `workflow_dispatch` runs as exact-head evidence. Those Build jobs pin and assert the requested `target_sha`.
+- **Status:** FIX IMPLEMENTED; exact-head CI and end-to-end dispatcher validation pending. No release/merge claim until the final SHA passes required checks and the dispatcher is exercised.
+- **Remaining distinction:** This fixes the false-positive in recovery logic. It does not by itself prove why some earlier PR heads had no workflow runs, nor replace product acceptance or physical-device validation.
+
+---
+
+## 2026-10-14 — Missing exact-head Build evidence
+
+- **Problem:** PR #2695 exact heads `6d01c603...` and `0432e3a...` returned no Actions runs; older failed/successful runs are not valid evidence for those heads.
+- **Classification:** Infrastructure / CI orchestration (root cause unconfirmed).
+- **Impact:** Cannot promote the Person integration; stacked branch and product acceptance remain blocked.
+- **Mitigation:** PR #2699 adds a scheduled/manual recovery dispatcher and SHA-pinned Build dispatch.
+- **Root cause:** Unknown. Do not infer token suppression or a permission fault without event-level evidence.
+- **Validation required:** Exact-head Build and Device Smoke on final PR #2699 head; after merge, run the dispatcher against a controlled missing-evidence PR and confirm requested SHA = checked-out SHA = accepted run SHA, with terminal checks.
+- **Status:** OPEN / UNDER VALIDATION. Release remains NO-GO.
+
+---
+
 # LIVE PROBLEM UPDATE — 2026-10-14 — Person integration CI failures
 
 - **Problem:** Person-linked Follow-up integration head `07c7f9005b7331f07468e20d13b3939c990bd9fd` failed all six test shards; Analyze and Debug/Release APK succeeded.
@@ -239,3 +262,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## 2026-10-14 — Recovery dispatcher workflow-ref mismatch
+
+- **Problem:** Dispatching to a target PR branch can run an older workflow definition without `target_sha` support; run metadata `head_sha` may identify the workflow ref rather than the checked-out target. A shared concurrency key can cancel simultaneous recovery builds.
+- **Root cause:** The dispatch ref, workflow definition version, requested target SHA, run metadata SHA, and actual checkout SHA were treated as if they necessarily matched.
+- **Impact:** Recovery could fail to start a verifiable exact-target Build or incorrectly classify a run; multiple targets could cancel one another.
+- **Solution:** Run the workflow from the default branch, pass and assert the explicit target SHA in every quality/APK job, match runs by target-SHA run name, and isolate concurrency per target.
+- **Status:** Fix committed to PR #2699; exact-head CI pending and operational acceptance remains open until controlled dispatch evidence exists.
