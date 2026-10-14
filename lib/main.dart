@@ -46,6 +46,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'follow_up_office_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -1485,12 +1486,34 @@ class _HomePageState extends State<HomePage> {
     return updated;
   }
 
-  Future<void> _openTaskDetail(Task task) async {
+  String _calendarItemLabel(CalendarReminder item) {
+    if (item.id.startsWith('followup:') ||
+        item.id.startsWith('task-followup:') ||
+        item.id.startsWith('task-followup-action:')) {
+      return 'پیگیری';
+    }
+    if (item.id.startsWith('task-reminder:') ||
+        item.id.startsWith('task-reminder-item:')) {
+      return 'یادآور';
+    }
+    if (item.id.startsWith('task-due:')) {
+      final occurrence = item.id.substring('task-due:'.length);
+      return occurrence.contains(':') ? 'کار تکرارشونده' : 'موعد کار';
+    }
+    if (item.id.startsWith('external-calendar:')) return 'رویداد تقویم گوشی';
+    return 'کار';
+  }
+
+  Future<void> _openTaskDetail(
+    Task task, {
+    String? calendarItemLabel,
+  }) async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
           task: task,
+          calendarItemLabel: calendarItemLabel,
           projectTitle: _projectTitleForTask(task),
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
@@ -2109,6 +2132,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
         reminder.id.startsWith('task-reminder:') ||
+        reminder.id.startsWith('task-reminder-item:') ||
         reminder.id.startsWith('task-followup:') ||
         reminder.id.startsWith('followup:');
     if (!isTaskCalendarItem) return;
@@ -2149,6 +2173,7 @@ class _HomePageState extends State<HomePage> {
     }
     if (task == null) {
       for (final prefix in const <String>[
+        'task-reminder-item:',
         'task-due:',
         'task-reminder:',
         'task-followup:',
@@ -2222,6 +2247,10 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onOpenTaskDetail: (task, item) => _openTaskDetail(
+            task,
+            calendarItemLabel: _calendarItemLabel(item),
+          ),
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),
@@ -2282,8 +2311,17 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
+              onRefreshTasks: _refreshCanonicalTasksForCalendar,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
+              onEditTask: (task) async { await _editFromDetail(task); },
+              onOpenTaskDetail: (task, item) => _openTaskDetail(
+                task,
+                calendarItemLabel: _calendarItemLabel(item),
+              ),
+              onDeleteTask: _trashTaskFromCalendar,
+              onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
+              onRetryCalendarSync: () => _retryCalendarSync(tasks),
             ),
           ),
         );
@@ -2361,7 +2399,7 @@ class _HomePageState extends State<HomePage> {
         _selectDueScope(TaskDueScope.today);
         return;
       case HomeTaskFilterKind.followUp:
-        _selectListScope(TaskListScope.followUpEnabled);
+        _selectListScope(TaskListScope.withFollowUps);
         return;
       case HomeTaskFilterKind.withoutFollowUp:
         _selectListScope(TaskListScope.simpleNotes);
@@ -2442,6 +2480,14 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
+                key: const ValueKey('home-more-waiting-responses'),
+                leading: const Icon(Icons.hourglass_top_outlined),
+                title: const Text('منتظر پاسخ دیگران'),
+                subtitle: const Text('فهرست کارهایی که پاسخ آن‌ها باقی مانده است'),
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_HomeMoreAction.waitingResponses),
+              ),
+              ListTile(
                 key: const ValueKey('home-more-next-action'),
                 leading: const Icon(Icons.next_plan_outlined),
                 title: const Text('اقدام بعدی'),
@@ -2504,6 +2550,13 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.waitingResponses:
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const FollowUpOfficePage(initialWaitingOnly: true),
+          ),
+        );
         return;
       case _HomeMoreAction.nextAction:
         await _openPrimaryNextAction();
@@ -2589,16 +2642,11 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const FollowUpOfficePage(),
+          ),
+        );
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2618,7 +2666,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
+      TaskSwipeAction.convertToFollowUp => 'افزودن پیگیری',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
@@ -2996,6 +3044,7 @@ enum _HomeMoreAction {
   backup,
   settings,
   nextAction,
+  waitingResponses,
   about,
 }
 

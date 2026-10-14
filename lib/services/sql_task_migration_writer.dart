@@ -92,7 +92,7 @@ class SqlTaskMigrationWriter {
         task.createdAt?.toIso8601String(),
         task.updatedAt?.toIso8601String(),
         task.dueDate?.toIso8601String(),
-        _bool(task.followUpEnabled),
+        _bool(task.followUps.isNotEmpty || task.followUpDate != null),
         task.followUpDate?.toIso8601String(),
         task.category,
         task.notebookKind?.name,

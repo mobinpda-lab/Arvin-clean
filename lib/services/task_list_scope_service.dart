@@ -1,6 +1,6 @@
 import '../models/task.dart';
 
-enum TaskListScope { all, simpleNotes, followUpEnabled }
+enum TaskListScope { all, simpleNotes, withFollowUps }
 
 /// Pure projection for the owner-approved non-date Home/list scopes.
 ///
@@ -17,14 +17,12 @@ class TaskListScopeService {
     return tasks.where((task) {
       if (task.archived || task.trashed) return false;
 
-      final hasFollowUp = task.followUpEnabled ||
-          task.followUpDate != null ||
-          task.followUps.isNotEmpty;
+      final hasFollowUp = task.followUpDate != null || task.followUps.isNotEmpty;
 
       return switch (scope) {
         TaskListScope.all => true,
         TaskListScope.simpleNotes => !hasFollowUp,
-        TaskListScope.followUpEnabled => hasFollowUp,
+        TaskListScope.withFollowUps => hasFollowUp,
       };
     }).toList(growable: false);
   }

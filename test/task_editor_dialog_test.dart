@@ -45,7 +45,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('full Task form keeps follow-up toggle without a timestamp editor',
+  testWidgets('full Task form exposes Follow-up records without a flag',
       (tester) async {
     final task = Task(
       id: '1',
@@ -59,9 +59,10 @@ void main() {
     await pumpEditor(tester, task: task);
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
-    expect(find.text('کار پیگیری‌دار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsOneWidget);
-    expect(find.text('زمان پیگیری'), findsNothing);
+    expect(find.text('پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-add-follow-up')), findsOneWidget);
+    expect(find.text('کار پیگیری‌دار'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
     expect(find.text('مشتری'), findsOneWidget);
@@ -72,54 +73,13 @@ void main() {
     expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
   });
 
-  testWidgets('enabling follow-up on a new Task does not invent a timestamp',
-      (tester) async {
-    Task? result;
-    await pumpEditor(tester, onResult: (value) => result = value);
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pumpAndSettle();
-
-    expect(result, isNotNull);
-    expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, isNull);
-  });
-
-  testWidgets('editing and saving preserves the exact existing follow-up time',
-      (tester) async {
-    Task? result;
-    final task = Task(
-      id: 'edit',
-      title: 'جلسه',
-      followUpEnabled: true,
-      followUpDate: DateTime(2026, 8, 27, 10, 30),
-    );
-
-    await pumpEditor(
-      tester,
-      task: task,
-      onResult: (value) => result = value,
-    );
-
-    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
-    await tester.pump();
-
-    expect(result, isNotNull);
-    expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
-  });
-
-  testWidgets('new ordinary task keeps follow-up controls hidden until enabled',
+  testWidgets('new Task does not enable Follow-up through a flag',
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
 
-    expect(find.text('کار پیگیری‌دار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
-    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
-
+    expect(find.byKey(const ValueKey('task-editor-add-follow-up')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsNothing);
     await tester.enterText(
       find.byKey(const ValueKey('task-editor-title')),
       'کار بدون پیگیری',
@@ -130,9 +90,10 @@ void main() {
     expect(result, isNotNull);
     expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
+    expect(result!.followUps, isEmpty);
   });
 
-  testWidgets('disabling future follow-up never erases existing history',
+  testWidgets('editing preserves legacy follow-up time and Follow-up history',
       (tester) async {
     Task? result;
     final history = [
@@ -163,23 +124,19 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.pump();
-    expect(find.text('سوابق پیگیری قبلی حفظ می‌شوند.'), findsOneWidget);
-
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
     expect(result!.id, 'history');
-    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpEnabled, isTrue);
     expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
     expect(result!.followUps, hasLength(2));
     expect(result!.followUps.last.note, 'تماس دوم');
     expect(result!.category, 'مشتریان');
     expect(result!.checklist, const ['[ ] ارسال قرارداد']);
   });
+
   testWidgets('Back-style close prompts and can save Task edits without data loss',
       (tester) async {
     Task? result;
@@ -228,9 +185,13 @@ void main() {
   testWidgets('new Task keeps checklist disabled until explicitly enabled', (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
-    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+    final checklistToggle = find.byKey(
+      const ValueKey('task-editor-checklist-toggle'),
+    );
+    expect(checklistToggle, findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.ensureVisible(checklistToggle);
+    await tester.tap(checklistToggle);
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
     await tester.enterText(find.byKey(const ValueKey('task-editor-checklist-input')), 'کیف');
@@ -249,6 +210,7 @@ void main() {
     final task = Task(id: 'checklist-toggle', title: 'آماده‌سازی', checklist: const ['[ ] کیف', '[ ] کتاب']);
     await pumpEditor(tester, task: task, onResult: (value) => disabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
@@ -261,6 +223,7 @@ void main() {
     Task? enabledResult;
     await pumpEditor(tester, task: disabledResult, onResult: (value) => enabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);

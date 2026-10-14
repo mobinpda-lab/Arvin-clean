@@ -6,7 +6,6 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
-import 'follow_up_entry_page.dart';
 import 'widgets/arvin_roll_box.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
@@ -62,9 +61,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
-  bool _followUpEnabled = false;
   bool _checklistEnabled = false;
-  final List<FollowUp> _pendingFollowUps = <FollowUp>[];
   final List<String> _checklistItems = <String>[];
   RecurrenceRule? _recurrence;
   final TextEditingController _recurrenceIntervalController =
@@ -144,8 +141,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    task.followUpEnabled = _followUpEnabled || _pendingFollowUps.isNotEmpty;
-    task.followUps = List<FollowUp>.of(_pendingFollowUps);
+    task.followUpEnabled = false;
+    task.followUps = <FollowUp>[];
     task.checklistEnabled = _checklistEnabled;
     task.checklist = List<String>.of(_checklistItems);
     final category = _categoryController.text.trim();
@@ -157,20 +154,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         .toSet();
     task.tags = {...task.tags, ..._selectedTags, ...manualTags}.toList(growable: false);
     return task;
-  }
-
-  Future<String?> _addFollowUpEntry() async {
-    final followUp = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(
-        builder: (_) => FollowUpEntryPage(initialDateTime: _now()),
-      ),
-    );
-    if (!mounted || followUp == null) return null;
-    setState(() {
-      _pendingFollowUps.add(followUp);
-      _followUpEnabled = true;
-    });
-    return followUp.note;
   }
 
   Future<String?> _addChecklistItem() async {
@@ -848,18 +831,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                     runSpacing: 4,
                     children: [
                       FilterChip(
-                        key: const ValueKey('quick-capture-follow-up-enabled'),
-                        selected: _followUpEnabled,
-                        avatar: const Icon(Icons.follow_the_signs_outlined, size: 18),
-                        label: const Text('دارای پیگیری'),
-                        onSelected: _saving
-                            ? null
-                            : (value) => setState(() {
-                                  _followUpEnabled =
-                                      value || _pendingFollowUps.isNotEmpty;
-                                }),
-                      ),
-                      FilterChip(
                         key: const ValueKey('quick-capture-checklist-enabled'),
                         selected: _checklistEnabled,
                         avatar: const Icon(Icons.checklist_outlined, size: 18),
@@ -870,34 +841,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
                       ),
                     ],
                   ),
-                  if (_followUpEnabled) ...[
-                    const SizedBox(height: 8),
-                    ArvinRollBox<String>(
-                      key: const ValueKey('quick-capture-follow-up-rollbox'),
-                      label: 'پیگیری',
-                      valueLabel: _pendingFollowUps.isEmpty
-                          ? 'افزودن پیگیری'
-                          : '${_pendingFollowUps.length} پیگیری ثبت‌شده',
-                      icon: Icons.follow_the_signs_outlined,
-                      color: const Color(0xFF7650C8),
-                      emptyLabel: 'هنوز پیگیری ثبت نشده',
-                      items: _pendingFollowUps
-                          .map((followUp) {
-                            final label = followUp.note.trim().isEmpty
-                                ? 'پیگیری'
-                                : followUp.note.trim();
-                            return ArvinRollItem<String>(
-                              value: label,
-                              label: label,
-                              icon: Icons.follow_the_signs_outlined,
-                            );
-                          })
-                          .toList(growable: false),
-                      createLabel: 'ثبت جزئیات پیگیری',
-                      onCreate: _saving ? null : _addFollowUpEntry,
-                      onSelected: (_) {},
-                    ),
-                  ],
                   if (_checklistEnabled) ...[
                     const SizedBox(height: 8),
                     ArvinRollBox<String>(

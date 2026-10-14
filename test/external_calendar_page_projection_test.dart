@@ -53,12 +53,17 @@ void main() {
     expect(bridge.queriedCalendarIds, ['calendar-7']);
     expect(bridge.requestedPermission, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
+    final openExternalAction = find.byKey(const ValueKey('calendar-action-open-external-calendar:calendar-7:instance-1'));
+    await tester.ensureVisible(openExternalAction);
+    await tester.pumpAndSettle();
+    await tester.tap(openExternalAction);
     await tester.pump();
     expect(opened, isTrue);
-    expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
+    // Imported device-calendar entries open through their source-specific action;
+    // they must not expose Arvin Task-edit actions.
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
   });
 
   testWidgets('permission denial fails closed and keeps calendar usable', (tester) async {

@@ -1,3 +1,107 @@
+## LIVE EVIDENCE UPDATE — 2026-10-13 (prayer action test repair)
+
+- **Prior failing evidence:** [Build run 38447438069](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38447438069), job `quality (test-2)`, failed in `test/official_calendar_prayer_actions_test.dart` at the post-selection assertion for `ادا شد`. The action sheet closes after selection; CI log showed the finder returned zero widgets.
+- **Repair:** commit `b38d4e630f01a72beee2b2d35bf24f2ee744c3de` changes only the test interaction/assertion flow.
+- **Evidence status:** implementation commit exists, but no successful exact-head run is yet recorded for this repair. Do not infer green CI from earlier SHA runs.
+- **Release gate:** NO-GO pending exact-head Build, Calendar Provider Acceptance, all six Device Smoke lanes and physical-device acceptance.
+
+---
+
+# EVIDENCE IDENTIFIER CONVENTION — 2026-10-13
+
+For every row below, distinguish the manifest app version (`1.0.1+2` at the current inspected branch), full source commit SHA, PR number, workflow run ID, and job ID. A run or job ID is not an app version; a commit SHA is a source revision, not a release number. Attach evidence to the exact SHA actually tested. If an entry omits the exact SHA or uses a stale head reference, treat it as historical context rather than current release proof. No approved release tag is established by this file's latest checkpoint.
+
+---
+
+## 2026-10-13 — Follow-up simplification evidence (pending exact-head CI)
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Waiting list is directly discoverable | `lib/main.dart`: Home More item `home-more-waiting-responses`; `lib/follow_up_office_page.dart`: `initialWaitingOnly` and «منتظر پاسخ دیگران» title | Route implemented | Home navigation/widget test and exact-head CI still required |
+| Waiting list uses latest active state | `FollowUpOfficePage._waitingRows`; `test/follow_up_office_page_test.dart` new regression | Code/test added for latest waiting vs resolved, completed, archived | Test result not yet confirmed |
+| Quick Entry has no Follow-up flag | `lib/quick_capture_dialog.dart`; `test/quick_capture_dialog_test.dart` | Flag removed; checklist retained | Exact-head test result pending |
+| Full editor adds actual Follow-up records | `lib/task_editor_dialog.dart`; `TaskEditApplyService` merge-by-ID | Add UI and merge path implemented | Add-flow/persistence widget test and CI still required |
+| Flag no longer controls list/detail state | `task_list_scope_service.dart`, `home_list_projection.dart`, `task_detail_page.dart`; updated projection tests | Decisions derive from real Follow-up data/legacy date | Exact-head test result pending |
+
+---
+
+## 2026-10-13 — Follow-up analyzer repair
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Projection constructors compile | `lib/services/follow_up_reminder_projection.dart`, commit `a8263d5119c16c69db7fd282d53820504650b57e` | Missing nullable identity initializers repaired | Later Analyze exposed two strict lint blockers |
+| Strict analyzer findings addressed | `lib/models/task.dart`, commit `9d91bb309c3f7df86b70e4a25ca29d4e1a0082ad`; `lib/task_editor_dialog.dart`, commit `159f9c3bcb2d74ad06e8e7681251d5d49cab57e` | Both analyzer lint findings repaired in source | Exact-final-head Analyze/test/build results pending |
+
+---
+
+## 2026-10-13 — Configurable all-day notification time and compile repair
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| All-day reminders default to 09:00 and allow user override | `AppSettings.allDayReminderNotificationMinutes`, `SettingsPage`, `AppSettingsService`, `test/services/app_settings_service_test.dart` | Setting, persistence, picker and portable backup/restore tests are present | Must pass on exact fixed head |
+| Runtime uses saved preference | `FollowUpReminderAlarmPlanner`, `FollowUpReminderDeliveryService`, `AndroidFollowUpReminderScheduler`, background runner | Preference is passed into planning and background delivery; setting change requests reschedule | Android runtime behavior still needs acceptance |
+| Compiler blocker | Analyze log from run 38399972134 / job 115305143276; build run 38399972134 / job 115305142658 | Identified uninitialized `taskReminderId` in two projection constructors; fixed in commit `a8263d5119c16c69db7fd282d53820504650b57e` | New exact-head CI results pending |
+| Release readiness | Build run 38399972134; Calendar Provider run 38399972069; Device Smoke run 38399972061 | Failed before fix; these runs do not validate the repair | Must rerun on final head; physical-device evidence remains open |
+
+---
+
+## 2026-10-13 — Fast Lane Draft validation contract
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Draft PRs skip heavy Device Smoke by design | `.github/workflows/device-smoke.yml`; `tool/validate_fast_lane.py` | Guard preserved after the validator rejected removing it; ready-for-review triggers the full validation path | Exact-head Build and all six smoke lanes still required |
+
+---
+
+## 2026-10-13 — Configurable all-day notification time
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Default 09:00 and user override | `AppSettings.allDayReminderNotificationMinutes`; `SettingsPage`; `AppSettingsService` | Default, persistence and settings control implemented; tests added | Exact-head tests not yet green |
+| Configured time affects runtime | `FollowUpReminderProjection`, `FollowUpReminderDeliveryService`, `FollowUpReminderAlarmPlanner`, Android scheduler and background runner | Setting passed to both alarm planning and background delivery; settings change requests reschedule | Must verify exact-head CI and Android runtime |
+| Backup compatibility | `AppSettingsService.toPortableJson/decodePortableJson` | Preference is portable; absent old key defaults to 09:00; invalid minutes rejected | Backup/restore acceptance pending |
+
+---
+
+## 2026-10-13 — Multiple Task reminders, Calendar and notifications
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Stable IDs for Task reminders | `lib/services/follow_up_calendar_projection.dart` | Migrated legacy item maps to `task-reminder:<taskId>`; new items map to `task-reminder-item:<taskId>:<reminderId>` | Exact-head Build still pending |
+| Inbound edit/delete isolation | `lib/services/calendar_inbound_sync_service.dart`; `test/services/calendar_inbound_sync_service_test.dart` | Added cases for new reminder edit/delete and migrated legacy edit/delete; neighboring reminder and Task title must remain intact | Tests not yet confirmed green |
+| Outbound eligibility | `lib/services/calendar_outbound_sync_service.dart`; outbound test | New TaskReminder IDs use existing `syncTaskReminders` setting | Provider acceptance still pending |
+| Notification identities | `follow_up_reminder_projection.dart`, delivery service, alarm planner, delivery state and their tests | New reminders have separate keys; migrated item retains legacy delivery key; deletion reconciliation removes only its key | 09:00 is the default; user-configurable time awaits exact-head validation |
+| SQL envelope deletion safety | `lib/services/task_store.dart`; `test/people_task_persistence_test.dart` | Empty collection, counter and migration tombstone are serialized/recognized so stale payload cannot restore removed reminders | Exact-head SQL test result pending |
+| Backup/restore | `test/canonical_backup_manager_test.dart`, `test/people_task_persistence_test.dart` | Coverage added for multiple reminders, all-day marker, sequence, legacy reminder and FollowUp field independence | Test/build results pending |
+| UI CRUD | `lib/task_editor_dialog.dart`; `test/task_editor_full_entry_test.dart` | Add/edit/delete controls and migrated-reminder deletion case added | RTL visual/physical-device validation pending |
+| Exact-head CI | PR #2666 Actions | Build and Calendar Provider Acceptance queued/pending on latest observed code checkpoint; Device Smoke skipped | Re-poll exact final head; do not claim pass |
+
+---
+## 2026-10-13 — TaskReminder model and legacy decoder evidence
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| New canonical reminder fields exist | `lib/models/task.dart` on PR #2666 | `id/taskId/title/date/status/createdAt/updatedAt/isAllDay/sequence` are serialized in Task JSON | Exact-head Build pending; not yet accepted |
+| Legacy Task reminder decoder is idempotent | `Task.fromJson` deterministic ID `legacy-task-reminder:<taskId>` plus `legacyReminderMigrationCompleted` | Existing migrated ID is not added twice; tombstone prevents re-creation after deletion | Calendar projection must consume the marker to prevent duplicate legacy/new identity |
+| Midnight does not imply all-day | Legacy migration sets `isAllDay=false` explicitly | No inference from midnight | Date-only acceptance still needs editor/projection tests |
+| Follow-up independence | Existing `FollowUp.fromJson` remains unchanged; test asserts nextFollowUp alone does not synthesize a Task reminder | Independent fields preserved in this slice | Broader notification/calendar tests pending |
+| Model regression tests | `test/follow_up_reminder_model_test.dart` on PR #2666 | Added tests for deterministic migration, sequence allocation, tombstone, and nextFollowUp independence | Tests not yet confirmed green on exact head |
+
+---
+# EVIDENCE UPDATE — 2026-10-13 (approved migration contract reconciliation)
+
+| Item | Result | Limitation |
+|---|---|---|
+| Owner's current database | Owner reports raw/empty; no information entered | User-reported; not independent evidence for every backup/device |
+| Owner-approved reminder architecture | Approved decision document exists | Implementation and validation remain pending |
+| Migration contract consistency | FAIL / mismatch found | PR #2655 and lower-level design retain legacy reminder separately; approved decision requires idempotent migration |
+| Safe integration branch vs main | 11 ahead, 0 behind at last compare | Subsequent documentation commits create a new head; re-compare before code work |
+| Docs-only CI at prior head `4e83cdc9133a94a37cc1aa40eb28e7b887505754` | Analyze PASS; test shards and Debug/Release APK IN PROGRESS at last poll; Device Smoke SKIPPED | Does not validate feature code or current post-update head |
+| Application code changed in this checkpoint | NONE | Documentation-only commits |
+| Release | NO-GO | Exact-head feature CI and physical-device acceptance remain required |
+
+---
+
 # LIVE EVIDENCE OVERRIDE — 2026-10-12
 
 - **PR #2619 current exact head** `387694b5d5b29ca5fb72fedead56ed91368ca460`: Build [38213691941](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691941) completed PASS: Analyze, test shards 0–5, Debug APK and Release APK. Device Smoke [38213691798](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38213691798) completed PASS: Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore on Android Emulator. Automated exact-head gates are green. Remaining: path-by-path deletion/content migration review and physical-device acceptance; do not equate emulator smoke with real-phone proof.
@@ -350,3 +454,185 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Device Smoke:** [38370894181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38370894181) — SUCCESS. Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore, People.
 - These are exact-head automated/emulator results for the queried SHA only. They do not prove physical-device acceptance, provider same-event update/no-duplicate, actual OS notification behavior, or release approval.
 - The memory update itself creates a newer branch head; re-check exact-head Build and all six Device Smoke lanes before merge.
+
+
+## 2026-10-13 — Multiple-reminder safe-integration evidence
+- **Architecture decision document:** `docs/arvin-memory/ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, integration branch `integration/task-multiple-reminders-safe-20261013`; commit `33ddb0f9467fd9a2d832c2e485eedf449da8eba3`.
+- **Execution memory checkpoint:** `ARVIN_EXECUTION_STATE.md` updated on the integration branch; commit `a340845bc3651e6d0e65a3b64cf3f2e4627429fa`.
+- **Branch comparison:** integration branch was checked against main `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`; it is 2 commits ahead, 0 behind, and currently contains documentation-only changes.
+- **Implementation/test evidence:** NONE YET for multiple-reminder code on this branch. No migration, tests, builds, Calendar provider acceptance, or physical-device test have been run on this branch. Do not confuse earlier CI results from other PR heads with evidence for this branch.
+- **Release gate:** NO-GO.
+# EVIDENCE UPDATE — 2026-10-13 (empty current owner database)
+
+| Evidence | Result | Scope / limitation |
+|---|---|---|
+| Owner statement in execution conversation | No information has been entered; database is raw/empty | Owner-reported current state; not an independent inspection of every installed DB or backup |
+| Current owner-entered-data loss risk | No current owner-entered records identified by owner | Do not claim existing user records are at risk; still inspect destructive operations |
+| Legacy Task reminder migration/model contract | OPEN | Compatibility blocker remains; empty database does not prove legacy JSON/backups never exist |
+| Application code changed in this checkpoint | NONE | Documentation-only update |
+| Exact-head CI / device acceptance | NOT ESTABLISHED by this documentation update | Must be collected on the final code SHA; physical-device acceptance remains separate |
+| Release | NO-GO | No change to release gate |
+
+
+## 2026-10-13 — Calendar Tap / Long Press evidence (pending)
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Short tap opens canonical Task Detail | lib/calendar_page.dart; lib/widgets/canonical_calendar_launcher.dart; lib/main.dart; lib/task_detail_page.dart | Implemented in source | Exact-head widget/route tests pending |
+| Management actions only appear on item long press | lib/calendar_page.dart; test/calendar_runtime_actions_fast_track_test.dart | Implemented in source; tests updated | CI not yet terminal; no screenshot evidence |
+| Task due, Reminder and Follow-up types are distinguishable | _calendarItemVisualKind and _calendarItemLabel; widget test for distinct labels | Implemented in source; test added | Must validate selected type on actual Task Detail route |
+| Task deletion requires explicit confirmation | _confirmDeleteTask in lib/calendar_page.dart; widget test | Implemented in source; test added | Test result pending |
+| Existing Task and external Calendar identity remain stable | canonical launcher ID resolution and existing Calendar sync path | Intended; not yet accepted | Needs end-to-end regression and Calendar Provider acceptance |
+| Small screen, RTL, day/week/month and physical device | No new screenshot or device evidence yet | NOT VERIFIED | Capture genuine evidence after tests pass |
+
+
+| Claim | Evidence | Result | Limit |
+|---|---|---|---|
+| Reminder long press cannot delete the parent Task | lib/calendar_page.dart and test/calendar_runtime_actions_fast_track_test.dart | Guard and regression test added | Latest test run pending; no pass claim |
+| Both Calendar entry points preserve the same management callbacks | lib/main.dart | Implemented in source | Exact-head route/UI validation pending |
+| Internal Follow-up Action opens its Task without becoming a Reminder | lib/calendar_page.dart; lib/widgets/canonical_calendar_launcher.dart; existing projection-separation decision | Implemented in source | End-to-end acceptance and device evidence pending |
+
+
+---
+
+## 2026-10-13 — Exact-head CI failure poll (source SHA `445d2897eaeb5c12695716284c999f9cad9bd918`)
+
+| Claim / gate | Evidence | Result | Limit |
+|---|---|---|---|
+| Analyzer | [Arvin Build run 38438327785](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438327785), job `115438734856` | Passed | Exact source SHA `445d2897eaeb5c12695716284c999f9cad9bd918` only |
+| Test-0 | Same Build run, job `115438734778` | Passed | Other test shards failed or remained pending |
+| Test-1 external calendar projection | Same Build run, job `115438734860`; log reports missing key `external-calendar-edit-external-calendar:calendar-7:instance-1` at `test/external_calendar_page_projection_test.dart:58` | Failed | Root cause unconfirmed |
+| Test-2 checklist/calendar/prayer/settings | Same Build run, job `115438734884`; failures at `task_editor_dialog_test.dart`, `calendar_release_acceptance_test.dart:170`, `official_calendar_prayer_actions_test.dart:43`, `settings_page_test.dart:41` | Failed | Checklist exact assertion still needs full inspection; missing widget/text could be product behavior or test setup; do not weaken assertions |
+| Test-3 waiting Follow-up filter | Same Build run, job `115438734555`; `follow_up_office_page_test.dart:303` expects two labels but finds one | Failed | Root cause unconfirmed |
+| Test-4 / Test-5 and Debug / Release APK | Same Build run; jobs `115438734681`, `115438734572`, `115438734664`, `115438734253` | In progress at latest poll | Not a pass until completed |
+| Calendar Provider Acceptance | [Run 38438327929](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438327929), job `115438056261` | In progress | Not validated yet |
+| Device Smoke | [Run 38438328062](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38438328062) | Workflow queued at latest workflow-level poll; Home/Quick Capture jobs running, remaining lanes queued | Backup/Restore, SQL Migration, SQL Persistence and physical-device acceptance remain open |
+| Release | PR #2666 remains open and unmerged | **NO-GO** | This evidence belongs to source SHA `445d2897eaeb5c12695716284c999f9cad9bd918`; memory-only commit `1a04ae7fb7b670dcab59127686403b99e5d382ee` changes HEAD and is not validated by those runs |
+
+
+## 2026-10-13 — Calendar widget-test contract corrections (pending exact-head validation)
+
+| Claim / correction | Evidence | Result | Limit |
+|---|---|---|---|
+| External Calendar edit action is exposed through long-press menu | `lib/calendar_page.dart`; `test/external_calendar_page_projection_test.dart`; commits `1cac02e6`, `cc670e08` | Test interaction and key now align with source | No test pass claim; exact-head CI pending |
+| Follow-up completion action uses the current action-menu key | `lib/calendar_page.dart`; `test/calendar_release_acceptance_test.dart`; commits `c30a959a`, `e55c02c8` | Test now long-presses the card and looks up `calendar-action-complete-...` | Exact-head test result pending |
+| Prayer actions are in the long-press menu and selected by visible labels | `lib/calendar_page.dart`; `test/official_calendar_prayer_actions_test.dart`; commits `8c31f2e3`, `e0bbf626` | Test uses long press and taps `ادا شد` / `قضا شد` | Exact-head test result pending |
+| Checklist toggle tests interact with visible controls | `test/task_editor_dialog_test.dart`; commits `1c3bfc3c`, `77aa2894` | ensureVisible added for disable and re-enable | Test result pending |
+| Follow-up record list assertions account for lazy list viewport | `lib/follow_up_office_page.dart`; `test/follow_up_office_page_test.dart`; commit `713eaf24` | Test viewport height increased for the specific record-list test | Exact-head result pending; does not establish a production fix |
+| Settings test scrolls to the lazy-built all-day reminder setting | `lib/settings_page.dart`; `test/settings_page_test.dart`; commit `c6828c21` | ensureVisible added before asserting/tapping the setting and before later offscreen controls | Exact-head result pending |
+| Latest test-change head `e0bbf62610502498a58953c5c72f1b1349f68733` | Build run [38439948609](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948609); Calendar Provider Acceptance [38439948778](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948778); Device Smoke [38439948699](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38439948699) | Build and Device Smoke pending/no jobs at poll; Calendar Provider job `115443616711` in progress | Later memory commit advances HEAD; these runs do not validate that newer SHA |
+| Release gate | PR #2666 open/unmerged; no physical-device evidence recorded | **NO-GO** | Requires all gates on one exact final SHA plus device evidence |
+
+
+## 2026-10-13 — Widget-test corrections and exact-head evidence boundary
+
+| Item | Evidence | Result | Limit |
+|---|---|---|---|
+| Prior Build / merge SHA | [Run 38440096707](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096707), merge SHA `6ce2657dd090a9a3501add68838a24b86031b65c`, source head `a72eb359ee099f3e6587d26a103bd96342aac216` | Analyze and test-0/test-3 passed; test-1 and test-2 failed | test-4/test-5 and Debug/Release APK cancelled; cannot count as passing |
+| External Calendar test | Job `115444792411` | One failure: test expected an edit key but source only supplies an open action when edit callback is null | Corrected in commit `140d47f5f36e519e9ec3a5345bacbbbf6407176d`; pending rerun |
+| Calendar completion test | Job `115444792336` | Action existed but tap was outside hit-testable viewport | Visibility correction commit `849530cfa014a9d2ff7a5c1cb80f0eae76154d7e`; pending rerun |
+| Prayer action test | Job `115444792336` | Expected action text not found after long press | Added ensure-visible before long press in commit `17296f0ef5f38da320d0ac7fd13b7648370841d8`; pending rerun |
+| Settings test | Job `115444792336` | `ensureVisible` threw `Bad state: No element` for a lazily built control | Replaced with `scrollUntilVisible` in commit `ad9c444826b4c6b91b16f413f313269fc4fca44b`; pending rerun |
+| Checklist test | Job `115444792336` | Checklist block missing after enable; root cause unresolved | No fix yet; inspect product toggle and test state |
+| Calendar Provider Acceptance | [Run 38440096704](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096704), job `115444126573` | Passed on prior merge SHA | Does not validate newer test-fix commits |
+| Device Smoke | [Run 38440096441](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38440096441) | Home and Quick Capture passed; SQL Persistence, Backup/Restore, People, SQL Migration cancelled | Remaining lanes require new exact-head run |
+| P1 backup/restore data integrity | [Issue #2682](https://github.com/mobinPda-lab/Arvin-clean/issues/2682) | Open: standalone People directory missing from canonical backup/restore contract | Needs implementation and round-trip, compatibility, validation and rollback evidence |
+| Release | PR #2666 open/unmerged | **NO-GO** | No physical-device evidence; all gates must pass on one exact final SHA |
+
+Source branch commits after the prior run: `140d47f5`, `849530cf`, `17296f0e`, `ad9c4448`. The execution-state documentation update is commit `ad0ceee1ad16254e94faed734dd3e50c3091ee79`; none of these newer source/documentation revisions inherits the prior run's validation.
+
+
+
+## 2026-10-13 — Live status registration: settings test failure on SHA `066c87ec90625b8fe894df45d0a82227802ff65f`
+
+| Gate / claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Analyze | [Build run 38448584824](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584824) — job `115473670764` | Success | Exact SHA only; overall Build not terminal |
+| Test shards 0, 1, 3 | Same run; jobs `115473670681`, `115473670840`, `115473670750` | Success | Does not compensate for failed shard or pending shards |
+| Settings widget test | Same run; job `115473670604`; `test/settings_page_test.dart:58` | **Failure:** `scrollUntilVisible(find.text('تیره'))` throws `Bad state: No element` | Root cause not yet established; inspect page/scroll state after time-picker dismissal |
+| Test shards 4, 5 and Debug/Release APK | Same run; jobs `115473670612`, `115473670722`, `115473670502`, `115473670312` | In progress at poll | Not accepted as pass |
+| Device Smoke | [Run 38448584991](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584991) | Quick Capture passed; Home and SQL Persistence running; remaining lanes queued | Not terminal; all six lanes and physical-device evidence required |
+| Calendar Provider Acceptance | [Run 38448584862](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584862), job `115473351376` | In progress | Not accepted as pass |
+| Build artifacts | Artifacts endpoint checked for run `38448584824` | No artifacts listed | Recheck after build completion |
+| Release | [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | Open/unmerged; **NO-GO** | All required gates must pass on the same final SHA; physical-device acceptance outstanding |
+
+This entry records status only; no source/test change is claimed by this checkpoint.
+
+
+## 2026-10-13 — Evidence update: Calendar contract test repair wave
+
+| Feature / area | Revision / run | Result | Evidence / limitation |
+|---|---|---|---|
+| TaskReminder parent-delete safety assertion | `db7aa987b33efec28a4d4eb38cb395df75a4608f` | Test expectation corrected; validation pending | PR #2666; reminder rows must not delete parent Task |
+| Calendar action keys/gesture, legacy reminder fingerprint fixtures, Notebook test storage | `d0d84ca747f29e7c7106fb599fef42320a64c292` | Test corrections committed; validation pending | Long press opens action sheet; legacy title remains `یادآوری: <Task title>`; injected SQL store used consistently |
+| RTL swipe-to-Follow-up behavior | `0b905e5844dbbc871998ef3be0d823f320a87641` | Test corrected; validation pending | Verifies route to Follow-up Office and no Task mutation/copy |
+| Build / Analyze / tests | Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958) | In progress at checkpoint | Exact head `0b905e5844dbbc871998ef3be0d823f320a87641`; predecessor debug build failed due NDK ZIP download/unzip error before source compilation |
+| Calendar Provider Acceptance | Run [38460834101](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834101) | In progress at checkpoint | Exact head `0b905e5844dbbc871998ef3be0d823f320a87641` |
+| Device Smoke | Run [38460834302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834302) | Queued/running at checkpoint | Six lanes required; no physical-device acceptance claimed |
+| Person-directory backup/restore | Issue [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682), child PR #2681 | Blocked / open | Child-only schema and TaskStore APIs not present on parent; branches diverge materially; safe reconciliation required |
+
+**Release decision: NO-GO.** No test/build/Calendar/Device pass is inferred from a queued or in-progress run.
+
+## 2026-10-13 — Evidence update: RTL test analyzer repair
+
+| Area | Source SHA / job | Result | Evidence / limitation |
+|---|---|---|---|
+| RTL Follow-up swipe tests | `0b905e5844dbbc871998ef3be0d823f320a87641`; Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Analyze job `115515636587` | Failed | Extra trailing brace at `test/g6_swipe_rtl_acceptance_test.dart:228:1`; fixed in the following commit, requires rerun |
+| Build / Calendar / Device gates | New repaired head | Pending | Must rerun all exact-head gates; prior statuses are not inherited |
+| Person-directory backup/restore | Issue #2682 / PR #2681 | Blocked | Missing parent-branch schema/APIs and substantial branch divergence; safe reconciliation required |
+
+**Release decision: NO-GO.**
+
+
+## 2026-10-14 — Calendar test repair wave (validation pending)
+
+| Claim | Evidence | Result | Limitation |
+|---|---|---|---|
+| Legacy provider edit keeps stable Task identity while updating the migrated reminder date | Prior Build [38461299960](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38461299960), test-4 failure; test commit `e2f61132914b93f116aa93d651a4a3a65a082024` | Test expectation aligned to provider-edited canonical date `2026-10-09 11:00` and legacy mirror | No exact-head CI pass yet |
+| Calendar management uses long press, not inline due-row actions | Issue [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685); test commit `392936b81ca54a18f6063c955023b1776df24fa7` | Launcher test updated to use typed `calendar-action-*` keys after long press | No exact-head CI pass yet |
+| Calendar action dialog test uses visible controls | Test commit `092e9b7eb10419132da53236dc88c841ebee520c` | Added `ensureVisible` before delete/cancel taps | No exact-head CI pass yet |
+| Current release candidate | Intended source head `392936b81ca54a18f6063c955023b1776df24fa7`; memory checkpoint commit `0b39a4cea8bcc2766636edf03d07c8c746050641` | Changes and evidence checkpoint recorded | Workflow/status query returned no runs for the pre-documentation test head; poll the live branch and ensure validation starts on its latest exact SHA |
+
+**Release gate:** NO-GO. These changes are test-only; they do not prove production behavior, full CI, backup/restore integrity, or physical-device acceptance.
+
+
+## 2026-10-14 — PR identifier normalization
+
+- **Primary PR for the current multiple-reminder integration validation stream:** [PR #2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), branch `integration/task-multiple-reminders-safe-20261013`.
+- **Separate stacked child PR:** [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), limited to Person-linked Follow-up and People backup/restore work. Do not use #2681 as the primary integration PR label.
+- Related references #2679, #2667, and #2655 remain distinct PRs and must be described by their actual scope.
+- This is a documentation-only normalization. It adds no validation evidence and does not change the release decision: **NO-GO** until exact-head gates and required device/provider evidence pass.
+
+
+## 2026-10-14 — Exact-head validation poll after PR identifier normalization
+
+**Primary PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | **Branch:** `integration/task-multiple-reminders-safe-20261013` | **Observed source SHA:** `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23` | **App version:** `1.0.1+2` (last recorded manifest value).
+
+| Gate / evidence | Workflow run | Observed result on SHA `080b84b9eb90c78ee0d7bd2bbfb12416dffcab23` | Limitation |
+|---|---|---|---|
+| Arvin Build | [38463727564](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727564) | IN PROGRESS | Jobs endpoint timed out on poll; no pass claimed. |
+| Calendar Provider Acceptance | [38463727485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727485) | SUCCESS | Does not certify Build, all Device Smoke lanes, physical device, or backup/restore integrity. |
+| Device Smoke | [38463727566](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727566) | QUEUED | Six lane results not yet available; no pass claimed. |
+| ARVIN Orchestrator PR Wakeup | [38463727504](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727504) | SUCCESS | Orchestration signal only, not product validation. |
+| ARVIN Orchestrator | [38463727616](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727616) | SUCCESS | Orchestration signal only, not product validation. |
+| ARVIN Production Loop | [38463727519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727519) | SUCCESS | Does not substitute for required product gates. |
+| G1 lock sync | [38463727514](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727514) | SUCCESS | Synchronization workflow only. |
+| Arvin Parallel Wave | [38463727492](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38463727492) | SKIPPED | Not a pass. |
+
+**Related open blockers:** [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) People backup/restore integrity; [PR #2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681) stacked Person-linked work reported non-mergeable; [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) Person-specific Report Center results; [#2685](https://github.com/mobinpda-lab/Arvin-clean/issues/2685) Calendar tap/long-press contract.
+
+**Evidence boundary:** this entry is a documentation checkpoint and advances branch HEAD. All results above apply only to the exact SHA named in the heading. Re-query the PR head and collect new exact-head results after this commit. Physical-device acceptance remains unproven.
+
+**Release decision: NO-GO.**
+
+
+## Evidence checkpoint — 2026-10-14
+
+| Feature / Gate | Exact parent code head | Result | Evidence | Limitation |
+|---|---|---|---|---|
+| Build, Analyze, six test shards, Debug APK, Release APK | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Build run 38477701769](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701769) | Applies to parent head only |
+| Calendar Provider Acceptance | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Run 38477701747](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701747) | Does not prove physical-device gesture UX |
+| Automated Device Smoke: Home, Quick Capture, SQL persistence/migration, People, Backup/Restore | `a7be929a844038d64fcf20e5a6681a1c8732b2fc` | **PASS** | [Run 38477701760](https://github.com/mobinPda-lab/Arvin-clean/actions/runs/38477701760) | Automated lanes only; no physical-device screenshot evidence |
+| Person directory backup/restore + dangling-reference preflight | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | PR #2681; sync plan PR #2692 | Must be ported and tested on current parent |
+| Person-based per-Follow-up reporting | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | Issue #2683; PR #2681 | Must be ported and tested on current parent |
+| Release | — | **NO-GO** | Issues #2682, #2683, #2685 | End-to-end integrity and physical-device acceptance remain open |

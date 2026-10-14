@@ -478,4 +478,33 @@ targetCalendarId: 'calendar-7',
     expect(result?.created, 1);
     expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
   });
+
+  test('new TaskReminder IDs use existing Task reminder sync setting', () async {
+    final reminder = CalendarReminder(
+      id: 'task-reminder-item:task-1:r1',
+      title: 'کار — یادآور ۱',
+      date: DateTime(2026, 9, 20, 9),
+      isAllDay: true,
+    );
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(
+        const CalendarIntegrationSettings(
+          enabled: true,
+          autoSync: true,
+          targetCalendarId: 'calendar-7',
+          syncTaskReminders: true,
+        ),
+      ),
+      executor: executor,
+      linkStore: _Links(),
+    );
+
+    final result = await service.sync([reminder]);
+
+    expect(result?.created, 1);
+    expect(executor.receivedPlan?.items.single.reminderId, reminder.id);
+    expect(executor.receivedPlan?.items.single.revision?.allDay, isTrue);
+  });
+
 }

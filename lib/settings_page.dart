@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'backup_schedule_page.dart';
+import 'android_follow_up_reminder_scheduler.dart';
 import 'calendar_integration_settings_page.dart';
 import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
@@ -31,6 +32,23 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _setTheme(ThemeMode mode) async { final current = settings; if (current == null) return; await widget.service.saveThemeMode(mode); final next = current.copyWith(themeMode: mode); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setPersianDate(bool value) async { final current = settings; if (current == null) return; await widget.service.saveUsePersianDate(value); final next = current.copyWith(usePersianDate: value); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setFontSize(double size) async { final current = settings; if (current == null) return; await widget.service.saveFontSize(size); final next = current.copyWith(fontSize: size); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
+  Future<void> _setAllDayReminderNotificationTime() async {
+    final current = settings;
+    if (current == null) return;
+    final minutes = current.allDayReminderNotificationMinutes;
+    final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60), helpText: 'زمان اعلان یادآورهای تمام‌روزه');
+    if (picked == null || !mounted) return;
+    final nextMinutes = picked.hour * 60 + picked.minute;
+    await widget.service.saveAllDayReminderNotificationMinutes(nextMinutes);
+    final next = current.copyWith(allDayReminderNotificationMinutes: nextMinutes);
+    if (!mounted) return;
+    setState(() => settings = next);
+    widget.onSettingsChanged(next);
+    try { await AndroidFollowUpReminderScheduler().reschedule(); } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان ذخیره شد؛ زمان‌بندی اعلان‌ها در اجرای بعدی دوباره تنظیم می‌شود.')));
+    }
+  }
   Future<void> _setFontFamily(String? family) async { final current = settings; if (current == null) return; await widget.service.saveFontFamily(family); final next = current.copyWith(fontFamily: family, clearFontFamily: family == null); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _showFontPicker() async {
     final current = settings;
@@ -73,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
     await _setFontFamily(choice == 'system' ? 'system' : AppFonts.vazirharfFamily);
   }
   Future<void> _setSwipeAction({required bool rightSide, required TaskSwipeAction action}) async { final current = settings; if (current == null) return; final next = rightSide ? current.copyWith(swipeRightAction: action) : current.copyWith(swipeLeftAction: action); await widget.service.saveSwipeActions(right: next.swipeRightAction, left: next.swipeLeftAction); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
-  String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار', TaskSwipeAction.none => 'بدون عمل' };
+  String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.convertToFollowUp => 'افزودن پیگیری', TaskSwipeAction.none => 'بدون عمل' };
   IconData _swipeActionIcon(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => Icons.archive_outlined, TaskSwipeAction.trash => Icons.delete_outline, TaskSwipeAction.moveToToday => Icons.today_outlined, TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined, TaskSwipeAction.none => Icons.block };
   List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() => TaskSwipeAction.values.map((action) => DropdownMenuItem<TaskSwipeAction>(value: action, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(_swipeActionIcon(action), size: 20), const SizedBox(width: 8), Text(_swipeActionLabel(action))]))).toList();
   Future<void> _openBackupSchedule() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => BackupSchedulePage())); }
@@ -94,6 +112,8 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 12), ListTile(contentPadding: EdgeInsets.zero, title: const Text('اندازه متن'), subtitle: Text(current.fontSize.toStringAsFixed(0)), leading: const Icon(Icons.format_size), trailing: SizedBox(width: 180, child: Slider(min: 12, max: 24, divisions: 12, value: current.fontSize.clamp(12, 24), label: current.fontSize.toStringAsFixed(0), onChanged: _setFontSize)),), const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const SizedBox(height: 20), const Text('تقویم و همگام‌سازی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
+      const SizedBox(height: 20), const Divider(height: 32), const Text('یادآورها و اعلان‌ها', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
+      ListTile(key: const ValueKey('all-day-reminder-time-setting'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notifications_active_outlined), title: const Text('ساعت اعلان یادآورهای تمام‌روزه'), subtitle: Text('زمان فعلی: ${TimeOfDay(hour: current.allDayReminderNotificationMinutes ~/ 60, minute: current.allDayReminderNotificationMinutes % 60).format(context)}؛ پیش‌فرض ۹:۰۰ صبح'), trailing: const Icon(Icons.chevron_left), onTap: _setAllDayReminderNotificationTime),
       const SizedBox(height: 20), const Text('عمومی و پشتیبان‌گیری', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined), title: const Text('زمان‌بندی پشتیبان‌گیری'), subtitle: const Text('روزانه، هفتگی یا ماهانه'), trailing: const Icon(Icons.chevron_left), onTap: widget.onOpenBackupSchedule ?? _openBackupSchedule),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.backup_outlined), title: const Text('پشتیبان‌گیری و بازیابی'), subtitle: const Text('استفاده از مسیر موجود Backup/Restore آروین'), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(key: const ValueKey('backup-context-help'), tooltip: 'راهنمای پشتیبان‌گیری', onPressed: _showBackupHelp, icon: const Icon(Icons.help_outline)), const Icon(Icons.chevron_left)]), onTap: widget.onOpenBackup),

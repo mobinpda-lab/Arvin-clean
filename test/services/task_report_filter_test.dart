@@ -15,7 +15,7 @@ void main() {
         category: 'کار',
         tags: ['مهم'],
         priority: TaskPriority.high,
-        followUpEnabled: true,
+        followUps: [FollowUp(id: 'fa', dateTime: DateTime(2026, 10, 7, 9))],
         checklist: ['یک'],
       ),
       Task(
@@ -33,7 +33,7 @@ void main() {
         category: 'کار',
         tags: ['مهم'],
         priority: TaskPriority.high,
-        followUpEnabled: true,
+        followUps: [FollowUp(id: 'fc', dateTime: DateTime(2026, 10, 7, 9))],
         checklist: ['یک'],
       ),
     ];

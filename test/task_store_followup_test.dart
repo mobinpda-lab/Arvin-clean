@@ -30,11 +30,12 @@ void main() {
     expect(task.updatedAt, isNotNull);
   });
 
-  test('converts a normal Task to FollowUp without changing identity', () async {
+  test('legacy flag conversion API does not invent a FollowUp record', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
     });
     final store = TaskStore();
+    // ignore: deprecated_member_use
     await store.convertToFollowUp('t-convert');
     final task = (await store.load()).single;
     expect(task.id, 't-convert');
@@ -42,7 +43,7 @@ void main() {
     expect(task.description, 'متن');
     expect(task.category, 'مشتریان');
     expect(task.tags, ['فوری']);
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
   });
 
@@ -51,6 +52,7 @@ void main() {
       'arvin.tasks': '[{"id":"t-existing","title":"پیگیری","followUpEnabled":true,"followUps":[{"id":"f1","dateTime":"2026-08-15T10:15:00.000"}]}]',
     });
     final store = TaskStore();
+    // ignore: deprecated_member_use
     await store.convertToFollowUp('t-existing');
     final task = (await store.load()).single;
     expect(task.id, 't-existing');

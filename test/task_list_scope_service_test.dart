@@ -40,7 +40,7 @@ void main() {
     expect(identical(result.first, active), isTrue);
   });
 
-  test('without-follow-up scope excludes every canonical or legacy follow-up', () {
+  test('without-follow-up scope ignores the deprecated flag and excludes real follow-up data', () {
     final plain = task('plain');
     final enabled = task('enabled', followUpEnabled: true);
     final legacyDate = task(
@@ -59,10 +59,10 @@ void main() {
       scope: TaskListScope.simpleNotes,
     );
 
-    expect(result, <Task>[plain]);
+    expect(result, <Task>[plain, enabled]);
   });
 
-  test('follow-up scope accepts enablement, legacy date, or history', () {
+  test('follow-up scope uses actual legacy date or history, never the flag', () {
     final plain = task('plain');
     final enabled = task('enabled', followUpEnabled: true);
     final legacyDate = task(
@@ -78,10 +78,10 @@ void main() {
 
     final result = const TaskListScopeService().project(
       <Task>[plain, enabled, legacyDate, historyOnly],
-      scope: TaskListScope.followUpEnabled,
+      scope: TaskListScope.withFollowUps,
     );
 
-    expect(result, <Task>[enabled, legacyDate, historyOnly]);
+    expect(result, <Task>[legacyDate, historyOnly]);
   });
 
   test('projection never mutates or reorders the source list', () {

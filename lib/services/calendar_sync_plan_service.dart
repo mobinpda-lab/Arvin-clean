@@ -9,6 +9,11 @@ import 'system_calendar_bridge.dart';
 /// Kept shared so backup reconciliation and outbound sync use the same identity
 /// contract rather than maintaining separate parsers.
 String? calendarTaskIdForReminderId(String reminderId) {
+  if (reminderId.startsWith('task-reminder-item:')) {
+    final value = reminderId.substring('task-reminder-item:'.length);
+    final separator = value.indexOf(':');
+    return separator < 0 ? value : value.substring(0, separator);
+  }
   for (final prefix in const <String>[
     'task-due:',
     'task-reminder:',

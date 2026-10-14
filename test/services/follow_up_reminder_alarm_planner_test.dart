@@ -26,6 +26,13 @@ void main() {
     );
   }
 
+  test('uses the configured local time for all-day Task reminders', () {
+    final createdAt = DateTime(2026, 9, 1, 10);
+    final reminder = TaskReminder(id: 'all-day-custom', taskId: 'all-day-custom', title: 'یادآور', date: DateTime(2026, 9, 8), createdAt: createdAt, updatedAt: createdAt, isAllDay: true, sequence: 1);
+    final customPlanner = FollowUpReminderAlarmPlanner(allDayReminderNotificationMinutes: 7 * 60 + 35);
+    expect(customPlanner.nextAlarmAt([Task(id: 'all-day-custom', title: 'کار', taskReminders: [reminder], nextReminderSequence: 2)], deliveredState: const {}, now: DateTime(2026, 9, 8, 7)), DateTime(2026, 9, 8, 7, 35));
+  });
+
   test('selects nearest undelivered independent FollowUp reminder', () {
     final now = DateTime(2026, 9, 8, 12);
     final next = planner.nextAlarmAt(

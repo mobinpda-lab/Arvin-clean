@@ -32,6 +32,7 @@ class CalendarOutboundSyncService {
   String? _taskIdForReminder(String reminderId) {
     for (final prefix in const <String>[
       'task-due:',
+      'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
       'task-recurrence:',
@@ -150,7 +151,8 @@ class CalendarOutboundSyncService {
     if (id.startsWith('task-due:')) {
       return integration.syncDueDates;
     }
-    if (id.startsWith('task-reminder:')) {
+    if (id.startsWith('task-reminder-item:') ||
+        id.startsWith('task-reminder:')) {
       return integration.syncTaskReminders;
     }
     if (id.startsWith('followup:')) {

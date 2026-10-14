@@ -91,12 +91,12 @@ void main() {
     expect(all.single.updatedAt, now);
     expect(all.single.category, 'کاری');
     expect(all.single.tags, ['مهم', 'قرارداد']);
-    expect(all.single.followUpEnabled, isTrue);
+    expect(all.single.followUpEnabled, isFalse);
     expect(all.single.followUps, isEmpty);
     expect(all.single.dueDate, isNull);
-    expect(all.single.isSimpleNote, isTrue);
-    expect(all.single.isNotebookItem, isTrue);
-    expect(await repository.loadNote('convert-me'), isNotNull);
+    expect(all.single.isSimpleNote, isFalse);
+    expect(all.single.isNotebookItem, isFalse);
+    expect(await repository.loadNote('convert-me'), isNull);
   });
 
 }

@@ -1,5 +1,6 @@
 import '../models/task.dart';
 import 'follow_up_reminder_projection.dart';
+import 'reminder_notification_policy.dart';
 
 /// Projects canonical FollowUp reminder timestamps that are ready for delivery.
 ///
@@ -7,7 +8,9 @@ import 'follow_up_reminder_projection.dart';
 /// plugin, or notification side effect. Delivery-state persistence remains a
 /// separate boundary and is represented here only by exact identity strings.
 class FollowUpReminderDeliveryService {
-  const FollowUpReminderDeliveryService();
+  const FollowUpReminderDeliveryService({this.allDayReminderNotificationMinutes = defaultAllDayReminderNotificationMinutes});
+
+  final int allDayReminderNotificationMinutes;
 
   String deliveryIdentity(FollowUpReminderCandidate candidate) =>
       '${candidate.stableKey}@${candidate.scheduledAt.toIso8601String()}';
@@ -23,13 +26,30 @@ class FollowUpReminderDeliveryService {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isAfter(now)) {
+      if (!task.legacyReminderMigrationCompleted &&
+          taskReminder != null &&
+          !taskReminder.isAfter(now)) {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
           scheduledAt: taskReminder,
         );
         if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
+          result.add(candidate);
+        }
+      }
+
+      for (final reminder in task.taskReminders) {
+        if (reminder.status != 'active') continue;
+        final candidate = FollowUpReminderCandidate.taskReminder(
+          taskId: task.id,
+          taskTitle: task.title,
+          taskReminderId: reminder.id,
+          label: reminder.title,
+          scheduledAt: taskReminderNotificationTime(reminder, allDayNotificationMinutes: allDayReminderNotificationMinutes),
+        );
+        if (!candidate.scheduledAt.isAfter(now) &&
+            !deliveredIdentities.contains(deliveryIdentity(candidate))) {
           result.add(candidate);
         }
       }

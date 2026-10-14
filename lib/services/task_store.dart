@@ -219,20 +219,19 @@ class TaskStore {
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
-      task.followUpEnabled = true;
+      task.followUpEnabled = task.followUps.isNotEmpty || task.followUpDate != null;
       task.updatedAt = DateTime.now();
     });
   }
 
+  @Deprecated('A Task has no follow-up flag; create a FollowUp record instead.')
   Future<void> convertToFollowUp(String taskId) async {
-    await mutate<void>((tasks) {
-      final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) throw StateError('Task not found: $taskId');
-      final task = tasks[index];
-      if (task.followUpEnabled) return;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-    });
+    // Legacy API retained for compatibility. It intentionally does not mutate
+    // the Task; use addFollowUp() to persist a real FollowUp record.
+    final tasks = await load();
+    if (!tasks.any((task) => task.id == taskId)) {
+      throw StateError('Task not found: $taskId');
+    }
   }
 
   Future<List<FollowUp>> loadFollowUps(String taskId) async {
@@ -476,7 +475,7 @@ class TaskStore {
             task.createdAt?.toIso8601String(),
             task.updatedAt?.toIso8601String(),
             task.dueDate?.toIso8601String(),
-            task.followUpEnabled ? 1 : 0,
+            (task.followUps.isNotEmpty || task.followUpDate != null) ? 1 : 0,
             task.followUpDate?.toIso8601String(),
             task.category,
             task.notebookKind?.name,
@@ -525,8 +524,9 @@ class TaskStore {
     final knownKeys = <String>{
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'followUps', 'recurrence', 'people',
+      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate',
+      'legacyReminderMigrationCompleted', 'taskReminders', 'nextReminderSequence',
+      'priority', 'archived', 'trashed', 'completed', 'followUps', 'recurrence', 'people',
     };
     final preserved = <String, dynamic>{};
     final previous = previousPayload;

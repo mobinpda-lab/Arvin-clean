@@ -76,6 +76,19 @@ class FollowUpReminderDeliveryState {
   ) {
     final liveKeys = <String>{};
     for (final task in tasks) {
+      if (!task.legacyReminderMigrationCompleted && task.reminderDate != null) {
+        liveKeys.add('task:${task.id}');
+      }
+      for (final reminder in task.taskReminders) {
+        final candidate = FollowUpReminderCandidate.taskReminder(
+          taskId: task.id,
+          taskTitle: task.title,
+          taskReminderId: reminder.id,
+          label: reminder.title,
+          scheduledAt: taskReminderNotificationTime(reminder),
+        );
+        liveKeys.add(candidate.stableKey);
+      }
       for (final followUp in task.followUps) {
         if (followUp.reminderDate != null) {
           liveKeys.add('${task.id}:${followUp.id}');

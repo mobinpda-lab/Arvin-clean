@@ -146,9 +146,27 @@ jobs:
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
-      - name: Upload APK
+      - name: Apply permanent versioned APK identity
+        id: apk_identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          version_line="$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | head -n 1)"
+          test -n "$version_line"
+          [[ "$version_line" == *"+"* ]] || { echo "pubspec.yaml version must include an explicit build number (version+build)." >&2; exit 1; }
+          app_version="${version_line%%+*}"
+          build_number="${version_line#*+}"
+          [[ -n "$app_version" && -n "$build_number" ]]
+          short_sha="${GITHUB_SHA::7}"
+          apk_name="arvin-${app_version}-build${build_number}-${{ matrix.variant }}-${short_sha}.apk"
+          apk_path="build/app/outputs/flutter-apk/$apk_name"
+          mv "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk" "$apk_path"
+          test -s "$apk_path"
+          echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=arvin-${app_version}-build${build_number}-${{ matrix.variant }}-${short_sha}" >> "$GITHUB_OUTPUT"
+      - name: Upload versioned APK
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          name: ${{ steps.apk_identity.outputs.artifact_name }}
+          path: build/app/outputs/flutter-apk/${{ steps.apk_identity.outputs.apk_name }}
           if-no-files-found: error

@@ -219,4 +219,172 @@ void main() {
     expect(result!.dueDate!.hour, 0);
     expect(result!.dueDate!.minute, 0);
   });
+
+  testWidgets('full Task editor adds independent reminders without replacing legacy reminder', (tester) async {
+    Task? result;
+    final legacyDate = DateTime(2026, 10, 20, 9, 30);
+    final task = Task(
+      id: 'editor-multi',
+      title: 'خرید فرش',
+      reminderDate: legacyDate,
+      followUps: [
+        FollowUp(
+          id: 'follow-up-preserved',
+          dateTime: DateTime(2026, 10, 18, 12),
+          nextFollowUp: DateTime(2026, 10, 25, 10),
+        ),
+      ],
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final add = find.byKey(const ValueKey('task-editor-add-reminder'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, legacyDate);
+    expect(result!.taskReminders, hasLength(2));
+    expect(result!.taskReminders.map((item) => item.sequence), [1, 2]);
+    expect(result!.taskReminders.map((item) => item.id).toSet().length, 2);
+    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور ۱');
+    expect(result!.nextReminderSequence, 3);
+    expect(result!.followUps.single.nextFollowUp, DateTime(2026, 10, 25, 10));
+  });
+
+  testWidgets('editing or deleting one reminder leaves other reminders and nextFollowUp intact', (tester) async {
+    Task? result;
+    final nextFollowUp = DateTime(2026, 10, 25, 10);
+    final task = Task(
+      id: 'editor-independent',
+      title: 'جلسه',
+      reminderDate: DateTime(2026, 10, 20, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'keep-reminder',
+          taskId: 'editor-independent',
+          title: 'اول',
+          date: DateTime(2026, 10, 21, 10),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'remove-reminder',
+          taskId: 'editor-independent',
+          title: 'دوم',
+          date: DateTime(2026, 10, 22, 11),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+      followUps: [
+        FollowUp(
+          id: 'follow-up-preserved',
+          dateTime: DateTime(2026, 10, 18, 12),
+          nextFollowUp: nextFollowUp,
+        ),
+      ],
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final title = find.byKey(const ValueKey('task-editor-reminder-title-keep-reminder'));
+    await tester.ensureVisible(title);
+    await tester.enterText(title, 'عنوان تغییرکرده');
+    await tester.pump();
+    final remove = find.byKey(const ValueKey('task-editor-remove-reminder-remove-reminder'));
+    await tester.ensureVisible(remove);
+    await tester.tap(remove);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders, hasLength(1));
+    expect(result!.taskReminders.single.id, 'keep-reminder');
+    expect(result!.taskReminders.single.title, 'عنوان تغییرکرده');
+    expect(result!.reminderDate, DateTime(2026, 10, 20, 9));
+    expect(result!.followUps.single.nextFollowUp, nextFollowUp);
+    expect(result!.nextReminderSequence, 3);
+  });
+
+
+  testWidgets('deleting migrated legacy reminder clears compatibility mirror on save', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'migrated-editor',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+    expect(task.taskReminders, hasLength(1));
+    expect(task.legacyReminderMigrationCompleted, isTrue);
+
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+    final reminderId = task.taskReminders.single.id;
+    final remove = find.byKey(
+      ValueKey('task-editor-remove-reminder-$reminderId'),
+    );
+    await tester.ensureVisible(remove);
+    await tester.tap(remove);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders, isEmpty);
+    expect(result!.reminderDate, isNull);
+    expect(result!.legacyReminderMigrationCompleted, isTrue);
+    expect(result!.nextReminderSequence, 2);
+  });
+
+
+  testWidgets('full editor adds a real FollowUp record without a flag',
+      (tester) async {
+    Task? result;
+    await openEditor(tester, onResult: (value) => result = value);
+
+    expect(
+      find.byKey(const ValueKey('task-editor-followup-enabled')),
+      findsNothing,
+    );
+    final add = find.byKey(const ValueKey('task-editor-add-follow-up'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'تماس با مشتری');
+    final followUpSave = find.byKey(const ValueKey('follow-up-entry-save'));
+    await tester.ensureVisible(followUpSave);
+    await tester.tap(followUpSave);
+    await tester.pumpAndSettle();
+
+    expect(find.text('تماس با مشتری'), findsOneWidget);
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.note, 'تماس با مشتری');
+    expect(result!.followUpEnabled, isTrue);
+  });
+
+
 }

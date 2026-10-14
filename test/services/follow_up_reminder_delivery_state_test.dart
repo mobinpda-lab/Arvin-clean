@@ -101,4 +101,60 @@ void main() {
     });
     expect(state, hasLength(3));
   });
+
+  test('reconcile tracks independent TaskReminder identities separately', () {
+    final createdAt = DateTime(2026, 8, 1, 10);
+    final first = TaskReminder(
+      id: 'r1',
+      taskId: 'multi',
+      title: 'یادآور اول',
+      date: DateTime(2026, 8, 28, 11),
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      sequence: 1,
+    );
+    final second = TaskReminder(
+      id: 'r2',
+      taskId: 'multi',
+      title: 'یادآور دوم',
+      date: DateTime(2026, 8, 28, 12),
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      sequence: 2,
+    );
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: [first, second],
+      nextReminderSequence: 3,
+    );
+    final state = <String, String>{
+      'task-reminder-item:multi:r1': 'r1@2026-08-28T11:00:00.000',
+      'task-reminder-item:multi:r2': 'r2@2026-08-28T12:00:00.000',
+    };
+
+    task.taskReminders.removeWhere((item) => item.id == 'r1');
+    final result = stateService.reconcile(state, [task]);
+
+    expect(result, {
+      'task-reminder-item:multi:r2': 'r2@2026-08-28T12:00:00.000',
+    });
+    expect(state, hasLength(2));
+  });
+
+  test('reconcile removes delivered marker when migrated reminder is deleted', () {
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'legacy-delete',
+      'title': 'کار',
+      'reminderDate': '2026-08-28T11:00:00.000',
+    });
+    final state = <String, String>{
+      'task:legacy-delete': 'task:legacy-delete@2026-08-28T11:00:00.000',
+    };
+    task.taskReminders.clear();
+
+    expect(stateService.reconcile(state, [task]), isEmpty);
+    expect(task.reminderDate, DateTime(2026, 8, 28, 11));
+  });
+
 }

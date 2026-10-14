@@ -741,4 +741,71 @@ void main() {
     }
   });
 
+
+  test('canonical backup round-trips multiple Task reminders and legacy fields independently', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final task = _completeTask()
+      ..taskReminders = [
+        TaskReminder(
+          id: 'backup-r1',
+          taskId: 'task-full',
+          title: 'تماس مستقل',
+          date: DateTime(2026, 8, 29, 9, 15),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'backup-r2',
+          taskId: 'task-full',
+          title: 'روز ارسال',
+          date: DateTime(2026, 8, 30),
+          isAllDay: true,
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 2,
+        ),
+        TaskReminder(
+          id: 'backup-r3',
+          taskId: 'task-full',
+          title: 'نیمه‌شب عمدی',
+          date: DateTime(2026, 8, 31),
+          isAllDay: false,
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 3,
+        ),
+        TaskReminder(
+          id: 'legacy-task-reminder:task-full',
+          taskId: 'task-full',
+          title: 'کار کامل — یادآور ۴',
+          date: DateTime(2026, 8, 28, 10, 30),
+          createdAt: DateTime(2026, 8, 20, 8),
+          updatedAt: DateTime(2026, 8, 26, 12),
+          sequence: 4,
+        ),
+      ]
+      ..legacyReminderMigrationCompleted = true
+      ..nextReminderSequence = 5;
+
+    await manager.backupCanonicalTasks([task]);
+    final rawTasks = service.writtenPayload?['tasks'] as List<dynamic>;
+    final restored = Task.fromJson(
+      Map<String, dynamic>.from(rawTasks.single as Map),
+    );
+
+    expect(restored.taskReminders.map((item) => item.id),
+        ['backup-r1', 'backup-r2', 'backup-r3', 'legacy-task-reminder:task-full']);
+    expect(restored.taskReminders[0].date, DateTime(2026, 8, 29, 9, 15));
+    expect(restored.taskReminders[1].isAllDay, isTrue);
+    expect(restored.taskReminders[2].isAllDay, isFalse);
+    expect(restored.nextReminderSequence, 5);
+    expect(restored.reminderDate, task.reminderDate);
+    expect(restored.followUps.single.reminderDate,
+        task.followUps.single.reminderDate);
+    expect(restored.followUps.single.nextFollowUp,
+        task.followUps.single.nextFollowUp);
+  });
+
 }

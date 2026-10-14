@@ -6,6 +6,7 @@ import 'automatic_follow_up_platform_stub.dart'
 import 'follow_up_reminder_background_runner.dart';
 import 'services/follow_up_reminder_alarm_planner.dart';
 import 'services/follow_up_reminder_delivery_state.dart';
+import 'services/app_settings_service.dart';
 import 'services/task_store.dart';
 
 const int followUpReminderAlarmId = 42002;
@@ -53,7 +54,11 @@ class AndroidFollowUpReminderScheduler {
     final state = stateService.decode(
       prefs.getString(FollowUpReminderDeliveryState.storageKey),
     );
-    final next = (_planner ?? const FollowUpReminderAlarmPlanner()).nextAlarmAt(
+    final appSettings = _planner == null ? await AppSettingsService().load() : null;
+    final planner = _planner ?? FollowUpReminderAlarmPlanner(
+      allDayReminderNotificationMinutes: appSettings!.allDayReminderNotificationMinutes,
+    );
+    final next = planner.nextAlarmAt(
       tasks,
       deliveredState: state,
       now: (_now ?? DateTime.now).call(),

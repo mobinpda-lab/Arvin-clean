@@ -57,9 +57,90 @@ extension FollowUpLegacyDate on FollowUp {
   DateTime get date => dateTime;
 }
 
-/// Unified product model foundation:
-/// an Item can behave as a simple note until follow-up is enabled.
-/// These fields are additive and remain backward-compatible with legacy data.
+/// A reminder owned by a canonical Task. The legacy Task.reminderDate and
+/// FollowUp.reminderDate fields remain independently readable during migration.
+class TaskReminder {
+  const TaskReminder({
+    required this.id,
+    required this.taskId,
+    required this.title,
+    required this.date,
+    this.status = 'active',
+    required this.createdAt,
+    required this.updatedAt,
+    this.isAllDay = false,
+    required this.sequence,
+  });
+
+  final String id;
+  final String taskId;
+  final String title;
+  final DateTime date;
+  final String status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isAllDay;
+  final int sequence;
+
+  TaskReminder copyWith({
+    String? taskId,
+    String? title,
+    DateTime? date,
+    String? status,
+    DateTime? updatedAt,
+    bool? isAllDay,
+  }) =>
+      TaskReminder(
+        id: id,
+        taskId: taskId ?? this.taskId,
+        title: title ?? this.title,
+        date: date ?? this.date,
+        status: status ?? this.status,
+        createdAt: createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        isAllDay: isAllDay ?? this.isAllDay,
+        sequence: sequence,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'taskId': taskId,
+        'title': title,
+        'date': date.toIso8601String(),
+        'status': status,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'isAllDay': isAllDay,
+        'sequence': sequence,
+      };
+
+  factory TaskReminder.fromJson(
+    Map<String, dynamic> json, {
+    required String fallbackTaskId,
+    required DateTime fallbackCreatedAt,
+  }) {
+    DateTime parseDate(Object? raw, DateTime fallback) {
+      if (raw is! String) return fallback;
+      return DateTime.tryParse(raw) ?? fallback;
+    }
+
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      taskId: json['taskId'] as String? ?? fallbackTaskId,
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      status: json['status'] as String? ?? 'active',
+      createdAt: parseDate(json['createdAt'], fallbackCreatedAt),
+      updatedAt: parseDate(json['updatedAt'], fallbackCreatedAt),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Canonical Task model. Every Task can have zero or more real FollowUp records.
+/// `followUpEnabled` remains only as a deprecated compatibility mirror for old
+/// readers; current behavior must derive from `followUps`/`followUpDate` data.
 class Task {
   Task({
     required this.id,
@@ -79,6 +160,9 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    this.legacyReminderMigrationCompleted = false,
+    Iterable<TaskReminder> taskReminders = const [],
+    this.nextReminderSequence = 1,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -88,6 +172,7 @@ class Task {
     Iterable<PersonReference> people = const [],
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
+        taskReminders = List<TaskReminder>.of(taskReminders),
         people = _normalizePeople(people);
 
   final String id;
@@ -99,7 +184,7 @@ class Task {
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
-  bool followUpEnabled;
+  bool followUpEnabled; // Deprecated compatibility mirror; never a decision source.
   DateTime? followUpDate;
   List<String> tags;
   String? category;
@@ -115,6 +200,14 @@ class Task {
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
   DateTime? reminderDate;
+  /// True once the legacy Task reminder has been represented in the canonical
+  /// collection. The legacy value is retained for rollback, but must no longer
+  /// be projected separately after the migrated record is durable.
+  bool legacyReminderMigrationCompleted;
+  /// Independent reminders stored in the canonical Task JSON envelope.
+  List<TaskReminder> taskReminders;
+  /// Next per-Task reminder number; deleted numbers are never reused.
+  int nextReminderSequence;
   TaskPriority priority;
   bool archived;
   bool trashed;
@@ -225,7 +318,7 @@ class Task {
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
         if (allDay) 'allDay': true,
-        'followUpEnabled': followUpEnabled,
+        'followUpEnabled': followUps.isNotEmpty || followUpDate != null,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
@@ -241,6 +334,9 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
+        'legacyReminderMigrationCompleted': legacyReminderMigrationCompleted,
+        'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
+        'nextReminderSequence': nextReminderSequence,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
@@ -260,6 +356,76 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
+    final taskId = json['id'] as String? ?? '';
+    final taskTitle = json['title'] as String? ?? '';
+    final taskCreatedAt = json['createdAt'] == null
+        ? null
+        : DateTime.tryParse(json['createdAt'] as String);
+    final taskUpdatedAt = json['updatedAt'] == null
+        ? null
+        : DateTime.tryParse(json['updatedAt'] as String);
+    final legacyReminderDate = json['reminderDate'] == null
+        ? null
+        : DateTime.tryParse(json['reminderDate'] as String);
+    final rawTaskReminders = json['taskReminders'];
+    if (rawTaskReminders != null && rawTaskReminders is! List) {
+      throw const FormatException('Task taskReminders must be a list');
+    }
+    final reminderMetadataFallback = taskCreatedAt ??
+        taskUpdatedAt ??
+        DateTime.utc(1970, 1, 1);
+    final loadedTaskReminders = (rawTaskReminders as List<dynamic>? ?? const [])
+        .map(
+          (item) => TaskReminder.fromJson(
+            Map<String, dynamic>.from(item as Map),
+            fallbackTaskId: taskId,
+            fallbackCreatedAt: reminderMetadataFallback,
+          ),
+        )
+        .toList();
+    var nextReminderSequence =
+        (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    for (final reminder in loadedTaskReminders) {
+      if (reminder.sequence >= nextReminderSequence) {
+        nextReminderSequence = reminder.sequence + 1;
+      }
+    }
+
+    // Deterministically represent the legacy Task reminder exactly once.
+    // Keep reminderDate intact for rollback and old-reader compatibility.
+    var legacyReminderMigrationCompleted =
+        json['legacyReminderMigrationCompleted'] as bool? ?? false;
+    final legacyReminderId = 'legacy-task-reminder:$taskId';
+    final hasMigratedLegacyReminder =
+        loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId);
+    if (legacyReminderDate != null &&
+        taskId.trim().isNotEmpty &&
+        !legacyReminderMigrationCompleted) {
+      if (hasMigratedLegacyReminder) {
+        legacyReminderMigrationCompleted = true;
+      } else {
+        final sequence = nextReminderSequence;
+        // Preserve the legacy Calendar title so existing external links
+        // keep their fingerprint through the one-time migration.
+        final title = 'یادآوری: $taskTitle';
+        loadedTaskReminders.add(
+          TaskReminder(
+            id: legacyReminderId,
+            taskId: taskId,
+            title: title,
+            date: legacyReminderDate,
+            status: 'active',
+            createdAt: reminderMetadataFallback,
+            updatedAt: reminderMetadataFallback,
+            // Midnight is not sufficient evidence of an all-day reminder.
+            isAllDay: false,
+            sequence: sequence,
+          ),
+        );
+        nextReminderSequence = sequence + 1;
+        legacyReminderMigrationCompleted = true;
+      }
+    }
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
@@ -270,15 +436,11 @@ class Task {
     );
 
     return Task(
-      id: json['id'] as String? ?? '',
-      title: json['title'] as String? ?? '',
+      id: taskId,
+      title: taskTitle,
       description: json['description'] as String? ?? '',
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.tryParse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? null
-          : DateTime.tryParse(json['updatedAt'] as String),
+      createdAt: taskCreatedAt,
+      updatedAt: taskUpdatedAt,
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
@@ -304,9 +466,10 @@ class Task {
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
           ),
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
+      reminderDate: legacyReminderDate,
+      legacyReminderMigrationCompleted: legacyReminderMigrationCompleted,
+      taskReminders: loadedTaskReminders,
+      nextReminderSequence: nextReminderSequence,
       priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,

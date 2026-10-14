@@ -1,3 +1,94 @@
+## LIVE PROBLEM UPDATE — 2026-10-13 (prayer action test)
+
+- **Problem:** `test/official_calendar_prayer_actions_test.dart` failed on the prior integration head because the test expected the transient action-sheet label `ادا شد` to remain visible after the sheet closed; it also selected `قضا شد` without reopening the sheet.
+- **Root cause:** test lifecycle/expectation mismatch, not yet evidence of a production prayer-state persistence defect.
+- **Repair commit:** `b38d4e630f01a72beee2b2d35bf24f2ee744c3de` changes the test to verify persisted `completed`, reopen the card action sheet, then verify persisted `notCompleted`.
+- **Status:** FIX IMPLEMENTED; exact-head CI PENDING. Do not mark resolved until the revised test passes in the latest workflow run.
+- **Priority:** P1 test/release blocker. Release remains NO-GO pending full exact-head gates and physical-device acceptance.
+
+---
+
+## 2026-10-13 — Follow-up flag UX and waiting-list discoverability
+
+- **Problem:** Quick Entry and Full Form exposed «کار پیگیری‌دار», a flag that was not a real Follow-up record. The waiting-for-response filter existed inside the Follow-up Office but was not directly discoverable from Home.
+- **Root cause:** legacy `followUpEnabled` was still treated as a Task classification in some projections and detail badges; Home More did not route to FollowUpOfficePage.
+- **Repair committed:** removed the Quick Entry flag and Full Form checkbox, replaced the Full Form block with a real `followUps[]` section and add action, made editor writes merge new Follow-ups by ID, changed list/detail decisions to real records/legacy date, and added Home → More direct waiting-list navigation plus active/latest filtering and Task detail entry.
+- **Compatibility:** field still exists in JSON/model for legacy reads, but is deprecated and no longer a decision source. The old swipe action label is now «افزودن پیگیری» and opens the Follow-up Office.
+- **Validation status:** focused tests updated/added, but exact-head CI has not yet been polled after the last code and memory commits. Analyze, test shards, Build, Calendar acceptance, six device smoke lanes, backup/restore and physical-device acceptance remain open.
+
+---
+
+## 2026-10-13 — Strict analyzer findings after compile repair
+
+- **Problem:** `flutter analyze` still returned exit code 1 after the uninitialized-field fix because two info-level lints are treated as blocking by the workflow.
+- **Findings:** `prefer_initializing_formals` in `lib/models/task.dart`; `curly_braces_in_flow_control_structures` in `lib/task_editor_dialog.dart`.
+- **Repair:** initializing formal for `nextReminderSequence`; braces around the return in `_sameTaskReminders`.
+- **Status:** code edits committed; exact-head rerun pending. Do not label resolved until Analyze and downstream Build succeed.
+
+---
+
+## 2026-10-13 — Reminder projection compile blocker
+
+- **Problem:** Analyze and Flutter/Android build failed because `FollowUpReminderCandidate.taskReminderId` was not initialized in the default and `.task` constructors.
+- **Root cause:** adding the optional stable TaskReminder identity made the field required by Dart's final-field initialization rules, but two legacy constructors did not set a value.
+- **Impact:** Analyze and test shards failed early; Debug/Release APK, Calendar Provider Acceptance and multiple emulator smoke lanes could not validate product behavior because compilation failed.
+- **Repair:** explicitly initialize `taskReminderId = null` in both constructors. Commit: `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Status:** source-level fix committed; resolved only after exact-head CI passes. Keep release NO-GO until then.
+
+---
+
+## 2026-10-13 — Draft validation contract preserved
+
+- **Finding:** `.github/workflows/device-smoke.yml` skips Device Smoke for Draft PRs by design; `tool/validate_fast_lane.py` enforces the Fast Lane workflow contract. Removing the condition caused the Parallel Wave contract job to fail.
+- **Decision:** preserve the established CI contract and restore the draft guard. Do not weaken the validator or bypass the Fast Lane policy just to run heavy checks on a Draft PR.
+- **Resolution path:** mark PR #2666 ready for review, without merging, to trigger Build and all six Device Smoke lanes. Continue to hold release until all exact-head gates pass.
+
+---
+
+## 2026-10-13 — Device Smoke draft gate corrected
+
+- **Finding:** Draft PRs skip the six-lane Android smoke matrix by design under the Fast Lane contract. An attempted removal failed `tool/validate_fast_lane.py` and was reverted.
+- **Status:** preserve the guard; mark PR ready for review (without merging) to run all six lanes. Exact-head results remain required.
+
+---
+
+## 2026-10-13 — Configurable all-day reminder time
+
+- **Resolved product ambiguity:** 09:00 local is the default, not a fixed time. Users can change it in Settings; the selected minute-of-day persists in canonical AppSettingsService storage and portable backup/restore.
+- **Implementation status:** code and regression tests added on PR #2666 for Settings persistence, backup compatibility, configurable projection/planning, background delivery, and rescheduling after preference changes.
+- **Still open P1 — validation:** exact-head Analyze/test shards, Debug/Release APK, Calendar Provider Acceptance, six Device Smoke lanes, physical-device behavior, backup/restore and Calendar-link integrity remain unverified. Release stays NO-GO.
+
+---
+
+## 2026-10-13 — Multiple-reminder implementation checkpoint
+
+- **Addressed in branch, not yet validated:** model fields, idempotent legacy decode, migration tombstone, editor CRUD, TaskEditApplyService, Calendar projection and stable IDs, inbound/outbound provider reconciliation, notification candidates/planner/state, SQL envelope semantics, and focused tests.
+- **Important regression prevented:** `TaskStore._canonicalEnvelope` preserved unknown fields from previous JSON. Because the new serializer omitted empty reminder lists, a deleted reminder could return from stale `legacy_payload_json`. Fixed by always serializing reminder list/counter/tombstone and adding these fields to TaskStore's known canonical keys; a SQL delete/reload regression test was added.
+- **P1 — Configurable all-day notification time:** product policy is resolved: default 09:00 local with user override in Settings. Validate persistence, background delivery and alarm rescheduling end-to-end before merge.
+- **P1 — Exact-head validation:** current feature branch's Build/Calendar Provider Acceptance are pending/queued at the last observed code checkpoint. Device Smoke is skipped. The next workflow result must match the final exact SHA.
+- **P1 — Physical device:** no physical-device acceptance has been supplied; emulator/CI cannot replace it.
+- **Release:** NO-GO until exact-head tests/builds, Calendar acceptance, all six Device Smoke lanes, backup/restore/link-integrity review, owner policy decision, and physical-device acceptance pass.
+
+---
+## 2026-10-13 — Multiple Task reminders integration blockers (live)
+
+- **P1 — Legacy Calendar identity reconciliation:** Task JSON now represents a legacy reminder as a deterministic TaskReminder while retaining `Task.reminderDate`. Until projection code maps the migrated item to the legacy `task-reminder:<taskId>` identity and suppresses separate legacy projection, duplicate external events remain a risk. Keep the integration PR unmerged.
+- **P1 — Delete/retry semantics:** `legacyReminderMigrationCompleted` is the tombstone; tests now cover that a deleted migrated item is not recreated by JSON decode. Projection must respect the tombstone too.
+- **P1 — Persistence/restore:** current slice has model-level JSON coverage only. SQL save/reload, actual backup export/import, restored Calendar-link integrity, transactional durability and rollback remain to be tested.
+- **Validation blocker:** latest observed feature Build is pending; Device Smoke is skipped by workflow policy. No physical-device acceptance is established.
+- **Release:** NO-GO until all required gates pass.
+
+---
+## 2026-10-13 — Approved migration contract conflicts with feature implementation
+
+- **Problem:** the feature implementation keeps legacy `Task.reminderDate` separate from the new collection, while the approved architecture decision requires deterministic idempotent migration.
+- **Root cause:** the lower-level design and PR implementation were not reconciled to the approved decision document.
+- **Impact:** merging as-is risks split representation and duplicate Calendar/notification projections once both paths are active.
+- **Owner-data scope:** owner reports no information has been entered and the current database is empty; do not claim current owner-entered records are at risk. Still preserve compatibility for old backups and legacy JSON.
+- **Required fix:** add stable required metadata (`taskId`, `status`, `createdAt`, `updatedAt`), deterministic legacy migration, durable-write/retry behavior and tests for one logical reminder/one projection.
+- **Status:** OPEN / integration blocker. No application code changed in this checkpoint.
+
+---
 ## LIVE PROBLEM REGISTER OVERRIDE — 2026-10-12 (verified)
 
 This section is the current release-risk summary. Older SHA and workflow-status statements below are historical unless revalidated against GitHub.
@@ -228,3 +319,62 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## STATUS UPDATE — 2026-10-13 — Owner decision received
+- **Resolved gate:** owner/product decision for multiple Task-level reminders and the requested legacy migration is now explicit in the command dated 2026-10-13. Earlier text saying “blocked until owner approval” is historical and superseded.
+- **Still open P1:** implementation and safe reconciliation of PR #2655 onto current main. Branch divergence and overlapping Task model/editor/Calendar/notification/backup changes make blind merge unsafe.
+- **Still open data risk:** deterministic/idempotent conversion of legacy Task `reminderDate`; preserving legacy per-FollowUp reminder fields; all-day versus intentional midnight; backup/restore round-trip; prevent legacy and new Calendar identities from creating duplicate events.
+- **Next action:** continue from `integration/task-multiple-reminders-safe-20261013`, port and test the canonical model/migration first. No production code has been ported to this branch as of this update. Release remains NO-GO.
+## 2026-10-13 — Clarification to migration risk: owner database is empty
+- **Owner fact:** the owner states that no information has been entered into Arvin and the database is raw/empty.
+- **Correction:** describe the multiple-reminder migration issue as a persistence/compatibility implementation blocker, not as confirmed loss risk to existing owner-entered data.
+- **Boundary:** do not infer that all installed databases, older backups, test fixtures or legacy payloads are empty without inspection. Compatibility and rollback tests remain required before release.
+- **Status:** documentation clarified. No app code or database changed; migration, current-head CI and physical-device acceptance remain open.
+
+
+## 2026-10-13 — Calendar item interaction mismatch (P1/P2 UX)
+
+- **Problem:** Short tap did not open Task Detail; management chips were visible during ordinary browsing; item long press had no typed action menu.
+- **Root cause:** The card tap toggled local expansion, and the canonical Calendar flow had no explicit Task Detail callback. Item IDs for independent reminders were not fully included in edit/register target resolution.
+- **Impact:** Extra interaction friction and increased accidental-action risk; selected Follow-up/Reminder semantics were unclear.
+- **Solution in progress:** Added canonical Task Detail navigation, type labels, long-press menu, delete confirmation, independent reminder ID resolution, and widget acceptance tests.
+- **Evidence:** source/test changes are committed on the integration branch. Exact-head Build, Calendar Provider Acceptance and Device Smoke remain pending/queued at last poll.
+- **Status:** OPEN pending test pass, integration validation, and genuine small-screen/device evidence. Track in Issue #2685.
+
+
+
+## 2026-10-13 — Settings widget test fails after time-picker interaction (open)
+
+- **Problem:** Build run [38448584824](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38448584824), job `115473670604`, fails `test/settings_page_test.dart` at line 58. `scrollUntilVisible(find.text('تیره'), ...)` throws `Bad state: No element` from `WidgetController.dragUntilVisible`.
+- **Impact:** exact-head Build is not green; Settings behavior and downstream validation cannot be accepted from this run.
+- **Root cause:** not confirmed. Inspect whether dismissing the time-picker leaves the Settings route mounted and whether the finder/scrollable assumptions remain valid. Do not assume a product defect or merely suppress the assertion.
+- **Scope:** test failure observed on source SHA `066c87ec90625b8fe894df45d0a82227802ff65f`; Build run remains in progress with this failed shard. No physical-device evidence was collected here.
+- **Next action:** reproduce/inspect test route state and scroll interaction, fix the cause, then rerun targeted test and all exact-head release gates.
+- **Status:** OPEN — validation blocker; PR #2666 remains unmerged and release NO-GO.
+
+
+## 2026-10-13 — Calendar contract test repair wave
+
+- **Confirmed test/contract mismatches repaired:** reminder menu test no longer expects parent Task deletion; Calendar tests use long-press management and canonical `calendar-action-*` keys; migrated legacy reminder fixtures retain `یادآوری: <Task title>` for provider fingerprint continuity; Notebook UI assertion reads the same injected in-memory TaskStore; RTL swipe tests verify Follow-up Office navigation and unchanged canonical Task state.
+- **Commits:** `db7aa987b33efec28a4d4eb38cb395df75a4608f`, `d0d84ca747f29e7c7106fb599fef42320a64c292`, `0b905e5844dbbc871998ef3be0d823f320a87641`.
+- **Status:** tests are corrected but not yet accepted. Latest Build [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Calendar Provider Acceptance [38460834101](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834101), and Device Smoke [38460834302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460834302) were still running/queued at checkpoint time.
+- **Known environment issue:** predecessor Debug APK job failed while downloading/unzipping Android NDK 28.2 (`Error on ZipFile unknown archive`) before source compilation; retry rather than attribute to app code.
+- **Unresolved P1:** #2682 Person-directory backup/restore remains blocked on safe integration of the child-only directory schema/APIs with the parent reminder/Calendar branch; do not transplant backup files alone or force-update branches.
+- **Release:** NO-GO pending exact-head CI, six Device Smoke lanes, backup/restore/link-integrity evidence and physical-device acceptance.
+
+
+## 2026-10-13 — RTL acceptance test syntax failure
+
+- **Finding:** Build run [38460833958](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38460833958), Analyze job `115515636587`, reported `test/g6_swipe_rtl_acceptance_test.dart:228:1 • expected_executable` on SHA `0b905e5844dbbc871998ef3be0d823f320a87641`.
+- **Root cause:** redundant closing brace at end of the rewritten RTL swipe acceptance test file.
+- **Repair:** removed the extra brace; no production code changed. Exact-head CI must rerun; no validation pass is claimed.
+- **Release:** NO-GO.
+
+
+## 2026-10-14 continuation — active blockers
+
+- **P1 — Person directory backup/restore (#2682): OPEN.** Active parent lacks standalone Person directory in portable backup/restore. Child-branch work now adds referential preflight tests, but that code has no CI evidence and is not in the parent.
+- **P1 — Person-based Follow-up reporting (#2683): OPEN.** Child-branch implementation adds a Person filter and per-Follow-up rows with separate next-action and Reminder timestamps, but remains unvalidated and unintegrated.
+- **P2 — Calendar interaction evidence (#2685): PARTIALLY IMPLEMENTED.** Parent tap/long-press code and automated tests passed on `a7be929...`; small-screen day/week/month and physical-device UX evidence remain outstanding.
+- **Integration risk:** #2681 is diverged 101 commits ahead / 159 behind parent. Do not merge or cherry-pick wholesale. Follow `ARVIN_PERSON_DIRECTORY_SYNC_PLAN_2026-10-14.md` in PR #2692.
+- **Release:** NO-GO.

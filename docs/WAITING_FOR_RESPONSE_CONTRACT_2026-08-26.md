@@ -15,8 +15,11 @@ This Wave X1 slice defines the domain contract for «منتظر پاسخ دیگ�
 - result normalization;
 - a helper that returns a replacement FollowUp marked with the canonical waiting token while preserving its identity, note, timestamp, and next-follow-up date.
 
-## Product boundary
-This is the contract/core slice only. It does not yet add a Home filter, UI button, or new persistence field. Those can be wired later through the existing Task/FollowUp save path after this contract is validated.
+## UI wiring (2026-10-13)
+- Home → More now exposes a direct «منتظر پاسخ دیگران» entry that opens FollowUpOfficePage in waiting-only mode.
+- The waiting list evaluates only each Task's latest FollowUp by dateTime and excludes completed, archived, and trashed Tasks.
+- Each waiting row exposes «بازکردن کار» to open its canonical Task detail and continue recording Follow-ups.
+- No new Task state, persistence field, database, or repository is introduced.
 
 ## Guardrails
 - No new Task status field.

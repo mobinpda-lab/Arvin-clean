@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
+import 'task_detail_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/automatic_follow_up_service.dart';
@@ -16,9 +17,11 @@ class FollowUpOfficePage extends StatefulWidget {
     super.key,
     this.repository = const FollowUpRepository(),
     this.writeCoordinator,
+    this.initialWaitingOnly = false,
   });
 
   final FollowUpRepository repository;
+  final bool initialWaitingOnly;
   final FollowUpWriteCoordinator? writeCoordinator;
 
   @override
@@ -43,6 +46,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   @override
   void initState() {
     super.initState();
+    _showWaitingOnly = widget.initialWaitingOnly;
     _writer = widget.writeCoordinator ??
         FollowUpWriteCoordinator(
           repository: widget.repository,
@@ -150,6 +154,38 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     }
   }
 
+  Future<void> _openTask(_FollowUpRow row) async {
+    Task? task;
+    for (final candidate in _canonicalTasks) {
+      if (candidate.id == row.taskId) {
+        task = candidate;
+        break;
+      }
+    }
+    if (task == null || !mounted) return;
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(
+          task: task!,
+          onAddFollowUp: (currentTask, followUp) async {
+            await _writer.add(currentTask.id, followUp);
+            final refreshed = await TaskStore().load();
+            for (final candidate in refreshed) {
+              if (candidate.id == currentTask.id) return candidate;
+            }
+            return currentTask;
+          },
+          onEditFollowUp: (currentTask, followUp) async {
+            await _writer.update(currentTask.id, followUp);
+            return followUp;
+          },
+        ),
+      ),
+    );
+    await _load();
+  }
+
   Future<void> _editFollowUp(_FollowUpRow row) async {
     if (row.taskId.isEmpty || !mounted) return;
 
@@ -198,17 +234,17 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   List<_FollowUpRow> get _waitingRows {
-    final latestByTask = <String, _FollowUpRow>{};
-    for (final row in _rows) {
-      if (row.taskId.isEmpty) continue;
-      final current = latestByTask[row.taskId];
-      if (current == null || row.dateTime.isAfter(current.dateTime)) {
-        latestByTask[row.taskId] = row;
+    final latestWaitingFollowUpIds = <String, String>{};
+    for (final task in _canonicalTasks) {
+      if (!_waitingService.isWaiting(task)) continue;
+      final latest = task.lastFollowUp;
+      if (latest != null && task.id.isNotEmpty) {
+        latestWaitingFollowUpIds[task.id] = latest.id;
       }
     }
 
-    final waiting = latestByTask.values
-        .where((row) => _waitingService.isWaitingResult(row.result))
+    final waiting = _rows
+        .where((row) => latestWaitingFollowUpIds[row.taskId] == row.followUp.id)
         .toList();
     waiting.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     return waiting;
@@ -249,7 +285,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     final rows = _visibleRows;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('دفتر پیگیری'),
+        title: Text(_showWaitingOnly ? 'منتظر پاسخ دیگران' : 'دفتر پیگیری'),
         actions: [
           IconButton(
             tooltip: _showAutomaticDueOnly
@@ -377,6 +413,16 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                 'پیگیری بعدی: ${_dateTime(row.nextFollowUp!)}',
                               ),
                             ],
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton.icon(
+                                key: ValueKey('follow-up-open-task-${row.taskId}'),
+                                onPressed: row.taskId.isEmpty ? null : () => _openTask(row),
+                                icon: const Icon(Icons.open_in_new, size: 18),
+                                label: const Text('بازکردن کار'),
+                              ),
+                            ),
                           ],
                         ),
                       ),

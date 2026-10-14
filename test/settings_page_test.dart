@@ -38,17 +38,41 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('all-day-reminder-time-setting')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('all-day-reminder-time-setting')), findsOneWidget);
+    expect(find.textContaining('پیش‌فرض ۹:۰۰ صبح'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('all-day-reminder-time-setting')));
+    await tester.pumpAndSettle();
+    expect(find.text('زمان اعلان یادآورهای تمام‌روزه'), findsOneWidget);
+    // Pop the time-picker dialog route itself; a platform back event can pop
+    // the page under test in widget tests on some Flutter versions.
+    Navigator.of(tester.element(find.text('زمان اعلان یادآورهای تمام‌روزه'))).pop();
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('تیره'),
+      -250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
     expect(changed?.themeMode, ThemeMode.dark);
 
+    await tester.ensureVisible(find.text('نمایش تاریخ فارسی'));
     await tester.tap(find.text('نمایش تاریخ فارسی'));
     await tester.pumpAndSettle();
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('font-settings-entry')));
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);

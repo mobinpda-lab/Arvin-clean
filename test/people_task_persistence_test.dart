@@ -196,4 +196,93 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(TaskStore.key), isNull);
   });
+
+  test('TaskStore and canonical backup restore preserve multiple Task reminders', () async {
+    final task = Task(
+      id: 'task-reminder-persistence',
+      title: 'یادآورها',
+      reminderDate: DateTime(2026, 10, 20, 10),
+      legacyReminderMigrationCompleted: true,
+      taskReminders: [
+        TaskReminder(
+          id: 'persist-r1',
+          taskId: 'task-reminder-persistence',
+          title: 'تماس',
+          date: DateTime(2026, 10, 21, 9, 30),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'persist-r2',
+          taskId: 'task-reminder-persistence',
+          title: 'روز ارسال',
+          date: DateTime(2026, 10, 22),
+          isAllDay: true,
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 2,
+        ),
+        TaskReminder(
+          id: 'legacy-task-reminder:task-reminder-persistence',
+          taskId: 'task-reminder-persistence',
+          title: 'یادآورها — یادآور ۳',
+          date: DateTime(2026, 10, 20, 10),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 3,
+        ),
+      ],
+      nextReminderSequence: 4,
+      followUps: [
+        FollowUp(
+          id: 'history',
+          dateTime: DateTime(2026, 10, 18, 10),
+          reminderDate: DateTime(2026, 10, 23, 11),
+          nextFollowUp: DateTime(2026, 10, 24, 12),
+        ),
+      ],
+    );
+    final store = TaskStore();
+    await store.save([task]);
+    final loaded = (await TaskStore().load()).single;
+
+    expect(loaded.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2', 'legacy-task-reminder:task-reminder-persistence']);
+    expect(loaded.taskReminders.singleWhere((item) => item.id == 'persist-r2').isAllDay, isTrue);
+    expect(loaded.nextReminderSequence, 4);
+    expect(loaded.reminderDate, DateTime(2026, 10, 20, 10));
+    expect(loaded.followUps.single.reminderDate, DateTime(2026, 10, 23, 11));
+    expect(loaded.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 12));
+
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      ArvinBackupManager.directoryKey: 'content://arvin-backups',
+    });
+    final service = _PeopleBackupService();
+    final manager = ArvinBackupManager(service: service);
+    await manager.backupCanonicalTasks([loaded]);
+    final rawTasks = service.writtenPayload!['tasks'] as List<dynamic>;
+    service.restoreDocument = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'tasks': rawTasks,
+    };
+
+    final restored = (await manager.restoreCanonicalTasks())!.single;
+    expect(restored.taskReminders.map((item) => item.id), ['persist-r1', 'persist-r2', 'legacy-task-reminder:task-reminder-persistence']);
+    expect(restored.taskReminders.singleWhere((item) => item.id == 'persist-r2').isAllDay, isTrue);
+    expect(restored.nextReminderSequence, 4);
+    expect(restored.reminderDate, DateTime(2026, 10, 20, 10));
+    expect(restored.followUps.single.reminderDate, DateTime(2026, 10, 23, 11));
+    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 12));
+
+    // Empty collections and the migration tombstone must overwrite prior
+    // envelope values; otherwise a removed reminder could reappear on reload.
+    restored.taskReminders.clear();
+    await store.save([restored]);
+    final afterRemoval = (await store.load()).single;
+    expect(afterRemoval.taskReminders, isEmpty);
+    expect(afterRemoval.legacyReminderMigrationCompleted, isTrue);
+    expect(afterRemoval.reminderDate, DateTime(2026, 10, 20, 10));
+  });
+
 }

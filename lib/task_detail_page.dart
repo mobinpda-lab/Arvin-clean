@@ -19,6 +19,7 @@ class TaskDetailPage extends StatefulWidget {
     super.key,
     required this.task,
     this.projectTitle,
+    this.calendarItemLabel,
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
@@ -29,6 +30,7 @@ class TaskDetailPage extends StatefulWidget {
 
   final Task task;
   final String? projectTitle;
+  final String? calendarItemLabel;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
@@ -72,7 +74,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (latest != null && _waitingService.isWaitingResult(latest.result)) {
       return 'در انتظار پاسخ';
     }
-    return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
+    return _task.followUps.isNotEmpty || _task.followUpDate != null
+        ? 'دارای سابقه پیگیری'
+        : 'در انتظار انجام';
   }
 
   Color _statusColor() {
@@ -247,7 +251,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   _task.priority == TaskPriority.high ? _danger : _waiting,
                   icon: Icons.flag_outlined,
                 ),
-              if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
+              if (_task.followUps.isNotEmpty || _task.followUpDate != null) _badge('دارای سابقه پیگیری', _brand, icon: Icons.timeline_outlined),
               for (final tag in _task.tags.take(4))
                 _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
@@ -506,7 +510,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
         appBar: AppBar(
-          title: const Text('جزئیات کار'),
+          title: Text(widget.calendarItemLabel == null
+              ? 'جزئیات کار'
+              : 'جزئیات کار · ${widget.calendarItemLabel}'),
           actions: [
             IconButton(
               key: const ValueKey('task-detail-edit'),
@@ -538,7 +544,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             children: [
-              if (_task.followUpEnabled && !(_task.completed))
+              if (!_task.completed)
                 Expanded(
                   child: FilledButton.icon(
                     key: const ValueKey('task-detail-add-followup'),
@@ -547,7 +553,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     label: const Text('افزودن پیگیری'),
                   ),
                 ),
-              if (_task.followUpEnabled && !_task.completed) const SizedBox(width: 10),
+              if (!_task.completed) const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-complete'),

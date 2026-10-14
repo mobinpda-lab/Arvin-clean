@@ -57,7 +57,7 @@ void main() {
     );
   });
 
-  testWidgets('canonical follow-up row keeps generic Task actions', (
+  testWidgets('Follow-up tap opens its Task; long press shows typed actions', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
@@ -66,6 +66,9 @@ void main() {
       title: 'پیگیری قرارداد',
       date: day,
     );
+    var opened = 0;
+    var completed = 0;
+    var edited = 0;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -73,28 +76,98 @@ void main() {
           initialSelectedDay: day,
           reminders: [reminder],
           canMutateReminder: (item) => item.id.startsWith('followup:'),
-          onCompleteReminder: (_) async {},
-          onEditReminder: (_) async {},
+          onOpenTaskDetail: (item) async {
+            expect(item.id, reminder.id);
+            opened++;
+          },
+          onCompleteReminder: (_) async => completed++,
+          onEditReminder: (_) async => edited++,
         ),
       ),
     );
 
     await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
     await tester.pump();
+    expect(opened, 1);
+    expect(find.byKey(ValueKey('calendar-action-edit-${reminder.id}')), findsNothing);
 
-    expect(
-      find.byKey(ValueKey('reminder-complete-${reminder.id}')),
-      findsOneWidget,
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(ValueKey('calendar-action-complete-${reminder.id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('calendar-action-edit-${reminder.id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('reminder-snooze-${reminder.id}')), findsNothing);
+
+    await tester.tap(find.byKey(ValueKey('calendar-action-complete-${reminder.id}')));
+    await tester.pumpAndSettle();
+    expect(completed, 1);
+    expect(edited, 0);
+  });
+
+  testWidgets('Reminder management never offers deletion of the parent Task', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 9, 15, 9);
+    final reminder = CalendarReminder(
+      id: 'task-reminder-item:task-1:rem-1',
+      title: 'یادآور مستقل',
+      date: day,
     );
-    expect(
-      find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
-      findsNothing,
-      reason: 'Calendar no longer exposes a nonfunctional snooze action',
+    var edited = 0;
+    var deletedTask = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: <CalendarReminder>[reminder],
+          onOpenTaskDetail: (_) async {},
+          onEditTask: (_) async => edited++,
+          onDeleteTask: (_) async => deletedTask++,
+          onRegisterTaskToDeviceCalendar: (_) async {},
+        ),
+      ),
     );
-    expect(
-      find.byKey(ValueKey('reminder-edit-${reminder.id}')),
-      findsOneWidget,
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(ValueKey('calendar-action-reminder-${reminder.id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('calendar-action-delete-${reminder.id}')), findsNothing);
+
+    await tester.tap(find.byKey(ValueKey('calendar-action-reminder-${reminder.id}')));
+    await tester.pumpAndSettle();
+    expect(edited, 1);
+    expect(deletedTask, 0);
+  });
+
+  testWidgets('Task due, Reminder and Follow-up rows have distinct labels', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 9, 15, 9);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: <CalendarReminder>[
+            CalendarReminder(id: 'task-due:task-1', title: 'کار', date: day),
+            CalendarReminder(
+              id: 'task-reminder-item:task-1:rem-1',
+              title: 'یادآور مستقل',
+              date: day,
+            ),
+            CalendarReminder(
+              id: 'followup:task-1:fu-1',
+              title: 'پیگیری فروشنده',
+              date: day,
+            ),
+          ],
+        ),
+      ),
     );
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد کار'), findsOneWidget);
+    expect(find.text('یادآور'), findsOneWidget);
+    expect(find.text('پیگیری'), findsOneWidget);
   });
 
   testWidgets('long press on a week date forwards the exact selected date', (
@@ -121,64 +194,71 @@ void main() {
     expect(requestedDate, DateTime(2026, 9, 15));
   });
 
-  testWidgets('Arvin Task primary actions are visible before expansion', (
+  testWidgets('Task tap opens detail; long press exposes management only', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
-    var edited = 0;
-    var registered = 0;
-    final reminders = <CalendarReminder>[
-      CalendarReminder(
-        id: 'task-reminder:task-1',
-        title: 'یادآوری کار',
-        date: day,
-      ),
-      CalendarReminder(
-        id: 'task-due:task-1:2026-09-16T09:00:00.000',
-        title: 'تکرار کار',
-        date: day.add(const Duration(days: 1)),
-      ),
-    ];
+    final reminder = CalendarReminder(
+      id: 'task-due:task-1',
+      title: 'موعد کار',
+      date: day,
+    );
+    var openedId = '';
+    var editedId = '';
+    var registeredId = '';
+    var deleted = 0;
 
-    for (final reminder in reminders) {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CalendarPage(
-            key: ValueKey(reminder.id),
-            initialSelectedDay: reminder.date,
-            reminders: <CalendarReminder>[reminder],
-            onEditTask: (_) async => edited++,
-            onDeleteTask: (_) async {},
-            onRegisterTaskToDeviceCalendar: (_) async => registered++,
-          ),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: <CalendarReminder>[reminder],
+          onOpenTaskDetail: (item) async => openedId = item.id,
+          onEditTask: (item) async => editedId = item.id,
+          onDeleteTask: (item) async => deleted++,
+          onRegisterTaskToDeviceCalendar: (item) async => registeredId = item.id,
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      final edit = find.byKey(ValueKey('task-due-edit-${reminder.id}'));
-      final register = find.byKey(
-        ValueKey('task-due-device-calendar-${reminder.id}'),
-      );
-      final delete = find.byKey(ValueKey('task-due-delete-${reminder.id}'));
+    await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pump();
+    expect(openedId, reminder.id);
+    expect(find.byKey(ValueKey('calendar-action-edit-${reminder.id}')), findsNothing);
+    expect(find.byKey(ValueKey('task-due-edit-${reminder.id}')), findsNothing);
+    expect(find.byKey(ValueKey('task-due-device-calendar-${reminder.id}')), findsNothing);
 
-      // The primary actions are discoverable in the collapsed card.
-      expect(edit, findsOneWidget);
-      expect(register, findsOneWidget);
-      expect(delete, findsNothing);
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+    final edit = find.byKey(ValueKey('calendar-action-edit-${reminder.id}'));
+    final register = find.byKey(ValueKey('calendar-action-register-${reminder.id}'));
+    final delete = find.byKey(ValueKey('calendar-action-delete-${reminder.id}'));
+    expect(edit, findsOneWidget);
+    expect(register, findsOneWidget);
+    expect(delete, findsOneWidget);
 
-      await tester.tap(edit);
-      await tester.pump();
-      await tester.tap(register);
-      await tester.pump();
+    await tester.tap(edit);
+    await tester.pumpAndSettle();
+    expect(editedId, reminder.id);
 
-      // Destructive actions remain behind the existing expand interaction.
-      await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-      await tester.pump();
-      expect(delete, findsOneWidget);
-    }
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(register);
+    await tester.pumpAndSettle();
+    expect(registeredId, reminder.id);
 
-    expect(edited, 2);
-    expect(registered, 2);
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(delete);
+    await tester.tap(delete);
+    await tester.pumpAndSettle();
+    // Task-due deletion requires explicit confirmation; cancel must preserve the Task.
+    expect(find.text('انتقال کار به سطل زباله؟'), findsOneWidget);
+    expect(deleted, 0);
+    await tester.ensureVisible(find.text('لغو'));
+    await tester.tap(find.text('لغو'));
+    await tester.pumpAndSettle();
+    expect(deleted, 0);
   });
-
 }

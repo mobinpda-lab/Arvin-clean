@@ -55,8 +55,10 @@ void main() {
     expect(target.description, 'بعد');
     expect(target.dueDate, DateTime(2026, 8, 30, 14));
     expect(target.allDay, isTrue);
-    expect(target.followUpEnabled, isFalse);
+    expect(target.followUpEnabled, isTrue);
     expect(target.followUpDate, isNull);
+    expect(target.followUps, hasLength(1));
+    expect(target.followUps.single.id, 'fu-1');
     expect(target.tags, ['مهم', 'مشتری']);
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
@@ -161,4 +163,129 @@ void main() {
     expect(target.tags, ['الف']);
     expect(target.checklist, ['یک']);
   });
+
+  test('applies independent Task reminders without replacing FollowUp history', () {
+    final history = FollowUp(
+      id: 'history',
+      dateTime: DateTime(2026, 10, 1, 10),
+      nextFollowUp: DateTime(2026, 10, 10, 9),
+    );
+    final target = Task(
+      id: 'reminders-apply',
+      title: 'قبل',
+      reminderDate: DateTime(2026, 10, 5, 10),
+      followUps: [history],
+      taskReminders: [
+        TaskReminder(
+          id: 'old',
+          taskId: 'reminders-apply',
+          title: 'قدیمی',
+          date: DateTime(2026, 10, 6, 10),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+    final edited = Task(
+      id: 'reminders-apply',
+      title: 'بعد',
+      reminderDate: DateTime(2026, 10, 5, 10),
+      followUps: const [],
+      taskReminders: [
+        TaskReminder(
+          id: 'new',
+          taskId: 'reminders-apply',
+          title: 'جدید',
+          date: DateTime(2026, 10, 7, 11),
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.taskReminders.single.id, 'new');
+    expect(target.taskReminders.single.title, 'جدید');
+    expect(target.nextReminderSequence, 3);
+    expect(target.reminderDate, DateTime(2026, 10, 5, 10));
+    expect(target.followUps, hasLength(1));
+    expect(target.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 9));
+
+    edited.taskReminders.clear();
+    expect(target.taskReminders, hasLength(1),
+        reason: 'the canonical Task must not alias the editor list');
+  });
+
+
+  test('applies legacy migration tombstone with canonical reminder collection', () {
+    final now = DateTime(2026, 10, 1, 10);
+    final target = Task(
+      id: 'legacy-apply',
+      title: 'کار',
+      reminderDate: DateTime(2026, 10, 5, 10),
+    );
+    final edited = Task(
+      id: 'legacy-apply',
+      title: 'کار',
+      reminderDate: null,
+      legacyReminderMigrationCompleted: true,
+      taskReminders: [
+        TaskReminder(
+          id: 'legacy-task-reminder:legacy-apply',
+          taskId: 'legacy-apply',
+          title: 'کار — یادآور ۱',
+          date: DateTime(2026, 10, 5, 10),
+          createdAt: now,
+          updatedAt: now,
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.reminderDate, isNull);
+    expect(target.legacyReminderMigrationCompleted, isTrue);
+    expect(target.taskReminders.single.id, 'legacy-task-reminder:legacy-apply');
+    expect(target.nextReminderSequence, 2);
+  });
+
+
+  test('merges new FollowUp records without replacing existing history', () {
+    final old = FollowUp(
+      id: 'old-follow-up',
+      dateTime: DateTime(2026, 10, 10, 9),
+      note: 'سابقه قبلی',
+    );
+    final added = FollowUp(
+      id: 'new-follow-up',
+      dateTime: DateTime(2026, 10, 12, 10),
+      note: 'پیگیری جدید',
+    );
+    final target = Task(
+      id: 'task-with-follow-ups',
+      title: 'کار',
+      followUps: [old],
+    );
+    final edited = Task(
+      id: 'task-with-follow-ups',
+      title: 'کار ویرایش‌شده',
+      followUps: [old, added],
+    );
+
+    service.apply(target, edited);
+
+    expect(target.title, 'کار ویرایش‌شده');
+    expect(target.followUps.map((item) => item.id), ['old-follow-up', 'new-follow-up']);
+    expect(target.followUps.first.note, 'سابقه قبلی');
+    expect(target.followUpEnabled, isTrue);
+  });
+
+
 }

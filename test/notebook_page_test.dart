@@ -670,14 +670,14 @@ void main() {
     await tester.pumpAndSettle();
 
     final convertedNote = await repository.loadNote('convert-ui');
-    expect(convertedNote, isNotNull);
-    expect(convertedNote?.id, 'convert-ui');
-    final converted = convertedNote!;
+    expect(convertedNote, isNull);
+    final converted = (await TaskStore(executor: database).load()).single;
+    expect(converted.id, 'convert-ui');
     expect(converted.title, 'یادداشت قابل تبدیل');
     expect(converted.category, 'کاری');
     expect(converted.tags, const ['مهم']);
-    expect(converted.followUpEnabled, isTrue);
-    expect(converted.notebookKind, NotebookItemKind.note);
+    expect(converted.followUpEnabled, isFalse);
+    expect(converted.notebookKind, isNull);
     expect(find.text('دفترچه'), findsWidgets);
   });
 

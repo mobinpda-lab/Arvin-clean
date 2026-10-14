@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'reminder_notification_policy.dart';
+
 enum TaskSwipeAction { archive, trash, moveToToday, convertToFollowUp, none }
 
 class CalendarIntegrationSettings {
@@ -79,6 +81,7 @@ class AppSettings {
     required this.usePersianDate,
     required this.fontFamily,
     this.fontSize = 16.0,
+    this.allDayReminderNotificationMinutes = defaultAllDayReminderNotificationMinutes,
     this.swipeRightAction = TaskSwipeAction.trash,
     this.swipeLeftAction = TaskSwipeAction.archive,
     this.calendarIntegration = const CalendarIntegrationSettings(),
@@ -88,6 +91,7 @@ class AppSettings {
   final bool usePersianDate;
   final String? fontFamily;
   final double fontSize;
+  final int allDayReminderNotificationMinutes;
   final TaskSwipeAction swipeRightAction;
   final TaskSwipeAction swipeLeftAction;
   final CalendarIntegrationSettings calendarIntegration;
@@ -97,6 +101,7 @@ class AppSettings {
     bool? usePersianDate,
     String? fontFamily,
     double? fontSize,
+    int? allDayReminderNotificationMinutes,
     bool clearFontFamily = false,
     TaskSwipeAction? swipeRightAction,
     TaskSwipeAction? swipeLeftAction,
@@ -107,6 +112,9 @@ class AppSettings {
       usePersianDate: usePersianDate ?? this.usePersianDate,
       fontFamily: clearFontFamily ? null : (fontFamily ?? this.fontFamily),
       fontSize: fontSize ?? this.fontSize,
+      allDayReminderNotificationMinutes: normalizeAllDayReminderNotificationMinutes(
+        allDayReminderNotificationMinutes ?? this.allDayReminderNotificationMinutes,
+      ),
       swipeRightAction: swipeRightAction ?? this.swipeRightAction,
       swipeLeftAction: swipeLeftAction ?? this.swipeLeftAction,
       calendarIntegration: calendarIntegration ?? this.calendarIntegration,
@@ -119,6 +127,8 @@ class AppSettingsService {
   static const _persianDateKey = 'arvin.settings.usePersianDate';
   static const _fontFamilyKey = 'arvin.settings.fontFamily';
   static const _fontSizeKey = 'arvin.settings.fontSize';
+  static const _allDayReminderNotificationMinutesKey =
+      'arvin.settings.allDayReminderNotificationMinutes';
   static const _swipeRightKey = 'arvin.settings.swipeRightAction';
   static const _swipeLeftKey = 'arvin.settings.swipeLeftAction';
 
@@ -150,6 +160,9 @@ class AppSettingsService {
       usePersianDate: preferences.getBool(_persianDateKey) ?? true,
       fontFamily: _normalizeFontFamily(preferences.getString(_fontFamilyKey)),
       fontSize: _normalizeFontSize(preferences.getDouble(_fontSizeKey)),
+      allDayReminderNotificationMinutes: normalizeAllDayReminderNotificationMinutes(
+        preferences.getInt(_allDayReminderNotificationMinutesKey),
+      ),
       swipeRightAction: _decodeSwipeAction(
         preferences.getString(_swipeRightKey),
         fallback: TaskSwipeAction.trash,
@@ -175,6 +188,11 @@ class AppSettingsService {
   Future<void> saveFontSize(double size) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(size));
+  }
+
+  Future<void> saveAllDayReminderNotificationMinutes(int minutes) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setInt(_allDayReminderNotificationMinutesKey, normalizeAllDayReminderNotificationMinutes(minutes));
   }
 
   Future<void> saveFontFamily(String? family) async {
@@ -252,6 +270,7 @@ class AppSettingsService {
       'themeMode': settings.themeMode.name,
       'usePersianDate': settings.usePersianDate,
       'fontSize': _normalizeFontSize(settings.fontSize),
+      'allDayReminderNotificationMinutes': normalizeAllDayReminderNotificationMinutes(settings.allDayReminderNotificationMinutes),
       'swipeRightAction': settings.swipeRightAction.name,
       'swipeLeftAction': settings.swipeLeftAction.name,
       // Explicit null means the portable setting was intentionally left at
@@ -305,6 +324,7 @@ class AppSettingsService {
     final rawPersianDate = json['usePersianDate'];
     final rawFontFamily = json['fontFamily'];
     final rawFontSize = json['fontSize'];
+    final rawAllDayReminderMinutes = json['allDayReminderNotificationMinutes'];
     final rawSwipeRight = json['swipeRightAction'];
     final rawSwipeLeft = json['swipeLeftAction'];
     final rawCalendar = json['calendarIntegration'];
@@ -317,6 +337,10 @@ class AppSettingsService {
     }
     if (rawFontSize != null && rawFontSize is! num) {
       throw const FormatException('Arvin backup font size setting is invalid');
+    }
+    if (rawAllDayReminderMinutes != null &&
+        (rawAllDayReminderMinutes is! int || rawAllDayReminderMinutes < 0 || rawAllDayReminderMinutes >= 24 * 60)) {
+      throw const FormatException('Arvin backup all-day reminder notification time is invalid');
     }
     if (rawFontFamily != null && rawFontFamily is! String) {
       throw const FormatException('Arvin backup font setting is invalid');
@@ -375,6 +399,7 @@ class AppSettingsService {
       usePersianDate: rawPersianDate is bool ? rawPersianDate : true,
       fontFamily: _normalizeFontFamily(rawFontFamily as String?),
       fontSize: _normalizeFontSize((rawFontSize as num?)?.toDouble()),
+      allDayReminderNotificationMinutes: normalizeAllDayReminderNotificationMinutes(rawAllDayReminderMinutes as int?),
       swipeRightAction: _decodePortableSwipeAction(
         rawSwipeRight as String?,
         fallback: TaskSwipeAction.trash,
@@ -413,6 +438,7 @@ class AppSettingsService {
     await preferences.setString(_themeModeKey, settings.themeMode.name);
     await preferences.setBool(_persianDateKey, settings.usePersianDate);
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(settings.fontSize));
+    await preferences.setInt(_allDayReminderNotificationMinutesKey, normalizeAllDayReminderNotificationMinutes(settings.allDayReminderNotificationMinutes));
     await preferences.setString(_swipeRightKey, settings.swipeRightAction.name);
     await preferences.setString(_swipeLeftKey, settings.swipeLeftAction.name);
 

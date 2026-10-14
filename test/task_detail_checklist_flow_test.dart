@@ -70,4 +70,18 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
   });
+  testWidgets('Task Detail labels the selected calendar item type', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: Task(id: 'calendar-task-1', title: 'تماس با فروشنده'),
+          calendarItemLabel: 'پیگیری',
+        ),
+      ),
+    );
+
+    expect(find.text('جزئیات کار · پیگیری'), findsOneWidget);
+    expect(find.text('تماس با فروشنده'), findsOneWidget);
+  });
+
 }

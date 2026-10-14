@@ -1,3 +1,73 @@
+## 2026-10-13 — Task Follow-up model simplified
+
+- **Problem:** `followUpEnabled` made users choose an implementation flag even though every Task should support optional Follow-ups; «منتظر پاسخ دیگران» was stored in FollowUp.result but not directly discoverable from Home.
+- **Decision:** Task always supports zero or more real `followUps[]`. The user-facing «کار پیگیری‌دار» flag is removed from Quick Entry and Full Form. The legacy field remains only as backward-compatible mirror and must not drive filtering/status/feature availability.
+- **UI:** Full Task editor now has «پیگیری‌ها» and «افزودن پیگیری»; newly added Follow-ups are returned with the Task. TaskEditApplyService merges new Follow-ups by stable ID to preserve existing/concurrent history.
+- **Waiting list:** Home → More now exposes «منتظر پاسخ دیگران», opens the office directly in waiting-only mode, excludes completed/archived/trashed Tasks and only includes a Task when its latest Follow-up is still waiting. Each row offers «بازکردن کار».
+- **Reason:** Follow-up is a lifecycle capability/data collection, not a Task type/flag. Reminder and `nextFollowUp` remain independent; no parallel storage or Task copies.
+- **Status:** Code and regression updates committed to the active integration branch. Exact-head analyzer/tests/build/UI acceptance are not yet confirmed; release remains NO-GO.
+
+---
+
+## 2026-10-13 — Owner decision: configurable all-day reminder notification time
+
+- **Problem:** 09:00 is the preferred default, not a hard-coded time that every user must accept.
+- **Decision:** all-day/date-only Task reminders notify at **09:00 local time by default**; users may change the time in Settings. Timed Task reminders and FollowUp reminders retain their own times.
+- **Persistence/runtime:** reuse `AppSettingsService` and SharedPreferences; persist the selected minute-of-day, include it in portable settings backup/restore, default missing legacy values to 540 minutes, and apply the preference in alarm planning and background delivery. Changing the preference requests rescheduling.
+- **Architecture:** no parallel settings store, reminder store, scheduler or notification model. Calendar entries remain all-day/date-only.
+- **Validation finding:** exact-head CI found `taskReminderId` uninitialized in two `FollowUpReminderCandidate` constructors; fixed by initializing it to null for legacy/default constructors in commit `a8263d5119c16c69db7fd282d53820504650b57e`.
+- **Status:** policy and implementation path are recorded; new exact-head CI is required. No release claim until validation passes.
+
+---
+
+## 2026-10-13 — Owner decision: all-day reminder time is configurable
+
+- **Product decision:** all-day/date-only Task reminder notifications default to **09:00 local time**, but the user can change the time in Settings under «یادآورها و اعلان‌ها».
+- **Persistence:** store the chosen minute-of-day through the existing `AppSettingsService` / SharedPreferences foundation. Legacy installs and backups missing this key use 09:00. Portable backup/restore carries the preference and validates it as a local time from 00:00 through 23:59.
+- **Runtime contract:** both alarm planning and background delivery must load and apply the saved preference. Changing it must reschedule the existing alarm. Calendar projection remains all-day; timed reminders and FollowUp reminders remain unchanged.
+- **Architecture:** no second settings store, reminder store, scheduler, or notification model.
+- **Validation status:** implementation and tests added on the safe integration branch; exact-head CI and Android runtime acceptance are pending. Do not merge/release until validated.
+
+---
+
+## 2026-10-13 — Owner decision: all-day reminder notification time APPROVED
+
+- **Initial owner decision (amended 2026-10-13):** 09:00 local time is the default for date-only/all-day Task reminders; users can change it in Settings.
+- **Scope:** this selects notification delivery time only; Calendar representation remains all-day/date-only. Timed reminders keep their selected time.
+- **Status:** product-policy ambiguity is resolved. This does not imply CI, Calendar Provider Acceptance, device smoke, physical-device validation, backup/restore, or release gates have passed.
+- **Next:** re-query PR #2666's live head after this memory write and verify required validation on that exact SHA. Keep PR Draft and release NO-GO until gates pass.
+
+---
+
+## 2026-10-13 — TaskReminder projection, sync, and delivery integration
+
+- **Decision:** New Task reminders use `task-reminder-item:<taskId>:<reminderId>` for external identity. The migrated legacy item keeps `task-reminder:<taskId>`; after migration the legacy field is not projected separately. Inbound edit/delete resolves the exact item by stable identity and does not rename/delete the Task or neighboring reminders.
+- **Decision:** Notification delivery keys are independent per reminder. The migrated legacy item retains the previous `task:<taskId>@<timestamp>` delivery identity; new items use their own stable identity. Date-only reminders remain all-day in Calendar and use a separate notification-time helper.
+- **Persistence fix:** Task JSON always serializes `taskReminders`, `nextReminderSequence`, and `legacyReminderMigrationCompleted`; `TaskStore._canonicalEnvelope` treats them as known canonical keys. This prevents a previously persisted collection from being reintroduced when the current collection is empty.
+- **Impact:** Updated projection, outbound/inbound Calendar reconciliation, alarm planning, delivery projection/state, Task Editor and TaskEditApplyService; added tests for same-time distinct reminders, stable IDs, inbound edit/delete isolation, SQL/backup round-trip and deletion tombstone.
+- **Owner decision resolved (2026-10-13):** 09:00 local time is the default for all-day/date-only reminder notifications, and users can change it in Settings. Timed reminders retain their selected time.
+- **Status:** Draft PR #2666 only. Exact-head Build/Calendar acceptance remain unverified; Device Smoke is skipped. Do not merge/release.
+
+---
+## 2026-10-13 — Safe integration slice: canonical TaskReminder and migration marker
+
+- **Problem:** canonical Task supported only singular `reminderDate`; the approved multiple-reminder design requires a stable-ID collection and idempotent representation of the legacy Task reminder.
+- **Decision:** add `TaskReminder` with `id/taskId/title/date/status/createdAt/updatedAt/isAllDay/sequence`; decode the legacy Task reminder into deterministic ID `legacy-task-reminder:<taskId>`; retain the legacy timestamp and persist `legacyReminderMigrationCompleted` as a tombstone so removal is not silently recreated on later decode.
+- **Reason:** preserve old-reader/rollback compatibility while making the canonical Task JSON representation idempotent.
+- **Impact:** model/JSON slice only plus focused regression tests; no separate store or schema migration.
+- **Status:** committed on safe integration PR #2666; exact-head Build is pending at the time of the code checkpoint. Calendar projection suppression/identity reconciliation and persistence/restore tests remain open; do not merge or release yet.
+
+---
+## 2026-10-13 — Approved reminder migration contract takes precedence
+
+- **Problem:** the implementation design in PR #2655 and `ARVIN_MULTIPLE_REMINDERS_DESIGN.md` retains legacy `Task.reminderDate` without migrating it, while the approved architecture decision requires a deterministic, idempotent migration into exactly one TaskReminder.
+- **Decision:** the owner-approved architecture decision is authoritative. Reconcile the lower-level design and implementation to migrate legacy Task reminders without dropping the legacy value before durable validation and without emitting both legacy and new Calendar/notification identities.
+- **Reason:** avoid design drift, missed reminders and duplicate Calendar events while keeping Task as the canonical source of truth.
+- **Impact:** PR #2655 must not be merged as-is. Implement migration and regression tests on a fresh branch from current main; retain independent `nextFollowUp` and per-FollowUp `reminderDate` semantics.
+- **Current owner-data context:** owner reports the current database is empty; this is not evidence that old backups, fixtures or legacy payloads do not exist.
+- **Status:** decision recorded; code reconciliation and validation pending.
+
+---
 # Arvin Decision Log
 
 ## 2026-10-11 — Restore rollback must include taxonomy catalogs
@@ -171,3 +241,29 @@
 - Proposal for review only: embed a `TaskReminder` collection in canonical Task JSON, each with stable immutable ID, editable title, schedule and explicit date-only/all-day metadata. Reuse existing notification and Calendar engines; no parallel reminder store.
 - Compatibility gate: preserve legacy singular fields deliberately; specify decode/edit/export/restore behavior and duplicate prevention before code changes. Keep `nextFollowUp` separate; only seed a reminder on explicit user opt-in. Never infer all-day from midnight.
 - Status: **PROPOSED / OWNER-ARCHITECTURE APPROVAL REQUIRED / NO CODE CHANGE**. See Issue #2654 and PR #2652.
+
+## 2026-10-13 — Owner-approved multiple Task reminders and safe migration
+- **Problem:** one Task-level `reminderDate` cannot represent multiple independent reminders; naive integration risks legacy-data loss and duplicate Calendar events.
+- **Decision:** owner approved the multiple-reminder product model and requested safe migration. Each Task may contain multiple stable-ID TaskReminders with independent title/schedule/status and created/updated metadata. Keep `nextFollowUp`, Task reminders, and per-FollowUp `reminderDate` separate.
+- **Migration contract:** migrate legacy Task `reminderDate` to exactly one reminder using deterministic identity and idempotent retry; preserve old data until durable validation; never infer all-day from midnight; preserve Calendar identity so legacy/new projections do not duplicate events.
+- **Architecture:** canonical Task JSON/SQL and existing Calendar/notification/backup systems remain the source of truth. No parallel store/scheduler. Internal Follow-up Action projection remains display-only and excluded from outbound sync and reminder notifications.
+- **Status:** OWNER DECISION APPROVED; implementation, tests, physical-device validation and release approval remain outstanding. Supersedes earlier entries that described architecture approval as pending. See `ARVIN_MULTIPLE_REMINDER_ARCHITECTURE_DECISION.md`, Issue #2654 and PR #2655.
+
+
+## 2026-10-13 — Calendar item Tap vs Long Press
+
+- **Problem:** Calendar Task cards exposed Edit and device-Calendar registration chips during ordinary viewing, while tapping the card only expanded/collapsed it. Long press on an item did not open its management menu.
+- **Decision:** Normal Tap opens the canonical Task Detail; Long Press opens a typed contextual action menu. Calendar remains a projection; Task remains the source of truth.
+- **Reason:** Prevent accidental management actions and make daily navigation predictable.
+- **Impact:** CalendarPage now has an explicit open-detail callback, Task/Follow-up/Reminder labels are type-derived, management actions are in a long-press bottom sheet, Task deletion requires confirmation, and the existing Task Detail route receives selected item context.
+- **Status:** Initial implementation and acceptance test updates committed on the integration branch. Exact-head CI and device acceptance pending; do not treat as complete until all gates pass.
+- **Reference:** Issue #2685 and ARVIN_CALENDAR_INTERACTION_DECISION.md.
+
+
+## 2026-10-14 — Do not merge the divergent Person branch
+
+- **Problem:** PR #2681 contains the approved Person directory and reporting work, but it diverged substantially from the active parent: 101 commits ahead and 159 behind at comparison time, common ancestor `68724d6191590b81b2d611f59b7944a7fcbb06e0`.
+- **Decision:** keep #2681 open and do not merge, force-update, or cherry-pick it wholesale. Port the approved Person persistence, backup/restore, and report slices onto a clean branch from the active parent.
+- **Reason:** preserve the parent’s validated multi-reminder, Calendar identity, migration, and rollback work; avoid schema/data-loss risk.
+- **Impact:** PR #2692 records the synchronization plan. Person backup/restore and reporting remain P1 blockers; release stays NO-GO.
+- **Status:** accepted operational safeguard; implementation/validation still pending.

@@ -140,6 +140,11 @@ void main() {
   testWidgets(
     'Calendar release acceptance routes completion without exposing ineffective snooze',
     (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final day = DateTime(2026, 9, 9, 10);
       var completed = 0;
       final reminder = CalendarReminder(
@@ -162,14 +167,21 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(
+      await tester.longPress(
         find.byKey(const ValueKey('reminder-card-followup:release-task:release-followup')),
       );
       await tester.pump();
 
-      await tester.tap(
-        find.byKey(const ValueKey('reminder-complete-followup:release-task:release-followup')),
+      final completeAction = find.byKey(
+        const ValueKey('calendar-action-complete-followup:release-task:release-followup'),
       );
+      await tester.scrollUntilVisible(
+        completeAction,
+        250,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(completeAction);
       await tester.pump();
 
       expect(completed, 1);

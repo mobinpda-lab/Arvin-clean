@@ -119,7 +119,7 @@ void main() {
     expect(saved.map((item) => item['id']), <String>['keep', 'new']);
     expect(saved.first['category'], 'work');
     expect(saved.first['completed'], isTrue);
-    expect(saved.last['followUpEnabled'], isTrue);
+    expect(saved.last['followUpEnabled'], isFalse);
     expect(saved.last['followUps'], isEmpty);
   });
 
