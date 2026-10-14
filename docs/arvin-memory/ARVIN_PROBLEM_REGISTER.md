@@ -279,3 +279,12 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** one test failed in shard 2; 243 tests in that shard passed. This did not establish a product deletion defect.
 - **Fix:** commit `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title assertion to the AlertDialog subtree. No tests were removed or weakened.
 - **Status:** code change committed; fresh Build `38579471120` and Device Smoke `38579471201` were still running/queued at the latest checkpoint. Mark resolved only after terminal exact-head CI confirms.
+
+
+## 2026-10-14 — Duplicate Person persistence slices
+
+- **Problem:** PR #2695 and #2696 each create `people_directory` and overlapping directory persistence methods on different base histories.
+- **Root cause:** parallel work started as a persistence-only slice and later expanded into an integrated Person/Follow-up/backup/report slice without retiring the first lane.
+- **Impact:** merging both wholesale risks duplicated implementation or migration conflicts; neither PR is release evidence.
+- **Resolution path:** #2695 is the current leading candidate because it includes the broader feature integration; validate its exact head, compare schema/migration and backup rollback carefully, then supersede #2696 or preserve only unique tests.
+- **Status:** Identified; anti-duplication comments posted to both PRs; no merge/closure performed. Build and Device Smoke remain non-terminal.
