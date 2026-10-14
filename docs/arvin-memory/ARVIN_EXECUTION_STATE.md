@@ -1,3 +1,17 @@
+# AUTHORITATIVE CONTINUATION — 2026-10-14 (Person integration repair attempt)
+
+This entry supersedes earlier live-status claims where they conflict; older entries remain as history. Refresh exact-head CI before any merge/readiness decision.
+
+- **Main:** `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`.
+- **Validated parent feature PR:** [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), exact head `ad762774009e5b5c7ee341146a8160c52e2b9bb2`, mergeable=true, open/unmerged. Build [38507091410](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091410), six-lane Device Smoke [38507091345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091345), and Calendar Provider Acceptance [38507091333](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38507091333) succeeded on that exact head. This is emulator/CI evidence, not physical-device acceptance; PR explicitly says do not merge until every required gate passes.
+- **Person integration PR:** [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695), draft, open/unmerged, current head `0432e3a7874ce5bc0f798345e232a480dc3d65b3`, base branch `integration/task-multiple-reminders-safe-20261013`, mergeable=false. Its recorded Build at prior head `07c7f9005b7331f07468e20d13b3939c990bd9fd` failed all six test shards while Analyze and Debug/Release APK passed.
+- **Repair attempt committed on PR #2695 branch:** `e57df8e` makes Person-directory loading conditional on the waiting-response workflow to prevent an indefinite progress animation in ordinary Follow-up forms; `0432e3a` ensures legacy result text alone does not activate structured waiting state; `d2de8f2` updates service tests for the canonical structured contract; `c169b1c` updates waiting-list fixtures and seeds a Person for the active waiting editor test; `dc5a9a5` makes report filter widget tests scroll lazy controls into view; `a612dde` requires at least one Person ID for active waiting reports.
+- **Validation status for repair attempt:** the Actions wrapper returned no PR-triggered workflow runs for the exact current head `0432e3a...` at latest poll. These code changes are **unvalidated**. A PR comment records the request to trigger exact-head Build and Device Smoke. Do not claim the fixes work until terminal CI evidence exists.
+- **Current bottleneck:** CI is not visible for the latest Person repair head; PR #2695 remains non-mergeable and its base relationship is behind/divergent from the latest parent PR head `ad762774...`. Do not rebase/merge blindly; preserve all Task/Follow-up/reminder and backup contracts.
+- **Next action:** obtain/trigger full exact-head Build, all six test shards, Debug/Release APK, Calendar Provider Acceptance and six Device Smoke lanes for the repaired branch; inspect failures. Only after green results, reconcile the branch against the exact current #2666 head and rerun all gates on the final resulting SHA. Complete standalone Person backup/restore/report acceptance and physical-device validation. Release remains **NO-GO**.
+
+---
+
 # AUTHORITATIVE CONTINUATION — 2026-10-14 (live recheck after v9 execution)
 
 This addendum supersedes older live-status claims below where they conflict. Older checkpoints are retained as history. Evidence is commit-specific; refresh before promotion.
