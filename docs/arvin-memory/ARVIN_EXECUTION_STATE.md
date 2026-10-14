@@ -1250,3 +1250,10 @@ This checkpoint supersedes prior live statements only where its exact SHA-specif
 - **Current bottleneck:** terminal exact-head CI for #2695 and #2709. Keep both Draft and unmerged until the current exact heads pass; after #2709 is accepted, synchronize #2695 and require fresh Build plus six Device Smoke lanes on its final head. Then finish Person backup/restore/report acceptance, Calendar/provider integrity and physical-device validation.
 - **Release:** NO-GO. Automated CI/emulator results do not equal physical-device acceptance. Do not publish or mark the product delivered.
 - **Next action:** poll the three exact-head runs above, inspect any failed job logs, repair without weakening tests, and record the final exact SHA and terminal result before promotion.
+
+# AUTHORITATIVE DEPENDENCY CLARIFICATION — 2026-10-14
+
+- Live PR metadata confirms PR [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) is still OPEN, unmerged, and non-mergeable; its head is `ad762774009e5b5c7ee341146a8160c52e2b9bb2`, targeting `main` at `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d`. Do not treat the integration branch as already incorporated into current main (`658aa85fc4b7d24bfe191016c86c739f61bf3bf5`).
+- PRs #2695 (Person integration) and #2709 (Device Smoke workflow propagation) both target the #2666 integration branch. Even after their exact-head CI succeeds, their branch relationship must be reconciled with the current mainline before product promotion. No blind rebase, merge, or cherry-pick of the heavily diverged #2681 branch.
+- Current promotion order: finish exact-head validation of #2709; integrate its CI-only change through the reviewed integration path; then reconcile #2666 against current main and rerun its complete Build, six Device Smoke lanes, and Calendar Provider Acceptance. Rebase/reconcile #2695 onto the resulting validated parent, rerun all gates, and only then proceed to Person data-integrity and physical-device acceptance.
+- This dependency is an additional integration bottleneck, not an owner decision and not release approval. Release remains NO-GO.
