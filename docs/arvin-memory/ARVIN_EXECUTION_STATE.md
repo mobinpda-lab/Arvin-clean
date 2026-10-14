@@ -1,3 +1,18 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 17:16 UTC — Exact-head documentation CI complete
+
+This entry supersedes the immediately preceding in-progress status for documentation PR #2701.
+
+- Repository default branch `main` remains `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; no merge to main occurred in this cycle.
+- PR #2701 head `f5454ca006d81f3e4b07f537e1a4117f207222b2` has terminal exact-head Build SUCCESS: [run 38602980485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980485), all 9 jobs passed, including Analyze, test shards 0–5, Debug APK and Release APK.
+- The same SHA has terminal exact-head Device Smoke SUCCESS: [run 38602980136](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980136), all six lanes passed: home, quick-capture, people, backup-restore, sql-persistence and sql-migration.
+- This validates the documentation PR's current head only. PR #2701 remains open, Draft, and unmerged; these CI results do not establish full product acceptance or physical-device validation.
+- Person integration PR #2695 remains open Draft at `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, based on integration branch `integration/task-multiple-reminders-safe-20261013`, not main. Its current CI evidence is green on that head, but the PR changes application code across 27 files and is not merged. Do not equate smoke coverage with manual Person/report/calendar acceptance or full standalone-Person backup integrity.
+- Open product/data gates include #2682 (standalone Person backup/restore), #2683 (Person-specific Follow-up/report filters), #2685 (Calendar tap/long-press behavior), and #2654 (multiple independent reminders). Physical-device validation and complete handover evidence remain outstanding.
+- Candidate `ARVIN-RC-01` remains immutably bound to `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; do not silently retarget it.
+- **Release decision: NO-GO.** Next action: continue product-level acceptance and data-integrity verification against a single explicitly selected candidate; do not merge Draft PRs or release on CI alone.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Documentation PR exact-head validation complete
 
 This entry supersedes the earlier in-progress status for PR #2701; those earlier notes remain historical observations.
