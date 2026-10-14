@@ -1077,3 +1077,22 @@ Exact-head validation and acceptance evidence for Person integration and the rem
 2. Validate Person directory round-trip/legacy-backup compatibility/dangling-reference rejection/rollback and per-Follow-up Person reporting on the same exact head.
 3. Link and independently verify all six Device Smoke runs for `ARVIN-RC-01` rather than relying on commit-message summary.
 4. Continue Calendar, backup/restore, migration and physical-device acceptance; preserve release `NO-GO` until all required gates have exact-SHA evidence.
+
+
+## LIVE EVIDENCE CORRECTION — 2026-10-14 — RC-01 six-lane Device Smoke verified
+
+This entry supersedes the earlier sentence above saying the six Device Smoke lanes were not independently verified.
+
+- Device Smoke run [38525486464](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486464) was re-queried. All six jobs are terminal `success` on exact SHA `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`:
+  - `device-smoke (quick-capture)`
+  - `device-smoke (people)`
+  - `device-smoke (home)`
+  - `device-smoke (backup-restore)`
+  - `device-smoke (sql-migration)`
+  - `device-smoke (sql-persistence)`
+- Verified smoke artifacts currently returned by the API include:
+  - `arvin-device-smoke-people-747b1831eddc60f99c1c14a5bbc4a4c0049667ec`, SHA-256 `91eaf1cccadc19d2bbbd508ef10d0d08862a23f29045d5a8d1886a867c3be913`.
+  - `arvin-device-smoke-home-747b1831eddc60f99c1c14a5bbc4a4c0049667ec`, SHA-256 `2ad801572076b079501c2e8e9f3841db9e614031f925c8073533e990551d1bbb`.
+  - `arvin-device-smoke-quick-capture-747b1831eddc60f99c1c14a5bbc4a4c0049667ec`, SHA-256 `3fb6fbc143fc0a51191d81362a7470b26c1da74ee5b59a08ba92a750b3128c87`.
+- Together with Build run [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465), the automated Build and six Device Smoke gates for `ARVIN-RC-01` are now verified green on the same exact SHA.
+- This is automated CI/emulator smoke evidence, not physical-device/user acceptance. Product gates for Person integration, physical-device installation, Calendar final-SHA acceptance, and complete backup/restore/data integrity remain open. Release remains `NO-GO`.
