@@ -1228,3 +1228,13 @@ Poll runs `38579471120` and `38579471201` to terminal status. If green, perform 
 
 ## Current bottleneck / next action
 Wait for Device Smoke run [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) to reach terminal status. Investigate any failed lane using its logs and fix root cause without weakening tests. Then refresh the exact-head evidence after any further code change and update the evidence map.
+
+
+# AUTHORITATIVE CONTINUATION — 2026-10-14 — Smoke partial completion update
+
+- Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) on Person PR #2695 exact head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` is terminal SUCCESS, including Analyze, all six test shards and Debug/Release APK.
+- Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201): Home, Quick Capture, SQL Persistence, SQL Migration and Backup/Restore are now SUCCESS. The People lane remains IN_PROGRESS; run-level result is not terminal.
+- People lane is currently running the canonical Android emulator smoke command; setup, dependencies and repository-owned input checks passed. The smoke command and screenshot upload have not completed. No failure is confirmed at this point.
+- Source review of #2695 confirmed Person-directory schema is additive/idempotent, Follow-up structured Person references are preflight-validated against the backup directory, duplicate/dangling IDs are rejected before restore mutation, and rollback test checks original Task and Person state after an injected failure. This is source/test evidence, not a substitute for the outstanding People lane or physical-device acceptance.
+- No application code changed; no PR merged. #2695 and #2696 remain open/Draft due overlapping persistence implementation. Main stays `658aa85fc4b7d24bfe191016c86c739f61bf3bf5`; release remains **NO-GO**.
+- **Next action:** poll People lane and run to terminal status. If it fails, inspect the failure logs and fix root cause without weakening tests. If it passes, reconcile the latest evidence map and proceed to physical-device and final integration gates.
