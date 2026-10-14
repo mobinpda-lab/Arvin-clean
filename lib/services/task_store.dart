@@ -203,7 +203,7 @@ class TaskStore {
       .toLowerCase()
       .replaceAll('ي', 'ی')
       .replaceAll('ك', 'ک')
-      .replaceAll(RegExp(r'\\s+'), ' ');
+      .replaceAll(RegExp(r'\s+'), ' ');
 
   Future<String> createCategory(String value) async {
     final name = value.trim();
