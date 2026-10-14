@@ -262,3 +262,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Impact:** the requested product behavior cannot be claimed implemented; adding a list without compatibility, backup/restore and stable Calendar identity tests risks lost/duplicated reminders.
 - **Proposed direction only:** embedded stable-ID reminder collection on canonical Task, with explicit all-day metadata; reuse existing persistence, backup/restore, notification and Calendar projection foundations.
 - **Blocked until:** owner/architecture approval of legacy singular-field compatibility and date-only semantics. Do not infer date-only from midnight or auto-convert `nextFollowUp`. Tracker: Issue #2654; PR #2652.
+
+## 2026-10-14 — Recovery dispatcher workflow-ref mismatch
+
+- **Problem:** Dispatching to a target PR branch can run an older workflow definition without `target_sha` support; run metadata `head_sha` may identify the workflow ref rather than the checked-out target. A shared concurrency key can cancel simultaneous recovery builds.
+- **Root cause:** The dispatch ref, workflow definition version, requested target SHA, run metadata SHA, and actual checkout SHA were treated as if they necessarily matched.
+- **Impact:** Recovery could fail to start a verifiable exact-target Build or incorrectly classify a run; multiple targets could cancel one another.
+- **Solution:** Run the workflow from the default branch, pass and assert the explicit target SHA in every quality/APK job, match runs by target-SHA run name, and isolate concurrency per target.
+- **Status:** Fix committed to PR #2699; exact-head CI pending and operational acceptance remains open until controlled dispatch evidence exists.
