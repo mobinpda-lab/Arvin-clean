@@ -209,3 +209,12 @@
 - **Reason:** Controller lifetime must match the widget lifecycle; a post-frame or arbitrary delay would be brittle.
 - **Impact:** Prevents use-after-dispose during dialog transitions and allows the Person edit flow to be tested honestly.
 - **Status:** Implemented on PR #2695 head `a162941fdf824463162ac6198a30b4373bfb751a`; exact-head CI revalidation pending.
+
+
+## 2026-10-14 — Person persistence anti-duplication decision
+
+- **Problem:** PR #2695 and PR #2696 independently add the same `people_directory` table and overlapping TaskStore CRUD/restore APIs.
+- **Decision:** Do not merge both wholesale. Treat #2695 as the leading integration candidate because its patch includes structured Follow-up Person references, deletion detachment, directory UI, and backup/report integration in addition to persistence. Keep #2696 open until #2695's exact-head validation and integration review finish; then close it as superseded or port only demonstrably unique tests.
+- **Reason:** Avoid duplicate schema/store implementation and migration conflicts while retaining safety coverage.
+- **Impact:** No PR closed or merged. Exact-head Build/Device Smoke are still running; this decision is a sequencing recommendation, not a release approval.
+- **Status:** Active; revisit only if validation reveals a unique safe capability in #2696 not covered by #2695.
