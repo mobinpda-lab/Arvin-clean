@@ -194,6 +194,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     Task? task;
     for (final prefix in const <String>[
       'task-due:',
+      'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
     ]) {
@@ -222,6 +223,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     Task? task;
     for (final prefix in const <String>[
       'task-due:',
+      'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
     ]) {
