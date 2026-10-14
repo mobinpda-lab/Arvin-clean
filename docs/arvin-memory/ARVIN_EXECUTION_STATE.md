@@ -1,3 +1,17 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Fast Lane validator scope correction
+
+This checkpoint supersedes the previous PR #2704 validation update where it conflicts. Validation remains SHA-specific.
+
+- PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704) latest head: `6379141d30fda302ec4db5d6c46828ca72cd4456`; draft and unmerged.
+- Device Smoke scope change removes the pull_request-only base-branch restriction and allows Draft PRs to run. The first Fast Lane contract failure exposed a stale assertion requiring the removed Draft-skip condition. The next contract failure exposed a validator bug: its whole-file search rejected the legitimate main/master filter under `push`, instead of inspecting only the `pull_request` trigger.
+- The second validator repair is committed as `6379141d30fda302ec4db5d6c46828ca72cd4456` and scopes the branch-filter assertion to the `pull_request` section.
+- At the latest poll, no Actions run was visible for this exact head; the correction is **not yet validated**. Prior-head failures and queued/in-progress runs cannot be transferred to this SHA.
+- Live comments documenting the failure and fix were added to PR #2704, Person PR #2695, and release lock Issue #2702.
+- **Current bottleneck:** obtain terminal CI for exact head `6379141...`; Fast Lane contract must pass, Build must succeed, and all six Device Smoke lanes must pass. Then obtain exact-head CI and product acceptance evidence for PR #2695.
+- Person PR #2695 remains Draft/unmerged with no current exact-head Actions evidence in the last query. Release remains **NO-GO**. No PR was merged and no release was published.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Device Smoke workflow scope repair and validator follow-up
 
 This checkpoint supersedes earlier status for PR #2704 where it conflicts. All CI evidence is commit-specific.
