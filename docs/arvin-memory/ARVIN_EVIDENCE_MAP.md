@@ -425,3 +425,14 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Release decision | Issue #2702 candidate `747b1831eddc60f99c1c14a5bbc4a4c0049667ec) | NO-GO | Candidate differs from current main; exact-SHA evidence cannot transfer. |
 
 **Execution rule:** a green Build or partial Device Smoke is not product acceptance. All six smoke lanes, feature-specific data integrity, physical-device acceptance, and release documentation must be validated against the final candidate SHA before GO.
+
+## 2026-10-14 — Latest Device Smoke poll (supersedes previous lane snapshot)
+
+| Feature / Gate | Exact SHA / Run | Result | Evidence |
+|---|---|---|---|
+| Build / APK artifact contract | #2709 head `b97506ab41e72c4dd932e1777bb6be5c07f2aca8`; [38568685043](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568685043) | PASS — 9/9 jobs | Analyze, six test shards, Debug APK, Release APK |
+| Device Smoke | Same SHA; [38568684934](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568684934) | IN PROGRESS — 4/6 lanes terminal-success | Home, Quick Capture, SQL Persistence, SQL Migration PASS; People and Backup/Restore IN PROGRESS at latest poll |
+| Person PR Build | #2695 head `f9c5e5598505a2348aaf29b7fdb4962ef1c756a9`; [38568442359](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38568442359) | PASS — 9/9 jobs | No Device Smoke run returned for this exact head |
+| Release | main `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO | Release Closure and Final Head Release Validation were skipped; physical-device and product acceptance remain open |
+
+Do not close the smoke gate until all six lanes are terminal-success on the exact head. A workflow PR Build is not a substitute for Person feature, backup/restore, calendar, or physical-device acceptance.
