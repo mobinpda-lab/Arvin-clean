@@ -1047,3 +1047,67 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Remaining blockers:** physical-device acceptance; integrated Person + Follow-up + report + backup/restore acceptance; controlled end-to-end recovery-dispatch proof. Release issues #2102 and #1901 remain open. Release remains **NO-GO**.
 - **Current bottleneck:** product/data-integrity and physical-device acceptance, plus controlled dispatcher proof. Do not merge Person PR or publish a release solely on CI success.
 - **Next action:** inspect PR #2695 changed files and test coverage against owner contracts; verify backup/restore round-trip and referential integrity for Person IDs and Task/FollowUp preservation; then complete physical-device acceptance. Separately prove dispatcher operation on a known target SHA.
+
+
+# ARVIN UI & PRODUCT COMPLETION EXECUTION — 2026-10-14
+
+This is the execution record for the companion command to Autonomous Delivery v9 and Final Release Closure. It does not override data-safety contracts or release gates.
+
+## Acceptance rule
+
+A UX item is DONE only when all five are evidenced for the same candidate build: (1) code/change reviewed, (2) Build and relevant tests pass, (3) exact candidate APK installed, (4) visual/interaction behavior validated on the target physical Android device, and (5) evidence recorded with screenshot, device/model, Android version, app version, commit SHA, and test result. Emulator smoke or source-code presence alone is insufficient. If any item is missing, the item is not accepted as DONE.
+
+## Current evidence boundary
+
+- PR #2717 documentation head before this entry: `02ce6894886269281507fa69abf7d30784c40927`.
+- Arvin Build [38616683019](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38616683019): terminal SUCCESS — Analyze, six test shards, Debug APK, Release APK.
+- Device Smoke [38616682903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38616682903): terminal SUCCESS — Home, Quick Capture, People, SQL persistence, SQL migration, Backup/Restore.
+- Screenshot artifacts listed for that smoke run: Home [11920357832](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920357832), Quick Capture [11920617864](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920617864), People [11920499580](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920499580). These are automated screenshot artifacts and do not establish physical-device validation.
+- APK artifacts from the Build run: Release APK [11919793557](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11919793557), Debug APK [11919538564](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11919538564).
+- Evidence nuance: these are PR-triggered Build/Device Smoke results and the artifact suffix identifies the synthetic PR merge ref. They prove those CI lanes passed on the PR merge candidate, not a controlled workflow_dispatch checkout of the bare target SHA, nor installation/acceptance on the user's physical phone.
+- Release gate remains NO-GO while issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) and [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) remain open and physical-device acceptance is absent.
+
+## Product gap matrix — current evidence-based status
+
+Status terms: IMPLEMENTED = code plus required acceptance evidence; PARTIAL = some code/automated evidence exists but acceptance is incomplete; NOT IMPLEMENTED = known missing behavior from the latest owner-reported regression record. Where the installed APK cannot be inspected directly, this matrix explicitly avoids claiming that the current installed version was verified.
+
+| Area / acceptance item | Status | Evidence / outstanding proof |
+|---|---|---|
+| Home: page renders and smoke lane completes | PARTIAL | Home emulator smoke and screenshot artifact exist. Must inspect against approved visual reference and validate clipping, filters, status labels, spacing, font, RTL and readability on the actual phone. |
+| Calendar: compact readable Task presentation; tap opens Task; long-press opens actions only | PARTIAL | Automated smoke is not proof of these gestures or visual density. Verify tap vs long-press separately and ensure normal tap never opens the action menu. |
+| Calendar: edit linked Arvin Task and register/sync to phone default calendar | NOT IMPLEMENTED (per open owner regression) | Issue #1901 reports missing actions/settings; real-provider same-event update/no-duplicate acceptance remains open. Recheck code and installed build before changing status. |
+| Quick Entry: compact icons and Category, Project, Tag, Reminder, Repeat, Due Date and Checklist | PARTIAL | Quick Capture smoke/artifact exists, but not a complete visual/form-field acceptance. Inspect the actual screen and exercise every field. |
+| Quick Entry: remove “کار پیگیری‌دار”; create Follow-up only through Task lifecycle | PARTIAL | Canonical data contract is recorded; verify the rendered form and create/edit flows do not expose the legacy toggle and that Follow-ups remain child records. |
+| Full Task Form: remove “کار پیگیری‌دار” and old automatic follow-up time; provide “پیگیری‌ها” + “افزودن پیگیری” | PARTIAL | Architecture/decision contract exists; installed UI and add/edit/multiple-follow-up behavior have no physical acceptance evidence. |
+| Date/time selectors in Quick Add, Edit Task, Reminder and Follow-up | NOT IMPLEMENTED (per open owner regression) | Issue #1901 records blank selector screens in Quick Add and confirms clock should use the circular dial. Must test all four flows on the actual phone, including Persian/RTL input. |
+| Reports: functional output and Person/Follow-up filters | PARTIAL | Code/tests may cover report behavior, but no visual acceptance screenshot for Reports is in the current evidence set. Verify actual filters and report values against canonical Task data. |
+| Settings: font picker/size, Category/Tag management, Project refresh, default Calendar settings | NOT IMPLEMENTED (per open owner regression) | Issue #1901 records these missing/incomplete items. Reuse canonical AppSettingsService and taxonomy/calendar settings; do not create parallel storage. |
+| Checklist toggle and preservation | PARTIAL | Historical regression says enable/disable is missing; verify current canonical Task/Checklist behavior and confirm disabling does not destroy checklist data. |
+| Product scope: remove Checklist/Shopping List/Travel List only after dependency audit | PARTIAL | Scope request is recorded, but no destructive removal is accepted without dependency audit and user-data preservation review. |
+| Physical-device visual evidence for Home, Calendar, Quick Entry, Full Form, Reports and Settings | NOT IMPLEMENTED (acceptance evidence absent) | No evidence record currently proves all six screens on the installed candidate APK with device/version/SHA metadata. |
+
+These statuses are provisional and evidence-scoped. In particular, “NOT IMPLEMENTED” above means the latest owner regression record reports the behavior missing; before modifying code, compare current main and the candidate APK to avoid duplicating a fix that may have landed since that report. Never infer installed behavior from documentation alone.
+
+## Required visual evidence record
+
+For each of Home, Calendar, Quick Entry, Full Task Form, Reports and Settings, record all of:
+- screenshot(s) showing the actual installed candidate and the relevant state;
+- device manufacturer/model, Android version, screen size/density and locale;
+- app version/build number and exact source SHA used to build the APK;
+- APK artifact/run URL and installation confirmation;
+- steps performed and observed result, including tap/long-press distinction where applicable;
+- comparison with approved UX/reference and any remaining defect;
+- reviewer/owner acceptance decision.
+
+Do not attach emulator screenshots as if they were physical-phone screenshots. Label their source accurately.
+
+## Execution order
+
+1. Reconcile current main, decisions, UX references and open issue #1901; identify already-landed fixes before coding.
+2. Inspect Home/Calendar/Quick Entry/Full Form/Reports/Settings source and existing tests; record per-item IMPLEMENTED / PARTIAL / NOT IMPLEMENTED with file/test evidence.
+3. Make focused changes only on a feature branch/PR, reusing canonical Task, Follow-up, Reminder, AppSettingsService, taxonomy and Calendar integration; no parallel models/storage.
+4. Run Analyze, full tests, Debug/Release APK and all relevant smoke lanes on the final candidate SHA. Inspect screenshots and artifacts rather than relying only on green status.
+5. Install that exact APK on the target physical Android phone and execute the visual checklist plus date/time, Calendar and data-integrity flows.
+6. Update the matrix and evidence map with actual results. Leave unresolved items open and keep release NO-GO until all required gates and owner acceptance pass.
+
+**Next action:** use the existing #1901 and related UX contracts as the source of reported gaps; inspect current code and candidate APK before making app changes. The present run provides green automated CI and three screen artifacts, but it does not close the six-screen physical-device visual gate.
