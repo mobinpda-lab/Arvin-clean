@@ -278,3 +278,11 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Correction status:** current PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title finder to the AlertDialog; exact-head Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) passes all six test shards.
 - **Safety:** PR #2715 was closed without merge after its base produced an unexpectedly broad/diverged diff. Do not cherry-pick it.
 - **Remaining status:** this specific test issue is resolved on the current Person PR head; physical-device and integrated product acceptance remain open. Release remains NO-GO.
+
+
+## 2026-10-15 — Legacy Task reminder migration decision resolved; validation open
+- **Problem:** prior records conflicted on migration of Task.reminderDate into TaskReminder.
+- **Owner decision:** Option B, recorded at Issue #2654 comment 6178475884.
+- **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
+- **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
+- **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
