@@ -960,3 +960,16 @@ This checkpoint supersedes earlier status statements where they conflict. Refres
 - Required code changes remain **not yet verified complete**: remove auto-generated follow-up timestamp controls from Full Task Form while retaining «کار پیگیری‌دار»; preserve stored Task.followUpDate and FollowUp.nextFollowUp without copying/clearing; add compact Quick Entry «دارای پیگیری» and «دارای چک‌لیست» toggles that activate the canonical Roll Boxes; keep Checklist Task-owned; and make Calendar show explicit reminder first or nextFollowUp as an action item when no reminder exists, without scheduling a system notification from nextFollowUp alone.
 - Existing #2595 is stacked and currently reports mergeable=false; do not merge or rebase blindly. Reconcile with its shared Universal Time Picker parent and existing overlapping Task-form drafts, then run exact-head Analyze, all test shards, Debug/Release APK, and relevant Calendar/Device Smoke.
 - **Release remains NO-GO** until exact-head automated gates, physical-device Calendar update/no-duplicate behavior, real Backup/Restore and link-integrity evidence, RTL/compact-screen visual acceptance, and explicit owner approval are all recorded.
+
+
+## AUTHORITATIVE CONTINUATION OVERRIDE — 2026-10-15 — Option B implementation candidate
+
+This entry supersedes earlier statements in this file that the owner decision is still pending or that automatic migration is prohibited.
+
+- Owner selected Option B: migrate a non-null legacy Task.reminderDate into canonical TaskReminder on legacy JSON decode using stable ID legacy-task-reminder, explicit isLegacyTaskReminder, and persisted legacyTaskReminderMigrationVersion.
+- Owner reports the current app database is empty and Arvin has not yet been populated with user data. Do not infer all backups, fixtures or other installations are empty.
+- Candidate implementation has been added to lib/models/task.dart, Calendar and scheduler projections, Task editor preservation paths, and regression tests for migration idempotence and stable legacy identity.
+- **Not yet validated:** SQL save/reload and actual backup/restore end-to-end, exact-head CI, Calendar Provider Acceptance, Device Smoke and physical-device behavior. Do not call the feature DONE.
+- **Current bottleneck:** inspect exact-head CI and fix any failures; verify the editor can independently edit/delete the migrated reminder without reviving the legacy field; confirm SQL/backup/restore use the canonical Task JSON decoder.
+- **Next action:** complete docs reconciliation, run exact-head Analyze/all test shards/Debug+Release APK/six Device Smoke lanes/Calendar Provider Acceptance; then inspect failures and only proceed to physical-device and release gates after automated validation.
+- Release remains NO-GO.
