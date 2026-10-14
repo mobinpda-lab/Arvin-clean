@@ -1,3 +1,15 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Post-merge reconciliation
+
+This checkpoint supersedes older status statements below wherever they conflict. Keep older entries as historical evidence, not current state.
+
+- **Documentation PR #2716:** merged into `main` as `31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`. Its exact PR head `00ea3e1434ac3dcdd63a255382e29a80a042c567` had Build [38614134817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38614134817) terminal-success across Analyze, six test shards, Debug APK and Release APK. Device Smoke [38614134949](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38614134949) subsequently reached terminal-success across all six lanes: Home, Quick Capture, SQL persistence, SQL migration, Backup/Restore and People.
+- **Person PR #2695:** head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) are terminal-success, including all six smoke lanes. PR remains open and unmerged; it is based on the multiple-reminders integration lane and must be reconciled with that parent before any integration decision.
+- **Recovery dispatcher PR #2699:** merged. Its Build and six-lane Device Smoke runs passed on its PR head, but controlled operational dispatch against a distinct target SHA remains unproven.
+- **Release decision: NO-GO / BLOCKED.** Issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102), [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) and [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139) remain open. Emulator CI does not establish physical-device acceptance. Still required: same-event Calendar edit and destination-switch/no-duplicate checks on a real Android device; real-file Backup/Restore with Task, Follow-up, Person and Calendar-link integrity plus rollback; Home/RTL/typography and Golden Flow acceptance; and explicit product-owner approval.
+- **Next action:** reconcile the stacked Person/Reminder branches against the current validated mainline, inspect the real-device acceptance checklist and obtain device evidence. Do not publish the candidate APK as a final release or merge feature PRs solely because CI is green.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
