@@ -168,3 +168,12 @@
 - **Reason:** midnight can represent a real timed reminder; legacy JSON/backup values do not preserve intent separately. A dedicated all-day marker (separately for Next Follow-up and Reminder) is the candidate for forward data, subject to compatibility design and owner approval before implementation.
 - **Impact:** model/editor/projection and canonical Task JSON/SQL-envelope/backup-restore regression tests are required. Platform Calendar bridge already accepts all-day state; the gap is in source semantics and projection.
 - **Status:** audit recorded; implementation blocked on the two product/data decisions; release NO-GO.
+
+
+## 2026-10-15 — SUPERSEDING OWNER DECISION: migrate legacy Task reminder (Option B)
+- **Problem:** Earlier entries in this file conflict on whether legacy Task.reminderDate should be converted into the new TaskReminder collection.
+- **Decision:** Owner selected Option B: deterministic, one-time, idempotent migration into canonical TaskReminder. This supersedes prior no-automatic-migration statements.
+- **Reason:** Arvin is starting with an owner-reported empty current app database, while compatibility must still protect backups and other installations; a single canonical representation reduces split behavior.
+- **Required impact:** Stable ID legacy-task-reminder, persisted migration version, preserved timestamp, no midnight-to-all-day inference, preserve Calendar identity task-reminder:<taskId> and scheduler key, preserve other reminders, JSON/SQL/backup/restore compatibility, rollback and no-duplicate tests.
+- **Status:** Candidate code/tests committed to this PR branch; exact-head validation and full acceptance pending. No merge/release authorized.
+- **Source:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
