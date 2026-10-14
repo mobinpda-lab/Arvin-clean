@@ -533,3 +533,22 @@ The row above describing Backup/Restore as in progress is superseded by this upd
 | Documentation branch Build | `f5454ca006d81f3e4b07f537e1a4117f207222b2`; [run 38602980485](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980485) | SUCCESS, 9/9 jobs | Analyze, six test shards, Debug APK, Release APK. Documentation-only branch validation, not release acceptance. |
 | Documentation branch Device Smoke | `f5454ca006d81f3e4b07f537e1a4117f207222b2`; [run 38602980136](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38602980136) | SUCCESS, 6/6 lanes | Home, Quick Capture, People, Backup/Restore, SQL Persistence, SQL Migration. Emulator CI only; not physical-device validation. |
 | Release acceptance | Candidate `ARVIN-RC-01` = `747b1831eddc60f99c1c14a5bbc4a4c0049667ec` | NO-GO | Person-specific backup/restore and reporting, Calendar interaction/update/no-duplicate checks, physical-device evidence, and final handover gates remain open. |
+
+
+---
+
+## 2026-10-14 — Documentation PR exact-head validation (SHA `4a4e531bee86b2a7e4189af166569be947f32b41`)
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| Arvin Build | [38609443902](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443902), `4a4e531bee86b2a7e4189af166569be947f32b41` | PASS — 9/9 jobs | Analyze, test shards 0–5, Debug APK and Release APK all terminal-success |
+| Device Smoke: Home | [38609443810](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38609443810), `4a4e531bee86b2a7e4189af166569be947f32b41` | PASS | Emulator lane terminal-success |
+| Device Smoke: Quick Capture | same run, `4a4e531bee86b2a7e4189af166569be947f32b41` | PASS | Emulator lane terminal-success |
+| Device Smoke: SQL Persistence | same run, `4a4e531bee86b2a7e4189af166569be947f32b41` | PASS | Emulator lane terminal-success |
+| Device Smoke: SQL Migration | same run, `4a4e531bee86b2a7e4189af166569be947f32b41` | PASS | Emulator lane terminal-success |
+| Device Smoke: People | same run, `4a4e531bee86b2a7e4189af166569be947f32b41` | PENDING | Smoke command still running at 17:58 UTC |
+| Device Smoke: Backup/Restore | same run, `4a4e531bee86b2a7e4189af166569be947f32b41` | PENDING | Smoke command still running at 17:58 UTC |
+| Product release acceptance | RC issue #2702 | NO-GO | Person/report, Calendar, full data integrity, real-device acceptance and handover evidence remain open |
+| Multiple-reminder legacy migration | Issue #2654 / PR #2655 | BLOCKED — conflicting contract | Owner-approved design says preserve legacy singular fields without automatic migration; a later blocker comment asserts deterministic conversion. No code changed pending explicit resolution. |
+
+Evidence rule: these Build/Device Smoke results validate only the exact documentation SHA shown above. Emulator smoke is not physical-device acceptance; pending jobs are not passes.
