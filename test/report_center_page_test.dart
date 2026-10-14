@@ -150,10 +150,18 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-person-ali')));
+    await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-person-ali')),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
     await tester.tap(find.byKey(const ValueKey('report-filter-person-ali')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-waiting-response-only')));
+    await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-waiting-response-only')),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
     await tester.tap(find.byKey(const ValueKey('report-filter-waiting-response-only')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
@@ -194,7 +202,11 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-waiting-response-only')));
+    await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-waiting-response-only')),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
     await tester.tap(find.byKey(const ValueKey('report-filter-waiting-response-only')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
