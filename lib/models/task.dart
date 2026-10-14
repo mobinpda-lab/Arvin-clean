@@ -349,9 +349,8 @@ class Task {
     final storedMigrationVersion =
         (json['legacyTaskReminderMigrationVersion'] as num?)?.toInt() ?? 0;
     var migrationVersion = storedMigrationVersion < 0 ? 0 : storedMigrationVersion;
-    if (migrationVersion < 1) {
-      if (legacyReminderDate != null &&
-          !loadedTaskReminders.any((item) => item.isLegacyTaskReminder)) {
+    if (migrationVersion < 1 && legacyReminderDate != null) {
+      if (!loadedTaskReminders.any((item) => item.isLegacyTaskReminder)) {
         final highestSequence = loadedTaskReminders.isEmpty
             ? 0
             : loadedTaskReminders
