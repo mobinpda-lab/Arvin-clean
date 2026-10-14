@@ -1,3 +1,15 @@
+# LIVE POLL — 2026-10-14 — Latest PR #2704 head CI in progress
+
+- Latest PR #2704 head remains `6762dba1c0b36128cb8e2da1c6e825e5fae2d6ee`, Draft/open/unmerged.
+- Fast Lane contract run [38557722318](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557722318) completed **SUCCESS** on that exact SHA. This validates the validator newline-parsing repair.
+- Build [38557722261](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557722261) is still **in progress**: Analyze succeeded; six test shards and Debug/Release APK builds are still running at the latest poll.
+- Device Smoke [38557722484](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38557722484) is **queued** at latest poll; quick-capture and home lanes have started, while the other four lanes are queued. No final lane result yet.
+- The integration base of Person PR #2695, `integration/task-multiple-reminders-safe-20261013`, still has the old Device Smoke trigger restriction (pull_request limited to main/master and Draft job skipped). The Build workflow on that base allows PR events, but the latest query for Person head `3ddcc6dc...` returned zero runs. Do not assume PR #2704's change applies to the separate integration base until that base receives the workflow change through a safe, validated path.
+- Current next step: finish exact-head Build and all six Device Smoke lanes for PR #2704; only then decide whether to integrate this workflow-only repair. Preserve the integration branch's divergent history (it is 276 commits behind main and diverged); do not merge/rebase the whole main branch blindly.
+- Product release remains **NO-GO**; Person PR #2695 and physical-device/data-integrity gates remain outstanding.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Validator newline parsing repair
 
 - PR [#2704](https://github.com/mobinpda-lab/Arvin-clean/pull/2704) latest workflow-repair commit: `6762dba1c0b36128cb8e2da1c6e825e5fae2d6ee`.
