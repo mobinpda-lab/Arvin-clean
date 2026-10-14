@@ -491,3 +491,14 @@ Do not close the smoke gate until all six lanes are terminal-success on the exac
 | Device Smoke | [Run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201), same SHA | Quick Capture passed; Home and SQL Persistence running; Backup/Restore, People, SQL Migration queued. Not a six-lane pass. |
 | Person persistence anti-duplication | PR patches #2695 and #2696 reviewed | Both duplicate table/API surface; #2695 is broader integrated slice. Comments posted to both PRs; neither merged or closed. |
 | Release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO: current feature SHA not integrated; physical-device and full acceptance gates remain open. |
+
+
+## Recheck — 2026-10-14 — Person CI latest observed status
+
+| Feature / gate | Evidence | Result |
+|---|---|---|
+| Exact-head Build | [Run 38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120), SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46` | Run terminal SUCCESS: Analyze, test shards 0–5, Debug APK and Release APK all passed. |
+| Device Smoke | [Run 38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201), same SHA | Home, Quick Capture, SQL Persistence and SQL Migration SUCCESS; People and Backup/Restore still IN_PROGRESS at last poll. Run is not terminal. |
+| Person backup/restore source review | PR #2695 code and tests reviewed | Preflight rejects missing directory for structured Person references, duplicate Person IDs and dangling references; rollback test exercises restoration of Tasks and Person directory after an injected failure. Runtime acceptance still depends on terminal smoke evidence and complete test coverage. |
+| Person integration status | [PR #2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) and [PR #2696](https://github.com/mobinpda-lab/Arvin-clean/pull/2696) | Both remain open/Draft. Shared persistence/schema surface remains a duplicate-integration risk; neither was merged or closed. |
+| Release | Main SHA `658aa85fc4b7d24bfe191016c86c739f61bf3bf5` | NO-GO: physical-device evidence and final integrated acceptance gates are outstanding. |
