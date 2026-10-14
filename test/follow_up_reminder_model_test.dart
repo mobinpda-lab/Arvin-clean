@@ -136,14 +136,15 @@ void main() {
           'sequence': 1,
         }
       ],
-      'nextReminderSequence': 2,
+      'nextReminderSequence': 7,
     });
 
     expect(restored.taskReminders, hasLength(2));
     expect(restored.taskReminders.first.id, 'new-reminder');
     expect(restored.taskReminders.last.id, 'legacy-task-reminder');
-    expect(restored.taskReminders.last.sequence, 2);
-    expect(restored.nextReminderSequence, 3);
+    expect(restored.taskReminders.last.sequence, 7,
+        reason: 'migration must not recycle previously used sequence numbers');
+    expect(restored.nextReminderSequence, 8);
 
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(2));
