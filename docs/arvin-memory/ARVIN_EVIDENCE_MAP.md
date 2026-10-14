@@ -400,3 +400,14 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Physical-device / integrated Person acceptance | Current product | OPEN | CI/emulator evidence does not replace real-device and data-integrity acceptance |
 
 **Decision:** keep PR #2695 Draft and both PRs unmerged; no release. Recheck all evidence against the final resulting SHA after any update.
+
+
+## 2026-10-14 — Recovery dispatch correctness fix (pending validation)
+
+| Feature / Gate | Change | Result | Evidence / limitation |
+|---|---|---|---|
+| Dispatcher workflow selection | Dispatch Build using the default branch workflow definition and pass the exact target SHA | IMPLEMENTED / CI PENDING | PR #2699; avoids relying on stale workflow inputs in the target PR branch |
+| Exact target evidence | Match default-branch workflow_dispatch run by target-SHA run name; Build jobs assert checked-out SHA | IMPLEMENTED / CI PENDING | Workflow code now distinguishes workflow-ref SHA from requested target SHA |
+| Recovery concurrency | Key Build concurrency by target SHA | IMPLEMENTED / CI PENDING | Prevents separate recovery targets on main from cancelling one another |
+| Operational dispatcher acceptance | Controlled dispatch with terminal successful Build and verified exact checkout | OPEN | Requires reviewed activation on default branch; not proven by ordinary PR CI |
+| Person feature validation | PR #2695 current head `6d01c603edf897f813ceb94d15bc7d36b5c058c2` | NO RUNS / OPEN | Separate feature; recovery workflow changes do not validate it |
