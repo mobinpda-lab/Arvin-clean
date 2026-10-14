@@ -94,17 +94,25 @@ class FollowUpCalendarProjection {
       for (final reminder in task.taskReminders) {
         reminders.add(
           CalendarReminder(
-            id: independentTaskReminderIdFor(task, reminder),
-            title: reminder.title,
+            // The migrated legacy reminder keeps its old external identity so
+            // provider sync updates the existing event instead of creating a
+            // second event under the new collection namespace.
+            id: reminder.isLegacyTaskReminder
+                ? taskReminderIdFor(task)
+                : independentTaskReminderIdFor(task, reminder),
+            title: reminder.isLegacyTaskReminder
+                ? 'یادآوری: ${task.title}'
+                : reminder.title,
             date: reminder.date,
             completed: task.completed,
-            isAllDay: reminder.isAllDay,
+            isAllDay: reminder.isLegacyTaskReminder ? false : reminder.isAllDay,
           ),
         );
       }
 
       final taskReminderDate = task.reminderDate;
-      if (taskReminderDate != null &&
+      if (task.legacyTaskReminderMigrationVersion < 1 &&
+          taskReminderDate != null &&
           !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
         reminders.add(
           CalendarReminder(
