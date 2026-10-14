@@ -1154,3 +1154,18 @@ This section records direct owner observations after installing a newer Arvin bu
 - Keep release NO-GO until remaining product gates, integrated data flows and required physical-device evidence are accepted.
 
 This owner report updates UX status only; it does not establish the candidate SHA or prove that the latest CI artifacts correspond to the APK the owner installed.
+
+
+---
+
+# OWNER UX ACCEPTANCE ADDENDUM — Persian circular time picker gap — 2026-10-14
+
+This addendum records the owner's latest direct observation from the installed app. It is a confirmed UX defect report, not a claim that a code fix has been implemented.
+
+- **Observed defect:** Persian circular clock/time-picker behavior requested by the owner is still not applied consistently across the product.
+- **Specific remaining locations:** the full Task form's **reminder time** and **Task execution time** still use the legacy spinner/drop-down style rather than the agreed circular clock control.
+- **Required scope:** audit every hour/minute selection entry point and converge them on the same Persian circular time-picker experience; do not fix only one form.
+- **Acceptance:** choose hour and minute; confirm/cancel; render the selected value correctly; save and reopen without value drift; cover both execution time and reminder time with tests; regression-check other time-selection screens. Preserve canonical data models and existing storage contracts.
+- **Evidence boundary:** owner observation is direct UX evidence, but the exact installed app version/device/source SHA has not been identified. CI emulator screenshots cannot substitute for physical-device review.
+- **Status:** OPEN / NOT VERIFIED FIXED. This is tracked under [issue #1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901), comment [6176231238](https://github.com/mobinpda-lab/Arvin-clean/issues/1901#issuecomment-6176231238).
+- **Release gate:** NO-GO remains. Documentation and issue tracking do not count as an application-code fix. Require implementation, tests, build, install, visual validation and evidence before marking DONE.
