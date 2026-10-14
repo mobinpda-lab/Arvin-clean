@@ -32,6 +32,24 @@ void main() {
     );
   });
 
+  test('exact-head recovery dispatch pins and verifies the requested commit', () {
+    final dispatcher =
+        File('.github/workflows/pr-ci-recovery-dispatcher.yml').readAsStringSync();
+    final build = File('.github/workflows/build.yml').readAsStringSync();
+
+    expect(dispatcher, contains('const defaultBranch = repository.data.default_branch;'));
+    expect(dispatcher, contains('branch: defaultBranch'));
+    expect(dispatcher, contains("event: 'workflow_dispatch'"));
+    expect(dispatcher, contains('ref: defaultBranch'));
+    expect(dispatcher, contains('inputs: { target_sha: sha }'));
+    expect(dispatcher, contains('run.display_title === `Arvin Build (${sha})`'));
+    expect(dispatcher, isNot(contains('run.head_sha === sha')));
+    expect(build, contains('name: Verify exact requested revision'));
+    expect(build, contains('test "$actual" = "$TARGET_SHA"'));
+    expect(build, contains('EXACT_TARGET_SHA=$actual'));
+    expect(build, contains('inputs.target_sha'));
+  });
+
   test('Parallel Wave keeps one lightweight contract gate', () {
     final parallel =
         File('.github/workflows/parallel-wave.yml').readAsStringSync();
