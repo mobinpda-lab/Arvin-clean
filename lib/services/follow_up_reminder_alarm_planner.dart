@@ -28,6 +28,15 @@ class FollowUpReminderAlarmPlanner {
         if (!delivered.contains(identity)) candidates.add(taskReminder);
       }
 
+      for (final reminder in task.taskReminders) {
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        final identity =
+            'task:${task.id}:reminder:${reminder.id}@${scheduledAt.toIso8601String()}';
+        if (!delivered.contains(identity)) candidates.add(scheduledAt);
+      }
+
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;
         final at = followUp.reminderDate;
