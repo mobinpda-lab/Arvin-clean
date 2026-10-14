@@ -229,8 +229,25 @@ class CalendarInboundSyncService {
         tasks,
         reminderId.substring('task-reminder:'.length),
       );
-      final date = task?.reminderDate;
-      if (task == null || date == null || task.trashed) return null;
+      if (task == null || task.trashed) return null;
+      if (task.legacyTaskReminderMigrationVersion >= 1) {
+        TaskReminder? migrated;
+        for (final reminder in task.taskReminders) {
+          if (reminder.isLegacyTaskReminder) {
+            migrated = reminder;
+            break;
+          }
+        }
+        if (migrated == null) return null;
+        return CalendarReminder(
+          id: reminderId,
+          title: 'یادآوری: ${task.title}',
+          date: migrated.date,
+          completed: task.completed,
+        );
+      }
+      final date = task.reminderDate;
+      if (date == null) return null;
       return CalendarReminder(
         id: reminderId,
         title: 'یادآوری: ${task.title}',
@@ -317,6 +334,15 @@ class CalendarInboundSyncService {
       if (task == null || task.trashed) return false;
       task.title = revision.title.replaceFirst('یادآوری: ', '');
       task.reminderDate = revision.start;
+      if (task.legacyTaskReminderMigrationVersion >= 1) {
+        final index = task.taskReminders.indexWhere(
+          (item) => item.isLegacyTaskReminder,
+        );
+        if (index < 0) return false;
+        final next = List<TaskReminder>.of(task.taskReminders);
+        next[index] = next[index].copyWith(date: revision.start);
+        task.taskReminders = next;
+      }
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -390,6 +416,13 @@ class CalendarInboundSyncService {
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
+      if (task.legacyTaskReminderMigrationVersion >= 1) {
+        final next = List<TaskReminder>.of(task.taskReminders)
+          ..removeWhere((item) => item.isLegacyTaskReminder);
+        final hadMigratedReminder = next.length != task.taskReminders.length;
+        if (!hadMigratedReminder) return false;
+        task.taskReminders = next;
+      }
       task.reminderDate = null;
       task.updatedAt = DateTime.now();
       return true;
