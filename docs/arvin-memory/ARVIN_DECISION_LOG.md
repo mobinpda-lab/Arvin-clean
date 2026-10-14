@@ -218,3 +218,12 @@
 - **Reason:** Avoid duplicate schema/store implementation and migration conflicts while retaining safety coverage.
 - **Impact:** No PR closed or merged. Exact-head Build/Device Smoke are still running; this decision is a sequencing recommendation, not a release approval.
 - **Status:** Active; revisit only if validation reveals a unique safe capability in #2696 not covered by #2695.
+
+
+## 2026-10-14 — Person integration exact-head validation and promotion gate
+
+- **Problem:** Person directory integration had no terminal exact-head Build/Device Smoke evidence at the prior checkpoint.
+- **Decision:** Treat PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` as automated-CI validated only; keep the PR Draft and do not promote or release.
+- **Reason:** Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) passed Analyze, six test shards and both APK variants; Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) passed all six emulator lanes. These do not prove real-device installation, full Person CRUD/report acceptance, provider-level Calendar uniqueness or end-to-end restored data integrity.
+- **Impact:** Automated blockers can be closed for this SHA, while release gates remain explicit and evidence-driven.
+- **Status:** CI PASS; product acceptance OPEN; release NO-GO.
