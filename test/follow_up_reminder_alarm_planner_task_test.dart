@@ -86,4 +86,33 @@ void main() {
       first,
     );
   });
+
+  test('migrated legacy Task reminder keeps delivery identity and is not scheduled twice', () {
+    final at = now.add(const Duration(hours: 1));
+    final migrated = Task.fromJson({
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': at.toIso8601String(),
+    });
+
+    expect(migrated.legacyTaskReminderMigrationVersion, 1);
+    expect(migrated.taskReminders, hasLength(1));
+    expect(
+      planner.nextAlarmAt([migrated], deliveredState: const {}, now: now),
+      at,
+    );
+    expect(
+      planner.nextAlarmAt(
+        [migrated],
+        deliveredState: {
+          'task:legacy-task': 'task:legacy-task@${at.toIso8601String()}',
+        },
+        now: now,
+      ),
+      isNull,
+      reason: 'the pre-migration delivery record must suppress the migrated reminder',
+    );
+  });
+
+
 }
