@@ -3,6 +3,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
@@ -313,6 +314,8 @@ void main() {
     expect(candidate!.calendarLinks, isNull);
     expect(candidate.categories, isNull);
     expect(candidate.tags, isNull);
+    expect(candidate.hasPeople, isFalse);
+    expect(candidate.people, isNull);
   });
 
   test('canonical restore rejects duplicate calendar link identities', () async {
@@ -766,6 +769,58 @@ void main() {
     } finally {
       await TaskStore.resetTestDatabase();
       await ProjectStore.resetTestDatabase();
+    }
+  });
+
+
+  test('canonical backup preserves standalone people and follow-up associations', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final person = PersonReference(id: 'person-orphan', displayName: 'فرد مستقل');
+    final task = _completeTask();
+    task.followUps = [
+      FollowUp(
+        id: 'fu-person-linked',
+        dateTime: DateTime(2026, 10, 15, 9),
+        note: 'پیگیری مرتبط با فرد',
+        personIds: const ['person-orphan'],
+      ),
+    ];
+
+    await manager.backupCanonicalTasks([task], people: [person]);
+    final payload = service.writtenPayload!;
+    expect(payload['peopleDirectory'], [person.toJson()]);
+
+    service.restoreDocument = payload;
+    final candidate = await manager.restoreCanonicalBackup();
+    expect(candidate?.hasPeople, isTrue);
+    expect(candidate?.people?.single.id, 'person-orphan');
+    expect(candidate?.people?.single.displayName, 'فرد مستقل');
+    expect(candidate?.tasks.single.followUps.single.personIds, ['person-orphan']);
+  });
+
+  test('TaskStore persists orphan people and follow-up person links', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final person = PersonReference(id: 'person-orphan', displayName: 'فرد مستقل');
+      await store.savePeopleDirectory([person]);
+      final task = _completeTask();
+      task.followUps = [
+        FollowUp(
+          id: 'fu-person-linked',
+          dateTime: DateTime(2026, 10, 15, 9),
+          personIds: const ['person-orphan'],
+        ),
+      ];
+      await store.save([task]);
+
+      final restored = (await store.load()).single;
+      expect((await store.loadPeopleDirectory()).map((value) => value.id),
+          contains('person-orphan'));
+      expect(restored.followUps.single.personIds, ['person-orphan']);
+    } finally {
+      await TaskStore.resetTestDatabase();
     }
   });
 
