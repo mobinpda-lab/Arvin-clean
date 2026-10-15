@@ -1042,8 +1042,15 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            onTap: _hasActions
-                ? () => setState(() => _expanded = !_expanded)
+            // A short tap on an Arvin-owned Task opens its editor.
+            // Long-press remains the discoverable route to secondary actions.
+            onTap: _isTaskCalendarItem && widget.onEditTask != null
+                ? () => _run(widget.onEditTask)
+                : _hasActions
+                    ? () => setState(() => _expanded = !_expanded)
+                    : null,
+            onLongPress: _hasActions
+                ? () => setState(() => _expanded = true)
                 : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),
