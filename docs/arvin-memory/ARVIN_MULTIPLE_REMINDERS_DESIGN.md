@@ -48,3 +48,15 @@ The owner explicitly selected Option B. On decoding legacy canonical Task JSON, 
 The owner reports that the current app database is empty and Arvin is not yet populated with real user data. This does not prove that every backup, fixture, test database or other installation is empty, so compatibility tests remain required.
 
 **Status:** Candidate implementation and regression tests are on this PR branch; exact-head CI, SQL/backup integration, Calendar provider and physical-device acceptance remain unverified. Do not merge or release until the final exact SHA passes all required gates.
+
+
+## AUTHORITATIVE OVERRIDE — 2026-10-15 — Legacy Task reminder migration (Option B)
+
+This section supersedes the earlier compatibility bullets above wherever they conflict with this decision.
+
+- The owner explicitly selected Option B: when canonical Task JSON contains a non-null legacy `reminderDate` and migration version is below 1, migrate it once into `taskReminders` with stable ID `legacy-task-reminder` and `isLegacyTaskReminder: true`.
+- Persist `legacyTaskReminderMigrationVersion: 1` so a deleted migrated reminder cannot be resurrected from the retained compatibility field. Keep `reminderDate` intact during compatibility; the version marker prevents duplicate projection/scheduling.
+- Preserve the original timestamp. Midnight alone does not imply all-day. Preserve legacy Calendar event identity `task-reminder:<taskId>` and existing scheduler identity.
+- Keep this data embedded in canonical Task JSON and use the existing SQL, backup/restore, Calendar and notification foundations; do not add a parallel store.
+- This override changes the previous design statement that migration must not occur. All other requirements (stable independent IDs, monotonic numbering, no cross-reminder mutation, tests, and release gates) remain in force.
+- Validation status is determined by the latest exact PR head and its recorded evidence, not by this design note. Emulator CI is not physical-device acceptance; release remains NO-GO until integrated acceptance is complete.
