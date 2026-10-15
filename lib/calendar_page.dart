@@ -1024,28 +1024,12 @@ class _ReminderCardState extends State<_ReminderCard> {
                 key: ValueKey('task-due-delete-${widget.item.id}'),
                 leading: const Icon(Icons.delete_outline),
                 title: const Text('حذف'),
-                onTap: () async {
+                onTap: () {
                   Navigator.of(sheetContext).pop();
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('حذف کار'),
-                      content: const Text('آیا از حذف این کار مطمئن هستید؟'),
-                      actions: [
-                        TextButton(
-                          key: ValueKey('task-due-delete-cancel-${widget.item.id}'),
-                          onPressed: () => Navigator.of(dialogContext).pop(false),
-                          child: const Text('انصراف'),
-                        ),
-                        FilledButton(
-                          key: ValueKey('task-due-delete-confirm-${widget.item.id}'),
-                          onPressed: () => Navigator.of(dialogContext).pop(true),
-                          child: const Text('حذف'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirmed == true) await _run(widget.onDeleteTask);
+                  // The canonical owner callback performs its existing
+                  // confirmation and stable-ID deletion flow. Do not show a
+                  // second confirmation here.
+                  _run(widget.onDeleteTask);
                 },
               ),
             if (widget.onRegisterTaskToDeviceCalendar != null)
