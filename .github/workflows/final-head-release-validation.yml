@@ -18,7 +18,7 @@ env:
 
 jobs:
   validate:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -48,15 +48,11 @@ jobs:
         run: |
           set -euo pipefail
           FINAL_SHA="${{ steps.head.outputs.sha }}"
-          TAG="v0.1.0-arvin-${FINAL_SHA:0:7}"
           mkdir -p release-evidence
-          gh release download "$TAG" \
+          gh run download "${{ github.event.workflow_run.id }}" \
             --repo "${{ github.repository }}" \
-            --pattern 'arvin-*.apk' \
-            --pattern 'artifact.sha256' \
-            --pattern 'release-evidence.txt' \
-            --dir release-evidence \
-            --clobber
+            --name "arvin-internal-build-${FINAL_SHA}" \
+            --dir release-evidence
 
       - name: Verify release evidence matches exact final main
         if: github.event_name == 'workflow_run'
@@ -78,6 +74,13 @@ jobs:
               print $1 "  " name
             }' artifact.sha256 | sha256sum -c -
           )
+
+      - name: Record internal-only validation for blocked release
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+        env:
+          FINAL_SHA: ${{ steps.head.outputs.sha }}
+        run: |
+          printf '{"final_head":"%s","internal_build_validated":true,"release_validation":"blocked"}\n' "$FINAL_SHA" > release.json
 
       - name: Fetch pinned VazirHarf for manual validation
         if: github.event_name == 'workflow_dispatch'
@@ -133,7 +136,26 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: flutter build apk --release -t lib/main.dart
 
+      - name: Record internal build artifact for manual validation
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          FINAL_SHA: ${{ steps.head.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-evidence
+          APK="arvin-internal-${FINAL_SHA:0:7}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "release-evidence/$APK"
+          (cd release-evidence && sha256sum "$APK" > artifact.sha256)
+          cat > release-evidence/release-evidence.txt <<EOF
+          MAIN_SHA=${FINAL_SHA}
+          BUILD_RESULT=success
+          TEST_RESULT=success
+          RELEASE_ARTIFACT=${APK}
+          EOF
+          printf '{"final_head":"%s","internal_build":true,"apk":"%s"}\n' "$FINAL_SHA" "$APK" > release.json
+
       - name: Verify release record and artifact
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
         env:
           FINAL_SHA: ${{ steps.head.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
@@ -163,5 +185,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: arvin-final-head-release-validation-${{ steps.head.outputs.sha }}
-          path: release.json
+          path: |
+            release.json
+            release-evidence/*.apk
+            release-evidence/artifact.sha256
+            release-evidence/release-evidence.txt
           if-no-files-found: error
+
+      - name: Keep release gate fail-closed when closure did not succeed
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+        run: |
+          echo 'INTERNAL_BUILD_ARTIFACT_VALIDATED; RELEASE_VALIDATION_BLOCKED_BY_UPSTREAM_CLOSURE'
+          exit 1

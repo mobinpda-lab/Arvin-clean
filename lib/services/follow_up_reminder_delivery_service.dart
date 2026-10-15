@@ -23,7 +23,9 @@ class FollowUpReminderDeliveryService {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isAfter(now)) {
+      if (task.legacyTaskReminderMigrationVersion < 1 &&
+          taskReminder != null &&
+          !taskReminder.isAfter(now)) {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
@@ -42,7 +44,7 @@ class FollowUpReminderDeliveryService {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
-          taskReminderId: reminder.id,
+          taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
           label: reminder.title.trim().isEmpty
               ? 'یادآور ${reminder.sequence}'
               : reminder.title,

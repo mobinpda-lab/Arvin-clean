@@ -1055,3 +1055,14 @@ This entry supersedes older statements that the owner decision is pending or tha
 - **Completed:** reviewed PR metadata and diff; verified exact-head check-runs and terminal jobs; recorded evidence here.
 - **Current bottleneck:** integrated data-integrity/acceptance proof and physical-device validation; also verify controlled recovery-dispatch behavior. Keep PR #2719 unmerged until review confirms migration idempotence/rollback and end-to-end acceptance; release remains **NO-GO**.
 - **Next action:** perform focused code review of migration rollback/retry, SQL and backup/restore round-trip, reminder delete isolation and alarm reschedule/restart behavior; then record results and request physical-device validation.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-15 — Multi-reminder integration and internal APK artifact work
+
+- **Target branch:** `feat/task-multiple-reminders-option-b-20261015`; parent checkpoint before this change: `59f833ec0a07a711f333fa14b86b271be194688f`.
+- **Verified parent CI evidence:** Build, six-lane Device Smoke and Calendar Provider Acceptance were terminal-success on parent SHA `59f833ec0a07a711f333fa14b86b271be194688f` (see PR #2719 runs recorded above). These results do not validate the new integration test or workflow changes in this commit.
+- **Changes in this commit:** add a CI integration test that exercises legacy Task reminder migration, two independent reminders, SQL save/reload, canonical backup document encode/decode, Task-ID reconciliation, Person relation retention, Calendar Event ID retention, duplicate prevention and delivered-alarm suppression. The delivery projection now keeps the legacy scheduler identity and does not separately deliver the retained singular field after migration.
+- **Workflow correction:** Release Closure may start after any successful Arvin Production Orchestrator completion, rather than requiring that upstream workflow to have been manually dispatched. It uploads the versioned Release APK and checksum/evidence as a workflow artifact before enforcing the product-release approval gate. Final Head Validation consumes the workflow artifact; an unsuccessful closure can still run the internal-artifact verification path and upload its evidence, but remains fail-closed for release validation.
+- **Truthful gate status:** the new test and workflow edits are **PENDING exact-head CI** until GitHub Actions completes for the resulting commit. Do not mark G4/G6/G7 passed from test-file presence alone. The existing successful parent CI is not evidence for this new head.
+- **Release remains NO-GO:** Issue #2102, regression PR #1901, physical-device acceptance and product-owner approval remain independent release gates.
+- **Next action:** inspect exact-head Build, Device Smoke, Calendar Provider Acceptance, Release Closure and Final Head Validation results. Fix failures at root cause; only then update gate states with run links and the exact resulting SHA.

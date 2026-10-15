@@ -22,7 +22,7 @@ env:
 
 jobs:
   release-closure:
-    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_dispatch') }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -232,70 +232,6 @@ jobs:
             core.info(
               `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
             );
-      - name: Require explicit product release approval
-        if: steps.release_state.outputs.already_released != 'true'
-        id: product_gate
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            // A green build is not product acceptance. Publication stays blocked
-            // until the existing release gate and the known regression lane are closed.
-            // Hide already-published Arvin prereleases while blocked; preserve their
-            // tags/assets so this containment is reversible rather than destructive.
-            async function hideUnapprovedPrereleases() {
-              const releases = await github.paginate(github.rest.repos.listReleases, {
-                owner,
-                repo,
-                per_page: 100
-              });
-              for (const release of releases) {
-                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
-                  continue;
-                }
-                try {
-                  await github.rest.repos.updateRelease({
-                    owner,
-                    repo,
-                    release_id: release.id,
-                    draft: true,
-                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
-                  });
-                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
-                } catch (error) {
-                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
-                }
-              }
-            }
-
-            const gate = await github.rest.issues.get({
-              owner,
-              repo,
-              issue_number: 2102
-            });
-            if (gate.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
-              core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
-              return;
-            }
-
-            const regression = await github.rest.pulls.get({
-              owner,
-              repo,
-              pull_number: 1901
-            });
-            if (regression.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
-              core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
-              return;
-            }
-
-            core.info('PRODUCT_RELEASE_GATE=approved');
-            core.info('RELEASE_GATE_ISSUE=2102:closed');
-            core.info('REGRESSION_LANE_PR=1901:closed');
-
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
@@ -390,6 +326,82 @@ jobs:
           BUILD_NUMBER=${{ steps.release_state.outputs.build_number }}
           ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
           EOF
+
+
+      - name: Upload internal Release APK artifact
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-internal-build-${{ steps.verify.outputs.main_sha }}
+          path: |
+            .github/release-evidence/*.apk
+            .github/release-evidence/artifact.sha256
+            .github/release-evidence/release-evidence.txt
+          if-no-files-found: error
+
+      - name: Require explicit product release approval
+        if: steps.release_state.outputs.already_released != 'true'
+        id: product_gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // A green build is not product acceptance. Publication stays blocked
+            // until the existing release gate and the known regression lane are closed.
+            // Hide already-published Arvin prereleases while blocked; preserve their
+            // tags/assets so this containment is reversible rather than destructive.
+            async function hideUnapprovedPrereleases() {
+              const releases = await github.paginate(github.rest.repos.listReleases, {
+                owner,
+                repo,
+                per_page: 100
+              });
+              for (const release of releases) {
+                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
+                  continue;
+                }
+                try {
+                  await github.rest.repos.updateRelease({
+                    owner,
+                    repo,
+                    release_id: release.id,
+                    draft: true,
+                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
+                  });
+                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
+                } catch (error) {
+                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
+                }
+              }
+            }
+
+            const gate = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: 2102
+            });
+            if (gate.data.state !== 'closed') {
+              await hideUnapprovedPrereleases();
+              core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
+              return;
+            }
+
+            const regression = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: 1901
+            });
+            if (regression.data.state !== 'closed') {
+              await hideUnapprovedPrereleases();
+              core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
+              return;
+            }
+
+            core.info('PRODUCT_RELEASE_GATE=approved');
+            core.info('RELEASE_GATE_ISSUE=2102:closed');
+            core.info('REGRESSION_LANE_PR=1901:closed');
 
       - name: Create exact-head tag and prerelease
         if: steps.release_state.outputs.already_released != 'true'
