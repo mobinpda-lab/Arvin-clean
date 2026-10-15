@@ -182,8 +182,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
                                   if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
                                   'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
-                                  if (next != null) 'اقدام بعدی: ${PersianDateFormatter.formatDateTime(next)}',
-                                  if (reminder != null) 'یادآور: ${PersianDateFormatter.formatDateTime(reminder)}',
+                                  if (next != null) 'اقدام بعدی: ${const PersianDateFormatter().format(next, usePersianDate: true) + ' ${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}'}',
+                                  if (reminder != null) 'یادآور: ${const PersianDateFormatter().format(reminder, usePersianDate: true) + ' ${reminder.hour.toString().padLeft(2, '0')}:${reminder.minute.toString().padLeft(2, '0')}'}',
                                 ].join(' • ')),
                               ),
                             );
@@ -214,7 +214,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           ),
                         );
                       },
-                    ),
+                    )),
             ),
           ],
         ),
