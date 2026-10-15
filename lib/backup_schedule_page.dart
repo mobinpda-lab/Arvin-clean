@@ -55,7 +55,6 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
       context: context,
       initialTime: _time ?? const TimeOfDay(hour: 3, minute: 0),
       helpText: 'زمان پشتیبان‌گیری خودکار',
-      helpText: 'زمان پشتیبان‌گیری خودکار',
     );
     if (picked == null || _schedule == null) return;
     setState(() {
