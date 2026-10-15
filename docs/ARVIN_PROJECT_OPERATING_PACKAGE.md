@@ -10,7 +10,7 @@
 
 ## 0. Non-Negotiable Principles
 1. GitHub is the operational source of truth for code, branches, commits, issues, PRs, workflows, CI, builds and repository documents.
-2. This document is the single active governance and software-production reference. Other active governance documents must point here; historical documents remain historical evidence and are not competing authorities.
+2. [AMPOP v5.0](constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md) is the highest product-operating authority. This package is the single detailed operational execution standard subordinate to AMPOP. [AMOC](constitution/ARVIN_MASTER_OPERATING_COMMAND.md) is a compatibility bridge, not a competing constitution. Other active governance documents must point to these canonical records; historical documents remain historical evidence and are not competing authorities.
 3. The target is validated working software in hours rather than days.
 4. Independent work is executed in parallel by default. Sequential work is used only when a real dependency requires it.
 5. Speed never removes quality, security, architecture, validation, evidence, documentation or recovery controls.
@@ -19,7 +19,7 @@
 8. «بسم الله الرحمن الرحیم» is an inseparable project principle and must remain present in project identity and continuity documentation.
 
 ## 1. Authority Model
-**GitHub Reality > Approved ADR/Architecture Decision > This Canonical Standard > Implementation/CI Procedures > Conversation/Memory.**
+**GitHub Reality (what actually exists) + approved ADRs for their decision scope; AMPOP v5.0 (product-wide invariants) > this detailed Operating Package > implementation/CI procedures > conversation/memory.** Actual code proves implementation; accepted ADRs govern their decision scope; AMPOP governs product-wide invariants.
 
 When sources disagree, do not guess. Verify GitHub and the real implementation, identify the discrepancy, then update the appropriate current-state document while preserving historical records.
 
@@ -64,9 +64,9 @@ Evidence labels:
 Never present an inference as a verified fact.
 
 ## 4. Continuation Command
-The user command `ادامه` is an execution trigger.
+The user command `ادامه آروین` is an execution trigger.
 
-When `ادامه` is received, AI must audit the live repository, compare it with the canonical document and current project state, identify the nearest real unfinished work, and continue safely where possible.
+When `ادامه آروین` is received, AI must audit the live repository, compare it with AMPOP, this operating package and the current project state, identify the nearest real unfinished product work, and continue safely where possible.
 
 The command does not authorize unsafe, destructive or unvalidated work.
 
@@ -260,7 +260,7 @@ A release requires, as applicable:
 ## 17. Documentation Governance
 Documentation is an engineering artifact, not an optional afterthought.
 
-This file is the **single active canonical operating reference**.
+This file is the **single detailed canonical operational execution standard**, subordinate to [AMPOP v5.0](constitution/ARVIN_MASTER_PRODUCT_OPERATING_PROTOCOL.md).
 
 Other documents are classified as:
 1. **Current-State Records:** factual status snapshots.
