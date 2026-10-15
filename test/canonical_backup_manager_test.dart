@@ -824,4 +824,64 @@ void main() {
     }
   });
 
+
+  test('restore rejects dangling follow-up person IDs before mutation', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = <String, dynamic>{
+        'tasks': [
+          (_completeTask()
+                ..followUps = [
+                  FollowUp(
+                    id: 'fu-dangling',
+                    dateTime: DateTime(2026, 10, 15, 9),
+                    personIds: const ['missing-person'],
+                  ),
+                ])
+              .toJson(),
+        ],
+        'peopleDirectory': const <Map<String, dynamic>>[],
+      };
+    final manager = ArvinBackupManager(service: service);
+
+    await expectLater(
+      manager.restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('people directory rolls back after injected restore failure', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final oldPerson = PersonReference(id: 'person-old', displayName: 'قدیمی');
+      final incomingPerson = PersonReference(id: 'person-new', displayName: 'جدید');
+      await store.savePeopleDirectory([oldPerson]);
+
+      await expectLater(
+        runRestoreWithRollback<void>(
+          recoveryBackup: 'emergency-backup.json',
+          apply: () async {
+            await store.savePeopleDirectory([oldPerson, incomingPerson]);
+            throw StateError('injected after people-directory write');
+          },
+          rollback: () async {
+            await store.savePeopleDirectory([oldPerson]);
+          },
+        ),
+        throwsA(isA<RestoreExecutionFailure>().having(
+          (error) => error.rolledBack,
+          'rolledBack',
+          isTrue,
+        )),
+      );
+
+      expect(
+        (await store.loadPeopleDirectory()).map((person) => person.id),
+        ['person-old'],
+      );
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }
