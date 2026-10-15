@@ -222,3 +222,13 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Option B migration tombstone:** add regression coverage that deleting the migrated `legacy-task-reminder` keeps `legacyTaskReminderMigrationVersion: 1` through SQL reload and backup/restore, preventing legacy compatibility data from resurrecting the reminder. Candidate test is on PR #2738 SHA `5ba5432e07633fd03ad66721eee37bcad8ba4004`; Build/Smoke pending.
 - **Evidence rule:** prior green CI on older SHAs does not validate these new commits. Do not merge or release until the latest exact target SHAs have terminal successful Analyze, all test shards, Debug/Release APK and six Device Smoke lanes. Release remains **NO-GO**.
 
+
+## 2026-10-16 — Latest CI poll and exact-head gate
+
+- Latest code SHAs are calendar `9839f9197c0b6b54b67086d75561eb8ff799453f`, person/report `44810fcf5bb96db8c028a1574889e3f2d45af75f`, migration regression `5ba5432e07633fd03ad66721eee37bcad8ba4004`.
+- Migration regression Build has Analyze + all six test shards successful, including the new no-resurrection test and both requested migration test files; Release APK is still building. Device Smoke is not green: Home failed during SDK system-image setup with `unknown archive`, Quick Capture passed, and remaining lanes were pending/running.
+- Current Calendar and Person Build/Smoke jobs are pending/running; do not transfer older-head green evidence to the new SHAs.
+- Normal `pull_request` Build runs skip “Verify exact requested revision”; they are not exact-head proof. No `workflow_dispatch` Build matching these latest target SHAs was found. Keep exact-head gate BLOCKED/PENDING until the recovery dispatcher produces a target-pinned run.
+- Person/report projection's dangling-reference behavior differs from the existing main implementation and the PR remains stacked on #2666; review/reconcile before integration.
+- **Release: NO-GO.**
+
