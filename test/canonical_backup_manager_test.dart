@@ -884,4 +884,89 @@ void main() {
     }
   });
 
+
+  test('backup restore after clean database preserves a standalone person', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final person = PersonReference(id: 'person-clean-db', displayName: 'فرد مستقل');
+      await store.savePeopleDirectory([person]);
+      final service = _FakeBackupService();
+      final manager = ArvinBackupManager(service: service);
+
+      await manager.backupCanonicalTasks(await store.load(),
+          people: await store.loadPeopleDirectory());
+      service.restoreDocument = service.writtenPayload;
+
+      await TaskStore.resetTestDatabase();
+      final restored = await manager.restoreCanonicalBackup();
+      expect(restored, isNotNull);
+      expect(restored!.hasPeople, isTrue);
+
+      final cleanStore = TaskStore();
+      await cleanStore.save(restored.tasks);
+      await cleanStore.savePeopleDirectory(restored.people!);
+      final people = await cleanStore.loadPeopleDirectory();
+      expect(people.map((value) => value.id), ['person-clean-db']);
+      expect(people.single.displayName, 'فرد مستقل');
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+  test('backup restore preserves task_people and seeds the directory', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final person = PersonReference(id: 'person-task-link', displayName: 'همکار');
+      final task = _completeTask()..people = [person];
+      await store.save([task]);
+      expect((await store.loadPeopleDirectory()).map((p) => p.id),
+          contains('person-task-link'));
+
+      final service = _FakeBackupService();
+      final manager = ArvinBackupManager(service: service);
+      await manager.backupCanonicalTasks(await store.load(),
+          people: await store.loadPeopleDirectory());
+      service.restoreDocument = service.writtenPayload;
+
+      await TaskStore.resetTestDatabase();
+      final candidate = await manager.restoreCanonicalBackup();
+      expect(candidate, isNotNull);
+      final cleanStore = TaskStore();
+      await cleanStore.save(candidate!.tasks);
+      await cleanStore.savePeopleDirectory(candidate.people!);
+
+      final restoredTask = (await cleanStore.load()).single;
+      expect(restoredTask.people.map((p) => p.id), ['person-task-link']);
+      expect((await cleanStore.loadPeopleDirectory()).map((p) => p.id),
+          contains('person-task-link'));
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+  test('legacy backup without peopleDirectory restores and migrates task people', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final task = _completeTask()
+        ..people = [PersonReference(id: 'person-legacy', displayName: 'قدیمی')];
+      final service = _FakeBackupService()
+        ..restoreDocument = <String, dynamic>{
+          'tasks': [task.toJson()],
+        };
+      final manager = ArvinBackupManager(service: service);
+      final candidate = await manager.restoreCanonicalBackup();
+      expect(candidate, isNotNull);
+      expect(candidate!.hasPeople, isFalse);
+
+      final store = TaskStore();
+      await store.save(candidate.tasks);
+      expect((await store.loadPeopleDirectory()).map((p) => p.id),
+          contains('person-legacy'));
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }
