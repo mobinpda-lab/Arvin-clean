@@ -1961,10 +1961,10 @@ class _HomePageState extends State<HomePage> {
           : projectsBeforeRestore;
       final reconciledPeople = candidate.hasPeople
           ? ArvinBackupManager.reconcilePeopleById(
-              current: previousPeople!,
+              current: previousPeople,
               backup: candidate.people ?? const <PersonReference>[],
             )
-          : previousPeople!;
+          : previousPeople;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
@@ -2050,7 +2050,7 @@ class _HomePageState extends State<HomePage> {
               await taskStore.deleteTagCatalog(tag);
             }
           }
-          await taskStore.savePeopleDirectory(previousPeople!);
+          await taskStore.savePeopleDirectory(previousPeople);
           final appliedSettings = await appSettingsService.load();
           if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           await _load();
