@@ -131,7 +131,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       text: '${task?.recurrence?.interval ?? 1}',
     );
     _recurrenceCountController = TextEditingController(
-      text: task?.recurrence?.count?.toString() ?? '',
+      text: '${task?.recurrence?.count ?? 7}',
     );
     _priority = task?.priority ?? TaskPriority.none;
   }
@@ -599,16 +599,29 @@ Future<void> _pickDueDate() async {
     }
   }
 
+  void _ensureRepeatDateTime() {
+    if (_dueDateTime != null) return;
+    final now = DateTime.now().toLocal();
+    _dueDateTime = now;
+    _dueAllDay = false;
+    _syncAutomaticReminder();
+  }
+
+  int _repeatCountOrDefault() {
+    final parsed = int.tryParse(_recurrenceCountController.text.trim());
+    return parsed != null && parsed > 0 ? parsed : 7;
+  }
+
   RecurrenceRule? _buildRecurrence() {
     if (_recurrence == null) return null;
     final interval = int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
-    final parsedCount = int.tryParse(_recurrenceCountController.text.trim());
+    final parsedCount = _repeatCountOrDefault();
     return RecurrenceRule(
       frequency: _recurrence!.frequency,
       interval: interval > 0 ? interval : 1,
       startDate: _recurrenceStartDate,
       endDate: _recurrenceEndDate,
-      count: parsedCount != null && parsedCount > 0 ? parsedCount : null,
+      count: parsedCount,
       active: _repeatEnabled,
     );
   }
@@ -1083,12 +1096,16 @@ Future<void> _pickDueDate() async {
                                   _recurrence = null;
                                   _repeatEnabled = false;
                                 } else {
+                                  _ensureRepeatDateTime();
+                                  if (_recurrenceCountController.text.trim().isEmpty) {
+                                    _recurrenceCountController.text = '7';
+                                  }
                                   _recurrence = RecurrenceRule(
                                     frequency: frequency,
                                     interval: interval > 0 ? interval : 1,
                                     startDate: _recurrenceStartDate,
                                     endDate: _recurrenceEndDate,
-                                    count: int.tryParse(_recurrenceCountController.text.trim()),
+                                    count: _repeatCountOrDefault(),
                                     active: true,
                                   );
                                   _repeatEnabled = true;
@@ -1130,6 +1147,7 @@ Future<void> _pickDueDate() async {
                             title: const Text('تکرار فعال باشد'),
                             onChanged: _recurrence == null ? null : (value) {
                               setState(() {
+                                if (value) _ensureRepeatDateTime();
                                 _repeatEnabled = value;
                                 _recurrence = _buildRecurrence();
                               });
@@ -1153,7 +1171,7 @@ Future<void> _pickDueDate() async {
                             enabled: _recurrence != null,
                             keyboardType: TextInputType.number,
                             textDirection: TextDirection.rtl,
-                            decoration: _fieldDecoration(label: 'تعداد تکرار', hint: 'اختیاری'),
+                            decoration: _fieldDecoration(label: 'تعداد نوبت‌ها', hint: '۷ نوبت (قابل ویرایش)'),
                             onChanged: (_) {
                               if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
                             },
