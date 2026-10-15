@@ -548,6 +548,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(card, findsOneWidget);
+    // Destructive actions are intentionally revealed by long-press, not tap.
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
 
     final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
