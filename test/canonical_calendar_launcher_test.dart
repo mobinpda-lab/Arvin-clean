@@ -507,6 +507,13 @@ void main() {
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
 
+    // The occurrence can be below the current viewport after calendar layout.
+    // Scroll it fully into view before tapping so the test validates the action,
+    // not an off-screen hit-test failure.
+    await tester.ensureVisible(card);
+    // Avoid pumpAndSettle: the calendar may keep an active ticker running.
+    // A bounded frame is enough to apply the scroll/layout before the tap.
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(card);
     await tester.pump();
     expect(edit, findsOneWidget);
