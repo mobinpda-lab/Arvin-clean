@@ -2050,7 +2050,7 @@ class _HomePageState extends State<HomePage> {
               await taskStore.deleteTagCatalog(tag);
             }
           }
-          await taskStore.savePeopleDirectory(previousPeople);
+          await taskStore.savePeopleDirectory(previousPeople ?? const <PersonReference>[]);
           final appliedSettings = await appSettingsService.load();
           if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           await _load();
