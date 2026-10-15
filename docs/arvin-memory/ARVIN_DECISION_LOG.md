@@ -213,3 +213,12 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+## 2026-10-16 — Consolidation & Correction Wave (implementation candidates; validation pending)
+
+- **Calendar gesture contract:** Task short tap must open its canonical edit/detail path; Task long-press opens management actions; deletion requires explicit confirmation. Implemented on PR #2735 latest SHA `da71b3ce0183b015edef6f878dc7ee1c1f191294`; Build and six-lane Device Smoke were pending when recorded.
+- **Waiting-state source of truth:** `FollowUp.waitingForResponse` is the active structured flag. `FollowUp.result` remains descriptive/legacy-normalization input and must not independently activate waiting status. Candidate correction is on PR #2695 SHA `c13e8f3313bf3d26f07618da40352767914d31c4`; Build/Smoke pending.
+- **Person/report projection:** Report Center candidate now uses `PersonFollowUpReportProjection`. This branch supports showing dangling IDs as a deleted-person placeholder, which differs from current main's default projection policy. Treat as an explicit integration decision requiring review; do not merge blindly. PR #2695 remains stacked on unmerged PR #2666.
+- **Option B migration tombstone:** add regression coverage that deleting the migrated `legacy-task-reminder` keeps `legacyTaskReminderMigrationVersion: 1` through SQL reload and backup/restore, preventing legacy compatibility data from resurrecting the reminder. Candidate test is on PR #2738 SHA `5ba5432e07633fd03ad66721eee37bcad8ba4004`; Build/Smoke pending.
+- **Evidence rule:** prior green CI on older SHAs does not validate these new commits. Do not merge or release until the latest exact target SHAs have terminal successful Analyze, all test shards, Debug/Release APK and six Device Smoke lanes. Release remains **NO-GO**.
+
