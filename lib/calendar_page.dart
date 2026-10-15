@@ -887,6 +887,21 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
+bool _isOverdueCalendarItem(CalendarReminder item) =>
+    !item.completed &&
+    !item.isAllDay &&
+    DateUtils.dateOnly(item.date).isBefore(
+      DateUtils.dateOnly(IranClock.now()),
+    );
+
+Color _calendarStatusColor(CalendarReminder item) {
+  if (item.completed) return const Color(0xFF409B51);
+  if (_isOverdueCalendarItem(item)) return const Color(0xFFC94A4A);
+  if (item.id.startsWith('task-followup:')) return const Color(0xFFDB8B23);
+  if (item.id.startsWith('external-calendar:')) return const Color(0xFF218A91);
+  return const Color(0xFF4A69C8);
+}
+
 bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder-item:') ||
