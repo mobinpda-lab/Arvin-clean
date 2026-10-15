@@ -43,7 +43,7 @@ void main() {
     expect(rows[2].people.map((person) => person.id), ['ana', 'reza']);
     expect(rows[0].nextFollowUp, DateTime(2026, 10, 16, 9));
     expect(rows[0].reminderDate, DateTime(2026, 10, 15, 18));
-    expect(rows[0].nextFollowUp, isNot(rows[0].reminderDate));
+    expect(rows[0].nextFollowUp, isNot(equals(rows[0].reminderDate)));
   });
 
   test('person filter returns only rows linked to that canonical person', () {
