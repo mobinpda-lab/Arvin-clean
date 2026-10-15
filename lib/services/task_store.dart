@@ -489,6 +489,7 @@ class TaskStore {
         'reminderDate': row['reminder_date'],
         'nextFollowUp': row['next_follow_up'],
         'completed': (row['completed'] as num?)?.toInt() == 1,
+        'waitingForResponse': (row['waiting_for_response'] as num?)?.toInt() == 1,
       };
 
   Future<void> _saveUnlocked(List<Task> tasks) async {
@@ -620,12 +621,13 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, note, result, reminder_date, next_follow_up, completed, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.note,
           followUp.result, followUp.reminderDate?.toIso8601String(),
-          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0, ordinal,
+          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
+          followUp.waitingForResponse ? 1 : 0, ordinal,
         ],
       );
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {
