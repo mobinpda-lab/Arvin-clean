@@ -321,4 +321,66 @@ void main() {
   });
 
 
+
+  testWidgets('task calendar card tap opens editor and long-press reveals actions',
+      (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    final task = CalendarReminder(
+      id: 'task-due:interaction-task',
+      title: 'کار برای تعامل',
+      date: day,
+    );
+    var edited = 0;
+    var deleted = 0;
+    var registered = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [task],
+          onEditTask: (_) async => edited++,
+          onDeleteTask: (_) async => deleted++,
+          onRegisterTaskToDeviceCalendar: (_) async => registered++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('reminder-card-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
+    expect(edited, 1);
+    expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
+        findsNothing);
+
+    await tester.longPress(
+      find.byKey(const ValueKey('reminder-card-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('task-due-edit-task-due:interaction-task')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
+        findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
+    expect(deleted, 1);
+
+    await tester.tap(
+      find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
+    expect(registered, 1);
+  });
+
 }
