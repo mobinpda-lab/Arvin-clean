@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
+import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
+import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
 
 class ReportCenterPage extends StatefulWidget {
@@ -11,11 +13,13 @@ class ReportCenterPage extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projects = const [],
+    this.people = const [],
     this.now,
   });
 
   final List<Task> tasks;
   final List<ProjectPlan> projects;
+  final List<PersonReference> people;
   final DateTime? now;
 
   @override
@@ -31,7 +35,43 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         widget.tasks,
         now: _now,
         projects: widget.projects,
+        ignoreTaskTime: _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly,
       );
+
+  List<PersonReference> get _peopleDirectory {
+    final byId = <String, PersonReference>{
+      for (final person in widget.people) person.id: person,
+      for (final task in widget.tasks)
+        for (final person in task.people) person.id: person,
+    };
+    return byId.values.toList(growable: false);
+  }
+
+  List<_FollowUpReportEntry> get _followUpRows {
+    if (_filter.personIds.isEmpty && !_filter.waitingForResponseOnly) {
+      return const <_FollowUpReportEntry>[];
+    }
+    final projected = const PersonFollowUpReportProjection().project(
+      _filtered,
+      people: _peopleDirectory,
+      personIds: _filter.personIds,
+      waitingForResponseOnly: _filter.waitingForResponseOnly,
+      // Preserve report visibility for stable references whose directory entry
+      // was removed; the row is labelled as a deleted Person, not discarded.
+      includeDanglingPeople: true,
+    );
+    return List<_FollowUpReportEntry>.unmodifiable(
+      projected
+          .where((row) => _filter.matchesFollowUpTime(row.followUp, now: _now))
+          .map((row) => _FollowUpReportEntry(
+                task: row.task,
+                followUp: row.followUp,
+              )),
+    );
+  }
+
+  bool get _showFollowUpRows =>
+      _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly;
 
   Future<void> _openFilters() async {
     final result = await showModalBottomSheet<TaskReportFilter>(
@@ -42,6 +82,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         initial: _filter,
         projects: widget.projects,
         tasks: widget.tasks,
+        people: widget.people,
         now: _now,
       ),
     );
@@ -100,40 +141,74 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text('نتیجه: ${tasks.length} کار'),
+                child: Text(_showFollowUpRows
+                    ? 'نتیجه: ${_followUpRows.length} پیگیری'
+                    : 'نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: tasks.isEmpty
-                  ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      itemCount: tasks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (_, index) {
-                        final task = tasks[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(
-                              task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
-                            ),
-                            subtitle: Text(
-                              [
-                                if (task.category?.trim().isNotEmpty == true)
-                                  'دسته: ${task.category}',
-                                if (task.tags.isNotEmpty)
-                                  'برچسب: ${task.tags.join('، ')}',
-                                if (task.completed) 'انجام‌شده' else 'باز',
-                              ].join(' • '),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              child: _showFollowUpRows
+                  ? (_followUpRows.isEmpty
+                      ? const Center(child: Text('پیگیری‌ای با این فیلترها پیدا نشد'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: _followUpRows.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (_, index) {
+                            final entry = _followUpRows[index];
+                            final peopleById = <String, String>{
+                              for (final person in _peopleDirectory)
+                                person.id: person.displayName,
+                            };
+                            final names = entry.followUp.personIds
+                                .map((id) => peopleById[id] ?? 'شخص حذف‌شده')
+                                .toSet()
+                                .toList(growable: false);
+                            return Card(
+                              key: ValueKey('report-follow-up-${entry.task.id}-${entry.followUp.id}'),
+                              child: ListTile(
+                                title: Text(entry.task.title.trim().isEmpty
+                                    ? 'بدون عنوان'
+                                    : entry.task.title),
+                                subtitle: Text([
+                                  'پیگیری: ${entry.followUp.note.trim().isEmpty ? 'پیگیری' : entry.followUp.note}',
+                                  if (entry.followUp.result?.trim().isNotEmpty == true)
+                                    'نتیجه: ${entry.followUp.result}',
+                                  'وضعیت: ${entry.followUp.completed ? 'انجام‌شده' : entry.followUp.waitingForResponse ? 'منتظر پاسخ' : 'باز'}',
+                                  if (names.isNotEmpty) 'اشخاص: ${names.join('، ')}',
+                                  if (entry.followUp.nextFollowUp != null)
+                                    'اقدام بعدی: ${_formatDateTime(entry.followUp.nextFollowUp!)}',
+                                  if (entry.followUp.reminderDate != null)
+                                    'یادآور: ${_formatDateTime(entry.followUp.reminderDate!)}',
+                                ].join(' • ')),
+                              ),
+                            );
+                          },
+                        ))
+                  : (tasks.isEmpty
+                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: tasks.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (_, index) {
+                            final task = tasks[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                                subtitle: Text([
+                                  if (task.category?.trim().isNotEmpty == true) 'دسته: ${task.category}',
+                                  if (task.tags.isNotEmpty) 'برچسب: ${task.tags.join('، ')}',
+                                  if (task.completed) 'انجام‌شده' else 'باز',
+                                ].join(' • ')),
+                              ),
+                            );
+                          },
+                        )),
             ),
           ],
         ),
-        floatingActionButton: tasks.isEmpty
+        floatingActionButton: _showFollowUpRows || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
@@ -150,6 +225,18 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       ),
     );
   }
+}
+
+class _FollowUpReportEntry {
+  const _FollowUpReportEntry({required this.task, required this.followUp});
+  final Task task;
+  final FollowUp followUp;
+}
+
+String _formatDateTime(DateTime value) {
+  final date = const PersianDateFormatter().format(value, usePersianDate: true);
+  final time = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  return '$date ساعت $time';
 }
 
 class _ActiveFilterChips extends StatelessWidget {
@@ -183,6 +270,10 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری')),
           if (filter.hasChecklist != null)
             Chip(label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist')),
+          if (filter.personIds.isNotEmpty)
+            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
+          if (filter.waitingForResponseOnly)
+            const Chip(label: Text('منتظر پاسخ')),
           if (filter.fromDate != null || filter.toDate != null)
             const Chip(label: Text('بازه تاریخ')),
           if (filter.fromTime != null || filter.toTime != null)
@@ -199,12 +290,14 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.initial,
     required this.projects,
     required this.tasks,
+    required this.people,
     required this.now,
   });
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<Task> tasks;
+  final List<PersonReference> people;
   final DateTime now;
 
   @override
@@ -225,6 +318,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   bool? _hasRepeat;
   bool? _hasFollowUp;
   bool? _hasChecklist;
+  Set<String> _personIds = <String>{};
+  bool _waitingForResponseOnly = false;
 
   @override
   void initState() {
@@ -243,6 +338,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _hasRepeat = f.hasRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
+    _personIds = <String>{...f.personIds};
+    _waitingForResponseOnly = f.waitingForResponseOnly;
   }
 
   Future<void> _pickDate(bool from) async {
@@ -307,6 +404,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
+        personIds: Set<String>.of(_personIds),
+        waitingForResponseOnly: _waitingForResponseOnly,
       ),
     );
   }
@@ -440,6 +539,27 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              title: 'شخص',
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
+              ),
+            ),
+            _Section(
+              title: 'پیگیری',
+              child: FilterChip(
+                key: const ValueKey('report-filter-waiting-response-only'),
+                label: const Text('فقط منتظر پاسخ'),
+                selected: _waitingForResponseOnly,
+                onSelected: (value) => setState(() => _waitingForResponseOnly = value),
+              ),
+            ),
+            _Section(
               title: 'وضعیت',
               child: Wrap(
                 spacing: 6,
@@ -515,6 +635,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       _hasRepeat = null;
                       _hasFollowUp = null;
                       _hasChecklist = null;
+                      _personIds = <String>{};
+                      _waitingForResponseOnly = false;
                     }),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 40),

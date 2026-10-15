@@ -636,3 +636,39 @@ This entry records status only; no source/test change is claimed by this checkpo
 | Person directory backup/restore + dangling-reference preflight | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | PR #2681; sync plan PR #2692 | Must be ported and tested on current parent |
 | Person-based per-Follow-up reporting | Divergent child branch | **UNVALIDATED / NOT IN PARENT** | Issue #2683; PR #2681 | Must be ported and tested on current parent |
 | Release | — | **NO-GO** | Issues #2682, #2683, #2685 | End-to-end integrity and physical-device acceptance remain open |
+
+
+## Person backup/restore orchestration — 2026-10-14
+
+| Feature / acceptance | Code/test change | Result | Evidence / limitation |
+|---|---|---|---|
+| Normal portable backup includes Person directory | aed26c85a2fa7de5ba0dd01e7bbeb4ac1c495e44 | Implemented, **not CI-validated** | Home widget test added; exact-head Actions run not visible. |
+| Restore imports Person directory and emergency backup preserves current people | 7016f74027f8a1f22c07d10a28cad77470f18f96 | Implemented, **not CI-validated** | BackupPage orchestration source reviewed; requires exact-head Build. |
+| Late restore failure rolls back Person directory plus Task/Follow-up state | 28440c156df2bd448de608f1f2f1835b25cdfc2a | Regression test added, **not CI-validated** | test/home_restore_orchestration_test.dart, injected failure after catalogs. |
+| Successful restore preserves local-only Task/Person references while importing backup entries | 0335a0c7e8bfb0c99f466b87b9af3a4cb3682e45, 84a97c23a4547f0a4f891398116aa40b083aa67e | Merge semantics + Home widget test added, **not CI-validated** | Must confirm all test shards on final candidate SHA. |
+| Exact-head Build / six-lane Device Smoke | Head 84a97c23a4547f0a4f891398116aa40b083aa67e | **NO RUN VISIBLE** | Do not treat missing workflow evidence as a pass; PR #2695 remains Draft/unmergeable. |
+| Physical-device acceptance / release | — | **NO-GO** | Not evidenced by these source/test changes. |
+
+
+## LIVE EVIDENCE OVERRIDE — 2026-10-14 — Person PR exact-head CI access
+
+- PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695): before the memory-only checkpoint, exact head `effa6722d4b6fa7cc15f036da2bb4b70d637d4f0`, base `ad762774009e5b5c7ee341146a8160c52e2b9bb2`; open/Draft/unmerged/mergeable=false. Exact-head PR-run query returned **zero runs**; historical failed Build [38506153872](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38506153872) is on older SHA `07c7f900...` and must not be attributed to the current head.
+- PR #2695 base/head compare: 40 ahead / 1 behind, merge base `e626dae...`; no blind rebase/merge. The one behind commit previously inspected was documentation-only.
+- Available GitHub tools do not expose workflow dispatch/create-run; rerunning an old failed job would target the wrong SHA. Exact-head Build, Calendar Provider Acceptance and Device Smoke for #2695 therefore remain **NOT VERIFIED**.
+- Recovery PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699), head `555541a5426b02e483bf2168fcc78a57ddc8c3a6`: Build [38523576951](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523576951) SUCCESS (Analyze, all six test shards, Debug/Release APK); Device Smoke [38523577094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523577094) IN_PROGRESS at latest poll, with Home, Quick Capture, SQL Persistence and SQL Migration passed; People and Backup/Restore in progress. This is not evidence for #2695.
+- Person backup/restore/rollback, dangling-reference validation, Person report acceptance, final integrated-SHA validation and physical-device acceptance remain open. Release **NO-GO**.
+
+
+## LIVE EVIDENCE OVERRIDE — 2026-10-14 — CI dispatcher promoted; Person exact-head still unvalidated
+
+- Recovery infrastructure PR [#2699](https://github.com/mobinpda-lab/Arvin-clean/pull/2699) merged as `747b1831eddc60f99c1c14a5bbc4a4c0049667ec`; its exact pre-merge head `555541a5426b02e483bf2168fcc78a57ddc8c3a6` passed Build [38523576951](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523576951) and all six Device Smoke lanes [38523577094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38523577094). Infrastructure CI evidence only; not Person feature evidence.
+- Dispatcher file now exists on main: `.github/workflows/pr-ci-recovery-dispatcher.yml`, blob `cd02e54db8577db2bcbb4a8ede22a368159874d2`. It has not yet been observed executing a recovery dispatch for #2695. Connector has no direct workflow-dispatch action; scheduled operation remains unverified until a dispatcher run and target Build are observed.
+- Person PR #2695 was at head `8d6956b9cd8564ada109b3397b608108781935a7` before this memory-only update, base `ad762774009e5b5c7ee341146a8160c52e2b9bb2` on `integration/task-multiple-reminders-safe-20261013`; exact-head workflow query returned zero runs. This docs update creates a new head; validate only the new final SHA.
+- Main post-merge Build [38525486465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486465) and Device Smoke [38525486464](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525486464) were QUEUED at the last poll. Release Closure [38525180874](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525180874) and Final Head Release Validation [38525187197](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38525187197) were SKIPPED, not passes.
+- Person Calendar acceptance, all six exact-head Device Smoke lanes, backup/restore/rollback integrity, Person report integrity, dangling-reference checks and physical-device acceptance remain NOT VERIFIED. Overall release **NO-GO**.
+
+
+## Historical test-failure evidence — Person branch, 2026-10-14
+
+- Historical Build [38506153872](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38506153872), SHA `07c7f9005b7331f07468e20d13b3939c990bd9fd`: Analyze and Debug/Release APK passed; all six test shards failed with repeated `pumpAndSettle timed out` in `test/follow_up_entry_page_test.dart` at multiple widget cases (open page, blank title, reminder editing/clear, exit flow). Logs show test runner timeout, but do not establish whether the underlying cause is an ongoing widget animation, navigation/scroll behavior, or test harness issue.
+- Evidence is historical and not current-head validation. Current Person head at the time of review was `bf67197d4dcc40d03b98bf7c7c2a38d2c073436a` and had no exact-head Build run. Require dispatcher-run exact SHA and inspect if failure repeats. No test weakening.

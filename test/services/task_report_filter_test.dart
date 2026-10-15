@@ -84,4 +84,63 @@ void main() {
       ['none'],
     );
   });
+  test('Person and waiting filters target Follow-up records without conflating next action and Reminder', () {
+    final waiting = Task(
+      id: 'waiting-task',
+      title: 'کار منتظر پاسخ',
+      followUps: [
+        FollowUp(
+          id: 'waiting-ali',
+          dateTime: DateTime(2026, 10, 6, 9),
+          waitingForResponse: true,
+          personIds: const ['ali'],
+          nextFollowUp: DateTime(2026, 10, 9, 10),
+          reminderDate: DateTime(2026, 10, 8, 8),
+        ),
+        FollowUp(
+          id: 'not-waiting-sara',
+          dateTime: DateTime(2026, 10, 6, 11),
+          waitingForResponse: false,
+          personIds: const ['sara'],
+          nextFollowUp: DateTime(2026, 10, 10, 11),
+        ),
+      ],
+    );
+    final completed = Task(
+      id: 'completed-task',
+      title: 'تکمیل‌شده',
+      completed: true,
+      followUps: [
+        FollowUp(
+          id: 'completed-waiting',
+          dateTime: DateTime(2026, 10, 6, 12),
+          waitingForResponse: true,
+          personIds: const ['ali'],
+        ),
+      ],
+    );
+    const filter = TaskReportFilter(
+      personIds: {'ali'},
+      waitingForResponseOnly: true,
+      timePreset: ReportTimePreset.future,
+    );
+
+    final result = filter.apply(
+      [waiting, completed],
+      now: now,
+      ignoreTaskTime: true,
+    );
+    expect(result.map((task) => task.id), ['waiting-task']);
+    expect(filter.matchesFollowUpTime(waiting.followUps.first, now: now), isTrue);
+    expect(filter.matchesFollowUpTime(
+      FollowUp(
+        id: 'reminder-is-future-but-next-action-is-past',
+        dateTime: DateTime(2026, 10, 6, 12),
+        nextFollowUp: DateTime(2026, 10, 6, 8),
+        reminderDate: DateTime(2026, 10, 20, 8),
+      ),
+      now: now,
+    ), isFalse);
+  });
+
 }

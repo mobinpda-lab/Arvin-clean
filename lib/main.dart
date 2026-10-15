@@ -12,6 +12,7 @@ import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
@@ -1850,6 +1851,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
+        people: await taskStore.loadPeopleDirectory(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1876,6 +1878,7 @@ class _HomePageState extends State<HomePage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
@@ -1913,6 +1916,7 @@ class _HomePageState extends State<HomePage> {
       previousCalendarLinks = calendarLinksBeforeRestore;
       previousCategories = await taskStore.loadCategories();
       previousTags = await taskStore.loadTags();
+      previousPeople = await taskStore.loadPeopleDirectory();
       final settingsBeforeRestore = await _portableBackupSettings();
       previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
@@ -1922,6 +1926,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: calendarLinksBeforeRestore,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -2027,10 +2032,16 @@ class _HomePageState extends State<HomePage> {
             categories: candidate.categories ?? const <String>[],
             tags: candidate.tags ?? const <String>[],
           );
+          if (candidate.people != null) {
+            await taskStore.restorePeopleDirectoryEntries(candidate.people!);
+          }
           await widget.restoreStageHook?.call('catalogs');
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
+          if (previousPeople != null) {
+            await taskStore.restorePeopleDirectoryEntries(previousPeople, replace: true);
+          }
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
@@ -2562,11 +2573,14 @@ class _HomePageState extends State<HomePage> {
         await _openPrimaryNextAction();
         return;
       case _HomeMoreAction.report:
+        final people = await taskStore.loadPeopleDirectory();
+        if (!mounted) return;
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => ReportCenterPage(
               tasks: List<Task>.of(tasks),
               projects: List<ProjectPlan>.of(projects),
+              people: people,
             ),
           ),
         );

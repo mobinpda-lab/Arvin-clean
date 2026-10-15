@@ -11,11 +11,15 @@ void main() {
     required DateTime date,
     String? result,
     String note = '',
+    bool waitingForResponse = false,
+    List<String> personIds = const <String>[],
   }) => FollowUp(
         id: id,
         dateTime: date,
         note: note,
         result: result,
+        waitingForResponse: waitingForResponse,
+        personIds: personIds,
       );
 
   test('uses the latest follow-up result as the waiting state source', () {
@@ -39,7 +43,7 @@ void main() {
     expect(service.isWaiting(task), isFalse);
   });
 
-  test('recognizes canonical and Persian legacy aliases', () {
+  test('recognizes canonical and Persian legacy aliases without treating result text as active state', () {
     for (final result in [
       'waiting_for_response',
       'waiting',
@@ -52,8 +56,39 @@ void main() {
         title: 'کار',
         followUps: [followUp(id: 'f', date: now, result: result)],
       );
-      expect(service.isWaiting(task), isTrue, reason: result);
+      expect(service.isWaitingResult(result), isTrue, reason: result);
+      expect(service.isWaiting(task), isFalse, reason: result);
     }
+  });
+
+  test('active waiting requires the structured state and at least one Person ID', () {
+    final withoutPerson = Task(
+      id: 'waiting-no-person',
+      title: 'کار',
+      followUps: [
+        followUp(
+          id: 'f',
+          date: now,
+          result: WaitingForResponseService.canonicalResult,
+          waitingForResponse: true,
+        ),
+      ],
+    );
+    final withPerson = Task(
+      id: 'waiting-with-person',
+      title: 'کار',
+      followUps: [
+        followUp(
+          id: 'f',
+          date: now,
+          result: WaitingForResponseService.canonicalResult,
+          waitingForResponse: true,
+          personIds: const ['person-ali'],
+        ),
+      ],
+    );
+    expect(service.isWaiting(withoutPerson), isFalse);
+    expect(service.isWaiting(withPerson), isTrue);
   });
 
   test('completed archived and trashed tasks are never active waiting items', () {

@@ -30,6 +30,7 @@ class ProjectBackupBridge {
     final calendarLinks = await ExternalCalendarLinkStore().load();
     final categories = await taskStore.loadCategories();
     final tags = await taskStore.loadTags();
+    final people = await taskStore.loadPeopleDirectory();
     return backupManager.backupCanonicalTasks(
       tasks,
       settings: settings,
@@ -37,6 +38,7 @@ class ProjectBackupBridge {
       calendarLinks: calendarLinks,
       categories: categories,
       tags: tags,
+      people: people,
       encryptionPassphrase: encryptionPassphrase,
     );
   }

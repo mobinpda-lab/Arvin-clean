@@ -2,9 +2,10 @@ import '../models/task.dart';
 
 /// Canonical contract for the Wave X1 "waiting for response" state.
 ///
-/// The state is stored in the latest [FollowUp.result] field instead of adding
-/// a second Task status or persistence path. FollowUpOfficePage exposes the
-/// waiting-only list through the existing canonical Task/FollowUp store.
+/// The explicit [FollowUp.waitingForResponse] flag is the canonical state.
+/// Free-form [FollowUp.result] text is retained as descriptive history only;
+/// aliases are used solely when normalizing legacy input, never to determine
+/// whether a Follow-up is actively waiting. No parallel status or store exists.
 class WaitingForResponseService {
   const WaitingForResponseService();
 
@@ -20,9 +21,14 @@ class WaitingForResponseService {
 
   bool isWaiting(Task task) {
     if (task.completed || task.archived || task.trashed) return false;
-    final latest = task.lastFollowUp;
-    return latest != null && isWaitingResult(latest.result);
+    return task.followUps.any(isWaitingFollowUp);
   }
+
+  /// A valid active waiting relationship always identifies at least one Person.
+  bool isWaitingFollowUp(FollowUp followUp) =>
+      followUp.waitingForResponse &&
+      !followUp.completed &&
+      followUp.personIds.isNotEmpty;
 
   bool isWaitingResult(String? result) {
     if (result == null) return false;
@@ -41,7 +47,11 @@ class WaitingForResponseService {
         dateTime: followUp.dateTime,
         note: followUp.note,
         result: canonicalResult,
+        reminderDate: followUp.reminderDate,
         nextFollowUp: followUp.nextFollowUp,
+        completed: followUp.completed,
+        waitingForResponse: true,
+        personIds: followUp.personIds,
       );
 
   String _normalize(String value) =>

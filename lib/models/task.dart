@@ -13,6 +13,8 @@ class FollowUp {
   final DateTime? reminderDate;
   final DateTime? nextFollowUp;
   final bool completed;
+  final bool waitingForResponse;
+  final List<String> personIds;
 
   const FollowUp({
     required this.id,
@@ -22,6 +24,8 @@ class FollowUp {
     this.reminderDate,
     this.nextFollowUp,
     this.completed = false,
+    this.waitingForResponse = false,
+    this.personIds = const <String>[],
   });
 
   Map<String, dynamic> toJson() => {
@@ -32,9 +36,28 @@ class FollowUp {
         'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
+        'waitingForResponse': waitingForResponse,
+        'personIds': personIds,
       };
 
   factory FollowUp.fromJson(Map<String, dynamic> json) {
+    final rawPersonIds = json['personIds'];
+    if (rawPersonIds != null && rawPersonIds is! List) {
+      throw const FormatException('FollowUp personIds must be a list');
+    }
+    final personIds = <String>[];
+    final seenPersonIds = <String>{};
+    for (final rawId in (rawPersonIds as List<dynamic>? ?? const [])) {
+      if (rawId is! String || rawId.trim().isEmpty) {
+        throw const FormatException('FollowUp Person id must be a non-empty string');
+      }
+      final personId = rawId.trim();
+      if (!seenPersonIds.add(personId)) {
+        throw const FormatException('Duplicate Person id on FollowUp');
+      }
+      personIds.add(personId);
+    }
+
     return FollowUp(
       id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
@@ -47,6 +70,8 @@ class FollowUp {
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
+      waitingForResponse: json['waitingForResponse'] as bool? ?? false,
+      personIds: List<String>.unmodifiable(personIds),
     );
   }
 }
