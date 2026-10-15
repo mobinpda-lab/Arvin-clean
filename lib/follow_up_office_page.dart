@@ -9,6 +9,7 @@ import 'services/automatic_follow_up_service.dart';
 import 'services/task_store.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
+import 'widgets/arvin_date_time_label.dart';
 import 'services/waiting_for_response_service.dart';
 
 class FollowUpOfficePage extends StatefulWidget {
@@ -362,7 +363,13 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text(_dateTime(row.dateTime)),
+                            ArvinDateTimeLabel(
+                              date: _dateFormatter.format(row.dateTime, usePersianDate: true),
+                              time: _dateFormatter.toPersianDigits(
+                                '${row.dateTime.hour.toString().padLeft(2, '0')}:${row.dateTime.minute.toString().padLeft(2, '0')}',
+                              ),
+                              timePrefix: 'ساعت ',
+                            ),
                             if (row.note.trim().isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(row.note),

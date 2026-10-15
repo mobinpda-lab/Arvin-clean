@@ -33,7 +33,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('۱۴۰۵/۰۶/۰۶ • ساعت ۱۰:۴۵'), findsOneWidget);
+    expect(find.text('۱۴۰۵/۰۶/۰۶'), findsOneWidget);
+    expect(find.text('ساعت ۱۰:۴۵'), findsOneWidget);
     expect(find.textContaining('۲۰۲۶/۰۸/۲۸'), findsNothing);
   });
 }

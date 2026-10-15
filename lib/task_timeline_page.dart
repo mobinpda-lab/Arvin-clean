@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_timeline_service.dart';
+import 'widgets/arvin_date_time_label.dart';
 import 'task_people_page.dart';
 import 'task_recurrence_page.dart';
 
@@ -18,13 +19,11 @@ class TaskTimelinePage extends StatelessWidget {
 
   static const _formatter = PersianDateFormatter();
 
-  String _formatDateTime(DateTime value) {
-    final date = _formatter.format(value, usePersianDate: true);
-    final time = _formatter.toPersianDigits(
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
-    );
-    return '$date • $time';
-  }
+  String _date(DateTime value) => _formatter.format(value, usePersianDate: true);
+
+  String _time(DateTime value) => _formatter.toPersianDigits(
+        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+      );
 
   String _label(TaskTimelineEntryKind kind) => switch (kind) {
         TaskTimelineEntryKind.created => 'ایجاد کار',
@@ -103,7 +102,10 @@ class TaskTimelinePage extends StatelessWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_formatDateTime(entry.dateTime)),
+                          ArvinDateTimeLabel(
+                            date: _date(entry.dateTime),
+                            time: _time(entry.dateTime),
+                          ),
                           if (entry.note.trim().isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(entry.note),
