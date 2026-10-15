@@ -855,13 +855,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
-bool _isOverdueCalendarItem(CalendarReminder item) =>
-    !item.completed &&
-    !item.isAllDay &&
-    DateUtils.dateOnly(item.date).isBefore(
-      DateUtils.dateOnly(IranClock.now()),
-    );
-
 class _DailyContentCard extends StatelessWidget {
   const _DailyContentCard({required this.item, required this.onTap});
 
