@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'backup_schedule_page.dart';
 import 'calendar_integration_settings_page.dart';
@@ -26,7 +28,65 @@ class _SettingsPageState extends State<SettingsPage> {
     ContextualHelpStep(icon: Icons.restore, title: 'بازیابی با دقت', body: 'برای برگرداندن اطلاعات، فایل درست را انتخاب کنید. آروین قبل از جایگزینی اطلاعات مسیر بازیابی را کنترل می‌کند.'),
   ];
   AppSettings? settings;
-  @override void initState() { super.initState(); _load(); }
+  bool? _notificationsEnabled;
+  bool _notificationStatusLoading = true;
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  static const MethodChannel _platformSettingsChannel = MethodChannel('arvin/app_settings');
+
+  @override void initState() {
+    super.initState();
+    _load();
+    _refreshNotificationStatus();
+  }
+
+  Future<void> _refreshNotificationStatus() async {
+    bool? enabled;
+    try {
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      enabled = await android?.areNotificationsEnabled();
+    } catch (_) {
+      enabled = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = enabled;
+      _notificationStatusLoading = false;
+    });
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    try {
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (android == null) {
+        _showNotificationFeedback('درخواست اجازه اعلان‌ها در این محیط پشتیبانی نمی‌شود.');
+        return;
+      }
+      await android.requestNotificationsPermission();
+      await _refreshNotificationStatus();
+    } catch (_) {
+      _showNotificationFeedback('درخواست اجازه اعلان‌ها انجام نشد؛ از تنظیمات گوشی اقدام کنید.');
+    }
+  }
+
+  Future<void> _openSystemNotificationSettings() async {
+    try {
+      final opened = await _platformSettingsChannel.invokeMethod<bool>('openNotificationSettings');
+      if (opened != true) {
+        _showNotificationFeedback('تنظیمات اعلان‌های گوشی باز نشد؛ از اطلاعات برنامه در تنظیمات گوشی وارد شوید.');
+      }
+    } on PlatformException {
+      _showNotificationFeedback('تنظیمات اعلان‌های گوشی در این محیط در دسترس نیست.');
+    } on MissingPluginException {
+      _showNotificationFeedback('تنظیمات اعلان‌های گوشی در این محیط در دسترس نیست.');
+    }
+  }
+
+  void _showNotificationFeedback(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
   Future<void> _load() async { final value = await widget.service.load(); if (!mounted) return; setState(() => settings = value); }
   Future<void> _setTheme(ThemeMode mode) async { final current = settings; if (current == null) return; await widget.service.saveThemeMode(mode); final next = current.copyWith(themeMode: mode); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setPersianDate(bool value) async { final current = settings; if (current == null) return; await widget.service.saveUsePersianDate(value); final next = current.copyWith(usePersianDate: value); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
@@ -84,6 +144,41 @@ class _SettingsPageState extends State<SettingsPage> {
   @override Widget build(BuildContext context) {
     final current = settings;
     return Directionality(textDirection: TextDirection.rtl, child: Scaffold(appBar: AppBar(title: const Text('تنظیمات')), body: current == null ? const Center(child: CircularProgressIndicator()) : ListView(padding: const EdgeInsets.all(16), children: [
+      const Text('اعلان‌ها', key: ValueKey('notification-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      ListTile(
+        key: const ValueKey('notification-permission-status'),
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(_notificationsEnabled == true ? Icons.notifications_active_outlined : Icons.notifications_off_outlined),
+        title: const Text('اجازه اعلان‌های آروین'),
+        subtitle: Text(_notificationStatusLoading
+            ? 'در حال بررسی وضعیت اجازه اعلان‌ها…'
+            : _notificationsEnabled == true
+                ? 'اعلان‌های برنامه در گوشی مجاز است.'
+                : _notificationsEnabled == false
+                    ? 'اعلان‌های برنامه در گوشی غیرفعال است.'
+                    : 'وضعیت اجازه اعلان‌ها در این محیط قابل بررسی نیست.'),
+      ),
+      if (_notificationsEnabled == false)
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: OutlinedButton.icon(
+            key: const ValueKey('notification-request-permission'),
+            onPressed: _requestNotificationPermission,
+            icon: const Icon(Icons.notifications_active_outlined),
+            label: const Text('درخواست اجازه اعلان‌ها'),
+          ),
+        ),
+      ListTile(
+        key: const ValueKey('notification-system-settings-entry'),
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.settings_outlined),
+        title: const Text('تنظیمات اعلان‌های گوشی'),
+        subtitle: const Text('فعال یا غیرفعال کردن اعلان‌های آروین در تنظیمات Android'),
+        trailing: const Icon(Icons.chevron_left),
+        onTap: _openSystemNotificationSettings,
+      ),
+      const Divider(height: 32),
       const Text('ظاهر و نمایش', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       SegmentedButton<ThemeMode>(segments: const [ButtonSegment(value: ThemeMode.system, label: Text('سیستم'), icon: Icon(Icons.settings_suggest_outlined)), ButtonSegment(value: ThemeMode.light, label: Text('روشن'), icon: Icon(Icons.light_mode_outlined)), ButtonSegment(value: ThemeMode.dark, label: Text('تیره'), icon: Icon(Icons.dark_mode_outlined))], selected: {current.themeMode}, onSelectionChanged: (selection) => _setTheme(selection.first)),
       const SizedBox(height: 16), SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('نمایش تاریخ فارسی'), subtitle: const Text('تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.'), value: current.usePersianDate, onChanged: _setPersianDate),

@@ -5,7 +5,10 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.provider.CalendarContract
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -37,6 +40,36 @@ class MainActivity : FlutterActivity() {
                     pendingWidgetTaskId = null
                     intent?.removeExtra(EXTRA_TASK_ID)
                     result.success(taskId)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            APP_SETTINGS_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                METHOD_OPEN_NOTIFICATION_SETTINGS -> {
+                    val settingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        }
+                    } else {
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                    }
+                    try {
+                        if (settingsIntent.resolveActivity(packageManager) == null) {
+                            result.success(false)
+                        } else {
+                            startActivity(settingsIntent)
+                            result.success(true)
+                        }
+                    } catch (_: Exception) {
+                        result.success(false)
+                    }
                 }
                 else -> result.notImplemented()
             }
@@ -572,6 +605,9 @@ class MainActivity : FlutterActivity() {
         const val EXTRA_TASK_ID = "arvin_task_id"
         const val METHOD_CONSUME_TASK_ID = "consumeWidgetTaskId"
         const val METHOD_TASK_SELECTED = "widgetTaskSelected"
+
+        const val APP_SETTINGS_CHANNEL = "arvin/app_settings"
+        const val METHOD_OPEN_NOTIFICATION_SETTINGS = "openNotificationSettings"
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
         const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
