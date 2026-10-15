@@ -174,9 +174,9 @@ class _UniversalArvinTimePickerDialogState
                   mainAxisAlignment: MainAxisAlignment.center,
                   textDirection: TextDirection.ltr,
                   children: [
-                    _digitalSegment(_formatter.toPersianDigits(_hour.toString().padLeft(2, '0')), selected: !_choosingMinute && !_manualEntry, onTap: () => setState(() { _choosingMinute = false; _manualEntry = false; })),
+                    _digitalSegment(_formatter.toPersianDigits(_hour.toString().padLeft(2, '0')), segmentKey: 'universal-time-hour-value', selected: !_choosingMinute && !_manualEntry, onTap: () => setState(() { _choosingMinute = false; _manualEntry = false; })),
                     const Padding(padding: EdgeInsets.symmetric(horizontal: 3), child: Text(':', style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w700))),
-                    _digitalSegment(_formatter.toPersianDigits(_minute.toString().padLeft(2, '0')), selected: _choosingMinute && !_manualEntry, onTap: () => setState(() { _choosingMinute = true; _manualEntry = false; })),
+                    _digitalSegment(_formatter.toPersianDigits(_minute.toString().padLeft(2, '0')), segmentKey: 'universal-time-minute-value', selected: _choosingMinute && !_manualEntry, onTap: () => setState(() { _choosingMinute = true; _manualEntry = false; })),
                   ],
                 ),
                 ),
@@ -290,12 +290,12 @@ class _UniversalArvinTimePickerDialogState
     );
   }
 
-  Widget _digitalSegment(String value, {required bool selected, required VoidCallback onTap}) {
+  Widget _digitalSegment(String value, {required String segmentKey, required bool selected, required VoidCallback onTap}) {
     return Semantics(
       button: true,
       selected: selected,
       child: InkWell(
-        key: ValueKey(selected ? 'universal-time-active-digital-segment' : 'universal-time-digital-segment-$value'),
+        key: ValueKey(segmentKey),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
