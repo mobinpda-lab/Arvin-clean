@@ -561,6 +561,10 @@ void main() {
     await _pumpRouteTransition(tester);
     expect(deleted, isNull);
 
+    // The action sheet closes before the canonical owner confirmation appears;
+    // reopen it for the second delete attempt.
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
