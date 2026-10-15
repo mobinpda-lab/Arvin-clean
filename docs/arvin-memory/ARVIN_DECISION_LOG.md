@@ -232,3 +232,12 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - Person/report projection's dangling-reference behavior differs from the existing main implementation and the PR remains stacked on #2666; review/reconcile before integration.
 - **Release: NO-GO.**
 
+
+## 2026-10-16 — Calendar test correction and latest validation
+
+- Calendar SHA `81b646a4bf3f8a85925ad7ffe58fc810e162122d` supersedes `9839f9197c0b6b54b67086d75561eb8ff799453f`; the earlier head exposed a test that still expected inline actions, and that test was corrected. Current-head Build/Smoke are pending.
+- Migration tombstone PR #2738 Build is terminal success with all six test shards and both APK jobs green; the new deletion/no-resurrection test is green. Device Smoke remains non-green due Home emulator SDK image `unknown archive`; other lanes are not terminal. Rerun only after workflow completes.
+- Person/report PR #2695 SHA `44810fcf5bb96db8c028a1574889e3f2d45af75f` remains under CI; branch is stacked on unmerged #2666 and its projection implementation must be reconciled with main.
+- Current PR-triggered Build runs do not prove exact-head because `Verify exact requested revision` is skipped outside `workflow_dispatch`. Exact-target Build remains blocked/pending.
+- Release remains NO-GO.
+
