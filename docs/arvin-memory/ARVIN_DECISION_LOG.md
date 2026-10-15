@@ -208,3 +208,8 @@
 - **Safeguards:** stable ID legacy-task-reminder; persisted migration version; preserve date/time; do not infer all-day from midnight; preserve Calendar identity task-reminder:<taskId> and scheduler key; preserve existing independent reminders; test JSON, SQL, backup/restore, rollback and no-duplicate behavior.
 - **Status:** Candidate implementation is on this PR branch. Exact-head CI and complete acceptance remain pending. Release NO-GO.
 - **Evidence:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
+
+
+## 2026-10-15 — Decision record: PR #2725 validated
+
+Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
