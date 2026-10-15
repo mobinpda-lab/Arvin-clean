@@ -444,3 +444,10 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Calendar Provider Acceptance | [Run 38695105183](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695105183) | SUCCESS | Validate no duplicate legacy event in real environment / user device |
 | PR disposition | [PR #2719](https://github.com/mobinpda-lab/Arvin-clean/pull/2719) | Draft/open/unmerged | Review migration rollback/retry and full acceptance before merge |
 | Release gate | Issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) and [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) | OPEN / NO-GO | Integrated product acceptance and physical-device evidence |
+
+
+## 2026-10-15 — Terminal CI evidence for PR #2725
+
+- Build: [run 38752957837](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957837) = `success` for head `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55`; analyzer, six test shards, Debug and Release APK jobs passed.
+- Device Smoke: [run 38752957813](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957813) = `success`; home, quick-capture, people, SQL migration, SQL persistence and backup/restore all passed.
+- PR #2725 is the standalone People directory / Follow-up person-link backup fix and references Issue #2682. These checks establish CI/emulator success only, not physical-device acceptance.
