@@ -42,6 +42,32 @@ void main() {
     expect(find.text('توضیح'), findsNothing);
   });
 
+  testWidgets('Home task cards hide secondary metadata until expanded', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"compact-card","title":"کار فشرده","description":"توضیحات طولانی","category":"شخصی","tags":["نمونه"]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار فشرده'), findsOneWidget);
+    expect(find.text('توضیحات طولانی'), findsNothing);
+    expect(find.text('شخصی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-task-expand-compact-card')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('توضیحات طولانی'), findsOneWidget);
+    expect(find.text('شخصی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-task-expand-compact-card')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('توضیحات طولانی'), findsNothing);
+    expect(find.text('شخصی'), findsNothing);
+  });
+
   testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
