@@ -4,6 +4,42 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/universal_arvin_time_picker.dart';
 
 void main() {
+  testWidgets('inner ring 24 maps to midnight 00 without changing storage semantics', (tester) async {
+    TimeOfDay? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                key: const ValueKey('open-time-picker'),
+                onPressed: () async {
+                  result = await showUniversalArvinTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(hour: 8, minute: 0),
+                    helpText: 'زمان انجام کار',
+                  );
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('open-time-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-inner-۲۴')));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('۰۰:۰۰'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+    expect(result, const TimeOfDay(hour: 0, minute: 0));
+  });
+
+
   testWidgets('shows a Persian 24-hour value and saves a selected minute',
       (tester) async {
     TimeOfDay? result;
