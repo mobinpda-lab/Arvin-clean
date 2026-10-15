@@ -251,7 +251,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
     expect(find.text('فروردین'), findsNothing);
-    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    final dateConfirm = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
@@ -319,7 +319,7 @@ void main() {
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب تاریخ'), findsWidgets);
-    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    final dateConfirm = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
     expect(dateConfirm, findsOneWidget);
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
@@ -354,7 +354,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
@@ -395,8 +395,8 @@ void main() {
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('quick-capture-date-confirm')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    expect(find.widgetWithText(FilledButton, 'انتخاب تاریخ'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
 
     expect(find.text('زمان یادآوری'), findsWidgets);
@@ -420,7 +420,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
