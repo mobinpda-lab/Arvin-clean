@@ -4,6 +4,7 @@ import 'backup_schedule.dart';
 import 'backup_manager.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
+import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'models/goal_project.dart';
 import 'services/external_calendar_link_store.dart';
@@ -255,6 +256,9 @@ class _BackupPageState extends State<BackupPage> {
         projects: manager.projectCodec.encodeList(await ProjectStore().load()),
         categories: await TaskStore().loadCategories(),
         tags: await TaskStore().loadTags(),
+        peopleDirectory: (await TaskStore().loadPeopleDirectory())
+            .map((person) => person.toJson())
+            .toList(growable: false),
         encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
@@ -315,6 +319,7 @@ class _BackupPageState extends State<BackupPage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await manager.restoreCanonicalBackup(
@@ -359,6 +364,7 @@ class _BackupPageState extends State<BackupPage> {
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
       previousCategories = await TaskStore().loadCategories();
       previousTags = await TaskStore().loadTags();
+      previousPeople = await TaskStore().loadPeopleDirectory();
       previousSettings = await _portableBackupSettings();
       final currentTasks = tasksBeforeRestore
           .map((value) => Task.fromJson(value))
@@ -370,6 +376,7 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: previousCalendarLinks,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -396,6 +403,12 @@ class _BackupPageState extends State<BackupPage> {
               localOnlyTaskIds: localOnlyTaskIds,
             )
           : previousProjects;
+      final reconciledPeople = candidate.hasPeople
+          ? ArvinBackupManager.reconcilePeopleById(
+              current: previousPeople!,
+              backup: candidate.people ?? const <PersonReference>[],
+            )
+          : previousPeople!;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
@@ -441,6 +454,10 @@ class _BackupPageState extends State<BackupPage> {
             tags: candidate.tags ?? const <String>[],
           );
           await widget.restoreStageHook?.call('catalogs');
+          if (candidate.hasPeople) {
+            await TaskStore().savePeopleDirectory(reconciledPeople);
+          }
+          await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
@@ -471,11 +488,12 @@ class _BackupPageState extends State<BackupPage> {
               await TaskStore().deleteTagCatalog(tag);
             }
           }
+          await TaskStore().savePeopleDirectory(previousPeople!);
         },
       );
       if (mounted) {
         _message(
-          'بازیابی انجام شد: اطلاعات هم‌شناسه به‌روز شد، موارد پشتیبان اضافه شد و اطلاعات فقط-محلی حفظ شد${candidate.settings == null ? '؛ تنظیمات فعلی حفظ شدند' : '؛ تنظیمات موجود در پشتیبان اعمال شدند'}${candidate.calendarLinks == null ? '؛ پیوندهای فعلی تقویم حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند'}',
+          'بازیابی انجام شد: اطلاعات هم‌شناسه به‌روز شد، موارد پشتیبان اضافه شد و اطلاعات فقط-محلی حفظ شد${candidate.settings == null ? '؛ تنظیمات فعلی حفظ شدند' : '؛ تنظیمات موجود در پشتیبان اعمال شدند'}${candidate.calendarLinks == null ? '؛ پیوندهای فعلی تقویم حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}',
         );
       }
     } catch (error) {
