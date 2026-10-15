@@ -83,7 +83,7 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
-      await _migrateTaskPeople(executor);
+      await migrateTaskPeople(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more
       // than one SQLite connection (for example app + Android smoke tooling).
@@ -100,7 +100,7 @@ class G1DriftSchema implements QueryExecutorUser {
   /// Copies historical task-person identities into the canonical directory.
   /// Existing directory rows win for creation time; names are refreshed from
   /// the current task relation. Re-running this migration is safe.
-  static Future<void> _migrateTaskPeople(QueryExecutor executor) async {
+  static Future<void> migrateTaskPeople(QueryExecutor executor) async {
     final rows = await executor.runSelect(
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
