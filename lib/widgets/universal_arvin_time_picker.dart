@@ -347,7 +347,7 @@ class _ClockFace extends StatelessWidget {
     const center = size / 2;
     final values = choosingMinute
         ? List<int>.generate(12, (index) => index * 5)
-        : List<int>.generate(12, (index) => index + 1);
+        : List<int>.generate(12, (index) => index == 0 ? 12 : index);
     final children = <Widget>[
       Positioned(
         left: center - 2,
@@ -422,7 +422,7 @@ class _ClockFace extends StatelessWidget {
     }
 
     if (!choosingMinute) {
-      final innerValues = List<int>.generate(12, (index) => (index + 13) % 24);
+      final innerValues = List<int>.generate(12, (index) => index == 0 ? 0 : index + 12);
       for (var index = 0; index < innerValues.length; index++) {
         final value = innerValues[index];
         final angle = (index * 2 * math.pi / 12) - math.pi / 2;
