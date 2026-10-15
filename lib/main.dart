@@ -2528,7 +2528,7 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.report:
         final people = await taskStore.loadPeopleDirectory();
-        if (!context.mounted) return;
+        if (!mounted) return;
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => ReportCenterPage(
