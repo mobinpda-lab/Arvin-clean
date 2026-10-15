@@ -13,6 +13,7 @@ class FollowUp {
   final DateTime? reminderDate;
   final DateTime? nextFollowUp;
   final bool completed;
+  final List<String> personIds;
 
   const FollowUp({
     required this.id,
@@ -22,6 +23,7 @@ class FollowUp {
     this.reminderDate,
     this.nextFollowUp,
     this.completed = false,
+    this.personIds = const <String>[],
   });
 
   Map<String, dynamic> toJson() => {
@@ -32,6 +34,7 @@ class FollowUp {
         'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
+        if (personIds.isNotEmpty) 'personIds': personIds,
       };
 
   factory FollowUp.fromJson(Map<String, dynamic> json) {
@@ -47,6 +50,12 @@ class FollowUp {
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
+      personIds: (json['personIds'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .map((id) => id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList(growable: false),
     );
   }
 }

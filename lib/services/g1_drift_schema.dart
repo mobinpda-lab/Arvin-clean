@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 5;
+  static const int version = 6;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -37,6 +39,12 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS task_people (
   task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL,
   person_json TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
+    '''CREATE TABLE IF NOT EXISTS people (
+  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS follow_up_people (
+  follow_up_id TEXT NOT NULL REFERENCES follow_ups(id), person_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
     '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
   key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
   ];
@@ -75,6 +83,7 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
+      await migrateTaskPeople(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more
       // than one SQLite connection (for example app + Android smoke tooling).
@@ -85,6 +94,35 @@ class G1DriftSchema implements QueryExecutorUser {
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
+    }
+  }
+
+  /// Copies historical task-person identities into the canonical directory.
+  /// Existing directory rows win for creation time; names are refreshed from
+  /// the current task relation. Re-running this migration is safe.
+  static Future<void> migrateTaskPeople(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
+      const [],
+    );
+    final now = DateTime.now().toIso8601String();
+    for (final row in rows) {
+      final id = row['person_id'];
+      final raw = row['person_json'];
+      if (id is! String || id.trim().isEmpty || raw is! String) continue;
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) continue;
+        final name = (decoded['displayName'] ?? decoded['name']);
+        if (name is! String || name.trim().isEmpty) continue;
+        await executor.runInsert(
+          '''INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+          <Object?>[id.trim(), name.trim(), now, now],
+        );
+      } on FormatException {
+        continue;
+      }
     }
   }
 

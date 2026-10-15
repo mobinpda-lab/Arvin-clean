@@ -1,5 +1,6 @@
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
@@ -16,6 +17,7 @@ class _RecordingBackupManager extends ArvinBackupManager {
   List<ExternalCalendarEventLink>? capturedCalendarLinks;
   List<String>? capturedCategories;
   List<String>? capturedTags;
+  List<PersonReference>? capturedPeople;
 
   @override
   Future<String?> backupCanonicalTasks(
@@ -25,6 +27,7 @@ class _RecordingBackupManager extends ArvinBackupManager {
     Iterable<ExternalCalendarEventLink>? calendarLinks,
     Iterable<String>? categories,
     Iterable<String>? tags,
+    Iterable<PersonReference>? people,
     String? encryptionPassphrase,
   }) async {
     capturedTasks = List<Task>.of(tasks);
@@ -34,6 +37,7 @@ class _RecordingBackupManager extends ArvinBackupManager {
         : List<ExternalCalendarEventLink>.of(calendarLinks);
     capturedCategories = categories == null ? null : List<String>.of(categories);
     capturedTags = tags == null ? null : List<String>.of(tags);
+    capturedPeople = people == null ? null : List<PersonReference>.of(people);
     return 'arvin-test-backup.json';
   }
 }
@@ -78,6 +82,7 @@ void main() {
     expect(manager.capturedCalendarLinks?.single.eventId, 'event-t1');
     expect(manager.capturedCategories, isNotNull);
     expect(manager.capturedTags, isNotNull);
+    expect(manager.capturedPeople, isNotNull);
   });
 
   test('restore writes candidate Projects through canonical ProjectStore', () async {
@@ -91,6 +96,8 @@ void main() {
       calendarLinks: null,
       categories: null,
       tags: null,
+      people: null,
+      hasPeople: false,
     );
 
     await bridge.restoreProjects(candidate);

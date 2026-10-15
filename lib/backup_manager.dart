@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
 import 'models/goal_project.dart';
+import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'services/project_plan_codec.dart';
 import 'services/calendar_sync_plan_service.dart';
@@ -14,6 +15,8 @@ typedef CanonicalBackupCandidate = ({
   List<ExternalCalendarEventLink>? calendarLinks,
   List<String>? categories,
   List<String>? tags,
+  List<PersonReference>? people,
+  bool hasPeople,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -161,6 +164,7 @@ class ArvinBackupManager {
     List<Map<String, dynamic>>? calendarLinks,
     List<String>? categories,
     List<String>? tags,
+    List<Map<String, dynamic>>? peopleDirectory,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -176,6 +180,7 @@ class ArvinBackupManager {
         if (calendarLinks != null) 'calendarLinks': calendarLinks,
         if (categories != null) 'categories': categories,
         if (tags != null) 'tags': tags,
+        if (peopleDirectory != null) 'peopleDirectory': peopleDirectory,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -193,6 +198,7 @@ class ArvinBackupManager {
     Iterable<ExternalCalendarEventLink>? calendarLinks,
     Iterable<String>? categories,
     Iterable<String>? tags,
+    Iterable<PersonReference>? people,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
@@ -202,6 +208,7 @@ class ArvinBackupManager {
       calendarLinks: calendarLinks?.map(_encodeCalendarLink).toList(growable: false),
       categories: categories?.toList(growable: false),
       tags: tags?.toList(growable: false),
+      peopleDirectory: people?.map((person) => person.toJson()).toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -223,6 +230,8 @@ class ArvinBackupManager {
     final calendarLinks = _decodeCalendarLinks(document);
     final categories = _decodeCatalog(document, 'categories', 'Category');
     final tags = _decodeCatalog(document, 'tags', 'Tag');
+    final people = _decodePeopleDirectory(document);
+    if (people != null) _validateFollowUpPersonReferences(tasks, people);
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -238,6 +247,8 @@ class ArvinBackupManager {
       calendarLinks: calendarLinks,
       categories: categories,
       tags: tags,
+      people: people,
+      hasPeople: document.containsKey('peopleDirectory'),
     );
   }
 
@@ -272,6 +283,69 @@ class ArvinBackupManager {
     }
 
     return List<Task>.unmodifiable(tasks);
+  }
+
+  List<PersonReference>? _decodePeopleDirectory(Map<String, dynamic> document) {
+    if (!document.containsKey('peopleDirectory')) return null;
+    final rawPeople = document['peopleDirectory'];
+    if (rawPeople is! List) {
+      throw const FormatException('Arvin backup people directory is invalid');
+    }
+    final ids = <String>{};
+    final people = <PersonReference>[];
+    for (final raw in rawPeople) {
+      if (raw is! Map) {
+        throw const FormatException('Arvin backup person entry is invalid');
+      }
+      late final PersonReference person;
+      try {
+        person = PersonReference.fromJson(Map<String, dynamic>.from(raw));
+      } on FormatException {
+        rethrow;
+      } catch (_) {
+        throw const FormatException('Arvin backup person fields are invalid');
+      }
+      if (!ids.add(person.id)) {
+        throw FormatException('Arvin backup contains duplicate person id: ${person.id}');
+      }
+      people.add(person);
+    }
+    return List<PersonReference>.unmodifiable(people);
+  }
+
+  /// Rejects dangling Follow-up person IDs before the restore UI can mutate storage.
+  /// Old backups without a peopleDirectory remain backward-compatible.
+  void _validateFollowUpPersonReferences(
+    Iterable<Task> tasks,
+    Iterable<PersonReference> people,
+  ) {
+    final knownIds = people.map((person) => person.id).toSet();
+    for (final task in tasks) {
+      for (final followUp in task.followUps) {
+        for (final personId in followUp.personIds) {
+          if (!knownIds.contains(personId)) {
+            throw FormatException(
+              'Arvin backup Follow-up references unknown person id: $personId',
+            );
+          }
+        }
+      }
+    }
+  }
+
+  /// Reconciles the standalone directory by stable identity, retaining local-only
+  /// people and allowing incoming backup values to update matching identities.
+  static List<PersonReference> reconcilePeopleById({
+    required Iterable<PersonReference> current,
+    required Iterable<PersonReference> backup,
+  }) {
+    final result = <String, PersonReference>{
+      for (final person in current) person.id: person,
+    };
+    for (final person in backup) {
+      result[person.id] = person;
+    }
+    return List<PersonReference>.unmodifiable(result.values);
   }
 
   Map<String, dynamic> _encodeCalendarLink(ExternalCalendarEventLink link) =>
