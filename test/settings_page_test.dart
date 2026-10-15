@@ -66,16 +66,19 @@ void main() {
     expect((await service.load()).fontFamily, 'VazirHarf');
 
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
+      find.byKey(const ValueKey('taxonomy-management-settings-entry')),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('projects-settings-entry')), findsOneWidget);
-    expect(find.byKey(const ValueKey('taxonomy-settings-entry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('taxonomy-management-settings-entry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('projects-settings-entry')), findsNothing);
+    expect(find.byKey(const ValueKey('taxonomy-settings-entry')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('taxonomy-settings-entry')));
+    await tester.tap(find.byKey(const ValueKey('taxonomy-management-settings-entry')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('taxonomy-hub-categories-tags')));
     await tester.pumpAndSettle();
     expect(find.text('دسته‌ها و برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('taxonomy-create-category')), findsOneWidget);
@@ -83,15 +86,15 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
+      find.byKey(const ValueKey('taxonomy-management-settings-entry')),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
+    await tester.tap(find.byKey(const ValueKey('taxonomy-management-settings-entry')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('taxonomy-hub-projects')));
     await tester.pumpAndSettle();
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('هنوز پروژه‌ای ساخته نشده است.'), findsOneWidget);
