@@ -4,6 +4,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'widgets/persian_date_picker.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 class FollowUpEntryPage extends StatefulWidget {
   const FollowUpEntryPage({
@@ -66,16 +67,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.dispose();
   }
 
-  String _digits(String value) => _dateFormatter.toPersianDigits(value);
-
   String _formatDate(DateTime value) =>
       _dateFormatter.format(value, usePersianDate: true);
 
-  String _formatTime(DateTime value) {
-    final time =
-        '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-    return _digits(time);
-  }
+  String _formatTime(DateTime value) =>
+      _dateFormatter.formatTime(value.hour, value.minute);
 
   Future<DateTime?> _pickPersianDate({
     required DateTime initialDate,
@@ -97,12 +93,10 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     required DateTime initialDate,
     required String helpText,
   }) {
-    return showTimePicker(
+    return showUniversalArvinTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(initialDate),
       helpText: helpText,
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
     );
   }
 

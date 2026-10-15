@@ -27,6 +27,18 @@ class PersianDateFormatter {
     );
   }
 
+  /// Formats a 24-hour clock value with two digits and Persian numerals.
+  String formatTime(int hour, int minute) {
+    if (hour < 0 || hour > 23) {
+      throw RangeError.range(hour, 0, 23, 'hour');
+    }
+    if (minute < 0 || minute > 59) {
+      throw RangeError.range(minute, 0, 59, 'minute');
+    }
+    final raw = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    return toPersianDigits(raw);
+  }
+
   JalaliDate toJalali(DateTime date) {
     final gy = date.year - 1600;
     final gm = date.month - 1;

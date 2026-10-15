@@ -8,6 +8,7 @@ import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
 import 'follow_up_entry_page.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
 ///
@@ -281,7 +282,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (value == null) return 'بدون موعد';
     final formatter = const PersianDateFormatter();
     final date = formatter.format(value, usePersianDate: true);
-    final time = formatter.toPersianDigits('${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}');
+    final time = formatter.formatTime(value.hour, value.minute);
     return '$date • $time';
   }
 
@@ -290,23 +291,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   Future<TimeOfDay?> _pickPersianTime(
     BuildContext parentContext, {
     required DateTime initial,
-  }) async {
-    return showTimePicker(
+    required String helpText,
+  }) {
+    return showUniversalArvinTimePicker(
       context: parentContext,
       initialTime: TimeOfDay.fromDateTime(initial),
-      initialEntryMode: TimePickerEntryMode.dial,
-      helpText: 'انتخاب ساعت',
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-      hourLabelText: 'ساعت',
-      minuteLabelText: 'دقیقه',
-      builder: (dialogContext, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: MediaQuery(
-          data: MediaQuery.of(dialogContext).copyWith(alwaysUse24HourFormat: true),
-          child: child ?? const SizedBox.shrink(),
-        ),
-      ),
+      helpText: helpText,
     );
   }
 
@@ -314,7 +304,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await _pickJalaliDate(context, initialDate: initial);
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial);
+    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان انجام کار');
     if (time == null || !mounted) return null;
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
@@ -323,7 +313,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     final initial = _reminderDate ?? _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await _pickJalaliDate(context, initialDate: initial);
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial);
+    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان یادآوری');
     if (time == null || !mounted) return null;
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }

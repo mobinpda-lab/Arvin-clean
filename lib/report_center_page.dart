@@ -7,6 +7,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 String _reportDateTimeLabel(DateTime value) {
   final date = const PersianDateFormatter().format(value, usePersianDate: true);
@@ -360,15 +361,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   }
 
   Future<void> _pickTime(bool from) async {
-    final picked = await showTimePicker(
+    final picked = await showUniversalArvinTimePicker(
       context: context,
       initialTime: from
           ? (_fromTime ?? const TimeOfDay(hour: 8, minute: 0))
           : (_toTime ?? const TimeOfDay(hour: 17, minute: 0)),
-      builder: (_, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
-      ),
+      helpText: from ? 'از ساعت گزارش' : 'تا ساعت گزارش',
     );
     if (picked == null) return;
     setState(() {
@@ -759,8 +757,7 @@ String _dateLabel(DateTime? value, String empty) {
 
 String _timeLabelOf(TimeOfDay? value, String empty) {
   if (value == null) return empty;
-  final raw = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-  return const PersianDateFormatter().toPersianDigits(raw);
+  return const PersianDateFormatter().formatTime(value.hour, value.minute);
 }
 
 TimeOfDay _toTimeOfDay(Duration value) =>
