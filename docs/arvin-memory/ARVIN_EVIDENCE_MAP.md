@@ -443,3 +443,18 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Legacy Task reminder migration | Main model/projection at `31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`; Issue #2654 comment [6174885122](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6174885122); PR #2655 | OWNER DECISION REQUIRED | Conflicting recorded rules: preserve legacy field/identity vs deterministic one-time conversion; no migration performed |
 | Controlled recovery dispatcher | PR #2699 merged; current PR #2717 CI is not a controlled `workflow_dispatch` run | NOT PROVEN | Need approved operational run verifying requested target SHA = actual checkout SHA = accepted result |
 | Physical-device/product release acceptance | Issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) and [#1901](https://github.com/mobinpda-lab/Arvin-clean/pull/1901) | OPEN / NO-GO | Real phone, Calendar provider same-event update, complete restore integrity, RTL/visual and owner acceptance remain required |
+
+
+## 2026-10-15 — PR #2719 current reminder-migration candidate (exact-head evidence)
+
+| Gate / area | Exact evidence | Result | Limitation / next proof |
+|---|---|---|---|
+| Candidate head | [PR #2719](https://github.com/mobinpda-lab/Arvin-clean/pull/2719), SHA `59f833ec0a07a711f333fa14b86b271be194688f` | Draft / open / unmerged | Not on main; review before merge |
+| Analyze + test shards 0–5 + Debug/Release APK | [Build run 38706239167](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239167), same exact SHA | SUCCESS | Automated CI only |
+| Device Smoke: Home, People, Backup/Restore, Quick Capture, SQL Migration, SQL Persistence | [Run 38706239398](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239398), same exact SHA | SUCCESS — all six emulator lanes | Not physical-device proof or full golden-flow acceptance |
+| Calendar Provider Acceptance | [Run 38706239177](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239177), same exact SHA | SUCCESS | Physical phone same-event update, link recovery and no-duplicate behavior remain unproven |
+| Legacy Task reminder migration decision | [Issue #2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654), owner decision Option B | DECIDED / candidate implemented | Verify idempotence, rollback/retry, SQL round-trip, backup/restore, legacy alarm/calendar identity |
+| Current main and release closure | Main `31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`; [Release Closure run 38716988644](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38716988644); [Final Head Release Validation run 38716994293](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38716994293) | Release closure/validation SKIPPED; NO-GO | Do not treat skipped as pass; required product/device gates remain open |
+| Post-install owner acceptance | [Issue #1901](https://github.com/mobinpda-lab/Arvin-clean/pull/1901), owner comments 2026-10-14 | OPEN | Notebook/Reports redesign, Reports nav icon, Calendar typography/time picker and remaining Home/Settings/Notebook/Quick Add findings need exact APK physical-device proof |
+| Follow-up ownership | Current-main audit recorded in [Issue #1901](https://github.com/mobinpda-lab/Arvin-clean/pull/1901) comments | OPEN / CROSS-CUTTING | `followUpEnabled` still spans model/editor/persistence/migration/list/detail paths; consumer audit required before safe deprecation |
+| Release decision | [Issue #2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102), [Issue #2702](https://github.com/mobinpda-lab/Arvin-clean/issues/2702) | NO-GO | Complete integrated golden flow, real-device acceptance, restore integrity and owner approval |
