@@ -919,7 +919,7 @@ void main() {
     try {
       final store = TaskStore();
       final person = PersonReference(id: 'person-task-link', displayName: 'همکار');
-      final task = _completeTask()..people = [person];
+      final task = Task.fromJson({..._completeTask().toJson(), 'people': [person.toJson()]});
       await store.save([task]);
       expect((await store.loadPeopleDirectory()).map((p) => p.id),
           contains('person-task-link'));
@@ -949,8 +949,10 @@ void main() {
   test('legacy backup without peopleDirectory restores and migrates task people', () async {
     await TaskStore.resetTestDatabase();
     try {
-      final task = _completeTask()
-        ..people = [PersonReference(id: 'person-legacy', displayName: 'قدیمی')];
+      final task = Task.fromJson({
+        ..._completeTask().toJson(),
+        'people': [PersonReference(id: 'person-legacy', displayName: 'قدیمی').toJson()],
+      });
       final service = _FakeBackupService()
         ..restoreDocument = <String, dynamic>{
           'tasks': [task.toJson()],
