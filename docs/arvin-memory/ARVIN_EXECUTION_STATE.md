@@ -1,3 +1,13 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-16 — Calendar test correction
+
+- Calendar PR [#2735](https://github.com/mobinpda-lab/Arvin-clean/pull/2735) has advanced to latest SHA `81b646a4bf3f8a85925ad7ffe58fc810e162122d`. The prior PR-triggered Build for SHA `9839f9197c0b6b54b67086d75561eb8ff799453f` exposed one real test mismatch in `canonical_calendar_launcher_test.dart`: the test expected edit/register actions to be visible before long-press. The test was corrected to the approved tap/edit and long-press/action-sheet contract. Build [38815436407](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38815436407) and Device Smoke [38815436228](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38815436228) for SHA `81b646a4bf3f8a85925ad7ffe58fc810e162122d` are not yet producing job results; no green claim.
+- PR #2695 latest SHA remains `44810fcf5bb96db8c028a1574889e3f2d45af75f`; Build [38814903662](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814903662) and Device Smoke [38814903585](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814903585) are running/queued.
+- PR #2738 Build [38814485299](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485299) is terminal success: all 9 jobs succeeded and Debug/Release artifacts were produced (92,553,535 and 32,374,532 bytes). All six test shards passed, including the new no-resurrection test. Device Smoke [38814485268](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485268) is still running with Home failed at SDK image setup (`unknown archive`), Quick Capture passed, SQL migration and SQL persistence running, backup/restore and people queued. Rerun is blocked until the overall workflow finishes.
+- Exact-head: these are `pull_request` runs and skip the build's `Verify exact requested revision` step. No matching `workflow_dispatch` Build for these latest code SHAs has been observed. Keep exact-head gate **BLOCKED/PENDING**.
+- Release remains **NO-GO**; no physical-device acceptance has occurred.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-16 — CI poll and exact-head gate
 
 This is the latest observation and supersedes the initial status block below wherever the latest SHAs/statuses differ.
