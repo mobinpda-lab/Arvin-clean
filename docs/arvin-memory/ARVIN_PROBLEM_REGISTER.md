@@ -278,3 +278,10 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Correction status:** current PR #2695 head `93202e9e24e33bff31daaf933b2c4fb1417dfb46` scopes the title finder to the AlertDialog; exact-head Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) passes all six test shards.
 - **Safety:** PR #2715 was closed without merge after its base produced an unexpectedly broad/diverged diff. Do not cherry-pick it.
 - **Remaining status:** this specific test issue is resolved on the current Person PR head; physical-device and integrated product acceptance remain open. Release remains NO-GO.
+
+## 2026-10-14 — Follow-up/Reminder migration conflict and execution guard
+- **Problem:** Prior repository records conflict on whether legacy Task `reminderDate` must be automatically converted into a new TaskReminder or preserved as a distinct legacy field with its existing Calendar identity.
+- **Impact:** Choosing incorrectly can create duplicate reminders/calendar events, break event updates, or lose existing user data.
+- **Mitigation:** No migration, clearing, overwriting, implicit copying or identity change until the decision history is reconciled and a deterministic, idempotent, rollback-safe contract is documented.
+- **Related records:** Issue #2654 comment 6176411140; issue #1901 comment 6176412001.
+- **Status:** BLOCKED — data-integrity decision gate. Release NO-GO.

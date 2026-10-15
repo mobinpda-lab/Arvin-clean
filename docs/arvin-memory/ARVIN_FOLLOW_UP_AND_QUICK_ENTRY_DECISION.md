@@ -120,3 +120,32 @@ Do not introduce:
 ## 10. Execution status
 
 The product decision is accepted. Recording this decision in GitHub does not by itself mean the UI implementation, automated validation, physical-device acceptance or release gate is complete. Track each separately and never claim a gate passed without exact-head evidence.
+
+
+---
+
+## AUTHORITATIVE SUPERSESSION — 2026-10-14 — Remove follow-up-enabled checkbox; unify Follow-up UI
+
+This section supersedes conflicting older statements in this document, especially §3, §6, and the corresponding checklist in §9. Preserve the older text as history only; do not implement it as current behavior.
+
+### Current binding owner decision
+
+- Remove the Full Task Form checkbox/label **«کار پیگیری‌دار»** and the Quick Entry checkbox/option **«دارای پیگیری»**. A Task is not a separate type based on a boolean flag.
+- Remove `followUpEnabled` as a source-of-truth concept. A Task has zero, one, or many Follow-up records; the actual child records determine whether it has follow-ups. Any compatibility handling of legacy JSON/SQL/backup must be deliberately audited and must not erase user data.
+- Keep Quick Entry compact and retain **«چک‌لیست‌دار»**. Do not force the user to decide at Task creation whether it is a follow-up Task.
+- In Full Task Form, replace the legacy checkbox block with a **«پیگیری‌ها»** section that lists zero/one/many existing records and provides **«+ افزودن پیگیری»**. Each recorded Follow-up must be individually identifiable and independently addable/editable/deletable.
+- Follow-up record fields include title/note, result, recorded date/time, next-action time (`nextFollowUp`), waiting-for-response state and associated Person references where applicable. Preserve the existing canonical Task/FollowUp data path.
+- **Do not merge distinct concepts:** recorded Follow-up history, `nextFollowUp` (next planned action), and reminder(s) are different. Reminder creation is explicit/opt-in; reminders have independent identity/schedule and must not be silently copied from, overwritten by, or deleted with Follow-up values.
+- Waiting-for-response Person selection is multi-select on the relevant Follow-up; Person directory is managed in Settings alongside Project/Category/Tag. This is not authorization to create a separate CRM or parallel Task store.
+- Existing `followUpEnabled` fields/filters/serialization/services and legacy values still present in source must be treated as a migration/compatibility audit item, not evidence that the old checkbox remains an approved UX requirement. Remove obsolete runtime dependencies safely after identifying all call sites and preserving legacy data semantics.
+
+### Required evidence before marking complete
+
+- Full Task Form has no «کار پیگیری‌دار» checkbox; Quick Entry has no «دارای پیگیری» checkbox and retains checklist option.
+- Follow-up section supports zero/one/multiple records and add/edit/delete on the same canonical Task.
+- Independent next-action and reminder values survive edit/save/reopen, JSON/SQL and backup/restore.
+- Waiting-for-response supports multiple Person references.
+- Tests cover old records and migration compatibility; no data loss, duplicate reminder/calendar events, or parallel storage.
+- Analyze, full tests, Debug/Release APK, relevant Device Smoke, installed-build visual review and owner acceptance are complete.
+
+**Status:** This is the current product contract, not proof of implementation. App code and the installed build still require audit and correction. Release remains NO-GO until evidence is accepted.

@@ -199,3 +199,11 @@
 - **Reason:** The workflow definition/input schema must be dependable, and metadata SHA is not the same as the checked-out source SHA.
 - **Impact:** More reliable exact-head evidence and no cancellation between different targets.
 - **Status:** Implemented in PR #2699; exact-head CI and post-merge operational acceptance pending.
+
+## 2026-10-14 — Follow-up/Reminder consolidated contract and migration stop gate
+- **Problem:** Long-running discussion is at risk of being lost across conversations; historical documents and code contain conflicting statements on legacy reminder migration.
+- **Decision:** Persist the owner's v9.0 contract in issues #2654 and #1901. Task remains canonical; Follow-ups are child records (zero/one/many); user-facing follow-up-enabled checkboxes are removed in favor of a Follow-ups section and add action; Checklist remains in Quick Entry; `followUpEnabled` is not domain truth; `nextFollowUp`, Follow-up history, Task reminders, and Follow-up-specific reminders are distinct; People can be multi-selected for Waiting Response; Calendar/Reports are projections; Backup/Restore must preserve all data and links.
+- **Reason:** Avoid accidental data loss, duplicate Calendar events, duplicated reminder creation, or regression to the old checkbox-driven model.
+- **Impact:** All source consumers, persistence, migration, calendar sync, notification delivery, reports, backup/restore and tests require audit before code changes.
+- **Status:** Contract recorded; source change not started. Legacy Task reminder migration conflict remains BLOCKED pending reconciliation of prior owner-approved decision history. Release NO-GO.
+- **Evidence:** [Issue #2654 comment](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6176411140); [Issue #1901 comment](https://github.com/mobinpda-lab/Arvin-clean/issues/1901#issuecomment-6176412001).

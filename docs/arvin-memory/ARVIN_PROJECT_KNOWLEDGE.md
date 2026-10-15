@@ -130,3 +130,12 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Existing `test/follow_up_reminder_model_test.dart` covers one FollowUp reminder JSON round-trip, legacy JSON without reminderDate, and persistence inside Task JSON; it does not prove multiple Task reminders or all-day semantics.
 - Proposal only: a stable-ID `TaskReminder` collection embedded in canonical Task, with editable title/schedule and explicit date-only/all-day metadata, projected through existing Calendar/notification engines. No parallel store.
 - Preserve old fields and define a deliberate compatibility path before implementation. `nextFollowUp` remains distinct and reminder creation is opt-in. No code/schema change until the architecture gate is approved.
+
+## 2026-10-14 — Consolidated owner contract for Follow-up and Reminder
+- A Task inherently supports zero, one or multiple Follow-up records; a Task-level flag is not the source of truth.
+- Full Task Form: remove "کار پیگیری‌دار"; use "پیگیری‌ها" + "+ افزودن پیگیری". Quick Entry: remove "دارای پیگیری"; retain Checklist option.
+- Keep Follow-up occurrence/history, `nextFollowUp` (planned next action), Task-level Reminder collection and Follow-up-specific `reminderDate` separate. No implicit reminder/notification/external sync from `nextFollowUp`.
+- Multiple Task-level reminders need stable identity and independent edit/delete behavior. Waiting Response supports multiple Person references; Person management is a simple Settings directory, not CRM.
+- Task is canonical. Calendar and Reports are projections. Calendar tap opens Task; long press offers management. Backup/Restore integrity includes Tasks, Checklist, Repeat, Tracking, Follow-ups, Reminders, People, History and Calendar links.
+- **Data safety stop:** historical records conflict on legacy `Task.reminderDate` migration. Do not auto-convert, clear, overwrite or duplicate until the canonical migration rule and existing Calendar identity mapping are explicitly reconciled.
+- Durable issue records: #2654 comment 6176411140 and #1901 comment 6176412001. Documentation alone is not implementation evidence.

@@ -1,3 +1,21 @@
+# EVIDENCE INTERPRETATION CORRECTION — 2026-10-14
+
+The phrase “exact-head CI” in older notes must be read carefully. For PR runs, artifact suffixes `1db25fb6f6e304929d49e291a23b2b10cee4cbc5` (#2716) and `3bcce19ad992696a354764d36ec053f3b1bd5b7a` (#2695) match their synthetic PR merge commits, not the bare head SHAs. These Build and Device Smoke results validate the PR merge refs and are useful, but **do not prove the recovery dispatcher's strict target-SHA checkout contract**. That operational gate remains open until a controlled workflow-dispatch run records and asserts the requested target SHA in every quality/APK job. This distinction does not change the independent physical-device release blockers.
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Post-merge reconciliation
+
+This checkpoint supersedes older status statements below wherever they conflict. Keep older entries as historical evidence, not current state.
+
+- **Documentation PR #2716:** merged into main as `31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`. Build run [38614134817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38614134817) and Device Smoke [38614134949](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38614134949) succeeded across all Build jobs and all six emulator lanes. Evidence boundary: these are PR merge-ref runs, not controlled workflow-dispatch builds of the bare PR head; artifact names carry synthetic merge SHA `1db25fb6f6e304929d49e291a23b2b10cee4cbc5`. Do not label them strict exact-target dispatch acceptance.
+- **Person PR #2695:** PR head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`; Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) succeeded, including all six emulator lanes. Artifact names carry synthetic merge SHA `3bcce19ad992696a354764d36ec053f3b1bd5b7a`, so these are PR merge-ref validations, not controlled exact-target dispatch evidence. PR remains open/unmerged and must be reconciled with the multiple-reminders integration parent before integration.
+- **Recovery dispatcher PR #2699:** merged. Its Build and six-lane Device Smoke runs passed on its PR head, but controlled operational dispatch against a distinct target SHA remains unproven.
+- **Release decision: NO-GO / BLOCKED.** Issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102), [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) and [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139) remain open. Emulator CI does not establish physical-device acceptance. Still required: same-event Calendar edit and destination-switch/no-duplicate checks on a real Android device; real-file Backup/Restore with Task, Follow-up, Person and Calendar-link integrity plus rollback; Home/RTL/typography and Golden Flow acceptance; and explicit product-owner approval.
+- **Next action:** reconcile the stacked Person/Reminder branches against the current validated mainline, inspect the real-device acceptance checklist and obtain device evidence. Do not publish the candidate APK as a final release or merge feature PRs solely because CI is green.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
@@ -1029,3 +1047,180 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Remaining blockers:** physical-device acceptance; integrated Person + Follow-up + report + backup/restore acceptance; controlled end-to-end recovery-dispatch proof. Release issues #2102 and #1901 remain open. Release remains **NO-GO**.
 - **Current bottleneck:** product/data-integrity and physical-device acceptance, plus controlled dispatcher proof. Do not merge Person PR or publish a release solely on CI success.
 - **Next action:** inspect PR #2695 changed files and test coverage against owner contracts; verify backup/restore round-trip and referential integrity for Person IDs and Task/FollowUp preservation; then complete physical-device acceptance. Separately prove dispatcher operation on a known target SHA.
+
+
+# ARVIN UI & PRODUCT COMPLETION EXECUTION — 2026-10-14
+
+This is the execution record for the companion command to Autonomous Delivery v9 and Final Release Closure. It does not override data-safety contracts or release gates.
+
+## Acceptance rule
+
+A UX item is DONE only when all five are evidenced for the same candidate build: (1) code/change reviewed, (2) Build and relevant tests pass, (3) exact candidate APK installed, (4) visual/interaction behavior validated on the target physical Android device, and (5) evidence recorded with screenshot, device/model, Android version, app version, commit SHA, and test result. Emulator smoke or source-code presence alone is insufficient. If any item is missing, the item is not accepted as DONE.
+
+## Current evidence boundary
+
+- PR #2717 documentation head before this entry: `02ce6894886269281507fa69abf7d30784c40927`.
+- Arvin Build [38616683019](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38616683019): terminal SUCCESS — Analyze, six test shards, Debug APK, Release APK.
+- Device Smoke [38616682903](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38616682903): terminal SUCCESS — Home, Quick Capture, People, SQL persistence, SQL migration, Backup/Restore.
+- Screenshot artifacts listed for that smoke run: Home [11920357832](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920357832), Quick Capture [11920617864](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920617864), People [11920499580](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11920499580). These are automated screenshot artifacts and do not establish physical-device validation.
+- APK artifacts from the Build run: Release APK [11919793557](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11919793557), Debug APK [11919538564](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/11919538564).
+- Evidence nuance: these are PR-triggered Build/Device Smoke results and the artifact suffix identifies the synthetic PR merge ref. They prove those CI lanes passed on the PR merge candidate, not a controlled workflow_dispatch checkout of the bare target SHA, nor installation/acceptance on the user's physical phone.
+- Release gate remains NO-GO while issues [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) and [#1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901) remain open and physical-device acceptance is absent.
+
+## Product gap matrix — current evidence-based status
+
+Status terms: IMPLEMENTED = code plus required acceptance evidence; PARTIAL = some code/automated evidence exists but acceptance is incomplete; NOT IMPLEMENTED = known missing behavior from the latest owner-reported regression record. Where the installed APK cannot be inspected directly, this matrix explicitly avoids claiming that the current installed version was verified.
+
+| Area / acceptance item | Status | Evidence / outstanding proof |
+|---|---|---|
+| Home: page renders and smoke lane completes | PARTIAL | Home emulator smoke and screenshot artifact exist. Must inspect against approved visual reference and validate clipping, filters, status labels, spacing, font, RTL and readability on the actual phone. |
+| Calendar: compact readable Task presentation; tap opens Task; long-press opens actions only | PARTIAL | Automated smoke is not proof of these gestures or visual density. Verify tap vs long-press separately and ensure normal tap never opens the action menu. |
+| Calendar: edit linked Arvin Task and register/sync to phone default calendar | NOT IMPLEMENTED (per open owner regression) | Issue #1901 reports missing actions/settings; real-provider same-event update/no-duplicate acceptance remains open. Recheck code and installed build before changing status. |
+| Quick Entry: compact icons and Category, Project, Tag, Reminder, Repeat, Due Date and Checklist | PARTIAL | Quick Capture smoke/artifact exists, but not a complete visual/form-field acceptance. Inspect the actual screen and exercise every field. |
+| Quick Entry: remove “کار پیگیری‌دار”; create Follow-up only through Task lifecycle | PARTIAL | Canonical data contract is recorded; verify the rendered form and create/edit flows do not expose the legacy toggle and that Follow-ups remain child records. |
+| Full Task Form: remove “کار پیگیری‌دار” and old automatic follow-up time; provide “پیگیری‌ها” + “افزودن پیگیری” | PARTIAL | Architecture/decision contract exists; installed UI and add/edit/multiple-follow-up behavior have no physical acceptance evidence. |
+| Date/time selectors in Quick Add, Edit Task, Reminder and Follow-up | NOT IMPLEMENTED (per open owner regression) | Issue #1901 records blank selector screens in Quick Add and confirms clock should use the circular dial. Must test all four flows on the actual phone, including Persian/RTL input. |
+| Reports: functional output and Person/Follow-up filters | PARTIAL | Code/tests may cover report behavior, but no visual acceptance screenshot for Reports is in the current evidence set. Verify actual filters and report values against canonical Task data. |
+| Settings: font picker/size, Category/Tag management, Project refresh, default Calendar settings | NOT IMPLEMENTED (per open owner regression) | Issue #1901 records these missing/incomplete items. Reuse canonical AppSettingsService and taxonomy/calendar settings; do not create parallel storage. |
+| Checklist toggle and preservation | PARTIAL | Historical regression says enable/disable is missing; verify current canonical Task/Checklist behavior and confirm disabling does not destroy checklist data. |
+| Product scope: remove Checklist/Shopping List/Travel List only after dependency audit | PARTIAL | Scope request is recorded, but no destructive removal is accepted without dependency audit and user-data preservation review. |
+| Physical-device visual evidence for Home, Calendar, Quick Entry, Full Form, Reports and Settings | NOT IMPLEMENTED (acceptance evidence absent) | No evidence record currently proves all six screens on the installed candidate APK with device/version/SHA metadata. |
+
+These statuses are provisional and evidence-scoped. In particular, “NOT IMPLEMENTED” above means the latest owner regression record reports the behavior missing; before modifying code, compare current main and the candidate APK to avoid duplicating a fix that may have landed since that report. Never infer installed behavior from documentation alone.
+
+## Required visual evidence record
+
+For each of Home, Calendar, Quick Entry, Full Task Form, Reports and Settings, record all of:
+- screenshot(s) showing the actual installed candidate and the relevant state;
+- device manufacturer/model, Android version, screen size/density and locale;
+- app version/build number and exact source SHA used to build the APK;
+- APK artifact/run URL and installation confirmation;
+- steps performed and observed result, including tap/long-press distinction where applicable;
+- comparison with approved UX/reference and any remaining defect;
+- reviewer/owner acceptance decision.
+
+Do not attach emulator screenshots as if they were physical-phone screenshots. Label their source accurately.
+
+## Execution order
+
+1. Reconcile current main, decisions, UX references and open issue #1901; identify already-landed fixes before coding.
+2. Inspect Home/Calendar/Quick Entry/Full Form/Reports/Settings source and existing tests; record per-item IMPLEMENTED / PARTIAL / NOT IMPLEMENTED with file/test evidence.
+3. Make focused changes only on a feature branch/PR, reusing canonical Task, Follow-up, Reminder, AppSettingsService, taxonomy and Calendar integration; no parallel models/storage.
+4. Run Analyze, full tests, Debug/Release APK and all relevant smoke lanes on the final candidate SHA. Inspect screenshots and artifacts rather than relying only on green status.
+5. Install that exact APK on the target physical Android phone and execute the visual checklist plus date/time, Calendar and data-integrity flows.
+6. Update the matrix and evidence map with actual results. Leave unresolved items open and keep release NO-GO until all required gates and owner acceptance pass.
+
+**Next action:** use the existing #1901 and related UX contracts as the source of reported gaps; inspect current code and candidate APK before making app changes. The present run provides green automated CI and three screen artifacts, but it does not close the six-screen physical-device visual gate.
+
+
+# OWNER POST-INSTALL UX ACCEPTANCE — 2026-10-14
+
+This section records direct owner observations after installing a newer Arvin build. The owner did not provide the installed app version, device model, or APK/source SHA in this report; therefore these observations are valuable user acceptance feedback but are not yet reproducibly linked to a specific build artifact.
+
+## Confirmed by owner after installation
+
+- **Calendar short tap / long press:** working correctly. Mark this interaction as owner-confirmed for the installed build observed; retain regression coverage so a short tap opens the Task and a long press opens actions.
+- **Quick Entry Checklist option:** now present in the form.
+- **Follow-up creation:** the “add follow-up” capability is now available for all Tasks. Preserve the canonical child-record model; do not reintroduce the legacy “follow-up-enabled Task” flag or automatic follow-up-time field.
+
+## Still visibly incomplete according to owner
+
+1. **Notebook appearance:** the planned visual redesign has not appeared; inspect current installed screen against the approved UX reference before implementing.
+2. **Reports appearance:** the planned redesign is not present / has not been completed.
+3. **Reports bottom navigation icon:** the Reports icon was expected in Arvin's bottom navigation but is absent. Add it through the canonical navigation structure, verify selection state and navigation behavior, and ensure it does not crowd or displace existing destinations.
+4. **Calendar typography / one-line time:** the calendar time currently wraps to a second line. Tune the event typography and available layout width so time remains on the intended line where feasible without clipping or making the title unreadable.
+5. **Calendar typography hierarchy (owner proposal):** make the Task/news title visually prominent; make date, time and description smaller and better balanced. Treat “news title” as the title/header text in the calendar item until the exact component terminology is confirmed by inspecting the UI. Validate Persian/RTL and narrow-screen behavior.
+
+## Updated UX acceptance statuses
+
+| Item | Status after owner observation | Required next proof |
+|---|---|---|
+| Calendar tap vs long press | IMPLEMENTED for observed installed build | Capture version/SHA and retain automated + physical-device regression test |
+| Quick Entry Checklist option | IMPLEMENTED for observed installed build | Verify toggle/data preservation and visual layout on exact candidate |
+| Add Follow-up on all Tasks | IMPLEMENTED for observed installed build | Verify zero/one/multiple Follow-ups and canonical Task-child relationships |
+| Notebook redesign | NOT IMPLEMENTED per owner observation | Compare against approved reference; implement on feature branch and capture before/after |
+| Reports redesign | NOT IMPLEMENTED per owner observation | Inspect Reports UI and UX contract; implement and visually validate |
+| Reports bottom navigation icon | NOT IMPLEMENTED per owner observation | Add to canonical bottom navigation and test route/state/accessibility |
+| Calendar time stays on one line | NOT IMPLEMENTED per owner observation | Adjust typography/layout and validate on physical device at relevant font sizes |
+| Calendar typography hierarchy | NOT IMPLEMENTED per owner observation | Title prominent; date/time/description smaller; preserve readability and RTL |
+
+## Required next execution
+
+- First, record the exact installed app version/build, device model, Android version, locale, and APK/source SHA if available.
+- Inspect current main and existing UX references / related issues before editing; avoid duplicate work and parallel navigation/settings/data models.
+- Prioritize the three concrete visible misses: Notebook redesign, Reports redesign plus bottom-navigation icon, and Calendar typography/layout.
+- Make changes in focused branch/PR; run Analyze, full tests, Debug/Release build, relevant Device Smoke and inspect screenshots.
+- Install the exact candidate APK on the same physical device and re-check all three changes, including narrow width, Persian/RTL and font-size variations.
+- Keep release NO-GO until remaining product gates, integrated data flows and required physical-device evidence are accepted.
+
+This owner report updates UX status only; it does not establish the candidate SHA or prove that the latest CI artifacts correspond to the APK the owner installed.
+
+
+---
+
+# OWNER UX ACCEPTANCE ADDENDUM — Persian circular time picker gap — 2026-10-14
+
+This addendum records the owner's latest direct observation from the installed app. It is a confirmed UX defect report, not a claim that a code fix has been implemented.
+
+- **Observed defect:** Persian circular clock/time-picker behavior requested by the owner is still not applied consistently across the product.
+- **Specific remaining locations:** the full Task form's **reminder time** and **Task execution time** still use the legacy spinner/drop-down style rather than the agreed circular clock control.
+- **Required scope:** audit every hour/minute selection entry point and converge them on the same Persian circular time-picker experience; do not fix only one form.
+- **Acceptance:** choose hour and minute; confirm/cancel; render the selected value correctly; save and reopen without value drift; cover both execution time and reminder time with tests; regression-check other time-selection screens. Preserve canonical data models and existing storage contracts.
+- **Evidence boundary:** owner observation is direct UX evidence, but the exact installed app version/device/source SHA has not been identified. CI emulator screenshots cannot substitute for physical-device review.
+- **Status:** OPEN / NOT VERIFIED FIXED. This is tracked under [issue #1901](https://github.com/mobinpda-lab/Arvin-clean/issues/1901), comment [6176231238](https://github.com/mobinpda-lab/Arvin-clean/issues/1901#issuecomment-6176231238).
+- **Release gate:** NO-GO remains. Documentation and issue tracking do not count as an application-code fix. Require implementation, tests, build, install, visual validation and evidence before marking DONE.
+
+## 2026-10-14 — Owner-requested durable capture: Follow-up and Reminder contract
+- **Source:** owner re-issued ARVIN AUTONOMOUS DELIVERY & EVOLUTION COMMAND v9.0 and explicitly instructed that all relevant discussion in the conversation be recorded in GitHub.
+- **GitHub records:** issue #2654 comment [6176411140](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6176411140); issue #1901 comment [6176412001](https://github.com/mobinpda-lab/Arvin-clean/issues/1901#issuecomment-6176412001).
+- **Confirmed contract:** Task is canonical; Follow-up history is zero/one/many child records; remove user-facing "کار پیگیری‌دار" from Full Form and "دارای پیگیری" from Quick Entry while retaining Checklist; `followUpEnabled` is not a source of truth and must not be removed until all consumers/data compatibility are audited; `nextFollowUp` means planned next action and must not silently create notifications/reminders or external sync; Task reminders and Follow-up-specific reminders remain independent; Waiting Response supports multiple People; Calendar and Reports are projections; Backup/Restore must preserve all records and Calendar links.
+- **BLOCKED migration conflict:** prior records disagree whether legacy `Task.reminderDate` is automatically migrated into `TaskReminder` or preserved with existing event identity. No data migration or destructive code change until this conflict is resolved against owner-approved decision history.
+- **Audit scope:** current model/source, JSON and SQL persistence, migrations, Task edit apply, Home/list filters, Task detail badges, Follow-up repository/editor, Task-level and Follow-up-level reminder delivery, Calendar stable-ID CREATE/UPDATE, reports, backup/restore, tests and open PRs.
+- **Status:** Documentation/issue capture only. No application code or stored data changed. Release remains NO-GO.
+- **Next Action:** reconcile decision history and PRs; complete source-wide dependency audit; resolve migration conflict; then implement on a controlled branch and validate tests/build/install/physical device/backup-restore with evidence.
+
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-15 — Post-merge continuation audit
+
+This checkpoint supersedes prior live claims where they conflict; older entries remain history. It records source inspection and current validation without treating CI as physical-device acceptance.
+
+## Repository and validation snapshot
+- Repository: `mobinpda-lab/Arvin-clean`; default branch `main`; latest observed main commit: [`31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`](https://github.com/mobinpda-lab/Arvin-clean/commit/31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8).
+- Documentation continuation PR [#2717](https://github.com/mobinpda-lab/Arvin-clean/pull/2717), branch `docs/reconcile-postmerge-live-state-20261014`, head `8bb4b1da628bd0674ee3f5f8a34e5132244319f1): Build [38622977177](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38622977177) passed Analyze, test shards 0–5, Debug APK and Release APK; Device Smoke [38622977212](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38622977212) passed all six lanes (Home, Quick Capture, People, SQL persistence, SQL migration, Backup/Restore). This validates that documentation PR head in CI/emulators; it does not validate controlled workflow-dispatch behavior or physical-device acceptance.
+- Person integration PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) remains Draft/open/unmerged, head `93202e9e24e33bff31daaf933b2c4fb1417dfb46`, base integration branch `integration/task-multiple-reminders-safe-20261013` at `ad762774009e5b5c7ee341146a8160c52e2b9bb2`, mergeable=true. Its exact-head Build [38579471120](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471120) and Device Smoke [38579471201](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38579471201) passed. This does not establish physical-device or complete integrated release acceptance.
+
+## Completed source/test audit — Person backup and waiting/report relations
+- Inspected `test/person_directory_backup_restore_test.dart`: tests reject structured Person references when the directory field is missing; reject dangling Person IDs; preserve Person IDs, Follow-up Person relations, waiting state, `nextFollowUp` and Follow-up `reminderDate` in the candidate; preserve legacy backups without a `people` field; and test rollback of canonical Task/Follow-up plus Person directory data.
+- Inspected `test/people_task_persistence_test.dart`: covers Person JSON normalization, Task Person references, legacy Task JSON, malformed/duplicate Person references, TaskStore persistence, and Home migration merge preservation.
+- Inspected `test/services/project_backup_bridge_test.dart`: its backup assertion uses a recording/fake backup manager and verifies canonical Project/Task/Calendar-link inputs; it is not physical-file/device restore evidence.
+- **Remaining acceptance gap:** do not mark the full backup contract done based on these tests alone. Need integrated round-trip evidence for Task + Follow-up + Person + independent Reminder + History + Calendar-link IDs/relations, plus physical-device validation. Confirm the test suite's exact coverage before claiming any missing sub-case is fixed.
+
+## Cross-cutting Follow-up flag audit — current main
+Code search confirms `followUpEnabled` remains in model/JSON and multiple read/write paths, including `lib/models/task.dart`, `lib/follow_up_repository.dart`, `lib/services/task_store.dart`, `lib/services/task_edit_apply_service.dart`, `lib/services/task_list_scope_service.dart`, `lib/services/home_list_projection.dart`, `lib/services/task_migration_writer.dart`, `lib/services/sql_task_migration_writer.dart`, `lib/task_detail_page.dart`, `lib/task_editor_dialog.dart`, `lib/quick_capture_dialog.dart`, `lib/main.dart`, `lib/services/task_report_filter.dart`, and `lib/services/calendar_inbound_sync_service.dart`. Current main still has the legacy Full Form checkbox/badge and Quick Entry state. This is a cross-cutting compatibility migration, not a safe single-widget deletion. Preserve legacy reads/writes until consumers and persisted-data compatibility are reconciled; do not let the flag remain the domain source of truth.
+
+## Multiple Task Reminder migration — explicit unresolved data-integrity gate
+- Current main `lib/models/task.dart` still exposes singular `Task.reminderDate`; `lib/services/follow_up_calendar_projection.dart` still projects it using stable legacy ID `task-reminder:<taskId>`. Current main does not yet expose the full `TaskReminder[]` collection from PR #2655.
+- PR [#2655](https://github.com/mobinpda-lab/Arvin-clean/pull/2655) is open/unmerged, head `751c659e5788d312d83eef0d4b1d09dc19f2217d`, base `8136c929237c321f2e879a80f067970c31cb0100`, GitHub reports mergeable=false. Do not merge it as-is or treat its head as current-main validation.
+- Issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) records conflicting migration statements: the owner-approved design/PR #2655 says preserve legacy `Task.reminderDate` and its Calendar identity without automatic conversion; another integration-blocker note says convert it exactly once into a deterministic `TaskReminder`. Issue comment [6174885122](https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6174885122) explicitly requests owner clarification A/B. The latest consolidated v9 contract keeps reminders independent and protects data, but does not select either migration rule.
+- **No migration or destructive code change made.** This is a genuine owner decision gate because either choice affects existing reminder identity, notification delivery, backup compatibility and duplicate-event risk.
+
+## Current bottleneck / next action
+1. Obtain the owner’s explicit choice on Issue #2654: (A) compatibility-first, keep legacy `Task.reminderDate` and its existing projection distinct from new `TaskReminder` entries; or (B) perform an explicit, idempotent migration into a deterministic `TaskReminder` while preserving old Calendar/event semantics through a tested mapping.
+2. After the choice, update the decision log/design/evidence map before implementing the corresponding migration. In parallel, continue the source-wide `followUpEnabled` consumer audit and Person integrated acceptance without deleting legacy data or weakening tests.
+3. Keep Person PR #2695 and reminder PR #2655 unmerged until their base alignment, full exact-head validation, integrated backup/restore, Calendar no-duplicate, and physical-device gates are satisfied. Release remains **NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-15 — PR #2719 reminder migration candidate validation
+
+- **Current main:** `31a23cf97c82bd9e7b76a8cb1273a2de7c8e8bd8`. The reminder migration candidate is NOT on main; it remains in Draft PR [#2719](https://github.com/mobinpda-lab/Arvin-clean/pull/2719), branch `feat/task-multiple-reminders-option-b-20261015`, exact head `59f833ec0a07a711f333fa14b86b271be194688f`.
+- **Owner decision supersession:** Issue [#2654](https://github.com/mobinpda-lab/Arvin-clean/issues/2654) records the owner's explicit Option B decision: one-time, idempotent migration of non-null legacy `Task.reminderDate` into canonical `TaskReminder`, stable ID `legacy-task-reminder`, persisted migration marker, preserved timestamp and legacy Calendar/scheduler identity. This supersedes older notes in this file that say the owner decision is still pending. Keep the older entries as history, not current truth.
+- **Exact-head Build:** [run 38706239167](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239167) SUCCESS on `59f833ec0a07a711f333fa14b86b271be194688f`; Analyze, test shards 0–5, Debug APK and Release APK passed.
+- **Exact-head Device Smoke:** [run 38706239398](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239398) SUCCESS on the same SHA; all six emulator lanes passed: Home, People, Backup/Restore, Quick Capture, SQL Migration and SQL Persistence.
+- **Exact-head Calendar Provider Acceptance:** [run 38706239177](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38706239177) SUCCESS on the same SHA.
+- **Scope boundary:** these results validate CI/emulator lanes only. They do not prove physical-device behavior, complete integrated Person + Follow-up + multi-reminder + Report + Calendar + Backup/Restore integrity, real-file restore failure recovery, or owner acceptance.
+- **Post-install owner findings remain open:** Notebook and Reports visual redesign; Reports bottom-navigation icon; Calendar time wrapping/layout hierarchy; universal Persian circular time picker (old Spinner remains in some full-form time fields); remaining Calendar settings/phone-calendar actions; Home card clipping/filters; font picker/font size; shared Project/Category/Tag behavior in Notebook/Home; Quick Add date/time and Checklist regression. See [Issue #1901](https://github.com/mobinpda-lab/Arvin-clean/pull/1901) and its 2026-10-14 owner comments. Calendar tap/long-press, Quick Entry Checklist and Add Follow-up availability were reported working in the observed build; regression-test these rather than rebuilding blindly. The installed APK/source SHA is not recorded.
+- **Cross-cutting architecture issue:** source audit recorded in Issue #1901 says `followUpEnabled` remains in current main's model/editor/persistence/migration/list/detail paths. Do not remove it by deleting a field in isolation; audit every consumer and preserve legacy compatibility while making actual Follow-up records canonical.
+- **Current bottleneck:** integrated product/data-integrity acceptance and physical-device verification; PR #2719 remains Draft/unmerged. Main's Release Closure and Final Head Release Validation remain skipped while release gates are open; do not infer GO from green PR CI.
+- **Next action:** review PR #2719 migration rollback/retry and independent reminder edit/delete behavior, then reconcile the owner post-install backlog against existing PRs and validate the golden flow on the actual installed APK. Keep release **NO-GO** until all required gates have evidence.

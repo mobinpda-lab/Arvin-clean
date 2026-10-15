@@ -78,3 +78,10 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+## 2026-10-14 — Follow-up/Reminder workflow owner instruction
+- Owner explicitly required that discussion, prior decisions and findings about Follow-up and Reminder be durably recorded in GitHub so they are not lost across conversations.
+- Owner re-issued ARVIN AUTONOMOUS DELIVERY & EVOLUTION COMMAND v9.0 and required continuation from the latest execution state, no repeated work, inspection before change, and evidence-backed completion.
+- The current conversation established a migration conflict in the prior record; no code or user data was changed during this audit.
+- Durable records: issue #2654 comment 6176411140; issue #1901 comment 6176412001; documentation commits on branch `docs/reconcile-postmerge-live-state-20261014`.
+- **Status:** Captured; implementation and product validation remain open.
