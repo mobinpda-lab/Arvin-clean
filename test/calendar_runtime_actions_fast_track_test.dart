@@ -161,21 +161,28 @@ void main() {
       );
       final delete = find.byKey(ValueKey('task-due-delete-${reminder.id}'));
 
-      // The primary actions are discoverable in the collapsed card.
-      expect(edit, findsOneWidget);
-      expect(register, findsOneWidget);
+      // Task management actions are available only from long-press.
+      expect(edit, findsNothing);
+      expect(register, findsNothing);
       expect(delete, findsNothing);
 
-      await tester.tap(edit);
-      await tester.pump();
-      await tester.tap(register);
-      await tester.pump();
+      await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      await tester.pumpAndSettle();
+      expect(edited, 1);
 
-      // Destructive actions remain behind the existing expand interaction.
-      // Long-press is the explicit entry point for destructive actions.
       await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
       await tester.pumpAndSettle();
+      expect(edit, findsOneWidget);
+      expect(register, findsOneWidget);
       expect(delete, findsOneWidget);
+
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      await tester.pumpAndSettle();
+      await tester.tap(register);
+      await tester.pumpAndSettle();
+      expect(delete, findsNothing);
     }
 
     expect(edited, 2);
