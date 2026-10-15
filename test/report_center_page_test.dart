@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/report_center_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,5 +95,60 @@ void main() {
       expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
     },
   );
+  testWidgets('Report Center shows separate person-specific active waiting rows', (tester) async {
+    final ana = PersonReference(id: 'ana', displayName: 'آنا');
+    final reza = PersonReference(id: 'reza', displayName: 'رضا');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 15, 10),
+          people: [ana, reza],
+          tasks: [
+            Task(
+              id: 'task-waiting',
+              title: 'پرونده مشتری',
+              followUps: [
+                FollowUp(
+                  id: 'waiting-ana',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                  note: 'پاسخ آنا',
+                  personIds: ['ana'],
+                  waitingForResponse: true,
+                  nextFollowUp: DateTime(2026, 10, 16, 9),
+                  reminderDate: DateTime(2026, 10, 15, 18),
+                ),
+                FollowUp(
+                  id: 'waiting-reza',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                  note: 'پاسخ رضا',
+                  personIds: ['reza'],
+                  waitingForResponse: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('پیگیری‌های منتظر پاسخ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
+    expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
+    expect(find.textContaining('یادآور:'), findsOneWidget);
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آنا').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsNothing);
+  });
+
 }
 

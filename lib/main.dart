@@ -2527,11 +2527,14 @@ class _HomePageState extends State<HomePage> {
         await _openPrimaryNextAction();
         return;
       case _HomeMoreAction.report:
+        final people = await taskStore.loadPeopleDirectory();
+        if (!mounted) return;
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => ReportCenterPage(
               tasks: List<Task>.of(tasks),
               projects: List<ProjectPlan>.of(projects),
+              people: people,
             ),
           ),
         );
