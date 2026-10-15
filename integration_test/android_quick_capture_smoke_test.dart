@@ -117,5 +117,23 @@ void main() {
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('quick-capture');
+
+    // Capture the actual custom Persian time picker on the Android emulator.
+    final dueRollbox = find.byKey(const ValueKey('quick-capture-due-rollbox'));
+    await tester.ensureVisible(dueRollbox);
+    await tester.tap(dueRollbox);
+    await tester.pumpAndSettle();
+    final customDue = find.text('تاریخ و ساعت سفارشی');
+    await waitForFinder(customDue);
+    await tester.tap(customDue);
+    await tester.pumpAndSettle();
+    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    await tester.ensureVisible(dateConfirm);
+    await tester.tap(dateConfirm);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await binding.takeScreenshot('persian-time-picker');
+    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+    await tester.pumpAndSettle();
   });
 }
