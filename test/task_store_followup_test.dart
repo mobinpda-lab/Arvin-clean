@@ -72,4 +72,36 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+  test('persists structured waiting-for-response state through canonical SQL storage', () async {
+    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final task = Task(
+        id: 'waiting-sql',
+        title: 'منتظر پاسخ',
+        followUps: [
+          FollowUp(
+            id: 'waiting-sql-fu',
+            dateTime: DateTime(2026, 10, 15, 10),
+            personIds: const ['person-1'],
+            waitingForResponse: true,
+            nextFollowUp: DateTime(2026, 10, 16, 10),
+            reminderDate: DateTime(2026, 10, 15, 18),
+          ),
+        ],
+      );
+
+      await store.save([task]);
+      final loaded = (await store.load()).single.followUps.single;
+
+      expect(loaded.waitingForResponse, isTrue);
+      expect(loaded.personIds, ['person-1']);
+      expect(loaded.nextFollowUp, DateTime(2026, 10, 16, 10));
+      expect(loaded.reminderDate, DateTime(2026, 10, 15, 18));
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }
