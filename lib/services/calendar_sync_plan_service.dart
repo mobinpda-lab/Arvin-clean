@@ -10,6 +10,7 @@ import 'system_calendar_bridge.dart';
 /// contract rather than maintaining separate parsers.
 String? calendarTaskIdForReminderId(String reminderId) {
   for (final prefix in const <String>[
+    'task-reminder-item:',
     'task-due:',
     'task-reminder:',
     'task-followup:',
@@ -18,6 +19,10 @@ String? calendarTaskIdForReminderId(String reminderId) {
     if (!reminderId.startsWith(prefix)) continue;
     final value = reminderId.substring(prefix.length);
     final separator = value.indexOf(':');
+    if (prefix == 'task-reminder-item:') {
+      if (separator <= 0) return null;
+      return Uri.decodeComponent(value.substring(0, separator));
+    }
     return separator < 0 ? value : value.substring(0, separator);
   }
   if (reminderId.startsWith('followup:')) {

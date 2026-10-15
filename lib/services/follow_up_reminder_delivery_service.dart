@@ -23,11 +23,32 @@ class FollowUpReminderDeliveryService {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      if (taskReminder != null && !taskReminder.isAfter(now)) {
+      if (task.legacyTaskReminderMigrationVersion < 1 &&
+          taskReminder != null &&
+          !taskReminder.isAfter(now)) {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
           scheduledAt: taskReminder,
+        );
+        if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
+          result.add(candidate);
+        }
+      }
+
+      for (final reminder in task.taskReminders) {
+        final scheduledAt = reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date;
+        if (scheduledAt.isAfter(now)) continue;
+        final candidate = FollowUpReminderCandidate.task(
+          taskId: task.id,
+          taskTitle: task.title,
+          taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
+          label: reminder.title.trim().isEmpty
+              ? 'یادآور ${reminder.sequence}'
+              : reminder.title,
+          scheduledAt: scheduledAt,
         );
         if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
           result.add(candidate);

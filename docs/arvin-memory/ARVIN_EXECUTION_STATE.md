@@ -1029,3 +1029,52 @@ This addendum records the latest observed GitHub state and supersedes conflictin
 - **Remaining blockers:** physical-device acceptance; integrated Person + Follow-up + report + backup/restore acceptance; controlled end-to-end recovery-dispatch proof. Release issues #2102 and #1901 remain open. Release remains **NO-GO**.
 - **Current bottleneck:** product/data-integrity and physical-device acceptance, plus controlled dispatcher proof. Do not merge Person PR or publish a release solely on CI success.
 - **Next action:** inspect PR #2695 changed files and test coverage against owner contracts; verify backup/restore round-trip and referential integrity for Person IDs and Task/FollowUp preservation; then complete physical-device acceptance. Separately prove dispatcher operation on a known target SHA.
+
+
+# AUTHORITATIVE CONTINUATION OVERRIDE — 2026-10-15 — Option B implementation candidate
+
+This entry supersedes older statements that the owner decision is pending or that automatic migration is prohibited.
+
+- **Owner decision:** Option B — migrate non-null legacy Task.reminderDate into canonical TaskReminder on Task JSON decode with stable ID legacy-task-reminder, explicit isLegacyTaskReminder metadata, and persisted legacyTaskReminderMigrationVersion.
+- **Owner-reported data state:** current app database is empty and Arvin has not yet been populated with real user data. Do not generalize this to all backups, fixtures, test databases or other installations.
+- **Completed in this execution:** candidate migration logic, Calendar identity preservation, scheduler-key preservation, inbound Calendar edit/delete reconciliation, editor preservation and regression tests have been added on the current-main-based feature branch.
+- **Not yet validated:** exact-head CI, SQL save/reload, actual backup/restore round-trip, Calendar Provider Acceptance, Device Smoke and physical-device behavior. No DONE claim.
+- **Current bottleneck:** terminal validation of the current branch and verification that all integration gates pass.
+- **Next actions:** Analyze; all test shards; Debug/Release APK; six Device Smoke lanes; Calendar Provider Acceptance; inspect failures; then complete physical-device and integrated backup/restore acceptance.
+- **Release:** NO-GO.
+- **Decision source:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
+
+
+# AUTHORITATIVE LIVE VALIDATION UPDATE — 2026-10-15 — PR #2719 exact-head CI
+
+- **Exact candidate head:** `396cf7e70ac3cd88463436d471a6e624533fb181`; PR #2719 remains Draft/open and unmerged: https://github.com/mobinpda-lab/Arvin-clean/pull/2719.
+- **Build:** terminal SUCCESS, https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695156447. Analyze, test-0 through test-5, Debug APK, and Release APK all completed successfully on this exact SHA.
+- **Device Smoke:** six emulator lanes completed SUCCESS (quick-capture, home, people, SQL persistence, SQL migration, backup/restore): https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695105201.
+- **Calendar Provider Acceptance:** terminal SUCCESS: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695105183.
+- **Correction to previous pending wording:** these CI gates are no longer pending for SHA above. This is emulator/CI evidence, not physical-device evidence, and does not independently establish the complete integrated Person + Follow-up + multi-reminder + report + backup/restore acceptance scenario.
+- **Completed:** reviewed PR metadata and diff; verified exact-head check-runs and terminal jobs; recorded evidence here.
+- **Current bottleneck:** integrated data-integrity/acceptance proof and physical-device validation; also verify controlled recovery-dispatch behavior. Keep PR #2719 unmerged until review confirms migration idempotence/rollback and end-to-end acceptance; release remains **NO-GO**.
+- **Next action:** perform focused code review of migration rollback/retry, SQL and backup/restore round-trip, reminder delete isolation and alarm reschedule/restart behavior; then record results and request physical-device validation.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-15 — Multi-reminder integration and internal APK artifact work
+
+- **Target branch:** `feat/task-multiple-reminders-option-b-20261015`; parent checkpoint before this change: `59f833ec0a07a711f333fa14b86b271be194688f`.
+- **Verified parent CI evidence:** Build, six-lane Device Smoke and Calendar Provider Acceptance were terminal-success on parent SHA `59f833ec0a07a711f333fa14b86b271be194688f` (see PR #2719 runs recorded above). These results do not validate the new integration test or workflow changes in this commit.
+- **Changes in this commit:** add a CI integration test that exercises legacy Task reminder migration, two independent reminders, SQL save/reload, canonical backup document encode/decode, Task-ID reconciliation, Person relation retention, Calendar Event ID retention, duplicate prevention and delivered-alarm suppression. The delivery projection now keeps the legacy scheduler identity and does not separately deliver the retained singular field after migration.
+- **Workflow correction:** Release Closure may start after any successful Arvin Production Orchestrator completion, rather than requiring that upstream workflow to have been manually dispatched. It uploads the versioned Release APK and checksum/evidence as a workflow artifact before enforcing the product-release approval gate. Final Head Validation consumes the workflow artifact; an unsuccessful closure can still run the internal-artifact verification path and upload its evidence, but remains fail-closed for release validation.
+- **Truthful gate status:** the new test and workflow edits are **PENDING exact-head CI** until GitHub Actions completes for the resulting commit. Do not mark G4/G6/G7 passed from test-file presence alone. The existing successful parent CI is not evidence for this new head.
+- **Release remains NO-GO:** Issue #2102, regression PR #1901, physical-device acceptance and product-owner approval remain independent release gates.
+- **Next action:** inspect exact-head Build, Device Smoke, Calendar Provider Acceptance, Release Closure and Final Head Validation results. Fix failures at root cause; only then update gate states with run links and the exact resulting SHA.
+
+
+# AUTHORITATIVE LIVE VALIDATION UPDATE — 2026-10-15 — PR #2719 exact-head artifacts and CI gates
+
+- **Validated source SHA:** `f403d45554720cf8e74c5a08466e119032d45464`; branch `feat/task-multiple-reminders-option-b-20261015`; PR [#2719](https://github.com/mobinpda-lab/Arvin-clean/pull/2719).
+- **Arvin Build:** [run 38736428278](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428278) completed `success` on the exact SHA. Analyze, test shards 0–5, Debug APK and Release APK all passed.
+- **Release APK artifact:** `arvin-release-apk`, artifact ID `11974502379`; APK file `app-release.apk`, size **70,842,341 bytes**; APK SHA-256 `c516b41a636de66bad3f31c3223dcd35d65ad5a5ca4ac83d20f500f34d0e8001`. Artifact ZIP size **32,738,515 bytes**; ZIP SHA-256 `624cdd3eba5f3245a9d4feaa2c1c014de71d1d32b8a15a945d4ebd2ffe68ff65`. [Download artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428278/artifacts/11974502379).
+- **Debug APK artifact:** `arvin-debug-apk`, artifact ID `11973952423`; APK file `app-debug.apk`, size **176,168,410 bytes**; APK SHA-256 `c3da85a153de3af27287cb5a8ea858e4971cf782f182168012729eedea26540b`. Artifact ZIP size **92,520,155 bytes**; ZIP SHA-256 `1140b88ff3c7bafb2d33abea401125d6ce0a35c5a310b08891ba4b8c6270c624`. [Download artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428278/artifacts/11973952423).
+- **Device Smoke:** [run 38736428389](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428389) completed `success` on the exact SHA. All six suites passed: Home, Quick Capture, SQL Migration, SQL Persistence, Backup/Restore and People.
+- **Additional exact-head automated checks:** [Calendar Provider Acceptance run 38736428061](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428061), [Parallel Wave / contract run 38736428103](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428103), [Orchestrator run 38736428237](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428237), [Production Loop run 38736428302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428302) and [Orchestrator PR Wakeup run 38736428344](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428344) all completed `success`.
+- **Requested automated gate record on SHA `f403d45554720cf8e74c5a08466e119032d45464`:** G4 = PASS; G6 = PASS; G7 = PASS; G11 = PASS; G12 = PASS. Evidence is the exact-head Build, six-lane Device Smoke, Calendar Provider Acceptance, and the APK file hashes recorded above. These statuses mean the cited automated checks passed; they do not claim physical-device acceptance or product release approval.
+- **Merge/release distinction:** this evidence closes the automated checks for the validated SHA. The act of recording this update creates a new PR head, so re-run/verify Build and all six Device Smoke suites on the resulting head before declaring PR #2719 merge-ready. Product release remains **NO-GO** until the separately recorded physical-device, integrated product acceptance and owner/release gates are satisfied.

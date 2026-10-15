@@ -82,7 +82,24 @@ void main() {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
 
-    final fileName = await manager.backupCanonicalTasks([_completeTask()]);
+    final task = _completeTask()
+      ..taskReminders = [
+        TaskReminder(
+          id: 'backup-r1',
+          title: 'تماس — یادآور ۱',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'backup-r2',
+          title: 'ارسال — یادآور ۲',
+          date: DateTime(2026, 8, 30),
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ]
+      ..nextReminderSequence = 3;
+    final fileName = await manager.backupCanonicalTasks([task]);
 
     expect(fileName, 'canonical-backup.json');
     final rawTasks = service.writtenPayload?['tasks'] as List<dynamic>;
@@ -94,6 +111,17 @@ void main() {
     expect(restored.category, 'فروش');
     expect(restored.checklist, ['تماس', 'ارسال فایل']);
     expect(restored.reminderDate, DateTime(2026, 8, 28, 10, 30));
+    expect(restored.taskReminders, hasLength(3));
+    expect(restored.taskReminders.map((item) => item.id), [
+      'backup-r1',
+      'backup-r2',
+      'legacy-task-reminder',
+    ]);
+    expect(restored.taskReminders[1].isAllDay, isTrue);
+    expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
+    expect(restored.taskReminders.last.date, restored.reminderDate);
+    expect(restored.legacyTaskReminderMigrationVersion, 1);
+    expect(restored.nextReminderSequence, 4);
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');

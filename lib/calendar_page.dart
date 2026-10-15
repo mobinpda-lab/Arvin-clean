@@ -882,6 +882,7 @@ class _DailyContentCard extends StatelessWidget {
 
 bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
+    id.startsWith('task-reminder-item:') ||
     id.startsWith('task-reminder:') ||
     id.startsWith('task-followup:');
 

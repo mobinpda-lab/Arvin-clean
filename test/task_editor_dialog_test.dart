@@ -230,6 +230,7 @@ void main() {
     await pumpEditor(tester, onResult: (value) => result = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
@@ -249,6 +250,7 @@ void main() {
     final task = Task(id: 'checklist-toggle', title: 'آماده‌سازی', checklist: const ['[ ] کیف', '[ ] کتاب']);
     await pumpEditor(tester, task: task, onResult: (value) => disabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
@@ -261,6 +263,7 @@ void main() {
     Task? enabledResult;
     await pumpEditor(tester, task: disabledResult, onResult: (value) => enabledResult = value);
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
     await tester.pump();
     expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);

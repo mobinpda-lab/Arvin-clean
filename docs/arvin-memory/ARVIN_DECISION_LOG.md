@@ -199,3 +199,12 @@
 - **Reason:** The workflow definition/input schema must be dependable, and metadata SHA is not the same as the checked-out source SHA.
 - **Impact:** More reliable exact-head evidence and no cancellation between different targets.
 - **Status:** Implemented in PR #2699; exact-head CI and post-merge operational acceptance pending.
+
+
+## 2026-10-15 — SUPERSEDING OWNER DECISION: legacy Task reminder migration (Option B)
+- **Problem:** Previous notes left the migration rule unresolved and conflicted between preserving the singular legacy field and migrating into the canonical collection.
+- **Decision:** Owner explicitly selected Option B: deterministic one-time, idempotent migration of non-null Task.reminderDate into canonical TaskReminder.
+- **Owner data context:** The current app database is reported empty and Arvin has not yet been populated with real user data. This does not prove all backups, fixtures or other installations are empty.
+- **Safeguards:** stable ID legacy-task-reminder; persisted migration version; preserve date/time; do not infer all-day from midnight; preserve Calendar identity task-reminder:<taskId> and scheduler key; preserve existing independent reminders; test JSON, SQL, backup/restore, rollback and no-duplicate behavior.
+- **Status:** Candidate implementation is on this PR branch. Exact-head CI and complete acceptance remain pending. Release NO-GO.
+- **Evidence:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884

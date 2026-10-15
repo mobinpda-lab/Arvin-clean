@@ -194,16 +194,24 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     Task? task;
     for (final prefix in const <String>[
       'task-due:',
+      'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
     ]) {
       if (!reminder.id.startsWith(prefix)) continue;
       final suffix = reminder.id.substring(prefix.length);
+      final separator = suffix.indexOf(':');
+      final taskId = prefix == 'task-reminder-item:' && separator > 0
+          ? Uri.decodeComponent(suffix.substring(0, separator))
+          : suffix;
       for (final candidate in _tasks) {
         if (candidate.trashed) continue;
-        // A repeat occurrence appends its ISO timestamp after the stable Task
-        // ID. Resolve the canonical Task while keeping the occurrence read-only.
-        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+        // Reminder item IDs encode Task IDs before appending the Reminder ID;
+        // recurrence IDs instead append an occurrence timestamp.
+        final matches = prefix == 'task-reminder-item:'
+            ? taskId == candidate.id
+            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
+        if (matches) {
           task = candidate;
           break;
         }
@@ -222,14 +230,22 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     Task? task;
     for (final prefix in const <String>[
       'task-due:',
+      'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
     ]) {
       if (!reminder.id.startsWith(prefix)) continue;
       final suffix = reminder.id.substring(prefix.length);
+      final separator = suffix.indexOf(':');
+      final taskId = prefix == 'task-reminder-item:' && separator > 0
+          ? Uri.decodeComponent(suffix.substring(0, separator))
+          : suffix;
       for (final candidate in _tasks) {
         if (candidate.trashed) continue;
-        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+        final matches = prefix == 'task-reminder-item:'
+            ? taskId == candidate.id
+            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
+        if (matches) {
           task = candidate;
           break;
         }

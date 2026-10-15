@@ -31,6 +31,7 @@ class CalendarOutboundSyncService {
 
   String? _taskIdForReminder(String reminderId) {
     for (final prefix in const <String>[
+      'task-reminder-item:',
       'task-due:',
       'task-reminder:',
       'task-followup:',
@@ -39,6 +40,10 @@ class CalendarOutboundSyncService {
       if (reminderId.startsWith(prefix)) {
         final value = reminderId.substring(prefix.length);
         final separator = value.indexOf(':');
+        if (prefix == 'task-reminder-item:') {
+          if (separator <= 0) return null;
+          return Uri.decodeComponent(value.substring(0, separator));
+        }
         return separator < 0 ? value : value.substring(0, separator);
       }
     }
@@ -150,7 +155,8 @@ class CalendarOutboundSyncService {
     if (id.startsWith('task-due:')) {
       return integration.syncDueDates;
     }
-    if (id.startsWith('task-reminder:')) {
+    if (id.startsWith('task-reminder-item:') ||
+        id.startsWith('task-reminder:')) {
       return integration.syncTaskReminders;
     }
     if (id.startsWith('followup:')) {

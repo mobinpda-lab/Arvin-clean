@@ -149,4 +149,51 @@ void main() {
 
     expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
   });
+
+  test('projects independent Task reminders with stable delivery keys', () {
+    final task = Task(
+      id: 'multi',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور اول',
+          date: DateTime(2026, 8, 28, 17),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'r2',
+          title: 'یادآور تمام‌روز',
+          date: DateTime(2026, 8, 29),
+          isAllDay: true,
+          sequence: 2,
+        ),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(2));
+    expect(result.map((item) => item.stableKey), [
+      'task:multi:reminder:r1',
+      'task:multi:reminder:r2',
+    ]);
+    expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
+    expect(result.last.label, 'یادآور تمام‌روز');
+  });
+
+  test('migrated legacy reminder keeps its existing scheduler delivery key', () {
+    final task = Task.fromJson({
+      'id': 'legacy-scheduler-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+    });
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy-scheduler-task');
+    expect(result.single.taskReminderId, isNull);
+    expect(result.single.scheduledAt, DateTime(2026, 10, 20, 9, 30));
+  });
 }
