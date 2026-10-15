@@ -1078,3 +1078,12 @@ This entry supersedes older statements that the owner decision is pending or tha
 - **Additional exact-head automated checks:** [Calendar Provider Acceptance run 38736428061](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428061), [Parallel Wave / contract run 38736428103](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428103), [Orchestrator run 38736428237](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428237), [Production Loop run 38736428302](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428302) and [Orchestrator PR Wakeup run 38736428344](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38736428344) all completed `success`.
 - **Requested automated gate record on SHA `f403d45554720cf8e74c5a08466e119032d45464`:** G4 = PASS; G6 = PASS; G7 = PASS; G11 = PASS; G12 = PASS. Evidence is the exact-head Build, six-lane Device Smoke, Calendar Provider Acceptance, and the APK file hashes recorded above. These statuses mean the cited automated checks passed; they do not claim physical-device acceptance or product release approval.
 - **Merge/release distinction:** this evidence closes the automated checks for the validated SHA. The act of recording this update creates a new PR head, so re-run/verify Build and all six Device Smoke suites on the resulting head before declaring PR #2719 merge-ready. Product release remains **NO-GO** until the separately recorded physical-device, integrated product acceptance and owner/release gates are satisfied.
+
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-15 — PR #2725 terminal validation
+
+- Exact PR head validated: `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55`.
+- Arvin Build run [38752957837](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957837): `completed / success`; all six test shards, analysis, Debug APK and Release APK succeeded.
+- Device Smoke run [38752957813](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957813): `completed / success`; all six lanes succeeded: home, quick-capture, people, sql-migration, sql-persistence, backup-restore. Latest updated at `2026-10-15T14:51:41Z`.
+- PR [#2725](https://github.com/mobinpda-lab/Arvin-clean/pull/2725) was observed open, mergeable, head matching the validated SHA, and not yet merged at the time of this checkpoint. Merge must be recorded only after GitHub confirms it.
+- CI/emulator evidence is not physical-device acceptance. Keep product release claims limited to the evidence above.
