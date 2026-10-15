@@ -825,4 +825,21 @@ void main() {
     expect(persisted?.tags, const ['مهم']);
   });
 
+
+  testWidgets('Notebook category filter shows canonical categories unused by notes', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 10, 10, 10));
+    await repository.createCategory('دسته مستقل از یادداشت');
+    await repository.createNote(id: 'note-without-category', title: 'یادداشت بدون دسته');
+
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-category-filter')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('notebook-category-filter-دسته مستقل از یادداشت')),
+      findsOneWidget,
+    );
+    expect(find.text('دسته مستقل از یادداشت'), findsOneWidget);
+  });
+
 }
