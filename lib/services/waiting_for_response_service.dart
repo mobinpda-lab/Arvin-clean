@@ -2,9 +2,10 @@ import '../models/task.dart';
 
 /// Canonical contract for the Wave X1 "waiting for response" state.
 ///
-/// The state is stored in the latest [FollowUp.result] field instead of adding
-/// a second Task status or persistence path. FollowUpOfficePage exposes the
-/// waiting-only list through the existing canonical Task/FollowUp store.
+/// The explicit [FollowUp.waitingForResponse] flag is the canonical state.
+/// Free-form [FollowUp.result] text is retained as descriptive history only;
+/// aliases are used solely when normalizing legacy input, never to determine
+/// whether a Follow-up is actively waiting. No parallel status or store exists.
 class WaitingForResponseService {
   const WaitingForResponseService();
 
