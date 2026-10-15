@@ -13,6 +13,7 @@ class FollowUp {
   final DateTime? reminderDate;
   final DateTime? nextFollowUp;
   final bool completed;
+  final bool waitingForResponse;
   final List<String> personIds;
 
   const FollowUp({
@@ -23,6 +24,7 @@ class FollowUp {
     this.reminderDate,
     this.nextFollowUp,
     this.completed = false,
+    this.waitingForResponse = false,
     this.personIds = const <String>[],
   });
 
@@ -34,6 +36,7 @@ class FollowUp {
         'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
+        'waitingForResponse': waitingForResponse,
         if (personIds.isNotEmpty) 'personIds': personIds,
       };
 
@@ -50,6 +53,7 @@ class FollowUp {
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
+      waitingForResponse: json['waitingForResponse'] as bool? ?? false,
       personIds: (json['personIds'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .map((id) => id.trim())
