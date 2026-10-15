@@ -405,10 +405,10 @@ class _BackupPageState extends State<BackupPage> {
           : previousProjects;
       final reconciledPeople = candidate.hasPeople
           ? ArvinBackupManager.reconcilePeopleById(
-              current: previousPeople!,
+              current: previousPeople,
               backup: candidate.people ?? const <PersonReference>[],
             )
-          : previousPeople!;
+          : previousPeople;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
