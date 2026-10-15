@@ -1110,8 +1110,8 @@ class _ReminderCardState extends State<_ReminderCard> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             // A short tap opens the canonical Task editor; management
             // actions are intentionally isolated behind long-press.
-            onTap: _isTaskCalendarItem && widget.onEditTask != null
-                ? () => _run(widget.onEditTask)
+            onTap: _isTaskCalendarItem
+                ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
                 : _hasActions
                     ? () => setState(() => _expanded = !_expanded)
                     : null,
