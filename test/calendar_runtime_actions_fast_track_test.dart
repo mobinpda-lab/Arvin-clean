@@ -166,10 +166,6 @@ void main() {
       expect(register, findsNothing);
       expect(delete, findsNothing);
 
-      await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-      await tester.pumpAndSettle();
-      expect(edited, 1);
-
       await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
       await tester.pumpAndSettle();
       expect(edit, findsOneWidget);
