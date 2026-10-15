@@ -72,12 +72,26 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-section-دسته')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
-
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-category-کار')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-apply')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
       await tester.pumpAndSettle();
 

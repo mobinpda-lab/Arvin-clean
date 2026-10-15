@@ -125,3 +125,11 @@ jobs:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
           if-no-files-found: warn
+
+      - name: Upload Persian time picker screenshot evidence
+        if: always() && matrix.scenario == 'quick-capture'
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-persian-time-picker-${{ github.sha }}
+          path: artifacts/device-smoke/persian-time-picker.png
+          if-no-files-found: warn

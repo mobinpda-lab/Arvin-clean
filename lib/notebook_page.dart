@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
@@ -467,8 +469,14 @@ class _NotebookPageState extends State<NotebookPage> {
                                     .take(2)
                                     .join(' • ');
                             return Card(
+                              key: ValueKey('notebook-note-card-${note.id}'),
+                              color: note.isNotebookChecklist
+                                  ? ArvinColors.timeSoft
+                                  : ArvinColors.primarySoft,
                               child: ListTile(
                                 key: ValueKey('notebook-note-${note.id}'),
+                                dense: true,
+                                visualDensity: const VisualDensity(vertical: -1),
                                 leading: _selectionMode
                                     ? Checkbox(
                                         value: selected,

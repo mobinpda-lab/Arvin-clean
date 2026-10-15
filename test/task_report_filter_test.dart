@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_report_filter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -118,4 +119,75 @@ void main() {
       {'school-important', 'home-important'},
     );
   });
+
+  test('multi-select status and tracking filters combine with canonical notes', () {
+    final open = Task(id: 'open', title: 'باز');
+    final completed = Task(id: 'completed', title: 'انجام‌شده', completed: true);
+    final tracked = Task(
+      id: 'tracked',
+      title: 'پیگیری مهم',
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        trackingLevel: RecurrenceTrackingLevel.tracking,
+      ),
+    );
+    final normal = Task(
+      id: 'normal',
+      title: 'پیگیری عادی',
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        trackingLevel: RecurrenceTrackingLevel.normal,
+      ),
+    );
+
+    final statusResult = const TaskReportFilter(
+      statuses: {ReportStatusFilter.open, ReportStatusFilter.completed},
+    ).apply([open, completed, tracked], now: now);
+    expect(statusResult.map((task) => task.id).toSet(), {'open', 'completed', 'tracked'});
+
+    final trackingResult = const TaskReportFilter(
+      trackingLevels: {RecurrenceTrackingLevel.tracking},
+    ).apply([tracked, normal, open], now: now);
+    expect(trackingResult.map((task) => task.id), ['tracked']);
+  });
+
+  test('note filters search canonical Notebook Task title, text and dates', () {
+    final note = Task(
+      id: 'note-school',
+      title: 'یادداشت مدرسه',
+      description: 'تماس با معلم',
+      notebookKind: NotebookItemKind.note,
+      category: 'مدرسه',
+      tags: ['مهم'],
+      createdAt: DateTime(2026, 10, 3, 9),
+      updatedAt: DateTime(2026, 10, 6, 14),
+    );
+    final checklist = Task(
+      id: 'checklist-school',
+      title: 'چک‌لیست مدرسه',
+      notebookKind: NotebookItemKind.checklist,
+      category: 'مدرسه',
+      createdAt: DateTime(2026, 10, 3, 9),
+    );
+    final ordinaryTask = Task(
+      id: 'ordinary',
+      title: 'یادداشت مدرسه تماس با معلم',
+      category: 'مدرسه',
+      tags: ['مهم'],
+      createdAt: DateTime(2026, 10, 3, 9),
+    );
+
+    final result = TaskReportFilter(
+      categories: const {'مدرسه'},
+      tags: const {'مهم'},
+      noteKinds: const {NotebookItemKind.note},
+      noteQuery: 'معلم',
+      noteDateField: ReportNoteDateField.updated,
+      noteFromDate: DateTime(2026, 10, 5),
+      noteToDate: DateTime(2026, 10, 7),
+    ).apply([note, checklist, ordinaryTask], now: now);
+
+    expect(result.map((task) => task.id), ['note-school']);
+  });
+
 }
