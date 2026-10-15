@@ -1,3 +1,22 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-16 — CI poll and exact-head gate
+
+This is the latest observation and supersedes the initial status block below wherever the latest SHAs/statuses differ.
+
+## Latest PR heads
+- Calendar PR [#2735](https://github.com/mobinpda-lab/Arvin-clean/pull/2735): SHA `9839f9197c0b6b54b67086d75561eb8ff799453f`. Build run [38814870044](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814870044): test/analyze jobs were still queued or running, with no reported failures at the poll. Device Smoke [38814870125](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814870125): two lanes running, four queued.
+- Person/report PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695): SHA `44810fcf5bb96db8c028a1574889e3f2d45af75f`. Build [38814903662](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814903662): one job running, eight queued. Device Smoke [38814903585](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814903585): all six lanes queued. PR remains stacked on unmerged #2666.
+- Migration tombstone PR [#2738](https://github.com/mobinpda-lab/Arvin-clean/pull/2738): SHA `5ba5432e07633fd03ad66721eee37bcad8ba4004`. Build [38814485299](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485299): Analyze + all six test shards passed; the new deleted-reminder regression and both requested migration test files are visibly marked passed in logs. Debug APK artifact `arvin-debug-apk` exists (92,553,535 bytes); Release APK job was still running at the poll. Device Smoke [38814485268](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485268): Quick Capture passed; Home failed before emulator boot because Android SDK image download reported `unknown archive`; SQL persistence and SQL migration were running, two lanes queued. This is not a green six-lane result. Rerun of Home is not yet available because the workflow is still running.
+
+## Exact-head validation gate
+- The Build runs listed above were started by `pull_request`; workflow step “Verify exact requested revision” is skipped for this event by design. Therefore these runs are useful CI evidence but **not exact-head validation**.
+- A search of recent `workflow_dispatch` Build runs found no exact-target run for the three latest SHAs. The dispatcher workflow is scheduled every six hours/manual only; no direct workflow-dispatch write action is available in this execution connection. Exact-head validation is therefore **BLOCKED/PENDING**, not PASS.
+- Do not merge or release. After the current PR runs finish, retry the Home emulator-infrastructure failure where possible and wait for the default-branch recovery dispatcher to produce exact-target Build runs.
+
+## Release decision
+**Release: NO-GO.** No physical-device owner acceptance has been performed in this wave; stacked Person branch and dangling-Person projection policy still need reconciliation.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-16 — Consolidation & Correction Wave
 
 This entry supersedes older status lines where they conflict. Historical evidence remains historical and must not be reused as current-head proof.
