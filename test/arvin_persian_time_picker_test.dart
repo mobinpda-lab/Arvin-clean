@@ -32,7 +32,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-inner-۲۴')));
     await tester.pumpAndSettle();
-    expect(find.bySemanticsLabel('۰۰:۰۰'), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-hour-value')), matching: find.text('۰۰')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-minute-value')), matching: find.text('۰۰')), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
@@ -74,7 +76,9 @@ void main() {
       find.byKey(const ValueKey('universal-time-selected-value')),
       findsOneWidget,
     );
-    expect(find.bySemanticsLabel('۰۹:۱۰'), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-hour-value')), matching: find.text('۰۹')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-minute-value')), matching: find.text('۱۰')), findsOneWidget);
 
     await tester.tap(find.text('دقیقه'));
     await tester.pumpAndSettle();
@@ -156,7 +160,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-inner-۲۳')));
     await tester.pumpAndSettle();
-    expect(find.bySemanticsLabel('۲۳:۰۰'), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-hour-value')), matching: find.text('۲۳')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('universal-time-minute-value')), matching: find.text('۰۰')), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
