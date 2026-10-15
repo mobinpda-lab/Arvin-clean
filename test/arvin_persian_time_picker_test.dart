@@ -38,7 +38,8 @@ void main() {
       find.byKey(const ValueKey('universal-time-selected-value')),
       findsOneWidget,
     );
-    expect(find.text('۰۹:۱۰'), findsOneWidget);
+    expect(find.text('۰۹'), findsOneWidget);
+    expect(find.text('۱۰'), findsOneWidget);
 
     await tester.tap(find.text('دقیقه'));
     await tester.pumpAndSettle();
@@ -120,7 +121,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-inner-۲۳')));
     await tester.pumpAndSettle();
-    expect(find.text('۲۳:۰۰'), findsOneWidget);
+    expect(find.text('۲۳'), findsOneWidget);
+    expect(find.text('۰۰'), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
