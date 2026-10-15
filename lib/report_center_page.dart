@@ -5,6 +5,7 @@ import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
+import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
 
 class ReportCenterPage extends StatefulWidget {
@@ -37,32 +38,36 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         ignoreTaskTime: _filter.personIds.isNotEmpty || _filter.waitingForResponseOnly,
       );
 
+  List<PersonReference> get _peopleDirectory {
+    final byId = <String, PersonReference>{
+      for (final person in widget.people) person.id: person,
+      for (final task in widget.tasks)
+        for (final person in task.people) person.id: person,
+    };
+    return byId.values.toList(growable: false);
+  }
+
   List<_FollowUpReportEntry> get _followUpRows {
     if (_filter.personIds.isEmpty && !_filter.waitingForResponseOnly) {
       return const <_FollowUpReportEntry>[];
     }
-    final result = <_FollowUpReportEntry>[];
-    for (final task in _filtered) {
-      for (final followUp in task.followUps) {
-        if (_filter.personIds.isNotEmpty &&
-            !followUp.personIds.any(_filter.personIds.contains)) {
-          continue;
-        }
-        if (_filter.waitingForResponseOnly &&
-            (task.completed ||
-                task.archived ||
-                task.trashed ||
-                followUp.completed ||
-                !followUp.waitingForResponse)) {
-          continue;
-        }
-        if (!_filter.matchesFollowUpTime(followUp, now: _now)) {
-          continue;
-        }
-        result.add(_FollowUpReportEntry(task: task, followUp: followUp));
-      }
-    }
-    return List<_FollowUpReportEntry>.unmodifiable(result);
+    final projected = const PersonFollowUpReportProjection().project(
+      _filtered,
+      people: _peopleDirectory,
+      personIds: _filter.personIds,
+      waitingForResponseOnly: _filter.waitingForResponseOnly,
+      // Preserve report visibility for stable references whose directory entry
+      // was removed; the row is labelled as a deleted Person, not discarded.
+      includeDanglingPeople: true,
+    );
+    return List<_FollowUpReportEntry>.unmodifiable(
+      projected
+          .where((row) => _filter.matchesFollowUpTime(row.followUp, now: _now))
+          .map((row) => _FollowUpReportEntry(
+                task: row.task,
+                followUp: row.followUp,
+              )),
+    );
   }
 
   bool get _showFollowUpRows =>
