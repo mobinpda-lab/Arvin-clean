@@ -1,3 +1,30 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-16 — Consolidation & Correction Wave
+
+This entry supersedes older status lines where they conflict. Historical evidence remains historical and must not be reused as current-head proof.
+
+## Repository checkpoint
+- Repository: `mobinpda-lab/Arvin-clean`
+- Main checkpoint: `693e7c53221b8c36128b1dec05105d083f205790`
+- Release: **NO-GO**. Do not merge/release from pending, queued, old-head, or synthetic-merge-only evidence.
+
+## Atomic work lanes and current evidence
+- Calendar interaction PR [#2735](https://github.com/mobinpda-lab/Arvin-clean/pull/2735), branch `fix/calendar-item-tap-longpress-behavior`, latest code SHA `da71b3ce0183b015edef6f878dc7ee1c1f191294`. Code now routes Task tap to the edit callback, prevents Task cards falling back to accordion expansion, opens a long-press action sheet, and requires confirmation before deletion. Regression tests cover tap, long-press, device-calendar registration and confirmed deletion. Build run [38814524530](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814524530) and Device Smoke [38814524472](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814524472) were queued/pending at this checkpoint; no green claim.
+- Person/waiting/report PR [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695), branch `integration/person-directory-safe-port-20261014-v2`, latest SHA `c13e8f3313bf3d26f07618da40352767914d31c4`. The explicit `FollowUp.waitingForResponse` flag is authoritative; Report Center now uses a shared `PersonFollowUpReportProjection` implementation and has a regression test. Build [38814369144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814369144) and Device Smoke [38814369104](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814369104) were pending/in progress. Earlier successful evidence on SHA `93202e9e24e33bff31daaf933b2c4fb1417dfb46` is stale for the new commits.
+- **Person branch integration risk:** PR #2695 is stacked on `integration/task-multiple-reminders-safe-20261013`; parent PR #2666 remains open and unmerged. Do not retarget, rebase or merge blindly. The projection file in the stacked branch must be reconciled with the existing same-named projection on current main before integration. The new UI path intentionally displays dangling Person IDs as “شخص حذف‌شده”; current main's existing projection defaults to excluding dangling references, so this semantic difference requires explicit review.
+- Migration tombstone regression PR [#2738](https://github.com/mobinpda-lab/Arvin-clean/pull/2738), branch `test/reminder-migration-tombstone-20261016`, SHA `5ba5432e07633fd03ad66721eee37bcad8ba4004`. Added a test that a deleted Option B legacy reminder remains deleted after SQL reload and canonical backup/restore while preserving `legacyTaskReminderMigrationVersion: 1`. Build [38814485299](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485299) and Device Smoke [38814485268](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38814485268) were still in progress; no pass claim.
+
+## Data and validation rules
+- `test/task_store_sql_runtime_migration_test.dart` and `test/integration_task_reminders_migration_backup_test.dart` are part of the current-main test suite. The latter previously covered Option B migration, SQL, backup/restore, stable identity and prior-delivery suppression but did not explicitly assert that a deleted migrated reminder cannot reappear; PR #2738 adds that missing regression.
+- Recheck all three latest SHAs after Actions become terminal. Confirm Analyze, all six test shards, Debug/Release APK and all six Device Smoke lanes. Inspect test logs for the named migration and report tests; a run created or queued is not a pass.
+- Physical-device acceptance remains separate. No release-ready statement is authorized.
+
+## Next actions
+1. Poll exact latest-head Build and Device Smoke for #2735, #2695 and #2738; fix only confirmed failures.
+2. Resolve the projection dangling-reference policy and reconcile #2695 with current main/parent #2666.
+3. Record terminal evidence for the exact resulting SHA; retain Release **NO-GO** until integration, data integrity and product acceptance gates are closed.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
