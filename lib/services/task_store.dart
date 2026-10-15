@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/person_reference.dart';
 import '../models/task.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
@@ -45,6 +46,64 @@ class TaskStore {
       );
       return rows.map((row) => row['name'] as String).toList(growable: false);
     });
+  }
+
+  Future<List<PersonReference>> loadPeopleDirectory() async {
+    return TaskStorageLock.synchronized<List<PersonReference>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect('SELECT id, name FROM people ORDER BY name, id', const []);
+      return rows.map((row) => PersonReference(
+        id: row['id'] as String,
+        displayName: row['name'] as String,
+      )).toList(growable: false);
+    });
+  }
+
+  /// Replaces the canonical directory atomically. Task relations remain in
+  /// task_people; the directory is independent and can contain orphan people.
+  Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
+    final normalized = <String, PersonReference>{};
+    for (final person in people) {
+      if (normalized.containsKey(person.id)) {
+        throw ArgumentError.value(person.id, 'people', 'Duplicate person id');
+      }
+      normalized[person.id] = person;
+    }
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final oldRows = await executor.runSelect('SELECT id, created_at, updated_at FROM people', const []);
+      final oldById = <String, Map<String, Object?>>{
+        for (final row in oldRows) row['id'] as String: row,
+      };
+      await executor.runCustom('BEGIN');
+      try {
+        await executor.runCustom('DELETE FROM people');
+        final now = DateTime.now().toIso8601String();
+        for (final person in normalized.values) {
+          final old = oldById[person.id];
+          await executor.runInsert(
+            'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
+            <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> mergePeopleDirectory(Iterable<PersonReference> incoming) async {
+    final merged = <String, PersonReference>{
+      for (final person in await loadPeopleDirectory()) person.id: person,
+    };
+    for (final person in incoming) {
+      merged[person.id] = person;
+    }
+    await savePeopleDirectory(merged.values);
   }
 
   Future<List<String>> loadTags() async {
@@ -260,13 +319,17 @@ class TaskStore {
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
-    if (await G1DriftSchema.isLegacyMigrationComplete(executor)) return;
+    if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
+      await G1DriftSchema.migrateTaskPeople(executor);
+      return;
+    }
 
     final preferences = await SharedPreferences.getInstance();
     await const SqlTaskMigrationWriter().migrateFromPreferences(
       executor: executor,
       preferences: preferences,
     );
+    await G1DriftSchema.migrateTaskPeople(executor);
     await _verifyLegacySourceBeforeCutover(executor, preferences);
     await _seedCategoryCatalog(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
@@ -371,7 +434,17 @@ class TaskStore {
       'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
-    envelope['followUps'] = followUps.map(_followUpJson).toList();
+    final followUpJson = <Map<String, dynamic>>[];
+    for (final followUpRow in followUps) {
+      final personRows = await executor.runSelect(
+        'SELECT person_id FROM follow_up_people WHERE follow_up_id = ? ORDER BY ordinal',
+        <Object?>[followUpRow['id']],
+      );
+      final value = _followUpJson(followUpRow);
+      value['personIds'] = personRows.map((item) => item['person_id'] as String).toList();
+      followUpJson.add(value);
+    }
+    envelope['followUps'] = followUpJson;
 
     final checklist = await executor.runSelect(
       'SELECT value FROM checklist_items WHERE task_id = ? ORDER BY ordinal',
@@ -453,6 +526,7 @@ class TaskStore {
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM task_people');
       await executor.runCustom('DELETE FROM checklist_items');
+      await executor.runCustom('DELETE FROM follow_up_people');
       await executor.runCustom('DELETE FROM follow_ups');
       await executor.runCustom('DELETE FROM tasks');
 
@@ -491,6 +565,7 @@ class TaskStore {
         );
         await _writeRelations(executor, task);
       }
+      await G1DriftSchema.migrateTaskPeople(executor);
       for (final row in projectItems) {
         await executor.runInsert(
           '''INSERT INTO project_items (project_id, task_id, ordinal)
@@ -553,6 +628,12 @@ class TaskStore {
           followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0, ordinal,
         ],
       );
+      for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {
+        await executor.runInsert(
+          'INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
+          <Object?>[followUp.id, followUp.personIds[personOrdinal], personOrdinal],
+        );
+      }
     }
     for (var ordinal = 0; ordinal < task.checklist.length; ordinal++) {
       await executor.runInsert(
