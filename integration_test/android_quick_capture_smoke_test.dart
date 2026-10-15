@@ -88,8 +88,18 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(submit);
     await tester.pumpAndSettle();
+    // Allow async persistence to finish before reading the canonical store.
+    List<Task> persisted = await TaskStore().load();
+    for (var attempt = 0;
+        attempt < 50 &&
+            !persisted.any((task) => task.title == 'تماس با علی');
+        attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      persisted = await TaskStore().load();
+    }
 
-    final persisted = await TaskStore().load();
+
     expect(persisted, hasLength(2));
     final original = persisted.singleWhere((task) => task.id == seed.id);
     final captured = persisted.singleWhere((task) => task.id != seed.id);
@@ -114,6 +124,9 @@ void main() {
     expect(reloaded.any((task) => task.title == 'پرونده موجود'), isTrue);
 
     await openQuickCapture();
+    final screenshotDialog = find.byKey(const ValueKey('quick-capture-dialog'));
+    await waitForFinder(screenshotDialog);
+    expect(screenshotDialog, findsOneWidget);
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('quick-capture');
@@ -127,7 +140,9 @@ void main() {
     await waitForFinder(customDue);
     await tester.tap(customDue);
     await tester.pumpAndSettle();
-    final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
+    final dateConfirm = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
+    await waitForFinder(dateConfirm);
+    expect(dateConfirm, findsOneWidget);
     await tester.ensureVisible(dateConfirm);
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
