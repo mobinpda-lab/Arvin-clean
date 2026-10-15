@@ -61,7 +61,7 @@ void main() {
       eventId: 'provider-event-stable-42',
       lastSyncedFingerprint: 'fingerprint-v1',
     );
-    final linkStore = ExternalCalendarEventLinkStore();
+    final linkStore = ExternalCalendarLinkStore();
     await linkStore.save(<ExternalCalendarEventLink>[eventLink]);
 
     // The old scheduler key was task:<taskId>; it must still suppress the
