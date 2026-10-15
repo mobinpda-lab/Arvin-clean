@@ -307,11 +307,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-task-due:task-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-due-delete-task-due:task-1')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('task-due-delete-task-due:task-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-confirm-task-due:task-1')), findsOneWidget);
+    expect(deleted, 0);
+    await tester.tap(find.byKey(const ValueKey('task-due-delete-confirm-task-due:task-1')));
     await tester.pumpAndSettle();
     expect(deleted, 1);
 
@@ -360,7 +364,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
-        findsOneWidget);
+        findsNothing);
     expect(find.byKey(const ValueKey('task-due-edit-task-due:interaction-task')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
@@ -374,8 +378,19 @@ void main() {
       find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-due-delete-confirm-task-due:interaction-task')),
+        findsOneWidget);
+    expect(deleted, 0);
+    await tester.tap(
+      find.byKey(const ValueKey('task-due-delete-confirm-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
     expect(deleted, 1);
 
+    await tester.longPress(
+      find.byKey(const ValueKey('reminder-card-task-due:interaction-task')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
     );
