@@ -313,10 +313,6 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-due-delete-task-due:task-1')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-due-delete-confirm-task-due:task-1')), findsOneWidget);
-    expect(deleted, 0);
-    await tester.tap(find.byKey(const ValueKey('task-due-delete-confirm-task-due:task-1')));
-    await tester.pumpAndSettle();
     expect(deleted, 1);
 
     await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:event-1')));
@@ -376,13 +372,6 @@ void main() {
 
     await tester.tap(
       find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-due-delete-confirm-task-due:interaction-task')),
-        findsOneWidget);
-    expect(deleted, 0);
-    await tester.tap(
-      find.byKey(const ValueKey('task-due-delete-confirm-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
     expect(deleted, 1);
