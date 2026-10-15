@@ -254,15 +254,10 @@ void main() {
     final dateConfirm = find.byKey(const ValueKey('quick-capture-date-confirm'));
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    await tester.tap(
-      find.descendant(
-        of: find.byType(TimePickerDialog),
-        matching: find.text('لغو'),
-      ),
-    );
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsNothing);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsNothing);
   });
   testWidgets('full form cancel preserves quick-entry text for retry', (tester) async {
     await tester.pumpWidget(
@@ -328,8 +323,8 @@ void main() {
     expect(dateConfirm, findsOneWidget);
     await tester.tap(dateConfirm);
     await tester.pumpAndSettle();
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byType(TimePickerDialog), findsOneWidget);
+    expect(find.text('زمان انجام کار'), findsWidgets);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
   });
 
   testWidgets('Quick Add preserves selected due time from custom date/time',
@@ -362,8 +357,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    await tester.tap(find.text('تأیید'));
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -404,8 +399,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
 
-    expect(find.text('انتخاب ساعت'), findsWidgets);
-    expect(find.byType(TimePickerDialog), findsOneWidget);
+    expect(find.text('زمان یادآوری'), findsWidgets);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
   });
   testWidgets('Quick Add supports minute precision and all custom recurrence units', (tester) async {
     await tester.pumpWidget(
@@ -427,8 +422,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-date-confirm')));
     await tester.pumpAndSettle();
-    expect(find.byType(TimePickerDialog), findsOneWidget);
-    await tester.tap(find.text('تأیید'));
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
   });
 
