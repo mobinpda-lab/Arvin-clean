@@ -9,6 +9,7 @@ import 'services/task_project_assignment_service.dart';
 import 'follow_up_entry_page.dart';
 import 'widgets/arvin_roll_box.dart';
 import 'widgets/universal_arvin_time_picker.dart';
+import 'widgets/persian_date_picker.dart';
 
 /// Compact Persian quick-capture surface backed by the canonical parser.
 ///
@@ -302,7 +303,15 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
 Future<DateTime?> _pickCustomDue() async {
     final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
-    final date = await _pickJalaliDate(context, initialDate: initial);
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ',
+      cancelText: 'لغو',
+      confirmText: 'انتخاب تاریخ',
+    );
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان انجام کار');
     if (time == null || !mounted) return null;
@@ -311,7 +320,15 @@ Future<DateTime?> _pickCustomDue() async {
 
   Future<DateTime?> _pickCustomReminder() async {
     final initial = _reminderDate ?? _dueDate ?? widget.now?.call() ?? DateTime.now();
-    final date = await _pickJalaliDate(context, initialDate: initial);
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ',
+      cancelText: 'لغو',
+      confirmText: 'انتخاب تاریخ',
+    );
     if (date == null || !mounted) return null;
     final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان یادآوری');
     if (time == null || !mounted) return null;
@@ -401,118 +418,6 @@ Future<DateTime?> _pickCustomDue() async {
     final formatter = const PersianDateFormatter();
     final interval = formatter.toPersianDigits(_recurrence!.interval.toString());
     return 'هر $interval $unit';
-  }
-  Future<DateTime?> _pickJalaliDate(
-    BuildContext parentContext, {
-    required DateTime initialDate,
-  }) async {
-    final formatter = const PersianDateFormatter();
-    final initial = formatter.toJalali(initialDate);
-    return showDialog<DateTime>(
-      context: parentContext,
-      builder: (sheetContext) {
-        var year = initial.year;
-        var month = initial.month;
-        var selectedDay = initial.day;
-        final clockNow = widget.now?.call() ?? DateTime.now();
-        final today = DateTime(clockNow.year, clockNow.month, clockNow.day);
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final monthLength = formatter.monthLength(year, month);
-            if (selectedDay > monthLength) { selectedDay = monthLength; }
-            final firstGregorian = formatter.fromJalali(JalaliDate(year, month, 1));
-            final firstWeekday = firstGregorian.weekday % 7;
-            final days = List<int?>.filled(firstWeekday, null, growable: true)..addAll(List<int>.generate(monthLength, (i) => i + 1));
-            DateTime selectedDate() => formatter.fromJalali(JalaliDate(year, month, selectedDay));
-            void changeMonth(int delta) {
-              var nextYear = year;
-              var nextMonth = month + delta;
-              if (nextMonth < 1) { nextMonth = 12; nextYear--; }
-              if (nextMonth > 12) { nextMonth = 1; nextYear++; }
-              setSheetState(() {
-                year = nextYear; month = nextMonth;                final length = formatter.monthLength(year, month);
-                if (selectedDay > length) selectedDay = length;
-              });
-            }
-            final canGoBack = !formatter.fromJalali(JalaliDate(year, month, 1)).isBefore(today);
-            return Dialog(
-              child: SafeArea(
-                child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('انتخاب تاریخ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        IconButton(
-                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-                          padding: EdgeInsets.zero,
-                          tooltip: 'ماه قبل',
-                          onPressed: canGoBack ? () => changeMonth(-1) : null,
-                          icon: const Icon(Icons.chevron_right),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              '${formatter.monthName(month)} ${formatter.toPersianDigits(year.toString())}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-                          padding: EdgeInsets.zero,
-                          tooltip: 'ماه بعد',
-                          onPressed: () => changeMonth(1),
-                          icon: const Icon(Icons.chevron_left),
-                        ),
-                      ],
-                    ),
-                    const Row(children: [
-                      Expanded(child: Center(child: Text('ش'))), Expanded(child: Center(child: Text('ی'))),
-                      Expanded(child: Center(child: Text('د'))), Expanded(child: Center(child: Text('س'))),
-                      Expanded(child: Center(child: Text('چ'))), Expanded(child: Center(child: Text('پ'))),
-                      Expanded(child: Center(child: Text('ج'))),
-                    ]),
-                    const SizedBox(height: 6),
-                    GridView.builder(
-                      shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: days.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisExtent: 42),
-                      itemBuilder: (context, index) {
-                        final day = days[index];
-                        if (day == null) return const SizedBox.shrink();
-                        final date = formatter.fromJalali(JalaliDate(year, month, day));
-                        final isPast = date.isBefore(today);
-                        final selected = day == selectedDay;
-                        return Padding(
-                          padding: const EdgeInsets.all(2),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: isPast ? null : () => setSheetState(() => selectedDay = day),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(color: selected ? Theme.of(context).colorScheme.primaryContainer : null, borderRadius: BorderRadius.circular(12)),
-                              child: Text(formatter.toPersianDigits(day.toString()), style: TextStyle(fontWeight: selected ? FontWeight.w800 : FontWeight.w500, color: isPast ? Theme.of(context).disabledColor : null)),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(width: double.infinity, child: FilledButton(key: const ValueKey('quick-capture-date-confirm'), onPressed: selectedDate().isBefore(today) ? null : () => Navigator.pop(sheetContext, selectedDate()), child: const Text('انتخاب تاریخ'))),
-                  ],
-                ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
   @override
   Widget build(BuildContext context) {
