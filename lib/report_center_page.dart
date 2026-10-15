@@ -13,10 +13,10 @@ import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
 String _reportDateTimeLabel(DateTime value) {
-  final date = const PersianDateFormatter().format(value, usePersianDate: true);
-  final hour = value.hour.toString().padLeft(2, '0');
-  final minute = value.minute.toString().padLeft(2, '0');
-  return '$date $hour:$minute';
+  const formatter = PersianDateFormatter();
+  final date = formatter.format(value, usePersianDate: true);
+  final time = formatter.formatTime(value.hour, value.minute);
+  return '$date $time';
 }
 
 class ReportCenterPage extends StatefulWidget {
