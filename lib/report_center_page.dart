@@ -8,6 +8,13 @@ import 'services/task_report_filter.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
 
+String _reportDateTimeLabel(DateTime value) {
+  final date = const PersianDateFormatter().format(value, usePersianDate: true);
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '$date $hour:$minute';
+}
+
 class ReportCenterPage extends StatefulWidget {
   const ReportCenterPage({
     super.key,
@@ -35,9 +42,9 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   List<PersonReference> get _peopleDirectory {
     final byId = <String, PersonReference>{
-      for (final person in widget.people) person.id: person,
       for (final task in widget.tasks)
         for (final person in task.people) person.id: person,
+      for (final person in widget.people) person.id: person,
     };
     final result = byId.values.toList(growable: false)
       ..sort((a, b) => a.displayName.compareTo(b.displayName));
@@ -182,8 +189,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
                                   if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
                                   'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
-                                  if (next != null) 'اقدام بعدی: ${const PersianDateFormatter().format(next, usePersianDate: true) + ' ${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}'}',
-                                  if (reminder != null) 'یادآور: ${const PersianDateFormatter().format(reminder, usePersianDate: true) + ' ${reminder.hour.toString().padLeft(2, '0')}:${reminder.minute.toString().padLeft(2, '0')}'}',
+                                  if (next != null) 'اقدام بعدی: ${_reportDateTimeLabel(next)}',
+                                  if (reminder != null) 'یادآور: ${_reportDateTimeLabel(reminder)}',
                                 ].join(' • ')),
                               ),
                             );
