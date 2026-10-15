@@ -1043,3 +1043,15 @@ This entry supersedes older statements that the owner decision is pending or tha
 - **Next actions:** Analyze; all test shards; Debug/Release APK; six Device Smoke lanes; Calendar Provider Acceptance; inspect failures; then complete physical-device and integrated backup/restore acceptance.
 - **Release:** NO-GO.
 - **Decision source:** https://github.com/mobinpda-lab/Arvin-clean/issues/2654#issuecomment-6178475884
+
+
+# AUTHORITATIVE LIVE VALIDATION UPDATE — 2026-10-15 — PR #2719 exact-head CI
+
+- **Exact candidate head:** `396cf7e70ac3cd88463436d471a6e624533fb181`; PR #2719 remains Draft/open and unmerged: https://github.com/mobinpda-lab/Arvin-clean/pull/2719.
+- **Build:** terminal SUCCESS, https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695156447. Analyze, test-0 through test-5, Debug APK, and Release APK all completed successfully on this exact SHA.
+- **Device Smoke:** six emulator lanes completed SUCCESS (quick-capture, home, people, SQL persistence, SQL migration, backup/restore): https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695105201.
+- **Calendar Provider Acceptance:** terminal SUCCESS: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38695105183.
+- **Correction to previous pending wording:** these CI gates are no longer pending for SHA above. This is emulator/CI evidence, not physical-device evidence, and does not independently establish the complete integrated Person + Follow-up + multi-reminder + report + backup/restore acceptance scenario.
+- **Completed:** reviewed PR metadata and diff; verified exact-head check-runs and terminal jobs; recorded evidence here.
+- **Current bottleneck:** integrated data-integrity/acceptance proof and physical-device validation; also verify controlled recovery-dispatch behavior. Keep PR #2719 unmerged until review confirms migration idempotence/rollback and end-to-end acceptance; release remains **NO-GO**.
+- **Next action:** perform focused code review of migration rollback/retry, SQL and backup/restore round-trip, reminder delete isolation and alarm reschedule/restart behavior; then record results and request physical-device validation.
