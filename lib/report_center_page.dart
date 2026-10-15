@@ -157,7 +157,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           itemBuilder: (_, index) {
                             final entry = _followUpRows[index];
                             final peopleById = <String, String>{
-                              for (final person in widget.people) person.id: person.displayName,
+                              for (final person in _peopleDirectory)
+                                person.id: person.displayName,
                             };
                             final names = entry.followUp.personIds
                                 .map((id) => peopleById[id] ?? 'شخص حذف‌شده')
