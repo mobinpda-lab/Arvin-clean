@@ -146,7 +146,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                   SizedBox(
                     width: 140,
                     child: DropdownButtonFormField<String>(
-                      value: _selectedPersonId ?? '',
+                      initialValue: _selectedPersonId ?? '',
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'فرد', isDense: true),
                       items: [
                         const DropdownMenuItem<String>(value: '', child: Text('همه افراد')),
