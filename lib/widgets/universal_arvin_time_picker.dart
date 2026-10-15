@@ -167,7 +167,10 @@ class _UniversalArvinTimePickerDialogState
                   color: ArvinColors.primary,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Row(
+                child: Semantics(
+                  key: const ValueKey('universal-time-selected-value'),
+                  label: _persianClockText,
+                  child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   textDirection: TextDirection.ltr,
                   children: [
@@ -175,6 +178,7 @@ class _UniversalArvinTimePickerDialogState
                     const Padding(padding: EdgeInsets.symmetric(horizontal: 3), child: Text(':', style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w700))),
                     _digitalSegment(_formatter.toPersianDigits(_minute.toString().padLeft(2, '0')), selected: _choosingMinute && !_manualEntry, onTap: () => setState(() { _choosingMinute = true; _manualEntry = false; })),
                   ],
+                ),
                 ),
               ),
               const SizedBox(height: 10),
