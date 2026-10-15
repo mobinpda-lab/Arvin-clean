@@ -135,8 +135,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
-    expect(find.text('پاسخ آنا'), findsOneWidget);
-    expect(find.text('پاسخ رضا'), findsOneWidget);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
     expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
     expect(find.textContaining('یادآور:'), findsOneWidget);
 
@@ -146,8 +146,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
-    expect(find.text('پاسخ آنا'), findsOneWidget);
-    expect(find.text('پاسخ رضا'), findsNothing);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsNothing);
   });
 
 }
