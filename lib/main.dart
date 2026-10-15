@@ -11,6 +11,7 @@ import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
+import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
@@ -1827,6 +1828,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
+        people: await taskStore.loadPeopleDirectory(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1853,6 +1855,7 @@ class _HomePageState extends State<HomePage> {
     List<ExternalCalendarEventLink>? previousCalendarLinks;
     List<String>? previousCategories;
     List<String>? previousTags;
+    List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
@@ -1890,6 +1893,7 @@ class _HomePageState extends State<HomePage> {
       previousCalendarLinks = calendarLinksBeforeRestore;
       previousCategories = await taskStore.loadCategories();
       previousTags = await taskStore.loadTags();
+      previousPeople = await taskStore.loadPeopleDirectory();
       final settingsBeforeRestore = await _portableBackupSettings();
       previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
@@ -1899,6 +1903,7 @@ class _HomePageState extends State<HomePage> {
         calendarLinks: calendarLinksBeforeRestore,
         categories: previousCategories,
         tags: previousTags,
+        people: previousPeople,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -1954,6 +1959,12 @@ class _HomePageState extends State<HomePage> {
               localOnlyTaskIds: localOnlyTaskIds,
             )
           : projectsBeforeRestore;
+      final reconciledPeople = candidate.hasPeople
+          ? ArvinBackupManager.reconcilePeopleById(
+              current: previousPeople!,
+              backup: candidate.people ?? const <PersonReference>[],
+            )
+          : previousPeople!;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
@@ -2005,6 +2016,10 @@ class _HomePageState extends State<HomePage> {
             tags: candidate.tags ?? const <String>[],
           );
           await widget.restoreStageHook?.call('catalogs');
+          if (candidate.hasPeople) {
+            await taskStore.savePeopleDirectory(reconciledPeople);
+          }
+          await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
@@ -2035,6 +2050,7 @@ class _HomePageState extends State<HomePage> {
               await taskStore.deleteTagCatalog(tag);
             }
           }
+          await taskStore.savePeopleDirectory(previousPeople!);
           final appliedSettings = await appSettingsService.load();
           if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           await _load();
@@ -2045,7 +2061,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}',
             ),
           ),
         );
