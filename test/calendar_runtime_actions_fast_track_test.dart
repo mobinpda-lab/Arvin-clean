@@ -172,8 +172,9 @@ void main() {
       await tester.pump();
 
       // Destructive actions remain behind the existing expand interaction.
-      await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-      await tester.pump();
+      // Long-press is the explicit entry point for destructive actions.
+      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      await tester.pumpAndSettle();
       expect(delete, findsOneWidget);
     }
 
