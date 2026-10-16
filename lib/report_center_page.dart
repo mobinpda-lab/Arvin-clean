@@ -7,17 +7,9 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
-import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
-
-String _reportDateTimeLabel(DateTime value) {
-  const formatter = PersianDateFormatter();
-  final date = formatter.format(value, usePersianDate: true);
-  final time = formatter.formatTime(value.hour, value.minute);
-  return '$date $time';
-}
 
 class ReportCenterPage extends StatefulWidget {
   const ReportCenterPage({
@@ -39,8 +31,6 @@ class ReportCenterPage extends StatefulWidget {
 
 class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
-  bool _showWaitingFollowUps = false;
-  String? _selectedPersonId;
 
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -73,13 +63,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     return result;
   }
 
-  List<PersonFollowUpReportRow> get _waitingRows =>
-      const PersonFollowUpReportProjection().project(
-        widget.tasks,
-        people: _peopleDirectory,
-        personId: _selectedPersonId,
-      );
-
   List<Task> get _filtered => _filter.apply(
         widget.tasks,
         now: _now,
@@ -105,14 +88,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
-        _showWaitingFollowUps = false;
-        _selectedPersonId = null;
       });
 
   @override
   Widget build(BuildContext context) {
     final tasks = _filtered;
-    final waitingRows = _waitingRows;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -154,76 +134,19 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('پیگیری‌های منتظر پاسخ'),
-                      value: _showWaitingFollowUps,
-                      onChanged: (value) => setState(() => _showWaitingFollowUps = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedPersonId ?? '',
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'فرد', isDense: true),
-                      items: [
-                        const DropdownMenuItem<String>(value: '', child: Text('همه افراد')),
-                        for (final person in _peopleDirectory)
-                          DropdownMenuItem<String>(value: person.id, child: Text(person.displayName, overflow: TextOverflow.ellipsis)),
-                      ],
-                      onChanged: (value) => setState(() => _selectedPersonId = value == null || value.isEmpty ? null : value),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_filter.isActive && !_showWaitingFollowUps)
+            if (_filter.isActive)
               _ActiveFilterChips(filter: _filter, onClear: _clear),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text(_showWaitingFollowUps
-                    ? 'نتیجه: ${waitingRows.length} پیگیری'
-                    : 'نتیجه: ${tasks.length} کار'),
+                child: Text('نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: _showWaitingFollowUps
-                  ? (waitingRows.isEmpty
-                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: waitingRows.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
-                          itemBuilder: (_, index) {
-                            final row = waitingRows[index];
-                            final next = row.nextFollowUp;
-                            final reminder = row.reminderDate;
-                            return Card(
-                              child: ListTile(
-                                title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
-                                subtitle: Text([
-                                  if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
-                                  if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
-                                  'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
-                                  if (next != null) 'اقدام بعدی: ${_reportDateTimeLabel(next)}',
-                                  if (reminder != null) 'یادآور: ${_reportDateTimeLabel(reminder)}',
-                                ].join(' • ')),
-                              ),
-                            );
-                          },
-                        ))
-                  : (tasks.isEmpty
-                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                      : ListView.separated(
+              child: tasks.isEmpty
+                  ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
+                  : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: tasks.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -262,11 +185,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           ),
                         );
                       },
-                    )),
+                    ),
             ),
           ],
         ),
-        floatingActionButton: _showWaitingFollowUps || tasks.isEmpty
+        floatingActionButton: tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
