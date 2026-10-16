@@ -170,13 +170,15 @@ void main() {
     final peopleSection = find.byKey(const ValueKey('report-filter-section-اشخاص'));
     await tester.ensureVisible(peopleSection);
     await tester.pumpAndSettle();
-    await tester.tap(peopleSection);
+    // Tap the ExpansionTile header itself; tapping the enclosing Card can hit
+    // its center outside the header after the sheet has been scrolled.
+    await tester.tap(find.text('اشخاص'));
     await tester.pumpAndSettle();
 
     final anaOption = find.byKey(const ValueKey('report-filter-person-آنا'));
+    expect(anaOption, findsOneWidget);
     await tester.ensureVisible(anaOption);
     await tester.pumpAndSettle();
-    expect(anaOption, findsOneWidget);
     await tester.tap(anaOption);
     await tester.pumpAndSettle();
 
