@@ -165,34 +165,34 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-section-اشخاص')),
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
+    expect(find.byKey(const ValueKey('report-filter-header')), findsOneWidget);
+
+    final peopleSection = find.byKey(const ValueKey('report-filter-section-اشخاص'));
+    await tester.ensureVisible(peopleSection);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-person-ana')),
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.byKey(const ValueKey('report-filter-person-ana')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('report-filter-person-ana')));
+    await tester.tap(peopleSection);
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('منتظر پاسخ'),
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.widgetWithText(ChoiceChip, 'منتظر پاسخ'));
+    final anaOption = find.byKey(const ValueKey('report-filter-person-ana'));
+    await tester.ensureVisible(anaOption);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-apply')),
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
+    expect(anaOption, findsOneWidget);
+    await tester.tap(anaOption);
+    await tester.pumpAndSettle();
+
+    final featureSection = find.byKey(const ValueKey('report-filter-section-ویژگی‌های کار'));
+    await tester.ensureVisible(featureSection);
+    await tester.pumpAndSettle();
+    await tester.tap(featureSection);
+    await tester.pumpAndSettle();
+
+    final waitingOption = find.widgetWithText(ChoiceChip, 'منتظر پاسخ');
+    await tester.ensureVisible(waitingOption);
+    await tester.pumpAndSettle();
+    expect(waitingOption, findsOneWidget);
+    await tester.tap(waitingOption);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
 
