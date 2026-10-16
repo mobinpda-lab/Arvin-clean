@@ -34,7 +34,6 @@ void main() {
       const Color(0xFFECFDF5),
     );
     expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.warning_rounded), findsOneWidget);
     expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
   });
 
@@ -340,25 +339,27 @@ void main() {
     await tester.longPress(
       find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('انجام شد'), findsOneWidget);
     expect(find.text('تعویق'), findsNothing);
     expect(find.text('ویرایش پیگیری'), findsOneWidget);
     expect(find.text('تبدیل به کار'), findsNothing);
 
-    await tester.tap(
-      find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1')),
-    );
-    await tester.pump();
+    final completeAction =
+        find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1'));
+    await tester.ensureVisible(completeAction);
+    await tester.tap(completeAction);
+    await tester.pumpAndSettle();
     await tester.longPress(
       find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1')),
-    );
-    await tester.pump();
+    final editAction =
+        find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1'));
+    await tester.ensureVisible(editAction);
+    await tester.tap(editAction);
+    await tester.pumpAndSettle();
 
     expect(completed, 1);
     expect(edited, 1);

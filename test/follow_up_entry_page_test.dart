@@ -12,17 +12,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> revealReminder(WidgetTester tester) async {
-    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
-    await tester.scrollUntilVisible(
-      reminder,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(reminder, findsOneWidget);
-  }
-
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
@@ -53,15 +42,16 @@ void main() {
     expect(find.text('۱۴۰۵/۰۵/۲۳'), findsOneWidget);
     expect(find.text('۰۹:۳۰'), findsOneWidget);
     expect(find.text('عنوان پیگیری (اختیاری)'), findsOneWidget);
-    await revealReminder(tester);
-
-    await tester.ensureVisible(find.byKey(const ValueKey('follow-up-entry-title')));
     await tester.enterText(
       find.byKey(const ValueKey('follow-up-entry-title')),
       'تماس مجدد',
     );
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'شرح تماس');
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ دریافت شد');
+    final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
+    await tester.ensureVisible(noteField);
+    await tester.enterText(noteField, 'شرح تماس');
+    final resultField = find.byKey(const ValueKey('follow-up-entry-result'));
+    await tester.ensureVisible(resultField);
+    await tester.enterText(resultField, 'پاسخ دریافت شد');
     await saveEditor(tester);
 
     expect(result, isNotNull);

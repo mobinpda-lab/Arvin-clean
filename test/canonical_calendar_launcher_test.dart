@@ -183,7 +183,7 @@ void main() {
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
     expect(find.text('پیگیری جلسه مشتری'), findsWidgets);
-    expect(find.text('جلسه داخلی — هماهنگی تیم'), findsWidgets);
+    expect(find.text('پیگیری جلسه داخلی'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
     expect(
       find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'),

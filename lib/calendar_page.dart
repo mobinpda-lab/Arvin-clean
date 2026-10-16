@@ -1077,9 +1077,11 @@ class _ReminderCardState extends State<_ReminderCard> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
+        child: SingleChildScrollView(
+          child: Wrap(
+            children: [
             if ((widget.item.id.startsWith('followup:') ||
                     widget.item.id.startsWith('task-followup:')) &&
                 widget.onComplete != null &&
@@ -1138,7 +1140,8 @@ class _ReminderCardState extends State<_ReminderCard> {
                   _run(widget.onRegisterTaskToDeviceCalendar);
                 },
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
