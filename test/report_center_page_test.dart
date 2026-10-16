@@ -23,12 +23,17 @@ void main() {
     expect(find.text('فیلتر گزارش‌ها'), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('بازه دقیق'), findsOneWidget);
+    expect(tester.getSize(find.byKey(const ValueKey('report-filter-header'))).height, 64);
 
+    final applyBeforeScroll = tester.getRect(find.byKey(const ValueKey('report-filter-apply')));
     await tester.drag(find.byType(ListView).last, const Offset(0, -700));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('report-filter-apply')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-clear')), findsOneWidget);
+    expect(tester.getRect(find.byKey(const ValueKey('report-filter-apply'))), applyBeforeScroll);
+    expect(find.text('بازنشانی'), findsOneWidget);
+    expect(find.text('اعمال فیلتر'), findsOneWidget);
   });
 
   testWidgets(
@@ -162,6 +167,47 @@ void main() {
     expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
     expect(find.textContaining('پاسخ آنا'), findsOneWidget);
     expect(find.textContaining('پاسخ رضا'), findsNothing);
+  });
+
+  testWidgets('Report Center keeps deleted people selectable by stable label', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [
+            Task(
+              id: 'historical',
+              title: 'کار تاریخی',
+              followUps: [
+                FollowUp(
+                  id: 'follow-up-deleted-person',
+                  dateTime: DateTime(2026, 10, 7, 9),
+                  personIds: ['person-deleted-stable-id'],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-شخص')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-شخص')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+
+    expect(find.text('شخص حذف‌شده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')), findsOneWidget);
   });
 
 }
