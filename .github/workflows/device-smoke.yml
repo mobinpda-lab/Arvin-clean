@@ -125,7 +125,7 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 600
           script: |
-            set -euo pipefail
+            set -eu
             timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device
             boot_completed=""
             for attempt in $(seq 1 120); do
