@@ -27,7 +27,14 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('script: flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(workflow, contains('pre-emulator-launch-script: |'));
+    expect(workflow, contains('adb kill-server || true'));
+    expect(workflow, contains('adb start-server'));
+    expect(workflow, contains(r'adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
+    expect(workflow, contains('sys.boot_completed'));
+    expect(workflow, contains('for attempt in $(seq 1 120)'));
+    expect(workflow, contains('script: |'));
+    expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
     expect(workflow, isNot(contains('uiautomator dump')));
 
