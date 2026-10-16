@@ -436,7 +436,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildWeekView() {
     final weekStart = _startOfWeek(_selectedDay);
-    final scheme = Theme.of(context).colorScheme;
 
     return Padding(
       key: const ValueKey('calendar-week-view'),
@@ -1322,6 +1321,7 @@ class _ReminderCardState extends State<_ReminderCard> {
               ),
             ),
         ],
+      ),
       ),
     );
   }
