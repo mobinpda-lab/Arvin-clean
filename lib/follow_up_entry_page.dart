@@ -49,7 +49,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _titleController.text = initial?.title ?? '';
     _noteController.text = initial?.note ?? '';
-    _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
+    _waitingForResponse = initial?.waitingForResponse == true ||
+        _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _reminderDate = initial?.reminderDate;
     _nextFollowUp = initial?.nextFollowUp;
