@@ -45,13 +45,19 @@ class PersonFollowUpReportProjection {
       for (final followUp in task.followUps) {
         if (!followUp.waitingForResponse || followUp.completed) continue;
         final associated = followUp.personIds
-            .where(directory.containsKey)
-            .map((id) => directory[id]!)
-            .where((person) => personId == null || person.id == personId)
+            .where((id) => personId == null || id == personId)
+            .map(
+              (id) =>
+                  directory[id] ??
+                  (includeDanglingPeople
+                      ? PersonReference(id: id, displayName: 'شخص حذف‌شده')
+                      : null),
+            )
+            .whereType<PersonReference>()
             .toList(growable: false);
-        // Empty, removed, or dangling directory associations are not active
-        // person-waiting rows.
-        if (associated.isEmpty) continue;
+        // Keep the Follow-up row visible even when its Person directory entry
+        // was deleted. A stable placeholder preserves history without reviving
+        // the deleted Person record or creating a parallel directory.
         final nextAction = followUp.nextFollowUp;
         if (nextActionDueBy != null &&
             (nextAction == null || nextAction.isAfter(nextActionDueBy))) {
