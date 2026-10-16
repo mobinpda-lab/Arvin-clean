@@ -373,6 +373,11 @@ void main() {
           reminders: [
             CalendarReminder(id: 'task-due:task-1', title: 'آروین', date: day),
             CalendarReminder(
+              id: 'task-reminder-item:task-1:reminder-1',
+              title: 'یادآور کار',
+              date: day.add(const Duration(minutes: 15)),
+            ),
+            CalendarReminder(
               id: 'external-calendar:event-1',
               title: 'گوشی',
               date: day.add(const Duration(minutes: 30)),
@@ -402,6 +407,8 @@ void main() {
       Theme.of(tester.element(plannedStatus)).colorScheme.onSurfaceVariant,
     );
     expect(find.text('واردشده از تقویم گوشی'), findsNothing);
+    expect(find.text('وارد شده از تقویم گوشی'), findsNothing);
+    expect(find.text('تقویم آروین'), findsNothing);
     expect(find.text('یادآوری آروین'), findsNothing);
     expect(find.byIcon(Icons.expand_more), findsNothing);
     expect(find.byIcon(Icons.expand_less), findsNothing);
