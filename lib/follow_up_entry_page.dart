@@ -346,6 +346,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
             const SizedBox(height: 4),
             TextField(
+              key: const ValueKey('follow-up-entry-result'),
               controller: _resultController,
               enabled: !_waitingForResponse,
               maxLines: 3,
