@@ -8,6 +8,7 @@ enum NotebookItemKind { note, checklist }
 class FollowUp {
   final String id;
   final DateTime dateTime;
+  final String? title;
   final String note;
   final String? result;
   final DateTime? reminderDate;
@@ -19,6 +20,7 @@ class FollowUp {
   const FollowUp({
     required this.id,
     required this.dateTime,
+    this.title,
     this.note = '',
     this.result,
     this.reminderDate,
@@ -31,6 +33,7 @@ class FollowUp {
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.toIso8601String(),
+        if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
@@ -44,6 +47,9 @@ class FollowUp {
     return FollowUp(
       id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
+      title: (json['title'] as String?)?.trim().isEmpty == true
+          ? null
+          : (json['title'] as String?)?.trim(),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
       reminderDate: json['reminderDate'] == null
