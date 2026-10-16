@@ -473,3 +473,13 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - **Observed run:** [38899481933](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38899481933) returned 9/9 successful jobs including Analyze, six test shards and two APK jobs. Exact checkout SHA was not available in the inspected job payload, so this is not accepted as exact-final-head evidence.
 - **Blocking gaps:** no exact-head proof for all Build lanes and six Device Smoke scenarios; Calendar Provider result must be matched to its exact SHA; no dedicated Report Center or standalone Follow-up scenario in Device Smoke; no explicit terminology lint for canonical «پیگیری»; physical-device/visual acceptance remains unproven.
 - **Release gate:** `RELEASE: NO-GO`. Documentation-only audit; no product logic/UI changed.
+
+
+## 2026-10-16 — PR #2767 — نتایج نهایی Build و Device Smoke
+
+- کامیت آزموده‌شده در هر دو اجرا: `102514234fe053b5a0ba33def206b96e64ea5778`؛ شاخه `docs/ci-evidence-audit-2026-10-16`.
+- Build [38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102): `completed / success`؛ Analyze، شش shard آزمون و دو ساخت APK موفق؛ ۹ از ۹ job موفق.
+- Device Smoke [38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979): `completed / success`؛ شش از شش سناریو موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore. آخرین `updated_at` مشاهده‌شده: `2026-10-16T16:41:51Z`.
+- این دو نتیجه دقیقاً به SHA بالا متصل‌اند؛ به‌روزرسانی همین مستندات SHA تازه‌ای تولید می‌کند و نیازمند بازاعتبارسنجی CI روی SHA تازه است.
+- PR #2767 در زمان بررسی باز، Draft و ادغام‌نشده بود. هیچ فایل محصول یا گردش‌کار ویرایش نشد.
+- شکاف‌های پذیرش فیزیکی، سناریوی اختصاصی مرکز گزارش‌ها و چرخه پیگیری و گیت واژگانی سراسری همچنان بازند؛ وضعیت انتشار `RELEASE: NO-GO`.
