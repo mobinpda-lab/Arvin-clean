@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
@@ -248,7 +250,10 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   Widget build(BuildContext context) {
     final rows = _visibleRows;
     return Scaffold(
+      backgroundColor: ArvinColors.background,
       appBar: AppBar(
+        backgroundColor: ArvinColors.surface,
+        foregroundColor: ArvinColors.textPrimary,
         title: const Text('دفتر پیگیری'),
         actions: [
           IconButton(
@@ -311,7 +316,10 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                             : _showFutureOnly
                                 ? 'پیگیری آینده‌ای ثبت نشده است'
                                 : 'هنوز پیگیری‌ای ثبت نشده است',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: ArvinColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 )
               : ListView.separated(
@@ -323,6 +331,17 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                     final resultLabel = _resultLabel(row.result);
                     final waiting = _waitingService.isWaitingResult(row.result);
                     return Card(
+                      color: waiting ? ArvinColors.reminderSoft : ArvinColors.projectSoft,
+                      elevation: 1,
+                      shadowColor: ArvinColors.shadowSoft,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: BorderSide(
+                          color: waiting
+                              ? ArvinColors.reminder.withValues(alpha: 0.20)
+                              : ArvinColors.project.withValues(alpha: 0.16),
+                        ),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(14),
                         child: Column(
@@ -330,26 +349,29 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.history),
+                                Icon(Icons.history, color: waiting ? ArvinColors.reminder : ArvinColors.project),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     row.taskTitle,
-                                    style: const TextStyle(
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: ArvinColors.textPrimary,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
                                 if (_showAutomaticDueOnly)
-                                  const Chip(
-                                    avatar: Icon(Icons.alarm_on, size: 16),
-                                    label: Text('موعد پیگیری'),
+                                  Chip(
+                                    backgroundColor: ArvinColors.timeSoft,
+                                    avatar: const Icon(Icons.alarm_on, size: 16, color: ArvinColors.time),
+                                    label: const Text('موعد پیگیری'),
                                     visualDensity: VisualDensity.compact,
                                   ),
                                 if (waiting)
-                                  const Chip(
-                                    avatar: Icon(Icons.hourglass_top, size: 16),
-                                    label: Text('منتظر پاسخ'),
+                                  Chip(
+                                    backgroundColor: ArvinColors.reminderSoft,
+                                    avatar: const Icon(Icons.hourglass_top, size: 16, color: ArvinColors.reminder),
+                                    label: const Text('منتظر پاسخ'),
                                     visualDensity: VisualDensity.compact,
                                   ),
                                 IconButton(
@@ -357,12 +379,15 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                   onPressed: _saving || row.taskId.isEmpty
                                       ? null
                                       : () => _editFollowUp(row),
-                                  icon: const Icon(Icons.edit_outlined),
+                                  icon: const Icon(Icons.edit_outlined, color: ArvinColors.primary),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text(_dateTime(row.dateTime)),
+                            Text(
+                               _dateTime(row.dateTime),
+                               style: const TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
+                             ),
                             if (row.note.trim().isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(row.note),
@@ -384,6 +409,8 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                   },
                 ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: ArvinColors.primary,
+        foregroundColor: Colors.white,
         onPressed: _loading || _saving ? null : _addFollowUp,
         icon: _saving
             ? const SizedBox.square(
