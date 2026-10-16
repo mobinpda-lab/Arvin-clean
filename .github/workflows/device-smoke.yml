@@ -127,9 +127,9 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence
-        if: always() && matrix.scenario == 'quick-capture'
+        if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture')
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-persian-time-picker-${{ github.sha }}
+          name: arvin-persian-time-picker-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/device-smoke/persian-time-picker.png
-          if-no-files-found: warn
+          if-no-files-found: error
