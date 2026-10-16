@@ -377,6 +377,11 @@ void main() {
               title: 'گوشی',
               date: day.add(const Duration(minutes: 30)),
             ),
+            CalendarReminder(
+              id: 'prayer-fajr',
+              title: 'نماز صبح',
+              date: day.add(const Duration(hours: 1)),
+            ),
           ],
         ),
       ),
@@ -384,8 +389,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_outlined), findsWidgets);
+    expect(find.byIcon(Icons.task_alt), findsOneWidget);
+    expect(find.byIcon(Icons.notifications), findsWidgets);
+    expect(find.byIcon(Icons.mosque), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+    final plannedStatus = find.text('برنامه‌ریزی‌شده');
+    expect(plannedStatus, findsOneWidget);
+    final plannedStatusText = tester.widget<Text>(plannedStatus);
+    expect(plannedStatusText.style?.fontSize, 10);
+    expect(
+      plannedStatusText.style?.color,
+      Theme.of(tester.element(plannedStatus)).colorScheme.onSurfaceVariant,
+    );
     expect(find.text('واردشده از تقویم گوشی'), findsNothing);
     expect(find.text('یادآوری آروین'), findsNothing);
     expect(find.byIcon(Icons.expand_more), findsNothing);
