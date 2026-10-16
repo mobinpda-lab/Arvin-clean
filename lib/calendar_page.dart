@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:arvin/arvin_colors.dart';
 
 import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
@@ -439,66 +440,89 @@ class _CalendarPageState extends State<CalendarPage> {
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
       child: Row(
         children: [
-          for (var offset = 0; offset < 7; offset++)
+          for (var offset = 0; offset < 7; offset++) ...[
+            if (offset > 0) const SizedBox(width: 8),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 1.5),
-                child: Builder(
-                  builder: (context) {
-                    final date = weekStart.add(Duration(days: offset));
-                    final jalali = _dateFormatter.toJalali(date);
-                    final count = _forDay(date).length;
-                    final selected = _sameDay(date, _selectedDay);
-                    return InkWell(
-                      key: ValueKey(
-                        'calendar-week-day-${date.year}-${date.month}-${date.day}',
+              child: Builder(
+                builder: (context) {
+                  final date = weekStart.add(Duration(days: offset));
+                  final jalali = _dateFormatter.toJalali(date);
+                  final count = _forDay(date).length;
+                  final selected = _sameDay(date, _selectedDay);
+                  return InkWell(
+                    key: ValueKey(
+                      'calendar-week-day-${date.year}-${date.month}-${date.day}',
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => _selectDay(date),
+                    onLongPress: widget.onCreateTaskForDate == null
+                        ? null
+                        : () => widget.onCreateTaskForDate!(date),
+                    child: Container(
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: selected ? ArvinColors.calendarSelectedDay : Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () => _selectDay(date),
-                      onLongPress: widget.onCreateTaskForDate == null
-                          ? null
-                          : () => widget.onCreateTaskForDate!(date),
-                      child: Container(
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: selected ? scheme.primaryContainer : null,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: count > 0
-                                ? scheme.outlineVariant
-                                : Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _weekdayShort(date),
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: selected ? ArvinColors.tag : ArvinColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _weekdayShort(date),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              _dateFormatter.toPersianDigits('${jalali.day}'),
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                            if (count > 0)
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
                               Text(
-                                _dateFormatter.toPersianDigits('$count'),
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: scheme.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                _dateFormatter.toPersianDigits('${jalali.day}'),
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                  color: selected ? ArvinColors.tag : ArvinColors.textPrimary,
+                                ),
                               ),
-                          ],
-                        ),
+                              if (selected && count > 0) ...[
+                                const SizedBox(width: 3),
+                                Container(
+                                  key: ValueKey('calendar-week-count-${date.year}-${date.month}-${date.day}'),
+                                  constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    color: ArvinColors.tag,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    _dateFormatter.toPersianDigits('$count'),
+                                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ] else if (!selected && count > 0) ...[
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: const BoxDecoration(
+                                    color: ArvinColors.calendarPlanned,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
+          ],
         ],
       ),
     );
@@ -693,7 +717,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: Theme.of(context).textTheme.apply(fontFamily: 'VazirHarf'),
+        ),
+        child: Scaffold(
         appBar: AppBar(
           title: const Text('تقویم پیگیری'),
           actions: [
@@ -851,6 +879,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -888,11 +917,33 @@ bool _isOverdueCalendarItem(CalendarReminder item) =>
     );
 
 Color _calendarStatusColor(CalendarReminder item) {
-  if (item.completed) return const Color(0xFF409B51);
-  if (_isOverdueCalendarItem(item)) return const Color(0xFFC94A4A);
-  if (item.id.startsWith('task-followup:')) return const Color(0xFFDB8B23);
-  if (item.id.startsWith('external-calendar:')) return const Color(0xFF218A91);
-  return const Color(0xFF4A69C8);
+  if (item.completed) return ArvinColors.calendarCompleted;
+  if (_isOverdueCalendarItem(item)) return ArvinColors.calendarOverdue;
+  if (item.id.startsWith('task-followup:') ||
+      item.id.startsWith('task-followup-action:')) {
+    return ArvinColors.calendarWaiting;
+  }
+  return ArvinColors.calendarPlanned;
+}
+
+Color _calendarStatusBackground(CalendarReminder item) {
+  if (item.completed) return ArvinColors.calendarCompletedSoft;
+  if (_isOverdueCalendarItem(item)) return ArvinColors.calendarOverdueSoft;
+  if (item.id.startsWith('task-followup:') ||
+      item.id.startsWith('task-followup-action:')) {
+    return ArvinColors.calendarWaitingSoft;
+  }
+  return ArvinColors.calendarPlannedSoft;
+}
+
+IconData _calendarStatusIcon(CalendarReminder item) {
+  if (item.completed) return Icons.check_circle_rounded;
+  if (_isOverdueCalendarItem(item)) return Icons.warning_rounded;
+  if (item.id.startsWith('task-followup:') ||
+      item.id.startsWith('task-followup-action:')) {
+    return Icons.hourglass_bottom_rounded;
+  }
+  return Icons.circle_outlined;
 }
 
 bool _isTaskCalendarItemId(String id) =>
@@ -1075,16 +1126,20 @@ class _ReminderCardState extends State<_ReminderCard> {
 
     return Card(
       key: ValueKey('calendar-pastel-card-${item.id}'),
-      color: statusColor.withValues(alpha: 0.16),
+      color: _calendarStatusBackground(item),
       elevation: 1,
       shadowColor: statusColor.withValues(alpha: 0.12),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: statusColor.withValues(alpha: 0.22)),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          border: BorderDirectional(start: BorderSide(color: statusColor, width: 4)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
         children: [
           ListTile(
             key: ValueKey('reminder-card-${item.id}'),
@@ -1121,8 +1176,9 @@ class _ReminderCardState extends State<_ReminderCard> {
                     item.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                       color: const Color(0xFF232433),
                     ),
                   ),
@@ -1132,17 +1188,20 @@ class _ReminderCardState extends State<_ReminderCard> {
                   key: ValueKey('calendar-item-status-${item.id}'),
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.18),
+                    color: _calendarStatusBackground(item),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text(
-                    statusLabel,
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_calendarStatusIcon(item), size: 13, color: statusColor),
+                      const SizedBox(width: 3),
+                      Text(
+                        statusLabel,
+                        maxLines: 1,
+                        style: TextStyle(color: statusColor, fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1158,14 +1217,14 @@ class _ReminderCardState extends State<_ReminderCard> {
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF5F6178)),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     visual.label,
                     maxLines: 1,
-                    style: TextStyle(fontSize: 10, color: visual.color, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
                   ),
                 ],
               ),
