@@ -2314,6 +2314,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openPrimaryReports() async {
+    final people = await taskStore.loadPeopleDirectory();
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => ReportCenterPage(
+          tasks: List<Task>.of(tasks),
+          projects: List<ProjectPlan>.of(projects),
+          people: people,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openPrimaryNextAction() async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
@@ -2346,6 +2360,9 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).pushReplacement<void, void>(
           MaterialPageRoute<void>(builder: (_) => _primaryNotebookShell()),
         );
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openPrimaryReports();
         return;
       case ArvinPrimaryDestination.nextAction:
         Navigator.of(context).pushReplacement<void, void>(
@@ -2563,17 +2580,7 @@ class _HomePageState extends State<HomePage> {
         await _openPrimaryNextAction();
         return;
       case _HomeMoreAction.report:
-        final people = await taskStore.loadPeopleDirectory();
-        if (!mounted) return;
-        await Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(
-            builder: (_) => ReportCenterPage(
-              tasks: List<Task>.of(tasks),
-              projects: List<ProjectPlan>.of(projects),
-              people: people,
-            ),
-          ),
-        );
+        await _openPrimaryReports();
         return;
       case _HomeMoreAction.about:
         _showAbout();
@@ -2590,6 +2597,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case ArvinPrimaryDestination.notebook:
         _openPrimaryNotebook();
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openPrimaryReports();
         return;
       case ArvinPrimaryDestination.nextAction:
         _openPrimaryNextAction();
