@@ -963,8 +963,16 @@ enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, imported
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
   if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
-  if (item.id.startsWith('task-followup-action:')) return _CalendarItemVisualKind.followUpAction;
-  if (item.id.startsWith('task-due:') || item.id.startsWith('task-reminder:') || item.id.startsWith('followup:')) return _CalendarItemVisualKind.arvinReminder;
+  if (item.id.startsWith('task-followup-action:') ||
+      item.id.startsWith('task-followup:') ||
+      item.id.startsWith('followup:')) {
+    return _CalendarItemVisualKind.followUpAction;
+  }
+  if (item.id.startsWith('task-due:') ||
+      item.id.startsWith('task-reminder-item:') ||
+      item.id.startsWith('task-reminder:')) {
+    return _CalendarItemVisualKind.arvinReminder;
+  }
   if (item.id.startsWith('prayer-')) return _CalendarItemVisualKind.prayer;
   return _CalendarItemVisualKind.ordinary;
 }
