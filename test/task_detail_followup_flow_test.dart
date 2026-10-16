@@ -88,7 +88,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(task.followUps, hasLength(1));
-    expect(task.followUps.single.note, 'پیگیری');
+    expect(task.followUps.single.title, isNull);
+    expect(task.followUps.single.note, isEmpty);
     expect(find.byKey(ValueKey('task-detail-followup-${task.followUps.single.id}')),
         findsOneWidget);
     expect(find.text('پیگیری'), findsWidgets);
@@ -130,7 +131,7 @@ void main() {
 
     expect(find.text('ویرایش پیگیری'), findsOneWidget);
     await tester.enterText(
-      find.byKey(const ValueKey('follow-up-entry-title')),
+      find.byKey(const ValueKey('follow-up-entry-note')),
       'متن اصلاح‌شده',
     );
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
