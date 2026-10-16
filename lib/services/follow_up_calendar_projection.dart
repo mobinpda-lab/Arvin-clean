@@ -73,22 +73,43 @@ class FollowUpCalendarProjection {
       final taskDatesAlreadyProjected = <DateTime>[];
 
       for (final followUp in task.followUps) {
-        // A follow-up's occurrence/history date is not itself a Calendar
-        // reminder. Only its explicitly configured independent reminder is
-        // projected, and that reminder's own time is authoritative.
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null) continue;
+        final customTitle = followUp.title?.trim();
+        final hasCustomTitle = customTitle != null && customTitle.isNotEmpty;
+        final calendarTitle = hasCustomTitle
+            ? customTitle
+            : 'پیگیری ${task.title}';
+        final parentSubtitle = hasCustomTitle ? 'پیگیری: ${task.title}' : null;
+        final isCompleted = followUp.completed || task.completed;
 
-        final note = followUp.note.trim();
-        reminders.add(
-          CalendarReminder(
-            id: reminderIdFor(task, followUp),
-            title: note.isEmpty ? task.title : '${task.title} — $note',
-            date: reminderDate,
-            completed: followUp.completed || task.completed,
-          ),
-        );
-        taskDatesAlreadyProjected.add(reminderDate);
+        // nextFollowUp is the next action time; reminderDate is the separate,
+        // explicitly timed alert. Keep both projections distinct and stable.
+        final nextActionDate = followUp.nextFollowUp;
+        if (nextActionDate != null) {
+          reminders.add(
+            CalendarReminder(
+              id: 'task-followup:${task.id}:${followUp.id}',
+              title: calendarTitle,
+              date: nextActionDate,
+              completed: isCompleted,
+              description: parentSubtitle,
+            ),
+          );
+          taskDatesAlreadyProjected.add(nextActionDate);
+        }
+
+        final reminderDate = followUp.reminderDate;
+        if (reminderDate != null) {
+          reminders.add(
+            CalendarReminder(
+              id: reminderIdFor(task, followUp),
+              title: calendarTitle,
+              date: reminderDate,
+              completed: isCompleted,
+              description: parentSubtitle,
+            ),
+          );
+          taskDatesAlreadyProjected.add(reminderDate);
+        }
       }
 
       for (final reminder in task.taskReminders) {
