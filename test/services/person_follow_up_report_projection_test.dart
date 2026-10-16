@@ -109,6 +109,40 @@ void main() {
     expect(filteredDeletedPerson.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
+  test('person filter can include completed and non-waiting follow-up history when waiting-only is off', () {
+    final task = Task(
+      id: 'history-task',
+      title: 'سابقه شخص',
+      completed: true,
+      followUps: [
+        FollowUp(
+          id: 'history-open',
+          dateTime: now,
+          personIds: ['ana'],
+          waitingForResponse: false,
+        ),
+        FollowUp(
+          id: 'history-dangling',
+          dateTime: now,
+          personIds: ['deleted-person'],
+          waitingForResponse: false,
+          completed: true,
+        ),
+      ],
+    );
+
+    final rows = const PersonFollowUpReportProjection().project(
+      [task],
+      people: directory,
+      personIds: {'ana', 'deleted-person'},
+      waitingForResponseOnly: false,
+    );
+
+    expect(rows.map((row) => row.followUp.id), ['history-open', 'history-dangling']);
+    expect(rows[0].people.single.displayName, 'آنا');
+    expect(rows[1].people.single.displayName, 'شخص حذف‌شده');
+  });
+
   test('next-action cutoff is independent and excludes missing or later next action', () {
     final task = Task(
       id: 'task',
