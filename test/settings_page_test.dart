@@ -85,12 +85,13 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirharf');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
       250,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find.byType(ListView).first,
     );
     await tester.pumpAndSettle();
 
@@ -109,7 +110,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
       250,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find.byType(ListView).first,
     );
     await tester.pumpAndSettle();
 
