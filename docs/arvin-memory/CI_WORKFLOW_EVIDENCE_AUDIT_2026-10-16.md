@@ -82,3 +82,21 @@
 - [final-head-release-validation.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/final-head-release-validation.yml)
 - [calendar-provider-acceptance.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml)
 - [Arvin Evidence Map](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/arvin-memory/ARVIN_EVIDENCE_MAP.md)
+
+
+## تکمیل شواهد نهایی — PR #2767 — 2026-10-16
+
+- **کامیت مورد آزمون:** `102514234fe053b5a0ba33def206b96e64ea5778`؛ هر دو اجرای زیر دقیقاً همین `head_sha` و شاخه `docs/ci-evidence-audit-2026-10-16` را گزارش کرده‌اند.
+- **Build:** [Run 38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102) = `completed / success`؛ آخرین به‌روزرسانی ثبت‌شده `2026-10-16T16:34:03Z`. هر ۹ job موفق: `quality (analyze)`, شش job آزمون `test-0` تا `test-5`، `apk (debug)` و `apk (release)`.
+- **Device Smoke:** [Run 38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979) = `completed / success`؛ آخرین به‌روزرسانی ثبت‌شده `2026-10-16T16:41:51Z`. هر شش job و گام اجرای سناریوی امولاتور موفق‌اند:
+  - Home — `success`
+  - Quick Capture — `success`
+  - SQL Persistence — `success`
+  - SQL Migration — `success`
+  - People — `success`
+  - Backup/Restore — `success`
+- **دارایی‌های شواهد Device Smoke:** Home، Quick Capture، People و Persian Time Picker بارگذاری شده‌اند. بارگذاری تصویر در این workflow اختیاری/غیرمسدودکننده است؛ نبود تصویر برای سناریوهای دیگر به معنی شکست سناریوی اصلی نیست.
+- **محدودیت زمانی:** API گردش‌کار مقدار مستقل `completed_at` برای کل اجرا را در داده بازیابی‌شده ارائه نکرد؛ بنابراین زمان بالا، `updated_at` ثبت‌شده در وضعیت نهایی است، نه ادعای زمان دقیق پایان تا ثانیه.
+- **وضعیت PR:** [PR #2767](https://github.com/mobinpda-lab/Arvin-clean/pull/2767) همچنان `open / draft / unmerged` در زمان بررسی بود.
+- **اثر تغییر مستندات:** ثبت این الحاقیه کامیت جدیدی روی همان شاخه ایجاد می‌کند. بنابراین شواهد فوق برای SHA مورد آزمون معتبرند، اما برای SHA جدید حاصل از به‌روزرسانی اسناد باید CI دوباره روی همان SHA نهایی بررسی شود.
+- **تصمیم انتشار:** `RELEASE: NO-GO`. موفقیت Build و امولاتور، پذیرش دستگاه فیزیکی، پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری یا تأیید نهایی انتشار را اثبات نمی‌کند.
