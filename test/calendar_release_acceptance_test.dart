@@ -162,7 +162,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(
+      await tester.longPress(
         find.byKey(const ValueKey('reminder-card-followup:release-task:release-followup')),
       );
       await tester.pump();
