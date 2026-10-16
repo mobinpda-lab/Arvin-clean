@@ -505,7 +505,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                     ),
                                     child: Text(
                                       _dateFormatter.toPersianDigits('$count'),
-                                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                                      style: const TextStyle(fontSize: 10, color: ArvinColors.surface, fontWeight: FontWeight.w700),
                                     ),
                                   ),
                                 ] else if (!selected && count > 0) ...[
