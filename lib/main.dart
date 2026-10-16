@@ -192,11 +192,11 @@ class _ArvinAppState extends State<ArvinApp> {
           brightness: Brightness.light,
         ).copyWith(
           primary: ArvinColors.primary,
-          onPrimary: Colors.white,
+          onPrimary: ArvinColors.surface,
           secondary: ArvinColors.project,
-          onSecondary: Colors.white,
+          onSecondary: ArvinColors.surface,
           error: ArvinColors.error,
-          onError: Colors.white,
+          onError: ArvinColors.surface,
           surface: ArvinColors.surface,
           onSurface: ArvinColors.textPrimary,
           outline: ArvinColors.border,
@@ -1082,7 +1082,7 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(color: Colors.white.withAlpha(190), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
                     child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
                   ),
                 ]),
