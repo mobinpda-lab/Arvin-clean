@@ -177,9 +177,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
-      floatingLabelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w700),
-      hintStyle: const TextStyle(color: Color(0xFF5F6072)),
+      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
+      floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700),
+      hintStyle: const TextStyle(color: ArvinColors.textSecondary),
       filled: true,
       fillColor: _fieldSurface,
       alignLabelWithHint: true,
@@ -1127,7 +1127,7 @@ Future<void> _pickDueDate() async {
                 Container(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFDFDFE),
+                    color: ArvinColors.surface,
                     border: Border(bottom: BorderSide(color: _border)),
                   ),
                   child: Row(
@@ -1166,7 +1166,7 @@ Future<void> _pickDueDate() async {
                     controller: _titleController,
                     focusNode: _titleFocusNode,
                     autofocus: !editing,
-                    style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
                     cursorColor: _brand,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
@@ -1179,7 +1179,7 @@ Future<void> _pickDueDate() async {
                   TextField(
                     key: const ValueKey('task-editor-description'),
                     controller: _descriptionController,
-                    style: const TextStyle(color: Color(0xFF232433)),
+                    style: const TextStyle(color: ArvinColors.textPrimary),
                     cursorColor: _brand,
                     minLines: 3,
                     maxLines: 5,
@@ -1552,7 +1552,7 @@ Future<void> _pickDueDate() async {
                         const SizedBox(height: 4),
                         const Text(
                           'عنوان، یادداشت، اقدام بعدی و یادآور هر پیگیری جداگانه ذخیره می‌شوند.',
-                          style: TextStyle(color: Color(0xFF77778A), fontSize: 12),
+                          style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                         ),
                         for (final followUp in _followUps) ...[
                           const Divider(height: 18),
