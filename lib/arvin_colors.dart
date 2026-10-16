@@ -43,4 +43,15 @@ abstract final class ArvinColors {
 
   static const disabledText = Color(0xFF62697C);
   static const disabledBorder = Color(0xFFB9BECD);
+
+  // Calendar status tokens follow the approved pastel reference.
+  static const calendarCompleted = Color(0xFF059669);
+  static const calendarCompletedSoft = Color(0xFFECFDF5);
+  static const calendarWaiting = Color(0xFFCA8A04);
+  static const calendarWaitingSoft = Color(0xFFFEFCE8);
+  static const calendarPlanned = Color(0xFF2563EB);
+  static const calendarPlannedSoft = Color(0xFFEFF6FF);
+  static const calendarOverdue = Color(0xFFDC2626);
+  static const calendarOverdueSoft = Color(0xFFFEF2F2);
+  static const calendarSelectedDay = Color(0xFFEDE9FE);
 }
