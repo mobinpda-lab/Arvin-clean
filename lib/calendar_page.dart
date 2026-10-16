@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'arvin_colors.dart';
-import 'theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
+import 'theme/app_fonts.dart';
 
 import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
