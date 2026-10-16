@@ -53,7 +53,7 @@ void main() {
     expect(reminders.last.date, DateTime(2026, 8, 28, 11));
   });
 
-  test('projects next action and timed reminder with optional title and parent subtitle', () {
+  test('keeps next action internal and projects timed reminder with title and parent subtitle', () {
     final nextAction = DateTime(2026, 10, 16, 9, 15);
     final timedReminder = DateTime(2026, 10, 15, 18, 45);
     final task = Task(
@@ -72,15 +72,13 @@ void main() {
     );
 
     final reminders = projection.project([task]);
-    expect(reminders, hasLength(2));
-    final next = reminders.singleWhere((item) => item.id == 'task-followup:parent-task:custom-title');
-    final reminder = reminders.singleWhere((item) => item.id == 'followup:parent-task:custom-title');
-    expect(next.title, 'گرفتن پاسخ');
-    expect(next.description, 'پیگیری: تماس با مشتری');
-    expect(next.date, nextAction);
+    expect(reminders, hasLength(1));
+    final reminder = reminders.single;
+    expect(reminder.id, 'followup:parent-task:custom-title');
     expect(reminder.title, 'گرفتن پاسخ');
     expect(reminder.description, 'پیگیری: تماس با مشتری');
     expect(reminder.date, timedReminder);
+    expect(reminders.where((item) => item.date == nextAction), isEmpty);
   });
 
   test('does not project follow-up history when no independent reminder is configured', () {
