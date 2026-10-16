@@ -241,3 +241,11 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - Current PR-triggered Build runs do not prove exact-head because `Verify exact requested revision` is skipped outside `workflow_dispatch`. Exact-target Build remains blocked/pending.
 - Release remains NO-GO.
 
+
+
+## 2026-10-16 — Consolidation wave live re-poll and release gates
+- Calendar PR #2735 head `81b646a4bf3f8a85925ad7ffe58fc810e162122d`: Build 38815436407 and Device Smoke 38815436228 both terminal-success; Device Smoke is 6/6.
+- Person/report PR #2695 head `44810fcf5bb96db8c028a1574889e3f2d45af75f`: Build 38814903662 terminal-success. Quick-capture retry job 116812638100 is still running; no 6/6 claim until it completes. Projection policy differs from main for dangling Person IDs; resolve before integration. PR remains stacked on #2666.
+- Reminder migration PR #2738 head `5ba5432e07633fd03ad66721eee37bcad8ba4004`: Build 38814485299 terminal-success. Home retry job 116812610529 is still running; no 6/6 claim until it completes.
+- PR-event CI does not satisfy the exact-head workflow_dispatch check. Current exact-target dispatch evidence has not been verified. The dispatcher is scheduled every six hours; the available connector in this execution did not expose a workflow-dispatch write operation.
+- Decision: do not merge the person/report branch blindly, do not mark exact-head PASS, and keep Release NO-GO pending retry completion, exact-head evidence, and physical-device acceptance.
