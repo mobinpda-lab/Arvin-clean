@@ -186,7 +186,11 @@ void main() {
     // The filter sheet uses a lazy ListView; the section may not have an
     // Element yet when it is outside the viewport. Scroll until its title is
     // built before trying to reveal the keyed Card.
-    await tester.scrollUntilVisible(find.text('ویژگی‌های کار'), 200);
+    await tester.scrollUntilVisible(
+      featureSection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.pumpAndSettle();
     expect(featureSection, findsOneWidget);
     await tester.tap(featureSection);
