@@ -2246,10 +2246,13 @@ class _HomePageState extends State<HomePage> {
         targetCalendarId: targetCalendarId,
       );
       if (!mounted) return;
+      final alreadyLinked = links.any((link) => link.reminderId == reminder.id);
       final message = result.created > 0
           ? 'کار در تقویم گوشی ثبت شد.'
           : result.updated > 0
           ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
+          : alreadyLinked
+          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
           : 'رویداد تقویم گوشی از قبل به‌روز بود.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
