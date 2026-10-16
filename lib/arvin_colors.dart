@@ -13,6 +13,27 @@ abstract final class ArvinColors {
   static const textSecondary = Color(0xFF80829C);
   static const border = Color(0xFFE5E7ED);
   static const shadowSoft = Color(0x12000000);
+  static const shadowDark = Color(0x40000000);
+
+  // Dark theme semantic tokens.
+  static const darkPrimary = Color(0xFFB7BCFF);
+  static const darkOnPrimary = Color(0xFF20236E);
+  static const darkSecondary = Color(0xFF9FC4FF);
+  static const darkError = Color(0xFFFFB4AB);
+  static const darkSurface = Color(0xFF25283A);
+  static const darkBorder = Color(0xFF41465B);
+  static const darkDivider = Color(0xFF555B70);
+  static const darkOutline = Color(0xFF656B80);
+
+  // Home grouping/status semantic tokens.
+  static const groupingTomorrow = Color(0xFF18A77B);
+  static const groupingFuture = Color(0xFF5A55D6);
+  static const groupingTodaySoft = Color(0xFFEDF5FF);
+  static const groupingTomorrowSoft = Color(0xFFEAF9F4);
+  static const groupingFutureSoft = Color(0xFFF0EEFF);
+  static const groupingNoDateSoft = Color(0xFFF3F4F7);
+  static const taskStatusGreen = Color(0xFF409B51);
+  static const taskStatusAmber = Color(0xFFDB8B23);
 
   static const time = Color(0xFF008C74);
   static const timeDark = Color(0xFF006653);
