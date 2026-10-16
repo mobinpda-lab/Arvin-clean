@@ -390,6 +390,39 @@ void main() {
   });
 
 
+  testWidgets('imported calendar event actions share one horizontal row', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(
+              id: 'external-calendar:event-actions',
+              title: 'رویداد گوشی',
+              date: day,
+            ),
+          ],
+          onOpenExternalReminder: (_) async {},
+          onCreateTaskFromCalendarEvent: (_) async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final card = find.byKey(
+      const ValueKey('reminder-card-external-calendar:event-actions'),
+    );
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('external-calendar-actions-external-calendar:event-actions')),
+      findsOneWidget,
+    );
+    expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
+    expect(find.text('ثبت در تقویم آروین'), findsOneWidget);
+  });
+
   testWidgets('exposes reversible delete only for Arvin-owned task rows', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     var deleted = 0;
@@ -440,6 +473,7 @@ void main() {
       date: day,
     );
     var edited = 0;
+    var openedDetails = 0;
     var deleted = 0;
     var registered = 0;
 
@@ -449,6 +483,7 @@ void main() {
           initialSelectedDay: day,
           reminders: [task],
           onEditTask: (_) async => edited++,
+          onOpenTaskDetails: (_) async => openedDetails++,
           onDeleteTask: (_) async => deleted++,
           onRegisterTaskToDeviceCalendar: (_) async => registered++,
         ),
@@ -460,7 +495,8 @@ void main() {
       find.byKey(const ValueKey('reminder-card-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
-    expect(edited, 1);
+    expect(openedDetails, 1);
+    expect(edited, 0);
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
 
