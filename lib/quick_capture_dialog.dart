@@ -66,7 +66,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
-  bool _followUpEnabled = false;
   bool _checklistEnabled = false;
   final List<FollowUp> _pendingFollowUps = <FollowUp>[];
   final List<String> _checklistItems = <String>[];
@@ -148,7 +147,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    task.followUpEnabled = _followUpEnabled || _pendingFollowUps.isNotEmpty;
+    task.followUpEnabled = _pendingFollowUps.isNotEmpty;
     task.followUps = List<FollowUp>.of(_pendingFollowUps);
     task.checklistEnabled = _checklistEnabled;
     task.checklist = List<String>.of(_checklistItems);
@@ -172,7 +171,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (!mounted || followUp == null) return null;
     setState(() {
       _pendingFollowUps.add(followUp);
-      _followUpEnabled = true;
     });
     return followUp.note;
   }
@@ -745,18 +743,6 @@ Future<DateTime?> _pickCustomDue() async {
                     runSpacing: 4,
                     children: [
                       FilterChip(
-                        key: const ValueKey('quick-capture-follow-up-enabled'),
-                        selected: _followUpEnabled,
-                        avatar: const Icon(Icons.follow_the_signs_outlined, size: 18),
-                        label: const Text('دارای پیگیری'),
-                        onSelected: _saving
-                            ? null
-                            : (value) => setState(() {
-                                  _followUpEnabled =
-                                      value || _pendingFollowUps.isNotEmpty;
-                                }),
-                      ),
-                      FilterChip(
                         key: const ValueKey('quick-capture-checklist-enabled'),
                         selected: _checklistEnabled,
                         avatar: const Icon(Icons.checklist_outlined, size: 18),
@@ -767,7 +753,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ],
                   ),
-                  if (_followUpEnabled) ...[
+                  ...[
                     const SizedBox(height: 8),
                     ArvinRollBox<String>(
                       key: const ValueKey('quick-capture-follow-up-rollbox'),

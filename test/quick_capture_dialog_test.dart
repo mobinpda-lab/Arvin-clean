@@ -671,16 +671,15 @@ void main() {
       'خرید فرش اتاق',
     );
 
-    final followUpToggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
-    );
-    await tester.ensureVisible(followUpToggle);
-    await tester.tap(followUpToggle);
-    await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
-      findsOneWidget,
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
+    final followUpRollBox = find.byKey(
+      const ValueKey('quick-capture-follow-up-rollbox'),
+    );
+    await tester.ensureVisible(followUpRollBox);
+    expect(followUpRollBox, findsOneWidget);
 
     final checklistToggle = find.byKey(
       const ValueKey('quick-capture-checklist-enabled'),
@@ -713,7 +712,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUpDate, isNull);
     expect(captured!.checklistEnabled, isTrue);
     expect(captured!.checklist, ['[ ] تماس با فروشنده']);
@@ -754,12 +753,10 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'خرید فرش اتاق',
     );
-    final toggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
     final rollBox = find.byKey(
       const ValueKey('quick-capture-follow-up-rollbox'),
     );

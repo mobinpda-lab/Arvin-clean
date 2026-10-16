@@ -244,7 +244,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       case RecurrenceFrequency.weekly: return 'هفتگی';
       case RecurrenceFrequency.monthly: return 'ماهانه';
       case RecurrenceFrequency.yearly: return 'سالانه';
-      case RecurrenceFrequency.oncePerDay: return 'یک‌بار در روز';
+      case RecurrenceFrequency.oncePerDay: return 'روزانه';
       case RecurrenceFrequency.minutes: return 'دقیقه‌ای';
       case RecurrenceFrequency.hours: return 'ساعتی';
     }
@@ -396,7 +396,9 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         initialValue: _frequency,
                         decoration: const InputDecoration(labelText: 'نوع تکرار'),
                         items: [
-                          for (final value in RecurrenceFrequency.values)
+                          for (final value in RecurrenceFrequency.values.where(
+                            (value) => value != RecurrenceFrequency.oncePerDay,
+                          ))
                             DropdownMenuItem(value: value, child: Text(_frequencyLabel(value))),
                         ],
                         onChanged: !_enabled || _saving ? null : (value) {

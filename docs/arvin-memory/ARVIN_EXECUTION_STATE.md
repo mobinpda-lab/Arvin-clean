@@ -1097,3 +1097,19 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-10-16 — Task form / recurrence / calendar / report correction wave
+
+- **Branch:** `feat/task-form-repeat-calendar-report-corrections-20261016`; no direct changes to `main`.
+- **Implementation checkpoint before this state entry:** `c6d7ccd14663080791b34ae6e3f48b67919ae54c`.
+- **Quick Capture:** removed the visible “دارای پیگیری” toggle; the Task-owned Follow-up entry is available directly. The legacy recurrence enum value `oncePerDay` remains decodable for old data, but is hidden from selectable recurrence lists and displays with the canonical daily label. Quick Capture test updated to assert no toggle and direct Follow-up availability.
+- **Repeat checklist:** existing `TaskRecurrenceRepository.checklistForOccurrence` returns the unchecked canonical checklist template for a new occurrence and reads saved state only for the exact occurrence key. Existing repository test explicitly verifies a checked Saturday occurrence does not carry ticks into Sunday. No parallel model/storage was introduced.
+- **Calendar:** short tap on canonical Task cards now routes through `TaskDetailPage` via an explicit callback; long-press management actions remain separate. Imported device-calendar actions are presented together in one horizontal row: “ویرایش در تقویم گوشی” and “ثبت در تقویم آروین”.
+- **Reports:** added `hasCountedRepeat` filter based on `Task.recurrence.count`, with a three-state filter chip and regression coverage for finite vs unbounded repeats.
+- **Typography:** global theme already sets the selected font family. This branch additionally sets dialog title/content text styles from the selected readable text theme and centralizes BottomSheet theme defaults so overlays inherit the same Persian typography.
+- **Architecture guard:** no MedicationStorage or separate follow-up storage/model was added. Follow-ups remain embedded in canonical Task records.
+- **Validation:** exact-head CI, analyzer, widget/unit tests, APK build, and all six device-smoke lanes are **PENDING** until GitHub Actions completes for the final branch head. No merge/release claim is authorized by this entry.
+- **Known acceptance limit:** physical-device visual verification is not yet available; CI/emulator evidence cannot replace it.

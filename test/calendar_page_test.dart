@@ -373,9 +373,19 @@ void main() {
           reminders: [
             CalendarReminder(id: 'task-due:task-1', title: 'آروین', date: day),
             CalendarReminder(
+              id: 'task-reminder-item:task-1:reminder-1',
+              title: 'یادآور کار',
+              date: day.add(const Duration(minutes: 15)),
+            ),
+            CalendarReminder(
               id: 'external-calendar:event-1',
               title: 'گوشی',
               date: day.add(const Duration(minutes: 30)),
+            ),
+            CalendarReminder(
+              id: 'prayer-fajr',
+              title: 'نماز صبح',
+              date: day.add(const Duration(hours: 1)),
             ),
           ],
         ),
@@ -384,11 +394,64 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.task_alt), findsOneWidget);
+    expect(find.byIcon(Icons.notifications), findsWidgets);
+    expect(find.byIcon(Icons.mosque), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+    final taskStatus = find.descendant(
+      of: find.byKey(const ValueKey('calendar-item-status-task-due:task-1')),
+      matching: find.byType(Text),
+    );
+    expect(taskStatus, findsOneWidget);
+    final taskStatusText = tester.widget<Text>(taskStatus);
+    expect(taskStatusText.style?.fontSize, 10);
+    expect(
+      taskStatusText.style?.color,
+      Theme.of(tester.element(taskStatus)).colorScheme.onSurfaceVariant,
+    );
+    expect(find.text('واردشده از تقویم گوشی'), findsNothing);
+    expect(find.text('وارد شده از تقویم گوشی'), findsNothing);
+    expect(find.text('تقویم آروین'), findsNothing);
+    expect(find.text('یادآوری آروین'), findsNothing);
+    expect(find.byIcon(Icons.expand_more), findsNothing);
+    expect(find.byIcon(Icons.expand_less), findsNothing);
   });
 
+
+  testWidgets('imported calendar event actions share one horizontal row', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(
+              id: 'external-calendar:event-actions',
+              title: 'رویداد گوشی',
+              date: day,
+            ),
+          ],
+          onOpenExternalReminder: (_) async {},
+          onCreateTaskFromCalendarEvent: (_) async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final card = find.byKey(
+      const ValueKey('reminder-card-external-calendar:event-actions'),
+    );
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('external-calendar-actions-external-calendar:event-actions')),
+      findsOneWidget,
+    );
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
+    expect(find.text('ثبت در تقویم آروین'), findsNothing);
+    expect(find.byKey(const ValueKey('external-calendar-edit-external-calendar:event-actions')), findsOneWidget);
+    expect(find.byKey(const ValueKey('external-calendar-create-task-external-calendar:event-actions')), findsOneWidget);
+  });
 
   testWidgets('exposes reversible delete only for Arvin-owned task rows', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
@@ -440,6 +503,7 @@ void main() {
       date: day,
     );
     var edited = 0;
+    var openedDetails = 0;
     var deleted = 0;
     var registered = 0;
 
@@ -449,6 +513,7 @@ void main() {
           initialSelectedDay: day,
           reminders: [task],
           onEditTask: (_) async => edited++,
+          onOpenTaskDetails: (_) async => openedDetails++,
           onDeleteTask: (_) async => deleted++,
           onRegisterTaskToDeviceCalendar: (_) async => registered++,
         ),
@@ -460,7 +525,8 @@ void main() {
       find.byKey(const ValueKey('reminder-card-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
-    expect(edited, 1);
+    expect(openedDetails, 1);
+    expect(edited, 0);
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
 

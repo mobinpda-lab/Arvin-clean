@@ -43,6 +43,7 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onOpenTaskDetails,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
@@ -61,6 +62,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTaskDetails;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
@@ -858,6 +860,11 @@ class _CalendarPageState extends State<CalendarPage> {
                                 )
                                 ? widget.onEditTask
                                 : null,
+                            onOpenTaskDetails: _isTaskCalendarItemId(
+                                  selectedReminders[index].id,
+                                )
+                                ? widget.onOpenTaskDetails
+                                : null,
                             onDeleteTask: _isTaskCalendarItemId(
                                   selectedReminders[index].id,
                                 )
@@ -964,17 +971,28 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-followup:') ||
     id.startsWith('followup:');
 
-enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
+enum _CalendarItemVisualKind {
+  ordinary,
+  arvinTask,
+  arvinReminder,
+  followUpAction,
+  importedPhoneCalendar,
+  prayer,
+}
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
-  if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
+  if (item.id.startsWith('external-calendar:')) {
+    return _CalendarItemVisualKind.importedPhoneCalendar;
+  }
   if (item.id.startsWith('task-followup-action:') ||
       item.id.startsWith('task-followup:') ||
       item.id.startsWith('followup:')) {
     return _CalendarItemVisualKind.followUpAction;
   }
-  if (item.id.startsWith('task-due:') ||
-      item.id.startsWith('task-reminder-item:') ||
+  if (item.id.startsWith('task-due:')) {
+    return _CalendarItemVisualKind.arvinTask;
+  }
+  if (item.id.startsWith('task-reminder-item:') ||
       item.id.startsWith('task-reminder:')) {
     return _CalendarItemVisualKind.arvinReminder;
   }
@@ -991,16 +1009,18 @@ class _CalendarItemVisualStyle {
   static _CalendarItemVisualStyle of(BuildContext context, CalendarReminder item) {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
+      _CalendarItemVisualKind.arvinTask => _CalendarItemVisualStyle(
+        icon: Icons.task_alt, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
+        icon: Icons.notifications, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
-        icon: Icons.follow_the_signs_outlined, color: scheme.tertiary, label: 'پیگیری'),
+        icon: Icons.notifications, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
-        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: 'واردشده از تقویم گوشی'),
+        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.event_available_outlined, color: scheme.secondary, label: 'نماز'),
+        icon: Icons.mosque, color: scheme.secondary, label: ''),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: 'یادآور'),
+        icon: Icons.task_alt, color: scheme.onSurfaceVariant, label: ''),
     };
   }
 }
@@ -1013,6 +1033,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onEdit,
     this.onEditTask,
+    this.onOpenTaskDetails,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
@@ -1029,6 +1050,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTaskDetails;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
@@ -1198,10 +1220,12 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            // A short tap opens the canonical Task editor; management
-            // actions are intentionally isolated behind long-press.
+            // A short tap opens canonical Task details; management actions
+            // remain isolated behind long-press.
             onTap: _isTaskCalendarItem
-                ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
+                ? ((widget.onOpenTaskDetails ?? widget.onEditTask) == null
+                    ? null
+                    : () => _run(widget.onOpenTaskDetails ?? widget.onEditTask))
                 : _hasActions
                     ? () => setState(() => _expanded = !_expanded)
                     : null,
@@ -1250,7 +1274,11 @@ class _ReminderCardState extends State<_ReminderCard> {
                       Text(
                         statusLabel,
                         maxLines: 1,
-                        style: TextStyle(color: statusColor, fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -1310,19 +1338,18 @@ class _ReminderCardState extends State<_ReminderCard> {
                         ),
                       ],
                       const SizedBox(width: 4),
-                      Text(
-                        visual.label,
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
-                      ),
+                      if (visual.label.isNotEmpty)
+                        Text(
+                          visual.label,
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 10, color: visual.color, fontWeight: FontWeight.w400),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-            trailing: _hasActions
-                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20)
-                : null,
+            trailing: null,
           ),
           if (_expanded && _hasActions)
             Padding(
@@ -1346,19 +1373,28 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (item.id.startsWith('external-calendar:') && widget.onOpenExternal != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_calendar_outlined, size: 18),
-                      label: const Text('ویرایش در تقویم گوشی'),
-                      onPressed: () => _run(widget.onOpenExternal),
-                    ),
-                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-create-task-${item.id}'),
-                      avatar: const Icon(Icons.add_task_outlined, size: 18),
-                      label: const Text('ثبت در آروین'),
-                      onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
+                  if (item.id.startsWith('external-calendar:') &&
+                      (widget.onOpenExternal != null ||
+                          widget.onCreateTaskFromCalendarEvent != null))
+                    Row(
+                      key: ValueKey('external-calendar-actions-${item.id}'),
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (widget.onOpenExternal != null)
+                          IconButton(
+                            key: ValueKey('external-calendar-edit-${item.id}'),
+                            tooltip: 'ویرایش رویداد در تقویم گوشی',
+                            onPressed: () => _run(widget.onOpenExternal),
+                            icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+                          ),
+                        if (widget.onCreateTaskFromCalendarEvent != null)
+                          IconButton(
+                            key: ValueKey('external-calendar-create-task-${item.id}'),
+                            tooltip: 'ایجاد کار در آروین',
+                            onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
+                            icon: const Icon(Icons.add_task_outlined, size: 18),
+                          ),
+                      ],
                     ),
                   if (!_isTaskCalendarItem &&
                       !widget.isPrayer &&

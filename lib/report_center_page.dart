@@ -313,6 +313,8 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(_priorityLabel(filter.priority!))),
           if (filter.hasRepeat != null)
             Chip(label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار')),
+          if (filter.hasCountedRepeat != null)
+            Chip(label: Text(filter.hasCountedRepeat! ? 'تعداد نوبت مشخص' : 'بدون تعداد نوبت مشخص')),
           if (filter.hasFollowUp != null)
             Chip(label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری')),
           if (filter.hasChecklist != null)
@@ -366,6 +368,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   DateTime? _noteToDate;
   TaskPriority? _priority;
   bool? _hasRepeat;
+  bool? _hasCountedRepeat;
   bool? _hasFollowUp;
   bool? _hasChecklist;
 
@@ -394,6 +397,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _noteToDate = f.noteToDate;
     _priority = f.priority;
     _hasRepeat = f.hasRepeat;
+    _hasCountedRepeat = f.hasCountedRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
   }
@@ -488,6 +492,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         noteToDate: _noteToDate,
         priority: _priority,
         hasRepeat: _hasRepeat,
+        hasCountedRepeat: _hasCountedRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
       ),
@@ -892,7 +897,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
               accentColor: ArvinColors.category,
-              selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
+              selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasCountedRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
               child: Wrap(
                 spacing: 6,
                 children: [
@@ -900,6 +905,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     label: 'تکرار',
                     value: _hasRepeat,
                     onChanged: (value) => setState(() => _hasRepeat = value),
+                  ),
+                  _TriStateChip(
+                    label: 'تعداد نوبت مشخص',
+                    value: _hasCountedRepeat,
+                    onChanged: (value) => setState(() => _hasCountedRepeat = value),
                   ),
                   _TriStateChip(
                     label: 'Checklist',

@@ -464,6 +464,7 @@ void main() {
       ),
     );
     Task? edited;
+    Task? opened;
     Task? deleted;
     CalendarReminder? registered;
     final projection = _RecordingCalendarProjection();
@@ -474,6 +475,7 @@ void main() {
           tasks: <Task>[task],
           projection: projection,
           onEditTask: (value) async => edited = value,
+          onOpenTaskDetails: (value) async => opened = value,
           onDeleteTask: (value) async => deleted = value,
           onRegisterTaskToDeviceCalendar: (value) async => registered = value,
         ),
@@ -513,7 +515,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(card);
     await tester.pump();
-    expect(identical(edited, task), isTrue);
+    expect(identical(opened, task), isTrue);
+    expect(edited, isNull);
 
     await tester.longPress(card);
     await _pumpRouteTransition(tester);
