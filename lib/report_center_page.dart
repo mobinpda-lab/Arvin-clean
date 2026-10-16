@@ -56,6 +56,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         for (final task in widget.tasks)
           for (final person in task.people)
             if (activeById.containsKey(person.id)) person.id: activeById[person.id]!,
+      if (widget.people.isNotEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people)
+            if (!activeById.containsKey(person.id))
+              person.id: PersonReference(id: person.id, displayName: 'شخص حذف‌شده'),
       for (final person in widget.people) person.id: person,
       for (final task in widget.tasks)
         for (final followUp in task.followUps)
@@ -300,6 +305,8 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
             Chip(label: Text(value)),
+          if (filter.personIds.isNotEmpty)
+            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -616,11 +623,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'شخص',
               icon: Icons.people_outline,
-              accentColor: ArvinColors.people,
+              accentColor: ArvinColors.primary,
               selectedCount: _personIds.length,
               child: _MultiSelectChips(
                 allLabel: 'همه اشخاص',
-                accentColor: ArvinColors.people,
+                accentColor: ArvinColors.primary,
                 options: widget.people
                     .map((person) => MapEntry(person.id, person.displayName))
                     .toList(growable: false),
