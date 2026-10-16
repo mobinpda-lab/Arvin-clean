@@ -1,9 +1,8 @@
 import '../models/person_reference.dart';
 import '../models/task.dart';
 
-/// A read-only row for one canonical Follow-up that is actively waiting on a
-/// response from one or more people. Multiple Follow-ups on one Task produce
-/// independent rows.
+/// A read-only row for one canonical Follow-up linked to one or more people.
+/// Multiple Follow-ups on one Task produce independent rows.
 class PersonFollowUpReportRow {
   const PersonFollowUpReportRow({
     required this.task,
@@ -21,8 +20,9 @@ class PersonFollowUpReportRow {
   DateTime? get reminderDate => followUp.reminderDate;
 }
 
-/// Projects active waiting rows from canonical Task/Follow-up data only.
-/// Legacy task flags and free-form result text are not treated as waiting state.
+/// Projects person-linked rows from canonical Task/Follow-up data only.
+/// Waiting-only mode reads only [FollowUp.waitingForResponse]; legacy task
+/// flags and free-form result text are never used to infer waiting state.
 class PersonFollowUpReportProjection {
   const PersonFollowUpReportProjection();
 
@@ -30,25 +30,42 @@ class PersonFollowUpReportProjection {
     Iterable<Task> tasks, {
     required Iterable<PersonReference> people,
     String? personId,
+    Set<String> personIds = const <String>{},
+    bool waitingForResponseOnly = true,
     bool includeDanglingPeople = true,
     DateTime? nextActionDueBy,
   }) {
     final directory = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
-    if (personId != null &&
-        !directory.containsKey(personId) &&
+    final selectedPersonIds = <String>{
+      ...personIds,
+      if (personId != null) personId,
+    };
+    if (selectedPersonIds.isNotEmpty &&
+        selectedPersonIds.every((id) => !directory.containsKey(id)) &&
         !includeDanglingPeople) {
       return const <PersonFollowUpReportRow>[];
     }
 
     final rows = <PersonFollowUpReportRow>[];
     for (final task in tasks) {
-      if (task.trashed || task.completed || task.archived) continue;
+      if (task.trashed ||
+          (waitingForResponseOnly && (task.completed || task.archived))) {
+        continue;
+      }
       for (final followUp in task.followUps) {
-        if (!followUp.waitingForResponse || followUp.completed) continue;
+        if (waitingForResponseOnly &&
+            (!followUp.waitingForResponse || followUp.completed)) {
+          continue;
+        }
+        if (selectedPersonIds.isNotEmpty &&
+            !followUp.personIds.any(selectedPersonIds.contains)) {
+          continue;
+        }
         final associated = followUp.personIds
-            .where((id) => personId == null || id == personId)
+            .where((id) =>
+                selectedPersonIds.isEmpty || selectedPersonIds.contains(id))
             .map(
               (id) =>
                   directory[id] ??
