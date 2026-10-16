@@ -229,11 +229,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-section-شخص')),
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-شخص')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
