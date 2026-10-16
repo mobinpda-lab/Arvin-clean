@@ -398,7 +398,10 @@ void main() {
     expect(find.byIcon(Icons.notifications), findsWidgets);
     expect(find.byIcon(Icons.mosque), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    final plannedStatus = find.text('برنامه‌ریزی‌شده');
+    final plannedStatus = find.descendant(
+      of: find.byKey(const ValueKey('calendar-item-status-task-due:task-1')),
+      matching: find.text('برنامه‌ریزی‌شده'),
+    );
     expect(plannedStatus, findsOneWidget);
     final plannedStatusText = tester.widget<Text>(plannedStatus);
     expect(plannedStatusText.style?.fontSize, 10);
