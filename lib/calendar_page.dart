@@ -998,6 +998,56 @@ class _ReminderCardState extends State<_ReminderCard> {
     await action(widget.item);
   }
 
+  Future<void> _showTaskActions() async {
+    if (!_isTaskCalendarItem || !_hasActions) {
+      if (mounted) setState(() => _expanded = true);
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            if (widget.onEditTask != null)
+              ListTile(
+                key: ValueKey('task-due-edit-${widget.item.id}'),
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('ویرایش'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _run(widget.onEditTask);
+                },
+              ),
+            if (widget.onDeleteTask != null)
+              ListTile(
+                key: ValueKey('task-due-delete-${widget.item.id}'),
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('حذف'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  // The canonical owner callback performs its existing
+                  // confirmation and stable-ID deletion flow. Do not show a
+                  // second confirmation here.
+                  _run(widget.onDeleteTask);
+                },
+              ),
+            if (widget.onRegisterTaskToDeviceCalendar != null)
+              ListTile(
+                key: ValueKey('task-due-device-calendar-${widget.item.id}'),
+                leading: const Icon(Icons.event_available_outlined),
+                title: const Text('ثبت در تقویم گوشی'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _run(widget.onRegisterTaskToDeviceCalendar);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
@@ -1042,9 +1092,18 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            onTap: _hasActions
-                ? () => setState(() => _expanded = !_expanded)
-                : null,
+            // A short tap opens the canonical Task editor; management
+            // actions are intentionally isolated behind long-press.
+            onTap: _isTaskCalendarItem
+                ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
+                : _hasActions
+                    ? () => setState(() => _expanded = !_expanded)
+                    : null,
+            onLongPress: !_hasActions
+                ? null
+                : _isTaskCalendarItem
+                    ? _showTaskActions
+                    : () => setState(() => _expanded = true),
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),
               radius: 16,
@@ -1115,37 +1174,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ? Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20)
                 : null,
           ),
-          // The two most-used actions on Arvin-owned Tasks must be
-          // discoverable without requiring the user to find the expand gesture.
-          // Keep destructive/secondary actions in the existing expanded area.
-          if (!_expanded &&
-              _isTaskCalendarItem &&
-              (widget.onEditTask != null ||
-                  widget.onRegisterTaskToDeviceCalendar != null))
-            Padding(
-              key: ValueKey('reminder-primary-actions-${item.id}'),
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (widget.onEditTask != null)
-                    ActionChip(
-                      key: ValueKey('task-due-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('ویرایش'),
-                      onPressed: () => _run(widget.onEditTask),
-                    ),
-                  if (widget.onRegisterTaskToDeviceCalendar != null)
-                    ActionChip(
-                      key: ValueKey('task-due-device-calendar-${item.id}'),
-                      avatar: const Icon(Icons.event_available_outlined, size: 18),
-                      label: const Text('ثبت در تقویم گوشی'),
-                      onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
-                    ),
-                ],
-              ),
-            ),
           if (_expanded && _hasActions)
             Padding(
               key: ValueKey('reminder-actions-${item.id}'),

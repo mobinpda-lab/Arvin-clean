@@ -502,27 +502,30 @@ void main() {
 
     final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
     final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
-    // Verify the full launcher -> projection -> Calendar card path exposes
-    // primary actions before the user expands the row.
-    expect(edit, findsOneWidget);
-    expect(register, findsOneWidget);
+    // Management actions are intentionally hidden until a long-press.
+    expect(edit, findsNothing);
+    expect(register, findsNothing);
 
     // The occurrence can be below the current viewport after calendar layout.
     // Scroll it fully into view before tapping so the test validates the action,
     // not an off-screen hit-test failure.
     await tester.ensureVisible(card);
-    // Avoid pumpAndSettle: the calendar may keep an active ticker running.
-    // A bounded frame is enough to apply the scroll/layout before the tap.
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(card);
     await tester.pump();
+    expect(identical(edited, task), isTrue);
+
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
     expect(edit, findsOneWidget);
     expect(register, findsOneWidget);
-
     await tester.tap(edit);
     await tester.pump();
     expect(identical(edited, task), isTrue);
 
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
+    expect(register, findsOneWidget);
     await tester.tap(register);
     await tester.pump();
     expect(registered?.id, occurrenceId);
@@ -548,6 +551,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(card, findsOneWidget);
+    // Destructive actions are intentionally revealed by long-press, not tap.
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
 
     final delete = find.byKey(ValueKey('task-due-delete-$occurrenceId'));
     expect(delete, findsOneWidget);
@@ -558,6 +564,10 @@ void main() {
     await _pumpRouteTransition(tester);
     expect(deleted, isNull);
 
+    // The action sheet closes before the canonical owner confirmation appears;
+    // reopen it for the second delete attempt.
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
     await tester.tap(delete);
     await _pumpRouteTransition(tester);
     await tester.tap(find.text('انتقال به سطل زباله'));
