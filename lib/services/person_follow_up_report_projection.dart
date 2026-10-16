@@ -30,12 +30,15 @@ class PersonFollowUpReportProjection {
     Iterable<Task> tasks, {
     required Iterable<PersonReference> people,
     String? personId,
+    bool includeDanglingPeople = true,
     DateTime? nextActionDueBy,
   }) {
     final directory = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
-    if (personId != null && !directory.containsKey(personId)) {
+    if (personId != null &&
+        !directory.containsKey(personId) &&
+        !includeDanglingPeople) {
       return const <PersonFollowUpReportRow>[];
     }
 
