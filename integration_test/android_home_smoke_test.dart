@@ -108,6 +108,7 @@ void main() {
     await tester.pumpAndSettle();
     final customTime = find.text('ساعت سفارشی');
     expect(customTime, findsOneWidget);
+    await tester.ensureVisible(customTime);
     await tester.tap(customTime);
     await tester.pumpAndSettle();
 
