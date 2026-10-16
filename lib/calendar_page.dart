@@ -1206,8 +1206,8 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            // A short tap opens the canonical Task editor; management
-            // actions are intentionally isolated behind long-press.
+            // A short tap opens canonical Task details; management actions
+            // remain isolated behind long-press.
             onTap: _isTaskCalendarItem
                 ? ((widget.onOpenTaskDetails ?? widget.onEditTask) == null
                     ? null
