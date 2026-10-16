@@ -32,6 +32,7 @@ class TaskReportFilter {
     this.noteToDate,
     this.priority,
     this.hasRepeat,
+    this.hasCountedRepeat,
     this.hasFollowUp,
     this.hasChecklist,
   });
@@ -58,6 +59,7 @@ class TaskReportFilter {
   final DateTime? noteToDate;
   final TaskPriority? priority;
   final bool? hasRepeat;
+  final bool? hasCountedRepeat;
   final bool? hasFollowUp;
   final bool? hasChecklist;
 
@@ -84,6 +86,7 @@ class TaskReportFilter {
       noteToDate != null ||
       priority != null ||
       hasRepeat != null ||
+      hasCountedRepeat != null ||
       hasFollowUp != null ||
       hasChecklist != null;
 
@@ -124,6 +127,10 @@ class TaskReportFilter {
       if (!_matchesNote(task)) return false;
       if (priority != null && task.priority != priority) return false;
       if (hasRepeat != null && (task.recurrence != null) != hasRepeat) {
+        return false;
+      }
+      if (hasCountedRepeat != null &&
+          ((task.recurrence?.count != null) != hasCountedRepeat)) {
         return false;
       }
       if (hasFollowUp != null && task.followUpEnabled != hasFollowUp) {
