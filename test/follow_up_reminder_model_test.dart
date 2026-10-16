@@ -6,7 +6,8 @@ void main() {
     final followUp = FollowUp(
       id: 'f-reminder',
       dateTime: DateTime(2026, 8, 28, 15, 30),
-      note: 'تماس با مشتری',
+      title: 'پیگیری اختصاصی',
+      note: 'یادداشت تماس با مشتری',
       result: 'منتظر پاسخ',
       reminderDate: DateTime(2026, 8, 28, 15, 15),
       nextFollowUp: DateTime(2026, 8, 30, 10),
@@ -16,6 +17,7 @@ void main() {
 
     expect(restored.id, followUp.id);
     expect(restored.dateTime, followUp.dateTime);
+    expect(restored.title, followUp.title);
     expect(restored.note, followUp.note);
     expect(restored.result, followUp.result);
     expect(restored.reminderDate, followUp.reminderDate);
@@ -31,6 +33,7 @@ void main() {
       'nextFollowUp': null,
     });
 
+    expect(restored.title, isNull);
     expect(restored.reminderDate, isNull);
     expect(restored.note, 'پیگیری قبلی');
   });
