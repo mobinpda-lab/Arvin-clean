@@ -43,6 +43,7 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onOpenTaskDetails,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
@@ -61,6 +62,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTaskDetails;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
@@ -858,6 +860,11 @@ class _CalendarPageState extends State<CalendarPage> {
                                 )
                                 ? widget.onEditTask
                                 : null,
+                            onOpenTaskDetails: _isTaskCalendarItemId(
+                                  selectedReminders[index].id,
+                                )
+                                ? widget.onOpenTaskDetails
+                                : null,
                             onDeleteTask: _isTaskCalendarItemId(
                                   selectedReminders[index].id,
                                 )
@@ -1013,6 +1020,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onEdit,
     this.onEditTask,
+    this.onOpenTaskDetails,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
@@ -1201,7 +1209,9 @@ class _ReminderCardState extends State<_ReminderCard> {
             // A short tap opens the canonical Task editor; management
             // actions are intentionally isolated behind long-press.
             onTap: _isTaskCalendarItem
-                ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
+                ? ((widget.onOpenTaskDetails ?? widget.onEditTask) == null
+                    ? null
+                    : () => _run(widget.onOpenTaskDetails ?? widget.onEditTask))
                 : _hasActions
                     ? () => setState(() => _expanded = !_expanded)
                     : null,
