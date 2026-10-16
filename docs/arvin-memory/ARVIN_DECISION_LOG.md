@@ -213,3 +213,39 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+## 2026-10-16 — Consolidation & Correction Wave (implementation candidates; validation pending)
+
+- **Calendar gesture contract:** Task short tap must open its canonical edit/detail path; Task long-press opens management actions; deletion requires explicit confirmation. Implemented on PR #2735 latest SHA `da71b3ce0183b015edef6f878dc7ee1c1f191294`; Build and six-lane Device Smoke were pending when recorded.
+- **Waiting-state source of truth:** `FollowUp.waitingForResponse` is the active structured flag. `FollowUp.result` remains descriptive/legacy-normalization input and must not independently activate waiting status. Candidate correction is on PR #2695 SHA `c13e8f3313bf3d26f07618da40352767914d31c4`; Build/Smoke pending.
+- **Person/report projection:** Report Center candidate now uses `PersonFollowUpReportProjection`. This branch supports showing dangling IDs as a deleted-person placeholder, which differs from current main's default projection policy. Treat as an explicit integration decision requiring review; do not merge blindly. PR #2695 remains stacked on unmerged PR #2666.
+- **Option B migration tombstone:** add regression coverage that deleting the migrated `legacy-task-reminder` keeps `legacyTaskReminderMigrationVersion: 1` through SQL reload and backup/restore, preventing legacy compatibility data from resurrecting the reminder. Candidate test is on PR #2738 SHA `5ba5432e07633fd03ad66721eee37bcad8ba4004`; Build/Smoke pending.
+- **Evidence rule:** prior green CI on older SHAs does not validate these new commits. Do not merge or release until the latest exact target SHAs have terminal successful Analyze, all test shards, Debug/Release APK and six Device Smoke lanes. Release remains **NO-GO**.
+
+
+## 2026-10-16 — Latest CI poll and exact-head gate
+
+- Latest code SHAs are calendar `9839f9197c0b6b54b67086d75561eb8ff799453f`, person/report `44810fcf5bb96db8c028a1574889e3f2d45af75f`, migration regression `5ba5432e07633fd03ad66721eee37bcad8ba4004`.
+- Migration regression Build has Analyze + all six test shards successful, including the new no-resurrection test and both requested migration test files; Release APK is still building. Device Smoke is not green: Home failed during SDK system-image setup with `unknown archive`, Quick Capture passed, and remaining lanes were pending/running.
+- Current Calendar and Person Build/Smoke jobs are pending/running; do not transfer older-head green evidence to the new SHAs.
+- Normal `pull_request` Build runs skip “Verify exact requested revision”; they are not exact-head proof. No `workflow_dispatch` Build matching these latest target SHAs was found. Keep exact-head gate BLOCKED/PENDING until the recovery dispatcher produces a target-pinned run.
+- Person/report projection's dangling-reference behavior differs from the existing main implementation and the PR remains stacked on #2666; review/reconcile before integration.
+- **Release: NO-GO.**
+
+
+## 2026-10-16 — Calendar test correction and latest validation
+
+- Calendar SHA `81b646a4bf3f8a85925ad7ffe58fc810e162122d` supersedes `9839f9197c0b6b54b67086d75561eb8ff799453f`; the earlier head exposed a test that still expected inline actions, and that test was corrected. Current-head Build/Smoke are pending.
+- Migration tombstone PR #2738 Build is terminal success with all six test shards and both APK jobs green; the new deletion/no-resurrection test is green. Device Smoke remains non-green due Home emulator SDK image `unknown archive`; other lanes are not terminal. Rerun only after workflow completes.
+- Person/report PR #2695 SHA `44810fcf5bb96db8c028a1574889e3f2d45af75f` remains under CI; branch is stacked on unmerged #2666 and its projection implementation must be reconciled with main.
+- Current PR-triggered Build runs do not prove exact-head because `Verify exact requested revision` is skipped outside `workflow_dispatch`. Exact-target Build remains blocked/pending.
+- Release remains NO-GO.
+
+
+
+## 2026-10-16 — Consolidation wave live re-poll and release gates
+- Calendar PR #2735 head `81b646a4bf3f8a85925ad7ffe58fc810e162122d`: Build 38815436407 and Device Smoke 38815436228 both terminal-success; Device Smoke is 6/6.
+- Person/report PR #2695 head `44810fcf5bb96db8c028a1574889e3f2d45af75f`: Build 38814903662 terminal-success. Quick-capture retry job 116812638100 is still running; no 6/6 claim until it completes. Projection policy differs from main for dangling Person IDs; resolve before integration. PR remains stacked on #2666.
+- Reminder migration PR #2738 head `5ba5432e07633fd03ad66721eee37bcad8ba4004`: Build 38814485299 terminal-success. Home retry job 116812610529 is still running; no 6/6 claim until it completes.
+- PR-event CI does not satisfy the exact-head workflow_dispatch check. Current exact-target dispatch evidence has not been verified. The dispatcher is scheduled every six hours; the available connector in this execution did not expose a workflow-dispatch write operation.
+- Decision: do not merge the person/report branch blindly, do not mark exact-head PASS, and keep Release NO-GO pending retry completion, exact-head evidence, and physical-device acceptance.
