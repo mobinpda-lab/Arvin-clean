@@ -246,11 +246,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
 
-  void _setFollowUpEnabled(bool value) {
-    // Enabling follow-up is a state choice only; it must not invent a timestamp.
-    setState(() => _followUpEnabled = value);
-  }
-
   void _addTaskReminder() {
     final now = DateTime.now();
     final sequence = _nextReminderSequence;
@@ -1116,7 +1111,6 @@ Future<void> _pickDueDate() async {
   @override
   Widget build(BuildContext context) {
     final editing = widget.task != null;
-    final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
