@@ -27,10 +27,9 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('pre-emulator-launch-script: |'));
-    expect(workflow, contains('adb kill-server || true'));
-    expect(workflow, contains('adb start-server'));
-    expect(workflow, contains(r'adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
+    expect(workflow, contains('Cache Android NDK 28.2.13676358'));
+    expect(workflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
+    expect(workflow, contains(r'timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
     expect(workflow, contains('sys.boot_completed'));
     expect(workflow, contains(r'for attempt in $(seq 1 120)'));
     expect(workflow, contains('script: |'));
@@ -64,6 +63,13 @@ void main() {
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
     expect(workflow, contains('actions/upload-artifact@v4'));
+    final buildWorkflow = File('.github/workflows/build.yml').readAsStringSync();
+    expect(buildWorkflow, contains('Cache Android NDK 28.2.13676358'));
+    expect(buildWorkflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
+    final ndkSetup = File('.github/scripts/ensure-android-ndk.sh').readAsStringSync();
+    expect(ndkSetup, contains('for attempt in 1 2 3'));
+    expect(ndkSetup, contains('source.properties'));
+    expect(ndkSetup, contains('rm -rf'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
     final matrixScenarios = RegExp(

@@ -83,6 +83,13 @@ jobs:
           key: arvin-gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
           restore-keys: |
             arvin-gradle-${{ runner.os }}-
+      - name: Cache Android NDK 28.2.13676358
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/28.2.13676358
+          key: arvin-android-ndk-${{ runner.os }}-28.2.13676358-v1
+      - name: Ensure Android NDK 28.2.13676358
+        run: bash .github/scripts/ensure-android-ndk.sh
       - name: Cache Pub packages
         uses: actions/cache@v4
         with:
@@ -116,15 +123,10 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          pre-emulator-launch-script: |
-            set -euo pipefail
-            adb kill-server || true
-            adb start-server
-          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none -gpu swiftshader_indirect -no-snapshot -no-snapshot-save -no-snapshot-load -no-metrics -no-passive-gps -wipe-data
           emulator-boot-timeout: 600
           script: |
             set -euo pipefail
-            adb -s "emulator-${EMULATOR_PORT}" wait-for-device
+            timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device
             boot_completed=""
             for attempt in $(seq 1 120); do
               boot_completed="$(adb -s "emulator-${EMULATOR_PORT}" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
