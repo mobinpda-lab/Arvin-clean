@@ -173,7 +173,7 @@ void main() {
     await tester.tap(peopleSection);
     await tester.pumpAndSettle();
 
-    final anaOption = find.byKey(const ValueKey('report-filter-person-ana'));
+    final anaOption = find.byKey(const ValueKey('report-filter-person-آنا'));
     await tester.ensureVisible(anaOption);
     await tester.pumpAndSettle();
     expect(anaOption, findsOneWidget);
