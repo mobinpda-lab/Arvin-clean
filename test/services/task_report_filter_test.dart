@@ -1,4 +1,5 @@
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_report_filter.dart';
 import 'package:flutter_test/flutter_test.dart';
