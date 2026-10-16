@@ -2274,6 +2274,7 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => CanonicalCalendarLauncher(
           tasks: _searchSource,
+          onOpenReports: _openPrimaryReports,
           onRefreshTasks: _refreshCanonicalTasksForCalendar,
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
