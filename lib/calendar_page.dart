@@ -767,7 +767,8 @@ class _CalendarPageState extends State<CalendarPage> {
                               _jalaliMonthYear(selectedJalali),
                               key: const ValueKey('calendar-month-year-header'),
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
