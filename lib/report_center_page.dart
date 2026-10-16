@@ -917,7 +917,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-                boxShadow: const [BoxShadow(blurRadius: 12, color: Color(0x12000000), offset: Offset(0, -3))],
+                boxShadow: const [BoxShadow(blurRadius: 12, color: ArvinColors.shadowSoft, offset: Offset(0, -3))],
               ),
               child: SafeArea(
                 top: false,
