@@ -12,6 +12,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> revealReminder(WidgetTester tester) async {
+    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
+    await tester.scrollUntilVisible(
+      reminder,
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(reminder, findsOneWidget);
+  }
+
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
