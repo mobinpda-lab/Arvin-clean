@@ -999,15 +999,15 @@ class _CalendarItemVisualStyle {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
+        icon: Icons.notifications_outlined, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
-        icon: Icons.follow_the_signs_outlined, color: scheme.tertiary, label: 'پیگیری'),
+        icon: Icons.notifications_outlined, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
-        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: 'واردشده از تقویم گوشی'),
+        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.event_available_outlined, color: scheme.secondary, label: 'نماز'),
+        icon: Icons.nightlight_round, color: scheme.secondary, label: ''),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: 'یادآور'),
+        icon: Icons.notifications_outlined, color: scheme.onSurfaceVariant, label: ''),
     };
   }
 }
@@ -1261,7 +1261,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                       Text(
                         statusLabel,
                         maxLines: 1,
-                        style: TextStyle(color: statusColor, fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -1321,19 +1321,18 @@ class _ReminderCardState extends State<_ReminderCard> {
                         ),
                       ],
                       const SizedBox(width: 4),
-                      Text(
-                        visual.label,
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
-                      ),
+                      if (visual.label.isNotEmpty)
+                        Text(
+                          visual.label,
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 10, color: visual.color, fontWeight: FontWeight.w400),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-            trailing: _hasActions
-                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20)
-                : null,
+            trailing: null,
           ),
           if (_expanded && _hasActions)
             Padding(
@@ -1362,27 +1361,21 @@ class _ReminderCardState extends State<_ReminderCard> {
                           widget.onCreateTaskFromCalendarEvent != null))
                     Row(
                       key: ValueKey('external-calendar-actions-${item.id}'),
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (widget.onOpenExternal != null)
-                          Expanded(
-                            child: TextButton.icon(
-                              key: ValueKey('external-calendar-edit-${item.id}'),
-                              onPressed: () => _run(widget.onOpenExternal),
-                              icon: const Icon(Icons.edit_calendar_outlined, size: 18),
-                              label: const Text('ویرایش در تقویم گوشی', maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ),
+                          IconButton(
+                            key: ValueKey('external-calendar-edit-${item.id}'),
+                            tooltip: 'ویرایش رویداد در تقویم گوشی',
+                            onPressed: () => _run(widget.onOpenExternal),
+                            icon: const Icon(Icons.edit_calendar_outlined, size: 18),
                           ),
-                        if (widget.onOpenExternal != null &&
-                            widget.onCreateTaskFromCalendarEvent != null)
-                          const SizedBox(width: 8),
                         if (widget.onCreateTaskFromCalendarEvent != null)
-                          Expanded(
-                            child: TextButton.icon(
-                              key: ValueKey('external-calendar-create-task-${item.id}'),
-                              onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
-                              icon: const Icon(Icons.add_task_outlined, size: 18),
-                              label: const Text('ثبت در تقویم آروین', maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ),
+                          IconButton(
+                            key: ValueKey('external-calendar-create-task-${item.id}'),
+                            tooltip: 'ایجاد کار در آروین',
+                            onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
+                            icon: const Icon(Icons.add_task_outlined, size: 18),
                           ),
                       ],
                     ),
