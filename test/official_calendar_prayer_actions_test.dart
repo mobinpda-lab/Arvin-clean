@@ -55,6 +55,12 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(PrayerCompletionStore.key), contains('completed'));
 
+    // The contextual action menu closes after an action; reopen it for the next action.
+    await tester.longPress(find.byKey(
+      const ValueKey('reminder-card-prayer-test-2026-09-15-fajr'),
+    ));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(
       const ValueKey('prayer-not-completed-prayer-test-2026-09-15-fajr'),
     ));
