@@ -9,7 +9,7 @@ void main() {
     final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
 
-    expect(mainSource, contains("import 'theme/app_fonts.dart';"));
+    expect(mainSource, contains("import 'theme/font_registry.dart';"));
     expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
     expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
