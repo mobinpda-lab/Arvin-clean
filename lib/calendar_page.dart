@@ -971,17 +971,28 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-followup:') ||
     id.startsWith('followup:');
 
-enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
+enum _CalendarItemVisualKind {
+  ordinary,
+  arvinTask,
+  arvinReminder,
+  followUpAction,
+  importedPhoneCalendar,
+  prayer,
+}
 
 _CalendarItemVisualKind _calendarItemVisualKind(CalendarReminder item) {
-  if (item.id.startsWith('external-calendar:')) return _CalendarItemVisualKind.importedPhoneCalendar;
+  if (item.id.startsWith('external-calendar:')) {
+    return _CalendarItemVisualKind.importedPhoneCalendar;
+  }
   if (item.id.startsWith('task-followup-action:') ||
       item.id.startsWith('task-followup:') ||
       item.id.startsWith('followup:')) {
     return _CalendarItemVisualKind.followUpAction;
   }
-  if (item.id.startsWith('task-due:') ||
-      item.id.startsWith('task-reminder-item:') ||
+  if (item.id.startsWith('task-due:')) {
+    return _CalendarItemVisualKind.arvinTask;
+  }
+  if (item.id.startsWith('task-reminder-item:') ||
       item.id.startsWith('task-reminder:')) {
     return _CalendarItemVisualKind.arvinReminder;
   }
@@ -998,8 +1009,10 @@ class _CalendarItemVisualStyle {
   static _CalendarItemVisualStyle of(BuildContext context, CalendarReminder item) {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
-      _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
+      _CalendarItemVisualKind.arvinTask => _CalendarItemVisualStyle(
         icon: Icons.task_alt, color: scheme.primary, label: ''),
+      _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
+        icon: Icons.notifications, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
         icon: Icons.notifications, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
