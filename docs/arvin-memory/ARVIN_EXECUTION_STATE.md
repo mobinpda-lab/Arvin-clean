@@ -1097,3 +1097,14 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+## AUTHORITATIVE LIVE UPDATE — 2026-10-16 — PR #2767 terminal Build and Device Smoke evidence
+
+- **Validated SHA:** `102514234fe053b5a0ba33def206b96e64ea5778` on `docs/ci-evidence-audit-2026-10-16`.
+- **Build:** [run 38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102) = `completed / success`; all 9 jobs succeeded: Analyze, test shards 0–5, Debug APK and Release APK.
+- **Device Smoke:** [run 38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979) = `completed / success`; all 6 emulator lanes succeeded: Home, Quick Capture, SQL Persistence, SQL Migration, People, Backup/Restore. Last observed terminal-run `updated_at`: `2026-10-16T16:41:51Z`. The API response did not provide a separate run-level `completed_at`; do not represent `updated_at` as a verified exact completion timestamp.
+- Smoke evidence artifacts observed: Home, Quick Capture, People and Persian Time Picker. Screenshot uploads are non-blocking for lanes where no artifact was produced.
+- **PR disposition at recheck:** PR [#2767](https://github.com/mobinpda-lab/Arvin-clean/pull/2767) remained open, Draft, and unmerged; its head matched the validated SHA at the time of recheck.
+- **Important SHA boundary:** this record itself creates a new documentation commit. The successful runs above apply to the validated SHA only; verify Build and Device Smoke again against the resulting new head before making any merge-readiness claim.
+- No application/business/UI files or workflow YAML files were modified. Release remains **NO-GO** because emulator success does not establish physical-device acceptance, dedicated Report Center/Follow-up end-to-end coverage, terminology lint, or release approval.
