@@ -57,7 +57,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirharf')),
       180,
-      scrollable: find.ancestor(
+      scrollable: find.descendant(
         of: find.byType(ListView).last,
         matching: find.byType(Scrollable),
       ).first,
@@ -66,7 +66,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirmatn')),
       180,
-      scrollable: find.ancestor(
+      scrollable: find.descendant(
         of: find.byType(ListView).last,
         matching: find.byType(Scrollable),
       ).first,
@@ -75,7 +75,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-system')),
       180,
-      scrollable: find.ancestor(
+      scrollable: find.descendant(
         of: find.byType(ListView).last,
         matching: find.byType(Scrollable),
       ).first,
@@ -90,7 +90,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirharf')),
       180,
-      scrollable: find.ancestor(
+      scrollable: find.descendant(
         of: find.byType(ListView).last,
         matching: find.byType(Scrollable),
       ).first,
