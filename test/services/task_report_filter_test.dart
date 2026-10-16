@@ -57,6 +57,38 @@ void main() {
     expect(tasks.map((task) => task.id), ['a', 'b', 'c']);
   });
 
+  test('fixed-count repeat filter distinguishes finite and unbounded recurrences', () {
+    final tasks = [
+      Task(
+        id: 'installments',
+        title: 'قسط وام',
+        recurrence: const RecurrenceRule(
+          frequency: RecurrenceFrequency.monthly,
+          count: 12,
+        ),
+      ),
+      Task(
+        id: 'daily',
+        title: 'کار روزانه',
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+      Task(id: 'ordinary', title: 'کار عادی'),
+    ];
+
+    expect(
+      const TaskReportFilter(hasCountedRepeat: true)
+          .apply(tasks, now: now)
+          .map((task) => task.id),
+      ['installments'],
+    );
+    expect(
+      const TaskReportFilter(hasCountedRepeat: false)
+          .apply(tasks, now: now)
+          .map((task) => task.id),
+      ['daily', 'ordinary'],
+    );
+  });
+
   test('time presets handle undated and future tasks', () {
     final tasks = [
       Task(id: 'past', title: 'گذشته', dueDate: DateTime(2026, 10, 6, 10)),
