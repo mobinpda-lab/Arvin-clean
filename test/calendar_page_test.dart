@@ -83,6 +83,32 @@ void main() {
     );
   });
 
+  testWidgets('follow-up calendar card shows parent subtitle and exact timed chip', (tester) async {
+  final selectedDay = DateTime(2026, 10, 16, 18, 45);
+  await tester.pumpWidget(
+    MaterialApp(
+      home: CalendarPage(
+        initialSelectedDay: selectedDay,
+        reminders: [
+          CalendarReminder(
+            id: 'followup:task-1:follow-up-1',
+            title: 'تماس مجدد',
+            date: selectedDay,
+            description: 'پیگیری: تماس با مشتری',
+          ),
+        ],
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+
+  expect(find.text('تماس مجدد'), findsOneWidget);
+  expect(find.text('پیگیری: تماس با مشتری'), findsOneWidget);
+  expect(find.byKey(const ValueKey('calendar-followup-time-chip-followup:task-1:follow-up-1')), findsOneWidget);
+  expect(find.text('۱۸:۴۵'), findsOneWidget);
+});
+
+
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
     final day = DateTime(now.year, now.month, now.day);
