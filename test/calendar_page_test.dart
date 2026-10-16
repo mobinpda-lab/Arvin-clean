@@ -15,7 +15,6 @@ void main() {
             CalendarReminder(id: 'planned', title: 'کار برنامه‌ریزی‌شده', date: selectedDay),
             CalendarReminder(id: 'task-followup:waiting', title: 'در انتظار پیگیری', date: selectedDay),
             CalendarReminder(id: 'completed', title: 'کار انجام‌شده', date: selectedDay, completed: true),
-            CalendarReminder(id: 'overdue', title: 'کار عقب‌افتاده', date: DateTime(2020, 1, 1)),
           ],
         ),
       ),
@@ -34,13 +33,29 @@ void main() {
       tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
       const Color(0xFFECFDF5),
     );
+    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.warning_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
+  });
+
+  testWidgets('overdue calendar card uses red pastel and warning icon', (tester) async {
+    final overdueDay = DateTime(2020, 1, 1);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: overdueDay,
+          reminders: [CalendarReminder(id: 'overdue', title: 'کار عقب‌افتاده', date: overdueDay)],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     expect(
       tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-overdue'))).color,
       const Color(0xFFFEF2F2),
     );
-    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
     expect(find.byIcon(Icons.warning_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
+    expect(find.text('عقب‌افتاده'), findsOneWidget);
   });
 
   testWidgets('week date bar is 56 pixels high and highlights selected day in pastel purple', (tester) async {
