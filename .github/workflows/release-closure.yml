@@ -2,7 +2,7 @@ name: Arvin Release Closure
 
 on:
   workflow_run:
-    workflows: ['Arvin Production Orchestrator']
+    workflows: ['Arvin Device Smoke']
     types: [completed]
   workflow_dispatch:
 
@@ -22,7 +22,10 @@ env:
 
 jobs:
   release-closure:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    # Only a successful Device Smoke for the pushed main head may auto-start
+    # release closure. PR smoke and workflow_run-driven orchestrator completions
+    # must not create duplicate release builds for the same main SHA.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
