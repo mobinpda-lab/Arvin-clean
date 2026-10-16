@@ -126,6 +126,7 @@ jobs:
           emulator-boot-timeout: 600
           script: |
             timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device
+            timeout 240s adb -s "emulator-${EMULATOR_PORT}" shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
             flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
 
       - name: Upload Android smoke screenshot evidence
