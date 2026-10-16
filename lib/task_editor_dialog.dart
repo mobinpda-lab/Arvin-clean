@@ -351,7 +351,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 margin: const EdgeInsets.only(top: 10),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: ArvinColors.surface,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: _border),
                 ),
@@ -378,7 +378,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           onPressed: () => setState(() {
                             _taskReminders = _taskReminders.where((item) => item.id != reminder.id).toList();
                           }),
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                          icon: const Icon(Icons.delete_outline, color: ArvinColors.error),
                         ),
                       ],
                     ),
@@ -403,7 +403,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       ],
                     ),
                     Material(
-                      color: Colors.white,
+                      color: ArvinColors.surface,
                       borderRadius: BorderRadius.circular(8),
                       child: CheckboxListTile(
                       key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
@@ -792,7 +792,7 @@ Future<void> _pickDueDate() async {
             return Container(
               key: ValueKey('task-editor-checklist-item-$index'),
               margin: const EdgeInsets.only(bottom: 6),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
+              decoration: BoxDecoration(color: ArvinColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
               child: Row(children: [
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
                 Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w600))),
@@ -1148,7 +1148,7 @@ Future<void> _pickDueDate() async {
                         onPressed: _save,
                         icon: const Icon(Icons.check_rounded, size: 18),
                         label: const Text('ذخیره'),
-                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: Colors.white),
+                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
                       ),
                     ],
                   ),
