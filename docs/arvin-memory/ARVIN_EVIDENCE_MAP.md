@@ -483,3 +483,16 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - این دو نتیجه دقیقاً به SHA بالا متصل‌اند؛ به‌روزرسانی همین مستندات SHA تازه‌ای تولید می‌کند و نیازمند بازاعتبارسنجی CI روی SHA تازه است.
 - PR #2767 در زمان بررسی باز، Draft و ادغام‌نشده بود. هیچ فایل محصول یا گردش‌کار ویرایش نشد.
 - شکاف‌های پذیرش فیزیکی، سناریوی اختصاصی مرکز گزارش‌ها و چرخه پیگیری و گیت واژگانی سراسری همچنان بازند؛ وضعیت انتشار `RELEASE: NO-GO`.
+
+
+## ثبت زنده — مسیر مرجع و وضعیت شواهد PR #2767 (2026-10-16)
+
+- **مسیر مرجع مستندات حافظه:** `docs/arvin-memory/`. سه فایل مرتبط این PR فقط در همین مسیر قرار دارند: `ARVIN_EXECUTION_STATE.md`، `ARVIN_EVIDENCE_MAP.md` و `CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md`.
+- **مسیرهای ریشه‌ای مورد انتظار قبلی:** `docs/ARVIN_EXECUTION_STATE.md`، `docs/ARVIN_EVIDENCE_MAP.md` و `docs/CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md` در شاخه مورد بررسی وجود ندارند (پاسخ 404). برای جلوگیری از دو نسخه متناقض، فایل تکراری در ریشه `docs/` ساخته نشود؛ ارجاعات باید به مسیرهای مرجع بالا اصلاح شوند.
+- **دامنه تغییرات PR در لحظه ممیزی:** دقیقاً همین سه فایل مستندات؛ هیچ فایل سورس برنامه، SQLite یا YAML گردش‌کار در فهرست تغییرات PR نیست.
+- **Build:** [Run 38934604232](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604232) = `completed / success`؛ ۹/۹ job موفق: Analyze، شش shard تست، Debug APK و Release APK.
+- **Device Smoke:** [Run 38934604122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604122) = `completed / success`؛ ۶/۶ سناریوی امولاتور موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore.
+- **مرز دقت شواهد:** فراداده هر دو Run، `head_sha=82e4bfb1b2b2b9c1cadb96a9497f61a46c4f74f3` را برای PR #2767 نشان می‌دهد؛ بااین‌حال گام `Verify exact requested revision` در Build رد شده بود و نام artifactها به SHA ادغام آزمایشی `a9ec19d5d7dd7b033484c16b39122230d741d9f7` اشاره دارد. بنابراین موفقیت Runها ثبت می‌شود، اما checkout دقیقِ خودِ head به‌طور مستقل اثبات‌شده تلقی نمی‌شود.
+- **محدودیت پذیرش:** Device Smoke روی Android Emulator است، نه گوشی فیزیکی. پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری، گیت واژگانی سراسری «پیگیری» و پذیرش فیزیکی همچنان شکاف بازند.
+- **گیت انتشار:** `RELEASE: NO-GO`. این ثبت وضعیت، مجوز انتشار یا ادغام نیست. هر commit مستنداتی SHA شاخه را عوض می‌کند؛ پس از آخرین تغییر، Build و Device Smoke باید برای HEAD جدید دوباره بررسی شوند.
+- **وضعیت PR در زمان ثبت:** #2767 باز، Draft و ادغام‌نشده؛ تاریخچه بازنویسی نشود و PR ادغام نشود.
