@@ -1346,19 +1346,34 @@ class _ReminderCardState extends State<_ReminderCard> {
                       label: const Text('قضا شد'),
                       onPressed: () => _run(widget.onPrayerNotCompleted),
                     ),
-                  if (item.id.startsWith('external-calendar:') && widget.onOpenExternal != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_calendar_outlined, size: 18),
-                      label: const Text('ویرایش در تقویم گوشی'),
-                      onPressed: () => _run(widget.onOpenExternal),
-                    ),
-                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-create-task-${item.id}'),
-                      avatar: const Icon(Icons.add_task_outlined, size: 18),
-                      label: const Text('ثبت در آروین'),
-                      onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
+                  if (item.id.startsWith('external-calendar:') &&
+                      (widget.onOpenExternal != null ||
+                          widget.onCreateTaskFromCalendarEvent != null))
+                    Row(
+                      key: ValueKey('external-calendar-actions-${item.id}'),
+                      children: [
+                        if (widget.onOpenExternal != null)
+                          Expanded(
+                            child: TextButton.icon(
+                              key: ValueKey('external-calendar-edit-${item.id}'),
+                              onPressed: () => _run(widget.onOpenExternal),
+                              icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+                              label: const Text('ویرایش در تقویم گوشی', maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                        if (widget.onOpenExternal != null &&
+                            widget.onCreateTaskFromCalendarEvent != null)
+                          const SizedBox(width: 8),
+                        if (widget.onCreateTaskFromCalendarEvent != null)
+                          Expanded(
+                            child: TextButton.icon(
+                              key: ValueKey('external-calendar-create-task-${item.id}'),
+                              onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
+                              icon: const Icon(Icons.add_task_outlined, size: 18),
+                              label: const Text('ثبت در تقویم آروین', maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                      ],
                     ),
                   if (!_isTaskCalendarItem &&
                       !widget.isPrayer &&
