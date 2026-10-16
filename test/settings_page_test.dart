@@ -87,11 +87,6 @@ void main() {
     expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirharf');
 
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
-      250,
-      scrollable: find.byType(ListView).first,
-    );
     await tester.ensureVisible(find.byKey(const ValueKey('projects-settings-entry')));
     await tester.pumpAndSettle();
 
@@ -107,11 +102,6 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
-      250,
-      scrollable: find.byType(ListView).first,
-    );
     await tester.ensureVisible(find.byKey(const ValueKey('projects-settings-entry')));
     await tester.pumpAndSettle();
 
@@ -122,11 +112,10 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('پشتیبان‌گیری و بازیابی'),
-      300,
-      scrollable: find.byType(ListView).first,
-    );
+    for (var i = 0; i < 6; i++) {
+      await tester.dragFrom(const Offset(400, 400), const Offset(0, -250));
+      await tester.pumpAndSettle();
+    }
     await tester.ensureVisible(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
 
