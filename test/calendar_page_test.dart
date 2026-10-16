@@ -5,6 +5,69 @@ import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 void main() {
+  testWidgets('calendar cards use canonical pastel status colors and status icons', (tester) async {
+    final selectedDay = DateTime(2030, 5, 1);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: selectedDay,
+          reminders: [
+            CalendarReminder(id: 'planned', title: 'کار برنامه‌ریزی‌شده', date: selectedDay),
+            CalendarReminder(id: 'task-followup:waiting', title: 'در انتظار پیگیری', date: selectedDay),
+            CalendarReminder(id: 'completed', title: 'کار انجام‌شده', date: selectedDay, completed: true),
+            CalendarReminder(id: 'overdue', title: 'کار عقب‌افتاده', date: DateTime(2020, 1, 1)),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      (tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-planned'))).color),
+      const Color(0xFFEFF6FF),
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-waiting'))).color,
+      const Color(0xFFFEFCE8),
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
+      const Color(0xFFECFDF5),
+    );
+    expect(
+      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-overdue'))).color,
+      const Color(0xFFFEF2F2),
+    );
+    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.warning_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
+  });
+
+  testWidgets('week date bar is 56 pixels high and highlights selected day in pastel purple', (tester) async {
+    final selectedDay = DateTime(2030, 5, 1);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: selectedDay,
+          reminders: [CalendarReminder(id: 'week-task', title: 'کار روز', date: selectedDay)],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final selectedKey = ValueKey('calendar-week-day-${selectedDay.year}-${selectedDay.month}-${selectedDay.day}');
+    final selectedDayWidget = tester.widget<Container>(
+      find.descendant(of: find.byKey(selectedKey), matching: find.byType(Container)).first,
+    );
+    expect(selectedDayWidget.constraints?.maxHeight, anyOf(isNull, 56));
+    expect(tester.getSize(find.byKey(selectedKey)).height, 56);
+    expect(selectedDayWidget.decoration, isA<BoxDecoration>());
+    expect(
+      (selectedDayWidget.decoration! as BoxDecoration).color,
+      const Color(0xFFEDE9FE),
+    );
+  });
+
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
     final day = DateTime(now.year, now.month, now.day);
