@@ -87,6 +87,39 @@ void main() {
     expect(result!.followUps, isEmpty);
   });
 
+
+  testWidgets('Task editor saves a new follow-up record with separate title and note',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-title')),
+      'تماس مجدد',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-note')),
+      'در انتظار ارسال پاسخ',
+    );
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.title, 'تماس مجدد');
+    expect(result!.followUps.single.note, 'در انتظار ارسال پاسخ');
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, isNull);
+  });
+
+
   testWidgets('editing and saving preserves the exact existing follow-up time',
       (tester) async {
     Task? result;
