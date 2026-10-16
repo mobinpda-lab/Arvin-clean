@@ -87,6 +87,10 @@ void main() {
     expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirharf');
 
+    for (var i = 0; i < 4; i++) {
+      await tester.dragFrom(const Offset(400, 400), const Offset(0, -250));
+      await tester.pumpAndSettle();
+    }
     await tester.ensureVisible(find.byKey(const ValueKey('projects-settings-entry')));
     await tester.pumpAndSettle();
 
