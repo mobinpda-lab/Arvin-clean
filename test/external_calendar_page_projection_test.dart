@@ -58,7 +58,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
     await tester.pump();
     expect(opened, isTrue);
-    expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
+    expect(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')), findsOneWidget);
   });
 
   testWidgets('permission denial fails closed and keeps calendar usable', (tester) async {
