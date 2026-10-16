@@ -29,6 +29,7 @@ void main() {
           FollowUp(
             id: 'fu-2',
             dateTime: DateTime(2026, 8, 27, 10),
+            title: 'تماس مجدد',
             note: 'پیگیری قرارداد',
             reminderDate: DateTime(2026, 8, 28, 11),
           ),
@@ -45,10 +46,41 @@ void main() {
 
     expect(reminders, hasLength(2));
     expect(reminders.first.id, 'followup:task-1:fu-1');
-    expect(reminders.first.title, 'تماس با مشتری');
+    expect(reminders.first.title, 'پیگیری تماس با مشتری');
     expect(reminders.first.date, DateTime(2026, 8, 27, 9));
-    expect(reminders.last.title, 'تماس با مشتری — پیگیری قرارداد');
+    expect(reminders.last.title, 'تماس مجدد');
+    expect(reminders.last.description, 'پیگیری: تماس با مشتری');
     expect(reminders.last.date, DateTime(2026, 8, 28, 11));
+  });
+
+  test('projects next action and timed reminder with optional title and parent subtitle', () {
+    final nextAction = DateTime(2026, 10, 16, 9, 15);
+    final timedReminder = DateTime(2026, 10, 15, 18, 45);
+    final task = Task(
+      id: 'parent-task',
+      title: 'تماس با مشتری',
+      followUps: [
+        FollowUp(
+          id: 'custom-title',
+          dateTime: DateTime(2026, 10, 14, 10),
+          title: 'گرفتن پاسخ',
+          note: 'یادداشت داخلی',
+          nextFollowUp: nextAction,
+          reminderDate: timedReminder,
+        ),
+      ],
+    );
+
+    final reminders = projection.project([task]);
+    expect(reminders, hasLength(2));
+    final next = reminders.singleWhere((item) => item.id == 'task-followup:parent-task:custom-title');
+    final reminder = reminders.singleWhere((item) => item.id == 'followup:parent-task:custom-title');
+    expect(next.title, 'گرفتن پاسخ');
+    expect(next.description, 'پیگیری: تماس با مشتری');
+    expect(next.date, nextAction);
+    expect(reminder.title, 'گرفتن پاسخ');
+    expect(reminder.description, 'پیگیری: تماس با مشتری');
+    expect(reminder.date, timedReminder);
   });
 
   test('does not project follow-up history when no independent reminder is configured', () {
