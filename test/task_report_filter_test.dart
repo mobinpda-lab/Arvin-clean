@@ -73,7 +73,6 @@ void main() {
 
   test('person multi-select matches Task people and Follow-up associations', () {
     final ana = PersonReference(id: 'ana', displayName: 'آنا');
-    final reza = PersonReference(id: 'reza', displayName: 'رضا');
     final taskPerson = Task(id: 'task-person', title: 'کار آنا', people: [ana]);
     final followUpPerson = Task(
       id: 'follow-up-person',
