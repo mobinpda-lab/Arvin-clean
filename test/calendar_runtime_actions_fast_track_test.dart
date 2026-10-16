@@ -79,7 +79,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
     await tester.pump();
 
     expect(
