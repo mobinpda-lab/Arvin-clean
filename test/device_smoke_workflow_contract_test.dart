@@ -32,7 +32,7 @@ void main() {
     expect(workflow, contains('adb start-server'));
     expect(workflow, contains(r'adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
     expect(workflow, contains('sys.boot_completed'));
-    expect(workflow, contains('for attempt in $(seq 1 120)'));
+    expect(workflow, contains(r'for attempt in $(seq 1 120)'));
     expect(workflow, contains('script: |'));
     expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
