@@ -1122,9 +1122,10 @@ class _ReminderCardState extends State<_ReminderCard> {
         ? 'تمام‌روز'
         : _isOverdueCalendarItem(item)
         ? 'عقب‌افتاده'
-        : item.id.startsWith('task-followup:')
-        ? 'در انتظار پیگیری'
-        : 'برنامه‌ریزی‌شده';
+        : (item.id.startsWith('task-followup:') ||
+                item.id.startsWith('followup:'))
+            ? 'در انتظار پیگیری'
+            : 'برنامه‌ریزی‌شده';
     final visual = _CalendarItemVisualStyle.of(context, item);
     final statusColor = _calendarStatusColor(item);
     final isFollowUpItem = item.id.startsWith('task-followup:') ||
