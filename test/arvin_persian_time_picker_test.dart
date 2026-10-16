@@ -4,6 +4,49 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/universal_arvin_time_picker.dart';
 
 void main() {
+  testWidgets('picker remains scrollable without overflow in portrait and landscape', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                key: const ValueKey('open-time-picker'),
+                onPressed: () => showUniversalArvinTimePicker(
+                  context: context,
+                  initialTime: const TimeOfDay(hour: 9, minute: 10),
+                  helpText: 'زمان پیگیری',
+                ),
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('open-time-picker')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+
+    tester.view.physicalSize = const Size(800, 360);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('inner ring 24 maps to midnight 00 without changing storage semantics', (tester) async {
     TimeOfDay? result;
     await tester.pumpWidget(
