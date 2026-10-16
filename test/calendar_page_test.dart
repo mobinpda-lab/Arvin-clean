@@ -363,7 +363,7 @@ void main() {
               date: day,
             ),
           ],
-          onOpenExternalCalendarEvent: (_) async => opened++,
+          onOpenExternalReminder: (_) async => opened++,
           onCreateTaskFromCalendarEvent: (_) async {},
         ),
       ),
