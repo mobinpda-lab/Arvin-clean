@@ -66,7 +66,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
-  bool _followUpEnabled = false;
   bool _checklistEnabled = false;
   final List<FollowUp> _pendingFollowUps = <FollowUp>[];
   final List<String> _checklistItems = <String>[];
@@ -172,7 +171,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (!mounted || followUp == null) return null;
     setState(() {
       _pendingFollowUps.add(followUp);
-      _followUpEnabled = true;
     });
     return followUp.note;
   }
