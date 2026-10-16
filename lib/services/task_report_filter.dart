@@ -21,6 +21,7 @@ class TaskReportFilter {
     this.projectIds = const <String>{},
     this.categories = const <String>{},
     this.tags = const <String>{},
+    this.personIds = const <String>{},
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -46,6 +47,7 @@ class TaskReportFilter {
   final Set<String> projectIds;
   final Set<String> categories;
   final Set<String> tags;
+  final Set<String> personIds;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -71,6 +73,7 @@ class TaskReportFilter {
       projectIds.isNotEmpty ||
       categories.isNotEmpty ||
       tags.isNotEmpty ||
+      personIds.isNotEmpty ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -106,6 +109,12 @@ class TaskReportFilter {
         .toList(growable: false);
     return tasks.where((task) {
       if (task.trashed) return false;
+      if (personIds.isNotEmpty &&
+          !task.people.any((person) => personIds.contains(person.id)) &&
+          !task.followUps.any((followUp) =>
+              followUp.personIds.any(personIds.contains))) {
+        return false;
+      }
       if (!_matchesStatus(task)) return false;
       if (trackingLevels.isNotEmpty &&
           (task.recurrence == null ||
