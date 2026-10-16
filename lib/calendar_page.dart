@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'arvin_colors.dart';
+import 'theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
 
 import 'daily_content.dart';
@@ -355,7 +358,7 @@ class _CalendarPageState extends State<CalendarPage> {
             visualDensity: VisualDensity.compact,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             textStyle: WidgetStatePropertyAll(
-              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'VazirHarf'),
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirharfFamily),
             ),
           ),
           segments: const [
@@ -721,7 +724,7 @@ class _CalendarPageState extends State<CalendarPage> {
       textDirection: TextDirection.rtl,
       child: Theme(
         data: Theme.of(context).copyWith(
-          textTheme: Theme.of(context).textTheme.apply(fontFamily: 'VazirHarf'),
+          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirharfFamily),
         ),
         child: Scaffold(
         appBar: AppBar(
@@ -1197,7 +1200,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF232433),
+                      color: ArvinColors.textPrimary,
                     ),
                   ),
                 ),
