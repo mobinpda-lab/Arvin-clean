@@ -1267,7 +1267,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                         key: ValueKey('calendar-item-parent-subtitle-${item.id}'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
+                        style: const TextStyle(fontSize: 12, color: ArvinColors.textSecondary),
                       ),
                     ),
                   Row(
@@ -1279,7 +1279,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                           item.isAllDay ? subtitle : widget.dateLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
+                          style: const TextStyle(fontSize: 12, color: ArvinColors.textSecondary),
                         ),
                       ),
                       if (!item.isAllDay) ...[
