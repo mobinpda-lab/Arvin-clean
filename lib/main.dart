@@ -2254,9 +2254,11 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ثبت در تقویم گوشی انجام نشد: $error')),
-      );
+      final detail = error.toString();
+      final message = detail.contains('این مورد قبلاً در تقویم گوشی ثبت شده است.')
+          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
+          : 'ثبت در تقویم گوشی انجام نشد: $error';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
