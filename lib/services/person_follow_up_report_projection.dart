@@ -78,6 +78,7 @@ class PersonFollowUpReportProjection {
         // Keep the Follow-up row visible even when its Person directory entry
         // was deleted. A stable placeholder preserves history without reviving
         // the deleted Person record or creating a parallel directory.
+        if (associated.isEmpty) continue;
         final nextAction = followUp.nextFollowUp;
         if (nextActionDueBy != null &&
             (nextAction == null || nextAction.isAfter(nextActionDueBy))) {
