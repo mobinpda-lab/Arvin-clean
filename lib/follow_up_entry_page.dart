@@ -256,6 +256,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       title: enteredTitle.isEmpty ? null : enteredTitle,
       note: _noteController.text.trim(),
       result: result,
+      completed: widget.initialFollowUp?.completed ?? false,
+      waitingForResponse: _waitingForResponse,
+      personIds: widget.initialFollowUp?.personIds ?? const <String>[],
       reminderDate: _reminderDate,
       nextFollowUp: _nextFollowUp,
     );
