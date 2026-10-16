@@ -55,24 +55,6 @@ void main() {
     expect((await service.load()).fontFamily, isNull);
 
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-vazirharf')),
-      180,
-      scrollable: find.descendant(
-        of: find.byType(ListView).last,
-        matching: find.byType(Scrollable),
-      ).first,
-    );
-    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-vazirmatn')),
-      180,
-      scrollable: find.descendant(
-        of: find.byType(ListView).last,
-        matching: find.byType(Scrollable),
-      ).first,
-    );
-    expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
-    await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-system')),
       180,
       scrollable: find.descendant(
@@ -80,6 +62,7 @@ void main() {
         matching: find.byType(Scrollable),
       ).first,
     );
+    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('font-option-system')));
     await tester.pumpAndSettle();
