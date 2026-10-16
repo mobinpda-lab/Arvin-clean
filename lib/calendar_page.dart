@@ -1080,6 +1080,31 @@ class _ReminderCardState extends State<_ReminderCard> {
       builder: (sheetContext) => SafeArea(
         child: Wrap(
           children: [
+            if ((widget.item.id.startsWith('followup:') ||
+                    widget.item.id.startsWith('task-followup:')) &&
+                widget.onComplete != null &&
+                !widget.item.completed)
+              ListTile(
+                key: ValueKey('reminder-complete-${widget.item.id}'),
+                leading: const Icon(Icons.check_circle_outline),
+                title: const Text('انجام شد'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _run(widget.onComplete);
+                },
+              ),
+            if ((widget.item.id.startsWith('followup:') ||
+                    widget.item.id.startsWith('task-followup:')) &&
+                widget.onEdit != null)
+              ListTile(
+                key: ValueKey('reminder-edit-${widget.item.id}'),
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('ویرایش پیگیری'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _run(widget.onEdit);
+                },
+              ),
             if (widget.onEditTask != null)
               ListTile(
                 key: ValueKey('task-due-edit-${widget.item.id}'),
