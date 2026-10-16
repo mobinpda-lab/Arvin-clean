@@ -55,6 +55,7 @@ void main() {
     expect(find.text('عنوان پیگیری (اختیاری)'), findsOneWidget);
     await revealReminder(tester);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('follow-up-entry-title')));
     await tester.enterText(
       find.byKey(const ValueKey('follow-up-entry-title')),
       'تماس مجدد',
