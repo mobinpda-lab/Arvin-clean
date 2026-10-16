@@ -1097,3 +1097,36 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+## AUTHORITATIVE LIVE UPDATE — 2026-10-16 — PR #2767 terminal Build and Device Smoke evidence
+
+- **Validated SHA:** `102514234fe053b5a0ba33def206b96e64ea5778` on `docs/ci-evidence-audit-2026-10-16`.
+- **Build:** [run 38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102) = `completed / success`; all 9 jobs succeeded: Analyze, test shards 0–5, Debug APK and Release APK.
+- **Device Smoke:** [run 38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979) = `completed / success`; all 6 emulator lanes succeeded: Home, Quick Capture, SQL Persistence, SQL Migration, People, Backup/Restore. Last observed terminal-run `updated_at`: `2026-10-16T16:41:51Z`. The API response did not provide a separate run-level `completed_at`; do not represent `updated_at` as a verified exact completion timestamp.
+- Smoke evidence artifacts observed: Home, Quick Capture, People and Persian Time Picker. Screenshot uploads are non-blocking for lanes where no artifact was produced.
+- **PR disposition at recheck:** PR [#2767](https://github.com/mobinpda-lab/Arvin-clean/pull/2767) remained open, Draft, and unmerged; its head matched the validated SHA at the time of recheck.
+- **Important SHA boundary:** this record itself creates a new documentation commit. The successful runs above apply to the validated SHA only; verify Build and Device Smoke again against the resulting new head before making any merge-readiness claim.
+- No application/business/UI files or workflow YAML files were modified. Release remains **NO-GO** because emulator success does not establish physical-device acceptance, dedicated Report Center/Follow-up end-to-end coverage, terminology lint, or release approval.
+
+
+## وضعیت زنده — همگام‌سازی مسیر مستندات و شواهد PR #2767 (2026-10-16)
+
+- **مسیر مرجع مستندات حافظه:** `docs/arvin-memory/`. سه فایل مرتبط این PR فقط در همین مسیر قرار دارند: `ARVIN_EXECUTION_STATE.md`، `ARVIN_EVIDENCE_MAP.md` و `CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md`.
+- **مسیرهای ریشه‌ای مورد انتظار قبلی:** `docs/ARVIN_EXECUTION_STATE.md`، `docs/ARVIN_EVIDENCE_MAP.md` و `docs/CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md` در شاخه مورد بررسی وجود ندارند (پاسخ 404). برای جلوگیری از دو نسخه متناقض، فایل تکراری در ریشه `docs/` ساخته نشود؛ ارجاعات باید به مسیرهای مرجع بالا اصلاح شوند.
+- **دامنه تغییرات PR در لحظه ممیزی:** دقیقاً همین سه فایل مستندات؛ هیچ فایل سورس برنامه، SQLite یا YAML گردش‌کار در فهرست تغییرات PR نیست.
+- **Build:** [Run 38934604232](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604232) = `completed / success`؛ ۹/۹ job موفق: Analyze، شش shard تست، Debug APK و Release APK.
+- **Device Smoke:** [Run 38934604122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604122) = `completed / success`؛ ۶/۶ سناریوی امولاتور موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore.
+- **مرز دقت شواهد:** فراداده هر دو Run، `head_sha=82e4bfb1b2b2b9c1cadb96a9497f61a46c4f74f3` را برای PR #2767 نشان می‌دهد؛ بااین‌حال گام `Verify exact requested revision` در Build رد شده بود و نام artifactها به SHA ادغام آزمایشی `a9ec19d5d7dd7b033484c16b39122230d741d9f7` اشاره دارد. بنابراین موفقیت Runها ثبت می‌شود، اما checkout دقیقِ خودِ head به‌طور مستقل اثبات‌شده تلقی نمی‌شود.
+- **محدودیت پذیرش:** Device Smoke روی Android Emulator است، نه گوشی فیزیکی. پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری، گیت واژگانی سراسری «پیگیری» و پذیرش فیزیکی همچنان شکاف بازند.
+- **گیت انتشار:** `RELEASE: NO-GO`. این ثبت وضعیت، مجوز انتشار یا ادغام نیست. هر commit مستنداتی SHA شاخه را عوض می‌کند؛ پس از آخرین تغییر، Build و Device Smoke باید برای HEAD جدید دوباره بررسی شوند.
+- **وضعیت PR در زمان ثبت:** #2767 باز، Draft و ادغام‌نشده؛ تاریخچه بازنویسی نشود و PR ادغام نشود.
+
+
+## وضعیت اصلاح‌شدهٔ 2026-10-16 — پس از PR #2746 و CI stability
+
+- main از merge SHA `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b` عبور کرده است؛ PR #2746 اصلاح حلقهٔ Release Closure را وارد main کرد.
+- اصلاحیهٔ تاریخچه: یادداشت قدیمی «فقط مستندات تغییر کردند» مربوط به checkpoint اولیهٔ SHA `50a3658` بود. در ادامه، PR #2767 تست integration و workflowهای CI را تغییر داده است؛ کد محصول/SQLite و مدل دادهٔ کاربر تغییر نکرده‌اند.
+- علت شکست SQL Migration در اجرای PR #2746، آرشیو خراب NDK بود، نه منطق migration؛ retry همان job موفق شد. در اجرای بعدی PR #2767، NDK helper موفق شد ولی Quick Capture به علت `set -o pipefail` در shell نوع `sh` پیش از اجرای تست متوقف شد؛ commit `9f887af` این سازگاری را اصلاح کرد.
+- PR #2767 اکنون helper مشترک نصب/اعتبارسنجی/تلاش مجدد NDK را به Build، Device Smoke و Release Closure اضافه می‌کند. شواهد این HEAD هنوز باید دوباره سبز شوند.
+- بازمانده‌ها: T1/T2/T3، exact-head Device Smoke، پذیرش گوشی واقعی، برچسب‌های کوتاه‌شوندهٔ Quick Capture و فیلتر اشخاص بر اساس ID در PR #2755. `RELEASE: NO-GO`.

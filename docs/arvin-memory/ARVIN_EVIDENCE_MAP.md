@@ -463,3 +463,46 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## 2026-10-16 — CI workflow evidence audit
+
+- **Audit document:** [CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md](CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md).
+- **Audit snapshot:** `e04467a38b92121cfb3b635f39c4c5e8fd0569ba`; treated as the latest commit visible to the audit query, not independently asserted as the final main pointer.
+- **Workflow source review:** Build defines Analyze + six test shards + Debug/Release APK jobs; Device Smoke launches Android Emulator API 35 for Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore and People; Calendar Provider Acceptance launches an emulator separately and can report a stock-emulator limitation rather than real provider PASS.
+- **Observed run:** [38899481933](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38899481933) returned 9/9 successful jobs including Analyze, six test shards and two APK jobs. Exact checkout SHA was not available in the inspected job payload, so this is not accepted as exact-final-head evidence.
+- **Blocking gaps:** no exact-head proof for all Build lanes and six Device Smoke scenarios; Calendar Provider result must be matched to its exact SHA; no dedicated Report Center or standalone Follow-up scenario in Device Smoke; no explicit terminology lint for canonical «پیگیری»; physical-device/visual acceptance remains unproven.
+- **Release gate:** `RELEASE: NO-GO`. Documentation-only audit; no product logic/UI changed.
+
+
+## 2026-10-16 — PR #2767 — نتایج نهایی Build و Device Smoke
+
+- کامیت آزموده‌شده در هر دو اجرا: `102514234fe053b5a0ba33def206b96e64ea5778`؛ شاخه `docs/ci-evidence-audit-2026-10-16`.
+- Build [38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102): `completed / success`؛ Analyze، شش shard آزمون و دو ساخت APK موفق؛ ۹ از ۹ job موفق.
+- Device Smoke [38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979): `completed / success`؛ شش از شش سناریو موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore. آخرین `updated_at` مشاهده‌شده: `2026-10-16T16:41:51Z`.
+- این دو نتیجه دقیقاً به SHA بالا متصل‌اند؛ به‌روزرسانی همین مستندات SHA تازه‌ای تولید می‌کند و نیازمند بازاعتبارسنجی CI روی SHA تازه است.
+- PR #2767 در زمان بررسی باز، Draft و ادغام‌نشده بود. هیچ فایل محصول یا گردش‌کار ویرایش نشد.
+- شکاف‌های پذیرش فیزیکی، سناریوی اختصاصی مرکز گزارش‌ها و چرخه پیگیری و گیت واژگانی سراسری همچنان بازند؛ وضعیت انتشار `RELEASE: NO-GO`.
+
+
+## ثبت زنده — مسیر مرجع و وضعیت شواهد PR #2767 (2026-10-16)
+
+- **مسیر مرجع مستندات حافظه:** `docs/arvin-memory/`. سه فایل مرتبط این PR فقط در همین مسیر قرار دارند: `ARVIN_EXECUTION_STATE.md`، `ARVIN_EVIDENCE_MAP.md` و `CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md`.
+- **مسیرهای ریشه‌ای مورد انتظار قبلی:** `docs/ARVIN_EXECUTION_STATE.md`، `docs/ARVIN_EVIDENCE_MAP.md` و `docs/CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md` در شاخه مورد بررسی وجود ندارند (پاسخ 404). برای جلوگیری از دو نسخه متناقض، فایل تکراری در ریشه `docs/` ساخته نشود؛ ارجاعات باید به مسیرهای مرجع بالا اصلاح شوند.
+- **دامنه تغییرات PR در لحظه ممیزی:** دقیقاً همین سه فایل مستندات؛ هیچ فایل سورس برنامه، SQLite یا YAML گردش‌کار در فهرست تغییرات PR نیست.
+- **Build:** [Run 38934604232](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604232) = `completed / success`؛ ۹/۹ job موفق: Analyze، شش shard تست، Debug APK و Release APK.
+- **Device Smoke:** [Run 38934604122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604122) = `completed / success`؛ ۶/۶ سناریوی امولاتور موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore.
+- **مرز دقت شواهد:** فراداده هر دو Run، `head_sha=82e4bfb1b2b2b9c1cadb96a9497f61a46c4f74f3` را برای PR #2767 نشان می‌دهد؛ بااین‌حال گام `Verify exact requested revision` در Build رد شده بود و نام artifactها به SHA ادغام آزمایشی `a9ec19d5d7dd7b033484c16b39122230d741d9f7` اشاره دارد. بنابراین موفقیت Runها ثبت می‌شود، اما checkout دقیقِ خودِ head به‌طور مستقل اثبات‌شده تلقی نمی‌شود.
+- **محدودیت پذیرش:** Device Smoke روی Android Emulator است، نه گوشی فیزیکی. پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری، گیت واژگانی سراسری «پیگیری» و پذیرش فیزیکی همچنان شکاف بازند.
+- **گیت انتشار:** `RELEASE: NO-GO`. این ثبت وضعیت، مجوز انتشار یا ادغام نیست. هر commit مستنداتی SHA شاخه را عوض می‌کند؛ پس از آخرین تغییر، Build و Device Smoke باید برای HEAD جدید دوباره بررسی شوند.
+- **وضعیت PR در زمان ثبت:** #2767 باز، Draft و ادغام‌نشده؛ تاریخچه بازنویسی نشود و PR ادغام نشود.
+
+
+## Evidence checkpoint — 2026-10-16 (post PR #2746 merge)
+
+- PR #2746 merged at `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b`; Build run `38956016385` 9/9, exact-head Build `38956335040` 9/9 with target-SHA assertion, Device Smoke `38956016536` 6/6 after rerunning the failed SQL Migration lane.
+- The first SQL Migration attempt failed during Android NDK `28.2.13676358` package extraction (`Error on ZipFile unknown archive`); the rerun passed. Do not classify that attempt as a database migration regression.
+- PR #2767 prior SHA `6433b51...` had Build 9/9, exact-head Build 9/9, Device Smoke 6/6. Later HEADs must be assessed only by their own run IDs.
+- PR #2767 current mitigation: shared `.github/scripts/ensure-android-ndk.sh` validates the NDK package and retries installation; Build, Device Smoke and Release Closure use the same cache/setup. Emulator script uses POSIX `set -eu` because the action invokes it with `/usr/bin/sh`.
+- T1/T2/T3 and exact-head Device Smoke are not yet evidenced. Quick Capture still truncates project/category/tag labels at 320×640. PR #2755 is Draft due ID-vs-name filter regression; PR #2762 remains Draft because visual truncation persists.
+- Release gate: `RELEASE: NO-GO` until issue #2102 and product acceptance gates close.
