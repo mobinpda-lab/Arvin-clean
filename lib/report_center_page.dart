@@ -966,6 +966,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
 
 class _MultiSelectChips extends StatelessWidget {
   const _MultiSelectChips({
