@@ -964,7 +964,7 @@ Future<void> _pickDueDate() async {
     RecurrenceFrequency.weekly => 'هفتگی',
     RecurrenceFrequency.monthly => 'ماهانه',
     RecurrenceFrequency.yearly => 'سالانه',
-    RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
+    RecurrenceFrequency.oncePerDay => 'روزانه',
     RecurrenceFrequency.minutes => 'دقیقه‌ای',
     RecurrenceFrequency.hours => 'ساعتی',
   };
