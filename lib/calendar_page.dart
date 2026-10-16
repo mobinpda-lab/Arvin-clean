@@ -354,6 +354,9 @@ class _CalendarPageState extends State<CalendarPage> {
           style: const ButtonStyle(
             visualDensity: VisualDensity.compact,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: WidgetStatePropertyAll(
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'VazirHarf'),
+            ),
           ),
           segments: const [
             ButtonSegment<_CalendarViewMode>(
