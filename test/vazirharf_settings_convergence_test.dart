@@ -4,13 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/theme/font_registry.dart';
 
 void main() {
-  test('canonical Settings uses bundled VazirHarf as Arvin default', () {
+  test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
     final mainSource = File('lib/main.dart').readAsStringSync();
     final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
 
     expect(mainSource, contains("import 'theme/app_fonts.dart';"));
     expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
+    expect(arvinFontById('vazirharf').effectiveFontFamily, isNull);
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
   });
 

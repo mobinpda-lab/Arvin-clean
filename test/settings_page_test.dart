@@ -65,7 +65,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
     await tester.pumpAndSettle();
-    expect((await service.load()).fontFamily, 'VazirHarf');
+    expect((await service.load()).fontFamily, 'vazirharf');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),

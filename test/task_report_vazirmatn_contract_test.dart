@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Task PDF renderer uses bundled VazirHarf and no Google font loader', () {
+  test('Task PDF renderer declares local font loading and no Google font loader', () {
     final source = File(
       'lib/services/task_report_pdf_renderer.dart',
     ).readAsStringSync();
@@ -29,7 +29,7 @@ void main() {
     expect(source, contains('effectiveFontFamily'));
   });
 
-  test('pubspec keeps VazirHarf PDF font assets bundled', () {
+  test('pubspec declares font asset paths and registry uses safe fallback', () {
     final source = File('pubspec.yaml').readAsStringSync();
 
     expect(source, contains('assets/fonts/'));

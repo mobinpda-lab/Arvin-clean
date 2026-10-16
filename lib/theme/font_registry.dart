@@ -20,7 +20,7 @@ const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
   ArvinFontOption(id:'lalezar', nameFa:'لاله‌زار', description:'مناسب تیتر و گرافیک', category:'تیتر', fontFamily:'Lalezar'),
   ArvinFontOption(id:'vazir-code', nameFa:'وزیر کد', description:'فونت مونو برای کد و متن فنی', category:'برنامه‌نویسی', fontFamily:'Vazir Code'),
   ArvinFontOption(id:'system', nameFa:'فونت دستگاه', description:'فونت پیش‌فرض سیستم؛ بدون نیاز به فایل اضافی', category:'عمومی', fontFamily:'system', isAvailableLocally:true),
-  ArvinFontOption(id:'vazirharf', nameFa:'وزیرحرف (پیش‌فرض آروین)', description:'فونت فعلی پروژه؛ در نبود فایل به فونت سیستم بازمی‌گردد', category:'عمومی', fontFamily:AppFonts.vazirharfFamily, isAvailableLocally:true),
+  ArvinFontOption(id:'vazirharf', nameFa:'وزیرحرف (پیش‌فرض آروین)', description:'گزینه قدیمی پروژه؛ فایل عمومی در مخزن موجود نیست و فونت سیستم جایگزین می‌شود', category:'عمومی', fontFamily:AppFonts.vazirharfFamily, isAvailableLocally:false),
 ];
 
 ArvinFontOption arvinFontById(String? id) {

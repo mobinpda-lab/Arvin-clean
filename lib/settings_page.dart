@@ -4,7 +4,6 @@ import 'backup_schedule_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
-import 'theme/app_fonts.dart';
 import 'theme/font_registry.dart';
 import 'task_taxonomy_management_page.dart';
 import 'widgets/contextual_help.dart';
