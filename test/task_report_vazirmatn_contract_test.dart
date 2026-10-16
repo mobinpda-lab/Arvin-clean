@@ -22,6 +22,13 @@ void main() {
     expect(source, isNot(contains("package:printing/printing.dart")));
   });
 
+  test('font registry records optional Vazirmatn with a safe fallback', () {
+    final source = File('lib/theme/font_registry.dart').readAsStringSync();
+    expect(source, contains("id:'vazirmatn'"));
+    expect(source, contains('isAvailableLocally = false'));
+    expect(source, contains('effectiveFontFamily'));
+  });
+
   test('pubspec keeps VazirHarf PDF font assets bundled', () {
     final source = File('pubspec.yaml').readAsStringSync();
 

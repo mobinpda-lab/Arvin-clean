@@ -53,6 +53,7 @@ import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'theme/app_fonts.dart';
+import 'theme/font_registry.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -140,9 +141,10 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedFontFamily = settings.fontFamily == 'system'
-        ? null
-        : (settings.fontFamily ?? AppFonts.vazirharfFamily);
+    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
+    final selectedFontFamily = selectedOption.id == 'vazirharf'
+        ? AppFonts.vazirharfFamily
+        : selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,
       bodyColor: ArvinColors.textPrimary,
