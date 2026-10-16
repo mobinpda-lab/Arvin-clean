@@ -80,7 +80,7 @@ void main() {
     expect(rows.map((row) => row.followUp.id), ['active']);
   });
 
-  test('ignores legacy result-only waiting and empty or removed person links', () {
+  test('ignores legacy result-only waiting and empty links but preserves removed-person history', () {
     final tasks = [
       Task(id: 'legacy-flag', title: 'قدیمی', followUpEnabled: true, followUps: [
         FollowUp(id: 'legacy', dateTime: now, result: 'منتظر پاسخ', personIds: ['ana']),
@@ -96,7 +96,17 @@ void main() {
     final rows = const PersonFollowUpReportProjection()
         .project(tasks, people: directory);
 
-    expect(rows, isEmpty);
+    expect(rows.map((row) => row.followUp.id), ['removed']);
+    expect(rows.single.people.single.id, 'deleted-person');
+    expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
+
+    final filteredDeletedPerson = const PersonFollowUpReportProjection().project(
+      tasks,
+      people: directory,
+      personId: 'deleted-person',
+    );
+    expect(filteredDeletedPerson.map((row) => row.followUp.id), ['removed']);
+    expect(filteredDeletedPerson.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
   test('next-action cutoff is independent and excludes missing or later next action', () {
