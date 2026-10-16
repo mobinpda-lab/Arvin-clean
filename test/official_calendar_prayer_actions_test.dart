@@ -35,7 +35,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(
+    await tester.longPress(find.byKey(
       const ValueKey('reminder-card-prayer-test-2026-09-15-fajr'),
     ));
     await tester.pumpAndSettle();

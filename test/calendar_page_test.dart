@@ -321,13 +321,15 @@ void main() {
       title: 'پیگیری قرارداد',
       date: day,
     );
-    var edited = 0;
+    var taskEdited = 0;
+    var followUpEdited = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
           reminders: [followUp],
-          onEditReminder: (_) async => edited++,
+          onEditTask: (_) async => taskEdited++,
+          onEditReminder: (_) async => followUpEdited++,
           onCompleteReminder: (_) async {},
         ),
       ),
@@ -337,7 +339,8 @@ void main() {
     final card = find.byKey(const ValueKey('reminder-card-followup:task-1:fu-tap'));
     await tester.tap(card);
     await tester.pumpAndSettle();
-    expect(edited, 1);
+    expect(taskEdited, 1);
+    expect(followUpEdited, 0);
     expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
     expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsNothing);
 

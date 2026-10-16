@@ -53,10 +53,10 @@ void main() {
     expect(bridge.queriedCalendarIds, ['calendar-7']);
     expect(bridge.requestedPermission, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
-    await tester.pump();
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(opened, isTrue);
     expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
   });
