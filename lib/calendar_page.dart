@@ -999,15 +999,15 @@ class _CalendarItemVisualStyle {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_outlined, color: scheme.primary, label: ''),
+        icon: Icons.task_alt, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
-        icon: Icons.notifications_outlined, color: scheme.tertiary, label: ''),
+        icon: Icons.notifications, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
         icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.nightlight_round, color: scheme.secondary, label: ''),
+        icon: Icons.mosque, color: scheme.secondary, label: ''),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.notifications_outlined, color: scheme.onSurfaceVariant, label: ''),
+        icon: Icons.task_alt, color: scheme.onSurfaceVariant, label: ''),
     };
   }
 }
@@ -1261,7 +1261,11 @@ class _ReminderCardState extends State<_ReminderCard> {
                       Text(
                         statusLabel,
                         maxLines: 1,
-                        style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
