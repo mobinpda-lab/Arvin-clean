@@ -518,22 +518,38 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           boxShadow: const [BoxShadow(blurRadius: 24, offset: Offset(0, -6))],
         ),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+        child: Column(
           children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(99),
+            SizedBox(
+              height: 64,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      key: const ValueKey('report-filter-close'),
+                      tooltip: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'فیلتر گزارش‌ها',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text('فیلتر گزارش‌ها', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                children: [
             _Section(
               title: 'زمان',
               icon: Icons.schedule_outlined,
@@ -892,62 +908,64 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    key: const ValueKey('report-filter-clear'),
-                    onPressed: () => setState(() {
-                      _timePreset = ReportTimePreset.all;
-                      _fromDate = null;
-                      _toDate = null;
-                      _fromTime = null;
-                      _toTime = null;
-                      _projectIds = <String>{};
-                      _categories = <String>{};
-                      _tags = <String>{};
-                      _statuses.clear();
-                      _trackingLevels.clear();
-                      _noteKinds.clear();
-                      _noteQueryController.clear();
-                      _noteDateField = null;
-                      _noteFromDate = null;
-                      _noteToDate = null;
-                      _priority = null;
-                      _hasRepeat = null;
-                      _hasFollowUp = null;
-                      _hasChecklist = null;
-                    }),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+                boxShadow: const [BoxShadow(blurRadius: 12, color: Color(0x12000000), offset: Offset(0, -3))],
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const ValueKey('report-filter-clear'),
+                        onPressed: () => setState(() {
+                          _timePreset = ReportTimePreset.all;
+                          _fromDate = null;
+                          _toDate = null;
+                          _fromTime = null;
+                          _toTime = null;
+                          _projectIds = <String>{};
+                          _categories = <String>{};
+                          _tags = <String>{};
+                          _personIds = <String>{};
+                          _statuses.clear();
+                          _trackingLevels.clear();
+                          _noteKinds.clear();
+                          _noteQueryController.clear();
+                          _noteDateField = null;
+                          _noteFromDate = null;
+                          _noteToDate = null;
+                          _priority = null;
+                          _hasRepeat = null;
+                          _hasFollowUp = null;
+                          _hasChecklist = null;
+                        }),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                        child: const Text('بازنشانی'),
+                      ),
                     ),
-                    child: const Text('پاک کردن'),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: FilledButton(
-                    key: const ValueKey('report-filter-apply'),
-                    onPressed: _apply,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        key: const ValueKey('report-filter-apply'),
+                        onPressed: _apply,
+                        style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+                        child: const Text('اعمال فیلتر'),
+                      ),
                     ),
-                    child: const Text('اعمال'),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
 
 class _MultiSelectChips extends StatelessWidget {
   const _MultiSelectChips({
