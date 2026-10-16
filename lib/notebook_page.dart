@@ -77,10 +77,10 @@ class _NotebookPageState extends State<NotebookPage> {
     final selected = await showModalBottomSheet<String?>(
       context: context,
       builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext)),
+        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext)),
         const SizedBox(height: 8),
         for (final project in _projects.where((p) => !p.isArchived)) ...[
-          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext, project.id)),
+          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext, project.id)),
           const SizedBox(height: 8),
         ],
       ])));
@@ -91,9 +91,9 @@ class _NotebookPageState extends State<NotebookPage> {
   Future<void> _pickNotebookCategory() async {
     final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, 'همه')),
+      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, 'همه')),
       const SizedBox(height: 8),
-      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
+      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
     ])));
     if (!mounted || selected == null) return;
     setState(() => _activeCategory = selected);
@@ -101,9 +101,9 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _pickNotebookTag() async {
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext)),
+      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext)),
       const SizedBox(height: 8),
-      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
+      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
     ])));
     if (!mounted) return;
     setState(() => _activeTag = selected);
@@ -1019,11 +1019,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 value: category,
                 label: category,
                 icon: Icons.folder_outlined,
-                color: const Color(0xFF7B61A8),
+                color: ArvinColors.category,
               ),
           ],
           icon: Icons.folder_outlined,
-          color: const Color(0xFF7B61A8),
+          color: ArvinColors.category,
           emptyLabel: 'بدون دسته',
           onCreate: () async {
             final value = await _promptNewCategory();
@@ -1094,11 +1094,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 value: project.id,
                 label: project.title,
                 icon: Icons.work_outline,
-                color: const Color(0xFF4A4CAB),
+                color: ArvinColors.project,
               ),
           ],
           icon: Icons.work_outline,
-          color: const Color(0xFF4A4CAB),
+          color: ArvinColors.project,
           emptyLabel: 'بدون پروژه',
           onCreate: () async {
             final title = await _promptNewProject();
