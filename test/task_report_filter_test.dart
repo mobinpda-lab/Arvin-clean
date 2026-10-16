@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_report_filter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,6 +69,31 @@ void main() {
     ).apply([open, archived], now: now);
 
     expect(result.map((task) => task.id), ['open']);
+  });
+
+  test('person multi-select matches Task people and Follow-up associations', () {
+    final ana = PersonReference(id: 'ana', displayName: 'آنا');
+    final reza = PersonReference(id: 'reza', displayName: 'رضا');
+    final taskPerson = Task(id: 'task-person', title: 'کار آنا', people: [ana]);
+    final followUpPerson = Task(
+      id: 'follow-up-person',
+      title: 'کار رضا',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-reza',
+          dateTime: DateTime(2026, 10, 7, 9),
+          personIds: ['reza'],
+        ),
+      ],
+    );
+    final unrelated = Task(id: 'unrelated', title: 'کار دیگر');
+
+    final result = const TaskReportFilter(personIds: {'ana', 'reza'}).apply(
+      [taskPerson, followUpPerson, unrelated],
+      now: now,
+    );
+
+    expect(result.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
   });
 
   test('trashed tasks never enter reports', () {
