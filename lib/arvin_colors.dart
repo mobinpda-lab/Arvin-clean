@@ -12,6 +12,7 @@ abstract final class ArvinColors {
   static const textPrimary = Color(0xFF232433);
   static const textSecondary = Color(0xFF80829C);
   static const border = Color(0xFFE5E7ED);
+  static const shadowSoft = Color(0x12000000);
 
   static const time = Color(0xFF008C74);
   static const timeDark = Color(0xFF006653);
