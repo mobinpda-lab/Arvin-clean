@@ -479,45 +479,48 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _dateFormatter.toPersianDigits('${jalali.day}'),
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                  color: selected ? ArvinColors.tag : ArvinColors.textPrimary,
-                                ),
-                              ),
-                              if (selected && count > 0) ...[
-                                const SizedBox(width: 3),
-                                Container(
-                                  key: ValueKey('calendar-week-count-${date.year}-${date.month}-${date.day}'),
-                                  constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
-                                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                                  alignment: Alignment.center,
-                                  decoration: const BoxDecoration(
-                                    color: ArvinColors.tag,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Text(
-                                    _dateFormatter.toPersianDigits('$count'),
-                                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _dateFormatter.toPersianDigits('${jalali.day}'),
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                    color: selected ? ArvinColors.tag : ArvinColors.textPrimary,
                                   ),
                                 ),
-                              ] else if (!selected && count > 0) ...[
-                                const SizedBox(width: 4),
-                                Container(
-                                  width: 5,
-                                  height: 5,
-                                  decoration: const BoxDecoration(
-                                    color: ArvinColors.calendarPlanned,
-                                    shape: BoxShape.circle,
+                                if (selected && count > 0) ...[
+                                  const SizedBox(width: 3),
+                                  Container(
+                                    key: ValueKey('calendar-week-count-${date.year}-${date.month}-${date.day}'),
+                                    constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: ArvinColors.tag,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      _dateFormatter.toPersianDigits('$count'),
+                                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                                    ),
                                   ),
-                                ),
+                                ] else if (!selected && count > 0) ...[
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: const BoxDecoration(
+                                      color: ArvinColors.calendarPlanned,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ],
                       ),
