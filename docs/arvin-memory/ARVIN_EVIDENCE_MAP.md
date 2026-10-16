@@ -451,3 +451,15 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 - Build: [run 38752957837](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957837) = `success` for head `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55`; analyzer, six test shards, Debug and Release APK jobs passed.
 - Device Smoke: [run 38752957813](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957813) = `success`; home, quick-capture, people, SQL migration, SQL persistence and backup/restore all passed.
 - PR #2725 is the standalone People directory / Follow-up person-link backup fix and references Issue #2682. These checks establish CI/emulator success only, not physical-device acceptance.
+
+
+## 2026-10-16 — Notebook pastel and cross-page visual audit (PR #2751)
+
+| Area | Implementation / evidence | Result | Remaining proof |
+|---|---|---|---|
+| Notebook filters/search/empty state | `lib/notebook_page.dart`; `test/notebook_page_test.dart` | Implemented in current PR branch | Exact-head tests and visual artifact |
+| Palette and typography audit | Reviewed Home, Calendar, Reports, Notebook, Follow-up office, and Task editor; no raw `Color(0x...)` or raw `fontFamily: '...'` remained in those files at the audit checkpoint | Static scan passed | Analyzer + widget tests on final SHA |
+| Calendar follow-up interaction | `lib/calendar_page.dart`; regression tests updated to require long press for follow-up actions and keep short tap for parent Task | Implemented, awaiting exact-head test result | All test shards green; inspect device screenshots |
+| Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
+| Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
+| Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
