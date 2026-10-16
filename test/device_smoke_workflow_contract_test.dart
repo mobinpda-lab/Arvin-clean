@@ -27,7 +27,15 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('script: flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(workflow, contains('Cache Android NDK 28.2.13676358'));
+    expect(workflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
+    expect(workflow, contains(r'timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
+    expect(workflow, contains('sys.boot_completed'));
+    expect(
+      workflow,
+      contains(r'timeout 240s adb -s "emulator-${EMULATOR_PORT}" shell'),
+    );
+    expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
     expect(workflow, isNot(contains('uiautomator dump')));
 
@@ -45,8 +53,7 @@ void main() {
       "expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);",
       homeTest.indexOf('expect(created.single.description'),
     );
-    final homeScreenshotIndex =
-        homeTest.indexOf('await binding.convertFlutterSurfaceToImage();');
+    final homeScreenshotIndex = homeTest.indexOf("takeScreenshot('home')");
     expect(homeRouteAssertionIndex, greaterThanOrEqualTo(0));
     expect(homeRouteAssertionIndex, lessThan(homeScreenshotIndex));
     expect(homeTest, contains('quickCaptureCancel'));
@@ -58,6 +65,16 @@ void main() {
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
     expect(workflow, contains('actions/upload-artifact@v4'));
+    final buildWorkflow = File('.github/workflows/build.yml').readAsStringSync();
+    expect(buildWorkflow, contains('Cache Android NDK 28.2.13676358'));
+    expect(buildWorkflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
+    final ndkSetup = File('.github/scripts/ensure-android-ndk.sh').readAsStringSync();
+    expect(ndkSetup, contains('for attempt in 1 2 3'));
+    expect(ndkSetup, contains('source.properties'));
+    expect(ndkSetup, contains('rm -rf'));
+    final releaseClosureWorkflow = File('.github/workflows/release-closure.yml').readAsStringSync();
+    expect(releaseClosureWorkflow, contains('Cache Android NDK 28.2.13676358'));
+    expect(releaseClosureWorkflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
     final matrixScenarios = RegExp(

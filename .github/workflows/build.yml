@@ -156,6 +156,13 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - name: Cache Android NDK 28.2.13676358
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/28.2.13676358
+          key: arvin-android-ndk-${{ runner.os }}-28.2.13676358-v1
+      - name: Ensure Android NDK 28.2.13676358
+        run: bash .github/scripts/ensure-android-ndk.sh
       - name: Verify repository-owned release inputs
         run: |
           set -euo pipefail

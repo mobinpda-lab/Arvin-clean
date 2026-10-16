@@ -213,3 +213,12 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## 2026-10-16 — CI stability and release gate decisions
+
+1. PR #2746 is merged at `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b`; automatic Release Closure must run only after successful Device Smoke from `push` to `main`, while manual dispatch remains available.
+2. Android NDK `28.2.13676358` download/extraction is treated as a CI infrastructure risk. Build, Device Smoke and Release Closure should use one validated install/retry helper and shared cache; do not infer product defects from `Error on ZipFile unknown archive`.
+3. `reactivecircus/android-emulator-runner` executes its `script` with `sh`; use POSIX-compatible shell syntax there (`set -eu`), not Bash-only `pipefail`.
+4. PR #2755 stays Draft until report/task person filters use stable person IDs rather than display names. PR #2762 stays Draft until Quick Capture labels remain readable on narrow RTL viewports.
+5. T1/T2/T3, exact-head Device Smoke and physical-device acceptance remain open. No release approval until issue #2102 and all product gates are closed.

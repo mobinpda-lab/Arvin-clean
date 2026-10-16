@@ -99,6 +99,46 @@ void main() {
     await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
 
+    // Exercise the same canonical Persian time picker used by task entry.
+    final dueTimeRollBox =
+        find.byKey(const ValueKey('task-editor-due-time-rollbox'));
+    await tester.ensureVisible(dueTimeRollBox);
+    await tester.pumpAndSettle();
+    await tester.tap(dueTimeRollBox);
+    await tester.pumpAndSettle();
+    final customTime = find.text('ساعت سفارشی');
+    expect(customTime, findsOneWidget);
+    await tester.ensureVisible(customTime);
+    await tester.tap(customTime);
+    await tester.pumpAndSettle();
+
+    final selectedTime =
+        find.byKey(const ValueKey('universal-time-selected-value'));
+    expect(selectedTime, findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('universal-time-manual-toggle')),
+    );
+    await tester.pumpAndSettle();
+    final manualTime =
+        find.byKey(const ValueKey('universal-time-manual-input'));
+    await tester.enterText(manualTime, '۱۴:۳۷');
+    await tester.pumpAndSettle();
+    expect(selectedTime, findsOneWidget);
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('persian-time-picker');
+    await tester.tap(
+      find.byKey(const ValueKey('universal-time-save')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: dueTimeRollBox,
+        matching: find.text('۱۴:۳۷'),
+      ),
+      findsOneWidget,
+    );
+
     final saveButton = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(saveButton);
     await tester.pumpAndSettle();
@@ -124,7 +164,6 @@ void main() {
     expect(quickCaptureDialog, findsNothing);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
-    await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('home');
 

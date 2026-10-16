@@ -1,0 +1,125 @@
+# ممیزی شواهد جریان‌های کاری CI آروین
+**تاریخ ممیزی:** 2026-10-16  
+**وضعیت انتشار:** RELEASE: NO-GO  
+**دامنه:** فقط ممیزی اسناد و گردش‌کارها؛ هیچ منطق محصولی یا UI تغییر داده نشده است.
+
+## مبنای ممیزی و محدودیت شناسه مرجع
+- مخزن: https://github.com/mobinpda-lab/Arvin-clean
+- آخرین commit قابل مشاهده در جست‌وجوی commitها هنگام ممیزی: [e04467a38b92121cfb3b635f39c4c5e8fd0569ba](https://github.com/mobinpda-lab/Arvin-clean/commit/e04467a38b92121cfb3b635f39c4c5e8fd0569ba).
+- این SHA به‌عنوان **snapshot مرجع ممیزی** ثبت شده است؛ به‌علت در دسترس نبودن تأیید مستقل pointer شاخه `main` در پاسخ ابزار، آن را بدون قید «HEAD قطعی main» معرفی نمی‌کنیم.
+- گردش‌کارهای بررسی‌شده در snapshot فایل‌ها: `.github/workflows/build.yml`، `.github/workflows/device-smoke.yml`، `.github/workflows/final-head-release-validation.yml`، `.github/workflows/calendar-provider-acceptance.yml` و `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md`.
+- Blob SHAهای workflowها به‌ترتیب: `a7619bcafa667a5c40efb61bf1c35fc623b9d8d2`، `e1f4b57e165fda1672c2316fd003318a979e989d`، `eba74e691df5d3173dc42d85aca8a6478f256033`، `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`. فایل نقشه شواهد در زمان ممیزی blob SHA برابر `f80f06c5cd66b7ba425623f0c2937949d49d3ea9` داشت.
+
+## ۱. مسیر رسمی تحلیل کد و تست‌ها
+
+### Arvin Build — `.github/workflows/build.yml`
+- Job `quality` دارای ماتریس هفت‌مسیره است: `analyze` و `test-0` تا `test-5`.
+- فقط lane با نام `analyze` دستور `flutter analyze` را اجرا می‌کند.
+- شش lane تست، کل مجموعه `flutter test` را با `--total-shards 6 --shard-index N` تقسیم می‌کنند.
+- دو job مستقل `apk (debug)` و `apk (release)` نیز APK می‌سازند؛ موفقیت ساخت APK به‌تنهایی نتیجه تحلیل یا تست نیست.
+- بنابراین معیار موفقیت Build باید شامل Analyze + هر شش shard + هر دو ساخت APK باشد؛ هر lane ناموفق، حذف‌شده یا فاقد نتیجه نهایی، شکاف شواهد است.
+
+### Final Head Release Validation — `.github/workflows/final-head-release-validation.yml`
+- در اجرای دستی (`workflow_dispatch`)، workflow ابتدا `main` را checkout می‌کند و برابری `HEAD` و `origin/main` را کنترل می‌کند؛ سپس `flutter analyze`، `flutter test` کامل و ساخت Release APK را اجرا می‌کند.
+- در اجرای ناشی از `workflow_run`، اعتبارسنجی به نتیجه Release Closure، دارایی‌های ساخته‌شده و تطبیق SHA/هش‌ها وابسته است؛ این مسیر به‌خودی‌خود یک اجرای تازه `flutter analyze` یا مجموعه تست کامل نشان نمی‌دهد.
+- در مسیر `workflow_run`، شکست Release Closure با پیام مسدود بودن اعتبارسنجی و خروج غیرصفر fail-closed می‌شود.
+- این workflow گیت نهایی مبتنی بر main است، اما لاگ موفقیت فقط وقتی معتبر است که SHA نهایی، نتیجه jobها و artifactها با هم تطبیق داده شوند.
+
+## ۲. امولاتور واقعی در CI
+
+### Device Smoke — `.github/workflows/device-smoke.yml`
+- امولاتور اندروید **واقعاً در workflow پیکربندی شده است**؛ این صرفاً تست قرارداد در سطح هاست نیست.
+- شواهد مستقیم در YAML: فعال‌سازی KVM، استفاده از `reactivecircus/android-emulator-runner@v2` با API 35 و معماری x86_64 و اجرای `flutter drive` روی `emulator-${EMULATOR_PORT}`.
+- شش سناریوی ماتریس: Home، Quick Capture، SQL Persistence، SQL Migration، Backup/Restore و People.
+- این workflow اسکرین‌شات برای Home، Quick Capture و People و همچنین تصویر انتخاب‌گر زمان را تلاش می‌کند بارگذاری کند؛ نبودن فایل تصویر به‌صورت هشدار تنظیم شده، نه شکست الزامی. بنابراین موفقیت job الزاماً به معنی وجود همه تصاویر نیست.
+- امولاتور CI، **دستگاه فیزیکی نیست** و به‌تنهایی پذیرش روی گوشی واقعی، ارائه‌دهنده تقویم دستگاه یا رفتار انتخاب‌گر فایل واقعی را ثابت نمی‌کند.
+
+### Calendar Provider Acceptance — `.github/workflows/calendar-provider-acceptance.yml`
+- این workflow نیز امولاتور API 35 را اجرا می‌کند، APK را نصب می‌کند، مجوزهای تقویم را اعطا می‌کند و تست یکپارچگی `integration_test/android_calendar_provider_acceptance_test.dart` را روی امولاتور اجرا می‌کند.
+- نتیجه معتبر مورد انتظار یا `CALENDAR_PROVIDER_ACCEPTANCE=PASS` است، یا محدودیت صریح `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. نتیجه محدودیت، موفقیت آزمون واقعی CRUD محسوب نمی‌شود.
+- محرک PR مبتنی بر فهرست `paths` است؛ در نتیجه اجرای این workflow برای هر تغییر دلخواه تضمین نشده و باید مسیرهای حساس پوشش‌داده‌شده در فهرست محرک‌ها بررسی شوند.
+
+## ۳. ماتریس پوشش و شکاف‌های شواهد
+
+| سطح / قابلیت | پوشش تعریف‌شده در CI | شکاف باقی‌مانده |
+|---|---|---|
+| تحلیل استاتیک | `flutter analyze` در Build lane و در اجرای دستی Final Head | لاگ موفق باید به SHA نهایی متصل شود؛ کد YAML به‌تنهایی نتیجه اجرا نیست |
+| تست‌های واحد و ویجت | همه `test/**` در شش shard از طریق `flutter test` | لازم است نتیجه هر شش shard در همان SHA نهایی ثبت شود |
+| Home | سناریوی `android_home_smoke_test.dart` در امولاتور؛ تلاش برای بارگذاری اسکرین‌شات | اسکرین‌شات اختیاری است؛ پذیرش بصری نهایی و گوشی واقعی اثبات نمی‌شود |
+| Calendar | تست Provider در workflow جداگانه و مشروط به path؛ بخشی از تست‌های واحد/ویجت در Build | سناریوی Calendar در ماتریس شش‌گانه Device Smoke وجود ندارد؛ اجرای workflow Provider باید جداگانه و روی SHA مربوط اثبات شود |
+| Report Center | تست‌های واحد/ویجت احتمالی در مجموعه عمومی `flutter test` | سناریوی اختصاصی Report Center در ماتریس Device Smoke مشاهده نشد؛ تصویر و مسیر کامل تعامل گزارش در این workflowها الزام‌آور نیست |
+| پیگیری‌ها / Follow-up | تست‌های موجود در `test/**` در شش shard عمومی؛ Quick Capture و People در Smoke | سناریوی مستقل end-to-end برای چرخه پیگیری در ماتریس Device Smoke مشاهده نشد؛ پوشش دقیق تست‌های نام‌برده باید از نتیجه shardها و فایل‌های تست تأیید شود |
+| واژگان «پیگیری» | تست‌های عمومی ممکن است قراردادها را پوشش دهند | گیت واژگان یا lint اختصاصی در workflowهای بررسی‌شده مشاهده نشد؛ انطباق واژگانی سراسری از YAML به‌تنهایی اثبات نمی‌شود |
+| SQLite و مایگریشن | دو سناریوی مستقل SQL Persistence و SQL Migration در امولاتور | موفقیت باید برای هر دو lane و SHA نهایی قابل مشاهده باشد؛ آزمون امولاتور جایگزین آزمون فیزیکی نیست |
+| Backup/Restore | سناریوی امولاتور مستقل در Device Smoke | ارائه‌دهنده فایل سیستم واقعی، بازیابی/بازگشت در گوشی و پذیرش فیزیکی در این گردش‌کار اثبات نمی‌شود |
+| انتشار نهایی | Final Head Validation بررسی SHA، artifact و هش‌ها را انجام می‌دهد | نتیجه workflow، فایل APK و هش باید برای یک SHA دقیق ثبت شود؛ release gate نباید با نتیجه قدیمی باز شود |
+
+## ۴. شواهد اجرایی قابل مشاهده در زمان ممیزی
+
+- اجرای [Arvin Build شماره 38899481933](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38899481933) از طریق API مربوط به jobها بررسی شد: **۹ job از ۹ job گزارش‌شده دارای conclusion=success** بودند؛ شامل Analyze، شش shard تست و دو ساخت APK.
+- در همان گزارش jobها، گام `Analyze` موفق و گام `Test` در هر یک از شش lane تست موفق بود؛ گام نامرتبط در lane دیگر به‌صورت skipped گزارش شد که رفتار مورد انتظار ماتریس است.
+- **محدودیت مهم:** داده برگشتی jobها در این بررسی، SHA دقیق checkout شده برای اجرای 38899481933 را نشان نداد؛ بنابراین این اجرا شواهد مثبت برای همان Run است، اما در این ممیزی به‌عنوان اثبات قطعی آخرین HEAD پذیرفته نمی‌شود.
+- جست‌وجوی اجرای PR-associated برای snapshot `e04467a38b92121cfb3b635f39c4c5e8fd0569ba` هیچ اجرای متناظری برنگرداند. چون این ابزار فقط اجراهای آغازشده از PR را بازمی‌گرداند، این نتیجه **اثبات نبودن همه اجراهای GitHub Actions نیست**؛ وضعیت دقیق Build/Smoke روی HEAD نهایی نامشخص باقی می‌ماند.
+- محتوای فعلی Evidence Map شامل چندین ردیف تاریخی با وضعیت‌های pending/queued/skipped و SHAهای قدیمی است؛ خود سند نیز هشدار می‌دهد که این نتایج جایگزین شواهد SHA نهایی نیستند.
+
+## ۵. نتیجه و معیار توقف
+
+**نتیجه ممیزی:** ساختار CI هم تحلیل استاتیک، تست‌های واحد/ویجت shardشده، ساخت APK و امولاتور واقعی را تعریف کرده است. بااین‌حال، پوشش عملی Home/Calendar/Report Center/Follow-up یکسان نیست و صرف وجود workflowها، اثبات موفقیت اجرای نهایی محسوب نمی‌شود.
+
+**شکاف‌های مسدودکننده:**
+1. اتصال نتیجه نهایی Analyze + شش shard + دو APK به SHA قطعی HEAD.
+2. دریافت نتیجه نهایی شش سناریوی Device Smoke برای همان SHA.
+3. دریافت artifactها و نتیجه صریح Calendar Provider Acceptance برای SHA مرتبط؛ محدودیت امولاتور نباید به‌عنوان PASS ثبت شود.
+4. نبود سناریوی اختصاصی Report Center و چرخه مستقل Follow-up در ماتریس Device Smoke فعلی.
+5. نبود گیت واژگانی اختصاصی برای اثبات یکدستی اصطلاح «پیگیری».
+6. نبود شواهد دستگاه فیزیکی و پذیرش بصری قطعی Home/Calendar/Report Center در workflowهای بررسی‌شده.
+
+هیچ فایل منطق محصول یا UI در این ممیزی تغییر نکرده است. تا زمانی که این شکاف‌ها با لاگ‌های نهایی و SHA دقیق بسته نشوند، وضعیت انتشار باید `RELEASE: NO-GO` بماند.
+
+## منابع مستقیم
+- [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml)
+- [device-smoke.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml)
+- [final-head-release-validation.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/final-head-release-validation.yml)
+- [calendar-provider-acceptance.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml)
+- [Arvin Evidence Map](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/arvin-memory/ARVIN_EVIDENCE_MAP.md)
+
+
+## تکمیل شواهد نهایی — PR #2767 — 2026-10-16
+
+- **کامیت مورد آزمون:** `102514234fe053b5a0ba33def206b96e64ea5778`؛ هر دو اجرای زیر دقیقاً همین `head_sha` و شاخه `docs/ci-evidence-audit-2026-10-16` را گزارش کرده‌اند.
+- **Build:** [Run 38932070102](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932070102) = `completed / success`؛ آخرین به‌روزرسانی ثبت‌شده `2026-10-16T16:34:03Z`. هر ۹ job موفق: `quality (analyze)`, شش job آزمون `test-0` تا `test-5`، `apk (debug)` و `apk (release)`.
+- **Device Smoke:** [Run 38932069979](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38932069979) = `completed / success`؛ آخرین به‌روزرسانی ثبت‌شده `2026-10-16T16:41:51Z`. هر شش job و گام اجرای سناریوی امولاتور موفق‌اند:
+  - Home — `success`
+  - Quick Capture — `success`
+  - SQL Persistence — `success`
+  - SQL Migration — `success`
+  - People — `success`
+  - Backup/Restore — `success`
+- **دارایی‌های شواهد Device Smoke:** Home، Quick Capture، People و Persian Time Picker بارگذاری شده‌اند. بارگذاری تصویر در این workflow اختیاری/غیرمسدودکننده است؛ نبود تصویر برای سناریوهای دیگر به معنی شکست سناریوی اصلی نیست.
+- **محدودیت زمانی:** API گردش‌کار مقدار مستقل `completed_at` برای کل اجرا را در داده بازیابی‌شده ارائه نکرد؛ بنابراین زمان بالا، `updated_at` ثبت‌شده در وضعیت نهایی است، نه ادعای زمان دقیق پایان تا ثانیه.
+- **وضعیت PR:** [PR #2767](https://github.com/mobinpda-lab/Arvin-clean/pull/2767) همچنان `open / draft / unmerged` در زمان بررسی بود.
+- **اثر تغییر مستندات:** ثبت این الحاقیه کامیت جدیدی روی همان شاخه ایجاد می‌کند. بنابراین شواهد فوق برای SHA مورد آزمون معتبرند، اما برای SHA جدید حاصل از به‌روزرسانی اسناد باید CI دوباره روی همان SHA نهایی بررسی شود.
+- **تصمیم انتشار:** `RELEASE: NO-GO`. موفقیت Build و امولاتور، پذیرش دستگاه فیزیکی، پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری یا تأیید نهایی انتشار را اثبات نمی‌کند.
+
+
+## الحاقیه ممیزی — مسیر مرجع و بازبینی شواهد PR #2767 (2026-10-16)
+
+- **مسیر مرجع مستندات حافظه:** `docs/arvin-memory/`. سه فایل مرتبط این PR فقط در همین مسیر قرار دارند: `ARVIN_EXECUTION_STATE.md`، `ARVIN_EVIDENCE_MAP.md` و `CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md`.
+- **مسیرهای ریشه‌ای مورد انتظار قبلی:** `docs/ARVIN_EXECUTION_STATE.md`، `docs/ARVIN_EVIDENCE_MAP.md` و `docs/CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md` در شاخه مورد بررسی وجود ندارند (پاسخ 404). برای جلوگیری از دو نسخه متناقض، فایل تکراری در ریشه `docs/` ساخته نشود؛ ارجاعات باید به مسیرهای مرجع بالا اصلاح شوند.
+- **اصلاحیهٔ دامنهٔ تغییرات:** این گزاره فقط برای checkpoint اولیهٔ SHA `50a3658` درست بود. PR #2767 بعداً گسترش یافت و اکنون شامل تست integration و workflowهای Build/Device Smoke/Release Closure و helper نصب NDK است. کد محصول/مدل داده/SQLite تغییر نکرده، اما YAML CI و تست integration تغییر کرده‌اند.
+- **Build:** [Run 38934604232](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604232) = `completed / success`؛ ۹/۹ job موفق: Analyze، شش shard تست، Debug APK و Release APK.
+- **Device Smoke:** [Run 38934604122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38934604122) = `completed / success`؛ ۶/۶ سناریوی امولاتور موفق: Home، Quick Capture، SQL Persistence، SQL Migration، People و Backup/Restore.
+- **مرز دقت شواهد:** فراداده هر دو Run، `head_sha=82e4bfb1b2b2b9c1cadb96a9497f61a46c4f74f3` را برای PR #2767 نشان می‌دهد؛ بااین‌حال گام `Verify exact requested revision` در Build رد شده بود و نام artifactها به SHA ادغام آزمایشی `a9ec19d5d7dd7b033484c16b39122230d741d9f7` اشاره دارد. بنابراین موفقیت Runها ثبت می‌شود، اما checkout دقیقِ خودِ head به‌طور مستقل اثبات‌شده تلقی نمی‌شود.
+- **محدودیت پذیرش:** Device Smoke روی Android Emulator است، نه گوشی فیزیکی. پوشش اختصاصی مرکز گزارش‌ها/چرخه پیگیری، گیت واژگانی سراسری «پیگیری» و پذیرش فیزیکی همچنان شکاف بازند.
+- **گیت انتشار:** `RELEASE: NO-GO`. این ثبت وضعیت، مجوز انتشار یا ادغام نیست. هر commit مستنداتی SHA شاخه را عوض می‌کند؛ پس از آخرین تغییر، Build و Device Smoke باید برای HEAD جدید دوباره بررسی شوند.
+- **وضعیت PR در زمان ثبت:** #2767 باز، Draft و ادغام‌نشده؛ تاریخچه بازنویسی نشود و PR ادغام نشود.
+
+
+## Checkpoint اصلاح‌شده — 2026-10-16 (پس از ادغام PR #2746)
+
+- PR #2746 ادغام شد: merge SHA `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b`. Release Closure خودکار اکنون به موفقیت Device Smoke ناشی از `push` به `main` محدود است؛ گیت issue #2102 حفظ شده است.
+- تشخیص خطاها جداست: (۱) SQL Migration در PR #2746 ابتدا به‌علت آرشیو خراب NDK `28.2.13676358` شکست خورد (`Error on ZipFile unknown archive`)؛ اجرای مجدد همان job موفق شد. (۲) در PR #2767، helper نصب NDK موفق شد، اما Quick Capture پیش از اجرای تست به‌علت `set -o pipefail` زیر `/usr/bin/sh` شکست خورد؛ commit `9f887af` این مورد را به `set -eu` تغییر داد.
+- PR #2767 اکنون helper مشترک `.github/scripts/ensure-android-ndk.sh` را در Build، Device Smoke و Release Closure به کار می‌برد: اعتبارسنجی `source.properties` و clang، پاک‌کردن فایل‌های دانلود ناقص و حداکثر سه تلاش نصب.
+- شواهد تاریخی روی SHA `6433b51...`: PR Build 9/9، exact-head Build 9/9 و Device Smoke شش سناریو از شش سناریو موفق بودند. این شواهد برای HEADهای بعدی معتبر نیستند.
+- گیت‌های محصولی باز: T1 (تصاویر شروع کار پنج صفحه)، T2 (۲۰ چرخهٔ زمان‌گزین همراه چرخش)، T3 (Task+Follow-up پس از force-stop/reopen)، exact-head Device Smoke، پذیرش گوشی واقعی، برچسب‌های کوتاه‌شوندهٔ Quick Capture و رگرسیون فیلتر ID اشخاص در PR #2755.
+- `RELEASE: NO-GO` تا بسته‌شدن issue #2102 و گیت‌های محصولی.
