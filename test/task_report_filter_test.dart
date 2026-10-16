@@ -91,8 +91,14 @@ void main() {
       [taskPerson, followUpPerson, unrelated],
       now: now,
     );
+    final byPersonName = const TaskReportFilter(personNames: {'آنا', 'رضا'}).apply(
+      [taskPerson, followUpPerson, unrelated],
+      now: now,
+      people: [ana, PersonReference(id: 'reza', displayName: 'رضا')],
+    );
 
     expect(result.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
+    expect(byPersonName.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
   });
 
   test('person name filter matches associated Task people', () {

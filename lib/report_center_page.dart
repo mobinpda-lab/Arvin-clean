@@ -84,6 +84,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         widget.tasks,
         now: _now,
         projects: widget.projects,
+        people: _peopleDirectory,
       );
 
   Future<void> _openFilters() async {

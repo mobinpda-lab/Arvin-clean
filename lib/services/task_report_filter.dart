@@ -1,5 +1,6 @@
 import '../models/task.dart';
 import '../models/goal_project.dart';
+import '../models/person_reference.dart';
 import '../models/recurrence.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
@@ -97,6 +98,7 @@ class TaskReportFilter {
     Iterable<Task> tasks, {
     required DateTime now,
     Iterable<ProjectPlan> projects = const [],
+    Iterable<PersonReference> people = const [],
   }) {
     final selectedProjectIds = <String>{
       ...projectIds,
@@ -113,6 +115,10 @@ class TaskReportFilter {
     final selectedProjects = projects
         .where((item) => selectedProjectIds.contains(item.id))
         .toList(growable: false);
+    final selectedPersonIds = people
+        .where((person) => personNames.contains(person.displayName.trim()))
+        .map((person) => person.id)
+        .toSet();
     return tasks.where((task) {
       if (task.trashed) return false;
       if (personIds.isNotEmpty &&
@@ -122,7 +128,9 @@ class TaskReportFilter {
         return false;
       }
       if (personNames.isNotEmpty &&
-          !task.people.any((person) => personNames.contains(person.displayName.trim()))) {
+          !task.people.any((person) => personNames.contains(person.displayName.trim())) &&
+          !task.followUps.any((followUp) =>
+              followUp.personIds.any(selectedPersonIds.contains))) {
         return false;
       }
       if (isWaitingForResponse != null &&
