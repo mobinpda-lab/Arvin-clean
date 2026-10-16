@@ -31,11 +31,10 @@ void main() {
     expect(workflow, contains('bash .github/scripts/ensure-android-ndk.sh'));
     expect(workflow, contains(r'timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
     expect(workflow, contains('sys.boot_completed'));
-    expect(workflow, contains(r'for attempt in $(seq 1 120)'));
-    expect(workflow, contains('script: |\n            timeout 120s adb -s '));
-    expect(workflow, contains(r'timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
-    expect(workflow, isNot(contains(r'for attempt in $(seq 1 120)')));
-    expect(workflow, isNot(contains('sys.boot_completed')));
+    expect(
+      workflow,
+      contains(r'timeout 240s adb -s "emulator-${EMULATOR_PORT}" shell'),
+    );
     expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
     expect(workflow, isNot(contains('uiautomator dump')));
