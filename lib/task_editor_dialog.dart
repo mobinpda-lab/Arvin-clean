@@ -1338,6 +1338,7 @@ Future<void> _pickDueDate() async {
                             color: ArvinColors.primary,
                             emptyLabel: 'بدون تکرار',
                             items: RecurrenceFrequency.values
+                                .where((frequency) => frequency != RecurrenceFrequency.oncePerDay)
                                 .map(
                                   (frequency) => ArvinRollItem<RecurrenceFrequency>(
                                     value: frequency,
