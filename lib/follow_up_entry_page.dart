@@ -25,15 +25,15 @@ class FollowUpEntryPage extends StatefulWidget {
 class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   static const _waitingService = WaitingForResponseService();
   static const _dateFormatter = PersianDateFormatter();
-  static const _defaultTitle = 'پیگیری';
-
   late DateTime _dateTime;
+  final _titleController = TextEditingController();
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
   DateTime? _reminderDate;
   DateTime? _nextFollowUp;
   bool _waitingForResponse = false;
   late DateTime _initialDateTime;
+  late String _initialTitle;
   late String _initialNote;
   late String _initialResult;
   late DateTime? _initialReminderDate;
@@ -47,12 +47,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.initState();
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
+    _titleController.text = initial?.title ?? '';
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
     _reminderDate = initial?.reminderDate;
     _nextFollowUp = initial?.nextFollowUp;
     _initialDateTime = _dateTime;
+    _initialTitle = _titleController.text;
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
     _initialReminderDate = _reminderDate;
@@ -62,6 +64,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _noteController.dispose();
     _resultController.dispose();
     super.dispose();
@@ -194,6 +197,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   bool get _hasChanges =>
       _dateTime != _initialDateTime ||
+      _titleController.text != _initialTitle ||
       _noteController.text != _initialNote ||
       _resultController.text != _initialResult ||
       _reminderDate != _initialReminderDate ||
@@ -244,12 +248,13 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final result = _waitingForResponse
         ? WaitingForResponseService.canonicalResult
         : _waitingService.canonicalizeResult(rawResult);
-    final enteredTitle = _noteController.text.trim();
+    final enteredTitle = _titleController.text.trim();
     final followUp = FollowUp(
       id: widget.initialFollowUp?.id ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       dateTime: _dateTime,
-      note: enteredTitle.isEmpty ? _defaultTitle : enteredTitle,
+      title: enteredTitle.isEmpty ? null : enteredTitle,
+      note: _noteController.text.trim(),
       result: result,
       reminderDate: _reminderDate,
       nextFollowUp: _nextFollowUp,
@@ -309,11 +314,22 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             const SizedBox(height: 16),
             TextField(
               key: const ValueKey('follow-up-entry-title'),
-              controller: _noteController,
-              maxLines: 2,
+              controller: _titleController,
+              maxLines: 1,
               decoration: const InputDecoration(
                 labelText: 'عنوان پیگیری (اختیاری)',
-                hintText: 'اگر خالی بماند «پیگیری» ثبت می‌شود',
+                hintText: 'در صورت خالی بودن، نام کار مادر نمایش داده می‌شود',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              key: const ValueKey('follow-up-entry-note'),
+              controller: _noteController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'یادداشت پیگیری',
+                hintText: 'شرح تماس، نتیجه یا نکته‌های مهم',
                 border: OutlineInputBorder(),
               ),
             ),
