@@ -1415,47 +1415,58 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                     ),
               ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                TextButton.icon(
-                  key: const ValueKey('notebook-category-picker'),
-                  onPressed: _pickCategory,
-                  icon: const Icon(Icons.menu_book_outlined, size: 18),
-                  label: Text(
-                    _category == null || _category!.trim().isEmpty
-                        ? 'انتخاب دسته'
-                        : _category!,
+            SingleChildScrollView(
+              key: const ValueKey('notebook-taxonomy-row'),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    key: const ValueKey('notebook-category-picker'),
+                    onPressed: _pickCategory,
+                    icon: const Icon(Icons.menu_book_outlined, size: 18, color: ArvinColors.category),
+                    label: Text(
+                      _category == null || _category!.trim().isEmpty
+                          ? 'انتخاب دسته'
+                          : _category!,
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.categoryDark,
+                      backgroundColor: ArvinColors.categorySoft,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    visualDensity: VisualDensity.compact,
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-tags-picker'),
+                    onPressed: _pickTags,
+                    icon: const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
+                    label: Text(
+                      _tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' '),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.tag,
+                      backgroundColor: ArvinColors.tagSoft,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
-                ),
-                TextButton.icon(
-                  key: const ValueKey('notebook-project-picker'),
-                  onPressed: _pickProject,
-                  icon: const Icon(Icons.work_outline, size: 18),
-                  label: Text(_projectTitle ?? 'انتخاب پروژه'),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    visualDensity: VisualDensity.compact,
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-project-picker'),
+                    onPressed: _pickProject,
+                    icon: const Icon(Icons.work_outline, size: 18, color: ArvinColors.project),
+                    label: Text(_projectTitle ?? 'انتخاب پروژه'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.projectDark,
+                      backgroundColor: ArvinColors.projectSoft,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
-                ),
-                TextButton.icon(
-                  key: const ValueKey('notebook-tags-picker'),
-                  onPressed: _pickTags,
-                  icon: const Icon(Icons.sell_outlined, size: 18),
-                  label: Text(
-                    _tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' '),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             const Divider(height: 16, thickness: 0.5),
             const SizedBox(height: 4),

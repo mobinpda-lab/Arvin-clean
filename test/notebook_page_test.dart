@@ -630,6 +630,13 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-project-picker')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-taxonomy-row')), findsOneWidget);
+    expect(
+      tester.widget<SingleChildScrollView>(
+        find.byKey(const ValueKey('notebook-taxonomy-row')),
+      ).scrollDirection,
+      Axis.horizontal,
+    );
     expect(find.byKey(const ValueKey('notebook-editor-trash')), findsOneWidget);
 
     final description = tester.widget<TextField>(

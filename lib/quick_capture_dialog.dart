@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
@@ -362,7 +364,7 @@ Future<DateTime?> _pickCustomDue() async {
                       RecurrenceFrequency.oncePerDay => 'روز',
                     },
                     icon: Icons.repeat_rounded,
-                    color: const Color(0xFF4A4CAB),
+                    color: ArvinColors.primary,
                     items: const [
                       ArvinRollItem(value: RecurrenceFrequency.minutes, label: 'دقیقه', icon: Icons.schedule_rounded),
                       ArvinRollItem(value: RecurrenceFrequency.hours, label: 'ساعت', icon: Icons.access_time_rounded),
@@ -447,7 +449,7 @@ Future<DateTime?> _pickCustomDue() async {
                   width: 42,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7ED),
+                    color: ArvinColors.border,
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -457,7 +459,7 @@ Future<DateTime?> _pickCustomDue() async {
                 'ثبت سریع کار',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF232433),
+                  color: ArvinColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
@@ -477,10 +479,10 @@ Future<DateTime?> _pickCustomDue() async {
                   helperText: 'عنوان برای ثبت کافی است',
                   errorText: _error,
                   filled: true,
-                  fillColor: const Color(0xFFFDFDFE),
+                  fillColor: ArvinColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7ED)),
+                    borderSide: const BorderSide(color: ArvinColors.border),
                   ),
                 ),
               ),
@@ -495,7 +497,7 @@ Future<DateTime?> _pickCustomDue() async {
                 decoration: InputDecoration(
                   labelText: 'توضیحات (اختیاری)',
                   filled: true,
-                  fillColor: const Color(0xFFFDFDFE),
+                  fillColor: ArvinColors.surface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
@@ -518,7 +520,7 @@ Future<DateTime?> _pickCustomDue() async {
                                 .map((project) => project.title)
                                 .first,
                     icon: Icons.folder_outlined,
-                    color: const Color(0xFF3568D4),
+                    color: ArvinColors.project,
                     emptyLabel: 'بدون پروژه',
                     createLabel: 'ایجاد جدید',
                     items: _knownProjects
@@ -532,8 +534,8 @@ Future<DateTime?> _pickCustomDue() async {
                                 : project.title,
                             icon: Icons.folder_outlined,
                             color: project.isArchived
-                                ? const Color(0xFF7D8298)
-                                : const Color(0xFF3568D4),
+                                ? ArvinColors.textSecondary
+                                : ArvinColors.project,
                           ),
                         )
                         .toList(),
@@ -596,10 +598,10 @@ Future<DateTime?> _pickCustomDue() async {
                     label: 'دسته',
                     valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
                     icon: Icons.grid_view_rounded,
-                    color: const Color(0xFF7650C8),
+                    color: ArvinColors.tag,
                     emptyLabel: 'بدون دسته',
                     items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
-                      value: v, label: v, icon: Icons.grid_view_rounded, color: const Color(0xFF7650C8),
+                      value: v, label: v, icon: Icons.grid_view_rounded, color: ArvinColors.tag,
                     )).toList(),
                     onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
                     onCreate: () async {
@@ -672,12 +674,12 @@ Future<DateTime?> _pickCustomDue() async {
                           label: 'موعد',
                           valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
                           icon: Icons.calendar_today_outlined,
-                          color: const Color(0xFF2F7D5A),
+                          color: ArvinColors.time,
                           emptyLabel: 'بدون موعد',
                           items: [
-                            ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: const Color(0xFF2F7D5A)),
-                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: const Color(0xFF3568D4)),
-                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: const Color(0xFF7650C8)),
+                            ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: ArvinColors.time),
+                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
+                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
                           ],
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomDue,
@@ -696,13 +698,13 @@ Future<DateTime?> _pickCustomDue() async {
                           label: 'تکرار',
                           valueLabel: _recurrenceLabel(),
                           icon: Icons.repeat_rounded,
-                          color: const Color(0xFFD16A2D),
+                          color: ArvinColors.category,
                           emptyLabel: 'بدون تکرار',
                           items: const [
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: Color(0xFFD16A2D)),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: Color(0xFF3568D4)),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: Color(0xFF7650C8)),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.yearly), label: 'هر سال', icon: Icons.event_repeat_outlined, color: Color(0xFF2F7D5A)),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: ArvinColors.category),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: ArvinColors.project),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: ArvinColors.tag),
+                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.yearly), label: 'هر سال', icon: Icons.event_repeat_outlined, color: ArvinColors.time),
                           ],
                           createLabel: 'تکرار سفارشی',
                           onCreate: _saving ? null : _pickCustomRecurrence,
@@ -716,14 +718,14 @@ Future<DateTime?> _pickCustomDue() async {
                           label: 'یادآور',
                           valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
                           icon: Icons.notifications_none_outlined,
-                          color: const Color(0xFFE08A2E),
+                          color: ArvinColors.reminder,
                           emptyLabel: 'بدون یادآور',
                           items: [
-                            ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: const Color(0xFFE08A2E)),
+                            ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
                           ],
                           createLabel: 'تاریخ و ساعت سفارشی',
                           onCreate: _saving ? null : _pickCustomReminder,
@@ -774,7 +776,7 @@ Future<DateTime?> _pickCustomDue() async {
                           ? 'افزودن پیگیری'
                           : '${_pendingFollowUps.length} پیگیری ثبت‌شده',
                       icon: Icons.follow_the_signs_outlined,
-                      color: const Color(0xFF7650C8),
+                      color: ArvinColors.tag,
                       emptyLabel: 'هنوز پیگیری ثبت نشده',
                       items: _pendingFollowUps
                           .map((followUp) {
@@ -802,7 +804,7 @@ Future<DateTime?> _pickCustomDue() async {
                           ? 'افزودن مورد'
                           : '${_checklistItems.length} مورد',
                       icon: Icons.checklist_outlined,
-                      color: const Color(0xFF2F7D5A),
+                      color: ArvinColors.time,
                       emptyLabel: 'چک‌لیست خالی',
                       items: _checklistItems
                           .map((item) => ArvinRollItem<String>(
