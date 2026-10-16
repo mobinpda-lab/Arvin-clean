@@ -315,7 +315,7 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
   });
 
-  testWidgets('expands reminder actions and routes applicable callbacks',
+  testWidgets('long press exposes follow-up actions and routes callbacks',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     final reminder = CalendarReminder(
@@ -337,20 +337,24 @@ void main() {
       ),
     );
 
-    await tester.tap(
+    await tester.longPress(
       find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
     );
     await tester.pump();
 
     expect(find.text('انجام شد'), findsOneWidget);
     expect(find.text('تعویق'), findsNothing);
-    expect(find.text('ویرایش'), findsOneWidget);
+    expect(find.text('ویرایش پیگیری'), findsOneWidget);
     expect(find.text('تبدیل به کار'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1')),
     );
     await tester.pump();
+    await tester.longPress(
+      find.byKey(const ValueKey('reminder-card-followup:task-1:fu-1')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1')),
     );
