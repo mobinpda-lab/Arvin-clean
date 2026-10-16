@@ -384,9 +384,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-item-icon-task-due:task-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.notifications_outlined), findsWidgets);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+    expect(find.text('واردشده از تقویم گوشی'), findsNothing);
+    expect(find.text('یادآوری آروین'), findsNothing);
+    expect(find.byIcon(Icons.expand_more), findsNothing);
+    expect(find.byIcon(Icons.expand_less), findsNothing);
   });
 
 
@@ -419,8 +422,10 @@ void main() {
       find.byKey(const ValueKey('external-calendar-actions-external-calendar:event-actions')),
       findsOneWidget,
     );
-    expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
-    expect(find.text('ثبت در تقویم آروین'), findsOneWidget);
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
+    expect(find.text('ثبت در تقویم آروین'), findsNothing);
+    expect(find.byKey(const ValueKey('external-calendar-edit-external-calendar:event-actions')), findsOneWidget);
+    expect(find.byKey(const ValueKey('external-calendar-create-task-external-calendar:event-actions')), findsOneWidget);
   });
 
   testWidgets('exposes reversible delete only for Arvin-owned task rows', (tester) async {
