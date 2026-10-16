@@ -736,9 +736,9 @@ Future<void> _pickDueDate() async {
           key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F7FF),
+            color: ArvinColors.primarySoft,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE8E6F7)),
+            border: Border.all(color: ArvinColors.border),
           ),
           child: Material(
             color: Colors.transparent,
@@ -766,7 +766,7 @@ Future<void> _pickDueDate() async {
     return Container(
       key: const ValueKey('task-editor-checklist-block'),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF4F7FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDDE3FF))),
+      decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
         const SizedBox(height: 4),
@@ -795,7 +795,7 @@ Future<void> _pickDueDate() async {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
               child: Row(children: [
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
-                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
+                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w600))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
                 ReorderableDragStartListener(
                   key: ValueKey('task-editor-checklist-drag-$index'),
@@ -1118,10 +1118,10 @@ Future<void> _pickDueDate() async {
       },
       child: Dialog.fullscreen(
         key: const ValueKey('arvin-task-editor-dialog'),
-        backgroundColor: const Color(0xFFF8F8FB),
+        backgroundColor: ArvinColors.background,
         child: SafeArea(
           child: Material(
-            color: const Color(0xFFF8F8FB),
+            color: ArvinColors.background,
             child: Column(
               children: [
                 Container(
@@ -1529,9 +1529,9 @@ Future<void> _pickDueDate() async {
                     key: const ValueKey('task-editor-followup-block'),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F7FF),
+                      color: ArvinColors.primarySoft,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE8E6F7)),
+                      border: Border.all(color: ArvinColors.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
