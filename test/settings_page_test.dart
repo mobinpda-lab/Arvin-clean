@@ -57,19 +57,28 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirharf')),
       180,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirmatn')),
       180,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-system')),
       180,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('font-option-system')));
@@ -81,7 +90,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-vazirharf')),
       180,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ).first,
     );
     await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
     await tester.pumpAndSettle();
