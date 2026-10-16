@@ -1044,8 +1044,6 @@ class _ReminderCard extends StatefulWidget {
 }
 
 class _ReminderCardState extends State<_ReminderCard> {
-  bool _expanded = false;
-
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
 
   bool get _hasActions =>
@@ -1070,10 +1068,7 @@ class _ReminderCardState extends State<_ReminderCard> {
   }
 
   Future<void> _showTaskActions() async {
-    if (!_isTaskCalendarItem || !_hasActions) {
-      if (mounted) setState(() => _expanded = true);
-      return;
-    }
+    if (!_hasActions) return;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -1082,64 +1077,126 @@ class _ReminderCardState extends State<_ReminderCard> {
         child: SingleChildScrollView(
           child: Wrap(
             children: [
-            if ((widget.item.id.startsWith('followup:') ||
-                    widget.item.id.startsWith('task-followup:')) &&
-                widget.onComplete != null &&
-                !widget.item.completed)
-              ListTile(
-                key: ValueKey('reminder-complete-${widget.item.id}'),
-                leading: const Icon(Icons.check_circle_outline),
-                title: const Text('انجام شد'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _run(widget.onComplete);
-                },
-              ),
-            if ((widget.item.id.startsWith('followup:') ||
-                    widget.item.id.startsWith('task-followup:')) &&
-                widget.onEdit != null)
-              ListTile(
-                key: ValueKey('reminder-edit-${widget.item.id}'),
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('ویرایش پیگیری'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _run(widget.onEdit);
-                },
-              ),
-            if (widget.onEditTask != null)
-              ListTile(
-                key: ValueKey('task-due-edit-${widget.item.id}'),
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('ویرایش'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _run(widget.onEditTask);
-                },
-              ),
-            if (widget.onDeleteTask != null)
-              ListTile(
-                key: ValueKey('task-due-delete-${widget.item.id}'),
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('حذف'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  // The canonical owner callback performs its existing
-                  // confirmation and stable-ID deletion flow. Do not show a
-                  // second confirmation here.
-                  _run(widget.onDeleteTask);
-                },
-              ),
-            if (widget.onRegisterTaskToDeviceCalendar != null)
-              ListTile(
-                key: ValueKey('task-due-device-calendar-${widget.item.id}'),
-                leading: const Icon(Icons.event_available_outlined),
-                title: const Text('ثبت در تقویم گوشی'),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _run(widget.onRegisterTaskToDeviceCalendar);
-                },
-              ),
+              if (widget.isPrayer && widget.onPrayerCompleted != null)
+                ListTile(
+                  key: ValueKey('prayer-completed-${widget.item.id}'),
+                  leading: const Icon(Icons.check_circle_outline),
+                  title: const Text('ادا شد'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onPrayerCompleted);
+                  },
+                ),
+              if (widget.isPrayer && widget.onPrayerNotCompleted != null)
+                ListTile(
+                  key: ValueKey('prayer-not-completed-${widget.item.id}'),
+                  leading: const Icon(Icons.cancel_outlined),
+                  title: const Text('قضا شد'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onPrayerNotCompleted);
+                  },
+                ),
+              if (widget.item.id.startsWith('external-calendar:') &&
+                  widget.onOpenExternal != null)
+                ListTile(
+                  key: ValueKey('external-calendar-edit-${widget.item.id}'),
+                  leading: const Icon(Icons.edit_calendar_outlined),
+                  title: const Text('ویرایش در تقویم گوشی'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onOpenExternal);
+                  },
+                ),
+              if (!_isTaskCalendarItem &&
+                  !widget.isPrayer &&
+                  widget.onCreateTaskFromCalendarEvent != null)
+                ListTile(
+                  key: ValueKey('external-calendar-create-task-${widget.item.id}'),
+                  leading: const Icon(Icons.add_task_outlined),
+                  title: const Text('ثبت در آروین'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onCreateTaskFromCalendarEvent);
+                  },
+                ),
+              if (widget.onComplete != null && !widget.item.completed)
+                ListTile(
+                  key: ValueKey('reminder-complete-${widget.item.id}'),
+                  leading: const Icon(Icons.check_circle_outline),
+                  title: const Text('انجام شد'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onComplete);
+                  },
+                ),
+              if ((widget.item.id.startsWith('followup:') ||
+                      widget.item.id.startsWith('task-followup:')) &&
+                  widget.onEdit != null)
+                ListTile(
+                  key: ValueKey('reminder-edit-${widget.item.id}'),
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('ویرایش پیگیری'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onEdit);
+                  },
+                )
+              else if (!_isTaskCalendarItem &&
+                  !widget.isPrayer &&
+                  widget.onEdit != null)
+                ListTile(
+                  key: ValueKey('reminder-edit-${widget.item.id}'),
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('ویرایش'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onEdit);
+                  },
+                ),
+              if (_isTaskCalendarItem && widget.onEditTask != null)
+                ListTile(
+                  key: ValueKey('task-due-edit-${widget.item.id}'),
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('ویرایش'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onEditTask);
+                  },
+                ),
+              if (_isTaskCalendarItem && widget.onDeleteTask != null)
+                ListTile(
+                  key: ValueKey('task-due-delete-${widget.item.id}'),
+                  leading: const Icon(Icons.delete_outline),
+                  title: const Text('حذف'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onDeleteTask);
+                  },
+                ),
+              if (_isTaskCalendarItem &&
+                  widget.onRegisterTaskToDeviceCalendar != null)
+                ListTile(
+                  key: ValueKey('task-due-device-calendar-${widget.item.id}'),
+                  leading: const Icon(Icons.event_available_outlined),
+                  title: const Text('ثبت در تقویم گوشی'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onRegisterTaskToDeviceCalendar);
+                  },
+                ),
+              if (!_isTaskCalendarItem &&
+                  !widget.isPrayer &&
+                  widget.onConvertToTask != null)
+                ListTile(
+                  key: ValueKey('reminder-convert-${widget.item.id}'),
+                  leading: const Icon(Icons.task_alt_outlined),
+                  title: const Text('تبدیل به کار'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _run(widget.onConvertToTask);
+                  },
+                ),
             ],
           ),
         ),
@@ -1198,18 +1255,18 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            // A short tap opens the canonical Task editor; management
-            // actions are intentionally isolated behind long-press.
+            // A short tap opens the canonical item's available detail/edit
+            // route. Quick actions are available only through long-press.
             onTap: _isTaskCalendarItem
                 ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
-                : _hasActions
-                    ? () => setState(() => _expanded = !_expanded)
-                    : null,
-            onLongPress: !_hasActions
-                ? null
-                : _isTaskCalendarItem
-                    ? _showTaskActions
-                    : () => setState(() => _expanded = true),
+                : widget.item.id.startsWith('external-calendar:')
+                    ? (widget.onOpenExternal == null
+                        ? null
+                        : () => _run(widget.onOpenExternal))
+                    : (widget.onEdit == null || widget.isPrayer
+                        ? null
+                        : () => _run(widget.onEdit)),
+            onLongPress: _hasActions ? _showTaskActions : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),
               radius: 16,
@@ -1320,94 +1377,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                 ],
               ),
             ),
-            trailing: _hasActions
-                ? Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20)
-                : null,
           ),
-          if (_expanded && _hasActions)
-            Padding(
-              key: ValueKey('reminder-actions-${item.id}'),
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (widget.isPrayer && widget.onPrayerCompleted != null)
-                    ActionChip(
-                      key: ValueKey('prayer-completed-${item.id}'),
-                      avatar: const Icon(Icons.check_circle_outline, size: 18),
-                      label: const Text('ادا شد'),
-                      onPressed: () => _run(widget.onPrayerCompleted),
-                    ),
-                  if (widget.isPrayer && widget.onPrayerNotCompleted != null)
-                    ActionChip(
-                      key: ValueKey('prayer-not-completed-${item.id}'),
-                      avatar: const Icon(Icons.cancel_outlined, size: 18),
-                      label: const Text('قضا شد'),
-                      onPressed: () => _run(widget.onPrayerNotCompleted),
-                    ),
-                  if (item.id.startsWith('external-calendar:') && widget.onOpenExternal != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_calendar_outlined, size: 18),
-                      label: const Text('ویرایش در تقویم گوشی'),
-                      onPressed: () => _run(widget.onOpenExternal),
-                    ),
-                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onCreateTaskFromCalendarEvent != null)
-                    ActionChip(
-                      key: ValueKey('external-calendar-create-task-${item.id}'),
-                      avatar: const Icon(Icons.add_task_outlined, size: 18),
-                      label: const Text('ثبت در آروین'),
-                      onPressed: () => _run(widget.onCreateTaskFromCalendarEvent),
-                    ),
-                  if (!_isTaskCalendarItem &&
-                      !widget.isPrayer &&
-                      widget.onComplete != null &&
-                      !item.completed)
-                    ActionChip(
-                      key: ValueKey('reminder-complete-${item.id}'),
-                      avatar: const Icon(Icons.check_circle_outline, size: 18),
-                      label: const Text('انجام شد'),
-                      onPressed: () => _run(widget.onComplete),
-                    ),
-                  if (_isTaskCalendarItem && widget.onEditTask != null)
-                    ActionChip(
-                      key: ValueKey('task-due-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('ویرایش'),
-                      onPressed: () => _run(widget.onEditTask),
-                    ),
-                  if (_isTaskCalendarItem && widget.onDeleteTask != null)
-                    ActionChip(
-                      key: ValueKey('task-due-delete-${item.id}'),
-                      avatar: const Icon(Icons.delete_outline, size: 18),
-                      label: const Text('حذف'),
-                      onPressed: () => _run(widget.onDeleteTask),
-                    ),
-                  if (_isTaskCalendarItem && widget.onRegisterTaskToDeviceCalendar != null)
-                    ActionChip(
-                      key: ValueKey('task-due-device-calendar-${item.id}'),
-                      avatar: const Icon(Icons.event_available_outlined, size: 18),
-                      label: const Text('ثبت در تقویم گوشی'),
-                      onPressed: () => _run(widget.onRegisterTaskToDeviceCalendar),
-                    ),
-                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onEdit != null)
-                    ActionChip(
-                      key: ValueKey('reminder-edit-${item.id}'),
-                      avatar: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('ویرایش'),
-                      onPressed: () => _run(widget.onEdit),
-                    ),
-                  if (!_isTaskCalendarItem && !widget.isPrayer && widget.onConvertToTask != null)
-                    ActionChip(
-                      key: ValueKey('reminder-convert-${item.id}'),
-                      avatar: const Icon(Icons.task_alt_outlined, size: 18),
-                      label: const Text('تبدیل به کار'),
-                      onPressed: () => _run(widget.onConvertToTask),
-                    ),
-                ],
-              ),
-            ),
         ],
       ),
       ),
