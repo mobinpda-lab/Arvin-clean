@@ -45,10 +45,23 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   DateTime get _now => widget.now ?? DateTime.now();
 
   List<PersonReference> get _peopleDirectory {
-    final byId = <String, PersonReference>{
-      for (final task in widget.tasks)
-        for (final person in task.people) person.id: person,
+    final activeById = <String, PersonReference>{
       for (final person in widget.people) person.id: person,
+    };
+    final byId = <String, PersonReference>{
+      if (widget.people.isEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people) person.id: person,
+      if (widget.people.isNotEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people)
+            if (activeById.containsKey(person.id)) person.id: activeById[person.id]!,
+      for (final person in widget.people) person.id: person,
+      for (final task in widget.tasks)
+        for (final followUp in task.followUps)
+          for (final personId in followUp.personIds)
+            if (!activeById.containsKey(personId))
+              personId: PersonReference(id: personId, displayName: 'شخص حذف‌شده'),
     };
     final result = byId.values.toList(growable: false)
       ..sort((a, b) => a.displayName.compareTo(b.displayName));
@@ -77,6 +90,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         initial: _filter,
         projects: widget.projects,
         tasks: widget.tasks,
+        people: _peopleDirectory,
         now: _now,
       ),
     );
@@ -312,12 +326,14 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.initial,
     required this.projects,
     required this.tasks,
+    required this.people,
     required this.now,
   });
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<Task> tasks;
+  final List<PersonReference> people;
   final DateTime now;
 
   @override
@@ -333,6 +349,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
+  Set<String> _personIds = <String>{};
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -357,6 +374,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
+    _personIds = <String>{...f.personIds};
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -452,6 +470,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
+        personIds: Set<String>.of(_personIds),
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -592,6 +611,22 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
+              ),
+            ),
+            _Section(
+              title: 'شخص',
+              icon: Icons.people_outline,
+              accentColor: ArvinColors.people,
+              selectedCount: _personIds.length,
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                accentColor: ArvinColors.people,
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
               ),
             ),
             _Section(
