@@ -521,6 +521,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         child: Column(
           children: [
             SizedBox(
+              key: const ValueKey('report-filter-header'),
               height: 64,
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
