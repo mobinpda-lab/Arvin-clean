@@ -7,17 +7,9 @@ import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_report_filter.dart';
-import 'services/person_follow_up_report_projection.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
-
-String _reportDateTimeLabel(DateTime value) {
-  const formatter = PersianDateFormatter();
-  final date = formatter.format(value, usePersianDate: true);
-  final time = formatter.formatTime(value.hour, value.minute);
-  return '$date $time';
-}
 
 class ReportCenterPage extends StatefulWidget {
   const ReportCenterPage({
@@ -39,8 +31,6 @@ class ReportCenterPage extends StatefulWidget {
 
 class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
-  bool _showWaitingFollowUps = false;
-  String? _selectedPersonId;
 
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -73,17 +63,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     return result;
   }
 
-  List<PersonFollowUpReportRow> get _waitingRows =>
-      const PersonFollowUpReportProjection().project(
-        widget.tasks,
-        people: _peopleDirectory,
-        personId: _selectedPersonId,
-      );
-
   List<Task> get _filtered => _filter.apply(
         widget.tasks,
         now: _now,
         projects: widget.projects,
+        people: _peopleDirectory,
       );
 
   Future<void> _openFilters() async {
@@ -104,14 +88,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
-        _showWaitingFollowUps = false;
-        _selectedPersonId = null;
       });
 
   @override
   Widget build(BuildContext context) {
     final tasks = _filtered;
-    final waitingRows = _waitingRows;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -153,76 +134,19 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('پیگیری‌های منتظر پاسخ'),
-                      value: _showWaitingFollowUps,
-                      onChanged: (value) => setState(() => _showWaitingFollowUps = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedPersonId ?? '',
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'فرد', isDense: true),
-                      items: [
-                        const DropdownMenuItem<String>(value: '', child: Text('همه افراد')),
-                        for (final person in _peopleDirectory)
-                          DropdownMenuItem<String>(value: person.id, child: Text(person.displayName, overflow: TextOverflow.ellipsis)),
-                      ],
-                      onChanged: (value) => setState(() => _selectedPersonId = value == null || value.isEmpty ? null : value),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_filter.isActive && !_showWaitingFollowUps)
+            if (_filter.isActive)
               _ActiveFilterChips(filter: _filter, onClear: _clear),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text(_showWaitingFollowUps
-                    ? 'نتیجه: ${waitingRows.length} پیگیری'
-                    : 'نتیجه: ${tasks.length} کار'),
+                child: Text('نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: _showWaitingFollowUps
-                  ? (waitingRows.isEmpty
-                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: waitingRows.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
-                          itemBuilder: (_, index) {
-                            final row = waitingRows[index];
-                            final next = row.nextFollowUp;
-                            final reminder = row.reminderDate;
-                            return Card(
-                              child: ListTile(
-                                title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
-                                subtitle: Text([
-                                  if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
-                                  if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
-                                  'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
-                                  if (next != null) 'اقدام بعدی: ${_reportDateTimeLabel(next)}',
-                                  if (reminder != null) 'یادآور: ${_reportDateTimeLabel(reminder)}',
-                                ].join(' • ')),
-                              ),
-                            );
-                          },
-                        ))
-                  : (tasks.isEmpty
-                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
-                      : ListView.separated(
+              child: tasks.isEmpty
+                  ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
+                  : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: tasks.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -261,11 +185,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           ),
                         );
                       },
-                    )),
+                    ),
             ),
           ],
         ),
-        floatingActionButton: _showWaitingFollowUps || tasks.isEmpty
+        floatingActionButton: tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
@@ -307,6 +231,10 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           if (filter.personIds.isNotEmpty)
             Chip(label: Text('اشخاص: ${filter.personIds.length}')),
+          for (final personName in filter.personNames)
+            Chip(label: Text('شخص: $personName')),
+          if (filter.isWaitingForResponse != null)
+            Chip(label: Text(filter.isWaitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ')),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -356,7 +284,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
-  Set<String> _personIds = <String>{};
+  Set<String> _personNames = <String>{};
+  bool? _isWaitingForResponse;
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -381,7 +310,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
-    _personIds = <String>{...f.personIds};
+    _personNames = <String>{...f.personNames};
+    _isWaitingForResponse = f.isWaitingForResponse;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -477,7 +407,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
-        personIds: Set<String>.of(_personIds),
+        personNames: Set<String>.of(_personNames),
+        isWaitingForResponse: _isWaitingForResponse,
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -508,6 +439,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList()..sort();
+    final personNames = <String>{
+      ...widget.people.map((person) => person.displayName.trim()),
+      ...widget.tasks.expand((task) => task.people).map((person) => person.displayName.trim()),
+    }.where((name) => name.isNotEmpty).toList()..sort();
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
@@ -638,18 +573,16 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'شخص',
+              title: 'اشخاص',
               icon: Icons.people_outline,
               accentColor: ArvinColors.primary,
-              selectedCount: _personIds.length,
+              selectedCount: _personNames.length,
               child: _MultiSelectChips(
                 allLabel: 'همه اشخاص',
                 accentColor: ArvinColors.primary,
-                options: widget.people
-                    .map((person) => MapEntry(person.id, person.displayName))
-                    .toList(growable: false),
-                selected: _personIds,
-                onChanged: (value) => setState(() => _personIds = value),
+                options: personNames.map((name) => MapEntry(name, name)).toList(growable: false),
+                selected: _personNames,
+                onChanged: (value) => setState(() => _personNames = value),
                 keyPrefix: 'report-filter-person',
               ),
             ),
@@ -892,7 +825,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
               accentColor: ArvinColors.category,
-              selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
+              selectedCount: (_hasRepeat != null ? 1 : 0) +
+                  (_hasChecklist != null ? 1 : 0) +
+                  (_isWaitingForResponse != null ? 1 : 0),
               child: Wrap(
                 spacing: 6,
                 children: [
@@ -905,6 +840,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     label: 'Checklist',
                     value: _hasChecklist,
                     onChanged: (value) => setState(() => _hasChecklist = value),
+                  ),
+                  _TriStateChip(
+                    label: 'منتظر پاسخ',
+                    value: _isWaitingForResponse,
+                    onChanged: (value) => setState(() => _isWaitingForResponse = value),
                   ),
                 ],
               ),
@@ -935,7 +875,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _projectIds = <String>{};
                           _categories = <String>{};
                           _tags = <String>{};
-                          _personIds = <String>{};
+                          _personNames = <String>{};
+                          _isWaitingForResponse = null;
                           _statuses.clear();
                           _trackingLevels.clear();
                           _noteKinds.clear();

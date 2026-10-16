@@ -114,7 +114,7 @@ void main() {
       expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
     },
   );
-  testWidgets('Report Center shows separate person-specific active waiting rows', (tester) async {
+  testWidgets('People and waiting-for-response controls stay inside filter sheet', (tester) async {
     final ana = PersonReference(id: 'ana', displayName: 'آنا');
     final reza = PersonReference(id: 'reza', displayName: 'رضا');
     await tester.pumpWidget(
@@ -133,8 +133,6 @@ void main() {
                   note: 'پاسخ آنا',
                   personIds: ['ana'],
                   waitingForResponse: true,
-                  nextFollowUp: DateTime(2026, 10, 16, 9),
-                  reminderDate: DateTime(2026, 10, 15, 18),
                 ),
                 FollowUp(
                   id: 'waiting-reza',
@@ -145,28 +143,75 @@ void main() {
                 ),
               ],
             ),
+            Task(
+              id: 'task-not-waiting',
+              title: 'کار عادی',
+              followUps: [
+                FollowUp(
+                  id: 'not-waiting',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                  waitingForResponse: false,
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
 
-    await tester.tap(find.text('پیگیری‌های منتظر پاسخ'));
+    expect(find.text('پیگیری‌های منتظر پاسخ'), findsNothing);
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+    expect(find.text('آنا'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-filter-header')), findsOneWidget);
+
+    final peopleSection = find.byKey(const ValueKey('report-filter-section-اشخاص'));
+    await tester.ensureVisible(peopleSection);
+    await tester.pumpAndSettle();
+    // Tap the ExpansionTile header itself; tapping the enclosing Card can hit
+    // its center outside the header after the sheet has been scrolled.
+    await tester.tap(find.text('اشخاص'));
     await tester.pumpAndSettle();
 
-    expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
-    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
-    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
-    expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
-    expect(find.textContaining('یادآور:'), findsOneWidget);
-
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    final anaOption = find.byKey(const ValueKey('report-filter-person-آنا'));
+    expect(anaOption, findsOneWidget);
+    await tester.ensureVisible(anaOption);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('آنا').last);
+    await tester.tap(anaOption);
     await tester.pumpAndSettle();
 
-    expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
-    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
-    expect(find.textContaining('پاسخ رضا'), findsNothing);
+    final featureSection = find.byKey(const ValueKey('report-filter-section-ویژگی‌های کار'));
+    // The filter sheet uses a lazy ListView; the section may not have an
+    // Element yet when it is outside the viewport. Scroll until its title is
+    // built before trying to reveal the keyed Card.
+    await tester.scrollUntilVisible(
+      featureSection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(featureSection, findsOneWidget);
+    await tester.tap(featureSection);
+    await tester.pumpAndSettle();
+
+    final waitingOption = find.widgetWithText(ChoiceChip, 'منتظر پاسخ');
+    await tester.ensureVisible(waitingOption);
+    await tester.pumpAndSettle();
+    expect(waitingOption, findsOneWidget);
+    await tester.tap(waitingOption);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 1 کار'), findsOneWidget);
+    expect(find.text('پرونده مشتری'), findsOneWidget);
+    expect(find.text('کار عادی'), findsNothing);
+    expect(find.text('شخص: آنا'), findsOneWidget);
+    expect(find.text('منتظر پاسخ'), findsWidgets);
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
   });
 
   testWidgets('Report Center keeps deleted people selectable by stable label', (tester) async {
@@ -194,20 +239,20 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-section-شخص')),
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-شخص')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
+      find.byKey(const ValueKey('report-filter-person-شخص حذف‌شده')),
       200,
       scrollable: find.byType(Scrollable).last,
     );
 
     expect(find.text('شخص حذف‌شده'), findsOneWidget);
-    expect(find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-person-شخص حذف‌شده')), findsOneWidget);
   });
 
 }

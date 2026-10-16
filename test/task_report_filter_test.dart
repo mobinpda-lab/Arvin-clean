@@ -91,8 +91,65 @@ void main() {
       [taskPerson, followUpPerson, unrelated],
       now: now,
     );
+    final byPersonName = const TaskReportFilter(personNames: {'آنا', 'رضا'}).apply(
+      [taskPerson, followUpPerson, unrelated],
+      now: now,
+      people: [ana, PersonReference(id: 'reza', displayName: 'رضا')],
+    );
 
     expect(result.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
+    expect(byPersonName.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
+  });
+
+  test('person name filter matches associated Task people', () {
+    final ana = PersonReference(id: 'ana', displayName: 'آنا');
+    final reza = PersonReference(id: 'reza', displayName: 'رضا');
+    final anaTask = Task(id: 'ana-task', title: 'کار آنا', people: [ana]);
+    final rezaTask = Task(id: 'reza-task', title: 'کار رضا', people: [reza]);
+    final unassigned = Task(id: 'unassigned', title: 'کار بدون شخص');
+
+    final result = const TaskReportFilter(personNames: {'آنا'}).apply(
+      [anaTask, rezaTask, unassigned],
+      now: now,
+    );
+
+    expect(result.map((task) => task.id), ['ana-task']);
+    expect(const TaskReportFilter(personNames: {'آنا'}).isActive, isTrue);
+  });
+
+  test('waiting-for-response filter matches tasks with a waiting follow-up', () {
+    final waiting = Task(
+      id: 'waiting',
+      title: 'در انتظار پاسخ',
+      followUps: [
+        FollowUp(
+          id: 'waiting-follow-up',
+          dateTime: DateTime(2026, 10, 7, 9),
+          waitingForResponse: true,
+        ),
+      ],
+    );
+    final notWaiting = Task(
+      id: 'not-waiting',
+      title: 'بدون انتظار پاسخ',
+      followUps: [
+        FollowUp(
+          id: 'completed-follow-up',
+          dateTime: DateTime(2026, 10, 7, 9),
+          waitingForResponse: false,
+        ),
+      ],
+    );
+    final noFollowUp = Task(id: 'no-follow-up', title: 'بدون پیگیری');
+
+    final waitingResult = const TaskReportFilter(isWaitingForResponse: true)
+        .apply([waiting, notWaiting, noFollowUp], now: now);
+    final notWaitingResult = const TaskReportFilter(isWaitingForResponse: false)
+        .apply([waiting, notWaiting, noFollowUp], now: now);
+
+    expect(waitingResult.map((task) => task.id), ['waiting']);
+    expect(notWaitingResult.map((task) => task.id).toSet(), {'not-waiting', 'no-follow-up'});
+    expect(const TaskReportFilter(isWaitingForResponse: true).isActive, isTrue);
   });
 
   test('trashed tasks never enter reports', () {

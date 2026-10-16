@@ -1,5 +1,6 @@
 import '../models/task.dart';
 import '../models/goal_project.dart';
+import '../models/person_reference.dart';
 import '../models/recurrence.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
@@ -22,6 +23,8 @@ class TaskReportFilter {
     this.categories = const <String>{},
     this.tags = const <String>{},
     this.personIds = const <String>{},
+    this.personNames = const <String>{},
+    this.isWaitingForResponse,
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -48,6 +51,8 @@ class TaskReportFilter {
   final Set<String> categories;
   final Set<String> tags;
   final Set<String> personIds;
+  final Set<String> personNames;
+  final bool? isWaitingForResponse;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -74,6 +79,8 @@ class TaskReportFilter {
       categories.isNotEmpty ||
       tags.isNotEmpty ||
       personIds.isNotEmpty ||
+      personNames.isNotEmpty ||
+      isWaitingForResponse != null ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -91,6 +98,7 @@ class TaskReportFilter {
     Iterable<Task> tasks, {
     required DateTime now,
     Iterable<ProjectPlan> projects = const [],
+    Iterable<PersonReference> people = const [],
   }) {
     final selectedProjectIds = <String>{
       ...projectIds,
@@ -107,12 +115,27 @@ class TaskReportFilter {
     final selectedProjects = projects
         .where((item) => selectedProjectIds.contains(item.id))
         .toList(growable: false);
+    final selectedPersonIds = people
+        .where((person) => personNames.contains(person.displayName.trim()))
+        .map((person) => person.id)
+        .toSet();
     return tasks.where((task) {
       if (task.trashed) return false;
       if (personIds.isNotEmpty &&
           !task.people.any((person) => personIds.contains(person.id)) &&
           !task.followUps.any((followUp) =>
               followUp.personIds.any(personIds.contains))) {
+        return false;
+      }
+      if (personNames.isNotEmpty &&
+          !task.people.any((person) => personNames.contains(person.displayName.trim())) &&
+          !task.followUps.any((followUp) =>
+              followUp.personIds.any(selectedPersonIds.contains))) {
+        return false;
+      }
+      if (isWaitingForResponse != null &&
+          task.followUps.any((followUp) => followUp.waitingForResponse) !=
+              isWaitingForResponse) {
         return false;
       }
       if (!_matchesStatus(task)) return false;
