@@ -124,7 +124,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('پشتیبان‌گیری و بازیابی'),
       300,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find.byType(ListView).first,
     );
     await tester.pumpAndSettle();
 
