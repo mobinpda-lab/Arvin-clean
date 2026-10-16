@@ -45,8 +45,7 @@ void main() {
       "expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);",
       homeTest.indexOf('expect(created.single.description'),
     );
-    final homeScreenshotIndex =
-        homeTest.indexOf('await binding.convertFlutterSurfaceToImage();');
+    final homeScreenshotIndex = homeTest.indexOf("takeScreenshot('home')");
     expect(homeRouteAssertionIndex, greaterThanOrEqualTo(0));
     expect(homeRouteAssertionIndex, lessThan(homeScreenshotIndex));
     expect(homeTest, contains('quickCaptureCancel'));

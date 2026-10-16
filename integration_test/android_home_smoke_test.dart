@@ -123,7 +123,6 @@ void main() {
     await tester.enterText(manualTime, '۱۴:۳۷');
     await tester.pumpAndSettle();
     expect(selectedTime, findsOneWidget);
-    print('Persian Time Picker Selection verified: ۱۴:۳۷');
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     await binding.takeScreenshot('persian-time-picker');
