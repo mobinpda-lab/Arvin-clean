@@ -52,7 +52,7 @@ import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
-import 'theme/app_fonts.dart';
+import 'theme/font_registry.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -140,9 +140,8 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedFontFamily = settings.fontFamily == 'system'
-        ? null
-        : (settings.fontFamily ?? AppFonts.vazirharfFamily);
+    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
+    final selectedFontFamily = selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,
       bodyColor: ArvinColors.textPrimary,
@@ -192,11 +191,11 @@ class _ArvinAppState extends State<ArvinApp> {
           brightness: Brightness.light,
         ).copyWith(
           primary: ArvinColors.primary,
-          onPrimary: Colors.white,
+          onPrimary: ArvinColors.surface,
           secondary: ArvinColors.project,
-          onSecondary: Colors.white,
+          onSecondary: ArvinColors.surface,
           error: ArvinColors.error,
-          onError: Colors.white,
+          onError: ArvinColors.surface,
           surface: ArvinColors.surface,
           onSurface: ArvinColors.textPrimary,
           outline: ArvinColors.border,
@@ -205,7 +204,7 @@ class _ArvinAppState extends State<ArvinApp> {
         cardTheme: const CardThemeData(
           color: ArvinColors.surface,
           elevation: 1,
-          shadowColor: Color(0x12000000),
+          shadowColor: ArvinColors.shadowSoft,
           margin: EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -245,39 +244,39 @@ class _ArvinAppState extends State<ArvinApp> {
           seedColor: ArvinColors.primary,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: const Color(0xFFB7BCFF),
-          onPrimary: const Color(0xFF20236E),
-          secondary: const Color(0xFF9FC4FF),
-          error: const Color(0xFFFFB4AB),
+          primary: ArvinColors.darkPrimary,
+          onPrimary: ArvinColors.darkOnPrimary,
+          secondary: ArvinColors.darkSecondary,
+          error: ArvinColors.darkError,
         ),
         cardTheme: const CardThemeData(
-          color: Color(0xFF25283A),
+          color: ArvinColors.darkSurface,
           elevation: 1,
-          shadowColor: Color(0x40000000),
+          shadowColor: ArvinColors.shadowDark,
           margin: EdgeInsets.symmetric(vertical: 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: Color(0xFF41465B)),
+            side: BorderSide(color: ArvinColors.darkBorder),
           ),
         ),
         fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
-        dividerTheme: const DividerThemeData(color: Color(0xFF555B70), thickness: 1),
+        dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: const AppBarTheme(),
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
-          fillColor: Color(0xFF25283A),
+          fillColor: ArvinColors.darkSurface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
+            borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: Color(0xFF656B80), width: 1.2),
+            borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: Color(0xFFB7BCFF), width: 1.8),
+            borderSide: BorderSide(color: ArvinColors.darkPrimary, width: 1.8),
           ),
         ),
       ),
@@ -1005,8 +1004,8 @@ class _HomePageState extends State<HomePage> {
     switch (id) {
       case 'overdue': return ArvinColors.error;
       case 'today': return ArvinColors.project;
-      case 'tomorrow': return const Color(0xFF18A77B);
-      case 'future': return const Color(0xFF5A55D6);
+      case 'tomorrow': return ArvinColors.groupingTomorrow;
+      case 'future': return ArvinColors.groupingFuture;
       case 'no_date': return ArvinColors.neutral;
       default: return ArvinColors.primary;
     }
@@ -1015,10 +1014,10 @@ class _HomePageState extends State<HomePage> {
   Color _groupSoft(String id) {
     switch (id) {
       case 'overdue': return ArvinColors.errorSoft;
-      case 'today': return const Color(0xFFEDF5FF);
-      case 'tomorrow': return const Color(0xFFEAF9F4);
-      case 'future': return const Color(0xFFF0EEFF);
-      case 'no_date': return const Color(0xFFF3F4F7);
+      case 'today': return ArvinColors.groupingTodaySoft;
+      case 'tomorrow': return ArvinColors.groupingTomorrowSoft;
+      case 'future': return ArvinColors.groupingFutureSoft;
+      case 'no_date': return ArvinColors.groupingNoDateSoft;
       default: return ArvinColors.primarySoft;
     }
   }
@@ -1082,7 +1081,7 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(color: Colors.white.withAlpha(190), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
                     child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
                   ),
                 ]),
@@ -2246,17 +2245,22 @@ class _HomePageState extends State<HomePage> {
         targetCalendarId: targetCalendarId,
       );
       if (!mounted) return;
+      final alreadyLinked = links.any((link) => link.reminderId == reminder.id);
       final message = result.created > 0
           ? 'کار در تقویم گوشی ثبت شد.'
           : result.updated > 0
           ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
+          : alreadyLinked
+          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
           : 'رویداد تقویم گوشی از قبل به‌روز بود.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ثبت در تقویم گوشی انجام نشد: $error')),
-      );
+      final detail = error.toString();
+      final message = detail.contains('این مورد قبلاً در تقویم گوشی ثبت شده است.')
+          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
+          : 'ثبت در تقویم گوشی انجام نشد: $error';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -2272,6 +2276,7 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => CanonicalCalendarLauncher(
           tasks: _searchSource,
+          onOpenReports: _openPrimaryReports,
           onRefreshTasks: _refreshCanonicalTasksForCalendar,
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
@@ -2314,6 +2319,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openPrimaryReports() async {
+    final people = await taskStore.loadPeopleDirectory();
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => ReportCenterPage(
+          tasks: List<Task>.of(tasks),
+          projects: List<ProjectPlan>.of(projects),
+          people: people,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openPrimaryNextAction() async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
@@ -2346,6 +2365,9 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).pushReplacement<void, void>(
           MaterialPageRoute<void>(builder: (_) => _primaryNotebookShell()),
         );
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openPrimaryReports();
         return;
       case ArvinPrimaryDestination.nextAction:
         Navigator.of(context).pushReplacement<void, void>(
@@ -2563,17 +2585,7 @@ class _HomePageState extends State<HomePage> {
         await _openPrimaryNextAction();
         return;
       case _HomeMoreAction.report:
-        final people = await taskStore.loadPeopleDirectory();
-        if (!mounted) return;
-        await Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(
-            builder: (_) => ReportCenterPage(
-              tasks: List<Task>.of(tasks),
-              projects: List<ProjectPlan>.of(projects),
-              people: people,
-            ),
-          ),
-        );
+        await _openPrimaryReports();
         return;
       case _HomeMoreAction.about:
         _showAbout();
@@ -2590,6 +2602,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case ArvinPrimaryDestination.notebook:
         _openPrimaryNotebook();
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openPrimaryReports();
         return;
       case ArvinPrimaryDestination.nextAction:
         _openPrimaryNextAction();
@@ -2716,18 +2731,18 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.checklist_rounded, size: 15, color: Color(0xFF4A4CAB)),
+            const Icon(Icons.checklist_rounded, size: 15, color: ArvinColors.primary),
             const SizedBox(width: 4),
             Text(
               'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
-              style: const TextStyle(color: Color(0xFF80829C), fontSize: 11, fontWeight: FontWeight.w600),
+              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
             ),
           ],
         ),
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: Color(0xFFE9EAFF)),
+          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: ArvinColors.primarySoft),
         ),
       ],
     );
@@ -2806,9 +2821,9 @@ class _HomePageState extends State<HomePage> {
                               ? Icons.warning_amber_rounded
                               : Icons.radio_button_unchecked_rounded,
                           color: task.completed
-                              ? const Color(0xFF409B51)
+                              ? ArvinColors.taskStatusGreen
                               : late
-                              ? const Color(0xFFDB8B23)
+                              ? ArvinColors.taskStatusAmber
                               : colors.primary,
                         ),
                       ),
@@ -2820,7 +2835,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         task.title,
                         style: TextStyle(
-                          color: const Color(0xFF232433),
+                          color: ArvinColors.textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                           decoration: task.completed
@@ -2878,7 +2893,7 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.calendar_today_outlined,
                               size: 15,
-                              color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
+                              color: late ? ArvinColors.error : ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -2887,7 +2902,7 @@ class _HomePageState extends State<HomePage> {
                                     ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
                                     : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
                                 style: TextStyle(
-                                  color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
+                                  color: late ? ArvinColors.error : ArvinColors.textSecondary,
                                   fontSize: 11,
                                   fontWeight: late ? FontWeight.w800 : FontWeight.w500,
                                 ),
@@ -2911,7 +2926,7 @@ class _HomePageState extends State<HomePage> {
                                   await _save();
                                 },
                                 icon: const Icon(Icons.close_rounded, size: 17),
-                                color: late ? const Color(0xFFC62828) : const Color(0xFF80829C),
+                                color: late ? ArvinColors.error : ArvinColors.textSecondary,
                               ),
                           ],
                         ),
@@ -2923,8 +2938,8 @@ class _HomePageState extends State<HomePage> {
                               Icons.event_outlined,
                               size: 15,
                               color: late
-                                  ? const Color(0xFFDB8B23)
-                                  : const Color(0xFF80829C),
+                                  ? ArvinColors.taskStatusAmber
+                                  : ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Flexible(
@@ -2932,8 +2947,8 @@ class _HomePageState extends State<HomePage> {
                                 'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
                                 style: TextStyle(
                                   color: late
-                                      ? const Color(0xFFDB8B23)
-                                      : const Color(0xFF80829C),
+                                      ? ArvinColors.taskStatusAmber
+                                      : ArvinColors.textSecondary,
                                   fontSize: 11,
                                   fontWeight: late
                                       ? FontWeight.w600

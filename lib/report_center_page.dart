@@ -45,10 +45,28 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   DateTime get _now => widget.now ?? DateTime.now();
 
   List<PersonReference> get _peopleDirectory {
-    final byId = <String, PersonReference>{
-      for (final task in widget.tasks)
-        for (final person in task.people) person.id: person,
+    final activeById = <String, PersonReference>{
       for (final person in widget.people) person.id: person,
+    };
+    final byId = <String, PersonReference>{
+      if (widget.people.isEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people) person.id: person,
+      if (widget.people.isNotEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people)
+            if (activeById.containsKey(person.id)) person.id: activeById[person.id]!,
+      if (widget.people.isNotEmpty)
+        for (final task in widget.tasks)
+          for (final person in task.people)
+            if (!activeById.containsKey(person.id))
+              person.id: PersonReference(id: person.id, displayName: 'شخص حذف‌شده'),
+      for (final person in widget.people) person.id: person,
+      for (final task in widget.tasks)
+        for (final followUp in task.followUps)
+          for (final personId in followUp.personIds)
+            if (!activeById.containsKey(personId))
+              personId: PersonReference(id: personId, displayName: 'شخص حذف‌شده'),
     };
     final result = byId.values.toList(growable: false)
       ..sort((a, b) => a.displayName.compareTo(b.displayName));
@@ -77,6 +95,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         initial: _filter,
         projects: widget.projects,
         tasks: widget.tasks,
+        people: _peopleDirectory,
         now: _now,
       ),
     );
@@ -286,6 +305,8 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
             Chip(label: Text(value)),
+          if (filter.personIds.isNotEmpty)
+            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -312,12 +333,14 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.initial,
     required this.projects,
     required this.tasks,
+    required this.people,
     required this.now,
   });
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<Task> tasks;
+  final List<PersonReference> people;
   final DateTime now;
 
   @override
@@ -333,6 +356,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
+  Set<String> _personIds = <String>{};
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -357,6 +381,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
+    _personIds = <String>{...f.personIds};
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -452,6 +477,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
+        personIds: Set<String>.of(_personIds),
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -492,22 +518,39 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           boxShadow: const [BoxShadow(blurRadius: 24, offset: Offset(0, -6))],
         ),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+        child: Column(
           children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(99),
+            SizedBox(
+              key: const ValueKey('report-filter-header'),
+              height: 64,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      key: const ValueKey('report-filter-close'),
+                      tooltip: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'فیلتر گزارش‌ها',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text('فیلتر گزارش‌ها', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                children: [
             _Section(
               title: 'زمان',
               icon: Icons.schedule_outlined,
@@ -592,6 +635,22 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
+              ),
+            ),
+            _Section(
+              title: 'شخص',
+              icon: Icons.people_outline,
+              accentColor: ArvinColors.primary,
+              selectedCount: _personIds.length,
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                accentColor: ArvinColors.primary,
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
               ),
             ),
             _Section(
@@ -850,55 +909,61 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    key: const ValueKey('report-filter-clear'),
-                    onPressed: () => setState(() {
-                      _timePreset = ReportTimePreset.all;
-                      _fromDate = null;
-                      _toDate = null;
-                      _fromTime = null;
-                      _toTime = null;
-                      _projectIds = <String>{};
-                      _categories = <String>{};
-                      _tags = <String>{};
-                      _statuses.clear();
-                      _trackingLevels.clear();
-                      _noteKinds.clear();
-                      _noteQueryController.clear();
-                      _noteDateField = null;
-                      _noteFromDate = null;
-                      _noteToDate = null;
-                      _priority = null;
-                      _hasRepeat = null;
-                      _hasFollowUp = null;
-                      _hasChecklist = null;
-                    }),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+                boxShadow: const [BoxShadow(blurRadius: 12, color: ArvinColors.shadowSoft, offset: Offset(0, -3))],
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const ValueKey('report-filter-clear'),
+                        onPressed: () => setState(() {
+                          _timePreset = ReportTimePreset.all;
+                          _fromDate = null;
+                          _toDate = null;
+                          _fromTime = null;
+                          _toTime = null;
+                          _projectIds = <String>{};
+                          _categories = <String>{};
+                          _tags = <String>{};
+                          _personIds = <String>{};
+                          _statuses.clear();
+                          _trackingLevels.clear();
+                          _noteKinds.clear();
+                          _noteQueryController.clear();
+                          _noteDateField = null;
+                          _noteFromDate = null;
+                          _noteToDate = null;
+                          _priority = null;
+                          _hasRepeat = null;
+                          _hasFollowUp = null;
+                          _hasChecklist = null;
+                        }),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                        child: const Text('بازنشانی'),
+                      ),
                     ),
-                    child: const Text('پاک کردن'),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: FilledButton(
-                    key: const ValueKey('report-filter-apply'),
-                    onPressed: _apply,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        key: const ValueKey('report-filter-apply'),
+                        onPressed: _apply,
+                        style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+                        child: const Text('اعمال فیلتر'),
+                      ),
                     ),
-                    child: const Text('اعمال'),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),

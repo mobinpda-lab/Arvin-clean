@@ -162,15 +162,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(
+      await tester.longPress(
         find.byKey(const ValueKey('reminder-card-followup:release-task:release-followup')),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      await tester.tap(
-        find.byKey(const ValueKey('reminder-complete-followup:release-task:release-followup')),
+      final completeAction = find.byKey(
+        const ValueKey('reminder-complete-followup:release-task:release-followup'),
       );
-      await tester.pump();
+      await tester.ensureVisible(completeAction);
+      await tester.tap(completeAction);
+      await tester.pumpAndSettle();
 
       expect(completed, 1);
       expect(find.text('تعویق'), findsNothing);

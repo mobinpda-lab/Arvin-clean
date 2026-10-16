@@ -1087,3 +1087,13 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Device Smoke run [38752957813](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38752957813): `completed / success`; all six lanes succeeded: home, quick-capture, people, sql-migration, sql-persistence, backup-restore. Latest updated at `2026-10-15T14:51:41Z`.
 - PR [#2725](https://github.com/mobinpda-lab/Arvin-clean/pull/2725) was observed open, mergeable, head matching the validated SHA, and not yet merged at the time of this checkpoint. Merge must be recorded only after GitHub confirms it.
 - CI/emulator evidence is not physical-device acceptance. Keep product release claims limited to the evidence above.
+
+
+## AUTHORITATIVE LIVE UPDATE — 2026-10-16 — Notebook pastel and cross-page visual audit
+
+- Branch: `feat/product-canonical-navigation-reports-followup`; parent head before this documentation commit: `42fbc006c4d0b2cf8e09b312b67427b32f245b03`; PR [#2751](https://github.com/mobinpda-lab/Arvin-clean/pull/2751) remains open and unmerged.
+- Notebook: `lib/notebook_page.dart` now has one horizontal ribbon for tag/category/project filters, a rounded shadowed search field, a pastel illustrated empty state with exact title «هنوز یادداشتی ثبت نشده است», helper text, and the existing floating create button. Regression tests were added in `test/notebook_page_test.dart`.
+- Anti-regression: hard-coded hex colors in Home, Calendar, Reports, Notebook, and Task editor were routed through `ArvinColors`; Calendar obtains its declared font via `AppFonts.vazirharfFamily`. Follow-up card interactions use normal tap for parent Task editor and long press for follow-up actions; narrow date-ribbon count bubbles use scale-down to prevent overflow.
+- Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
+- Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
+- Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.

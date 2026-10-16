@@ -4,6 +4,7 @@ enum ArvinPrimaryDestination {
   home,
   calendar,
   notebook,
+  reports,
   nextAction,
   more,
 }
@@ -42,6 +43,12 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         Icons.note_alt_outlined,
         Icons.note_alt_rounded,
         'دفترچه',
+      ),
+      (
+        ArvinPrimaryDestination.reports,
+        Icons.assessment_outlined,
+        Icons.assessment_rounded,
+        'گزارش‌ها',
       ),
       (
         ArvinPrimaryDestination.more,

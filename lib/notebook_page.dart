@@ -77,10 +77,10 @@ class _NotebookPageState extends State<NotebookPage> {
     final selected = await showModalBottomSheet<String?>(
       context: context,
       builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext)),
+        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext)),
         const SizedBox(height: 8),
         for (final project in _projects.where((p) => !p.isArchived)) ...[
-          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), onTap: () => Navigator.pop(sheetContext, project.id)),
+          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext, project.id)),
           const SizedBox(height: 8),
         ],
       ])));
@@ -91,9 +91,9 @@ class _NotebookPageState extends State<NotebookPage> {
   Future<void> _pickNotebookCategory() async {
     final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, 'همه')),
+      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, 'همه')),
       const SizedBox(height: 8),
-      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
+      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
     ])));
     if (!mounted || selected == null) return;
     setState(() => _activeCategory = selected);
@@ -101,9 +101,9 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _pickNotebookTag() async {
     final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext)),
+      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext)),
       const SizedBox(height: 8),
-      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
+      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
     ])));
     if (!mounted) return;
     setState(() => _activeTag = selected);
@@ -420,38 +420,202 @@ class _NotebookPageState extends State<NotebookPage> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: TextField(
-                    key: const ValueKey('notebook-search'),
-                    controller: _search,
-                    onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      hintText: 'جستجو در دفترچه',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: ArvinColors.surface,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ArvinColors.primary.withValues(alpha: 0.09),
+                          blurRadius: 18,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                      border: Border.all(color: ArvinColors.border.withValues(alpha: 0.65)),
+                    ),
+                    child: TextField(
+                      key: const ValueKey('notebook-search'),
+                      controller: _search,
+                      onChanged: (_) => setState(() {}),
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: 'جستجو در دفترچه',
+                        hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: ArvinColors.textSecondary,
+                            ),
+                        prefixIcon: const Icon(Icons.search_rounded, color: ArvinColors.primary),
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                key: const ValueKey('notebook-search-clear'),
+                                tooltip: 'پاک کردن جستجو',
+                                onPressed: () {
+                                  _search.clear();
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.close_rounded),
+                              ),
+                        filled: true,
+                        fillColor: ArvinColors.surface,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                          borderSide: const BorderSide(color: ArvinColors.primary, width: 1.4),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ArvinRadioBox(key: const ValueKey('notebook-project-filter'), label: _activeProjectId == null ? 'پروژه‌ها: همه' : _projects.firstWhere((p) => p.id == _activeProjectId, orElse: () => ProjectPlan(id: '', title: 'پروژه')).title, icon: Icons.work_outline, accent: const Color(0xFF4A4CAB), selected: _activeProjectId != null, onTap: _pickNotebookProject),
-                      ArvinRadioBox(key: const ValueKey('notebook-category-filter'), label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory', icon: Icons.folder_outlined, accent: const Color(0xFF7B61A8), selected: _activeCategory != 'همه', onTap: _pickNotebookCategory),
-                      ArvinRadioBox(key: const ValueKey('notebook-tag-filter'), label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag', icon: Icons.sell_outlined, accent: const Color(0xFF2E8B8B), selected: _activeTag != null, onTap: _pickNotebookTag),
-                    ],
+                SizedBox(
+                  height: 48,
+                  child: SingleChildScrollView(
+                    key: const ValueKey('notebook-filter-ribbon'),
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 16, 4),
+                    child: Row(
+                      children: [
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-tag-filter'),
+                          label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag',
+                          icon: Icons.sell_outlined,
+                          accent: ArvinColors.time,
+                          soft: ArvinColors.timeSoft,
+                          selected: _activeTag != null,
+                          onTap: _pickNotebookTag,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-category-filter'),
+                          label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory',
+                          icon: Icons.layers_outlined,
+                          accent: ArvinColors.reminder,
+                          soft: ArvinColors.reminderSoft,
+                          selected: _activeCategory != 'همه',
+                          onTap: _pickNotebookCategory,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-project-filter'),
+                          label: _activeProjectId == null
+                              ? 'پروژه‌ها: همه'
+                              : _projects.firstWhere(
+                                  (project) => project.id == _activeProjectId,
+                                  orElse: () => ProjectPlan(id: '', title: 'پروژه'),
+                                ).title,
+                          icon: Icons.work_outline_rounded,
+                          accent: ArvinColors.project,
+                          soft: ArvinColors.projectSoft,
+                          selected: _activeProjectId != null,
+                          onTap: _pickNotebookProject,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+                const SizedBox(height: 6),
                 Expanded(
                   child: visibleNotes.isEmpty
                       ? Center(
-                          child: Text(
-                            _notes.isEmpty
-                                ? 'هنوز یادداشتی ثبت نشده است'
-                                : 'موردی مطابق فیلتر فعلی پیدا نشد',
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(28, 16, 28, 40),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 148,
+                                  height: 132,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: 116,
+                                        height: 116,
+                                        decoration: const BoxDecoration(
+                                          color: ArvinColors.primarySoft,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 10,
+                                        right: 16,
+                                        child: Container(
+                                          width: 17,
+                                          height: 17,
+                                          decoration: const BoxDecoration(
+                                            color: ArvinColors.reminderSoft,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 12,
+                                        left: 15,
+                                        child: Container(
+                                          width: 13,
+                                          height: 13,
+                                          decoration: const BoxDecoration(
+                                            color: ArvinColors.timeSoft,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 76,
+                                        height: 88,
+                                        decoration: BoxDecoration(
+                                          color: ArvinColors.surface,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(color: ArvinColors.primary.withValues(alpha: 0.18)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: ArvinColors.primary.withValues(alpha: 0.12),
+                                              blurRadius: 14,
+                                              offset: const Offset(0, 5),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.note_alt_rounded,
+                                          size: 42,
+                                          color: ArvinColors.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _notes.isEmpty
+                                      ? 'هنوز یادداشتی ثبت نشده است'
+                                      : 'موردی مطابق فیلتر فعلی پیدا نشد',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: ArvinColors.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _notes.isEmpty
+                                      ? 'ایده‌ها، نکته‌ها و فهرست کارهایت را اینجا بنویس؛ همه‌چیز مرتب و همیشه در دسترس می‌ماند.'
+                                      : 'فیلترها را تغییر بده یا جستجو را پاک کن تا یادداشت‌ها دوباره نمایش داده شوند.',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: ArvinColors.textSecondary,
+                                        height: 1.7,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         )
                       : ListView.separated(
@@ -610,6 +774,63 @@ class _NotebookPageState extends State<NotebookPage> {
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+}
+
+
+class _NotebookFilterChip extends StatelessWidget {
+  const _NotebookFilterChip({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.accent,
+    required this.soft,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final Color soft;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? soft : ArvinColors.surface,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: selected ? accent.withValues(alpha: 0.42) : ArvinColors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: accent),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: selected ? accent : ArvinColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.keyboard_arrow_down_rounded, size: 17, color: accent),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -798,11 +1019,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 value: category,
                 label: category,
                 icon: Icons.folder_outlined,
-                color: const Color(0xFF7B61A8),
+                color: ArvinColors.category,
               ),
           ],
           icon: Icons.folder_outlined,
-          color: const Color(0xFF7B61A8),
+          color: ArvinColors.category,
           emptyLabel: 'بدون دسته',
           onCreate: () async {
             final value = await _promptNewCategory();
@@ -873,11 +1094,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 value: project.id,
                 label: project.title,
                 icon: Icons.work_outline,
-                color: const Color(0xFF4A4CAB),
+                color: ArvinColors.project,
               ),
           ],
           icon: Icons.work_outline,
-          color: const Color(0xFF4A4CAB),
+          color: ArvinColors.project,
           emptyLabel: 'بدون پروژه',
           onCreate: () async {
             final title = await _promptNewProject();

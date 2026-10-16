@@ -17,6 +17,9 @@ void main() {
     expect(navigation, contains("'خانه'"));
     expect(navigation, contains("'تقویم'"));
     expect(navigation, contains("'دفترچه'"));
+    expect(navigation, contains("'گزارش‌ها'"));
+    expect(navigation.indexOf("'دفترچه'") < navigation.indexOf("'گزارش‌ها'"), isTrue);
+    expect(navigation.indexOf("'گزارش‌ها'") < navigation.indexOf("'بیشتر'"), isTrue);
     expect(navigation, isNot(contains("'اقدام بعدی'")));
     expect(navigation, contains("'بیشتر'"));
 

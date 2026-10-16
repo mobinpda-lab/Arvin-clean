@@ -36,6 +36,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onRetryCalendarSync,
+    this.onOpenReports,
   });
 
   final List<Task> tasks;
@@ -51,6 +52,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function()? onRetryCalendarSync;
+  final Future<void> Function()? onOpenReports;
 
   @override
   State<CanonicalCalendarLauncher> createState() =>
@@ -445,6 +447,12 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     );
   }
 
+  Future<void> _openReportsFromCalendar(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    navigator.popUntil((route) => route.isFirst);
+    await widget.onOpenReports?.call();
+  }
+
   Future<void> _openNotebook(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -470,6 +478,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case ArvinPrimaryDestination.calendar:
         Navigator.of(context).pop();
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openReportsFromCalendar(context);
         return;
       case ArvinPrimaryDestination.notebook:
         Navigator.of(context).pushReplacement<void, void>(
@@ -880,6 +891,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case ArvinPrimaryDestination.notebook:
         _openNotebook(context, reminders);
+        return;
+      case ArvinPrimaryDestination.reports:
+        _openReportsFromCalendar(context);
         return;
       case ArvinPrimaryDestination.nextAction:
         _openNextAction(context, reminders);

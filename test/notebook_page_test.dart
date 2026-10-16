@@ -90,6 +90,33 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-create')), findsOneWidget);
   });
 
+
+  testWidgets('Notebook filter chips share one horizontal pastel ribbon', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await pumpNotebook(tester, repository);
+
+    final ribbon = tester.widget<SingleChildScrollView>(
+      find.byKey(const ValueKey('notebook-filter-ribbon')),
+    );
+    expect(ribbon.scrollDirection, Axis.horizontal);
+    expect(find.byKey(const ValueKey('notebook-tag-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-category-filter')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-project-filter')), findsOneWidget);
+
+    expect(find.byIcon(Icons.sell_outlined), findsOneWidget);
+  });
+
+  testWidgets('Notebook empty state uses the approved title and guidance', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await pumpNotebook(tester, repository);
+
+    expect(find.text('هنوز یادداشتی ثبت نشده است'), findsOneWidget);
+    expect(find.textContaining('ایده‌ها، نکته‌ها و فهرست کارهایت'), findsOneWidget);
+    expect(find.byIcon(Icons.note_alt_rounded), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-create')), findsOneWidget);
+  });
+
+
   testWidgets('simple-note editor exposes inline writing tools',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7));

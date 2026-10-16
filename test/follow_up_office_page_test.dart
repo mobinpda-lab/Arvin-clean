@@ -53,8 +53,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(FollowUpEntryPage), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField).first, 'تماس با مشتری');
-    await tester.enterText(find.byType(TextField).last, 'پاسخ دریافت شد');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس با مشتری');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ دریافت شد');
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 
@@ -88,7 +88,7 @@ void main() {
 
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'پیام ارسال شد');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'پیام ارسال شد');
     await tester.tap(find.text('منتظر پاسخ دیگران'));
     await tester.pump();
 
@@ -96,7 +96,7 @@ void main() {
       find.byType(SwitchListTile),
     );
     expect(switchTile.value, isTrue);
-    expect(tester.widget<TextField>(find.byType(TextField).last).enabled, isFalse);
+    expect(tester.widget<TextField>(find.byKey(const ValueKey('follow-up-entry-result'))).enabled, isFalse);
 
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
@@ -143,7 +143,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(FollowUpEntryPage), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField).first, 'پیگیری کار دوم');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'پیگیری کار دوم');
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 
@@ -352,8 +352,8 @@ void main() {
 
     await tester.tap(find.text('منتظر پاسخ دیگران'));
     await tester.pump();
-    await tester.enterText(find.byType(TextField).first, 'تماس ویرایش‌شده');
-    await tester.enterText(find.byType(TextField).last, 'پاسخ نهایی');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس ویرایش‌شده');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ نهایی');
     await tapVisible(tester, 'ذخیره تغییرات');
     await tester.pumpAndSettle();
 
@@ -393,7 +393,7 @@ void main() {
 
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'نباید ذخیره شود');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'نباید ذخیره شود');
     await tapVisible(tester, 'ذخیره پیگیری');
     await tester.pumpAndSettle();
 

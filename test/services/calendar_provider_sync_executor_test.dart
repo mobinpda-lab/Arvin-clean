@@ -127,6 +127,43 @@ void main() {
     expect(store.links.single.lastSyncedFingerprint, 'fp1');
   });
 
+  test('stale create plan with an existing stable link fails with the exact duplicate message', () async {
+    final existing = ExternalCalendarEventLink(
+      reminderId: 'followup:1',
+      calendarId: '42',
+      eventId: 'already-linked-event',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge();
+    final store = _MemoryLinkStore([existing]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    await expectLater(
+      executor.execute(
+        plan: CalendarSyncPlan([
+          CalendarSyncPlanItem(
+            reminderId: 'followup:1',
+            action: CalendarSyncAction.create,
+            revision: _revision('followup:1', 'new', 'پیگیری'),
+          ),
+        ]),
+        targetCalendarId: '42',
+      ),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          'این مورد قبلاً در تقویم گوشی ثبت شده است.',
+        ),
+      ),
+    );
+
+    expect(bridge.calls, isEmpty);
+    expect(store.saveCount, 0);
+    expect(store.links.single.eventId, 'already-linked-event');
+  });
+
   test('provider create failure leaves link metadata untouched', () async {
     final bridge = _FakeBridge()..failCreate = true;
     final store = _MemoryLinkStore();

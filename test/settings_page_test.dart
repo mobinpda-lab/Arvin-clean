@@ -52,18 +52,34 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect(find.text('VazirHarf'), findsNWidgets(2));
     expect((await service.load()).fontFamily, isNull);
 
-    await tester.tap(find.text('فونت دستگاه'));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font-option-system')),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('font-option-system')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
+    expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('font-option-system')));
     await tester.pumpAndSettle();
     expect((await service.load()).fontFamily, 'system');
 
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('VazirHarf').last);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font-option-vazirharf')),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('font-option-vazirharf')));
     await tester.pumpAndSettle();
-    expect((await service.load()).fontFamily, 'VazirHarf');
+    await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب فونت'), findsNothing);
+    expect((await service.load()).fontFamily, 'vazirharf');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
@@ -84,11 +100,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('projects-settings-entry')),
-      250,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.ensureVisible(find.byKey(const ValueKey('projects-settings-entry')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('projects-settings-entry')));
@@ -98,11 +110,11 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('پشتیبان‌گیری و بازیابی'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
+    for (var i = 0; i < 6; i++) {
+      await tester.dragFrom(const Offset(400, 400), const Offset(0, -250));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(find.text('پشتیبان‌گیری و بازیابی'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('پشتیبان‌گیری و بازیابی'));

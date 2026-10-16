@@ -53,23 +53,27 @@ void main() {
     expect(find.text('۱۴۰۵/۰۵/۲۳'), findsOneWidget);
     expect(find.text('۰۹:۳۰'), findsOneWidget);
     expect(find.text('عنوان پیگیری (اختیاری)'), findsOneWidget);
-    await revealReminder(tester);
-
     await tester.enterText(
       find.byKey(const ValueKey('follow-up-entry-title')),
       'تماس مجدد',
     );
-    await tester.enterText(find.byType(TextField).last, 'پاسخ دریافت شد');
+    final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
+    await tester.ensureVisible(noteField);
+    await tester.enterText(noteField, 'شرح تماس');
+    final resultField = find.byKey(const ValueKey('follow-up-entry-result'));
+    await tester.ensureVisible(resultField);
+    await tester.enterText(resultField, 'پاسخ دریافت شد');
     await saveEditor(tester);
 
     expect(result, isNotNull);
-    expect(result!.note, 'تماس مجدد');
+    expect(result!.title, 'تماس مجدد');
+    expect(result!.note, 'شرح تماس');
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
     expect(result!.reminderDate, isNull);
   });
 
-  testWidgets('blank optional title saves as canonical پیگیری', (tester) async {
+  testWidgets('blank optional title remains absent in the model', (tester) async {
     FollowUp? result;
     final initial = DateTime(2026, 8, 28, 0, 5);
 
@@ -106,7 +110,8 @@ void main() {
     await saveEditor(tester);
 
     expect(result, isNotNull);
-    expect(result!.note, 'پیگیری');
+    expect(result!.title, isNull);
+    expect(result!.note, isEmpty);
     expect(result!.dateTime, initial);
   });
 
@@ -241,7 +246,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
-    expect(result!.note, 'پیگیری ذخیره‌شده');
+    expect(result!.title, 'پیگیری ذخیره‌شده');
     expect(result!.dateTime, DateTime(2026, 9, 8, 9, 15));
   });
 

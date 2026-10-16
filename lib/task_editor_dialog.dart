@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'follow_up_entry_page.dart';
 
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
@@ -71,6 +72,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   bool _reminderExplicitlyCleared = false;
   DateTime? _initialReminderDateTime;
   late List<TaskReminder> _taskReminders;
+  late List<FollowUp> _followUps;
   late int _nextReminderSequence;
   late bool _followUpEnabled;
   late bool _completed;
@@ -115,6 +117,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         ? null
         : task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
+    _followUps = List<FollowUp>.of(task?.followUps ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
     if (_nextReminderSequence < 1) {
       _nextReminderSequence = 1;
@@ -174,9 +177,9 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
-      floatingLabelStyle: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w700),
-      hintStyle: const TextStyle(color: Color(0xFF5F6072)),
+      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
+      floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700),
+      hintStyle: const TextStyle(color: ArvinColors.textSecondary),
       filled: true,
       fillColor: _fieldSurface,
       alignLabelWithHint: true,
@@ -241,11 +244,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
     if (picked == null) return null;
     return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
-  }
-
-  void _setFollowUpEnabled(bool value) {
-    // Enabling follow-up is a state choice only; it must not invent a timestamp.
-    setState(() => _followUpEnabled = value);
   }
 
   void _addTaskReminder() {
@@ -353,7 +351,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 margin: const EdgeInsets.only(top: 10),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: ArvinColors.surface,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: _border),
                 ),
@@ -380,7 +378,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           onPressed: () => setState(() {
                             _taskReminders = _taskReminders.where((item) => item.id != reminder.id).toList();
                           }),
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                          icon: const Icon(Icons.delete_outline, color: ArvinColors.error),
                         ),
                       ],
                     ),
@@ -405,7 +403,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       ],
                     ),
                     Material(
-                      color: Colors.white,
+                      color: ArvinColors.surface,
                       borderRadius: BorderRadius.circular(8),
                       child: CheckboxListTile(
                       key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
@@ -579,6 +577,48 @@ Future<void> _pickDueDate() async {
     return true;
   }
 
+  bool _sameFollowUps(List<FollowUp> a, List<FollowUp> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final left = a[i];
+      final right = b[i];
+      if (left.id != right.id ||
+          left.title != right.title ||
+          left.dateTime != right.dateTime ||
+          left.note != right.note ||
+          left.result != right.result ||
+          left.reminderDate != right.reminderDate ||
+          left.nextFollowUp != right.nextFollowUp ||
+          left.completed != right.completed ||
+          left.waitingForResponse != right.waitingForResponse ||
+          !listEquals(left.personIds, right.personIds)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> _openFollowUpEntry({FollowUp? existing}) async {
+    final updated = await Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute<FollowUp>(
+        builder: (_) => FollowUpEntryPage(
+          initialFollowUp: existing,
+          initialDateTime: DateTime.now(),
+        ),
+      ),
+    );
+    if (!mounted || updated == null) return;
+    setState(() {
+      final index = _followUps.indexWhere((item) => item.id == updated.id);
+      if (index < 0) {
+        _followUps = [..._followUps, updated];
+      } else {
+        _followUps = List<FollowUp>.of(_followUps)..[index] = updated;
+      }
+      if (_followUps.isNotEmpty) _followUpEnabled = true;
+    });
+  }
+
   bool get _hasChanges {
     final existing = widget.task;
     final title = _titleController.text;
@@ -600,6 +640,7 @@ Future<void> _pickDueDate() async {
           _dueAllDay ||
           _reminderDateTime != null ||
           _taskReminders.isNotEmpty ||
+          _followUps.isNotEmpty ||
           _recurrence != null ||
           _priority != TaskPriority.none ||
           _completed;
@@ -623,6 +664,7 @@ Future<void> _pickDueDate() async {
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
         !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
+        !_sameFollowUps(_followUps, existing.followUps) ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
         _repeatEnabled != (existing.recurrence?.active ?? false) ||
         _priority != existing.priority ||
@@ -694,9 +736,9 @@ Future<void> _pickDueDate() async {
           key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F7FF),
+            color: ArvinColors.primarySoft,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE8E6F7)),
+            border: Border.all(color: ArvinColors.border),
           ),
           child: Material(
             color: Colors.transparent,
@@ -724,7 +766,7 @@ Future<void> _pickDueDate() async {
     return Container(
       key: const ValueKey('task-editor-checklist-block'),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF4F7FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDDE3FF))),
+      decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
         const SizedBox(height: 4),
@@ -750,10 +792,10 @@ Future<void> _pickDueDate() async {
             return Container(
               key: ValueKey('task-editor-checklist-item-$index'),
               margin: const EdgeInsets.only(bottom: 6),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
+              decoration: BoxDecoration(color: ArvinColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
               child: Row(children: [
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
-                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? const Color(0xFF77778A) : const Color(0xFF232433), fontWeight: FontWeight.w600))),
+                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w600))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
                 ReorderableDragStartListener(
                   key: ValueKey('task-editor-checklist-drag-$index'),
@@ -895,7 +937,7 @@ Future<void> _pickDueDate() async {
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
-        followUps: List<FollowUp>.of(existing?.followUps ?? const []),
+        followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
         createdAt: existing?.createdAt ?? now,
@@ -1069,7 +1111,6 @@ Future<void> _pickDueDate() async {
   @override
   Widget build(BuildContext context) {
     final editing = widget.task != null;
-    final hasHistory = widget.task?.followUps.isNotEmpty ?? false;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -1077,16 +1118,16 @@ Future<void> _pickDueDate() async {
       },
       child: Dialog.fullscreen(
         key: const ValueKey('arvin-task-editor-dialog'),
-        backgroundColor: const Color(0xFFF8F8FB),
+        backgroundColor: ArvinColors.background,
         child: SafeArea(
           child: Material(
-            color: const Color(0xFFF8F8FB),
+            color: ArvinColors.background,
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFDFDFE),
+                    color: ArvinColors.surface,
                     border: Border(bottom: BorderSide(color: _border)),
                   ),
                   child: Row(
@@ -1107,7 +1148,7 @@ Future<void> _pickDueDate() async {
                         onPressed: _save,
                         icon: const Icon(Icons.check_rounded, size: 18),
                         label: const Text('ذخیره'),
-                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: Colors.white),
+                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
                       ),
                     ],
                   ),
@@ -1125,7 +1166,7 @@ Future<void> _pickDueDate() async {
                     controller: _titleController,
                     focusNode: _titleFocusNode,
                     autofocus: !editing,
-                    style: const TextStyle(color: Color(0xFF232433), fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
                     cursorColor: _brand,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
@@ -1138,7 +1179,7 @@ Future<void> _pickDueDate() async {
                   TextField(
                     key: const ValueKey('task-editor-description'),
                     controller: _descriptionController,
-                    style: const TextStyle(color: Color(0xFF232433)),
+                    style: const TextStyle(color: ArvinColors.textPrimary),
                     cursorColor: _brand,
                     minLines: 3,
                     maxLines: 5,
@@ -1488,52 +1529,73 @@ Future<void> _pickDueDate() async {
                     key: const ValueKey('task-editor-followup-block'),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F7FF),
+                      color: ArvinColors.primarySoft,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE8E6F7)),
+                      border: Border.all(color: ArvinColors.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: CheckboxListTile(
-                            key: const ValueKey('task-editor-followup-enabled'),
-                            value: _followUpEnabled,
-                            onChanged: (value) =>
-                                _setFollowUpEnabled(value ?? false),
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            activeColor: _brand,
-                            title: const Text(
-                              'کار پیگیری‌دار',
-                              style: TextStyle(
-                                color: _brand,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
+                        Row(
+                          children: [
+                            const Icon(Icons.timeline_outlined, color: _brand),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'پیگیری‌ها',
+                                style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
                               ),
                             ),
-                            subtitle: const Text(
-                              'فعال‌سازی بدون ساخت زمان خودکار؛ سوابق قبلی حفظ می‌شوند',
-                            ),
-                          ),
+                            Text('${_followUps.length}', style: const TextStyle(color: _brand, fontWeight: FontWeight.w700)),
+                          ],
                         ),
-                        if (!_followUpEnabled && hasHistory)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4, bottom: 6),
-                            child: Text(
-                              'سوابق پیگیری قبلی حفظ می‌شوند.',
-                              style: TextStyle(
-                                color: Color(0xFF77778A),
-                                fontSize: 12,
-                              ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'عنوان، یادداشت، اقدام بعدی و یادآور هر پیگیری جداگانه ذخیره می‌شوند.',
+                          style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
+                        ),
+                        for (final followUp in _followUps) ...[
+                          const Divider(height: 18),
+                          ListTile(
+                            key: ValueKey('task-editor-followup-${followUp.id}'),
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.event_note_outlined, color: _brand),
+                            title: Text(
+                              followUp.title?.trim().isNotEmpty == true
+                                  ? followUp.title!.trim()
+                                  : 'پیگیری',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              [
+                                if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
+                                if (followUp.nextFollowUp != null)
+                                  'اقدام بعدی: ${_dateText(followUp.nextFollowUp!)} • ${_timeText(followUp.nextFollowUp!)}',
+                                if (followUp.reminderDate != null)
+                                  'یادآور: ${_dateText(followUp.reminderDate!)} • ${_timeText(followUp.reminderDate!)}',
+                              ].join('\n'),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: IconButton(
+                              key: ValueKey('task-editor-edit-followup-${followUp.id}'),
+                              tooltip: 'ویرایش پیگیری',
+                              onPressed: () => _openFollowUpEntry(existing: followUp),
+                              icon: const Icon(Icons.edit_outlined),
                             ),
                           ),
-
+                        ],
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          key: const ValueKey('task-editor-add-followup'),
+                          onPressed: () => _openFollowUpEntry(),
+                          icon: const Icon(Icons.add),
+                          label: const Text('افزودن پیگیری'),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
                 ],
               ),
             ),

@@ -22,6 +22,6 @@ void main() {
       scrollable: moreSheet,
     );
     expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
-    expect(find.text('گزارش‌ها'), findsOneWidget);
+    expect(find.text('گزارش‌ها'), findsWidgets);
   });
 }

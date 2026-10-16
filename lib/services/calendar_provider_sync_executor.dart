@@ -89,6 +89,12 @@ class CalendarProviderSyncExecutor {
           if (revision == null) {
             throw StateError('Create plan item is missing its revision.');
           }
+          // A plan may become stale after another sync has already recorded
+          // the same stable reminder identity. Never insert a second provider
+          // event when canonical link metadata already exists.
+          if (links.containsKey(item.reminderId)) {
+            throw StateError('این مورد قبلاً در تقویم گوشی ثبت شده است.');
+          }
           final eventId = await bridge.createProviderEvent(
             calendarId: calendarId,
             title: revision.title,

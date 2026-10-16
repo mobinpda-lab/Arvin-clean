@@ -45,7 +45,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('full Task form keeps follow-up toggle without a timestamp editor',
+  testWidgets('full Task form exposes canonical follow-up records instead of a toggle',
       (tester) async {
     final task = Task(
       id: '1',
@@ -59,8 +59,10 @@ void main() {
     await pumpEditor(tester, task: task);
 
     expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
-    expect(find.text('کار پیگیری‌دار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsOneWidget);
+    expect(find.text('پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-add-followup')), findsOneWidget);
+    expect(find.text('کار پیگیری‌دار'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsNothing);
     expect(find.text('زمان پیگیری'), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
@@ -72,20 +74,51 @@ void main() {
     expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
   });
 
-  testWidgets('enabling follow-up on a new Task does not invent a timestamp',
+  testWidgets('saving an ordinary Task does not invent follow-up records or timestamps',
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
+    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpDate, isNull);
+    expect(result!.followUps, isEmpty);
+  });
+
+
+  testWidgets('Task editor saves a new follow-up record with separate title and note',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-title')),
+      'تماس مجدد',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-note')),
+      'در انتظار ارسال پاسخ',
+    );
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.title, 'تماس مجدد');
+    expect(result!.followUps.single.note, 'در انتظار ارسال پاسخ');
     expect(result!.followUpEnabled, isTrue);
     expect(result!.followUpDate, isNull);
   });
+
 
   testWidgets('editing and saving preserves the exact existing follow-up time',
       (tester) async {
@@ -111,12 +144,13 @@ void main() {
     expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
   });
 
-  testWidgets('new ordinary task keeps follow-up controls hidden until enabled',
+  testWidgets('new ordinary Task exposes the follow-up list without inventing records',
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
 
-    expect(find.text('کار پیگیری‌دار'), findsOneWidget);
+    expect(find.text('پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-add-followup')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
 
@@ -132,7 +166,7 @@ void main() {
     expect(result!.followUpDate, isNull);
   });
 
-  testWidgets('disabling future follow-up never erases existing history',
+  testWidgets('editing Task preserves legacy state and all existing follow-up history',
       (tester) async {
     Task? result;
     final history = [
@@ -163,17 +197,12 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.tap(find.byKey(const ValueKey('task-editor-followup-enabled')));
-    await tester.pump();
-    expect(find.text('سوابق پیگیری قبلی حفظ می‌شوند.'), findsOneWidget);
-
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
     expect(result!.id, 'history');
-    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpEnabled, isTrue);
     expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
     expect(result!.followUps, hasLength(2));
     expect(result!.followUps.last.note, 'تماس دوم');
