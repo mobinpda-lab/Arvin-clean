@@ -26,7 +26,7 @@ void main() {
       const Color(0xFFEFF6FF),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-waiting'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting'))).color,
       const Color(0xFFFEFCE8),
     );
     expect(
