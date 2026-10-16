@@ -20,6 +20,52 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
+  test('deleted migrated legacy reminder does not return after SQL and backup restore',
+      () async {
+    final executor = NativeDatabase.memory();
+    addTearDown(executor.close);
+    final store = TaskStore(executor: executor);
+    final legacyDate = DateTime(2026, 10, 10, 8, 30);
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'deleted-legacy-reminder',
+      'title': 'یادآور حذف‌شده',
+      'reminderDate': legacyDate.toIso8601String(),
+    });
+
+    expect(task.legacyTaskReminderMigrationVersion, 1);
+    expect(task.taskReminders.map((reminder) => reminder.id),
+        <String>['legacy-task-reminder']);
+
+    // Deletion is represented by an empty canonical collection plus the
+    // persisted migration tombstone; the old compatibility field stays intact.
+    task.taskReminders.clear();
+    await store.save(<Task>[task]);
+    final afterSql = await store.load();
+    expect(afterSql.single.legacyTaskReminderMigrationVersion, 1);
+    expect(afterSql.single.reminderDate, legacyDate);
+    expect(afterSql.single.taskReminders, isEmpty);
+
+    final payload = <String, dynamic>{
+      'tasks': afterSql.map((value) => value.toJson()).toList(growable: false),
+      'calendarLinks': <Map<String, dynamic>>[],
+    };
+    final bytes = ArvinBackupService.encodeBackupDocument(payload);
+    final decoded = ArvinBackupService.validateBackupDocument(
+      jsonDecode(utf8.decode(Uint8List.fromList(bytes))),
+    );
+    final restoredTasks = (decoded['tasks'] as List)
+        .map((value) => Task.fromJson(Map<String, dynamic>.from(value as Map)))
+        .toList(growable: false);
+    expect(restoredTasks.single.legacyTaskReminderMigrationVersion, 1);
+    expect(restoredTasks.single.taskReminders, isEmpty);
+
+    await store.save(restoredTasks);
+    final afterRestore = await store.load();
+    expect(afterRestore.single.taskReminders, isEmpty,
+        reason: 'legacy compatibility data must not resurrect a deleted reminder');
+    expect(afterRestore.single.legacyTaskReminderMigrationVersion, 1);
+  });
+
   test('legacy Task reminder survives SQL and canonical backup/restore exactly once',
       () async {
     final executor = NativeDatabase.memory();
