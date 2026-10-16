@@ -213,6 +213,14 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         fontFamily: selectedFontFamily,
         textTheme: readableLightTextTheme,
+        dialogTheme: DialogThemeData(
+          titleTextStyle: readableLightTextTheme.titleLarge,
+          contentTextStyle: readableLightTextTheme.bodyMedium,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          showDragHandle: false,
+          surfaceTintColor: Colors.transparent,
+        ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: const AppBarTheme(
