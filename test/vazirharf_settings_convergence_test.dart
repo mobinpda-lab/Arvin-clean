@@ -11,7 +11,7 @@ void main() {
 
     expect(mainSource, contains("import 'theme/app_fonts.dart';"));
     expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(arvinFontById('vazirharf').effectiveFontFamily, isNull);
+    expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
   });
 
