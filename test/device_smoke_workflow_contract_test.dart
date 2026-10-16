@@ -32,8 +32,9 @@ void main() {
     expect(workflow, contains(r'timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
     expect(workflow, contains('sys.boot_completed'));
     expect(workflow, contains(r'for attempt in $(seq 1 120)'));
-    expect(workflow, contains('script: |\n            set -eu'));
-    expect(workflow, isNot(contains('script: |\n            set -euo pipefail')));
+    expect(workflow, contains(r'script: |\n            timeout 120s adb -s "emulator-${EMULATOR_PORT}" wait-for-device'));
+    expect(workflow, isNot(contains(r'for attempt in $(seq 1 120)')));
+    expect(workflow, isNot(contains('sys.boot_completed')));
     expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
     expect(workflow, isNot(contains('uiautomator dump')));
