@@ -81,22 +81,8 @@ class FollowUpCalendarProjection {
         final parentSubtitle = hasCustomTitle ? 'پیگیری: ${task.title}' : null;
         final isCompleted = followUp.completed || task.completed;
 
-        // nextFollowUp is the next action time; reminderDate is the separate,
-        // explicitly timed alert. Keep both projections distinct and stable.
-        final nextActionDate = followUp.nextFollowUp;
-        if (nextActionDate != null) {
-          reminders.add(
-            CalendarReminder(
-              id: 'task-followup:${task.id}:${followUp.id}',
-              title: calendarTitle,
-              date: nextActionDate,
-              completed: isCompleted,
-              description: parentSubtitle,
-            ),
-          );
-          taskDatesAlreadyProjected.add(nextActionDate);
-        }
-
+        // nextFollowUp is an internal planned action, not a calendar event.
+        // Only the explicitly configured reminderDate is projected.
         final reminderDate = followUp.reminderDate;
         if (reminderDate != null) {
           reminders.add(
