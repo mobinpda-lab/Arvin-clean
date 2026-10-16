@@ -463,3 +463,13 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## 2026-10-16 — CI workflow evidence audit
+
+- **Audit document:** [CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md](CI_WORKFLOW_EVIDENCE_AUDIT_2026-10-16.md).
+- **Audit snapshot:** `e04467a38b92121cfb3b635f39c4c5e8fd0569ba`; treated as the latest commit visible to the audit query, not independently asserted as the final main pointer.
+- **Workflow source review:** Build defines Analyze + six test shards + Debug/Release APK jobs; Device Smoke launches Android Emulator API 35 for Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore and People; Calendar Provider Acceptance launches an emulator separately and can report a stock-emulator limitation rather than real provider PASS.
+- **Observed run:** [38899481933](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38899481933) returned 9/9 successful jobs including Analyze, six test shards and two APK jobs. Exact checkout SHA was not available in the inspected job payload, so this is not accepted as exact-final-head evidence.
+- **Blocking gaps:** no exact-head proof for all Build lanes and six Device Smoke scenarios; Calendar Provider result must be matched to its exact SHA; no dedicated Report Center or standalone Follow-up scenario in Device Smoke; no explicit terminology lint for canonical «پیگیری»; physical-device/visual acceptance remains unproven.
+- **Release gate:** `RELEASE: NO-GO`. Documentation-only audit; no product logic/UI changed.
