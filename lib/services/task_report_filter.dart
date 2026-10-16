@@ -22,6 +22,8 @@ class TaskReportFilter {
     this.categories = const <String>{},
     this.tags = const <String>{},
     this.personIds = const <String>{},
+    this.personNames = const <String>{},
+    this.isWaitingForResponse,
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -48,6 +50,8 @@ class TaskReportFilter {
   final Set<String> categories;
   final Set<String> tags;
   final Set<String> personIds;
+  final Set<String> personNames;
+  final bool? isWaitingForResponse;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -74,6 +78,8 @@ class TaskReportFilter {
       categories.isNotEmpty ||
       tags.isNotEmpty ||
       personIds.isNotEmpty ||
+      personNames.isNotEmpty ||
+      isWaitingForResponse != null ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -113,6 +119,15 @@ class TaskReportFilter {
           !task.people.any((person) => personIds.contains(person.id)) &&
           !task.followUps.any((followUp) =>
               followUp.personIds.any(personIds.contains))) {
+        return false;
+      }
+      if (personNames.isNotEmpty &&
+          !task.people.any((person) => personNames.contains(person.displayName.trim()))) {
+        return false;
+      }
+      if (isWaitingForResponse != null &&
+          task.followUps.any((followUp) => followUp.waitingForResponse) !=
+              isWaitingForResponse) {
         return false;
       }
       if (!_matchesStatus(task)) return false;

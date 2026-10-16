@@ -307,6 +307,10 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           if (filter.personIds.isNotEmpty)
             Chip(label: Text('اشخاص: ${filter.personIds.length}')),
+          for (final personName in filter.personNames)
+            Chip(label: Text('شخص: $personName')),
+          if (filter.isWaitingForResponse != null)
+            Chip(label: Text(filter.isWaitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ')),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -356,7 +360,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
-  Set<String> _personIds = <String>{};
+  Set<String> _personNames = <String>{};
+  bool? _isWaitingForResponse;
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -381,7 +386,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
-    _personIds = <String>{...f.personIds};
+    _personNames = <String>{...f.personNames};
+    _isWaitingForResponse = f.isWaitingForResponse;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -477,7 +483,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
-        personIds: Set<String>.of(_personIds),
+        personNames: Set<String>.of(_personNames),
+        isWaitingForResponse: _isWaitingForResponse,
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -508,6 +515,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList()..sort();
+    final personNames = <String>{
+      ...widget.people.map((person) => person.displayName.trim()),
+      ...widget.tasks.expand((task) => task.people).map((person) => person.displayName.trim()),
+    }.where((name) => name.isNotEmpty).toList()..sort();
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
@@ -638,18 +649,16 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'شخص',
+              title: 'اشخاص',
               icon: Icons.people_outline,
               accentColor: ArvinColors.primary,
-              selectedCount: _personIds.length,
+              selectedCount: _personNames.length,
               child: _MultiSelectChips(
                 allLabel: 'همه اشخاص',
                 accentColor: ArvinColors.primary,
-                options: widget.people
-                    .map((person) => MapEntry(person.id, person.displayName))
-                    .toList(growable: false),
-                selected: _personIds,
-                onChanged: (value) => setState(() => _personIds = value),
+                options: personNames.map((name) => MapEntry(name, name)).toList(growable: false),
+                selected: _personNames,
+                onChanged: (value) => setState(() => _personNames = value),
                 keyPrefix: 'report-filter-person',
               ),
             ),
@@ -892,7 +901,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
               accentColor: ArvinColors.category,
-              selectedCount: (_hasRepeat != null ? 1 : 0) + (_hasChecklist != null ? 1 : 0),
+              selectedCount: (_hasRepeat != null ? 1 : 0) +
+                  (_hasChecklist != null ? 1 : 0) +
+                  (_isWaitingForResponse != null ? 1 : 0),
               child: Wrap(
                 spacing: 6,
                 children: [
@@ -905,6 +916,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     label: 'Checklist',
                     value: _hasChecklist,
                     onChanged: (value) => setState(() => _hasChecklist = value),
+                  ),
+                  _TriStateChip(
+                    label: 'منتظر پاسخ',
+                    value: _isWaitingForResponse,
+                    onChanged: (value) => setState(() => _isWaitingForResponse = value),
                   ),
                 ],
               ),
@@ -935,7 +951,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _projectIds = <String>{};
                           _categories = <String>{};
                           _tags = <String>{};
-                          _personIds = <String>{};
+                          _personNames = <String>{};
+                          _isWaitingForResponse = null;
                           _statuses.clear();
                           _trackingLevels.clear();
                           _noteKinds.clear();
