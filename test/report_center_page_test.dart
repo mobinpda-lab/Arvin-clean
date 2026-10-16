@@ -236,13 +236,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
+      find.byKey(const ValueKey('report-filter-person-شخص حذف‌شده')),
       200,
       scrollable: find.byType(Scrollable).last,
     );
 
     expect(find.text('شخص حذف‌شده'), findsOneWidget);
-    expect(find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-person-شخص حذف‌شده')), findsOneWidget);
   });
 
 }
