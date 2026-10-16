@@ -923,7 +923,8 @@ Color _calendarStatusColor(CalendarReminder item) {
   if (item.completed) return ArvinColors.calendarCompleted;
   if (_isOverdueCalendarItem(item)) return ArvinColors.calendarOverdue;
   if (item.id.startsWith('task-followup:') ||
-      item.id.startsWith('task-followup-action:')) {
+      item.id.startsWith('task-followup-action:') ||
+      item.id.startsWith('followup:')) {
     return ArvinColors.calendarWaiting;
   }
   return ArvinColors.calendarPlanned;
@@ -933,7 +934,8 @@ Color _calendarStatusBackground(CalendarReminder item) {
   if (item.completed) return ArvinColors.calendarCompletedSoft;
   if (_isOverdueCalendarItem(item)) return ArvinColors.calendarOverdueSoft;
   if (item.id.startsWith('task-followup:') ||
-      item.id.startsWith('task-followup-action:')) {
+      item.id.startsWith('task-followup-action:') ||
+      item.id.startsWith('followup:')) {
     return ArvinColors.calendarWaitingSoft;
   }
   return ArvinColors.calendarPlannedSoft;
@@ -943,7 +945,8 @@ IconData _calendarStatusIcon(CalendarReminder item) {
   if (item.completed) return Icons.check_circle_rounded;
   if (_isOverdueCalendarItem(item)) return Icons.warning_rounded;
   if (item.id.startsWith('task-followup:') ||
-      item.id.startsWith('task-followup-action:')) {
+      item.id.startsWith('task-followup-action:') ||
+      item.id.startsWith('followup:')) {
     return Icons.hourglass_bottom_rounded;
   }
   return Icons.circle_outlined;
@@ -953,7 +956,8 @@ bool _isTaskCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder-item:') ||
     id.startsWith('task-reminder:') ||
-    id.startsWith('task-followup:');
+    id.startsWith('task-followup:') ||
+    id.startsWith('followup:');
 
 enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
 
@@ -1123,6 +1127,8 @@ class _ReminderCardState extends State<_ReminderCard> {
         : 'برنامه‌ریزی‌شده';
     final visual = _CalendarItemVisualStyle.of(context, item);
     final statusColor = _calendarStatusColor(item);
+    final isFollowUpItem = item.id.startsWith('task-followup:') ||
+        item.id.startsWith('followup:');
     final subtitle = item.isAllDay
         ? '${widget.dateLabel} • رویداد تمام‌روز'
         : '${widget.dateLabel} • ${widget.timeLabel}';
@@ -1211,23 +1217,63 @@ class _ReminderCardState extends State<_ReminderCard> {
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.schedule_rounded, size: 13, color: statusColor),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
+                  if (item.description?.trim().isNotEmpty == true)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Text(
+                        item.description!,
+                        key: ValueKey('calendar-item-parent-subtitle-${item.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    visual.label,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today_outlined, size: 12, color: statusColor),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          item.isAllDay ? subtitle : widget.dateLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF5F6178)),
+                        ),
+                      ),
+                      if (!item.isAllDay) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          key: isFollowUpItem
+                              ? ValueKey('calendar-followup-time-chip-${item.id}')
+                              : null,
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _calendarStatusBackground(item),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.schedule_rounded, size: 12, color: statusColor),
+                              const SizedBox(width: 3),
+                              Text(
+                                widget.timeLabel,
+                                style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 4),
+                      Text(
+                        visual.label,
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
+                      ),
+                    ],
                   ),
                 ],
               ),
