@@ -753,12 +753,10 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'خرید فرش اتاق',
     );
-    final toggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
     final rollBox = find.byKey(
       const ValueKey('quick-capture-follow-up-rollbox'),
     );
