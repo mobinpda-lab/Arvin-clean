@@ -209,9 +209,11 @@ void main() {
     expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
     expect(find.textContaining('پاسخ آنا'), findsOneWidget);
     expect(find.textContaining('پاسخ رضا'), findsNothing);
-    expect(find.byType(InputChip), findsWidgets);
-    await tester.tap(find.text('آنا'));
+    final personFilterChip = find.byKey(const ValueKey('report-active-person-ana'));
+    expect(personFilterChip, findsOneWidget);
+    await tester.tap(find.descendant(of: personFilterChip, matching: find.byIcon(Icons.cancel)));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-active-person-ana')), findsNothing);
     expect(find.textContaining('پاسخ رضا'), findsNothing);
   });
 
