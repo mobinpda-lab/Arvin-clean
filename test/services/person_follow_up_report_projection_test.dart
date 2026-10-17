@@ -96,7 +96,9 @@ void main() {
     final rows = const PersonFollowUpReportProjection()
         .project(tasks, people: directory);
 
-    expect(rows, isEmpty);
+    expect(rows.map((row) => row.followUp.id), ['removed']);
+    expect(rows.single.people.single.id, 'deleted-person');
+    expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
   test('next-action cutoff is independent and excludes missing or later next action', () {
