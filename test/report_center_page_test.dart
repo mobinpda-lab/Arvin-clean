@@ -214,7 +214,7 @@ void main() {
     await tester.tap(find.descendant(of: personFilterChip, matching: find.byIcon(Icons.cancel)));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('report-active-person-ana')), findsNothing);
-    expect(find.textContaining('پاسخ رضا'), findsNothing);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
   });
 
   testWidgets('Report Center keeps deleted people selectable by stable label', (tester) async {
