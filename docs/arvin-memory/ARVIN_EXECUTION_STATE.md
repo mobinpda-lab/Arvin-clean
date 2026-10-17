@@ -1136,3 +1136,11 @@ This entry supersedes older statements that the owner decision is pending or tha
 - **Not yet evidenced:** no successful test run, analyzer, APK build, GitHub Actions result, PDF text extraction, PDF raster/rendered-page inspection, or emulator/physical-device validation is claimed at this checkpoint. The PDF byte assertions are only automated structural checks; they do not substitute for text extraction and visual inspection.
 - **Next gates:** run relevant font and report tests; resolve any compile/test failures; generate a real Persian report PDF from the application renderer; inspect embedded font objects, extract text to verify Persian/Jalali digits and RTL content, rasterize pages and inspect layout; then run exact-head Build and required Device Smoke lanes. Keep this PR Draft and release **NO-GO** until evidence is attached to the final SHA.
 - **Status:** implementation assets and code are now present on the PR branch; validation remains **PENDING / NOT PROVEN**.
+
+
+## ADDENDUM — 2026-10-17 — UI Vazirmatn family coverage
+
+- A review of the live PR branch found that the picker registry marked `Vazirmatn` available while `pubspec.yaml` had no `Vazirmatn` family declaration. This inconsistency is corrected on the same Draft PR branch.
+- Added the official upstream `Vazirmatn-Regular.ttf`, `Vazirmatn-Medium.ttf`, `Vazirmatn-SemiBold.ttf`, and `Vazirmatn-Bold.ttf` files from `rastikerdar/vazirmatn` tree `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`. The imported Git blob IDs match upstream: `64e4a8189557a17b63fd7a77794207483e592972`, `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`, `6b3842aca6055c8258404b1758133b81c961a13f`, `efa9b095da01d299310bdcae293e24e657fe6da9`. The upstream OFL license is bundled at `assets/fonts/ui/vazirmatn/LICENSE.txt`.
+- `pubspec.yaml` now registers the UI `Vazirmatn` family with four weights, and `test/ui_font_assets_test.dart` includes those four files and its license. The report renderer remains separately pinned to `Vazirmatn UI FD`; user-selected UI font cannot change PDF typography.
+- Validation of the latest resulting head remains pending; no test/build/device pass is inferred from an earlier SHA.
