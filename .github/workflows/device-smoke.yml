@@ -119,7 +119,8 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            set -euo pipefail
+            # This script is executed by the action through /usr/bin/sh.
+            set -eu
             device="emulator-${EMULATOR_PORT}"
             echo "ADB_DEVICE=${device}"
             adb devices -l

@@ -27,7 +27,7 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('script: flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
     expect(workflow, isNot(contains('adb exec-out screencap -p')));
     expect(workflow, isNot(contains('uiautomator dump')));
 
@@ -57,7 +57,7 @@ void main() {
       workflow,
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
-    expect(workflow, contains('actions/upload-artifact@v4'));
+    expect(workflow, contains('actions/upload-artifact@v5'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
     final matrixScenarios = RegExp(
@@ -66,9 +66,9 @@ void main() {
 
     expect(
       matrixScenarios.length,
-      6,
+      7,
       reason:
-          'Home, Quick Capture, SQL persistence, Upgrade Migration, Backup/Restore, and People must run as separate matrix smoke scenarios',
+          'Home, Quick Capture, SQL persistence, Upgrade Migration, Backup/Restore, People, and Calendar must run as separate matrix smoke scenarios',
     );
 
     final testFiles =
@@ -83,6 +83,7 @@ void main() {
         'integration_test/android_upgrade_migration_smoke_test.dart',
         'integration_test/android_backup_restore_sql_smoke_test.dart',
         'integration_test/android_people_smoke_test.dart',
+        'integration_test/calendar_card_interaction_test.dart',
       ]),
     );
   });
