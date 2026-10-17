@@ -234,6 +234,7 @@ class Task {
     this.legacyReminderMigrationCompleted = false,
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
+    this.legacyTaskReminderMigrationVersion = 0,
     this.priority = TaskPriority.none,
     this.archived = false,
     this.trashed = false,
@@ -279,6 +280,8 @@ class Task {
   List<TaskReminder> taskReminders;
   /// Next per-Task reminder number; deleted numbers are never reused.
   int nextReminderSequence;
+  /// Version marker retained for compatibility with current reminder services.
+  int legacyTaskReminderMigrationVersion;
   TaskPriority priority;
   bool archived;
   bool trashed;
@@ -408,6 +411,8 @@ class Task {
         'legacyReminderMigrationCompleted': legacyReminderMigrationCompleted,
         'taskReminders': taskReminders.map((reminder) => reminder.toJson()).toList(),
         'nextReminderSequence': nextReminderSequence,
+        if (legacyTaskReminderMigrationVersion > 0)
+          'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
         if (priority != TaskPriority.none) 'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
@@ -466,6 +471,10 @@ class Task {
     // Keep reminderDate intact for rollback and old-reader compatibility.
     var legacyReminderMigrationCompleted =
         json['legacyReminderMigrationCompleted'] as bool? ?? false;
+    final storedMigrationVersion =
+        (json['legacyTaskReminderMigrationVersion'] as num?)?.toInt() ?? 0;
+    var legacyTaskReminderMigrationVersion =
+        storedMigrationVersion < 0 ? 0 : storedMigrationVersion;
     final legacyReminderId = 'legacy-task-reminder:$taskId';
     final hasMigratedLegacyReminder =
         loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId);
@@ -497,6 +506,9 @@ class Task {
         nextReminderSequence = sequence + 1;
         legacyReminderMigrationCompleted = true;
       }
+    }
+    if (legacyReminderMigrationCompleted && legacyTaskReminderMigrationVersion < 1) {
+      legacyTaskReminderMigrationVersion = 1;
     }
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
@@ -542,6 +554,7 @@ class Task {
       legacyReminderMigrationCompleted: legacyReminderMigrationCompleted,
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
+      legacyTaskReminderMigrationVersion: legacyTaskReminderMigrationVersion,
       priority: loadedPriority,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
