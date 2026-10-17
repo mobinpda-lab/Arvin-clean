@@ -16,7 +16,7 @@ class G1DriftSchema implements QueryExecutorUser {
   recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS follow_ups (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
-  date_time TEXT NOT NULL, note TEXT NOT NULL, result TEXT NULL,
+  date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
   reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
   waiting_for_response INTEGER NOT NULL DEFAULT 0,
   ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
@@ -75,6 +75,9 @@ class G1DriftSchema implements QueryExecutorUser {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
       }
       final followUpColumns = await executor.runSelect("PRAGMA table_info('follow_ups')", const []);
+      if (!followUpColumns.any((row) => row['name'] == 'title')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN title TEXT NULL');
+      }
       if (!followUpColumns.any((row) => row['name'] == 'waiting_for_response')) {
         await executor.runCustom(
           'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
