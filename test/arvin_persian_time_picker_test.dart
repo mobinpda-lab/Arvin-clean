@@ -148,7 +148,7 @@ void main() {
                   result = await showUniversalArvinTimePicker(
                     context: context,
                     initialTime: const TimeOfDay(hour: 8, minute: 0),
-                    helpText: 'زمان یادآوری',
+                    helpText: 'زمان پیگیری',
                   );
                 },
                 child: const Text('باز کردن'),
