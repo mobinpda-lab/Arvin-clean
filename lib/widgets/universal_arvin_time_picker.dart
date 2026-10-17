@@ -254,7 +254,7 @@ class _UniversalArvinTimePickerDialogState
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: ArvinColors.textPrimary,
-                        minimumSize: const Size.fromHeight(46),
+                        minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
