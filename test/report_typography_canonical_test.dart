@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arvin/services/task_report_pdf_renderer.dart';
 import 'package:arvin/services/task_report_projection.dart';
 import 'package:flutter/services.dart';
@@ -44,5 +46,12 @@ void main() {
     final pdfObjects = String.fromCharCodes(bytes);
     expect(pdfObjects, contains('/FontFile2'));
     expect(pdfObjects, contains('Vazirmatn'));
+
+    final outputPath = Platform.environment['ARVIN_REPORT_PDF_OUTPUT'];
+    if (outputPath != null && outputPath.isNotEmpty) {
+      final output = File(outputPath);
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes, flush: true);
+    }
   });
 }
