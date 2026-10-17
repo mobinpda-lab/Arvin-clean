@@ -35,6 +35,20 @@ void main() {
     'assets/fonts/ui/vazircode/Vazir-Code-Regular.ttf',
   ];
 
+  const licenseAssets = <String>[
+    'assets/fonts/vazirmatn-ui-fd/OFL.txt',
+    'assets/fonts/ui/estedad/LICENSE.txt',
+    'assets/fonts/ui/shabnam/LICENSE.txt',
+    'assets/fonts/ui/sahel/LICENSE.txt',
+    'assets/fonts/ui/samim/LICENSE.txt',
+    'assets/fonts/ui/tanha/LICENSE.txt',
+    'assets/fonts/ui/gandom/LICENSE.txt',
+    'assets/fonts/ui/parastoo/LICENSE.txt',
+    'assets/fonts/ui/mikhak/LICENSE.txt',
+    'assets/fonts/ui/lalezar/LICENSE.txt',
+    'assets/fonts/ui/vazircode/LICENSE.txt',
+  ];
+
   test('every non-system picker option is locally backed by a registered family', () {
     final unavailable = kAvailableArvinFonts
         .where((option) => option.id != 'system' && !option.isAvailableLocally)
@@ -57,6 +71,13 @@ void main() {
     for (final asset in assets) {
       final data = await rootBundle.load(asset);
       expect(data.lengthInBytes, greaterThan(10000), reason: asset);
+    }
+  });
+
+  test('every redistributed font family includes its license in the app bundle', () async {
+    for (final asset in licenseAssets) {
+      final data = await rootBundle.load(asset);
+      expect(data.lengthInBytes, greaterThan(1000), reason: asset);
     }
   });
 }
