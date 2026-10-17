@@ -6,6 +6,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const assets = <String>[
+    'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf',
+    'assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf',
+    'assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf',
+    'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf',
     'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Regular.ttf',
     'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Medium.ttf',
     'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-SemiBold.ttf',
@@ -36,6 +40,7 @@ void main() {
   ];
 
   const licenseAssets = <String>[
+    'assets/fonts/ui/vazirmatn/LICENSE.txt',
     'assets/fonts/vazirmatn-ui-fd/OFL.txt',
     'assets/fonts/ui/estedad/LICENSE.txt',
     'assets/fonts/ui/shabnam/LICENSE.txt',
