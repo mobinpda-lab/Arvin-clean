@@ -2,6 +2,14 @@ import 'package:flutter/services.dart';
 
 abstract final class AppFonts {
   static const String vazirharfFamily = 'VazirHarf';
+  static const String vazirmatnFamily = 'Vazirmatn';
+
+  static const String vazirmatnRegularAsset =
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
+  static const String vazirmatnMediumAsset =
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf';
+  static const String vazirmatnBoldAsset =
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
   static const String iranSansXFamily = 'IRANSansXFaNum';
 
   static const String iranSansXRegularAsset =
