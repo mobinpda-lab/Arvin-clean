@@ -30,25 +30,22 @@ class TaskReportPdfRenderer {
 
   static const _dateFormatter = PersianDateFormatter();
   static const _regularFontAsset =
-      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Regular.ttf';
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
   static const _mediumFontAsset =
-      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Medium.ttf';
-  static const _semiBoldFontAsset =
-      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-SemiBold.ttf';
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf';
   static const _boldFontAsset =
-      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Bold.ttf';
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
 
   final TaskReportFontLoader _fontLoader;
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
     final regular = await rootBundle.load(_regularFontAsset);
     final medium = await rootBundle.load(_mediumFontAsset);
-    final semiBold = await rootBundle.load(_semiBoldFontAsset);
     final bold = await rootBundle.load(_boldFontAsset);
     return TaskReportFonts(
       base: pw.Font.ttf(regular),
       medium: pw.Font.ttf(medium),
-      semiBold: pw.Font.ttf(semiBold),
+      semiBold: pw.Font.ttf(bold),
       bold: pw.Font.ttf(bold),
     );
   }
