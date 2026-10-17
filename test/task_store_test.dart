@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
@@ -294,6 +295,47 @@ void main() {
     expect(loaded.single.recurrence?.active, isTrue);
     expect(loaded.single.recurrence?.interval, 2);
     await executor.close();
+  });
+
+
+  test('removing a Person directory entry preserves Task and Follow-up relations in SQLite', () async {
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    const personId = 'person-deleted-history';
+    final person = PersonReference(id: personId, displayName: 'شخص آزمون');
+    await store.savePeopleDirectory(<PersonReference>[person]);
+    await store.save(<Task>[
+      Task(
+        id: 'task-deleted-person-history',
+        title: 'کار دارای سابقه پیگیری',
+        followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'followup-deleted-person-history',
+            dateTime: DateTime.utc(2026, 10, 15, 10),
+            note: 'حفظ سابقه پس از حذف شخص',
+            personIds: const <String>[personId],
+            waitingForResponse: true,
+          ),
+        ],
+      ),
+    ]);
+
+    final before = await store.load();
+    expect(before, hasLength(1));
+    expect(before.single.followUps.single.personIds, contains(personId));
+
+    // Person directory records are independent of canonical Task/Follow-up rows.
+    await store.savePeopleDirectory(const <PersonReference>[]);
+
+    final reloaded = await TaskStore().load();
+    expect(await TaskStore().loadPeopleDirectory(), isEmpty);
+    expect(reloaded, hasLength(1));
+    expect(reloaded.single.id, 'task-deleted-person-history');
+    expect(reloaded.single.followUps, hasLength(1));
+    expect(reloaded.single.followUps.single.id, 'followup-deleted-person-history');
+    expect(reloaded.single.followUps.single.personIds, <String>[personId]);
+    expect(reloaded.single.followUps.single.waitingForResponse, isTrue);
   });
 
 }
