@@ -84,4 +84,49 @@ void main() {
       ['none'],
     );
   });
+  test('waiting-for-response tri-state filters active follow-ups without parallel state', () {
+    final tasks = [
+      Task(
+        id: 'waiting',
+        title: 'منتظر پاسخ',
+        followUps: [
+          FollowUp(
+            id: 'waiting-follow-up',
+            dateTime: now,
+            personIds: ['ana'],
+            waitingForResponse: true,
+          ),
+        ],
+      ),
+      Task(
+        id: 'not-waiting',
+        title: 'بدون انتظار',
+        followUps: [
+          FollowUp(
+            id: 'completed-waiting-follow-up',
+            dateTime: now,
+            personIds: ['ana'],
+            waitingForResponse: true,
+            completed: true,
+          ),
+        ],
+      ),
+      Task(id: 'no-follow-up', title: 'بدون پیگیری'),
+    ];
+
+    expect(
+      const TaskReportFilter(waitingForResponse: true)
+          .apply(tasks, now: now)
+          .map((task) => task.id),
+      ['waiting'],
+    );
+    expect(
+      const TaskReportFilter(waitingForResponse: false)
+          .apply(tasks, now: now)
+          .map((task) => task.id),
+      ['not-waiting', 'no-follow-up'],
+    );
+    expect(const TaskReportFilter().copyWith(clearWaitingForResponse: true).isActive, isFalse);
+  });
+
 }
