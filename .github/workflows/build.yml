@@ -112,6 +112,12 @@ jobs:
         env:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
         run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
+      - name: Focused UI font asset and settings regressions
+        if: matrix.lane == 'test-0'
+        run: |
+          set -euo pipefail
+          flutter test test/ui_font_assets_test.dart --reporter expanded
+          flutter test test/vazirharf_settings_convergence_test.dart --reporter expanded
       - name: Generate and inspect canonical report PDF
         if: matrix.lane == 'test-0'
         env:
