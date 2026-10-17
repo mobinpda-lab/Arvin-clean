@@ -297,11 +297,13 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           for (final id in filter.personIds)
             InputChip(
+              key: ValueKey('report-active-person-$id'),
               label: Text(peopleById[id]?.displayName ?? 'شخص حذف‌شده'),
               onDeleted: () => onRemovePerson(id),
             ),
           if (filter.waitingForResponse != null)
             InputChip(
+              key: const ValueKey('report-active-waiting-filter'),
               label: Text(filter.waitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ'),
               onDeleted: onRemoveWaiting,
             ),
