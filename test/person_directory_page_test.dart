@@ -1,0 +1,72 @@
+import 'package:arvin/models/person_reference.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/person_directory_page.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await TaskStore.resetTestDatabase();
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+  });
+
+  testWidgets('Person directory supports create, normalized search, edit, and history-safe delete',
+      (tester) async {
+    final store = TaskStore();
+    final person = PersonReference(id: 'person-ali', displayName: 'علی رضایی');
+    await store.savePeopleDirectory([person]);
+    await store.save([
+      Task(
+        id: 'task-call-ali',
+        title: 'تماس با علی',
+        followUps: [
+          FollowUp(
+            id: 'follow-up-call-ali',
+            dateTime: DateTime(2026, 10, 14, 9),
+            waitingForResponse: true,
+            personIds: [person.id],
+          ),
+        ],
+      ),
+    ]);
+
+    await tester.pumpWidget(MaterialApp(home: PersonDirectoryPage(store: store)));
+    await tester.pumpAndSettle();
+    expect(find.text('علی رضایی'), findsOneWidget);
+
+    // Arabic Yeh in the query must match the Persian Yeh in the stored name.
+    await tester.enterText(find.byType(TextField).first, 'علي');
+    await tester.pumpAndSettle();
+    expect(find.text('علی رضایی'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('ویرایش'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'علی محمدی');
+    await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
+    await tester.pumpAndSettle();
+    expect(find.text('علی محمدی'), findsOneWidget);
+    expect(find.text('علی رضایی'), findsNothing);
+
+    await tester.tap(find.byTooltip('حذف'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('کارها، پیگیری‌ها و شناسه ارتباط آن‌ها حفظ می‌شوند'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'حذف شخص'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('هنوز شخصی ثبت نشده است.'), findsOneWidget);
+    expect(await store.loadPeopleDirectory(), isEmpty);
+    final remaining = await store.load();
+    expect(remaining, hasLength(1));
+    expect(remaining.single.id, 'task-call-ali');
+    expect(remaining.single.followUps, hasLength(1));
+    expect(remaining.single.followUps.single.id, 'follow-up-call-ali');
+    expect(remaining.single.followUps.single.personIds, ['person-ali'],
+        reason: 'deleting a directory entry must not erase the canonical Follow-up relation');
+  });
+}
