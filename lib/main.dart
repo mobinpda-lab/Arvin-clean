@@ -2794,12 +2794,15 @@ class _HomePageState extends State<HomePage> {
                 })
               : () => _openTaskDetail(task),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
+            // Compact vertical rhythm: save 4 px per card without shrinking text.
+            padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 selectionMode
                     ? Checkbox(
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         value: selected.contains(task.id),
                         onChanged: (_) => setState(() {
                           final next = taskBulkSelectionService.toggle(
@@ -2813,6 +2816,13 @@ class _HomePageState extends State<HomePage> {
                         }),
                       )
                     : IconButton(
+                        key: ValueKey('task-card-toggle-${task.id}'),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 34,
+                          minHeight: 34,
+                        ),
                         onPressed: () => _toggle(task),
                         icon: Icon(
                           task.completed
