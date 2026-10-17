@@ -136,9 +136,13 @@ jobs:
             python3 - "${base}-extracted-text.txt" <<'PY'
           import pathlib, sys, unicodedata
           text = unicodedata.normalize("NFKC", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-          # RTL extractors may expose visual-order text; accept the token in either order.
+          compact = "".join(text.split())
+          # NFKC normalizes presentation forms emitted by PDF text extractors.
           for token in ("گزارش", "پیگیری"):
               assert token in text or token[::-1] in text, f"Expected Persian token missing from extracted PDF text: {token}"
+          assert "۱۴۰۵/۰۶/۰۷" in compact, "Jalali date/Persian digits missing from extracted PDF text"
+          assert "۱/۱" in compact, "Persian page numbering missing from extracted PDF text"
+          print(text)
           PY
             pdftoppm -png -r 110 "$pdf" "${base}-page"
           done
