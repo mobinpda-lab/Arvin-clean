@@ -43,4 +43,16 @@ void main() {
     expect(bytes.length, greaterThan(100));
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
   });
+
+  test('default renderer loads bundled Vazirmatn fonts and builds a PDF', () async {
+    final report = const TaskReportProjection().project(
+      const <Task>[],
+      generatedAt: DateTime.utc(2026, 8, 26),
+      title: 'گزارش آزمون وزیرمتن',
+    );
+    final bytes = await TaskReportPdfRenderer().build(report);
+    expect(bytes.length, greaterThan(100));
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+  });
+
 }
