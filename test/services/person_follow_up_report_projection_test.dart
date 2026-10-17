@@ -145,4 +145,25 @@ void main() {
     expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
+  test('multi-person selection includes only follow-ups linked to selected canonical people', () {
+    final task = Task(
+      id: 'task-multi-select',
+      title: 'تماس چندنفره',
+      followUps: [
+        waiting('ana', ['ana']),
+        waiting('reza', ['reza']),
+        waiting('both', ['ana', 'reza']),
+      ],
+    );
+
+    final rows = const PersonFollowUpReportProjection().project(
+      [task],
+      people: directory,
+      personIds: {'ana', 'reza'},
+    );
+
+    expect(rows.map((row) => row.followUp.id), ['ana', 'reza', 'both']);
+    expect(rows.every((row) => row.people.isNotEmpty), isTrue);
+  });
+
 }

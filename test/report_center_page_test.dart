@@ -150,7 +150,30 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('پیگیری‌های منتظر پاسخ'));
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+    expect(find.byType(SwitchListTile), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-نوع')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('منتظر پاسخ'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('منتظر پاسخ'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-apply')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
 
     expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
@@ -159,14 +182,39 @@ void main() {
     expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
     expect(find.textContaining('یادآور:'), findsOneWidget);
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('آنا').last);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-person-ana')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-person-ana')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-apply')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
 
     expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
     expect(find.textContaining('پاسخ آنا'), findsOneWidget);
     expect(find.textContaining('پاسخ رضا'), findsNothing);
+    final personFilterChip = find.byKey(const ValueKey('report-active-person-ana'));
+    expect(personFilterChip, findsOneWidget);
+    tester.widget<InputChip>(personFilterChip).onDeleted!();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-active-person-ana')), findsNothing);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
   });
 
   testWidgets('Report Center keeps deleted people selectable by stable label', (tester) async {
@@ -194,11 +242,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('report-filter-section-شخص')),
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-شخص')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),

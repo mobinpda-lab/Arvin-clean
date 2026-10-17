@@ -39,8 +39,6 @@ class ReportCenterPage extends StatefulWidget {
 
 class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
-  bool _showWaitingFollowUps = false;
-  String? _selectedPersonId;
 
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -73,12 +71,20 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     return result;
   }
 
-  List<PersonFollowUpReportRow> get _waitingRows =>
-      const PersonFollowUpReportProjection().project(
-        widget.tasks,
-        people: _peopleDirectory,
-        personId: _selectedPersonId,
-      );
+  List<PersonFollowUpReportRow> get _waitingRows {
+    final filterWithoutWaitingState =
+        _filter.copyWith(clearWaitingForResponse: true);
+    final matchingTasks = filterWithoutWaitingState.apply(
+      widget.tasks,
+      now: _now,
+      projects: widget.projects,
+    );
+    return const PersonFollowUpReportProjection().project(
+      matchingTasks,
+      people: _peopleDirectory,
+      personIds: _filter.personIds,
+    );
+  }
 
   List<Task> get _filtered => _filter.apply(
         widget.tasks,
@@ -104,8 +110,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
-        _showWaitingFollowUps = false;
-        _selectedPersonId = null;
       });
 
   @override
@@ -153,49 +157,24 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('پیگیری‌های منتظر پاسخ'),
-                      value: _showWaitingFollowUps,
-                      onChanged: (value) => setState(() => _showWaitingFollowUps = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedPersonId ?? '',
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'فرد', isDense: true),
-                      items: [
-                        const DropdownMenuItem<String>(value: '', child: Text('همه افراد')),
-                        for (final person in _peopleDirectory)
-                          DropdownMenuItem<String>(value: person.id, child: Text(person.displayName, overflow: TextOverflow.ellipsis)),
-                      ],
-                      onChanged: (value) => setState(() => _selectedPersonId = value == null || value.isEmpty ? null : value),
-                    ),
-                  ),
-                ],
+            if (_filter.isActive)
+              _ActiveFilterChips(
+                filter: _filter,
+                people: _peopleDirectory,
+                onClear: _clear,
+                onChanged: (filter) => setState(() => _filter = filter),
               ),
-            ),
-            if (_filter.isActive && !_showWaitingFollowUps)
-              _ActiveFilterChips(filter: _filter, onClear: _clear),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text(_showWaitingFollowUps
+                child: Text(_filter.waitingForResponse == true
                     ? 'نتیجه: ${waitingRows.length} پیگیری'
                     : 'نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: _showWaitingFollowUps
+              child: _filter.waitingForResponse == true
                   ? (waitingRows.isEmpty
                       ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
                       : ListView.separated(
@@ -265,7 +244,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
             ),
           ],
         ),
-        floatingActionButton: _showWaitingFollowUps || tasks.isEmpty
+        floatingActionButton: _filter.waitingForResponse == true || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
@@ -285,48 +264,171 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 }
 
 class _ActiveFilterChips extends StatelessWidget {
-  const _ActiveFilterChips({required this.filter, required this.onClear});
+  const _ActiveFilterChips({
+    required this.filter,
+    required this.people,
+    required this.onClear,
+    required this.onChanged,
+  });
 
   final TaskReportFilter filter;
+  final List<PersonReference> people;
   final VoidCallback onClear;
+  final ValueChanged<TaskReportFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final peopleById = <String, PersonReference>{
+      for (final person in people) person.id: person,
+    };
+    final selectedCategories = <String>{
+      ...filter.categories,
+      if (filter.category != null) filter.category!,
+    };
+    final selectedTags = <String>{
+      ...filter.tags,
+      if (filter.tag != null) filter.tag!,
+    };
+    final selectedStatuses = filter.statuses
+        .where((value) => value != ReportStatusFilter.all)
+        .toSet();
+    if (selectedStatuses.isEmpty && filter.status != ReportStatusFilter.all) {
+      selectedStatuses.add(filter.status);
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
         spacing: 6,
+        runSpacing: 2,
         children: [
           if (filter.timePreset != ReportTimePreset.all)
-            Chip(label: Text(_timeLabel(filter.timePreset))),
+            InputChip(
+              label: Text(_timeLabel(filter.timePreset)),
+              onDeleted: () => onChanged(filter.copyWith(timePreset: ReportTimePreset.all)),
+            ),
           if (filter.projectId != null || filter.projectIds.isNotEmpty)
-            Chip(label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}')),
-          for (final value in <String>{...filter.categories, if (filter.category != null) filter.category!})
-            Chip(label: Text(value)),
-          for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
-            Chip(label: Text(value)),
-          if (filter.personIds.isNotEmpty)
-            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
-          if (filter.status != ReportStatusFilter.all)
-            Chip(label: Text(_statusLabel(filter.status))),
+            InputChip(
+              label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}'),
+              onDeleted: () => onChanged(filter.copyWith(
+                projectIds: <String>{},
+                clearProjectId: true,
+              )),
+            ),
+          for (final value in selectedCategories)
+            InputChip(
+              label: Text(value),
+              onDeleted: () {
+                final values = <String>{...filter.categories}..remove(value);
+                onChanged(filter.copyWith(
+                  categories: values,
+                  clearCategory: filter.category == value,
+                ));
+              },
+            ),
+          for (final value in selectedTags)
+            InputChip(
+              label: Text(value),
+              onDeleted: () {
+                final values = <String>{...filter.tags}..remove(value);
+                onChanged(filter.copyWith(
+                  tags: values,
+                  clearTag: filter.tag == value,
+                ));
+              },
+            ),
+          for (final id in filter.personIds)
+            InputChip(
+              key: ValueKey('report-active-person-$id'),
+              label: Text(peopleById[id]?.displayName ?? 'شخص حذف‌شده'),
+              onDeleted: () {
+                final ids = <String>{...filter.personIds}..remove(id);
+                onChanged(filter.copyWith(personIds: ids));
+              },
+            ),
+          if (filter.waitingForResponse != null)
+            InputChip(
+              key: const ValueKey('report-active-waiting-filter'),
+              label: Text(filter.waitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ'),
+              onDeleted: () => onChanged(filter.copyWith(clearWaitingForResponse: true)),
+            ),
+          for (final value in selectedStatuses)
+            InputChip(
+              label: Text(_statusLabel(value)),
+              onDeleted: () {
+                final values = <ReportStatusFilter>{...filter.statuses}..remove(value);
+                onChanged(filter.copyWith(
+                  statuses: values,
+                  status: filter.status == value ? ReportStatusFilter.all : filter.status,
+                ));
+              },
+            ),
           if (filter.priority != null)
-            Chip(label: Text(_priorityLabel(filter.priority!))),
+            InputChip(
+              label: Text(_priorityLabel(filter.priority!)),
+              onDeleted: () => onChanged(filter.copyWith(clearPriority: true)),
+            ),
           if (filter.hasRepeat != null)
-            Chip(label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار')),
+            InputChip(
+              label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasRepeat: true)),
+            ),
           if (filter.hasFollowUp != null)
-            Chip(label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری')),
+            InputChip(
+              label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasFollowUp: true)),
+            ),
           if (filter.hasChecklist != null)
-            Chip(label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist')),
+            InputChip(
+              label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasChecklist: true)),
+            ),
+          for (final value in filter.trackingLevels)
+            InputChip(
+              label: Text(value == RecurrenceTrackingLevel.tracking ? 'مهم و قابل پیگیری' : 'عادی'),
+              onDeleted: () {
+                final values = <RecurrenceTrackingLevel>{...filter.trackingLevels}..remove(value);
+                onChanged(filter.copyWith(trackingLevels: values));
+              },
+            ),
+          for (final value in filter.noteKinds)
+            InputChip(
+              label: Text(value == NotebookItemKind.checklist ? 'نوع یادداشت: چک‌لیست' : 'نوع یادداشت: یادداشت'),
+              onDeleted: () {
+                final values = <NotebookItemKind>{...filter.noteKinds}..remove(value);
+                onChanged(filter.copyWith(noteKinds: values));
+              },
+            ),
+          if (filter.noteQuery.trim().isNotEmpty)
+            InputChip(
+              label: Text('جست‌وجوی یادداشت: ${filter.noteQuery.trim()}'),
+              onDeleted: () => onChanged(filter.copyWith(noteQuery: '')),
+            ),
+          if (filter.noteDateField != null || filter.noteFromDate != null || filter.noteToDate != null)
+            InputChip(
+              label: const Text('بازه تاریخ یادداشت'),
+              onDeleted: () => onChanged(filter.copyWith(
+                clearNoteFromDate: true,
+                clearNoteToDate: true,
+                clearNoteDateField: true,
+              )),
+            ),
           if (filter.fromDate != null || filter.toDate != null)
-            const Chip(label: Text('بازه تاریخ')),
+            InputChip(
+              label: const Text('بازه تاریخ'),
+              onDeleted: () => onChanged(filter.copyWith(clearFromDate: true, clearToDate: true)),
+            ),
           if (filter.fromTime != null || filter.toTime != null)
-            const Chip(label: Text('بازه ساعت')),
+            InputChip(
+              label: const Text('بازه ساعت'),
+              onDeleted: () => onChanged(filter.copyWith(clearFromTime: true, clearToTime: true)),
+            ),
           ActionChip(label: const Text('پاک کردن'), onPressed: onClear),
         ],
       ),
     );
   }
 }
+
 
 class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
@@ -367,6 +469,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   TaskPriority? _priority;
   bool? _hasRepeat;
   bool? _hasFollowUp;
+  bool? _waitingForResponse;
   bool? _hasChecklist;
 
   @override
@@ -382,6 +485,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
     _personIds = <String>{...f.personIds};
+    _waitingForResponse = f.waitingForResponse;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -478,6 +582,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
         personIds: Set<String>.of(_personIds),
+        waitingForResponse: _waitingForResponse,
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -638,7 +743,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'شخص',
+              title: 'اشخاص',
               icon: Icons.people_outline,
               accentColor: ArvinColors.primary,
               selectedCount: _personIds.length,
@@ -809,10 +914,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'نوع پیگیری',
+              title: 'نوع',
               icon: Icons.track_changes_outlined,
               accentColor: ArvinColors.reminder,
-              selectedCount: _trackingLevels.length,
+              selectedCount: _trackingLevels.length + (_waitingForResponse == null ? 0 : 1),
               child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
@@ -846,6 +951,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           ? _trackingLevels.add(RecurrenceTrackingLevel.tracking)
                           : _trackingLevels.remove(RecurrenceTrackingLevel.tracking);
                     }),
+                  ),
+                  _TriStateChip(
+                    label: 'منتظر پاسخ',
+                    value: _waitingForResponse,
+                    onChanged: (value) => setState(() => _waitingForResponse = value),
                   ),
                 ],
               ),
@@ -936,6 +1046,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _categories = <String>{};
                           _tags = <String>{};
                           _personIds = <String>{};
+                          _waitingForResponse = null;
                           _statuses.clear();
                           _trackingLevels.clear();
                           _noteKinds.clear();
