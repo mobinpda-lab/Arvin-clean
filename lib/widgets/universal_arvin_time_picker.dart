@@ -232,6 +232,9 @@ class _UniversalArvinTimePickerDialogState
                 )
               else
                 _ClockFace(
+                  size: (MediaQuery.sizeOf(context).height * 0.32)
+                      .clamp(160.0, 240.0)
+                      .toDouble(),
                   choosingMinute: _choosingMinute,
                   hour: _hour,
                   minute: _minute,
@@ -335,6 +338,7 @@ class _UniversalArvinTimePickerDialogState
 class _ClockFace extends StatelessWidget {
   static const _formatter = PersianDateFormatter();
   const _ClockFace({
+    required this.size,
     required this.choosingMinute,
     required this.hour,
     required this.minute,
@@ -342,6 +346,7 @@ class _ClockFace extends StatelessWidget {
     required this.onMinuteSelected,
   });
 
+  final double size;
   final bool choosingMinute;
   final int hour;
   final int minute;
@@ -350,8 +355,7 @@ class _ClockFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const size = 240.0;
-    const center = size / 2;
+    final center = size / 2;
     final values = choosingMinute
         ? List<int>.generate(12, (index) => index * 5)
         : List<int>.generate(12, (index) => index == 0 ? 12 : index);
