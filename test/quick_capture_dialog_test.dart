@@ -18,10 +18,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('دارای پیگیری'), findsNothing);
-    expect(
-      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
-      findsOneWidget,
-    );
+    final followUpRollBox =
+        find.byKey(const ValueKey('quick-capture-follow-up-rollbox'));
+    expect(followUpRollBox, findsOneWidget);
+
+    await tester.tap(followUpRollBox);
+    await tester.pumpAndSettle();
     expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
   });
 
