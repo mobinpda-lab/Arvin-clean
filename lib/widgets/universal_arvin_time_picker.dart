@@ -142,7 +142,12 @@ class _UniversalArvinTimePickerDialogState
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360, maxHeight: 690),
+        constraints: BoxConstraints(
+          maxWidth: 360,
+          // Keep the dialog inside the usable viewport on short screens and
+          // landscape layouts; the scroll view handles content beyond this.
+          maxHeight: (MediaQuery.sizeOf(context).height - 48).clamp(240.0, 690.0),
+        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
           child: Column(
