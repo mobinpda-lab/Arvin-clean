@@ -18,7 +18,7 @@ void main() {
   test('font catalog contains supported choices and safe fallback behavior', () {
     expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
     expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
+    expect(arvinFontById('vazirmatn').effectiveFontFamily, 'Vazirmatn');
     expect(arvinFontById('unknown-font').id, 'vazirharf');
   });
 
