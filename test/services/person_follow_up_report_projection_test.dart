@@ -120,4 +120,27 @@ void main() {
     expect(rows.map((row) => row.followUp.id), ['due']);
     expect(rows.single.reminderDate, DateTime(2026, 10, 20, 9));
   });
+
+  test('keeps a waiting Follow-up visible with a deleted-person placeholder', () {
+    final task = Task(
+      id: 'task-deleted-person-report',
+      title: 'کار دارای سابقه',
+      followUpEnabled: false,
+      followUps: [
+        waiting('fu-deleted-person-report', ['deleted-person-id']),
+      ],
+    );
+
+    final rows = const PersonFollowUpReportProjection().project(
+      [task],
+      people: const <PersonReference>[],
+    );
+
+    expect(rows, hasLength(1));
+    expect(rows.single.task.id, 'task-deleted-person-report');
+    expect(rows.single.followUp.id, 'fu-deleted-person-report');
+    expect(rows.single.people.single.id, 'deleted-person-id');
+    expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
+  });
+
 }
