@@ -37,6 +37,17 @@ flutter:
   uses-material-design: true
   assets:
     - assets/fonts/
+    - assets/fonts/vazirmatn-ui-fd/OFL.txt
+    - assets/fonts/ui/estedad/LICENSE.txt
+    - assets/fonts/ui/shabnam/LICENSE.txt
+    - assets/fonts/ui/sahel/LICENSE.txt
+    - assets/fonts/ui/samim/LICENSE.txt
+    - assets/fonts/ui/tanha/LICENSE.txt
+    - assets/fonts/ui/gandom/LICENSE.txt
+    - assets/fonts/ui/parastoo/LICENSE.txt
+    - assets/fonts/ui/mikhak/LICENSE.txt
+    - assets/fonts/ui/lalezar/LICENSE.txt
+    - assets/fonts/ui/vazircode/LICENSE.txt
   fonts:
     - family: Vazirmatn
       fonts:
