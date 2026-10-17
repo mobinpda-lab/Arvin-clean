@@ -164,7 +164,11 @@ class TaskReportPdfRenderer {
 
   pw.Widget _footer(pw.Context context) => pw.Align(
         alignment: pw.Alignment.center,
-        child: pw.Text('${context.pageNumber} / ${context.pagesCount}'),
+        child: pw.Text(
+          _dateFormatter.toPersianDigits(
+            '${context.pageNumber} / ${context.pagesCount}',
+          ),
+        ),
       );
 
   pw.Widget _agendaEntry(WorkAgendaReportItem item, TaskReportFonts fonts) {
