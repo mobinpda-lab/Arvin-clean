@@ -39,8 +39,6 @@ class ReportCenterPage extends StatefulWidget {
 
 class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
-  bool _showWaitingFollowUps = false;
-  String? _selectedPersonId;
 
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -77,7 +75,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       const PersonFollowUpReportProjection().project(
         widget.tasks,
         people: _peopleDirectory,
-        personId: _selectedPersonId,
+        personIds: _filter.personIds,
       );
 
   List<Task> get _filtered => _filter.apply(
@@ -104,8 +102,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
-        _showWaitingFollowUps = false;
-        _selectedPersonId = null;
       });
 
   @override
@@ -153,49 +149,30 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('پیگیری‌های منتظر پاسخ'),
-                      value: _showWaitingFollowUps,
-                      onChanged: (value) => setState(() => _showWaitingFollowUps = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedPersonId ?? '',
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'فرد', isDense: true),
-                      items: [
-                        const DropdownMenuItem<String>(value: '', child: Text('همه افراد')),
-                        for (final person in _peopleDirectory)
-                          DropdownMenuItem<String>(value: person.id, child: Text(person.displayName, overflow: TextOverflow.ellipsis)),
-                      ],
-                      onChanged: (value) => setState(() => _selectedPersonId = value == null || value.isEmpty ? null : value),
-                    ),
-                  ),
-                ],
+            if (_filter.isActive)
+              _ActiveFilterChips(
+                filter: _filter,
+                people: _peopleDirectory,
+                onClear: _clear,
+                onRemovePerson: (id) => setState(() {
+                  final ids = <String>{..._filter.personIds}..remove(id);
+                  _filter = _filter.copyWith(personIds: ids);
+                }),
+                onRemoveWaiting: () => setState(() {
+                  _filter = _filter.copyWith(clearWaitingForResponse: true);
+                }),
               ),
-            ),
-            if (_filter.isActive && !_showWaitingFollowUps)
-              _ActiveFilterChips(filter: _filter, onClear: _clear),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text(_showWaitingFollowUps
+                child: Text(_filter.waitingForResponse == true
                     ? 'نتیجه: ${waitingRows.length} پیگیری'
                     : 'نتیجه: ${tasks.length} کار'),
               ),
             ),
             Expanded(
-              child: _showWaitingFollowUps
+              child: _filter.waitingForResponse == true
                   ? (waitingRows.isEmpty
                       ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
                       : ListView.separated(
@@ -265,7 +242,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
             ),
           ],
         ),
-        floatingActionButton: _showWaitingFollowUps || tasks.isEmpty
+        floatingActionButton: _filter.waitingForResponse == true || tasks.isEmpty
             ? null
             : FloatingActionButton.extended(
                 key: const ValueKey('report-center-open-report'),
@@ -285,17 +262,30 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 }
 
 class _ActiveFilterChips extends StatelessWidget {
-  const _ActiveFilterChips({required this.filter, required this.onClear});
+  const _ActiveFilterChips({
+    required this.filter,
+    required this.people,
+    required this.onClear,
+    required this.onRemovePerson,
+    required this.onRemoveWaiting,
+  });
 
   final TaskReportFilter filter;
+  final List<PersonReference> people;
   final VoidCallback onClear;
+  final ValueChanged<String> onRemovePerson;
+  final VoidCallback onRemoveWaiting;
 
   @override
   Widget build(BuildContext context) {
+    final peopleById = <String, PersonReference>{
+      for (final person in people) person.id: person,
+    };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
         spacing: 6,
+        runSpacing: 2,
         children: [
           if (filter.timePreset != ReportTimePreset.all)
             Chip(label: Text(_timeLabel(filter.timePreset))),
@@ -305,8 +295,16 @@ class _ActiveFilterChips extends StatelessWidget {
             Chip(label: Text(value)),
           for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
             Chip(label: Text(value)),
-          if (filter.personIds.isNotEmpty)
-            Chip(label: Text('اشخاص: ${filter.personIds.length}')),
+          for (final id in filter.personIds)
+            InputChip(
+              label: Text(peopleById[id]?.displayName ?? 'شخص حذف‌شده'),
+              onDeleted: () => onRemovePerson(id),
+            ),
+          if (filter.waitingForResponse != null)
+            InputChip(
+              label: Text(filter.waitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ'),
+              onDeleted: onRemoveWaiting,
+            ),
           if (filter.status != ReportStatusFilter.all)
             Chip(label: Text(_statusLabel(filter.status))),
           if (filter.priority != null)
@@ -327,6 +325,7 @@ class _ActiveFilterChips extends StatelessWidget {
     );
   }
 }
+
 
 class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
@@ -367,6 +366,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   TaskPriority? _priority;
   bool? _hasRepeat;
   bool? _hasFollowUp;
+  bool? _waitingForResponse;
   bool? _hasChecklist;
 
   @override
@@ -382,6 +382,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
     _personIds = <String>{...f.personIds};
+    _waitingForResponse = f.waitingForResponse;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -478,6 +479,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
         personIds: Set<String>.of(_personIds),
+        waitingForResponse: _waitingForResponse,
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -638,7 +640,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'شخص',
+              title: 'اشخاص',
               icon: Icons.people_outline,
               accentColor: ArvinColors.primary,
               selectedCount: _personIds.length,
@@ -809,10 +811,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'نوع پیگیری',
+              title: 'نوع',
               icon: Icons.track_changes_outlined,
               accentColor: ArvinColors.reminder,
-              selectedCount: _trackingLevels.length,
+              selectedCount: _trackingLevels.length + (_waitingForResponse == null ? 0 : 1),
               child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
@@ -846,6 +848,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           ? _trackingLevels.add(RecurrenceTrackingLevel.tracking)
                           : _trackingLevels.remove(RecurrenceTrackingLevel.tracking);
                     }),
+                  ),
+                  _TriStateChip(
+                    label: 'منتظر پاسخ',
+                    value: _waitingForResponse,
+                    onChanged: (value) => setState(() => _waitingForResponse = value),
                   ),
                 ],
               ),
@@ -936,6 +943,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _categories = <String>{};
                           _tags = <String>{};
                           _personIds = <String>{};
+                          _waitingForResponse = null;
                           _statuses.clear();
                           _trackingLevels.clear();
                           _noteKinds.clear();
