@@ -1257,15 +1257,17 @@ class _ReminderCardState extends State<_ReminderCard> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             // A short tap opens the canonical item's available detail/edit
             // route. Quick actions are available only through long-press.
-            onTap: _isTaskCalendarItem
-                ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
-                : widget.item.id.startsWith('external-calendar:')
-                    ? (widget.onOpenExternal == null
-                        ? null
-                        : () => _run(widget.onOpenExternal))
-                    : (widget.onEdit == null || widget.isPrayer
-                        ? null
-                        : () => _run(widget.onEdit)),
+            onTap: isFollowUpItem
+                ? (widget.onEdit == null ? null : () => _run(widget.onEdit))
+                : _isTaskCalendarItem
+                    ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
+                    : widget.item.id.startsWith('external-calendar:')
+                        ? (widget.onOpenExternal == null
+                            ? null
+                            : () => _run(widget.onOpenExternal))
+                        : (widget.onEdit == null || widget.isPrayer
+                            ? null
+                            : () => _run(widget.onEdit)),
             onLongPress: _hasActions ? _showTaskActions : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),
