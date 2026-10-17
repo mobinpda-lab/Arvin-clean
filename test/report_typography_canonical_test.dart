@@ -7,15 +7,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('canonical report typography assets are bundled and loadable', () async {
-    const regular =
-        'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf';
-    const bold = 'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf';
+    const assets = <String>[
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Regular.ttf',
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Medium.ttf',
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-SemiBold.ttf',
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Bold.ttf',
+    ];
 
-    final regularBytes = await rootBundle.load(regular);
-    final boldBytes = await rootBundle.load(bold);
-
-    expect(regularBytes.lengthInBytes, greaterThan(1000));
-    expect(boldBytes.lengthInBytes, greaterThan(1000));
+    for (final asset in assets) {
+      final bytes = await rootBundle.load(asset);
+      expect(bytes.lengthInBytes, greaterThan(100000), reason: asset);
+    }
   });
 
   test('default PDF renderer builds Persian report with canonical fonts', () async {
