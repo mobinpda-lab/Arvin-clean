@@ -42,6 +42,30 @@ void main() {
     expect(find.text('توضیح'), findsNothing);
   });
 
+  testWidgets('home task card uses compact controls without shrinking readable text', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"compact-home","title":"کار فشرده","dueDate":"2030-09-20T10:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final toggle = find.byKey(const ValueKey('task-card-toggle-compact-home'));
+    expect(toggle, findsOneWidget);
+    expect(tester.getSize(toggle).height, lessThanOrEqualTo(36));
+
+    final title = tester.widget<Text>(find.text('کار فشرده'));
+    expect(title.style?.fontSize, 14);
+
+    final dueLabel = find.byWidgetPredicate(
+      (widget) => widget is Text && (widget.data?.startsWith('موعد:') ?? false),
+    );
+    expect(dueLabel, findsOneWidget);
+    expect(tester.widget<Text>(dueLabel).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
