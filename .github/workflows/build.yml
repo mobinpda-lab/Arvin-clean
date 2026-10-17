@@ -116,21 +116,32 @@ jobs:
         if: matrix.lane == 'test-0'
         env:
           ARVIN_REPORT_PDF_OUTPUT: ${{ runner.temp }}/arvin-report-typography.pdf
+          ARVIN_AGENDA_PDF_OUTPUT: ${{ runner.temp }}/arvin-agenda-typography.pdf
         run: |
           set -euo pipefail
           flutter test test/report_typography_canonical_test.dart --reporter expanded
           test -s "$ARVIN_REPORT_PDF_OUTPUT"
+          test -s "$ARVIN_AGENDA_PDF_OUTPUT"
           mkdir -p build/report-typography-evidence
-          cp "$ARVIN_REPORT_PDF_OUTPUT" build/report-typography-evidence/report-typography.pdf
+          cp "$ARVIN_REPORT_PDF_OUTPUT" build/report-typography-evidence/task-report.pdf
+          cp "$ARVIN_AGENDA_PDF_OUTPUT" build/report-typography-evidence/work-agenda-report.pdf
           sudo apt-get update
           sudo apt-get install -y poppler-utils
-          pdfinfo build/report-typography-evidence/report-typography.pdf | tee build/report-typography-evidence/pdfinfo.txt
-          pdffonts build/report-typography-evidence/report-typography.pdf | tee build/report-typography-evidence/pdffonts.txt
-          pdftotext -layout build/report-typography-evidence/report-typography.pdf build/report-typography-evidence/extracted-text.txt
-          grep -qi 'Vazirmatn' build/report-typography-evidence/pdffonts.txt
-          grep -q 'گزارش' build/report-typography-evidence/extracted-text.txt
-          grep -q 'پیگیری' build/report-typography-evidence/extracted-text.txt
-          pdftoppm -png -r 110 build/report-typography-evidence/report-typography.pdf build/report-typography-evidence/page
+          for pdf in build/report-typography-evidence/task-report.pdf build/report-typography-evidence/work-agenda-report.pdf; do
+            base="${pdf%.pdf}"
+            pdfinfo "$pdf" | tee "${base}-pdfinfo.txt"
+            pdffonts "$pdf" | tee "${base}-pdffonts.txt"
+            pdftotext -layout "$pdf" "${base}-extracted-text.txt"
+            grep -qi 'Vazirmatn' "${base}-pdffonts.txt"
+            python3 - "${base}-extracted-text.txt" <<'PY'
+          import pathlib, sys, unicodedata
+          text = unicodedata.normalize("NFKC", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          # RTL extractors may expose visual-order text; accept the token in either order.
+          for token in ("گزارش", "پیگیری"):
+              assert token in text or token[::-1] in text, f"Expected Persian token missing from extracted PDF text: {token}"
+          PY
+            pdftoppm -png -r 110 "$pdf" "${base}-page"
+          done
       - name: Upload report typography evidence
         if: always() && matrix.lane == 'test-0'
         uses: actions/upload-artifact@v4
