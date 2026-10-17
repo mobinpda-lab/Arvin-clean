@@ -146,7 +146,9 @@ class _UniversalArvinTimePickerDialogState
           maxWidth: 360,
           // Keep the dialog inside the usable viewport on short screens and
           // landscape layouts; the scroll view handles content beyond this.
-          maxHeight: (MediaQuery.sizeOf(context).height - 48).clamp(240.0, 690.0),
+          maxHeight: (MediaQuery.sizeOf(context).height - 48)
+              .clamp(240.0, 690.0)
+              .toDouble(),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
