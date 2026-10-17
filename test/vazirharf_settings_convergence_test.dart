@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/theme/font_registry.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
     final mainSource = File('lib/main.dart').readAsStringSync();
     final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
@@ -30,4 +33,19 @@ void main() {
     expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
   });
+
+  test('UI font selection persists through the existing canonical settings key', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    const key = 'arvin.settings.fontFamily';
+    final service = AppSettingsService();
+
+    for (final family in <String>['Vazirmatn', 'Shabnam', 'VazirHarf']) {
+      await service.saveFontFamily(family);
+      final loaded = await service.load();
+      final preferences = await SharedPreferences.getInstance();
+      expect(loaded.fontFamily, family);
+      expect(preferences.getString(key), family);
+    }
+  });
+
 }
