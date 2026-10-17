@@ -74,7 +74,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<TaskReminder> _taskReminders;
   late List<FollowUp> _followUps;
   late int _nextReminderSequence;
-  late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
   late List<String> _checklist;
@@ -134,10 +133,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 (task.dueDate != null &&
                     !task.allDay &&
                     task.reminderDate == task.dueDate)));
-    _followUpEnabled =
-        task?.followUpEnabled == true ||
-        (task?.followUps.isNotEmpty ?? false) ||
-        task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
@@ -615,7 +610,6 @@ Future<void> _pickDueDate() async {
       } else {
         _followUps = List<FollowUp>.of(_followUps)..[index] = updated;
       }
-      if (_followUps.isNotEmpty) _followUpEnabled = true;
     });
   }
 
@@ -634,7 +628,6 @@ Future<void> _pickDueDate() async {
           _checklistEnabled ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
-          _followUpEnabled ||
           _followUpDateTime != null ||
           _dueDateTime != null ||
           _dueAllDay ||
@@ -646,10 +639,6 @@ Future<void> _pickDueDate() async {
           _completed;
     }
 
-    final initialFollowUpEnabled =
-        existing.followUpEnabled ||
-        existing.followUps.isNotEmpty ||
-        existing.followUpDate != null;
     return title != existing.title ||
         description != existing.description ||
         pendingTag.isNotEmpty ||
@@ -658,7 +647,6 @@ Future<void> _pickDueDate() async {
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
-        _followUpEnabled != initialFollowUpEnabled ||
         _followUpDateTime != existing.followUpDate ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
@@ -919,7 +907,8 @@ Future<void> _pickDueDate() async {
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUpEnabled,
+        // Keep the legacy field readable while FollowUps is the source of truth.
+        followUpEnabled: existing?.followUpEnabled == true || _followUps.isNotEmpty,
         followUpDate: existing?.followUpDate ?? _followUpDateTime,
         tags: List<String>.of(_tags),
         category: _category,
