@@ -484,6 +484,7 @@ class TaskStore {
       <String, dynamic>{
         'id': row['id'],
         'dateTime': row['date_time'],
+        'title': row['title'],
         'note': row['note'],
         'result': row['result'],
         'reminderDate': row['reminder_date'],
@@ -621,11 +622,11 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
-          followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.note,
-          followUp.result, followUp.reminderDate?.toIso8601String(),
+          followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
+          followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
           followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
           followUp.waitingForResponse ? 1 : 0, ordinal,
         ],

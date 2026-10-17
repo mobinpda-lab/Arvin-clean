@@ -314,6 +314,71 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
   });
 
+  testWidgets('follow-up short tap opens its route and long press opens actions', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    final followUp = CalendarReminder(
+      id: 'followup:task-1:fu-tap',
+      title: 'پیگیری قرارداد',
+      date: day,
+    );
+    var taskEdited = 0;
+    var followUpEdited = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [followUp],
+          onEditTask: (_) async => taskEdited++,
+          onEditReminder: (_) async => followUpEdited++,
+          onCompleteReminder: (_) async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final card = find.byKey(const ValueKey('reminder-card-followup:task-1:fu-tap'));
+    await tester.tap(card);
+    await tester.pumpAndSettle();
+    expect(taskEdited, 0);
+    expect(followUpEdited, 1);
+    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsNothing);
+
+    await tester.longPress(card);
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-tap')), findsOneWidget);
+    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsOneWidget);
+    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
+  });
+
+  testWidgets('external calendar short tap opens the source item without expanding actions', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    var opened = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(
+              id: 'external-calendar:event-tap',
+              title: 'رویداد گوشی',
+              date: day,
+            ),
+          ],
+          onOpenExternalReminder: (_) async => opened++,
+          onCreateTaskFromCalendarEvent: (_) async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:event-tap')));
+    await tester.pumpAndSettle();
+    expect(opened, 1);
+    expect(find.byKey(const ValueKey('reminder-actions-external-calendar:event-tap')), findsNothing);
+  });
+
   testWidgets('long press exposes follow-up actions and routes callbacks',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);

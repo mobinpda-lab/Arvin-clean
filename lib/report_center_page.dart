@@ -809,7 +809,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'Tracking',
+              title: 'نوع پیگیری',
               icon: Icons.track_changes_outlined,
               accentColor: ArvinColors.reminder,
               selectedCount: _trackingLevels.length,
@@ -851,7 +851,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'Follow-up',
+              title: 'پیگیری',
               icon: Icons.notifications_active_outlined,
               accentColor: ArvinColors.time,
               selectedCount: _hasFollowUp == null ? 0 : 1,

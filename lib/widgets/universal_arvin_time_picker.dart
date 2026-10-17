@@ -142,7 +142,14 @@ class _UniversalArvinTimePickerDialogState
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360, maxHeight: 690),
+        constraints: BoxConstraints(
+          maxWidth: 360,
+          // Keep the dialog inside the usable viewport on short screens and
+          // landscape layouts; the scroll view handles content beyond this.
+          maxHeight: (MediaQuery.sizeOf(context).height - 48)
+              .clamp(240.0, 690.0)
+              .toDouble(),
+        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
           child: Column(
@@ -225,6 +232,9 @@ class _UniversalArvinTimePickerDialogState
                 )
               else
                 _ClockFace(
+                  size: (MediaQuery.sizeOf(context).height * 0.32)
+                      .clamp(160.0, 240.0)
+                      .toDouble(),
                   choosingMinute: _choosingMinute,
                   hour: _hour,
                   minute: _minute,
@@ -254,7 +264,7 @@ class _UniversalArvinTimePickerDialogState
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: ArvinColors.textPrimary,
-                        minimumSize: const Size.fromHeight(46),
+                        minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -328,6 +338,7 @@ class _UniversalArvinTimePickerDialogState
 class _ClockFace extends StatelessWidget {
   static const _formatter = PersianDateFormatter();
   const _ClockFace({
+    required this.size,
     required this.choosingMinute,
     required this.hour,
     required this.minute,
@@ -335,6 +346,7 @@ class _ClockFace extends StatelessWidget {
     required this.onMinuteSelected,
   });
 
+  final double size;
   final bool choosingMinute;
   final int hour;
   final int minute;
@@ -343,8 +355,7 @@ class _ClockFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const size = 240.0;
-    const center = size / 2;
+    final center = size / 2;
     final values = choosingMinute
         ? List<int>.generate(12, (index) => index * 5)
         : List<int>.generate(12, (index) => index == 0 ? 12 : index);

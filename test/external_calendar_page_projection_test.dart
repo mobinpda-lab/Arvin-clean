@@ -53,12 +53,14 @@ void main() {
     expect(bridge.queriedCalendarIds, ['calendar-7']);
     expect(bridge.requestedPermission, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
-    await tester.pump();
-    expect(opened, isTrue);
+    await tester.longPress(find.byKey(const ValueKey('reminder-card-external-calendar:calendar-7:instance-1')));
+    await tester.pumpAndSettle();
     expect(find.text('ویرایش در تقویم گوشی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('external-calendar-edit-external-calendar:calendar-7:instance-1')));
+    await tester.pumpAndSettle();
+    expect(opened, isTrue);
+    expect(find.text('ویرایش در تقویم گوشی'), findsNothing);
   });
 
   testWidgets('permission denial fails closed and keeps calendar usable', (tester) async {
