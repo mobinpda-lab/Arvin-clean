@@ -38,6 +38,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/fonts/vazirmatn-ui-fd/OFL.txt
+    - assets/fonts/ui/vazirmatn/LICENSE.txt
     - assets/fonts/ui/estedad/LICENSE.txt
     - assets/fonts/ui/shabnam/LICENSE.txt
     - assets/fonts/ui/sahel/LICENSE.txt
