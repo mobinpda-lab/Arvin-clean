@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_report_pdf_renderer.dart';
 import 'package:arvin/services/task_report_projection.dart';
+import 'package:arvin/services/work_agenda_report_adapter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,4 +56,34 @@ void main() {
       await output.writeAsBytes(bytes, flush: true);
     }
   });
+
+  test('default PDF renderer builds work agenda with canonical fonts', () async {
+    final task = Task(
+      id: 'agenda-task-1',
+      title: 'پیگیری برنامه',
+      description: 'نمونه متن برنامه کاری',
+      dueDate: DateTime(2026, 8, 29, 9, 5),
+      followUps: const [],
+    );
+    final agenda = const WorkAgendaReportAdapter().forDay(
+      [task],
+      day: DateTime(2026, 8, 29),
+      generatedAt: DateTime(2026, 8, 29, 8),
+    );
+    final bytes = await TaskReportPdfRenderer().buildWorkAgenda(agenda);
+
+    expect(bytes.length, greaterThan(1000));
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+    final pdfObjects = String.fromCharCodes(bytes);
+    expect(pdfObjects, contains('/FontFile2'));
+    expect(pdfObjects, contains('Vazirmatn'));
+
+    final outputPath = Platform.environment['ARVIN_AGENDA_PDF_OUTPUT'];
+    if (outputPath != null && outputPath.isNotEmpty) {
+      final output = File(outputPath);
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes, flush: true);
+    }
+  });
+
 }
