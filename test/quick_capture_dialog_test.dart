@@ -11,17 +11,22 @@ void main() {
       const MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: QuickCaptureDialog(),
+          child: Scaffold(body: QuickCaptureDialog()),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('دارای پیگیری'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
+    );
     final followUpRollBox =
         find.byKey(const ValueKey('quick-capture-follow-up-rollbox'));
     expect(followUpRollBox, findsOneWidget);
 
+    await tester.ensureVisible(followUpRollBox);
     await tester.tap(followUpRollBox);
     await tester.pumpAndSettle();
     expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
@@ -693,17 +698,20 @@ void main() {
       'خرید فرش اتاق',
     );
 
-    final followUpToggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
-    );
-    await tester.ensureVisible(followUpToggle);
-    await tester.tap(followUpToggle);
-    await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
-      findsOneWidget,
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
-
+    final followUpRollBox = find.byKey(
+      const ValueKey('quick-capture-follow-up-rollbox'),
+    );
+    expect(followUpRollBox, findsOneWidget);
+    await tester.ensureVisible(followUpRollBox);
+    await tester.tap(followUpRollBox);
+    await tester.pumpAndSettle();
+    expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
+    await tester.tapAt(const Offset(12, 12));
+    await tester.pumpAndSettle();
     final checklistToggle = find.byKey(
       const ValueKey('quick-capture-checklist-enabled'),
     );
