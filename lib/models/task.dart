@@ -465,7 +465,7 @@ class Task {
     // immutable migration identity. Keep at most one legacy reminder record.
     const legacyReminderId = 'legacy-task-reminder';
     final loadedTaskReminders = <TaskReminder>[];
-    var hasMigratedLegacyReminder = false;
+    var normalizedLegacyReminderSeen = false;
     for (final reminder in decodedTaskReminders) {
       final isLegacyReminder = reminder.isLegacyTaskReminder ||
           reminder.id == legacyReminderId ||
@@ -474,7 +474,7 @@ class Task {
         loadedTaskReminders.add(reminder);
         continue;
       }
-      if (hasMigratedLegacyReminder) continue;
+      if (normalizedLegacyReminderSeen) continue;
       loadedTaskReminders.add(
         TaskReminder(
           id: legacyReminderId,
@@ -489,12 +489,12 @@ class Task {
           isLegacyTaskReminder: true,
         ),
       );
-      hasMigratedLegacyReminder = true;
+      normalizedLegacyReminderSeen = true;
     }
 
     var nextReminderSequence =
         (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
-    for (final reminder of loadedTaskReminders) {
+    for (final reminder in loadedTaskReminders) {
       if (reminder.sequence >= nextReminderSequence) {
         nextReminderSequence = reminder.sequence + 1;
       }
