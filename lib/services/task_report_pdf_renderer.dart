@@ -8,9 +8,17 @@ import 'work_agenda_projection.dart';
 import 'work_agenda_report_adapter.dart';
 
 class TaskReportFonts {
-  const TaskReportFonts({required this.base, required this.bold});
+  const TaskReportFonts({
+    required this.base,
+    pw.Font? medium,
+    pw.Font? semiBold,
+    required this.bold,
+  })  : medium = medium ?? base,
+        semiBold = semiBold ?? bold;
 
   final pw.Font base;
+  final pw.Font medium;
+  final pw.Font semiBold;
   final pw.Font bold;
 }
 
@@ -22,17 +30,25 @@ class TaskReportPdfRenderer {
 
   static const _dateFormatter = PersianDateFormatter();
   static const _regularFontAsset =
-      'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf';
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Regular.ttf';
+  static const _mediumFontAsset =
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Medium.ttf';
+  static const _semiBoldFontAsset =
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-SemiBold.ttf';
   static const _boldFontAsset =
-      'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf';
+      'assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Bold.ttf';
 
   final TaskReportFontLoader _fontLoader;
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
     final regular = await rootBundle.load(_regularFontAsset);
+    final medium = await rootBundle.load(_mediumFontAsset);
+    final semiBold = await rootBundle.load(_semiBoldFontAsset);
     final bold = await rootBundle.load(_boldFontAsset);
     return TaskReportFonts(
       base: pw.Font.ttf(regular),
+      medium: pw.Font.ttf(medium),
+      semiBold: pw.Font.ttf(semiBold),
       bold: pw.Font.ttf(bold),
     );
   }
@@ -77,7 +93,7 @@ class TaskReportPdfRenderer {
         build: (_) => [
           pw.Text(
             'تاریخ تولید: ${formatDateTime(report.generatedAt)}',
-            style: const pw.TextStyle(fontSize: 9),
+            style: pw.TextStyle(font: fonts.medium, fontSize: 9),
           ),
           pw.SizedBox(height: 12),
           if (report.entries.isEmpty)
@@ -142,7 +158,7 @@ class TaskReportPdfRenderer {
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
           title,
-          style: pw.TextStyle(font: fonts.bold, fontSize: 16),
+          style: pw.TextStyle(font: fonts.semiBold, fontSize: 16),
         ),
       );
 
