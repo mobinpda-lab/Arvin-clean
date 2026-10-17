@@ -35,6 +35,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
+    expect(tester.getBottomLeft(find.byKey(const ValueKey('universal-time-cancel'))).dy, lessThanOrEqualTo(800));
+    expect(tester.getBottomLeft(find.byKey(const ValueKey('universal-time-save'))).dy, lessThanOrEqualTo(800));
 
     tester.view.physicalSize = const Size(800, 360);
     await tester.pumpAndSettle();
