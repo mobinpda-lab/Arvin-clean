@@ -22,6 +22,7 @@ class TaskReportFilter {
     this.categories = const <String>{},
     this.tags = const <String>{},
     this.personIds = const <String>{},
+    this.waitingForResponse,
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -48,6 +49,8 @@ class TaskReportFilter {
   final Set<String> categories;
   final Set<String> tags;
   final Set<String> personIds;
+  /// Null means no waiting-state constraint; true/false filter active waiting follow-ups.
+  final bool? waitingForResponse;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -74,6 +77,7 @@ class TaskReportFilter {
       categories.isNotEmpty ||
       tags.isNotEmpty ||
       personIds.isNotEmpty ||
+      waitingForResponse != null ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -86,6 +90,42 @@ class TaskReportFilter {
       hasRepeat != null ||
       hasFollowUp != null ||
       hasChecklist != null;
+
+
+  TaskReportFilter copyWith({
+    Set<String>? personIds,
+    bool? waitingForResponse,
+    bool clearWaitingForResponse = false,
+  }) =>
+      TaskReportFilter(
+        timePreset: timePreset,
+        fromDate: fromDate,
+        toDate: toDate,
+        fromTime: fromTime,
+        toTime: toTime,
+        projectId: projectId,
+        category: category,
+        tag: tag,
+        projectIds: projectIds,
+        categories: categories,
+        tags: tags,
+        personIds: personIds ?? this.personIds,
+        waitingForResponse: clearWaitingForResponse
+            ? null
+            : waitingForResponse ?? this.waitingForResponse,
+        status: status,
+        statuses: statuses,
+        trackingLevels: trackingLevels,
+        noteKinds: noteKinds,
+        noteQuery: noteQuery,
+        noteDateField: noteDateField,
+        noteFromDate: noteFromDate,
+        noteToDate: noteToDate,
+        priority: priority,
+        hasRepeat: hasRepeat,
+        hasFollowUp: hasFollowUp,
+        hasChecklist: hasChecklist,
+      );
 
   List<Task> apply(
     Iterable<Task> tasks, {
@@ -114,6 +154,12 @@ class TaskReportFilter {
           !task.followUps.any((followUp) =>
               followUp.personIds.any(personIds.contains))) {
         return false;
+      }
+      if (waitingForResponse != null) {
+        final hasWaitingFollowUp = task.followUps.any(
+          (followUp) => followUp.waitingForResponse && !followUp.completed,
+        );
+        if (hasWaitingFollowUp != waitingForResponse) return false;
       }
       if (!_matchesStatus(task)) return false;
       if (trackingLevels.isNotEmpty &&
