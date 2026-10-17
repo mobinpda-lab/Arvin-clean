@@ -33,7 +33,11 @@ void main() {
     expect(familyBlock, contains('Vazirmatn-Medium.ttf'));
     expect(familyBlock, contains('Vazirmatn-Bold.ttf'));
     expect(familyBlock, isNot(contains('Vazirmatn-SemiBold.ttf')));
-    expect(source, contains('assets/fonts/ui/vazirmatn/OFL.txt'));
+    expect(
+      File('assets/fonts/ui/vazirmatn/OFL.txt').existsSync(),
+      isTrue,
+      reason: 'The Vazirmatn OFL license must be present beside the bundled font files.',
+    );
     expect(source, contains('Vazirharf-Regular.ttf'));
     expect(source, contains('Vazirharf-Bold.ttf'));
   });
