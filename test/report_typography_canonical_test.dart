@@ -41,5 +41,8 @@ void main() {
 
     expect(bytes.length, greaterThan(1000));
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+    final pdfObjects = String.fromCharCodes(bytes);
+    expect(pdfObjects, contains('/FontFile2'));
+    expect(pdfObjects, contains('Vazirmatn'));
   });
 }
