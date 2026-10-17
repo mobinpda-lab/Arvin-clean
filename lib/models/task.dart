@@ -8,36 +8,52 @@ enum NotebookItemKind { note, checklist }
 class FollowUp {
   final String id;
   final DateTime dateTime;
+  final String? title;
   final String note;
   final String? result;
   final DateTime? reminderDate;
   final DateTime? nextFollowUp;
   final bool completed;
+  final bool waitingForResponse;
+  final List<String> personIds;
 
   const FollowUp({
     required this.id,
     required this.dateTime,
+    this.title,
     this.note = '',
     this.result,
     this.reminderDate,
     this.nextFollowUp,
     this.completed = false,
+    this.waitingForResponse = false,
+    this.personIds = const <String>[],
   });
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.toIso8601String(),
+        if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
         'reminderDate': reminderDate?.toIso8601String(),
         'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
+        'waitingForResponse': waitingForResponse,
+        if (personIds.isNotEmpty) 'personIds': personIds,
       };
+
+  Map<String, dynamic> toMap() => toJson();
+
+  factory FollowUp.fromMap(Map<String, dynamic> map) => FollowUp.fromJson(map);
 
   factory FollowUp.fromJson(Map<String, dynamic> json) {
     return FollowUp(
       id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
+      title: (json['title'] as String?)?.trim().isEmpty == true
+          ? null
+          : (json['title'] as String?)?.trim(),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
       reminderDate: json['reminderDate'] == null
@@ -47,6 +63,13 @@ class FollowUp {
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
+      waitingForResponse: json['waitingForResponse'] as bool? ?? false,
+      personIds: (json['personIds'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .map((id) => id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList(growable: false),
     );
   }
 }
@@ -70,6 +93,7 @@ class TaskReminder {
     required this.updatedAt,
     this.isAllDay = false,
     required this.sequence,
+    this.isLegacyTaskReminder = false,
   });
 
   final String id;
@@ -81,6 +105,7 @@ class TaskReminder {
   final DateTime updatedAt;
   final bool isAllDay;
   final int sequence;
+  final bool isLegacyTaskReminder;
 
   TaskReminder copyWith({
     String? taskId,
@@ -89,6 +114,7 @@ class TaskReminder {
     String? status,
     DateTime? updatedAt,
     bool? isAllDay,
+    bool? isLegacyTaskReminder,
   }) =>
       TaskReminder(
         id: id,
@@ -100,6 +126,8 @@ class TaskReminder {
         updatedAt: updatedAt ?? this.updatedAt,
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
+        isLegacyTaskReminder:
+            isLegacyTaskReminder ?? this.isLegacyTaskReminder,
       );
 
   Map<String, dynamic> toJson() => {
@@ -112,7 +140,21 @@ class TaskReminder {
         'updatedAt': updatedAt.toIso8601String(),
         'isAllDay': isAllDay,
         'sequence': sequence,
+        if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
+
+  Map<String, dynamic> toMap() => toJson();
+
+  factory TaskReminder.fromMap(
+    Map<String, dynamic> map, {
+    required String fallbackTaskId,
+    required DateTime fallbackCreatedAt,
+  }) =>
+      TaskReminder.fromJson(
+        map,
+        fallbackTaskId: fallbackTaskId,
+        fallbackCreatedAt: fallbackCreatedAt,
+      );
 
   factory TaskReminder.fromJson(
     Map<String, dynamic> json, {
@@ -124,16 +166,20 @@ class TaskReminder {
       return DateTime.tryParse(raw) ?? fallback;
     }
 
+    final id = json['id'] as String? ?? '';
     return TaskReminder(
-      id: json['id'] as String? ?? '',
+      id: id,
       taskId: json['taskId'] as String? ?? fallbackTaskId,
       title: json['title'] as String? ?? '',
-      date: DateTime.parse(json['date'] as String),
+      date: DateTime.tryParse(json['date'] as String? ?? '') ??
+          fallbackCreatedAt,
       status: json['status'] as String? ?? 'active',
       createdAt: parseDate(json['createdAt'], fallbackCreatedAt),
       updatedAt: parseDate(json['updatedAt'], fallbackCreatedAt),
       isAllDay: json['isAllDay'] as bool? ?? false,
       sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ??
+          (id == 'legacy-task-reminder:$fallbackTaskId'),
     );
   }
 }
@@ -420,6 +466,7 @@ class Task {
             // Midnight is not sufficient evidence of an all-day reminder.
             isAllDay: false,
             sequence: sequence,
+            isLegacyTaskReminder: true,
           ),
         );
         nextReminderSequence = sequence + 1;
