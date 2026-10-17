@@ -85,16 +85,17 @@ extension FollowUpLegacyDate on FollowUp {
 class TaskReminder {
   const TaskReminder({
     required this.id,
-    required this.taskId,
+    this.taskId = '',
     required this.title,
     required this.date,
     this.status = 'active',
-    required this.createdAt,
-    required this.updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
-  });
+  })  : createdAt = createdAt ?? date,
+        updatedAt = updatedAt ?? createdAt ?? date;
 
   final String id;
   final String taskId;
