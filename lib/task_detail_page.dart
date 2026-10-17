@@ -221,15 +221,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
           ],
           const SizedBox(height: 12),
-          if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty || widget.projectTitle?.trim().isNotEmpty == true) ...[
-            TaxonomyIconRow(
-              project: widget.projectTitle,
-              category: _task.category,
-              tags: _task.tags,
-              maxTags: 3,
-            ),
-            const SizedBox(height: 7),
-          ],
+          // Project membership is resolved by the caller from ProjectStore.
+          // Always show a human-readable value here; never expose a project ID
+          // or leave the project area blank when this Task has no assignment.
+          TaxonomyIconRow(
+            project: widget.projectTitle?.trim().isNotEmpty == true
+                ? widget.projectTitle!.trim()
+                : 'بدون پروژه',
+            category: _task.category,
+            tags: _task.tags,
+            maxTags: 3,
+          ),
+          const SizedBox(height: 7),
           Wrap(
             spacing: 6,
             runSpacing: 6,
