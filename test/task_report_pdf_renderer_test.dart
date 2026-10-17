@@ -43,4 +43,35 @@ void main() {
     expect(bytes.length, greaterThan(100));
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
   });
+
+  test('default PDF renderer embeds bundled Vazirmatn UI FD font', () async {
+    final report = const TaskReportProjection().project(
+      [
+        Task(
+          id: 'vazirmatn-pdf-check',
+          title: 'گزارش رسمی آروین',
+          description: 'آزمون ارقام فارسی ۱۴۰۵/۰۷/۲۵',
+          followUps: [
+            FollowUp(
+              id: 'vazirmatn-pdf-follow-up',
+              dateTime: DateTime(2026, 10, 17, 10, 35),
+              note: 'تماس با فروشنده',
+              result: 'منتظر اعلام قیمت',
+            ),
+          ],
+        ),
+      ],
+      generatedAt: DateTime.utc(2026, 10, 17),
+      title: 'گزارش رسمی',
+    );
+
+    final bytes = await TaskReportPdfRenderer().build(report);
+    final pdfText = String.fromCharCodes(bytes);
+
+    expect(bytes.length, greaterThan(1000));
+    expect(pdfText.substring(0, 4), '%PDF');
+    expect(pdfText, contains('/FontFile2'));
+    expect(pdfText, contains('Vazirmatn'));
+  });
+
 }
