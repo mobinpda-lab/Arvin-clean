@@ -126,7 +126,7 @@ class TaskReportPdfRenderer {
         build: (_) => [
           pw.Text(
             'تاریخ تولید: ${formatDateTime(report.generatedAt)}',
-            style: const pw.TextStyle(fontSize: 9),
+            style: pw.TextStyle(font: fonts.medium, fontSize: 9),
           ),
           pw.SizedBox(height: 12),
           if (report.days.isEmpty)
