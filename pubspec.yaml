@@ -48,6 +48,72 @@ flutter:
           weight: 600
         - asset: assets/fonts/vazirmatn-ui-fd/fonts/ttf/Vazirmatn-UI-FD-Bold.ttf
           weight: 700
+    - family: Estedad
+      fonts:
+        - asset: assets/fonts/ui/estedad/Estedad-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/estedad/Estedad-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ui/estedad/Estedad-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ui/estedad/Estedad-Bold.ttf
+          weight: 700
+    - family: Shabnam
+      fonts:
+        - asset: assets/fonts/ui/shabnam/Shabnam-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/shabnam/Shabnam-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ui/shabnam/Shabnam-Bold.ttf
+          weight: 700
+    - family: Sahel
+      fonts:
+        - asset: assets/fonts/ui/sahel/Sahel-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/sahel/Sahel-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ui/sahel/Sahel-Bold.ttf
+          weight: 700
+    - family: Samim
+      fonts:
+        - asset: assets/fonts/ui/samim/Samim-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/samim/Samim-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ui/samim/Samim-Bold.ttf
+          weight: 700
+    - family: Tanha
+      fonts:
+        - asset: assets/fonts/ui/tanha/Tanha-Regular.ttf
+          weight: 400
+    - family: Gandom
+      fonts:
+        - asset: assets/fonts/ui/gandom/Gandom-Regular.ttf
+          weight: 400
+    - family: Parastoo
+      fonts:
+        - asset: assets/fonts/ui/parastoo/Parastoo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/parastoo/Parastoo-Bold.ttf
+          weight: 700
+    - family: Mikhak
+      fonts:
+        - asset: assets/fonts/ui/mikhak/Mikhak-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ui/mikhak/Mikhak-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ui/mikhak/Mikhak-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ui/mikhak/Mikhak-Bold.ttf
+          weight: 700
+    - family: Lalezar
+      fonts:
+        - asset: assets/fonts/ui/lalezar/Lalezar-Regular.ttf
+          weight: 400
+    - family: Vazir Code
+      fonts:
+        - asset: assets/fonts/ui/vazircode/Vazir-Code-Regular.ttf
+          weight: 400
     - family: VazirHarf
       fonts:
         - asset: assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
