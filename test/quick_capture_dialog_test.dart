@@ -5,6 +5,26 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+  testWidgets('quick capture exposes follow-ups without a follow-up-enabled switch',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: QuickCaptureDialog(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('دارای پیگیری'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
+      findsOneWidget,
+    );
+    expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
+  });
+
   testWidgets('quick capture returns canonical Task with Persian title and tags',
       (tester) async {
     Task? captured;
