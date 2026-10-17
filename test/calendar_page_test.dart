@@ -339,8 +339,8 @@ void main() {
     final card = find.byKey(const ValueKey('reminder-card-followup:task-1:fu-tap'));
     await tester.tap(card);
     await tester.pumpAndSettle();
-    expect(taskEdited, 1);
-    expect(followUpEdited, 0);
+    expect(taskEdited, 0);
+    expect(followUpEdited, 1);
     expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
     expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsNothing);
 
