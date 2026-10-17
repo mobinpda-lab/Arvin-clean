@@ -154,13 +154,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 filter: _filter,
                 people: _peopleDirectory,
                 onClear: _clear,
-                onRemovePerson: (id) => setState(() {
-                  final ids = <String>{..._filter.personIds}..remove(id);
-                  _filter = _filter.copyWith(personIds: ids);
-                }),
-                onRemoveWaiting: () => setState(() {
-                  _filter = _filter.copyWith(clearWaitingForResponse: true);
-                }),
+                onChanged: (filter) => setState(() => _filter = filter),
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -266,21 +260,33 @@ class _ActiveFilterChips extends StatelessWidget {
     required this.filter,
     required this.people,
     required this.onClear,
-    required this.onRemovePerson,
-    required this.onRemoveWaiting,
+    required this.onChanged,
   });
 
   final TaskReportFilter filter;
   final List<PersonReference> people;
   final VoidCallback onClear;
-  final ValueChanged<String> onRemovePerson;
-  final VoidCallback onRemoveWaiting;
+  final ValueChanged<TaskReportFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final peopleById = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
+    final selectedCategories = <String>{
+      ...filter.categories,
+      if (filter.category != null) filter.category!,
+    };
+    final selectedTags = <String>{
+      ...filter.tags,
+      if (filter.tag != null) filter.tag!,
+    };
+    final selectedStatuses = filter.statuses
+        .where((value) => value != ReportStatusFilter.all)
+        .toSet();
+    if (selectedStatuses.isEmpty && filter.status != ReportStatusFilter.all) {
+      selectedStatuses.add(filter.status);
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
@@ -288,39 +294,126 @@ class _ActiveFilterChips extends StatelessWidget {
         runSpacing: 2,
         children: [
           if (filter.timePreset != ReportTimePreset.all)
-            Chip(label: Text(_timeLabel(filter.timePreset))),
+            InputChip(
+              label: Text(_timeLabel(filter.timePreset)),
+              onDeleted: () => onChanged(filter.copyWith(timePreset: ReportTimePreset.all)),
+            ),
           if (filter.projectId != null || filter.projectIds.isNotEmpty)
-            Chip(label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}')),
-          for (final value in <String>{...filter.categories, if (filter.category != null) filter.category!})
-            Chip(label: Text(value)),
-          for (final value in <String>{...filter.tags, if (filter.tag != null) filter.tag!})
-            Chip(label: Text(value)),
+            InputChip(
+              label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}'),
+              onDeleted: () => onChanged(filter.copyWith(
+                projectIds: <String>{},
+                clearProjectId: true,
+              )),
+            ),
+          for (final value in selectedCategories)
+            InputChip(
+              label: Text(value),
+              onDeleted: () {
+                final values = <String>{...filter.categories}..remove(value);
+                onChanged(filter.copyWith(
+                  categories: values,
+                  clearCategory: filter.category == value,
+                ));
+              },
+            ),
+          for (final value in selectedTags)
+            InputChip(
+              label: Text(value),
+              onDeleted: () {
+                final values = <String>{...filter.tags}..remove(value);
+                onChanged(filter.copyWith(
+                  tags: values,
+                  clearTag: filter.tag == value,
+                ));
+              },
+            ),
           for (final id in filter.personIds)
             InputChip(
               key: ValueKey('report-active-person-$id'),
               label: Text(peopleById[id]?.displayName ?? 'شخص حذف‌شده'),
-              onDeleted: () => onRemovePerson(id),
+              onDeleted: () {
+                final ids = <String>{...filter.personIds}..remove(id);
+                onChanged(filter.copyWith(personIds: ids));
+              },
             ),
           if (filter.waitingForResponse != null)
             InputChip(
               key: const ValueKey('report-active-waiting-filter'),
               label: Text(filter.waitingForResponse! ? 'منتظر پاسخ' : 'بدون انتظار پاسخ'),
-              onDeleted: onRemoveWaiting,
+              onDeleted: () => onChanged(filter.copyWith(clearWaitingForResponse: true)),
             ),
-          if (filter.status != ReportStatusFilter.all)
-            Chip(label: Text(_statusLabel(filter.status))),
+          for (final value in selectedStatuses)
+            InputChip(
+              label: Text(_statusLabel(value)),
+              onDeleted: () {
+                final values = <ReportStatusFilter>{...filter.statuses}..remove(value);
+                onChanged(filter.copyWith(
+                  statuses: values,
+                  status: filter.status == value ? ReportStatusFilter.all : filter.status,
+                ));
+              },
+            ),
           if (filter.priority != null)
-            Chip(label: Text(_priorityLabel(filter.priority!))),
+            InputChip(
+              label: Text(_priorityLabel(filter.priority!)),
+              onDeleted: () => onChanged(filter.copyWith(clearPriority: true)),
+            ),
           if (filter.hasRepeat != null)
-            Chip(label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار')),
+            InputChip(
+              label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasRepeat: true)),
+            ),
           if (filter.hasFollowUp != null)
-            Chip(label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری')),
+            InputChip(
+              label: Text(filter.hasFollowUp! ? 'پیگیری‌دار' : 'بدون پیگیری'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasFollowUp: true)),
+            ),
           if (filter.hasChecklist != null)
-            Chip(label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist')),
+            InputChip(
+              label: Text(filter.hasChecklist! ? 'Checklist‌دار' : 'بدون Checklist'),
+              onDeleted: () => onChanged(filter.copyWith(clearHasChecklist: true)),
+            ),
+          for (final value in filter.trackingLevels)
+            InputChip(
+              label: Text(value == RecurrenceTrackingLevel.tracking ? 'مهم و قابل پیگیری' : 'عادی'),
+              onDeleted: () {
+                final values = <RecurrenceTrackingLevel>{...filter.trackingLevels}..remove(value);
+                onChanged(filter.copyWith(trackingLevels: values));
+              },
+            ),
+          for (final value in filter.noteKinds)
+            InputChip(
+              label: Text(value == NotebookItemKind.checklist ? 'نوع یادداشت: چک‌لیست' : 'نوع یادداشت: یادداشت'),
+              onDeleted: () {
+                final values = <NotebookItemKind>{...filter.noteKinds}..remove(value);
+                onChanged(filter.copyWith(noteKinds: values));
+              },
+            ),
+          if (filter.noteQuery.trim().isNotEmpty)
+            InputChip(
+              label: Text('جست‌وجوی یادداشت: ${filter.noteQuery.trim()}'),
+              onDeleted: () => onChanged(filter.copyWith(noteQuery: '')),
+            ),
+          if (filter.noteFromDate != null || filter.noteToDate != null)
+            InputChip(
+              label: const Text('بازه تاریخ یادداشت'),
+              onDeleted: () => onChanged(filter.copyWith(
+                clearNoteFromDate: true,
+                clearNoteToDate: true,
+                clearNoteDateField: true,
+              )),
+            ),
           if (filter.fromDate != null || filter.toDate != null)
-            const Chip(label: Text('بازه تاریخ')),
+            InputChip(
+              label: const Text('بازه تاریخ'),
+              onDeleted: () => onChanged(filter.copyWith(clearFromDate: true, clearToDate: true)),
+            ),
           if (filter.fromTime != null || filter.toTime != null)
-            const Chip(label: Text('بازه ساعت')),
+            InputChip(
+              label: const Text('بازه ساعت'),
+              onDeleted: () => onChanged(filter.copyWith(clearFromTime: true, clearToTime: true)),
+            ),
           ActionChip(label: const Text('پاک کردن'), onPressed: onClear),
         ],
       ),
