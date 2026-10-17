@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -29,12 +30,15 @@ void main() {
     expect(source, contains('effectiveFontFamily'));
   });
 
-  test('pubspec bundles Vazirmatn UI FD PDF assets and preserves UI font registry fallback', () {
-    final source = File('pubspec.yaml').readAsStringSync();
+  test('Vazirmatn UI FD font files are bundled locally', () async {
+    final regular = await rootBundle.load(
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Regular.ttf',
+    );
+    final bold = await rootBundle.load(
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Bold.ttf',
+    );
 
-    expect(source, contains('assets/fonts/'));
-    expect(source, contains('assets/fonts/vazirmatn/'));
-    expect(source, contains('Vazirmatn-UI-FD-Regular.ttf'));
-    expect(source, contains('Vazirmatn-UI-FD-Bold.ttf'));
+    expect(regular.lengthInBytes, greaterThan(1000));
+    expect(bold.lengthInBytes, greaterThan(1000));
   });
 }
