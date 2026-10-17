@@ -971,4 +971,96 @@ void main() {
     }
   });
 
+
+  test('full export clear database import cycle preserves Task, reminders, follow-up history and person IDs', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final seller = PersonReference(id: 'person-seller-stable', displayName: 'فروشنده');
+      final buyer = PersonReference(id: 'person-buyer-stable', displayName: 'خریدار');
+      await store.savePeopleDirectory([seller, buyer]);
+
+      final task = _completeTask()
+        ..taskReminders = [
+          TaskReminder(
+            id: 'reminder-before-action',
+            title: 'یادآور مستقل',
+            date: DateTime(2026, 10, 18, 9, 50),
+            sequence: 1,
+          ),
+          TaskReminder(
+            id: 'reminder-second',
+            title: 'یادآور دوم',
+            date: DateTime(2026, 10, 19, 10),
+            sequence: 2,
+          ),
+        ]
+        ..nextReminderSequence = 3
+        ..followUps = [
+          FollowUp(
+            id: 'follow-up-contact-seller',
+            dateTime: DateTime(2026, 10, 16, 12),
+            title: 'تماس با فروشنده',
+            note: 'پیگیری قیمت',
+            result: 'منتظر اعلام قیمت',
+            nextFollowUp: DateTime(2026, 10, 18, 10),
+            waitingForResponse: true,
+            personIds: const ['person-seller-stable'],
+          ),
+          FollowUp(
+            id: 'follow-up-confirm-buyer',
+            dateTime: DateTime(2026, 10, 16, 14),
+            note: 'هماهنگی نهایی',
+            result: 'تأیید شد',
+            personIds: const ['person-buyer-stable'],
+          ),
+        ];
+      await store.save([task]);
+
+      final backupService = _FakeBackupService();
+      final manager = ArvinBackupManager(service: backupService);
+      final exportFile = await manager.backupCanonicalTasks(
+        await store.load(),
+        people: await store.loadPeopleDirectory(),
+      );
+      expect(exportFile, 'canonical-backup.json');
+      expect(backupService.writtenPayload, isNotNull);
+
+      // Simulate an empty target database before importing the exported document.
+      await TaskStore.resetTestDatabase();
+      backupService.restoreDocument = backupService.writtenPayload;
+      final candidate = await manager.restoreCanonicalBackup();
+      expect(candidate, isNotNull);
+      expect(candidate!.tasks, hasLength(1));
+      expect(candidate.people?.map((person) => person.id).toSet(),
+          {'person-seller-stable', 'person-buyer-stable'});
+
+      final restoredStore = TaskStore();
+      await restoredStore.save(candidate.tasks);
+      await restoredStore.savePeopleDirectory(candidate.people!);
+
+      final restored = (await restoredStore.load()).single;
+      expect(restored.id, 'task-full');
+      expect(restored.taskReminders.map((reminder) => reminder.id),
+          containsAll(['reminder-before-action', 'reminder-second']));
+      expect(restored.taskReminders.where((reminder) =>
+          reminder.id == 'reminder-before-action').single.date,
+          DateTime(2026, 10, 18, 9, 50));
+      expect(restored.followUps.map((followUp) => followUp.id),
+          ['follow-up-contact-seller', 'follow-up-confirm-buyer']);
+      expect(restored.followUps.first.title, 'تماس با فروشنده');
+      expect(restored.followUps.first.result, 'منتظر اعلام قیمت');
+      expect(restored.followUps.first.waitingForResponse, isTrue);
+      expect(restored.followUps.first.nextFollowUp, DateTime(2026, 10, 18, 10));
+      expect(restored.followUps.first.personIds, ['person-seller-stable']);
+      expect(restored.followUps.last.personIds, ['person-buyer-stable']);
+      expect(
+        (await restoredStore.loadPeopleDirectory()).map((person) => person.id).toSet(),
+        {'person-seller-stable', 'person-buyer-stable'},
+      );
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }
