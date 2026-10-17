@@ -395,7 +395,7 @@ class _ActiveFilterChips extends StatelessWidget {
               label: Text('جست‌وجوی یادداشت: ${filter.noteQuery.trim()}'),
               onDeleted: () => onChanged(filter.copyWith(noteQuery: '')),
             ),
-          if (filter.noteFromDate != null || filter.noteToDate != null)
+          if (filter.noteDateField != null || filter.noteFromDate != null || filter.noteToDate != null)
             InputChip(
               label: const Text('بازه تاریخ یادداشت'),
               onDeleted: () => onChanged(filter.copyWith(
