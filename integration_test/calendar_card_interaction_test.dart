@@ -73,9 +73,6 @@ void main() {
       expect(tester.takeException(), isNull);
 
       await binding.convertFlutterSurfaceToImage();
-      await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-card-interaction');
-      debugPrint('CALENDAR_SMOKE: RTL calendar card and VazirHarf theme captured');
 
       // A short tap must open the Follow-up editor, not expand the card.
       await tester.tap(card);
@@ -83,13 +80,16 @@ void main() {
       expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
       expect(find.text('ویرایش پیگیری'), findsOneWidget);
       expect(tester.takeException(), isNull);
-      debugPrint('CALENDAR_SMOKE: short tap opened the Follow-up editor');
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('calendar-card-interaction');
+      debugPrint('CALENDAR_SMOKE: Follow-up editor form captured after it was fully opened');
 
       // Open the canonical round clock and capture its Persian-digit RTL state.
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
+      expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
       expect(Directionality.of(tester.element(
         find.byKey(const ValueKey('universal-time-selected-value')),
       )), TextDirection.rtl);
