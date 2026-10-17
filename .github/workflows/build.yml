@@ -112,6 +112,32 @@ jobs:
         env:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
         run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
+      - name: Generate and inspect canonical report PDF
+        if: matrix.lane == 'test-0'
+        env:
+          ARVIN_REPORT_PDF_OUTPUT: ${{ runner.temp }}/arvin-report-typography.pdf
+        run: |
+          set -euo pipefail
+          flutter test test/report_typography_canonical_test.dart --reporter expanded
+          test -s "$ARVIN_REPORT_PDF_OUTPUT"
+          mkdir -p build/report-typography-evidence
+          cp "$ARVIN_REPORT_PDF_OUTPUT" build/report-typography-evidence/report-typography.pdf
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+          pdfinfo build/report-typography-evidence/report-typography.pdf | tee build/report-typography-evidence/pdfinfo.txt
+          pdffonts build/report-typography-evidence/report-typography.pdf | tee build/report-typography-evidence/pdffonts.txt
+          pdftotext -layout build/report-typography-evidence/report-typography.pdf build/report-typography-evidence/extracted-text.txt
+          grep -qi 'Vazirmatn' build/report-typography-evidence/pdffonts.txt
+          grep -q 'گزارش' build/report-typography-evidence/extracted-text.txt
+          grep -q 'پیگیری' build/report-typography-evidence/extracted-text.txt
+          pdftoppm -png -r 110 build/report-typography-evidence/report-typography.pdf build/report-typography-evidence/page
+      - name: Upload report typography evidence
+        if: always() && matrix.lane == 'test-0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-report-typography-evidence
+          path: build/report-typography-evidence/
+          if-no-files-found: warn
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
