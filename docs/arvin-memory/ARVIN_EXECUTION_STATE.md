@@ -1130,3 +1130,23 @@ This entry supersedes older statements that the owner decision is pending or tha
 1. For #2773: inspect the calendar artifact files and their checkpoint logs; establish whether the tests independently cover simultaneous Reminder/Follow-up and external event collisions; if not, add narrowly scoped regression tests and run the relevant suite on a head commit.
 2. For #2744: add/locate an integration test that deletes a Person through the real app/service and verifies persistence of Follow-up history after reload and backup/restore; first reconcile the 96-commit base divergence safely.
 3. Keep release NO-GO until exact candidate SHA evidence, data-integrity test and physical-device acceptance are all recorded.
+
+## LIVE EXECUTION UPDATE — 2026-10-17 08:45 UTC
+
+### PR #2773 — calendar
+- Successfully squash-merged; merge commit: `0601950e8f56a7563533393844c835b6de49aade`.
+- Build run `39017703770`: Analyze, six test shards, Debug APK and Release APK succeeded.
+- Post-merge Device Smoke run `39017703842` did not complete all scenarios: backup/restore and people were cancelled; SQL migration, SQL persistence, quick-capture and home succeeded. A later post-merge run `39018485465` is queued. Do not record full post-merge Device Smoke PASS yet.
+
+### Vazirmatn assets and PDF renderer — PR #2778
+- Source archive `vazirmatn-v33.003 (2).zip` was materialized from Library and inspected. The archive contains Regular (122,752 bytes), Medium (122,656 bytes), Bold (123,036 bytes), and OFL.txt (4,391 bytes).
+- Git blob SHA comparisons prove byte identity between archive files and the existing branch files under `assets/fonts/ui/vazirmatn/`: Regular `64e4a8189557a17b63fd7a77794207483e592972`, Medium `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`, Bold `efa9b095da01d299310bdcae293e24e657fe6da9`, OFL `be66b3824e9772e75141e631695c5256f105fb57`.
+- PR branch now declares Vazirmatn with only 400/500/700 weights, exposes paths through `AppFonts`, switches PDF loading to these three assets, and strengthens the two requested tests. Latest head after correcting a duplicate declaration: `a981850d066dfa64d7e0e1810907f59b868f23a3`.
+- An earlier build at `a400a4f2b315b27abb06481de027c6a0ecfbc353` failed Analyze because duplicate declarations were introduced; that was corrected in the subsequent commit. Build for the corrected head `a981850d066dfa64d7e0e1810907f59b868f23a3` is pending/running; target tests are NOT PASS until logs confirm. PR #2778 remains Draft and is not merged.
+
+### PR #2744 — person deletion/history
+- Added Drift/SQLite persistence regression test in commit `31b9cfa61efc1323f10e038be22efa1226c4d8ad`: remove a Person from the directory, reopen TaskStore, and assert Task/Follow-up/personIds/waitingForResponse persist.
+- This is a storage-level test of directory removal and relation persistence; it does not invoke the UI delete callback directly.
+- Branch comparison against current main: 7 commits ahead, 97 behind, diverged. A temporary main-to-feature synchronization PR (#2781) reported `mergeable=false` and was closed without merging. PR #2744 remains Draft; no Ready transition or merge is authorized until synchronization/conflict handling and the new test's CI evidence are complete.
+
+**Release gate:** `RELEASE: NO-GO`. No final release APK is approved. Local tests were not run in this environment; report only GitHub Actions evidence once completed.
