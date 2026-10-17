@@ -166,6 +166,9 @@ void main() {
       'arvin.tasks': jsonEncode([
         {
           'id': 'waiting',
+          'completed': false,
+          'archived': false,
+          'trashed': false,
           'title': 'کار منتظر',
           'followUps': [
             {
@@ -179,6 +182,9 @@ void main() {
         },
         {
           'id': 'resolved',
+          'completed': false,
+          'archived': false,
+          'trashed': false,
           'title': 'کار پاسخ‌گرفته',
           'followUps': [
             {
@@ -199,6 +205,9 @@ void main() {
         },
         {
           'id': 'alias',
+          'completed': false,
+          'archived': false,
+          'trashed': false,
           'title': 'کار منتظر فارسی',
           'followUps': [
             {
