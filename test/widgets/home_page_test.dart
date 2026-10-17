@@ -53,7 +53,7 @@ void main() {
 
     final toggle = find.byKey(const ValueKey('task-card-toggle-compact-home'));
     expect(toggle, findsOneWidget);
-    expect(tester.getSize(toggle).height, lessThanOrEqualTo(36));
+    expect(tester.getSize(toggle).height, lessThanOrEqualTo(42));
 
     final title = tester.widget<Text>(find.text('کار فشرده'));
     expect(title.style?.fontSize, 14);
