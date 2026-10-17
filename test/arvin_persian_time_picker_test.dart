@@ -40,6 +40,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+
+    // Short-screen regression guard: the dialog must stay within the viewport
+    // and keep the save/cancel actions reachable through its scroll view.
+    tester.view.physicalSize = const Size(320, 480);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    expect(tester.takeException(), isNull);
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     expect(tester.takeException(), isNull);
     await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
