@@ -743,7 +743,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    // Opening the Follow-up Roll Box does not create a FollowUp or set the
+    // legacy compatibility mirror. Only an actual saved FollowUp does that.
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUpDate, isNull);
     expect(captured!.checklistEnabled, isTrue);
     expect(captured!.checklist, ['[ ] تماس با فروشنده']);
