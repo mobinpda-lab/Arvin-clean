@@ -41,10 +41,12 @@ jobs:
             test_file: integration_test/android_backup_restore_sql_smoke_test.dart
           - scenario: people
             test_file: integration_test/android_people_smoke_test.dart
+          - scenario: calendar
+            test_file: integration_test/calendar_card_interaction_test.dart
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Cache pinned VazirHarf
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/vazirharf
           key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
@@ -75,7 +77,7 @@ jobs:
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -84,14 +86,14 @@ jobs:
           restore-keys: |
             arvin-gradle-${{ runner.os }}-
       - name: Cache Pub packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.pub-cache
           key: arvin-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
           restore-keys: |
             arvin-pub-${{ runner.os }}-
       - name: Cache Flutter SDK artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.FLUTTER_ROOT }}/bin/cache
@@ -116,11 +118,28 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d emulator-${EMULATOR_PORT}
+          script: |
+            set -euo pipefail
+            device="emulator-${EMULATOR_PORT}"
+            echo "ADB_DEVICE=${device}"
+            adb devices -l
+            adb -s "${device}" wait-for-device
+            boot=""
+            for attempt in $(seq 1 90); do
+              boot="$(adb -s "${device}" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+              if [ "${boot}" = "1" ]; then
+                break
+              fi
+              sleep 2
+            done
+            test "${boot}" = "1"
+            echo "ADB_BOOT_COMPLETED=${boot}"
+            adb -s "${device}" shell getprop ro.build.version.sdk
+            flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "${device}"
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
@@ -128,8 +147,19 @@ jobs:
 
       - name: Upload Persian time picker screenshot evidence
         if: always() && matrix.scenario == 'quick-capture'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: arvin-persian-time-picker-${{ github.sha }}
           path: artifacts/device-smoke/persian-time-picker.png
           if-no-files-found: warn
+
+      - name: Upload calendar interaction and RTL evidence
+        if: always() && matrix.scenario == 'calendar'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-device-smoke-calendar-${{ github.sha }}
+          path: |
+            artifacts/device-smoke/calendar-card-interaction.png
+            artifacts/device-smoke/calendar-card-completed.png
+            artifacts/device-smoke/calendar-persian-time-picker.png
+          if-no-files-found: error
