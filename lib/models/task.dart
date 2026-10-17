@@ -204,7 +204,8 @@ class TaskReminder {
       isAllDay: json['isAllDay'] as bool? ?? false,
       sequence: (json['sequence'] as num?)?.toInt() ?? 1,
       isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ??
-          (id == 'legacy-task-reminder:$fallbackTaskId'),
+          (id == 'legacy-task-reminder' ||
+              id.startsWith('legacy-task-reminder:')),
     );
   }
 }
@@ -450,7 +451,7 @@ class Task {
     final reminderMetadataFallback = taskCreatedAt ??
         taskUpdatedAt ??
         DateTime.utc(1970, 1, 1);
-    final loadedTaskReminders = (rawTaskReminders as List<dynamic>? ?? const [])
+    final decodedTaskReminders = (rawTaskReminders as List<dynamic>? ?? const [])
         .map(
           (item) => TaskReminder.fromJson(
             Map<String, dynamic>.from(item as Map),
@@ -459,9 +460,41 @@ class Task {
           ),
         )
         .toList();
+
+    // Normalize any previously emitted task-specific legacy IDs to the one
+    // immutable migration identity. Keep at most one legacy reminder record.
+    const legacyReminderId = 'legacy-task-reminder';
+    final loadedTaskReminders = <TaskReminder>[];
+    var hasMigratedLegacyReminder = false;
+    for (final reminder in decodedTaskReminders) {
+      final isLegacyReminder = reminder.isLegacyTaskReminder ||
+          reminder.id == legacyReminderId ||
+          reminder.id.startsWith('$legacyReminderId:');
+      if (!isLegacyReminder) {
+        loadedTaskReminders.add(reminder);
+        continue;
+      }
+      if (hasMigratedLegacyReminder) continue;
+      loadedTaskReminders.add(
+        TaskReminder(
+          id: legacyReminderId,
+          taskId: reminder.taskId.isNotEmpty ? reminder.taskId : taskId,
+          title: reminder.title,
+          date: reminder.date,
+          status: reminder.status,
+          createdAt: reminder.createdAt,
+          updatedAt: reminder.updatedAt,
+          isAllDay: reminder.isAllDay,
+          sequence: reminder.sequence,
+          isLegacyTaskReminder: true,
+        ),
+      );
+      hasMigratedLegacyReminder = true;
+    }
+
     var nextReminderSequence =
         (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
-    for (final reminder in loadedTaskReminders) {
+    for (final reminder of loadedTaskReminders) {
       if (reminder.sequence >= nextReminderSequence) {
         nextReminderSequence = reminder.sequence + 1;
       }
@@ -475,9 +508,10 @@ class Task {
         (json['legacyTaskReminderMigrationVersion'] as num?)?.toInt() ?? 0;
     var legacyTaskReminderMigrationVersion =
         storedMigrationVersion < 0 ? 0 : storedMigrationVersion;
-    final legacyReminderId = 'legacy-task-reminder:$taskId';
-    final hasMigratedLegacyReminder =
-        loadedTaskReminders.any((reminder) => reminder.id == legacyReminderId);
+    final hasMigratedLegacyReminder = loadedTaskReminders.any(
+      (reminder) =>
+          reminder.id == legacyReminderId && reminder.isLegacyTaskReminder,
+    );
     if (legacyReminderDate != null &&
         taskId.trim().isNotEmpty &&
         !legacyReminderMigrationCompleted) {
