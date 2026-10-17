@@ -30,6 +30,30 @@ class FollowUp {
     this.personIds = const <String>[],
   });
 
+  FollowUp copyWith({
+    DateTime? dateTime,
+    String? title,
+    String? note,
+    String? result,
+    DateTime? reminderDate,
+    DateTime? nextFollowUp,
+    bool? completed,
+    bool? waitingForResponse,
+    List<String>? personIds,
+  }) =>
+      FollowUp(
+        id: id,
+        dateTime: dateTime ?? this.dateTime,
+        title: title ?? this.title,
+        note: note ?? this.note,
+        result: result ?? this.result,
+        reminderDate: reminderDate ?? this.reminderDate,
+        nextFollowUp: nextFollowUp ?? this.nextFollowUp,
+        completed: completed ?? this.completed,
+        waitingForResponse: waitingForResponse ?? this.waitingForResponse,
+        personIds: personIds ?? this.personIds,
+      );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.toIso8601String(),
