@@ -1150,3 +1150,35 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Branch comparison against current main: 7 commits ahead, 97 behind, diverged. A temporary main-to-feature synchronization PR (#2781) reported `mergeable=false` and was closed without merging. PR #2744 remains Draft; no Ready transition or merge is authorized until synchronization/conflict handling and the new test's CI evidence are complete.
 
 **Release gate:** `RELEASE: NO-GO`. No final release APK is approved. Local tests were not run in this environment; report only GitHub Actions evidence once completed.
+
+
+---
+
+# LIVE EXECUTION CHECKPOINT — 2026-10-17 13:30 +03:30
+
+This checkpoint records observations, not release approval. Mainline source of truth is the live GitHub comparison result.
+
+## Current main and post-merge evidence
+- Current main observed by GitHub compare: 0601950e8f56a7563533393844c835b6de49aade (Calendar PR #2773 squash merge).
+- Build [39018485470](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018485470) completed successfully for this SHA: Analyze, six test shards, Debug APK, and Release APK succeeded.
+- Artifacts from that build: Release APK [12095049736](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12095049736), Debug APK [12095582452](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12095582452).
+- Device Smoke [39018485465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018485465) is terminal-success across all seven lanes: quick-capture, home, SQLite persistence, SQLite migration, backup/restore, calendar, and people. This is Android emulator evidence only; no physical-phone acceptance is established.
+- Build + emulator smoke do not override wider release gates. Release remains RELEASE: NO-GO.
+
+## PR #2778 — Vazirmatn / report typography
+- Current branch head after bounded test correction: 5ced038d66c37e9032216818d7d0015a889b9b05.
+- Prior run [39018914542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018914542) failed. Logs show the test incorrectly required assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf, while the UI Vazirmatn assets declared in pubspec.yaml are Regular/Medium/Bold. The bounded correction removed only the nonexistent asset path from the test.
+- New Build [39023171758](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023171758) and Device Smoke [39023171771](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023171771) were still running/queued at checkpoint time; no terminal pass claim is made.
+- PR #2778 remains Draft. The branch comparison reports 42 commits ahead and 1 behind current main. Scope is broader than the owner-requested three Vazirmatn TTFs plus OFL (it adds multiple other font families and workflow changes); this scope needs explicit review before any merge. Earlier PDF CI evidence used sparse one-page fixtures and does not prove dense/multipage report quality.
+
+## PR #2744 — deleted Person history
+- Old branch fix/report-preserve-deleted-person-history-20261016 remains 7 commits ahead / 97 behind current main and diverged; do not rewrite its history.
+- A clean branch was created from current main and the limited change ported without force push: [PR #2783](https://github.com/mobinpda-lab/Arvin-clean/pull/2783), head eb58ec40419f701be27c0b52f6704403d5ea5740.
+- PR #2783 changes the existing Follow-up report projection, adds a deleted-person placeholder regression test, and adds a SQLite persistence regression test for Task/Follow-up IDs and person associations after removal from the directory.
+- Build [39023243091](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023243091) and Device Smoke [39023243098](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023243098) were pending/in progress at checkpoint time. PR #2783 remains Draft and unmerged.
+- The SQLite test verifies storage behavior; it does not alone prove the UI deletion callback or physical-device behavior.
+
+## Product and release gates
+- Open product blockers remain tracked in issues including #2589 (universal Persian time picker rollout incomplete), #2593 (Quick Add / Full Task Editor acceptance in progress), #2654 (multiple independent reminders requirement/design open), #2385 (Report Center specification/acceptance), #2635 (calendar sync contract/acceptance), and #2102 (exact-head Build/Device Smoke release evidence).
+- Do not infer full product acceptance from the successful mainline smoke run. Backup/restore/migration, recurrence/checklist independence, full Report Center behavior, UI typography across all screens, and physical-device acceptance still require gate-specific evidence on a final candidate SHA.
+- Next action: finish exact-head CI on #2778 and #2783, inspect failures, and only then decide whether either PR is ready for review. No merge or release is authorized by this checkpoint.
