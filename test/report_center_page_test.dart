@@ -211,7 +211,7 @@ void main() {
     expect(find.textContaining('پاسخ رضا'), findsNothing);
     final personFilterChip = find.byKey(const ValueKey('report-active-person-ana'));
     expect(personFilterChip, findsOneWidget);
-    await tester.tap(find.descendant(of: personFilterChip, matching: find.byIcon(Icons.cancel)));
+    tester.widget<InputChip>(personFilterChip).onDeleted!();
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('report-active-person-ana')), findsNothing);
     expect(find.textContaining('پاسخ رضا'), findsOneWidget);
@@ -246,7 +246,7 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-شخص')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
