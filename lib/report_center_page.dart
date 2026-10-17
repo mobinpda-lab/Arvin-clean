@@ -71,12 +71,20 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     return result;
   }
 
-  List<PersonFollowUpReportRow> get _waitingRows =>
-      const PersonFollowUpReportProjection().project(
-        widget.tasks,
-        people: _peopleDirectory,
-        personIds: _filter.personIds,
-      );
+  List<PersonFollowUpReportRow> get _waitingRows {
+    final filterWithoutWaitingState =
+        _filter.copyWith(clearWaitingForResponse: true);
+    final matchingTasks = filterWithoutWaitingState.apply(
+      widget.tasks,
+      now: _now,
+      projects: widget.projects,
+    );
+    return const PersonFollowUpReportProjection().project(
+      matchingTasks,
+      people: _peopleDirectory,
+      personIds: _filter.personIds,
+    );
+  }
 
   List<Task> get _filtered => _filter.apply(
         widget.tasks,
