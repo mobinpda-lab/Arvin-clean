@@ -8,7 +8,7 @@ class ArvinFontOption {
 }
 
 const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
-  ArvinFontOption(id:'vazirmatn', nameFa:'وزیرمتن', description:'فونت مدرن و عمومی رابط کاربری', category:'عمومی', fontFamily:'Vazirmatn'),
+  ArvinFontOption(id:'vazirmatn', nameFa:'وزیرمتن', description:'فونت مدرن و عمومی رابط کاربری', category:'عمومی', fontFamily:'Vazirmatn', isAvailableLocally:true),
   ArvinFontOption(id:'estedad', nameFa:'استعداد', description:'مناسب رابط کاربری و تیترهای مدرن', category:'عمومی', fontFamily:'Estedad'),
   ArvinFontOption(id:'sahel', nameFa:'ساحل', description:'مناسب مطالعه و متن طولانی', category:'مطالعه', fontFamily:'Sahel'),
   ArvinFontOption(id:'shabnam', nameFa:'شبنم', description:'مناسب متن و مطالعه روزانه', category:'مطالعه', fontFamily:'Shabnam'),
