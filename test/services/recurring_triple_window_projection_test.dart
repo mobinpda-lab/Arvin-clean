@@ -74,6 +74,7 @@ void main() {
         DateTime(2026, 10, 14).toIso8601String(): {'status': 'completed'},
         DateTime(2026, 10, 15).toIso8601String(): {'status': 'skipped'},
         DateTime(2026, 10, 16).toIso8601String(): {'status': 'cancelled'},
+        DateTime(2026, 10, 17).toIso8601String(): {'status': 'cancelled'},
       },
     );
     final result = projection.project([task], localAnchorDate: today, horizonDays: 2);
