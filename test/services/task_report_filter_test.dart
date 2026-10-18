@@ -132,7 +132,10 @@ void main() {
 
   test('external calendar filter is explicit and uses the canonical time window', () {
     final eventTime = DateTime(2026, 10, 7, 15);
-    final filter = const TaskReportFilter().copyWith(showExternalCalendarEvents: true);
+    final filter = const TaskReportFilter().copyWith(
+      timePreset: ReportTimePreset.today,
+      showExternalCalendarEvents: true,
+    );
     expect(filter.isActive, isTrue);
     expect(filter.showExternalCalendarEvents, isTrue);
     expect(
