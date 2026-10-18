@@ -5,6 +5,12 @@ on:
     workflows: ['Arvin Device Smoke']
     types: [completed]
   workflow_dispatch:
+    inputs:
+      authorized_by_product_owner:
+        description: 'Explicit product-owner authorization to enter release closure (does not itself authorize publication)'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,6 +39,18 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: Require explicit manual product-owner authorization
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTHORIZED_BY_PRODUCT_OWNER: ${{ github.event.inputs.authorized_by_product_owner }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" != "workflow_dispatch" || "$AUTHORIZED_BY_PRODUCT_OWNER" != "true" ]]; then
+            echo "::error::RELEASE BLOCKED: dispatch manually and set authorized_by_product_owner=true before build or publication."
+            exit 1
+          fi
+          echo "MANUAL_PRODUCT_OWNER_GATE=passed"
 
       - name: Fetch pinned VazirHarf
         run: |
@@ -385,7 +403,6 @@ jobs:
               issue_number: 2102
             });
             if (gate.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
               return;
             }
@@ -396,7 +413,6 @@ jobs:
               pull_number: 1901
             });
             if (regression.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
               return;
             }
@@ -471,32 +487,8 @@ jobs:
           echo "RECOVERY_RESULT=success"
           echo "RESUME_VALIDATION=success"
 
-      - name: Remove stale Arvin prereleases
-        if: steps.release_state.outputs.already_released != 'true'
-        uses: actions/github-script@v7
-        env:
-          KEEP_TAG: ${{ steps.release.outputs.tag }}
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const keepTag = process.env.KEEP_TAG;
-            const releases = await github.paginate(
-              github.rest.repos.listReleases,
-              { owner, repo, per_page: 100 }
-            );
-            for (const release of releases) {
-              if (release.draft || !release.prerelease) continue;
-              if (!release.tag_name.startsWith('v') || !release.tag_name.includes('-arvin-')) continue;
-              if (release.tag_name === keepTag) continue;
-              await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
-              try {
-                await github.rest.git.deleteRef({ owner, repo, ref: 'tags/' + release.tag_name });
-              } catch (error) {
-                if (error.status !== 422 && error.status !== 404) throw error;
-              }
-              core.info('REMOVED_STALE_RELEASE=' + release.tag_name);
-            }
+      # V5.09: stale release/tag deletion intentionally removed.
+      # Existing tags and releases are preserved; cleanup requires a separate approved change.
 
       - name: Publish final evidence
         if: steps.release_state.outputs.already_released != 'true'
