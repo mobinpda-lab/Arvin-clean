@@ -43,14 +43,22 @@ jobs:
       - name: Require explicit manual product-owner authorization
         env:
           EVENT_NAME: ${{ github.event_name }}
-          AUTHORIZED_BY_PRODUCT_OWNER: ${{ github.event.inputs.authorized_by_product_owner }}
+          AUTHORIZED_BY_PRODUCT_OWNER: ${{ inputs.authorized_by_product_owner }}
+          ACTOR: ${{ github.actor }}
+          PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
           if [[ "$EVENT_NAME" != "workflow_dispatch" || "$AUTHORIZED_BY_PRODUCT_OWNER" != "true" ]]; then
-            echo "::error::RELEASE BLOCKED: dispatch manually and set authorized_by_product_owner=true before build or publication."
+            echo "::error::RELEASE BLOCKED: manual dispatch and authorized_by_product_owner=true are required."
+            exit 1
+          fi
+          if [[ -z "$PRODUCT_OWNER_GITHUB" || "$ACTOR" != "$PRODUCT_OWNER_GITHUB" || "$REPOSITORY_OWNER" != "mobinpda-lab" ]]; then
+            echo "::error::RELEASE BLOCKED: caller must match the trusted ARVIN_PRODUCT_OWNER_GITHUB repository variable and repository owner boundary."
             exit 1
           fi
           echo "MANUAL_PRODUCT_OWNER_GATE=passed"
+          echo "PRODUCT_OWNER_ACTOR=$ACTOR"
 
       - name: Fetch pinned VazirHarf
         run: |
@@ -370,33 +378,6 @@ jobs:
 
             // A green build is not product acceptance. Publication stays blocked
             // until the existing release gate and the known regression lane are closed.
-            // Hide already-published Arvin prereleases while blocked; preserve their
-            // tags/assets so this containment is reversible rather than destructive.
-            async function hideUnapprovedPrereleases() {
-              const releases = await github.paginate(github.rest.repos.listReleases, {
-                owner,
-                repo,
-                per_page: 100
-              });
-              for (const release of releases) {
-                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
-                  continue;
-                }
-                try {
-                  await github.rest.repos.updateRelease({
-                    owner,
-                    repo,
-                    release_id: release.id,
-                    draft: true,
-                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
-                  });
-                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
-                } catch (error) {
-                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
-                }
-              }
-            }
-
             const gate = await github.rest.issues.get({
               owner,
               repo,
