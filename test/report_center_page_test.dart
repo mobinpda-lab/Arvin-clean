@@ -167,6 +167,8 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('منتظر پاسخ'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
