@@ -202,4 +202,36 @@ void main() {
     expect(identical(result.single, active), isTrue);
     expect(tasks, hasLength(3));
   });
+
+  test('home reminder projection prefers same-time follow-ups and keeps first duplicate reminder', () {
+    final followUpAt = now.add(const Duration(hours: 2));
+    final duplicateAt = now.add(const Duration(hours: 1));
+    final reminders = <TaskReminder>[
+      TaskReminder(id: 'same-as-follow-up', title: 'پیگیری هم‌زمان', date: followUpAt, sequence: 1),
+      TaskReminder(id: 'first-at-time', title: 'یادآور اول', date: duplicateAt, sequence: 2),
+      TaskReminder(id: 'second-at-time', title: 'یادآور دوم', date: duplicateAt, sequence: 3),
+      TaskReminder(id: 'unique-time', title: 'یادآور دیگر', date: now.add(const Duration(hours: 3)), sequence: 4),
+    ];
+
+    final projected = projection.projectReminders(reminders, followUpDate: followUpAt);
+
+    expect(projected.map((item) => item.id), ['first-at-time', 'unique-time']);
+    expect(reminders, hasLength(4));
+    expect(identical(projected.first, reminders[1]), isTrue);
+
+    final coincident = task(
+      'coincident',
+      dueDate: followUpAt,
+      followUps: [FollowUp(id: 'same-time-follow-up', dateTime: followUpAt)],
+    );
+    final distinct = task(
+      'distinct',
+      dueDate: followUpAt.add(const Duration(minutes: 1)),
+      followUps: [FollowUp(id: 'other-time-follow-up', dateTime: followUpAt)],
+    );
+    expect(projection.shouldProjectDueDate(coincident), isFalse);
+    expect(projection.shouldProjectDueDate(distinct), isTrue);
+  });
+
+
 }

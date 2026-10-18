@@ -992,15 +992,15 @@ class _CalendarItemVisualStyle {
     final scheme = Theme.of(context).colorScheme;
     return switch (_calendarItemVisualKind(item)) {
       _CalendarItemVisualKind.arvinReminder => _CalendarItemVisualStyle(
-        icon: Icons.notifications_active_outlined, color: scheme.primary, label: 'یادآوری آروین'),
+        icon: Icons.notifications_active_outlined, color: scheme.primary, label: ''),
       _CalendarItemVisualKind.followUpAction => _CalendarItemVisualStyle(
         icon: Icons.follow_the_signs_outlined, color: scheme.tertiary, label: 'پیگیری'),
       _CalendarItemVisualKind.importedPhoneCalendar => _CalendarItemVisualStyle(
-        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: 'واردشده از تقویم گوشی'),
+        icon: Icons.calendar_month_outlined, color: scheme.tertiary, label: ''),
       _CalendarItemVisualKind.prayer => _CalendarItemVisualStyle(
-        icon: Icons.event_available_outlined, color: scheme.secondary, label: 'نماز'),
+        icon: Icons.mosque, color: scheme.secondary, label: 'نماز'),
       _CalendarItemVisualKind.ordinary => _CalendarItemVisualStyle(
-        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: 'یادآور'),
+        icon: Icons.event_outlined, color: scheme.onSurfaceVariant, label: ''),
     };
   }
 }
@@ -1178,7 +1178,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                   widget.onRegisterTaskToDeviceCalendar != null)
                 ListTile(
                   key: ValueKey('task-due-device-calendar-${widget.item.id}'),
-                  leading: const Icon(Icons.event_available_outlined),
+                  leading: const Icon(Icons.mosque),
                   title: const Text('ثبت در تقویم گوشی'),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -1226,6 +1226,9 @@ class _ReminderCardState extends State<_ReminderCard> {
             : 'برنامه‌ریزی‌شده';
     final visual = _CalendarItemVisualStyle.of(context, item);
     final statusColor = _calendarStatusColor(item);
+    final subtleStatus = statusLabel == 'ثبت نشده' ||
+        statusLabel == 'برنامه‌ریزی نشده' ||
+        statusLabel == 'برنامه‌ریزی‌نشده';
     final isFollowUpItem = item.id.startsWith('task-followup:') ||
         item.id.startsWith('followup:');
     final subtitle = item.isAllDay
@@ -1309,7 +1312,11 @@ class _ReminderCardState extends State<_ReminderCard> {
                       Text(
                         statusLabel,
                         maxLines: 1,
-                        style: TextStyle(color: statusColor, fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: subtleStatus ? ArvinColors.textSecondary : statusColor,
+                          fontSize: subtleStatus ? 11 : 14,
+                          fontWeight: subtleStatus ? FontWeight.w400 : FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -1369,11 +1376,12 @@ class _ReminderCardState extends State<_ReminderCard> {
                         ),
                       ],
                       const SizedBox(width: 4),
-                      Text(
-                        visual.label,
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
-                      ),
+                      if (visual.label.isNotEmpty)
+                        Text(
+                          visual.label,
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 12, color: visual.color, fontWeight: FontWeight.w400),
+                        ),
                     ],
                   ),
                 ],

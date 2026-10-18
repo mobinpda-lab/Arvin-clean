@@ -451,7 +451,9 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-item-icon-external-calendar:event-1')), findsOneWidget);
     expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    expect(find.text('واردشده از تقویم گوشی'), findsOneWidget);
+    expect(find.text('واردشده از تقویم گوشی'), findsNothing);
+    expect(find.text('یادآوری آروین'), findsNothing);
+    expect(find.text('یادآور'), findsNothing);
   });
 
 
@@ -560,5 +562,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(registered, 1);
   });
+
+
+  testWidgets('prayer cards use mosque icon and subdued unregistered status', (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(id: 'prayer-fajr', title: 'نماز صبح', date: day),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.mosque), findsWidgets);
+    final status = tester.widget<Text>(find.text('ثبت نشده'));
+    expect(status.style?.fontSize, 11);
+  });
+
 
 }
