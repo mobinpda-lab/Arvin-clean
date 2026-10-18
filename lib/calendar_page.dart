@@ -1236,7 +1236,7 @@ class _ReminderCardState extends State<_ReminderCard> {
         : '${widget.dateLabel} • ${widget.timeLabel}';
 
     return Card(
-      key: ValueKey('calendar-pastel-card-${item.id}'),
+      key: ValueKey('reminder-card-${item.id}'),
       color: _calendarStatusBackground(item),
       elevation: 1,
       shadowColor: statusColor.withValues(alpha: 0.12),
@@ -1253,7 +1253,6 @@ class _ReminderCardState extends State<_ReminderCard> {
         child: Column(
         children: [
           ListTile(
-            key: ValueKey('reminder-card-${item.id}'),
             dense: true,
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
