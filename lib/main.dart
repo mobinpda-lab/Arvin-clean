@@ -30,6 +30,7 @@ import 'services/calendar_provider_sync_executor.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/external_calendar_link_store.dart';
 
+import 'services/home_list_projection.dart';
 import 'services/home_search_projection.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -2749,6 +2750,10 @@ class _HomePageState extends State<HomePage> {
   }
   Widget _taskCard(Task task) {
     final followUpDate = _homeFollowUpDate(task);
+    final projectedReminders = const HomeListProjection().projectReminders(
+      task.taskReminders,
+      followUpDate: followUpDate,
+    );
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
@@ -2896,7 +2901,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
-                      if (task.dueDate != null) ...[
+                      if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         Row(
                           children: [
@@ -2940,7 +2945,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                           ],
                         ),
-                      ],                      if (followUpDate != null) ...[
+                      ],
+                      if (followUpDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
                           children: [
@@ -2963,6 +2969,32 @@ class _HomePageState extends State<HomePage> {
                                   fontWeight: late
                                       ? FontWeight.w600
                                       : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      for (final reminder in projectedReminders) ...[
+                        const SizedBox(height: 3),
+                        Row(
+                          key: ValueKey('task-card-reminder-${task.id}-${reminder.id}'),
+                          children: [
+                            const Icon(
+                              Icons.notifications_active_outlined,
+                              size: 14,
+                              color: ArvinColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                '${reminder.title.trim().isEmpty ? 'یادآور' : reminder.title.trim()}: ${_date(reminder.date)} • ${_time(reminder.date)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: ArvinColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ),
