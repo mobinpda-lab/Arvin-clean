@@ -1178,7 +1178,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                   widget.onRegisterTaskToDeviceCalendar != null)
                 ListTile(
                   key: ValueKey('task-due-device-calendar-${widget.item.id}'),
-                  leading: const Icon(Icons.mosque),
+                  leading: const Icon(Icons.event_available_outlined),
                   title: const Text('ثبت در تقویم گوشی'),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
