@@ -23,6 +23,7 @@ class TaskReportFilter {
     this.tags = const <String>{},
     this.personIds = const <String>{},
     this.waitingForResponse,
+    this.showExternalCalendarEvents = false,
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -51,6 +52,8 @@ class TaskReportFilter {
   final Set<String> personIds;
   /// Null means no waiting-state constraint; true/false filter active waiting follow-ups.
   final bool? waitingForResponse;
+  /// Include raw, unimported device calendar events in the report-center projection.
+  final bool showExternalCalendarEvents;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -78,6 +81,7 @@ class TaskReportFilter {
       tags.isNotEmpty ||
       personIds.isNotEmpty ||
       waitingForResponse != null ||
+      showExternalCalendarEvents ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -114,6 +118,7 @@ class TaskReportFilter {
     Set<String>? personIds,
     bool? waitingForResponse,
     bool clearWaitingForResponse = false,
+    bool? showExternalCalendarEvents,
     ReportStatusFilter? status,
     Set<ReportStatusFilter>? statuses,
     Set<RecurrenceTrackingLevel>? trackingLevels,
@@ -150,6 +155,8 @@ class TaskReportFilter {
         waitingForResponse: clearWaitingForResponse
             ? null
             : waitingForResponse ?? this.waitingForResponse,
+        showExternalCalendarEvents:
+            showExternalCalendarEvents ?? this.showExternalCalendarEvents,
         status: status ?? this.status,
         statuses: statuses ?? this.statuses,
         trackingLevels: trackingLevels ?? this.trackingLevels,
@@ -292,6 +299,9 @@ class TaskReportFilter {
     }
     return true;
   }
+
+  bool matchesExternalCalendarDate(DateTime value, {required DateTime now}) =>
+      _matchesTime(value, now);
 
   bool _matchesTime(DateTime? value, DateTime now) {
     if (value == null) {
