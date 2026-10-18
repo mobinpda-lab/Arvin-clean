@@ -35,7 +35,11 @@ class _SettingsPageState extends State<SettingsPage> {
     final current = settings;
     if (current == null) return;
     await widget.service.saveKeepScreenOn(value);
-    await WakelockPlus.toggle(enable: value);
+    try {
+      await WakelockPlus.toggle(enable: value);
+    } catch (_) {
+      // Persist the preference even when the platform wakelock is unavailable.
+    }
     final next = current.copyWith(keepScreenOn: value);
     if (!mounted) return;
     setState(() => settings = next);
