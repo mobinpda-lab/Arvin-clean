@@ -76,8 +76,15 @@ void main() {
 
       // A short tap must open the Follow-up editor, not expand the card.
       await tester.tap(card);
+      // The canonical launcher awaits storage/route work before the editor is
+      // mounted. Poll frames with a bounded deadline rather than assuming one
+      // pumpAndSettle observes asynchronous repository work.
+      final timeButton = find.byKey(const ValueKey('follow-up-entry-time'));
+      for (var attempt = 0; attempt < 40 && timeButton.evaluate().isEmpty; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
+      expect(timeButton, findsOneWidget);
       expect(find.text('ویرایش پیگیری'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
