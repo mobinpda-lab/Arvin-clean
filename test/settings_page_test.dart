@@ -49,6 +49,8 @@ void main() {
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('font-settings-entry')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
@@ -67,6 +69,8 @@ void main() {
     await tester.pumpAndSettle();
     expect((await service.load()).fontFamily, 'system');
 
+    await tester.ensureVisible(find.byKey(const ValueKey('font-settings-entry')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
