@@ -22,6 +22,8 @@ class TaskReportFilter {
     this.categories = const <String>{},
     this.tags = const <String>{},
     this.personIds = const <String>{},
+    this.waitingForResponse,
+    this.showExternalCalendarEvents = false,
     this.status = ReportStatusFilter.all,
     this.statuses = const <ReportStatusFilter>{},
     this.trackingLevels = const <RecurrenceTrackingLevel>{},
@@ -48,6 +50,10 @@ class TaskReportFilter {
   final Set<String> categories;
   final Set<String> tags;
   final Set<String> personIds;
+  /// Null means no waiting-state constraint; true/false filter active waiting follow-ups.
+  final bool? waitingForResponse;
+  /// Include raw, unimported device calendar events in the report-center projection.
+  final bool showExternalCalendarEvents;
   final ReportStatusFilter status;
   final Set<ReportStatusFilter> statuses;
   final Set<RecurrenceTrackingLevel> trackingLevels;
@@ -74,6 +80,8 @@ class TaskReportFilter {
       categories.isNotEmpty ||
       tags.isNotEmpty ||
       personIds.isNotEmpty ||
+      waitingForResponse != null ||
+      showExternalCalendarEvents ||
       status != ReportStatusFilter.all ||
       statuses.isNotEmpty ||
       trackingLevels.isNotEmpty ||
@@ -86,6 +94,84 @@ class TaskReportFilter {
       hasRepeat != null ||
       hasFollowUp != null ||
       hasChecklist != null;
+
+
+  TaskReportFilter copyWith({
+    ReportTimePreset? timePreset,
+    DateTime? fromDate,
+    bool clearFromDate = false,
+    DateTime? toDate,
+    bool clearToDate = false,
+    Duration? fromTime,
+    bool clearFromTime = false,
+    Duration? toTime,
+    bool clearToTime = false,
+    String? projectId,
+    bool clearProjectId = false,
+    String? category,
+    bool clearCategory = false,
+    String? tag,
+    bool clearTag = false,
+    Set<String>? projectIds,
+    Set<String>? categories,
+    Set<String>? tags,
+    Set<String>? personIds,
+    bool? waitingForResponse,
+    bool clearWaitingForResponse = false,
+    bool? showExternalCalendarEvents,
+    ReportStatusFilter? status,
+    Set<ReportStatusFilter>? statuses,
+    Set<RecurrenceTrackingLevel>? trackingLevels,
+    Set<NotebookItemKind>? noteKinds,
+    String? noteQuery,
+    ReportNoteDateField? noteDateField,
+    bool clearNoteDateField = false,
+    DateTime? noteFromDate,
+    bool clearNoteFromDate = false,
+    DateTime? noteToDate,
+    bool clearNoteToDate = false,
+    TaskPriority? priority,
+    bool clearPriority = false,
+    bool? hasRepeat,
+    bool clearHasRepeat = false,
+    bool? hasFollowUp,
+    bool clearHasFollowUp = false,
+    bool? hasChecklist,
+    bool clearHasChecklist = false,
+  }) =>
+      TaskReportFilter(
+        timePreset: timePreset ?? this.timePreset,
+        fromDate: clearFromDate ? null : fromDate ?? this.fromDate,
+        toDate: clearToDate ? null : toDate ?? this.toDate,
+        fromTime: clearFromTime ? null : fromTime ?? this.fromTime,
+        toTime: clearToTime ? null : toTime ?? this.toTime,
+        projectId: clearProjectId ? null : projectId ?? this.projectId,
+        category: clearCategory ? null : category ?? this.category,
+        tag: clearTag ? null : tag ?? this.tag,
+        projectIds: projectIds ?? this.projectIds,
+        categories: categories ?? this.categories,
+        tags: tags ?? this.tags,
+        personIds: personIds ?? this.personIds,
+        waitingForResponse: clearWaitingForResponse
+            ? null
+            : waitingForResponse ?? this.waitingForResponse,
+        showExternalCalendarEvents:
+            showExternalCalendarEvents ?? this.showExternalCalendarEvents,
+        status: status ?? this.status,
+        statuses: statuses ?? this.statuses,
+        trackingLevels: trackingLevels ?? this.trackingLevels,
+        noteKinds: noteKinds ?? this.noteKinds,
+        noteQuery: noteQuery ?? this.noteQuery,
+        noteDateField:
+            clearNoteDateField ? null : noteDateField ?? this.noteDateField,
+        noteFromDate:
+            clearNoteFromDate ? null : noteFromDate ?? this.noteFromDate,
+        noteToDate: clearNoteToDate ? null : noteToDate ?? this.noteToDate,
+        priority: clearPriority ? null : priority ?? this.priority,
+        hasRepeat: clearHasRepeat ? null : hasRepeat ?? this.hasRepeat,
+        hasFollowUp: clearHasFollowUp ? null : hasFollowUp ?? this.hasFollowUp,
+        hasChecklist: clearHasChecklist ? null : hasChecklist ?? this.hasChecklist,
+      );
 
   List<Task> apply(
     Iterable<Task> tasks, {
@@ -114,6 +200,12 @@ class TaskReportFilter {
           !task.followUps.any((followUp) =>
               followUp.personIds.any(personIds.contains))) {
         return false;
+      }
+      if (waitingForResponse != null) {
+        final hasWaitingFollowUp = task.followUps.any(
+          (followUp) => followUp.waitingForResponse && !followUp.completed,
+        );
+        if (hasWaitingFollowUp != waitingForResponse) return false;
       }
       if (!_matchesStatus(task)) return false;
       if (trackingLevels.isNotEmpty &&
@@ -207,6 +299,9 @@ class TaskReportFilter {
     }
     return true;
   }
+
+  bool matchesExternalCalendarDate(DateTime value, {required DateTime now}) =>
+      _matchesTime(value, now);
 
   bool _matchesTime(DateTime? value, DateTime now) {
     if (value == null) {
