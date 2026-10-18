@@ -192,4 +192,57 @@ void main() {
   await service.saveFontSize(1);
     expect((await service.load()).fontSize, 12);
   });
+  test('keep-screen-on defaults to off and persists through SharedPreferences', () async {
+    final service = AppSettingsService();
+    expect((await service.load()).keepScreenOn, isFalse);
+
+    await service.saveKeepScreenOn(true);
+
+    expect((await service.load()).keepScreenOn, isTrue);
+  });
+
+  test('portable settings round-trip keep-screen-on', () {
+    final service = AppSettingsService();
+    const settings = AppSettings(
+      themeMode: ThemeMode.system,
+      usePersianDate: true,
+      fontFamily: null,
+      keepScreenOn: true,
+    );
+
+    final json = service.toPortableJson(settings);
+    expect(json['keepScreenOn'], isTrue);
+    expect(service.decodePortableJson(json).keepScreenOn, isTrue);
+  });
+
+  test('legacy backup without keep-screen-on preserves current device preference', () async {
+    final service = AppSettingsService();
+    await service.saveKeepScreenOn(true);
+
+    final restored = await service.restorePortableJson({
+      'themeMode': 'light',
+      'usePersianDate': true,
+    });
+
+    expect(restored.keepScreenOn, isTrue);
+    expect((await service.load()).keepScreenOn, isTrue);
+  });
+
+  test('portable merge keeps keep-screen-on when legacy key is absent', () {
+    final merged = AppSettingsService.mergePortableJson(
+      current: {'keepScreenOn': true, 'themeMode': 'dark'},
+      incoming: {'themeMode': 'light'},
+    );
+
+    expect(merged['keepScreenOn'], isTrue);
+    expect(merged['themeMode'], 'light');
+  });
+
+  test('portable decoder rejects non-boolean keep-screen-on values', () {
+    expect(
+      () => AppSettingsService().decodePortableJson({'keepScreenOn': 'yes'}),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
 }
