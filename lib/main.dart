@@ -1,6 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'arvin_colors.dart';
 
@@ -109,7 +110,7 @@ class ArvinApp extends StatefulWidget {
   State<ArvinApp> createState() => _ArvinAppState();
 }
 
-class _ArvinAppState extends State<ArvinApp> {
+class _ArvinAppState extends State<ArvinApp> with WidgetsBindingObserver {
   final AppSettingsService settingsService = AppSettingsService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
@@ -121,6 +122,7 @@ class _ArvinAppState extends State<ArvinApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       StartupPermissionService().requestOnStartup();
@@ -131,6 +133,32 @@ class _ArvinAppState extends State<ArvinApp> {
     final value = await settingsService.load();
     if (!mounted) return;
     setState(() => settings = value);
+    await _applyKeepScreenOn(
+      enable: value.keepScreenOn &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _applyKeepScreenOn(
+      enable: state == AppLifecycleState.resumed && settings.keepScreenOn,
+    );
+  }
+
+  Future<void> _applyKeepScreenOn({required bool enable}) async {
+    try {
+      await WakelockPlus.toggle(enable: enable);
+    } catch (_) {
+      // Keep-screen-on is an optional display preference; never block app use.
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _applyKeepScreenOn(enable: false);
+    super.dispose();
   }
 
   void _updateSettings(AppSettings value) {
