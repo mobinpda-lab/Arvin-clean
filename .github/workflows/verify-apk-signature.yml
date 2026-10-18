@@ -1,0 +1,62 @@
+name: Verify APK Signature Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: "GitHub Actions run ID that uploaded arvin-release-apk"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify:
+    name: Check APK checksum and signing certificate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Setup Android SDK Build Tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools 34.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "build-tools;34.0.0"
+
+      - name: Download APK artifact from specified run
+        uses: actions/download-artifact@v4
+        with:
+          name: arvin-release-apk
+          path: ./apk-artifact
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify checksum and APK signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK_PATH="./apk-artifact/app-release.apk"
+          EXPECTED_SHA="ceb696e84819549be5ccfd534bb773f842961800bd0436bc371b2a1c42242896"
+
+          if [[ ! -f "$APK_PATH" ]]; then
+            echo "::error::Expected APK not found: $APK_PATH"
+            find ./apk-artifact -maxdepth 3 -type f -print || true
+            exit 1
+          fi
+
+          ACTUAL_SHA="$(sha256sum "$APK_PATH" | awk '{print $1}')"
+          echo "Expected SHA-256: $EXPECTED_SHA"
+          echo "Actual SHA-256:   $ACTUAL_SHA"
+
+          if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::CHECKSUM MISMATCH"
+            exit 1
+          fi
+          echo "CHECKSUM VERIFIED"
+
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK_PATH"
