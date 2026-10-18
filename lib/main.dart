@@ -1290,7 +1290,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
-    if (!mounted) return null;
+    if (!mounted) return;
     String? selectedProjectId = editorContext.selectedProjectId;
 
     await showModalBottomSheet<void>(
@@ -1381,7 +1381,7 @@ class _HomePageState extends State<HomePage> {
       tasks: tasks,
       task: old,
     );
-    if (!mounted) return;
+    if (!mounted) return null;
     String? selectedProjectId = editorContext.selectedProjectId;
     final edited = await showDialog<Task>(
       context: context,
