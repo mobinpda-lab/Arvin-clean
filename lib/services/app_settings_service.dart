@@ -443,12 +443,11 @@ class AppSettingsService {
   }
 
   Future<AppSettings> restorePortableJson(Map<String, dynamic> json) async {
-    final current = await load();
-    final merged = mergePortableJson(
-      current: toPortableJson(current),
-      incoming: json,
-    );
-    final restored = decodePortableJson(merged);
+    final incoming = Map<String, dynamic>.from(json);
+    if (!incoming.containsKey('keepScreenOn')) {
+      incoming['keepScreenOn'] = (await load()).keepScreenOn;
+    }
+    final restored = decodePortableJson(incoming);
     await saveSettings(restored);
     await saveCalendarIntegrationSettings(restored.calendarIntegration);
     return restored;
