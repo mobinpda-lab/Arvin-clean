@@ -296,13 +296,15 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    final typeSectionTitle = find.text('نوع').last;
+    final typeSection = find.byKey(
+      const ValueKey('report-filter-section-نوع'),
+    );
     await tester.scrollUntilVisible(
-      typeSectionTitle,
+      typeSection,
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(typeSectionTitle);
+    await tester.tap(typeSection);
     await tester.pumpAndSettle();
     await tester.tap(find.text('منتظر پاسخ'));
     await tester.pumpAndSettle();
