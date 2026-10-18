@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'android_automatic_follow_up_scheduler.dart';
 import 'services/automatic_follow_up_delivery_state.dart';
 import 'services/automatic_follow_up_service.dart';
+import 'models/task.dart';
 import 'services/task_store.dart';
 
 const String arvinActionDone = 'arvin_action_done';
@@ -105,12 +106,12 @@ Future<void> _clearAutomaticFollowUpDeliveryMarker(String taskId) async {
     );
     state.remove(taskId);
     await preferences.setString(
-      AutomaticFollowUpBackgroundRunner.notificationStateKey,
+      automaticFollowUpNotificationStateKey,
       jsonEncode(state),
     );
   } catch (_) {
     await preferences.remove(
-      AutomaticFollowUpBackgroundRunner.notificationStateKey,
+      automaticFollowUpNotificationStateKey,
     );
   }
 }
