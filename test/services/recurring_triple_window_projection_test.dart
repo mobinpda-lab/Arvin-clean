@@ -69,10 +69,11 @@ void main() {
 
   test('past completed, skipped, and cancelled occurrences are excluded', () {
     final task = dailyTask(
+      anchor: DateTime(2026, 10, 14),
       history: {
-        DateTime(2026, 10, 15).toIso8601String(): {'status': 'completed'},
-        DateTime(2026, 10, 16).toIso8601String(): {'status': 'skipped'},
-        DateTime(2026, 10, 17).toIso8601String(): {'status': 'cancelled'},
+        DateTime(2026, 10, 14).toIso8601String(): {'status': 'completed'},
+        DateTime(2026, 10, 15).toIso8601String(): {'status': 'skipped'},
+        DateTime(2026, 10, 16).toIso8601String(): {'status': 'cancelled'},
       },
     );
     final result = projection.project([task], localAnchorDate: today, horizonDays: 2);
@@ -166,7 +167,7 @@ void main() {
     );
 
     expect(result.past.map((item) => item.task.id).toSet(), {'counted', 'ended'});
-    expect(result.today.map((item) => item.task.id).toSet(), {'counted'});
+    expect(result.today, isEmpty);
     expect(result.upcoming, isEmpty);
   });
 
