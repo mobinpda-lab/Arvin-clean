@@ -95,7 +95,7 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'نام'), 'آزمایش');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
-    expect(find.text('آزمایش'), findsOneWidget);
+    expect(find.widgetWithText(InputChip, 'آزمایش'), findsOneWidget);
     await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
 
