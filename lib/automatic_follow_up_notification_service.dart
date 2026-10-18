@@ -6,7 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'android_automatic_follow_up_scheduler.dart';
-import 'automatic_follow_up_background_runner.dart';
+import 'services/automatic_follow_up_delivery_state.dart';
 import 'services/automatic_follow_up_service.dart';
 import 'services/task_store.dart';
 
@@ -94,7 +94,7 @@ Future<void> notificationTapBackground(NotificationResponse details) async {
 Future<void> _clearAutomaticFollowUpDeliveryMarker(String taskId) async {
   final preferences = await SharedPreferences.getInstance();
   final raw = preferences.getString(
-    AutomaticFollowUpBackgroundRunner.notificationStateKey,
+    automaticFollowUpNotificationStateKey,
   );
   if (raw == null || raw.isEmpty) return;
   try {
