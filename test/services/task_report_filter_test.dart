@@ -129,4 +129,31 @@ void main() {
     expect(const TaskReportFilter().copyWith(clearWaitingForResponse: true).isActive, isFalse);
   });
 
+
+  test('external calendar filter is explicit and uses the canonical time window', () {
+    final eventTime = DateTime(2026, 10, 7, 15);
+    final filter = const TaskReportFilter().copyWith(showExternalCalendarEvents: true);
+    expect(filter.isActive, isTrue);
+    expect(filter.showExternalCalendarEvents, isTrue);
+    expect(
+      filter.matchesExternalCalendarDate(
+        eventTime,
+        now: DateTime(2026, 10, 7, 10),
+      ),
+      isTrue,
+    );
+    expect(
+      filter.matchesExternalCalendarDate(
+        eventTime,
+        now: DateTime(2026, 10, 8, 10),
+      ),
+      isFalse,
+    );
+    expect(
+      filter.copyWith(showExternalCalendarEvents: false).isActive,
+      isFalse,
+    );
+  });
+
+
 }
