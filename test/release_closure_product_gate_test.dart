@@ -48,8 +48,8 @@ void main() {
     expect(workflow, contains(r'ACTOR: ${{ github.actor }}'));
     expect(workflow, contains(r'PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}'));
     expect(workflow, contains(r'REPOSITORY_OWNER: ${{ github.repository_owner }}'));
-    expect(workflow, contains('"$ACTOR" != "$PRODUCT_OWNER_GITHUB"'));
-    expect(workflow, contains('"$REPOSITORY_OWNER" != "mobinpda-lab"'));
+    expect(workflow, contains(r'"$ACTOR" != "$PRODUCT_OWNER_GITHUB"'));
+    expect(workflow, contains(r'"$REPOSITORY_OWNER" != "mobinpda-lab"'));
     expect(workflow, contains('MANUAL_PRODUCT_OWNER_GATE=passed'));
 
     // Existing releases/tags must never be automatically purged or mutated.
