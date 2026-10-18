@@ -526,7 +526,7 @@ class _NotebookPageState extends State<NotebookPage> {
                   child: visibleNotes.isEmpty
                       ? Center(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(28, 16, 28, 40),
+                            padding: const EdgeInsets.fromLTRB(28, 16, 28, 24),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
