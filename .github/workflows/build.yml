@@ -37,6 +37,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+      - name: Validate GitHub Actions workflow YAML syntax
+        if: matrix.lane == 'analyze'
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; ARGV.each { |path| YAML.parse_file(path); puts "YAML_SYNTAX_OK=#{path}" }' .github/workflows/*.yml
       - name: Verify exact requested revision
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
         env:
