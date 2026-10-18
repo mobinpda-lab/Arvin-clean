@@ -153,7 +153,10 @@ void main() {
       isFalse,
     );
     expect(
-      filter.copyWith(showExternalCalendarEvents: false).isActive,
+      filter.copyWith(
+        timePreset: ReportTimePreset.all,
+        showExternalCalendarEvents: false,
+      ).isActive,
       isFalse,
     );
   });
