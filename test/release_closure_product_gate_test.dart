@@ -43,11 +43,11 @@ void main() {
     expect(workflow, isNot(contains("workflows: ['Arvin Production Orchestrator']")));
 
     // Manual dispatch requires the true boolean plus a trusted, configured actor.
-    expect(workflow, contains('AUTHORIZED_BY_PRODUCT_OWNER: ${{ inputs.authorized_by_product_owner }}'));
+    expect(workflow, contains(r'AUTHORIZED_BY_PRODUCT_OWNER: ${{ inputs.authorized_by_product_owner }}'));
     expect(workflow, contains('AUTHORIZED_BY_PRODUCT_OWNER" != "true"'));
-    expect(workflow, contains('ACTOR: ${{ github.actor }}'));
-    expect(workflow, contains('PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}'));
-    expect(workflow, contains('REPOSITORY_OWNER: ${{ github.repository_owner }}'));
+    expect(workflow, contains(r'ACTOR: ${{ github.actor }}'));
+    expect(workflow, contains(r'PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}'));
+    expect(workflow, contains(r'REPOSITORY_OWNER: ${{ github.repository_owner }}'));
     expect(workflow, contains('"$ACTOR" != "$PRODUCT_OWNER_GITHUB"'));
     expect(workflow, contains('"$REPOSITORY_OWNER" != "mobinpda-lab"'));
     expect(workflow, contains('MANUAL_PRODUCT_OWNER_GATE=passed'));
@@ -63,7 +63,7 @@ void main() {
 
     expect(
       workflow,
-      contains('const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;'),
+      contains(r'const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;'),
     );
     expect(
       workflow,
