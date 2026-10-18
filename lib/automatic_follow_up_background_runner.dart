@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'services/automatic_follow_up_delivery_state.dart';
+
 import 'automatic_follow_up_notification_service.dart';
 import 'services/automatic_follow_up_service.dart';
 import 'services/task_store.dart';
@@ -28,7 +30,7 @@ class AutomaticFollowUpBackgroundRunner {
   final DateTime Function()? _now;
 
   static const String notificationStateKey =
-      'arvin.followup.notificationState';
+      automaticFollowUpNotificationStateKey;
 
   static Map<String, String> decodeDeliveryState(String? raw) {
     if (raw == null || raw.isEmpty) return <String, String>{};
