@@ -81,3 +81,32 @@ Release gates:
 - **Do not infer:** a successful older run does not validate a newer commit.
 - **Do not merge:** PR #2681 while its recorded branch synchronization/mergeability issue remains unresolved.
 - **Do not declare done:** from implementation descriptions alone; require code, tests, build, validation, and evidence.
+
+
+## V5.09 — Release governance hardening (NO-GO; staged, not merged)
+
+Reference candidate SHA: `d9fb7a247037762216662a20fb32028ecc8a0f6b`
+Target version: `1.0.1+2`
+Proposed tag (DO NOT CREATE): `v1.0.1-build2-arvin-d9fb7a2`
+
+### HARDENING TASK 1 — Neutralize stale prerelease/tag purge
+- [ ] Remove automated deletion of stale Arvin prereleases and Git tags from `.github/workflows/release-closure.yml`.
+- [ ] Do not mutate, delete, move, or recreate any existing tag or release as part of this task.
+- [ ] Verify the staged workflow contains no stale-tag deletion operation.
+
+### HARDENING TASK 2 — Mandatory manual approval before build/publication
+- [ ] Require a manual `workflow_dispatch` with `authorized_by_product_owner=true`.
+- [ ] Fail closed for `workflow_run`, missing input, or false input before build, artifact upload, tag creation, or binary publication.
+- [ ] Keep product acceptance Issue #2102 and regression PR #1901 open until hardening and physical-device evidence are cross-audited.
+- [ ] A true dispatch input authorizes entry to the workflow only; it is not final release authorization and does not waive telemetry or acceptance gates.
+
+### WORKSTATION TELEMETRY GATE
+- [ ] Record SHA-256 for downloaded Release and Debug APKs and compare against the exact files under test.
+- [ ] Attach raw `apksigner verify --verbose --print-certs` output and verify the expected signer certificate identity.
+- [ ] Attach physical-device cold-start logs.
+- [ ] Attach Jalali calendar interaction/visual acceptance logs.
+- [ ] Attach SQL persistence, process restart, and reload evidence.
+- [ ] Bind each evidence file to workflow run ID, device/build identity, and exact commit SHA.
+
+### Release decision
+**RELEASE: NO-GO.** No tag creation/push, Release publication, Issue #2102 closure, or PR #1901 closure is authorized by this plan. All checklist items require reviewable evidence; this register records required work and must not be read as proof that the work has passed.
