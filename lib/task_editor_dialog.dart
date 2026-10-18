@@ -1,1610 +1,560 @@
-import 'package:flutter/foundation.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/arvin_colors.dart';
+import 'package:arvin/models/recurrence.dart';
+import 'package:arvin/task_editor_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-import 'arvin_colors.dart';
-import 'follow_up_entry_page.dart';
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-import 'models/goal_project.dart';
-import 'models/recurrence.dart';
-import 'models/task.dart';
-import 'services/persian_date_formatter.dart';
-import 'widgets/persian_date_picker.dart';
-import 'widgets/arvin_roll_box.dart';
-import 'widgets/universal_arvin_time_picker.dart';
-
-class ArvinTaskEditorDialog extends StatefulWidget {
-  const ArvinTaskEditorDialog({
-    super.key,
-    this.task,
-    this.initialDueDate,
-    this.initialTitle,
-    this.initialDescription,
-    this.projects = const [],
-    this.selectedProjectId,
-    this.onProjectChanged,
-    this.onCreateProject,
-    this.knownCategories = const [],
-    this.knownTags = const [],
-    this.onCreateCategory,
-    this.onCreateTag,
-  });
-
-  final Task? task;
-  final DateTime? initialDueDate;
-  final String? initialTitle;
-  final String? initialDescription;
-
-  /// First-class Projects remain independent from Task category and tags.
-  /// The editor owns no Project persistence; callers persist the selected id
-  /// through canonical ProjectPlan.itemIds after a successful Task save.
-  final List<ProjectPlan> projects;
-  final String? selectedProjectId;
-  final ValueChanged<String?>? onProjectChanged;
-  final Future<String?> Function(String title)? onCreateProject;
-
-  /// Existing canonical Task categories offered as quick choices.
-  final List<String> knownCategories;
-  final List<String> knownTags;
-  final Future<String?> Function(String name)? onCreateCategory;
-  final Future<String?> Function(String name)? onCreateTag;
-
-  @override
-  State<ArvinTaskEditorDialog> createState() => _ArvinTaskEditorDialogState();
-}
-
-class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
-  static const _dateFormatter = PersianDateFormatter();
-  static const _brand = ArvinColors.primary;
-  static const _fieldSurface = ArvinColors.background;
-  static const _border = ArvinColors.border;
-
-  late final TextEditingController _titleController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _tagController;
-  late final TextEditingController _checklistController;
-  late final FocusNode _tagFocusNode;
-  late final FocusNode _titleFocusNode;
-  DateTime? _followUpDateTime;
-  DateTime? _dueDateTime;
-  late bool _dueAllDay;
-  DateTime? _reminderDateTime;
-  bool _reminderFollowsDueTime = true;
-  bool _reminderExplicitlyCleared = false;
-  DateTime? _initialReminderDateTime;
-  late List<TaskReminder> _taskReminders;
-  late List<FollowUp> _followUps;
-  late int _nextReminderSequence;
-  late bool _followUpEnabled;
-  late bool _completed;
-  late List<String> _tags;
-  late List<String> _checklist;
-  late bool _checklistEnabled;
-  late List<String> _knownCategories;
-  late List<String> _knownTags;
-  late List<ProjectPlan> _projects;
-  late String? _category;
-  late String? _selectedProjectId;
-  late RecurrenceRule? _recurrence;
-  late bool _repeatEnabled;
-  DateTime? _recurrenceStartDate;
-  DateTime? _recurrenceEndDate;
-  late final TextEditingController _recurrenceIntervalController;
-  late final TextEditingController _recurrenceCountController;
-  late TaskPriority _priority;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final task = widget.task;
-    _titleController = TextEditingController(
-      text: task?.title ?? widget.initialTitle ?? '',
-    );
-    _descriptionController = TextEditingController(
-      text: task?.description ?? widget.initialDescription ?? '',
-    );
-    _tagController = TextEditingController();
-    _checklistController = TextEditingController();
-    _tagFocusNode = FocusNode();
-    _titleFocusNode = FocusNode();
-    _followUpDateTime = task?.followUpDate;
-    _dueDateTime = task?.dueDate ?? widget.initialDueDate;
-    _dueAllDay = task?.allDay ?? false;
-    _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
-    _initialReminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
-    _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
-    _followUps = List<FollowUp>.of(task?.followUps ?? const []);
-    _nextReminderSequence = task?.nextReminderSequence ?? 1;
-    if (_nextReminderSequence < 1) {
-      _nextReminderSequence = 1;
-    }
-    if (_taskReminders.isNotEmpty) {
-      final highest = _taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
-      if (_nextReminderSequence <= highest) {
-        _nextReminderSequence = highest + 1;
-      }
-    }
-    _reminderFollowsDueTime = task == null ||
-        (task.legacyTaskReminderMigrationVersion < 1 &&
-            (task.reminderDate == null ||
-                (task.dueDate != null &&
-                    !task.allDay &&
-                    task.reminderDate == task.dueDate)));
-    _followUpEnabled =
-        task?.followUpEnabled == true ||
-        (task?.followUps.isNotEmpty ?? false) ||
-        task?.followUpDate != null;
-    _completed = task?.completed ?? false;
-    _tags = List<String>.of(task?.tags ?? const []);
-    _checklist = List<String>.of(task?.checklist ?? const []);
-    _checklistEnabled = task?.checklistEnabled ?? false;
-    _knownCategories = List<String>.of(widget.knownCategories);
-    _knownTags = List<String>.of(widget.knownTags);
-    _projects = List<ProjectPlan>.of(widget.projects);
-    _category = task?.category;
-    _selectedProjectId = widget.selectedProjectId;
-    _recurrence = task?.recurrence;
-    _repeatEnabled = task?.recurrence?.active ?? false;
-    _recurrenceStartDate = task?.recurrence?.startDate;
-    _recurrenceEndDate = task?.recurrence?.endDate;
-    _recurrenceIntervalController = TextEditingController(
-      text: '${task?.recurrence?.interval ?? 1}',
-    );
-    _recurrenceCountController = TextEditingController(
-      text: task?.recurrence?.count?.toString() ?? '',
-    );
-    _priority = task?.priority ?? TaskPriority.none;
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _tagController.dispose();
-    _checklistController.dispose();
-    _recurrenceIntervalController.dispose();
-    _recurrenceCountController.dispose();
-    _tagFocusNode.dispose();
-    _titleFocusNode.dispose();
-    super.dispose();
-  }
-
-  InputDecoration _fieldDecoration({required String label, String? hint}) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
-      floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700),
-      hintStyle: const TextStyle(color: ArvinColors.textSecondary),
-      filled: true,
-      fillColor: _fieldSurface,
-      alignLabelWithHint: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _brand, width: 1.5),
-      ),
-    );
-  }
-
-  DateTime _baseDateTime(DateTime? current) {
-    if (current != null) return current;
-    final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day, now.hour, now.minute);
-  }
-
-  Future<DateTime?> _chooseDate(
-    DateTime? current, {
-    required String helpText,
+  Future<void> pumpEditor(
+    WidgetTester tester, {
+    Task? task,
+    List<String> knownTags = const [],
+    ValueChanged<Task?>? onResult,
   }) async {
-    final base = _baseDateTime(current);
-    final picked = await showPersianDatePicker(
-      context: context,
-      initialDate: base,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: helpText,
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-    );
-    if (picked == null) return null;
-    // A new Task with a date but no explicit time is a true All-Day
-    // Task. Preserve an existing time only when the editor already had one.
-    final hasExistingTime = current != null && !(_dueAllDay && current == _dueDateTime);
-    return DateTime(
-      picked.year,
-      picked.month,
-      picked.day,
-      hasExistingTime ? base.hour : 0,
-      hasExistingTime ? base.minute : 0,
-    );
-  }
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-  Future<DateTime?> _chooseTime(
-    DateTime? current, {
-    required String helpText,
-  }) async {
-    final base = _baseDateTime(current);
-    final picked = await showUniversalArvinTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(base),
-      helpText: helpText,
-    );
-    if (picked == null) return null;
-    return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
-  }
-
-  void _addTaskReminder() {
-    final now = DateTime.now();
-    final sequence = _nextReminderSequence;
-    final localizedSequence = _dateFormatter.toPersianDigits(sequence.toString());
-    final taskTitle = _titleController.text.trim();
-    final titlePrefix = taskTitle.isEmpty ? 'بدون عنوان' : taskTitle;
-    final defaultDate = DateTime(now.year, now.month, now.day, now.hour, now.minute)
-        .add(const Duration(hours: 1));
-    final reminder = TaskReminder(
-      id: 'reminder-${now.microsecondsSinceEpoch}',
-      title: '$titlePrefix — یادآور $localizedSequence',
-      date: defaultDate,
-      isAllDay: false,
-      sequence: sequence,
-    );
-    setState(() {
-      _taskReminders = [..._taskReminders, reminder];
-      _nextReminderSequence = sequence + 1;
-    });
-  }
-
-  void _updateTaskReminder(int index, TaskReminder reminder) {
-    if (index < 0 || index >= _taskReminders.length) return;
-    setState(() {
-      _taskReminders = List<TaskReminder>.of(_taskReminders)
-        ..[index] = reminder;
-    });
-  }
-
-  Future<void> _pickTaskReminderDate(int index) async {
-    if (index < 0 || index >= _taskReminders.length) return;
-    final current = _taskReminders[index];
-    final picked = await showPersianDatePicker(
-      context: context,
-      initialDate: current.date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: 'انتخاب تاریخ یادآور',
-      cancelText: 'لغو',
-      confirmText: 'تأیید',
-    );
-    if (picked == null || !mounted) return;
-    _updateTaskReminder(index, current.copyWith(
-      date: DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        current.isAllDay ? 0 : current.date.hour,
-        current.isAllDay ? 0 : current.date.minute,
-      ),
-    ));
-  }
-
-  Future<void> _pickTaskReminderTime(int index) async {
-    if (index < 0 || index >= _taskReminders.length) return;
-    final current = _taskReminders[index];
-    final value = await _chooseTime(current.date, helpText: 'انتخاب ساعت یادآور');
-    if (value == null || !mounted) return;
-    final latestIndex = _taskReminders.indexWhere((item) => item.id == current.id);
-    if (latestIndex < 0) return;
-    _updateTaskReminder(latestIndex, current.copyWith(date: value, isAllDay: false));
-  }
-
-  Widget _taskRemindersEditor() {
-    return Container(
-      key: const ValueKey('task-editor-multiple-reminders'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _fieldSurface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
-              ),
-              FilledButton.tonalIcon(
-                key: const ValueKey('task-editor-add-reminder'),
-                onPressed: _addTaskReminder,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('افزودن یادآور'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          const Text('هر یادآور مستقل است و می‌تواند عنوان و زمان جداگانه داشته باشد.'),
-          if (_taskReminders.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Text('هنوز یادآور مستقلی اضافه نشده است.'),
-            )
-          else
-            ..._taskReminders.asMap().entries.map((entry) {
-              final index = entry.key;
-              final reminder = entry.value;
-              final reminderKey = reminder.id;
-              return Container(
-                key: ValueKey('task-editor-reminder-$reminderKey'),
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: ArvinColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            key: ValueKey('task-editor-reminder-title-$reminderKey'),
-                            initialValue: reminder.title,
-                            textDirection: TextDirection.rtl,
-                            decoration: _fieldDecoration(label: 'عنوان یادآور'),
-                            onChanged: (value) => _updateTaskReminder(
-                              index,
-                              reminder.copyWith(title: value),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          key: ValueKey('task-editor-remove-reminder-$reminderKey'),
-                          tooltip: 'حذف این یادآور',
-                          onPressed: () => setState(() {
-                            _taskReminders = _taskReminders.where((item) => item.id != reminder.id).toList();
-                          }),
-                          icon: const Icon(Icons.delete_outline, color: ArvinColors.error),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          key: ValueKey('task-editor-reminder-date-$reminderKey'),
-                          onPressed: () => _pickTaskReminderDate(index),
-                          icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                          label: Text(_dateText(reminder.date)),
-                        ),
-                        if (!reminder.isAllDay)
-                          OutlinedButton.icon(
-                            key: ValueKey('task-editor-reminder-time-$reminderKey'),
-                            onPressed: () => _pickTaskReminderTime(index),
-                            icon: const Icon(Icons.schedule, size: 18),
-                            label: Text(_timeText(reminder.date)),
-                          ),
-                      ],
-                    ),
-                    Material(
-                      color: ArvinColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      child: CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: reminder.isAllDay,
-                      onChanged: (value) {
-                        final allDay = value ?? false;
-                        _updateTaskReminder(index, reminder.copyWith(
-                          isAllDay: allDay,
-                          date: allDay
-                              ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
-                              : reminder.date,
-                        ));
-                      },
-                      title: const Text('تمام‌روز (بدون ساعت)'),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-        ],
-      ),
-    );
-  }
-
-Future<void> _pickDueDate() async {
-    final value = await _chooseDate(
-      _dueDateTime,
-      helpText: 'انتخاب تاریخ انجام کار',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _dueDateTime = _dueDateTime == null
-            ? DateTime(value.year, value.month, value.day)
-            : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
-        if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
-        _syncAutomaticReminder();
-      });
-    }
-  }
-
-  Future<void> _pickDueTime() async {
-    final value = await _chooseTime(
-      _dueDateTime,
-      helpText: 'انتخاب ساعت انجام کار',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _dueDateTime = value;
-        _dueAllDay = false;
-        _syncAutomaticReminder();
-      });
-    }
-  }
-
-  Future<void> _pickReminderDate() async {
-    final value = await _chooseDate(
-      _reminderDateTime,
-      helpText: 'انتخاب تاریخ یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  Future<void> _pickReminderTime() async {
-    final value = await _chooseTime(
-      _reminderDateTime,
-      helpText: 'انتخاب ساعت یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) {
-      return;
-    }
-    if (_dueDateTime == null || _dueAllDay) {
-      _reminderDateTime = null;
-    } else {
-      _reminderDateTime = _dueDateTime;
-    }
-  }
-
-  void _clearDueTime() => setState(() {
-    _dueDateTime = null;
-    _dueAllDay = false;
-    _syncAutomaticReminder();
-  });
-
-  void _toggleDueAllDay(bool value) {
-    if (_dueDateTime == null) return;
-    setState(() {
-      _dueAllDay = value;
-      if (value) {
-        _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
-      }
-      _syncAutomaticReminder();
-    });
-  }
-  void _clearReminderTime() => setState(() {
-    _reminderDateTime = null;
-    _reminderFollowsDueTime = false;
-    _reminderExplicitlyCleared = true;
-  });
-
-  Future<String?> _promptNewName(String title) async {
-    final controller = TextEditingController();
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ArvinColors.surface,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(sheetContext).bottom),
-        child: Directionality(
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
           textDirection: TextDirection.rtl,
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()), child: const Text('افزودن')),
-          ]),
-        ),
-      ),
-    );
-    // The bottom-sheet route can still perform a final rebuild while its
-    // closing animation is completing. Defer disposal so the TextField never
-    // observes a controller that was disposed during that transition.
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result?.trim().isEmpty == true ? null : result?.trim();
-  }
-  bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
-    if (identical(a, b)) return true;
-    if (a == null || b == null) return false;
-    return a.frequency == b.frequency &&
-        a.interval == b.interval &&
-        a.startDate == b.startDate &&
-        a.endDate == b.endDate &&
-        a.count == b.count &&
-        a.active == b.active;
-  }
-
-  bool _sameTaskReminders(List<TaskReminder> a, List<TaskReminder> b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (var i = 0; i < a.length; i++) {
-      final left = a[i];
-      final right = b[i];
-      if (left.id != right.id ||
-          left.title != right.title ||
-          left.date != right.date ||
-          left.isAllDay != right.isAllDay ||
-          left.sequence != right.sequence) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _sameFollowUps(List<FollowUp> a, List<FollowUp> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      final left = a[i];
-      final right = b[i];
-      if (left.id != right.id ||
-          left.title != right.title ||
-          left.dateTime != right.dateTime ||
-          left.note != right.note ||
-          left.result != right.result ||
-          left.reminderDate != right.reminderDate ||
-          left.nextFollowUp != right.nextFollowUp ||
-          left.completed != right.completed ||
-          left.waitingForResponse != right.waitingForResponse ||
-          !listEquals(left.personIds, right.personIds)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Future<void> _openFollowUpEntry({FollowUp? existing}) async {
-    final updated = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(
-        builder: (_) => FollowUpEntryPage(
-          initialFollowUp: existing,
-          initialDateTime: DateTime.now(),
-        ),
-      ),
-    );
-    if (!mounted || updated == null) return;
-    setState(() {
-      final index = _followUps.indexWhere((item) => item.id == updated.id);
-      if (index < 0) {
-        _followUps = [..._followUps, updated];
-      } else {
-        _followUps = List<FollowUp>.of(_followUps)..[index] = updated;
-      }
-      if (_followUps.isNotEmpty) _followUpEnabled = true;
-    });
-  }
-
-  bool get _hasChanges {
-    final existing = widget.task;
-    final title = _titleController.text;
-    final description = _descriptionController.text;
-    final pendingTag = _tagController.text.trim();
-
-    if (existing == null) {
-      return title.trim().isNotEmpty ||
-          description.trim().isNotEmpty ||
-          pendingTag.isNotEmpty ||
-          _tags.isNotEmpty ||
-          _checklist.isNotEmpty ||
-          _checklistEnabled ||
-          _category != null ||
-          _selectedProjectId != widget.selectedProjectId ||
-          _followUpEnabled ||
-          _followUpDateTime != null ||
-          _dueDateTime != null ||
-          _dueAllDay ||
-          _reminderDateTime != null ||
-          _taskReminders.isNotEmpty ||
-          _followUps.isNotEmpty ||
-          _recurrence != null ||
-          _priority != TaskPriority.none ||
-          _completed;
-    }
-
-    final initialFollowUpEnabled =
-        existing.followUpEnabled ||
-        existing.followUps.isNotEmpty ||
-        existing.followUpDate != null;
-    return title != existing.title ||
-        description != existing.description ||
-        pendingTag.isNotEmpty ||
-        !listEquals(_tags, existing.tags) ||
-        !listEquals(_checklist, existing.checklist) ||
-        _checklistEnabled != existing.checklistEnabled ||
-        _category != existing.category ||
-        _selectedProjectId != widget.selectedProjectId ||
-        _followUpEnabled != initialFollowUpEnabled ||
-        _followUpDateTime != existing.followUpDate ||
-        _dueDateTime != existing.dueDate ||
-        _dueAllDay != existing.allDay ||
-        _reminderDateTime != existing.reminderDate ||
-        !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
-        !_sameFollowUps(_followUps, existing.followUps) ||
-        !_sameRecurrence(_recurrence, existing.recurrence) ||
-        _repeatEnabled != (existing.recurrence?.active ?? false) ||
-        _priority != existing.priority ||
-        _completed != existing.completed;
-  }
-
-  static String _checklistLabel(String item) =>
-      item.replaceFirst(RegExp(r'^\[(?:x| )\]\s*'), '');
-
-  static bool _checklistChecked(String item) => item.trim().startsWith('[x]');
-  static String _encodeChecklistItem(String label, bool checked) =>
-      '[${checked ? 'x' : ' '}] ${label.trim()}';
-
-  void _toggleChecklistItem(int index) {
-    if (index < 0 || index >= _checklist.length) return;
-    final label = _checklistLabel(_checklist[index]).trim();
-    if (label.isEmpty) return;
-    setState(() {
-      _checklist[index] = _encodeChecklistItem(label, !_checklistChecked(_checklist[index]));
-    });
-  }
-
-  Future<void> _editChecklistItem(int index) async {
-    if (index < 0 || index >= _checklist.length) return;
-    final controller = TextEditingController(text: _checklistLabel(_checklist[index]));
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('ویرایش مورد چک‌لیست'),
-        content: TextField(
-          key: const ValueKey('task-editor-checklist-edit-input'),
-          controller: controller, autofocus: true, textDirection: TextDirection.rtl,
-          decoration: const InputDecoration(labelText: 'عنوان مورد'),
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('لغو')),
-          FilledButton(key: const ValueKey('task-editor-checklist-edit-save'), onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()), child: const Text('ذخیره')),
-        ],
-      ),
-    );
-    // showDialog completes when the route is popped, while its exit animation can still rebuild
-    // the dialog tree. Dispose only after that frame so the TextField cannot observe a disposed controller.
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    if (!mounted || result == null || result.trim().isEmpty) return;
-    setState(() {
-      _checklist[index] = _encodeChecklistItem(result.trim(), _checklistChecked(_checklist[index]));
-    });
-  }
-
-  void _addChecklistItem() {
-    final label = _checklistController.text.trim();
-    if (label.isEmpty) return;
-    setState(() {
-      _checklist.add(_encodeChecklistItem(label, false));
-      _checklistController.clear();
-    });
-  }
-
-  void _setChecklistEnabled(bool enabled) {
-    setState(() => _checklistEnabled = enabled);
-  }
-
-  Widget _checklistEditor() {
-    return Column(
-      key: const ValueKey('task-editor-checklist-section'),
-      children: [
-        Container(
-          key: const ValueKey('task-editor-checklist-toggle-container'),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          decoration: BoxDecoration(
-            color: ArvinColors.primarySoft,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: ArvinColors.border),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: SwitchListTile(
-              key: const ValueKey('task-editor-checklist-toggle'),
-              value: _checklistEnabled,
-              onChanged: _setChecklistEnabled,
-              contentPadding: EdgeInsets.zero,
-              title: const Text('چک‌لیست'),
-              subtitle: Text(
-                _checklistEnabled ? 'برای این کار فعال است' : 'برای این کار غیرفعال است',
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  final result = await showDialog<Task>(
+                    context: context,
+                    builder: (_) => ArvinTaskEditorDialog(task: task, knownTags: knownTags),
+                  );
+                  onResult?.call(result);
+                },
+                child: const Text('باز کردن'),
               ),
             ),
           ),
         ),
-        if (_checklistEnabled) ...[
-          const SizedBox(height: 8),
-          _checklistEditorBody(),
-        ],
-      ],
+      ),
     );
+
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
   }
 
-  Widget _checklistEditorBody() {
-    return Container(
-      key: const ValueKey('task-editor-checklist-block'),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
-        const SizedBox(height: 4),
-        const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
-        const SizedBox(height: 10),
-        if (_checklist.isEmpty)
-          const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('هنوز موردی اضافه نشده.'))
-        else
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            buildDefaultDragHandles: false,
-            itemCount: _checklist.length,
-            onReorderItem: (oldIndex, newIndex) {
-              setState(() {
-                final item = _checklist.removeAt(oldIndex);
-                _checklist.insert(newIndex, item);
-              });
-            },
-            itemBuilder: (context, index) {
-            final item = _checklist[index];
-            final checked = _checklistChecked(item);
-            return Container(
-              key: ValueKey('task-editor-checklist-item-$index'),
-              margin: const EdgeInsets.only(bottom: 6),
-              decoration: BoxDecoration(color: ArvinColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
-              child: Row(children: [
-                Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
-                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w600))),
-                IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
-                ReorderableDragStartListener(
-                  key: ValueKey('task-editor-checklist-drag-$index'),
-                  index: index,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(Icons.drag_indicator_rounded, size: 21),
-                  ),
-                ),
-                IconButton(key: ValueKey('task-editor-checklist-delete-$index'), tooltip: 'حذف', icon: const Icon(Icons.delete_outline, size: 19), onPressed: () => setState(() => _checklist.removeAt(index))),
-              ]),
-            );
-            },
-          ),
-        Row(children: [
-          Expanded(child: TextField(key: const ValueKey('task-editor-checklist-input'), controller: _checklistController, textDirection: TextDirection.rtl, textInputAction: TextInputAction.done, onSubmitted: (_) => _addChecklistItem(), decoration: _fieldDecoration(label: 'مورد جدید', hint: 'مثلاً کیف'))),
-          const SizedBox(width: 8),
-          IconButton.filled(key: const ValueKey('task-editor-checklist-add'), tooltip: 'افزودن مورد', onPressed: _addChecklistItem, icon: const Icon(Icons.add)),
-        ]),
-      ]),
+  testWidgets('full Task form exposes canonical follow-up records instead of a toggle',
+      (tester) async {
+    final task = Task(
+      id: '1',
+      title: 'تماس با علی',
+      description: 'پیگیری مشتری',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 27, 10, 30),
+      tags: const ['مشتری'],
     );
-  }
-  Future<void> _requestClose() async {
-    if (!_hasChanges) {
-      Navigator.of(context).pop();
-      return;
-    }
-    final action = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تغییرات ذخیره نشده'),
-        content: const Text(
-          'برای جلوگیری از از دست رفتن اطلاعات، تغییرات را ذخیره کنید یا صریحاً بدون ذخیره خارج شوید.',
+
+    await pumpEditor(tester, task: task);
+
+    expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
+    expect(find.text('پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-add-followup')), findsOneWidget);
+    expect(find.text('کار پیگیری‌دار'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-enabled')), findsNothing);
+    expect(find.text('زمان پیگیری'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
+    expect(find.text('مشتری'), findsOneWidget);
+
+    final save = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('task-editor-header-save')),
+    );
+    expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
+  });
+
+  testWidgets('saving an ordinary Task does not invent follow-up records or timestamps',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpDate, isNull);
+    expect(result!.followUps, isEmpty);
+  });
+
+
+  testWidgets('Task editor saves a new follow-up record with separate title and note',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-add-followup')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-title')),
+      'تماس مجدد',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('follow-up-entry-note')),
+      'در انتظار ارسال پاسخ',
+    );
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUps, hasLength(1));
+    expect(result!.followUps.single.title, 'تماس مجدد');
+    expect(result!.followUps.single.note, 'در انتظار ارسال پاسخ');
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, isNull);
+  });
+
+
+  testWidgets('editing and saving preserves the exact existing follow-up time',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'edit',
+      title: 'جلسه',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 27, 10, 30),
+    );
+
+    await pumpEditor(
+      tester,
+      task: task,
+      onResult: (value) => result = value,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pump();
+
+    expect(result, isNotNull);
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
+  });
+
+  testWidgets('new ordinary Task exposes the follow-up list without inventing records',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    expect(find.text('پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-add-followup')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-followup-date-rollbox')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار بدون پیگیری',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpDate, isNull);
+  });
+
+  testWidgets('editing Task preserves legacy state and all existing follow-up history',
+      (tester) async {
+    Task? result;
+    final history = [
+      FollowUp(
+        id: 'f1',
+        dateTime: DateTime(2026, 8, 20, 9),
+        note: 'تماس اول',
+      ),
+      FollowUp(
+        id: 'f2',
+        dateTime: DateTime(2026, 8, 22, 11, 15),
+        note: 'تماس دوم',
+      ),
+    ];
+    final task = Task(
+      id: 'history',
+      title: 'پرونده مشتری',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 28, 12),
+      followUps: history,
+      category: 'مشتریان',
+      checklist: const ['[ ] ارسال قرارداد'],
+    );
+
+    await pumpEditor(
+      tester,
+      task: task,
+      onResult: (value) => result = value,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.id, 'history');
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
+    expect(result!.followUps, hasLength(2));
+    expect(result!.followUps.last.note, 'تماس دوم');
+    expect(result!.category, 'مشتریان');
+    expect(result!.checklist, const ['[ ] ارسال قرارداد']);
+  });
+  testWidgets('Back-style close prompts and can save Task edits without data loss',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, knownTags: const ['فوری'], onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار ذخیره‌شده هنگام خروج',
+    );
+    await tester.tap(find.byTooltip('برچسب'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('فوری'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('بستن'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تغییرات ذخیره نشده'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-exit-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.title, 'کار ذخیره‌شده هنگام خروج');
+    expect(result!.tags, contains('فوری'));
+  });
+
+  testWidgets('explicit Task cancel remains zero-write', (tester) async {
+    Task? result = Task(id: 'sentinel', title: 'sentinel');
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'نباید ذخیره شود',
+    );
+    await tester.tap(find.byTooltip('بستن'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-exit-discard')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNull);
+    expect(find.text('تغییرات ذخیره نشده'), findsNothing);
+  });
+
+  testWidgets('new Task keeps checklist disabled until explicitly enabled', (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('task-editor-checklist-input')), 'کیف');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+    expect(result!.checklist, const ['[ ] کیف']);
+    expect(result!.checklistEnabled, isTrue);
+  });
+
+  testWidgets('disabling a checklist preserves its rows and re-enabling restores them',
+      (tester) async {
+    Task? disabledResult;
+    final task = Task(id: 'checklist-toggle', title: 'آماده‌سازی', checklist: const ['[ ] کیف', '[ ] کتاب']);
+    await pumpEditor(tester, task: task, onResult: (value) => disabledResult = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(disabledResult, isNotNull);
+    expect(disabledResult!.checklist, const ['[ ] کیف', '[ ] کتاب']);
+    expect(disabledResult!.checklistEnabled, isFalse);
+
+    Task? enabledResult;
+    await pumpEditor(tester, task: disabledResult, onResult: (value) => enabledResult = value);
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-toggle')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    expect(find.text('کیف'), findsOneWidget);
+    expect(find.text('کتاب'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(enabledResult, isNotNull);
+    expect(enabledResult!.checklist, const ['[ ] کیف', '[ ] کتاب']);
+    expect(enabledResult!.checklistEnabled, isTrue);
+  });
+
+  testWidgets('task editor checklist supports add, toggle, edit and persistence',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'checklist-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[x] خوراکی'],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-checklist-block')), findsOneWidget);
+    expect(find.text('کیف'), findsOneWidget);
+    expect(find.text('خوراکی'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-checklist-check-0')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-check-0')),
+    );
+    await tester.pump();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-checklist-input')),
+      'لباس',
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-add')),
+    );
+    await tester.pump();
+
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-checklist-edit-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-checklist-edit-input')),
+      'خوراکی اصلاح‌شده',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-editor-checklist-edit-save')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.checklist, const [
+      '[x] کیف',
+      '[x] خوراکی اصلاح‌شده',
+      '[ ] لباس',
+    ]);
+  });
+
+  testWidgets('task editor checklist supports drag reorder', (tester) async {
+    final task = Task(
+      id: 'drag-checklist-task',
+      title: 'ترتیب',
+      checklist: const ['[ ] اول', '[ ] دوم', '[ ] سوم'],
+    );
+    await pumpEditor(tester, task: task);
+
+    final handle = find.byKey(const ValueKey('task-editor-checklist-drag-1'));
+    await tester.ensureVisible(handle);
+    await tester.timedDrag(handle, const Offset(0, 120), const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    final item0 = find.byKey(const ValueKey('task-editor-checklist-item-0'));
+    final item1 = find.byKey(const ValueKey('task-editor-checklist-item-1'));
+    expect(item0, findsOneWidget);
+    expect(item1, findsOneWidget);
+  });
+
+  testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'recurrence-rollbox',
+      title: 'کار تکرارشونده',
+      recurrence: const RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        interval: 2,
+      ),
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
+    expect(rollBox, findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
+
+    await tester.ensureVisible(rollBox);
+    await tester.tap(rollBox);
+    await tester.pumpAndSettle();
+
+    expect(find.text('بدون تکرار'), findsOneWidget);
+    expect(find.text('روزانه'), findsWidgets);
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.text('هفتگی').last);
+    await tester.pumpAndSettle();
+    expect(find.text('هفتگی'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.recurrence, isNotNull);
+    expect(result!.recurrence!.frequency, RecurrenceFrequency.weekly);
+    expect(result!.recurrence!.interval, 2);
+  });
+
+
+  testWidgets('task editor exposes repeat lifecycle settings and preserves definition', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'repeat-lifecycle',
+      title: 'کار تکرارشونده',
+      recurrence: RecurrenceRule(
+        frequency: RecurrenceFrequency.weekly,
+        interval: 2,
+        startDate: DateTime(2026, 10, 10),
+        endDate: DateTime(2026, 12, 31),
+        count: 7,
+        active: true,
+      ),
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-repeat-enabled')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-repeat-start')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-repeat-end')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-recurrence-count')), findsOneWidget);
+
+    final count = find.byKey(const ValueKey('task-editor-recurrence-count'));
+    await tester.enterText(count, '7');
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-repeat-enabled')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.recurrence, isNotNull);
+    expect(result!.recurrence!.frequency, RecurrenceFrequency.weekly);
+    expect(result!.recurrence!.interval, 2);
+    expect(result!.recurrence!.startDate, DateTime(2026, 10, 10));
+    expect(result!.recurrence!.endDate, DateTime(2026, 12, 31));
+    expect(result!.recurrence!.count, 7);
+    expect(result!.recurrence!.active, isFalse);
+  });
+
+  testWidgets('timed task automatically gets one reminder at the same time',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-editor-title')),
+      'کار زمان‌دار',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۰:۳۰'));
+    await tester.tap(find.text('۱۰:۳۰'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, result!.dueDate);
+  });
+
+  testWidgets('manual reminder is not overwritten when due time changes',
+      (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'manual-reminder',
+      title: 'کار با یادآوری دستی',
+      dueDate: DateTime(2026, 8, 27, 10),
+      reminderDate: DateTime(2026, 8, 27, 9),
+      allDay: false,
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('۱۱:۰۰'));
+    await tester.tap(find.text('۱۱:۰۰'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, DateTime(2026, 8, 27, 11));
+    expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
+  });
+
+
+  testWidgets('Task editor avoids horizontal overflow at 320 and 360 logical pixels',
+      (tester) async {
+    for (final width in [320.0, 360.0]) {
+      tester.view.physicalSize = Size(width, 760);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => showDialog<Task>(
+                    context: context,
+                    builder: (_) => const ArvinTaskEditorDialog(
+                      knownTags: ['برچسب بسیار طولانی برای آزمون عرض صفحه'],
+                    ),
+                  ),
+                  child: const Text('باز کردن'),
+                ),
+              ),
+            ),
+          ),
         ),
-        actions: [
-          TextButton(
-            key: const ValueKey('task-editor-exit-continue'),
-            onPressed: () => Navigator.of(dialogContext).pop('continue'),
-            child: const Text('ادامه ویرایش'),
-          ),
-          TextButton(
-            key: const ValueKey('task-editor-exit-discard'),
-            onPressed: () => Navigator.of(dialogContext).pop('discard'),
-            child: const Text('بدون ذخیره'),
-          ),
-          FilledButton(
-            key: const ValueKey('task-editor-exit-save'),
-            onPressed: () => Navigator.of(dialogContext).pop('save'),
-            child: const Text('ذخیره'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (action == 'discard') {
-      Navigator.of(context).pop();
-    } else if (action == 'save') {
-      _save();
+      );
+      await tester.tap(find.text('باز کردن'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'width=$width');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     }
-  }
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
 
-  RecurrenceRule? _buildRecurrence() {
-    if (_recurrence == null) return null;
-    final interval = int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
-    final parsedCount = int.tryParse(_recurrenceCountController.text.trim());
-    return RecurrenceRule(
-      frequency: _recurrence!.frequency,
-      interval: interval > 0 ? interval : 1,
-      startDate: _recurrenceStartDate,
-      endDate: _recurrenceEndDate,
-      count: parsedCount != null && parsedCount > 0 ? parsedCount : null,
-      active: _repeatEnabled,
-    );
-  }
-
-  Future<void> _pickRecurrenceStart() async {
-    final value = await _chooseDate(_recurrenceStartDate ?? _dueDateTime, helpText: 'شروع تکرار');
-    if (value == null || !mounted) return;
-    setState(() => _recurrenceStartDate = DateTime(value.year, value.month, value.day));
-  }
-
-  Future<void> _pickRecurrenceEnd() async {
-    final value = await _chooseDate(_recurrenceEndDate ?? _recurrenceStartDate ?? _dueDateTime, helpText: 'پایان تکرار');
-    if (value == null || !mounted) return;
-    if (_recurrenceStartDate != null && !value.isAfter(_recurrenceStartDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('پایان تکرار باید بعد از شروع باشد')));
-      return;
-    }
-    setState(() => _recurrenceEndDate = DateTime(value.year, value.month, value.day));
-  }
-
-  void _save() {
-    if (_saving) return;
-    _saving = true;
-    final pendingTag = _tagController.text.trim();
-    if (pendingTag.isNotEmpty && !_tags.contains(pendingTag)) {
-      _tags.add(pendingTag);
-    }
-    final now = DateTime.now();
-    final existing = widget.task;
-    _syncAutomaticReminder();
-    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
-        ? _dueDateTime
-        : (_reminderDateTime ??
-            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
-    DateTime? migratedLegacyReminderDate;
-    for (final reminder in _taskReminders) {
-      if (reminder.isLegacyTaskReminder) {
-        migratedLegacyReminderDate = reminder.date;
-        break;
-      }
-    }
-    final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
-    widget.onProjectChanged?.call(_selectedProjectId);
-    Navigator.of(context).pop(
-      Task(
-        id: id,
-        title: _titleController.text.trim().isEmpty
-            ? 'بدون عنوان'
-            : _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        dueDate: _dueDateTime,
-        allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUpEnabled,
-        followUpDate: existing?.followUpDate ?? _followUpDateTime,
-        tags: List<String>.of(_tags),
-        category: _category,
-        checklist: List<String>.of(_checklist),
-        checklistEnabled: _checklistEnabled,
-        reminderDate: existing != null &&
-                existing.legacyTaskReminderMigrationVersion >= 1
-            ? migratedLegacyReminderDate
-            : reminderDate,
-        taskReminders: List<TaskReminder>.of(_taskReminders),
-        nextReminderSequence: _nextReminderSequence,
-        legacyTaskReminderMigrationVersion:
-            existing?.legacyTaskReminderMigrationVersion ?? 0,
-        priority: _priority,
-        archived: existing?.archived ?? false,
-        trashed: existing?.trashed ?? false,
-        completed: _completed,
-        followUps: List<FollowUp>.of(_followUps),
-        recurrence: _buildRecurrence(),
-        people: existing?.people ?? const [],
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
-      ),
-    );
-  }
-
-  String _dateText(DateTime value) =>
-      _dateFormatter.format(value, usePersianDate: true);
-
-  String _timeText(DateTime value) =>
-      _dateFormatter.formatTime(value.hour, value.minute);
-
-  String _priorityLabel(TaskPriority priority) => switch (priority) {
-    TaskPriority.none => 'بدون اولویت',
-    TaskPriority.low => 'کم',
-    TaskPriority.medium => 'متوسط',
-    TaskPriority.high => 'زیاد',
-  };
-
-  String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
-    RecurrenceFrequency.daily => 'روزانه',
-    RecurrenceFrequency.weekly => 'هفتگی',
-    RecurrenceFrequency.monthly => 'ماهانه',
-    RecurrenceFrequency.yearly => 'سالانه',
-    RecurrenceFrequency.oncePerDay => 'روزی یک‌بار',
-    RecurrenceFrequency.minutes => 'دقیقه‌ای',
-    RecurrenceFrequency.hours => 'ساعتی',
-  };
-
-  Widget _dateTimeRollBox({    required String keyPrefix,
-    required String label,
-    required DateTime? value,
-    required bool isDate,
-    required String target,
-    required VoidCallback onCustom,
-    required Color accent,
-  }) {
-    final now = _baseDateTime(null);
-    final base = value ?? now;
-    final items = isDate
-        ? <ArvinRollItem<String>>[
-            ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
-            ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
-          ]
-        : <ArvinRollItem<String>>[
-            for (final minutes in const [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900, 930, 960, 990, 1020, 1050, 1080, 1110, 1140, 1170, 1200, 1230, 1260, 1290, 1320, 1350, 1380, 1410])
-              ArvinRollItem<String>(
-                value: '$minutes',
-                label: _timeText(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60)),
-                icon: Icons.schedule_outlined,
-                color: accent,
-              ),
-          ];
-    final currentLabel = isDate ? _dateText(base) : _timeText(base);
-    return KeyedSubtree(
-      key: ValueKey('$keyPrefix-rollbox'),
-      child: ArvinRollBox<String>(
-        label: label,
-        valueLabel: value == null ? 'انتخاب $label' : currentLabel,
-        icon: isDate ? Icons.calendar_month_outlined : Icons.schedule_outlined,
-        color: accent,
-        items: items,
-        onSelected: (selection) {
-          if (selection == null) return;
-          if (isDate) {
-            final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
-            setState(() {
-              if (target.contains('reminder')) {
-                _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up') || target.contains('followup')) {
-                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-              } else {
-                _dueDateTime = _dueAllDay || value == null
-                    ? DateTime(picked.year, picked.month, picked.day)
-                    : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                if (value == null || _dueAllDay) _dueAllDay = true;
-                _syncAutomaticReminder();
-              }
-            });
-          } else {
-            final minutes = int.tryParse(selection) ?? 0;
-            setState(() {
-              final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
-              if (target.contains('reminder')) {
-                _reminderDateTime = next;
-                _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up')) {
-                _followUpDateTime = next;
-              } else {
-                _dueDateTime = next;
-                _dueAllDay = false;
-                _syncAutomaticReminder();
-              }
-            });
-          }
-        },
-        onCreate: () async {
-          onCustom();
-          return null;
-        },
-        createLabel: isDate ? 'تاریخ سفارشی' : 'ساعت سفارشی',
-      ),
-    );
-  }
-
-  Widget _dateTimeEditor({
-    required String keyPrefix,
-    required String title,
-    required DateTime? value,
-    required VoidCallback onPickDate,
-    required VoidCallback onPickTime,
-    required VoidCallback onClear,
-    Color accent = ArvinColors.primary,
-    bool allDay = false,
-    ValueChanged<bool>? onToggleAllDay,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _fieldSurface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
-              if (value != null)
-                TextButton.icon(
-                  key: ValueKey('$keyPrefix-clear'),
-                  onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 16),
-                  label: const Text('حذف'),
-                  style: TextButton.styleFrom(minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
-              const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
-            ],
-          ),
-          if (onToggleAllDay != null && value != null) ...[
-            const SizedBox(height: 4),
-            Material(
-              color: Colors.transparent,
-              child: CheckboxListTile(
-                key: ValueKey('$keyPrefix-all-day'),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: allDay,
-                onChanged: (next) => onToggleAllDay(next ?? false),
-                title: const Text('تمام‌روز'),
-                subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
-              ),
-            ),
-            ],
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final editing = widget.task != null;
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) _requestClose();
-      },
-      child: Dialog.fullscreen(
-        key: const ValueKey('arvin-task-editor-dialog'),
-        backgroundColor: ArvinColors.background,
-        child: SafeArea(
-          child: Material(
-            color: ArvinColors.background,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                  decoration: const BoxDecoration(
-                    color: ArvinColors.surface,
-                    border: Border(bottom: BorderSide(color: _border)),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const ValueKey('task-editor-close'),
-                        tooltip: 'بستن',
-                        onPressed: _requestClose,
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                      FilledButton.icon(
-                        key: const ValueKey('task-editor-header-save'),
-                        onPressed: _save,
-                        icon: const Icon(Icons.check_rounded, size: 18),
-                        label: const Text('ذخیره'),
-                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 2),
-                  TextField(
-                    key: const ValueKey('task-editor-title'),
-                    controller: _titleController,
-                    focusNode: _titleFocusNode,
-                    autofocus: !editing,
-                    style: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
-                    cursorColor: _brand,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _save(),
-                    decoration: _fieldDecoration(
-                      label: 'عنوان',
-                      hint: 'عنوان کار را بنویسید',
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    key: const ValueKey('task-editor-description'),
-                    controller: _descriptionController,
-                    style: const TextStyle(color: ArvinColors.textPrimary),
-                    cursorColor: _brand,
-                    minLines: 3,
-                    maxLines: 5,
-                    decoration: _fieldDecoration(
-                      label: 'توضیحات',
-                      hint: 'توضیحات را وارد کنید…',
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(                        child: ArvinRollBox<String>(
-                          label: 'دسته',
-                          valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
-                          icon: Icons.grid_view_rounded,
-                          color: ArvinColors.category,
-                          emptyLabel: 'بدون دسته',
-                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
-                              .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
-                          onSelected: (value) => setState(() => _category = value),
-                          onCreate: () async {
-                            final value = await _promptNewName('دسته جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateCategory?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              _category = created;
-                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<String>(
-                          label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
-                          icon: Icons.folder_outlined,
-                          color: ArvinColors.project,
-                          emptyLabel: 'بدون پروژه',
-                          items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
-                          )).toList(),
-                          onSelected: (value) => setState(() => _selectedProjectId = value),
-                          onCreate: () async {
-                            final title = await _promptNewName('پروژه جدید');
-                            if (title == null || widget.onCreateProject == null) return null;
-                            final createdId = await widget.onCreateProject!(title);
-                            if (!mounted || createdId == null || createdId.trim().isEmpty) {
-                              return createdId;
-                            }
-                            final existing = _projects.indexWhere((project) => project.id == createdId);
-                            setState(() {
-                              if (existing >= 0) {
-                                _projects[existing] = _projects[existing].copyWith(title: title);
-                              } else {
-                                _projects = [
-                                  ..._projects,
-                                  ProjectPlan(id: createdId, title: title),
-                                ];
-                              }
-                              _selectedProjectId = createdId;
-                            });
-                            widget.onProjectChanged?.call(createdId);
-                            return createdId;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinTagRollBox(
-                          tags: _knownTags,
-                          selectedTags: _tags,
-                          onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () async {
-                            final value = await _promptNewName('برچسب جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateTag?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              if (!_tags.contains(created)) _tags.add(created);
-                              if (!_knownTags.contains(created)) _knownTags.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_tags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: _tags.map((tag) => InputChip(
-                        label: Text(tag),
-                        backgroundColor: ArvinColors.tagSoft,
-                        side: BorderSide.none,
-                        deleteIconColor: ArvinColors.tagDark,
-                        onDeleted: () => setState(() => _tags.remove(tag)),
-                      )).toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 14),                  ExpansionTile(
-                    key: const ValueKey('task-editor-more-details'),
-                    initiallyExpanded: true,
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 4),
-                    childrenPadding: const EdgeInsets.only(bottom: 8),
-                    title: const Text(
-                      'جزئیات بیشتر',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: const Text(
-                      'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
-                    ),
-                    children: [
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
-                      ),
-                      const SizedBox(height: 10),
-                      if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
-                        _dateTimeEditor(
-                          keyPrefix: 'task-editor-reminder',
-                          title: 'یادآوری',
-                          value: _reminderDateTime,
-                          onPickDate: _pickReminderDate,
-                          onPickTime: _pickReminderTime,
-                          onClear: _clearReminderTime,
-                          accent: ArvinColors.reminder,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      _taskRemindersEditor(),
-                      const SizedBox(height: 10),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final recurrence = ArvinRollBox<RecurrenceFrequency>(
-                            key: const ValueKey('task-editor-recurrence'),
-                            label: 'تکرار',
-                            valueLabel: _recurrence == null
-                                ? 'بدون تکرار'
-                                : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency)),
-                            icon: Icons.repeat_rounded,
-                            color: ArvinColors.primary,
-                            emptyLabel: 'بدون تکرار',
-                            items: RecurrenceFrequency.values
-                                .map(
-                                  (frequency) => ArvinRollItem<RecurrenceFrequency>(
-                                    value: frequency,
-                                    label: _recurrenceLabel(frequency),
-                                    icon: Icons.repeat_rounded,
-                                    color: ArvinColors.primary,
-                                  ),
-                                )
-                                .toList(growable: false),
-                            onSelected: (frequency) {
-                              final interval =
-                                  int.tryParse(_recurrenceIntervalController.text.trim()) ?? 1;
-                              setState(() {
-                                if (frequency == null) {
-                                  _recurrence = null;
-                                  _repeatEnabled = false;
-                                } else {
-                                  _recurrence = RecurrenceRule(
-                                    frequency: frequency,
-                                    interval: interval > 0 ? interval : 1,
-                                    startDate: _recurrenceStartDate,
-                                    endDate: _recurrenceEndDate,
-                                    count: int.tryParse(_recurrenceCountController.text.trim()),
-                                    active: true,
-                                  );
-                                  _repeatEnabled = true;
-                                }
-                              });
-                            },
-                          );
-                          final recurrenceInterval = TextFormField(
-                            key: const ValueKey('task-editor-recurrence-interval'),
-                            controller: _recurrenceIntervalController,
-                            enabled: _recurrence != null,
-                            keyboardType: TextInputType.number,
-                            textDirection: TextDirection.rtl,
-                            decoration: _fieldDecoration(
-                              label: 'تعداد فاصله',
-                              hint: 'مثلاً ۵',
-                            ),
-                            onChanged: (value) {
-                              final interval = int.tryParse(value.trim());
-                              if (_recurrence == null || interval == null || interval < 1) {
-                                return;
-                              }
-                              setState(() {
-                                _recurrence = RecurrenceRule(
-                                  frequency: _recurrence!.frequency,
-                                  interval: interval,
-                                  startDate: _recurrenceStartDate,
-                                  endDate: _recurrenceEndDate,
-                                  count: int.tryParse(_recurrenceCountController.text.trim()),
-                                  active: _repeatEnabled,
-                                );
-                              });
-                            },
-                          );
-                          final repeatEnabled = SwitchListTile(
-                            key: const ValueKey('task-editor-repeat-enabled'),
-                            contentPadding: EdgeInsets.zero,
-                            value: _repeatEnabled,
-                            title: const Text('تکرار فعال باشد'),
-                            onChanged: _recurrence == null ? null : (value) {
-                              setState(() {
-                                _repeatEnabled = value;
-                                _recurrence = _buildRecurrence();
-                              });
-                            },
-                          );
-                          final repeatStart = OutlinedButton.icon(
-                            key: const ValueKey('task-editor-repeat-start'),
-                            onPressed: _recurrence == null ? null : _pickRecurrenceStart,
-                            icon: const Icon(Icons.play_circle_outline),
-                            label: Text(_recurrenceStartDate == null ? 'شروع: از زمان کار' : 'شروع: ${_dateText(_recurrenceStartDate!)}'),
-                          );
-                          final repeatEnd = OutlinedButton.icon(
-                            key: const ValueKey('task-editor-repeat-end'),
-                            onPressed: _recurrence == null ? null : _pickRecurrenceEnd,
-                            icon: const Icon(Icons.stop_circle_outlined),
-                            label: Text(_recurrenceEndDate == null ? 'بدون پایان' : 'پایان: ${_dateText(_recurrenceEndDate!)}'),
-                          );
-                          final repeatCount = TextFormField(
-                            key: const ValueKey('task-editor-recurrence-count'),
-                            controller: _recurrenceCountController,
-                            enabled: _recurrence != null,
-                            keyboardType: TextInputType.number,
-                            textDirection: TextDirection.rtl,
-                            decoration: _fieldDecoration(label: 'تعداد تکرار', hint: 'اختیاری'),
-                            onChanged: (_) {
-                              if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
-                            },
-                          );
-                          final priority = DropdownButtonFormField<TaskPriority>(
-                            key: const ValueKey('task-editor-priority'),
-                            isExpanded: true,
-                            initialValue: _priority,
-                            decoration: _fieldDecoration(label: 'اولویت'),
-                            items: TaskPriority.values
-                                .map(
-                                  (priority) => DropdownMenuItem<TaskPriority>(
-                                    value: priority,
-                                    child: Text(_priorityLabel(priority)),
-                                  ),
-                                )
-                                .toList(growable: false),
-                            onChanged: (priority) {
-                              if (priority != null) {
-                                setState(() => _priority = priority);
-                              }
-                            },
-                          );
-                          if (constraints.maxWidth < 400) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(child: recurrence),
-                                    if (_recurrence != null) ...[
-                                      const SizedBox(width: 10),
-                                      SizedBox(width: 120, child: recurrenceInterval),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                priority,
-                                const SizedBox(height: 6),
-                                repeatEnabled,
-                                Row(
-                                  children: [
-                                    Expanded(child: repeatStart),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: repeatEnd),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                repeatCount,
-                              ],
-                            );
-                          }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(child: recurrence),
-                                  if (_recurrence != null) ...[
-                                    const SizedBox(width: 10),
-                                    SizedBox(width: 120, child: recurrenceInterval),
-                                  ],
-                                  const SizedBox(width: 10),
-                                  Expanded(child: priority),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              repeatEnabled,
-                              Row(
-                                children: [
-                                  Expanded(child: repeatStart),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: repeatEnd),
-                                  if (_recurrence != null) ...[
-                                    const SizedBox(width: 8),
-                                    SizedBox(width: 120, child: repeatCount),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      CheckboxListTile(
-                        key: const ValueKey('task-editor-completed'),
-                        value: _completed,
-                        onChanged: (value) =>
-                            setState(() => _completed = value ?? false),
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: const Text('انجام‌شده'),
-                        subtitle: const Text('وضعیت فعلی این کار'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _checklistEditor(),
-                  const SizedBox(height: 12),
-                  Container(
-                    key: const ValueKey('task-editor-followup-block'),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: ArvinColors.primarySoft,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: ArvinColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.timeline_outlined, color: _brand),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'پیگیری‌ها',
-                                style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
-                              ),
-                            ),
-                            Text('${_followUps.length}', style: const TextStyle(color: _brand, fontWeight: FontWeight.w700)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'عنوان، یادداشت، اقدام بعدی و یادآور هر پیگیری جداگانه ذخیره می‌شوند.',
-                          style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
-                        ),
-                        for (final followUp in _followUps) ...[
-                          const Divider(height: 18),
-                          ListTile(
-                            key: ValueKey('task-editor-followup-${followUp.id}'),
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.event_note_outlined, color: _brand),
-                            title: Text(
-                              followUp.title?.trim().isNotEmpty == true
-                                  ? followUp.title!.trim()
-                                  : 'پیگیری',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              [
-                                if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
-                                if (followUp.nextFollowUp != null)
-                                  'اقدام بعدی: ${_dateText(followUp.nextFollowUp!)} • ${_timeText(followUp.nextFollowUp!)}',
-                                if (followUp.reminderDate != null)
-                                  'یادآور: ${_dateText(followUp.reminderDate!)} • ${_timeText(followUp.reminderDate!)}',
-                              ].join('\n'),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: IconButton(
-                              key: ValueKey('task-editor-edit-followup-${followUp.id}'),
-                              tooltip: 'ویرایش پیگیری',
-                              onPressed: () => _openFollowUpEntry(existing: followUp),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          key: const ValueKey('task-editor-add-followup'),
-                          onPressed: () => _openFollowUpEntry(),
-                          icon: const Icon(Icons.add),
-                          label: const Text('افزودن پیگیری'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    ),
-  ),
-  ),
-  ),
-  );
-  }
 }
