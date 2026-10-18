@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
+import 'calendar_page.dart';
 
 import 'models/goal_project.dart';
 import 'models/person_reference.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
+import 'services/app_settings_service.dart';
+import 'services/external_calendar_event_projection.dart';
+import 'services/external_calendar_link_store.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
 import 'services/person_follow_up_report_projection.dart';
+import 'task_detail_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
@@ -39,6 +45,8 @@ class ReportCenterPage extends StatefulWidget {
 
 class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
+  List<CalendarReminder> _externalCalendarEvents = const <CalendarReminder>[];
+  bool _loadingExternalCalendarEvents = false;
 
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -92,6 +100,54 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         projects: widget.projects,
       );
 
+  Future<List<CalendarReminder>> _loadUnimportedDeviceEvents() async {
+    try {
+      final settings = await AppSettingsService().load();
+      final integration = settings.calendarIntegration;
+      if (!integration.enabled ||
+          !integration.showExternalEvents ||
+          integration.visibleCalendarIds.isEmpty) {
+        return const <CalendarReminder>[];
+      }
+      final bridge = SystemCalendarBridge();
+      if (!await bridge.hasReadPermission()) return const <CalendarReminder>[];
+      final calendarIds = integration.visibleCalendarIds.toList()..sort();
+      final boundedIds = calendarIds
+          .take(SystemCalendarBridge.maxEventQueryCalendars)
+          .toList(growable: false);
+      final now = _now.toLocal();
+      final today = DateTime(now.year, now.month, now.day);
+      final start = today.subtract(const Duration(days: 31));
+      final events = await bridge.listDeviceCalendarEvents(
+        calendarIds: boundedIds,
+        start: start,
+        end: start.add(SystemCalendarBridge.maxEventQueryWindow),
+      );
+      var links = const <dynamic>[];
+      try {
+        links = await ExternalCalendarLinkStore().load();
+      } on FormatException {
+        // Invalid optional link metadata must not block canonical task reports.
+      }
+      return const ExternalCalendarEventProjection()
+          .project(events, linkedEvents: links.cast());
+    } catch (_) {
+      // Calendar-provider access is optional and must fail closed.
+      return const <CalendarReminder>[];
+    }
+  }
+
+  Future<void> _refreshUnimportedDeviceEvents() async {
+    if (!mounted) return;
+    setState(() => _loadingExternalCalendarEvents = true);
+    final events = await _loadUnimportedDeviceEvents();
+    if (!mounted) return;
+    setState(() {
+      _externalCalendarEvents = events;
+      _loadingExternalCalendarEvents = false;
+    });
+  }
+
   Future<void> _openFilters() async {
     final result = await showModalBottomSheet<TaskReportFilter>(
       context: context,
@@ -105,7 +161,12 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         now: _now,
       ),
     );
-    if (result != null) setState(() => _filter = result);
+    if (result != null) {
+      setState(() => _filter = result);
+      if (result.showExternalCalendarEvents) {
+        await _refreshUnimportedDeviceEvents();
+      }
+    }
   }
 
   void _clear() => setState(() {
@@ -116,6 +177,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   Widget build(BuildContext context) {
     final tasks = _filtered;
     final waitingRows = _waitingRows;
+    final externalEvents = _filter.showExternalCalendarEvents
+        ? _externalCalendarEvents
+            .where((event) => _filter.matchesExternalCalendarDate(event.date, now: _now))
+            .toList(growable: false)
+        : const <CalendarReminder>[];
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -170,7 +236,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 alignment: Alignment.centerRight,
                 child: Text(_filter.waitingForResponse == true
                     ? 'نتیجه: ${waitingRows.length} پیگیری'
-                    : 'نتیجه: ${tasks.length} کار'),
+                    : 'نتیجه: ${tasks.length} کار${externalEvents.isNotEmpty ? ' • ${externalEvents.length} رویداد گوشی' : ''}'),
               ),
             ),
             Expanded(
@@ -187,6 +253,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                             final reminder = row.reminderDate;
                             return Card(
                               child: ListTile(
+                                onTap: () => Navigator.of(context).push<void>(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => TaskDetailPage(task: row.task),
+                                  ),
+                                ),
                                 title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
                                 subtitle: Text([
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
@@ -199,14 +270,27 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                             );
                           },
                         ))
-                  : (tasks.isEmpty
-                      ? const Center(child: Text('موردی با این فیلترها پیدا نشد'))
+                  : (tasks.isEmpty && externalEvents.isEmpty
+                      ? (_loadingExternalCalendarEvents
+                          ? const Center(child: CircularProgressIndicator())
+                          : const Center(child: Text('موردی با این فیلترها پیدا نشد')))
                       : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      itemCount: tasks.length,
+                      itemCount: tasks.length + externalEvents.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (_, index) {
-                        final task = tasks[index];
+                        if (index < externalEvents.length) {
+                          final event = externalEvents[index];
+                          return Card(
+                            key: ValueKey('report-external-calendar-event-${event.id}'),
+                            child: ListTile(
+                              leading: const Icon(Icons.calendar_month_outlined),
+                              title: Text(event.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              subtitle: Text(_reportDateTimeLabel(event.date)),
+                            ),
+                          );
+                        }
+                        final task = tasks[index - externalEvents.length];
                         final cardColor = task.completed
                             ? ArvinColors.timeSoft
                             : task.dueDate != null &&
@@ -221,6 +305,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           key: ValueKey('report-task-card-${task.id}'),
                           color: cardColor,
                           child: ListTile(
+                            onTap: () => Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => TaskDetailPage(task: task),
+                              ),
+                            ),
                             dense: true,
                             visualDensity: const VisualDensity(vertical: -1),
                             title: Text(
@@ -344,6 +433,12 @@ class _ActiveFilterChips extends StatelessWidget {
                 final ids = <String>{...filter.personIds}..remove(id);
                 onChanged(filter.copyWith(personIds: ids));
               },
+            ),
+          if (filter.showExternalCalendarEvents)
+            InputChip(
+              key: const ValueKey('report-active-external-calendar-filter'),
+              label: const Text('رویدادهای تقویم گوشی'),
+              onDeleted: () => onChanged(filter.copyWith(showExternalCalendarEvents: false)),
             ),
           if (filter.waitingForResponse != null)
             InputChip(
@@ -470,6 +565,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   bool? _hasRepeat;
   bool? _hasFollowUp;
   bool? _waitingForResponse;
+  bool _showExternalCalendarEvents = false;
   bool? _hasChecklist;
 
   @override
@@ -486,6 +582,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
     _personIds = <String>{...f.personIds};
     _waitingForResponse = f.waitingForResponse;
+    _showExternalCalendarEvents = f.showExternalCalendarEvents;
     _statuses = <ReportStatusFilter>{...f.statuses};
     if (_statuses.isEmpty && f.status != ReportStatusFilter.all) {
       _statuses.add(f.status);
@@ -583,6 +680,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         tags: Set<String>.of(_tags),
         personIds: Set<String>.of(_personIds),
         waitingForResponse: _waitingForResponse,
+        showExternalCalendarEvents: _showExternalCalendarEvents,
         status: ReportStatusFilter.all,
         statuses: Set<ReportStatusFilter>.of(_statuses),
         trackingLevels: Set<RecurrenceTrackingLevel>.of(_trackingLevels),
@@ -917,7 +1015,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'نوع',
               icon: Icons.track_changes_outlined,
               accentColor: ArvinColors.reminder,
-              selectedCount: _trackingLevels.length + (_waitingForResponse == null ? 0 : 1),
+              selectedCount: _trackingLevels.length + (_waitingForResponse == null ? 0 : 1) + (_showExternalCalendarEvents ? 1 : 0),
               child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
@@ -956,6 +1054,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     label: 'منتظر پاسخ',
                     value: _waitingForResponse,
                     onChanged: (value) => setState(() => _waitingForResponse = value),
+                  ),
+                  FilterChip(
+                    key: const ValueKey('report-filter-external-calendar-events'),
+                    label: const Text('رویدادهای واردنشدهٔ تقویم گوشی'),
+                    selected: _showExternalCalendarEvents,
+                    onSelected: (value) => setState(() => _showExternalCalendarEvents = value),
                   ),
                 ],
               ),
@@ -1047,6 +1151,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _tags = <String>{};
                           _personIds = <String>{};
                           _waitingForResponse = null;
+                          _showExternalCalendarEvents = false;
                           _statuses.clear();
                           _trackingLevels.clear();
                           _noteKinds.clear();
