@@ -135,7 +135,32 @@ class MainActivity : FlutterActivity() {
                     }
                     try {
                         val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay, description), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        // Item URIs already scope the row by event ID. Android's
+                        // Calendar Provider rejects an additional selection on
+                        // item-URI updates, so verify calendar ownership first,
+                        // then update only that exact event URI.
+                        var belongsToCalendar = false
+                        contentResolver.query(
+                            uri,
+                            arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
+                            null,
+                            null,
+                            null,
+                        )?.use { cursor ->
+                            belongsToCalendar = cursor.moveToFirst() &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) == eventId &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId
+                        }
+                        if (!belongsToCalendar) {
+                            result.success(false)
+                            return@setMethodCallHandler
+                        }
+                        val updated = contentResolver.update(
+                            uri,
+                            eventValues(calendarId, title, startMillis, endMillis, allDay, description),
+                            null,
+                            null,
+                        )
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied update", error.message)
