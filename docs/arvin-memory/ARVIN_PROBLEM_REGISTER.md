@@ -286,3 +286,17 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+## LIVE STATUS UPDATE — 2026-10-19 — CI terminal results and remaining P0 blockers
+
+| Problem / gate | Evidence | Current status | Next action |
+|---|---|---|---|
+| Latest Follow-up/Reminder PR-head Build was pending | [Run 39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817), head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | RESOLVED for this run: SUCCESS, all Analyze/test/APK jobs passed | Keep SHA/run association explicit; do not treat as official release candidate. |
+| Latest PR-head Device Smoke was pending | [Run 39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763), same SHA | RESOLVED for this run: SUCCESS, all seven lanes passed | Emulator CI only; physical-device and real-provider gates remain open. |
+| Official Release signing | `android/app/build.gradle.kts` on main | BLOCKED: Release uses Debug signing config | Follow authorized signing design; obtain owner-provided protected credential and independent certificate fingerprint approval. |
+| Real Calendar Provider acceptance | [Historical run 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | BLOCKED: stock emulator had no writable calendar; no real operation PASS marker | Use an authorized writable-provider environment and record create/no-op/update/delete with exact SHA. |
+| Exact-SHA controlled dispatch | Current passing runs are PR workflow runs | NOT VERIFIED as a manual `workflow_dispatch` acceptance | Inspect/verify the dispatch workflow and obtain a run asserting requested SHA equals checked-out SHA in each required job. |
+| Integrated product acceptance and handover | Current green Build/Smoke are limited to PR #2828 head | IN_PROGRESS | Complete remaining Person/report, recurrence, migration, backup, RTL/PDF, physical install and handover gates on one candidate SHA. |
+
+Overall release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag or release action was performed.
