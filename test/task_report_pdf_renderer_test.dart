@@ -51,14 +51,27 @@ void main() {
       [
         Task(
           id: 'vazirmatn-pdf-check',
-          title: 'گزارش رسمی آروین',
-          description: 'آزمون ارقام فارسی ۱۴۰۵/۰۷/۲۵',
+          title: 'گزارش رسمی آروین — پیگیری مشتری و برنامه‌ریزی اقدام بعدی',
+          description:
+              'آزمون اتصال حروف فارسی، جهت راست‌به‌چپ، ارقام فارسی ۱۴۰۵/۰۷/۲۵ و شکست خودکار خطوط در متن طولانی. این متن برای بررسی چیدمان گزارش و حفظ خوانایی در چند سطر قرار گرفته است.',
+          tags: ['مهم', 'مشتری', 'پیگیری'],
+          checklistEnabled: true,
+          checklist: [
+            'بررسی پیش‌فاکتور و ثبت نتیجه تماس',
+            'ارسال پاسخ به مشتری پس از دریافت قیمت و تأیید نهایی',
+          ],
+          reminderDate: DateTime(2026, 10, 18, 9, 5),
           followUps: [
             FollowUp(
               id: 'vazirmatn-pdf-follow-up',
               dateTime: DateTime(2026, 10, 17, 10, 35),
-              note: 'تماس با فروشنده',
-              result: 'منتظر اعلام قیمت',
+              title: 'تماس با فروشنده',
+              note: 'تماس با فروشنده درباره پیش‌فاکتور و شرایط تحویل',
+              result: 'منتظر اعلام قیمت و تأیید شرایط نهایی',
+              reminderDate: DateTime(2026, 10, 18, 9, 5),
+              nextFollowUp: DateTime(2026, 10, 19, 11, 20),
+              waitingForResponse: true,
+              personIds: ['person-vendor'],
             ),
           ],
         ),
