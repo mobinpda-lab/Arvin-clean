@@ -82,7 +82,13 @@ void main() {
       ),
     );
 
-    expect(find.text('پیگیری قبلی'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('task-detail-latest-followup')),
+        matching: find.text('پیگیری قبلی'),
+      ),
+      findsOneWidget,
+    );
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
     expect(add, findsOneWidget);
     await tester.tap(add);
