@@ -386,7 +386,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'یادآور این پیگیری',
+                                'یادآور پیگیری بعدی',
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               SizedBox(height: 2),
