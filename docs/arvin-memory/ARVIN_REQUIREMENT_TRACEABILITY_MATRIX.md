@@ -199,3 +199,20 @@ This override supersedes stale Wave 4.6 pending labels where terminal results ar
 - Prior exact-SHA Build evidence for `4cdb6449f7b007e66e71b784738ffa5207ea3e26` remains historical and valid only for that SHA. Its Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) remains IN_PROGRESS at last observation; Calendar lane has not produced a terminal result.
 - Documentation commit `a41ec7ba196f06891f8716bd3bce1d8769fb3877` already recorded the verified prior Build, artifact IDs/digests, passing test-shard evidence, official signing blocker, Calendar Provider limitation, and remaining regression gaps. This delta supersedes only the test-coverage status and current product SHA.
 - Current `main` release build still uses debug signing config. Calendar Provider real-writable acceptance, Exact-SHA dispatch, and final seven-lane Device Smoke remain open. Release remains `BLOCKED — RELEASE: NO-GO`; no merge/tag/release occurred.
+
+
+## LIVE TRACEABILITY OVERRIDE — 2026-10-19 — V10.0
+
+This is an evidence update, not a declaration that all reminder or release requirements are complete.
+
+| Requirement | Current status | Latest evidence | Remaining work / risk |
+|---|---|---|---|
+| Follow-up reminder title projection: use actual Follow-up title and safe Persian fallback when title is blank | `IMPLEMENTED_AND_VERIFIED` for the focused projection regression on PR head | PR [#2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), SHA `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) PASS | Scope is limited to the covered projection behavior; do not generalize to full release acceptance. |
+| Title-only Follow-up edit preserves reminder stable identity and scheduled time | `IMPLEMENTED_AND_VERIFIED` for targeted regression | Same SHA and Build run; focused test in `test/follow_up_reminder_projection_test.dart` | Persistence, notification rescheduling, calendar synchronization and backup/restore still need candidate-level acceptance. |
+| Analyze, unit/widget regression suite and Debug/Release APK build | `IMPLEMENTED_AND_VERIFIED` on PR head | Run 39220016817, all listed jobs SUCCESS on SHA `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | Manual exact-SHA dispatch and final integrated candidate qualification not established. |
+| Seven-lane Device Smoke | `IMPLEMENTED_AND_VERIFIED` for the PR run | Run [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763), all seven lanes SUCCESS on same SHA | Emulator-only; not physical-device acceptance or real Calendar Provider acceptance. |
+| Official release signing | `BLOCKED` | Main `android/app/build.gradle.kts` still configures Release with Debug signing | Authorized release credential, approved certificate SHA-256, successful apksigner verification, signed APK hash and source/build provenance required. |
+| Real Calendar Provider create/no-op/update/delete | `BLOCKED` | Prior run 39211706224 reported no writable calendar on stock emulator | Obtain authorized writable-provider environment and actual operation evidence; no fabricated marker. |
+| Full release qualification across Person/reports, recurrence, migrations, backup/restore, RTL/PDF, install and physical device | `IN_PROGRESS` / individual gates remain unverified | Current PR Build and Device Smoke are green | Need one integrated candidate SHA with all mandatory gates and complete handover. |
+
+Preserve the matrix's earlier requirement IDs and historical evidence. This addendum does not silently upgrade unrelated requirements.
