@@ -765,3 +765,17 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
 - Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
 - Final decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 4.5 live revalidation — 2026-10-19
+
+| Gate | Live evidence | Status | Next required proof |
+|---|---|---|---|
+| Main baseline | `main` ref: `d9fb7a247037762216662a20fb32028ecc8a0f6b` | Revalidated baseline; not a candidate qualification | Requalify final integrated SHA |
+| Release signing configuration | [`android/app/build.gradle.kts`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`; Release selects Debug signing | **BLOCKED** | Owner-authorized keystore and approved certificate fingerprint; `apksigner verify --verbose --print-certs` against candidate APK |
+| Calendar Provider workflow | [workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml), blob `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`; API 35 default emulator; artifact upload lacks `if: always()` | **BLOCKED / NOT VERIFIED** | Provision real writable provider; verify provider state for create/no-op/update/delete; unconditional evidence upload; explicit `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` |
+| Device Smoke workflow | [workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`; seven lanes, no exact target input/assertion in main | **IMPLEMENTED_NOT_VERIFIED** via PR #2827 proposal | Final PR-head CI and exact-SHA run for the selected candidate |
+| Follow-up canonical-record work | [PR #2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), head `50f1d26a8e4102f078e2f184771f98d521152dc4` | **IN_PROGRESS** | Review complete diff; run migration, persistence, reminder, notification, calendar and backup/restore tests on final SHA |
+| Legacy-base PR reconciliation | #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`; #2791 `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; #2796 `3ba0499403a405d92fc0440164b8c6ccc864eb5a`; each base `824ca8f17c92e76b3887001891d7d5b6f17974a6` | **IN_PROGRESS** | Inspect full diffs and merge-base against current main before safe update/rebase |
+
+Evidence limitations: latest observed mainline orchestrator/production-loop successes do not establish Build, all seven Device Smoke lanes, real-provider acceptance, or authorized Release signing on one candidate SHA. This entry supersedes no newer owner decision.
