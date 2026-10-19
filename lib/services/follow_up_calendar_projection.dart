@@ -37,7 +37,10 @@ class FollowUpCalendarProjection {
     for (final task in tasks) {
       if (task.trashed) continue;
       for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
+        final linkedReminder = task.taskReminders.where(
+          (reminder) => reminder.followUpId == followUp.id,
+        ).firstOrNull;
+        if ((linkedReminder != null || followUp.reminderDate != null) &&
             reminderIdFor(task, followUp) == reminderId) {
           return FollowUpCalendarTarget(
             taskId: task.id,
@@ -83,12 +86,21 @@ class FollowUpCalendarProjection {
 
         // nextFollowUp is an internal planned action, not a calendar event.
         // Only the explicitly configured reminderDate is projected.
-        final reminderDate = followUp.reminderDate;
+        final linkedReminder = task.taskReminders.where(
+          (reminder) => reminder.followUpId == followUp.id,
+        ).firstOrNull;
+        final reminderDate = linkedReminder?.date ?? followUp.reminderDate;
         if (reminderDate != null) {
           reminders.add(
             CalendarReminder(
               id: reminderIdFor(task, followUp),
-              title: calendarTitle,
+              title: linkedReminder?.title.trim().isNotEmpty == true
+                  ? linkedReminder!.title
+                  : (customTitle != null && customTitle.isNotEmpty
+                      ? customTitle
+                      : task.title.trim().isNotEmpty
+                          ? 'پیگیری — ${task.title.trim()}'
+                          : 'پیگیری'),
               date: reminderDate,
               completed: isCompleted,
               description: parentSubtitle,
@@ -99,6 +111,7 @@ class FollowUpCalendarProjection {
       }
 
       for (final reminder in task.taskReminders) {
+        if (reminder.followUpId != null) continue;
         reminders.add(
           CalendarReminder(
             // The migrated legacy reminder keeps its old external identity so
