@@ -566,7 +566,7 @@ jobs:
           PR_NUMBER: ${{ steps.verify.outputs.candidate_pr }}
           APP_VERSION: ${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER: ${{ steps.release_state.outputs.build_number }}
-          CERT_SHA256: ${{ env.ARVIN_VERIFIED_CERT_SHA256 }}
+          CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -587,12 +587,12 @@ jobs:
               'APK_SIGNATURE_V2=PASS',
               'APK_SIGNATURE_V3=PASS',
               'CERTIFICATE_FINGERPRINT_MATCH=PASS'
-            ].join('\\n');
+            ].join('\n');
             const existingBody = rel.data.body || '';
             if (!existingBody.includes('CERTIFICATE_FINGERPRINT_MATCH=PASS')) {
               const updated = await github.rest.repos.updateRelease({
                 owner, repo, release_id: rel.data.id,
-                body: existingBody + '\\n\\n' + verificationMarker
+                body: existingBody + '\n\n' + verificationMarker
               });
               rel = {data: updated.data};
             }
