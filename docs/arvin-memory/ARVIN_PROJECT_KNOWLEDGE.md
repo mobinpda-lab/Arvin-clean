@@ -137,3 +137,10 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Preserve the legacy timestamp; midnight is not evidence of all-day intent. The migrated reminder keeps Calendar identity task-reminder:<taskId> and the existing scheduler key; the old field remains for compatibility but is not emitted/scheduled a second time after migration.
 - The owner reports that the current app DB is empty. Do not assume all backups, test fixtures or other installations are empty.
 - SQL, backup/restore, rollback/retry, Calendar no-duplicate, exact-head CI and physical-device acceptance remain required.
+
+
+## 2026-10-19 — Build and Device Smoke evidence boundary
+
+Latest verified PR #2828 head is `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build run [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) completed successfully with Analyze, all six test shards, and Debug/Release APK builds. Device Smoke run [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) completed successfully across seven lanes: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore and Calendar.
+
+Artifact IDs include Release APK `12171622074` and Debug APK `12171039370`; provenance points to the same branch/head SHA. These are CI outputs, not official signed-release evidence. The Release build config currently selects Debug signing. The PR workflow results also do not replace a controlled `workflow_dispatch` exact-SHA checkout assertion or a physical-device test. Real Calendar Provider acceptance remains blocked by lack of writable provider evidence. Do not generalize a passing smoke lane into full feature acceptance beyond the scenario executed.
