@@ -96,10 +96,10 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p .github/calendar-provider-evidence
             echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt
-            echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt
+            echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> .github/calendar-provider-evidence/environment.txt
             echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt
             (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true)
             echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt
@@ -108,7 +108,7 @@ jobs:
             adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
             adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
             seed_output="$(adb shell content insert --uri content://com.android.calendar/calendars --bind account_name:s:arvin-acceptance --bind account_type:s:LOCAL --bind name:s:arvin-acceptance --bind "calendar_displayName:s:Arvin Acceptance Test" --bind calendar_color:i:-16776961 --bind calendar_access_level:i:700 --bind ownerAccount:s:arvin-acceptance --bind visible:i:1 --bind sync_events:i:1 --bind calendar_timezone:s:UTC --bind maxReminders:i:5 --bind "allowedReminders:s:0,1,2,3,4" --bind "allowedAttendees:s:0,1,2" --bind "allowedAvailability:s:0,1" 2>&1 || true)"
-            printf '%s\\n' "CALENDAR_SEED_OUTPUT_BEGIN" "$seed_output" "CALENDAR_SEED_OUTPUT_END" >> .github/calendar-provider-evidence/environment.txt
+            printf '%s\n' "CALENDAR_SEED_OUTPUT_BEGIN" "$seed_output" "CALENDAR_SEED_OUTPUT_END" >> .github/calendar-provider-evidence/environment.txt
             echo "CALENDAR_ROWS_BEGIN" >> .github/calendar-provider-evidence/environment.txt
             (adb shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level >> .github/calendar-provider-evidence/environment.txt 2>&1 || true)
             echo "CALENDAR_ROWS_END" >> .github/calendar-provider-evidence/environment.txt
