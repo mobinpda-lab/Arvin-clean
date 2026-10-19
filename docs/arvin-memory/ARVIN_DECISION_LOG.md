@@ -213,3 +213,12 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## 2026-10-19 — V10.0 evidence-based release decision
+
+- **Decision:** Release remains `BLOCKED — RELEASE: NO-GO`. No owner approval or protected credential was inferred.
+- **New evidence:** PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` passed Build run [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) and all seven Device Smoke lanes in [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763).
+- **Interpretation:** These runs validate the tested PR head in the current workflow context; they do not by themselves prove controlled exact-SHA dispatch, physical-device acceptance, official signing or real-provider acceptance.
+- **Unchanged constraints:** Do not merge/tag/release on the basis of CI alone. Release signing must follow the authorized repository design; do not generate fake keys or invent certificate fingerprints. Calendar Provider acceptance requires actual create/no-op/update/delete on a writable provider.
+- **Next action:** maintain the new run evidence in the evidence map and execution state; prove exact-SHA dispatch and continue independent acceptance work before any promotion decision.
