@@ -236,6 +236,12 @@ void main() {
       final migrationPlan = planner.plan(
         revisions: [migration],
         links: links,
+        targetCalendarId: secondCalendar.id,
+      );
+      expect(
+        migrationPlan.count(CalendarSyncAction.update),
+        1,
+        reason: 'Changing targetCalendarId must plan an UPDATE for migration',
       );
       final migrationResult = await executor.execute(
         plan: migrationPlan,
