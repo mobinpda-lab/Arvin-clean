@@ -892,3 +892,11 @@ No qualified release candidate has been selected. Pending/queued runs and histor
 | Real Calendar Provider | [Historical attempt 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | BLOCKED / not accepted | Reported `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; do not invent create/no-op/update/delete PASS. |
 
 PR #2828 remains OPEN/DRAFT at the tested SHA; docs PR #2826 remains OPEN/DRAFT. Overall release decision stays `BLOCKED — RELEASE: NO-GO`.
+
+## WAVE 4.9 EVIDENCE — Follow-up Reminder linked record
+
+- Baseline `main`: `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Existing label/id regression candidate PR #2828 head: `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) and Device Smoke [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) succeeded for that SHA only.
+- New contract implementation PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) IN_PROGRESS and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) QUEUED at documentation time. New-head tests remain unverified until these runs finish.
+- Migration strategy: add optional `followUpId` to existing Task-nested `TaskReminder`; materialize legacy `FollowUp.reminderDate` deterministically on read only when no linked record exists; retain legacy date/data; linked record wins for projection; preserve the existing Follow-up Calendar external identity and delivery stable key.
+- No real Calendar Provider operations, official signing certificate, or exact-SHA Device Smoke acceptance are established by this PR.
