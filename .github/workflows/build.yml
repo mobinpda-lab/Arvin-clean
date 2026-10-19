@@ -85,6 +85,12 @@ jobs:
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
       - name: Restore VazirHarf assets
         run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
+      - name: Validate release workflow YAML syntax
+        if: matrix.lane == 'analyze'
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; YAML.parse_file(".github/workflows/release-closure.yml"); YAML.parse_file(".github/workflows/release.yml"); puts "RELEASE_WORKFLOW_YAML_SYNTAX=PASS"'
+
       - name: Android V2 audit
         if: matrix.lane == 'analyze'
         run: |
@@ -171,6 +177,19 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
+      - name: Assert production signing fails closed without credentials
+        if: matrix.variant == 'release'
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/arvin-signing-missing-config.log"
+          set +e
+          (cd android && env -u ARVIN_RELEASE_STORE_FILE -u ARVIN_RELEASE_STORE_PASSWORD -u ARVIN_RELEASE_KEY_ALIAS -u ARVIN_RELEASE_KEY_PASSWORD ARVIN_OFFICIAL_RELEASE=true ./gradlew :app:tasks --no-daemon) >"$log" 2>&1
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then echo "::error::Official signing unexpectedly accepted missing credentials"; exit 1; fi
+          grep -q 'Official Release requested, but ARVIN_RELEASE_STORE_FILE is missing.' "$log"
+          echo "OFFICIAL_SIGNING_MISSING_CONFIG=FAIL_CLOSED"
+
       - name: Build APK (${{ matrix.variant }}; non-official CI artifact)
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK exists (not a production-signing assertion)
