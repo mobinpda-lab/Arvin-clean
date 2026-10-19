@@ -239,7 +239,7 @@ class Task {
             : 'پیگیری';
     final existing = index >= 0 ? taskReminders[index] : null;
     final reminder = TaskReminder(
-      id: existing?.id ?? 'follow-up:${id}:${followUp.id}',
+      id: existing?.id ?? 'follow-up:$id:${followUp.id}',
       title: reminderTitle,
       date: date,
       isAllDay: false,
