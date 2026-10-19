@@ -23,6 +23,7 @@ class FollowUpRepository {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
       task.followUps = [..._decodeFollowUps(task), followUp];
+      _reconcileReminder(task, followUp);
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
@@ -39,6 +40,7 @@ class FollowUpRepository {
 
       final updated = List<FollowUp>.of(existing)..[index] = followUp;
       task.followUps = updated;
+      _reconcileReminder(task, followUp);
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
@@ -76,6 +78,59 @@ class FollowUpRepository {
       task.updatedAt = DateTime.now();
       return updatedFollowUp;
     });
+  }
+
+  /// Mirrors the optional FollowUp reminder into the canonical TaskReminder
+  /// collection. The stable ID is preserved on edits; clearing the time removes
+  /// only the reminder explicitly linked to this FollowUp.
+  void _reconcileReminder(Task task, FollowUp followUp) {
+    final linked = task.taskReminders
+        .where((item) => item.followUpId == followUp.id)
+        .toList(growable: false);
+
+    if (followUp.reminderDate == null) {
+      if (linked.isNotEmpty) {
+        task.taskReminders = task.taskReminders
+            .where((item) => item.followUpId != followUp.id)
+            .toList();
+      }
+      return;
+    }
+
+    final rawFollowUpTitle = followUp.title?.trim() ?? '';
+    final rawTaskTitle = task.title.trim();
+    final reminderTitle = rawFollowUpTitle.isNotEmpty
+        ? rawFollowUpTitle
+        : rawTaskTitle.isNotEmpty
+            ? 'پیگیری — $rawTaskTitle'
+            : 'پیگیری';
+
+    if (linked.isNotEmpty) {
+      final primary = linked.first;
+      final updated = primary.copyWith(
+        title: reminderTitle,
+        date: followUp.reminderDate!,
+      );
+      task.taskReminders = [
+        for (final reminder in task.taskReminders)
+          if (reminder.followUpId != followUp.id) reminder,
+        updated,
+      ];
+      return;
+    }
+
+    final sequence = task.nextReminderSequence < 1 ? 1 : task.nextReminderSequence;
+    task.taskReminders = [
+      ...task.taskReminders,
+      TaskReminder(
+        id: 'follow-up-reminder-${followUp.id}',
+        title: reminderTitle,
+        date: followUp.reminderDate!,
+        sequence: sequence,
+        followUpId: followUp.id,
+      ),
+    ];
+    task.nextReminderSequence = sequence + 1;
   }
 
   Task _requiredTask(List<Task> tasks, String taskId) {
