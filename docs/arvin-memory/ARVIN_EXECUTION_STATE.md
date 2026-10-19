@@ -1,3 +1,18 @@
+# V12.0 LIVE EXECUTION CHECKPOINT — 2026-10-19T22:17+03:30
+
+- **Canonical command:** `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`; V12.0 governing addendum committed at `eddcc9cb91b244408ae9e73e3635802dbe7d1ec7`. Historical protocol content preserved.
+- **Repository access:** confirmed `mobinpda-lab/Arvin-clean` is public; GitHub connector reports read/write/admin permissions. A write was confirmed on the existing PR branch.
+- **Working branch:** `wave-4-10/follow-up-reminder-contract`.
+- **PR:** [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), title `[DRAFT] Wave 4.12: Follow-up Reminder persistence and lifecycle`. Last fetched state: OPEN / DRAFT / UNMERGED. Base `fix/follow-up-record-authority-20261019` at `49910e585ee73afcf56a7f8d927b9c69e763c5c5`.
+- **Latest confirmed branch commit at this checkpoint:** `eddcc9cb91b244408ae9e73e3635802dbe7d1ec7` (master protocol V12.0 addendum). The PR-triggered orchestrator run returned by the latest Actions query is old: [39300092580](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092580), SHA `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf`, success for orchestrator wakeup only; it is not build or device validation of the new commit.
+- **Exact-SHA / build / device validation for `eddcc9c`:** NOT RUN / UNKNOWN from evidence retrieved in this pass. No passing check status was returned for the new commit; the connected fetch exposed no direct workflow-dispatch action. Do not reuse earlier PR synthetic-merge or older-head runs as exact-head proof.
+- **Release:** `BLOCKED — RELEASE: NO-GO`. PR #2833 remains draft and unmerged.
+- **Known independent blockers from the latest PR checkpoint:** (1) Exact-SHA workflow dispatch/assertion is not proven for current head; (2) real Calendar Provider acceptance remains blocked until writable-provider CREATE → NO-OP → UPDATE → DELETE lifecycle is evidenced; (3) official Release signing remains blocked because main Release config was reported to use the debug signing config and no authorized release certificate/fingerprint is verified; (4) Reminder integration and Backup/Restore remain implemented but not verified against one fixed current SHA.
+- **Scope of this run:** recovered live repo, PR and canonical docs; confirmed write permissions; updated the existing canonical master protocol on the existing PR branch; verified the resulting file content. No app code, tests, workflows, PR state, signing configuration, merge, tag or release was changed.
+- **Next action:** inspect the current PR head and relevant workflow runs/jobs after the protocol commit; obtain exact-head Build and complete Device Smoke evidence; continue with the highest-value existing blocker without duplicating features or tests. Keep Calendar Provider and signing gates blocked until direct evidence/authorization exists.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
