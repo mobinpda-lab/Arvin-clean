@@ -310,21 +310,6 @@ void main() {
         {
           'id': 't-title-fallback',
           'title': '  قرارداد مادر  ',
-          'followUps': [
-            {
-              'id': 'f-parent-fallback',
-              'dateTime': '2026-10-20T10:00:00.000',
-              'title': '   ',
-              'reminderDate': '2026-10-22T14:30:00.000',
-              'personIds': ['person-1'],
-            },
-            {
-              'id': 'f-empty-fallback',
-              'dateTime': '2026-10-20T11:00:00.000',
-              'title': '',
-              'reminderDate': '2026-10-23T14:30:00.000',
-            },
-          ],
           'taskReminders': [],
           'nextReminderSequence': 1,
         },
@@ -332,6 +317,25 @@ void main() {
     });
 
     const repository = FollowUpRepository();
+    await repository.add(
+      't-title-fallback',
+      FollowUp(
+        id: 'f-parent-fallback',
+        dateTime: DateTime(2026, 10, 20, 10),
+        title: '   ',
+        reminderDate: DateTime(2026, 10, 22, 14, 30),
+        personIds: const ['person-1'],
+      ),
+    );
+    await repository.add(
+      't-title-fallback',
+      FollowUp(
+        id: 'f-empty-fallback',
+        dateTime: DateTime(2026, 10, 20, 11),
+        title: '',
+        reminderDate: DateTime(2026, 10, 23, 14, 30),
+      ),
+    );
     var stored = (await TaskStore().load()).single;
     var parentFallback = stored.taskReminders
         .singleWhere((item) => item.followUpId == 'f-parent-fallback');
@@ -377,20 +381,20 @@ void main() {
         {
           'id': 't-empty-titles',
           'title': '   ',
-          'followUps': [
-            {
-              'id': 'f-empty-titles',
-              'dateTime': '2026-10-20T10:00:00.000',
-              'title': '  ',
-              'reminderDate': '2026-10-22T14:30:00.000',
-            },
-          ],
-          'taskReminders': [],
-          'nextReminderSequence': 1,
         },
       ]),
     });
 
+    const repository = FollowUpRepository();
+    await repository.add(
+      't-empty-titles',
+      FollowUp(
+        id: 'f-empty-titles',
+        dateTime: DateTime(2026, 10, 20, 10),
+        title: '  ',
+        reminderDate: DateTime(2026, 10, 22, 14, 30),
+      ),
+    );
     final stored = (await TaskStore().load()).single;
     expect(
       stored.taskReminders.singleWhere((item) => item.followUpId == 'f-empty-titles').title,
