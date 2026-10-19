@@ -44,6 +44,8 @@ flutter:
           weight: 400
         - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
           weight: 500
+        - asset: assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
+          weight: 600
         - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
           weight: 700
     - family: VazirHarf
