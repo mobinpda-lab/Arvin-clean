@@ -63,7 +63,7 @@ void main() {
       contains(r"arvin-device-smoke-${{ matrix.scenario }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}"),
     );
     expect(workflow, contains('target_sha:'));
-    expect(workflow, contains('echo "EXACT_TARGET_SHA=$actual"'));
+    expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
     expect(
       workflow,
       contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}"),
