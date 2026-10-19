@@ -59,6 +59,8 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final followUp in task.followUps) {
+        // Completed FollowUps retain their history but must not deliver reminders.
+        if (followUp.completed) continue;
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
 

@@ -1,5 +1,6 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_reminder_projection.dart';
+import 'package:arvin/services/follow_up_reminder_delivery_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -246,6 +247,34 @@ void main() {
     expect(result.single.label, 'پیگیری');
     expect(result.single.stableKey, 'task-no-title:fu-no-title');
     expect(result.single.scheduledAt, now.add(const Duration(hours: 1)));
+  });
+
+
+  test('does not deliver due reminders for completed FollowUps', () {
+    const delivery = FollowUpReminderDeliveryService();
+    final task = Task(
+      id: 'task-completed-followup',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'fu-completed',
+          dateTime: now,
+          title: 'پیگیری تکمیل‌شده',
+          reminderDate: now.subtract(const Duration(minutes: 1)),
+          completed: true,
+        ),
+        FollowUp(
+          id: 'fu-active',
+          dateTime: now,
+          title: 'پیگیری فعال',
+          reminderDate: now.subtract(const Duration(minutes: 1)),
+        ),
+      ],
+    );
+
+    final due = delivery.due([task], now: now);
+
+    expect(due.map((item) => item.followUpId), ['fu-active']);
   });
 
 }
