@@ -225,3 +225,13 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Persistence/migration:** TaskStore's canonical Task JSON envelope already persists TaskReminder objects, and the existing SQL schema is version 6. No new schema migration was introduced. This is not yet proof of end-to-end SQLite reload or Backup/Restore correctness.
 - **Evidence:** implementation commits `2989741558cdc834787f38751469e91788cf42e7`, `e83229579d36108786f11393ca622de85c13b693`, `f6d34abe1b435530e72cc3ef0c8e90746dda4e90`, `dba7a12b55edb1ffc7981f5526a8c7c4330640c6`; regression tests commit `b4b14a2497c460b2bd8da1711b7a8663cb1c42d6`. All are **IMPLEMENTED_NOT_VERIFIED** until focused and CI tests pass.
 - **Release decision:** retain `BLOCKED — RELEASE: NO-GO`.
+
+
+
+## 2026-10-19 — Idempotent writes and Calendar projection identity
+
+- Decision: Repeated FollowUp saves with the same stable Follow-up ID are reconciled in place, not appended. This prevents duplicate history rows and makes reminder reconciliation idempotent.
+- Decision: Keep the established Calendar ID followup:<taskId>:<followUpId> for linked Follow-up reminders. The persisted TaskReminder is a mirror for independent durable identity, while Calendar projection skips the mirror to prevent duplicate events and preserve existing external links.
+- Verification status: implementation commits 937361328d56bae7b1831e8366f570658826cb15 and a26189099c60985f88ea2500b55ae17c89af8ee3; tests c24e7b4dfe81313b4c45a95960cc47e3e5458755 and 1d820bf3e6f6eb4d5889a2bc4c2835c6e09d5f42. All remain IMPLEMENTED_NOT_VERIFIED until current-head CI passes.
+- Backup/Restore: Added a SQL + canonical backup round-trip test in commit 2253ef62f404ef064b4bf85d40a16cbf880ed554. This is not evidence of success until executed.
+- Open contract: Notification rescheduling is wired through the existing coordinator, but full outbound Calendar Provider create/no-op/update/delete acceptance remains blocked; do not infer it from projection unit tests.
