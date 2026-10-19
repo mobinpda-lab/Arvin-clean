@@ -22,7 +22,14 @@ class FollowUpRepository {
   Future<void> add(String taskId, FollowUp followUp) async {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
-      task.followUps = [..._decodeFollowUps(task), followUp];
+      final existing = List<FollowUp>.of(_decodeFollowUps(task));
+      final index = existing.indexWhere((item) => item.id == followUp.id);
+      if (index < 0) {
+        existing.add(followUp);
+      } else {
+        existing[index] = followUp;
+      }
+      task.followUps = existing;
       _reconcileReminder(task, followUp);
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
@@ -119,7 +126,9 @@ class FollowUpRepository {
       return;
     }
 
-    final sequence = task.nextReminderSequence < 1 ? 1 : task.nextReminderSequence;
+    final sequence = task.nextReminderSequence < 1
+        ? 1
+        : task.nextReminderSequence;
     task.taskReminders = [
       ...task.taskReminders,
       TaskReminder(
