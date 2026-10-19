@@ -1220,3 +1220,6 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - Current Build workflow supports `workflow_dispatch` and checks `git rev-parse HEAD` against `target_sha`, but the connected GitHub action interface exposes no workflow-dispatch operation. Exact-SHA execution is therefore blocked pending authorized manual dispatch or another existing authorized runner.
 - Live `main` Android Release configuration still uses Debug signing. Owner-authorized keystore and independently approved fingerprint are not available through this interface.
 - Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag, or release was performed.
+
+
+Wave 4.16 documentation batch commit: `d1dc44be39c118551374c6e5a1cc1330adc5134d`. This follow-up touch is intentionally a new PR-head commit so GitHub's normal PR synchronization can schedule candidate-specific validation; no test result is inferred from the earlier SHA.
