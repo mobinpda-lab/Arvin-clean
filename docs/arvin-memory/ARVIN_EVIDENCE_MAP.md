@@ -557,3 +557,11 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 Use an authorized GitHub Actions dispatch-capable executor (or authenticated REST `POST /repos/mobinpda-lab/Arvin-clean/actions/workflows/calendar-provider-acceptance.yml/dispatches`) against `fix/v5.19-calendar-smoke-overflow-navigation`, then verify exact run SHA and download all three evidence files. Separately make the signature-audit workflow available on default branch only through a reviewed, authorized change, then execute it against source Run `39148486792` and expected SHA above. Do not bypass release governance.
 
 **Release decision: NO-GO.**
+
+
+### Failure-log detail recovered after initial checkpoint — 2026-10-19
+
+- Signature audit Run [39153178383](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383), job [117750860500](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383): Android SDK setup emitted `Warning: Failed to find package 'tools'`; `sdkmanager` exited 1.
+- Signature audit Run [39153221573](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573), job [117750993883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573): `yes: standard output: Broken pipe`; shell exited 1 before artifact checksum/signature verification.
+- Signature-branch Device Smoke Run [39153251028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153251028), Calendar job [117751102395](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153251028): test `Android calendar card tap, long press, SQLite completion and Persian time picker` failed at `integration_test/calendar_card_interaction_test.dart:66`; expected key `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up`, found zero widgets. This is failure evidence for SHA `5c76d3f1f00804f15668c6d80c65c02e9abe05b9`, not the Calendar candidate SHA `e80be91f4f461d0387d3b5b9349c217715bdba2e`.
+- The corrected Persian time-picker artifact ID from Device Smoke Run `39148486773` is `12144486950`; the Debug APK artifact from Build Run `39148486792` is separately `12144461948`.
