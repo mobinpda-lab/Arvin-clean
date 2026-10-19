@@ -169,3 +169,13 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - A green Release APK build is not official release acceptance: android/app/build.gradle.kts uses debug signing on main. Do not publish that APK as a production release.
 - Exact-SHA acceptance requires the verification step to execute, not be SKIPPED. Calendar Provider acceptance requires a writable provider and explicit CREATE/NO-OP/UPDATE/DELETE evidence.
 - Canonical release status and requirement matrix files have now been created on the existing PR branch because both were absent from main and the working branch. Their commits changed the candidate SHA, requiring new CI evidence.
+
+
+## Wave 4.13 verified operational facts — 2026-10-19
+
+- PR #2833 candidate source head at this checkpoint: `4567397be8374c82993271a12f552219a3727be1`; docs update will advance it.
+- Follow-up reminder work reuses canonical Task/FollowUp and embedded TaskReminder structures; repository code reconciles the Follow-up-linked reminder by stable `followUpId`, preserves reminder identity on edit, and removes only the reminder linked to the Follow-up when its reminder time is cleared. This is implementation evidence, not full lifecycle acceptance.
+- Build run [39235854952](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854952) passed Analyze, all six test shards, Debug and Release APK jobs. The exact-target assertion was skipped on the PR event, so checkout identity is not proven.
+- Release artifact [12179281920](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12179281920) contains APK SHA-256 `6c6e38199c9d29ae26a4ff33e45082882ff05d0ee0bd8d276889148e78f2fabd`; this is not signer verification.
+- Provider acceptance artifact [12165156149](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12165156149) establishes API 35 and installed CalendarProvider2, but no writable calendar row. Never interpret the test harness's normal return on this branch as PASS.
+- Connected GitHub actions do not expose workflow dispatch or repository secret/variable inspection. Treat those as access limitations, not evidence that credentials do not exist.
