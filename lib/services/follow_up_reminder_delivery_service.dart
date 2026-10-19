@@ -57,17 +57,23 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final followUp in task.followUps) {
-        final reminderDate = followUp.reminderDate;
+        final linkedReminders = task.taskReminders.where(
+          (reminder) => reminder.followUpId == followUp.id,
+        ).toList(growable: false);
+        final linkedReminder = linkedReminders.isEmpty ? null : linkedReminders.first;
+        final reminderDate = linkedReminder?.date ?? followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
 
         final candidate = FollowUpReminderCandidate(
           taskId: task.id,
           taskTitle: task.title,
           followUpId: followUp.id,
-          label: FollowUpReminderCandidate.followUpLabel(
-            title: followUp.title,
-            taskTitle: task.title,
-          ),
+          label: linkedReminder?.title.trim().isNotEmpty == true
+              ? linkedReminder!.title
+              : FollowUpReminderCandidate.followUpLabel(
+                  title: followUp.title,
+                  taskTitle: task.title,
+                ),
           scheduledAt: reminderDate,
         );
 
