@@ -310,3 +310,12 @@ Overall release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag or release a
 - **Compatibility boundary:** existing accepted decision docs require `nextFollowUp` and reminder timestamps to remain semantically independent and prohibit silent auto-creation or silent data loss. Preserve legacy `FollowUp.reminderDate` data during any transition; avoid double-scheduling when a persisted TaskReminder and legacy projection coexist.
 - **Status:** `IMPLEMENTED_NOT_VERIFIED` for current projection behavior; `BLOCKED` for the independent-record/UI unification contract pending a narrow, backward-compatible design and regression tests. Do not report the full Follow-up Reminder contract as complete.
 - **Next action:** define a single source-of-truth transition for explicit user opt-in, stable reminder ID, title refresh on Follow-up-title edits, legacy-field compatibility, clear/delete semantics and duplicate suppression. Then test JSON/SQL/backup round-trip, notification delivery, Calendar update/no-op/delete and history independence on the resulting exact SHA.
+
+
+## LIVE CI ORCHESTRATION BLOCKER — 2026-10-19 — exact-SHA Device Smoke
+
+- **Observed main SHA:** `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- **Source evidence:** main `.github/workflows/device-smoke.yml` has a `workflow_dispatch` trigger but no `target_sha` input. Main `.github/workflows/build.yml` does have `target_sha` support.
+- **Existing fix lane:** PR [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `d437dbf6cc76bbb216916b94145a8ddae897e52b`, adds the Device Smoke target-SHA input and checkout assertion. It is OPEN/DRAFT, unmerged; no manual run proves the new behavior yet.
+- **Classification:** infrastructure/governance integration gap, not a product-code failure. Passing PR run [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) on `49910e585ee73afcf56a7f8d927b9c69e763c5c5` remains valid PR-head emulator evidence, but does not satisfy the explicit exact-SHA dispatch gate.
+- **Action:** review/integrate PR #2827 through approved governance, then run the updated workflow against a fixed target SHA and verify checked-out SHA in all seven lanes. This session's GitHub connector exposes no workflow-dispatch operation, so the dispatch itself cannot be initiated here. No bypass or unapproved merge was attempted.
