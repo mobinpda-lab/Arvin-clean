@@ -408,3 +408,11 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - Run [39244802042](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042) failed after the shell-option issue was corrected. The actual emulator-runner contract executes each newline in its `script` input in a separate `/usr/bin/sh` process; therefore variables and control flow in the inline multiline script did not persist, and the test/output files were not produced. The artifact [12182643345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042/artifacts/12182643345) retained the preinitialized evidence file but did not prove Provider acceptance.
 - Replaced the inline multiline script with one invocation, `bash .github/scripts/calendar-provider-acceptance.sh`, so Bash variables, seed result, test result and fail-closed logic execute in a single process. Added the script to workflow path filters and records both actual checkout SHA and PR head SHA. Artifact upload remains `if: always()` with evidence initialized before emulator boot.
 - This is a CI harness correction, not a pass. The next run must show seed diagnostics, writable calendar rows, and the real CREATE → NO-OP → UPDATE → DELETE acceptance marker. Otherwise Calendar Provider remains BLOCKED.
+
+
+## Wave 4.18 — Calendar Provider UPDATE failure (2026-10-19)
+
+- Problem: Provider acceptance run [39245131251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131251) failed in `SystemCalendarBridge.updateProviderEvent` → `CalendarProviderSyncExecutor.execute` → integration acceptance.
+- Root cause: native ContentResolver update used an event item URI and an additional `CALENDAR_ID = ?` selection, which the Calendar Provider rejects for item-URI update.
+- Fix: commit [3cc2b4551ea5c30903a697cdff3b3450e6bf609f](https://github.com/mobinpda-lab/Arvin-clean/commit/3cc2b4551ea5c30903a697cdff3b3450e6bf609f) queries the exact URI, checks event and calendar identity, and then updates that URI with no selection.
+- Status: FIX IMPLEMENTED; validation pending. Provider gate remains BLOCKED until the actual CREATE → NO-OP → UPDATE → DELETE test passes on the qualified revision.
