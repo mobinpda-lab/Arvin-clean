@@ -479,3 +479,16 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Latest UI label | `9dc9d9f3b9156ab1095b722ca7dbc89bdaf7eeee` | IMPLEMENTED_NOT_VERIFIED | UI label changed to `یادآور پیگیری بعدی`; not yet validated by widget test on this SHA. |
 
 **Evidence rule:** no result above establishes a passing gate on the latest PR head. Device Smoke, Backup/Restore integration, writable Calendar Provider acceptance, exact-SHA verification and official signing remain unproven.
+
+
+
+## 2026-10-19 — Follow-up Reminder idempotency, Calendar de-duplication, Backup/Restore test
+
+| Feature / Gate | Commit | Result | Evidence / limitation |
+|---|---|---|---|
+| Idempotent FollowUp create by stable ID | 937361328d56bae7b1831e8366f570658826cb15 | IMPLEMENTED_NOT_VERIFIED | Repository add replaces the existing Follow-up when the same ID is resubmitted; test added in c24e7b4dfe81313b4c45a95960cc47e3e5458755. |
+| Calendar projection duplicate prevention | a26189099c60985f88ea2500b55ae17c89af8ee3 | IMPLEMENTED_NOT_VERIFIED | Calendar projection skips TaskReminder entries linked by Follow-up ID; regression test commit 1d820bf3e6f6eb4d5889a2bc4c2835c6e09d5f42 expects exactly one existing followup:<taskId>:<followUpId> event. |
+| SQL + canonical Backup/Restore relationship test | 2253ef62f404ef064b4bf85d40a16cbf880ed554 | IMPLEMENTED_NOT_VERIFIED | New integration test round-trips Task, Follow-up, linked Reminder ID/date/title, Person association, Waiting for Response and unrelated Reminder through TaskStore and the existing canonical backup document. |
+| Latest complete Build / Device Smoke | Final PR #2833 head after these changes | PENDING | Older head 12ef171beef4533d12efe08f3bdacca5e2e03f36 had Analyze SUCCESS, but its Build and Device Smoke runs were cancelled by subsequent branch updates. Do not count them as full passes. |
+
+No new SQL schema migration was introduced; the current TaskStore JSON envelope is the persistence path for TaskReminder metadata. Actual migration and Backup/Restore behavior remain pending until the tests run on the final head.
