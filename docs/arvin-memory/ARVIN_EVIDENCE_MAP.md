@@ -684,3 +684,18 @@ Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([co
 | Canonical final-status document | `docs/arvin-memory/ARVIN_GO_RELEASE_FINAL_STATUS.md` returned 404 on main | MISSING on main | Keep this change in existing documentation PR; create canonical document on reviewed branch if still absent |
 | Release decision | Combined critical gates above | **RELEASE: NO-GO** | Do not merge, tag, or publish until critical gates close |
 
+
+
+## WAVE 4 EXECUTION — 2026-10-19
+
+| Gate | Latest source / change | Status | Next proof required |
+|---|---|---|---|
+| Live main baseline | `d9fb7a247037762216662a20fb32028ecc8a0f6b`; prior candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` is historical | Baseline verified; no qualified candidate declared | Select one candidate after reviewed integration |
+| Release signing | Main still sets Release signing config to Debug; official keystore/fingerprint/secrets are not inspectable via current connector | **BLOCKED — RELEASE CREDENTIAL REQUIRED** | Owner-authorized keystore mechanism + independently approved SHA-256 fingerprint; then exact-candidate APK audit |
+| Calendar Provider shell flow | PR #2831 branch commits [`fe43711`](https://github.com/mobinpda-lab/Arvin-clean/commit/fe437117fe020bac7d0641e300958582c71415de) and [`6ff5b3c`](https://github.com/mobinpda-lab/Arvin-clean/commit/6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da) | Code updated; CI not yet verified | Terminal workflow run, valid evidence artifacts, actual provider CRUD |
+| Exact-SHA Device Smoke | PR #2827 branch commits [`23c3250`](https://github.com/mobinpda-lab/Arvin-clean/commit/23c325006b746e0137676546f6b97c16e1df96c1), [`967407b`](https://github.com/mobinpda-lab/Arvin-clean/commit/967407bb3b9350e239c6111b14c0e69dc2a15137) | Revision evidence added; CI/dispatch unverified | All seven lanes on requested SHA, uploaded revision marker per lane |
+| Exact-SHA Build/APK artifact | PR #2827 branch commits [`126d94c`](https://github.com/mobinpda-lab/Arvin-clean/commit/126d94c7e68d989bfc92d3efa87a97dcfbe209f5), [`d437dbf`](https://github.com/mobinpda-lab/Arvin-clean/commit/d437dbf6cc76bbb216916b94145a8ddae897e52b) | Metadata and SHA-qualified artifact names added; CI/dispatch unverified | Build all quality shards and both APK variants on exact target; verify artifact source metadata |
+| Prior Build / Device Smoke | [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) / [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) | Successful on prior PR/documentation checkout only | Must not substitute for Wave 4 exact candidate |
+| Final status document | Added on this documentation branch | Not merged to main | Review PR #2826 and require CI on final doc head |
+| Overall | Multiple critical gates remain open | **RELEASE: NO-GO** | No tag or release until all critical gates close |
+
