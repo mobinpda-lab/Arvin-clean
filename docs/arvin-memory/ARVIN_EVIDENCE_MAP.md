@@ -669,3 +669,18 @@ Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([co
 | [#2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `196eff68ce2c2db09eb37cad86b69435428d285c` | Provider exact-head workflow/test; latest run in progress |
 
 **Base warning:** PRs #2790, #2791 and #2796 still report base snapshot `824ca8f17c92e76b3887001891d7d5b6f17974a6`, older than current `main` `d9fb7a247037762216662a20fb32028ecc8a0f6b`. Their successful CI is useful PR-checkout evidence, but it must not be treated as proof of integration against current main until the branches are reconciled. No base changes, merges or force pushes were performed.
+
+
+## LIVE RECHECK — 2026-10-19 — V4.0 Wave 3 gate state
+
+| Gate | Live evidence | Result | Remaining closure |
+|---|---|---|---|
+| Main baseline | `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b)) | VERIFIED | Recheck if main advances |
+| Official APK signature | Current main `android/app/build.gradle.kts` still signs Release with debug config; PR #2824 reports Debug DN and fingerprint `b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16` | **FAIL / NO-GO** | Owner-authorized release keystore/secret and approved fingerprint; exact-candidate build and audit |
+| Calendar Provider | [39203189292](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203189292) emitted stock-emulator no-writable-calendar limitation; [39205227469](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39205227469) failed shell flow | **BLOCKED** | Fix emulator/provider test environment and obtain explicit real CRUD + no-op uniqueness evidence on exact SHA |
+| Exact-SHA Build/Smoke | [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) Build SUCCESS; [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) all seven Device Smoke lanes SUCCESS | PR branch CI PASS only | These runs do not prove manual target-SHA dispatch for release candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` |
+| Backup/Restore | [39204622671](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622671) Build SUCCESS; [39204622845](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622845) all seven smoke lanes SUCCESS | PR checkout PASS | Exact-target validation and current-main base reconciliation |
+| PDF / UI font | PR #2791 reports real PDF artifact and four embedded UI-FD weights; PR #2796 registers UI Vazirmatn while preserving VazirHarf default | PARTIAL | Latest-base reconciliation, final candidate exact-SHA validation; app-preview comparison remains unverified |
+| Canonical final-status document | `docs/arvin-memory/ARVIN_GO_RELEASE_FINAL_STATUS.md` returned 404 on main | MISSING on main | Keep this change in existing documentation PR; create canonical document on reviewed branch if still absent |
+| Release decision | Combined critical gates above | **RELEASE: NO-GO** | Do not merge, tag, or publish until critical gates close |
+
