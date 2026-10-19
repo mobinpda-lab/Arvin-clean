@@ -218,3 +218,11 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 Follow-up Reminder implementation remains on PR #2833 and reuses the existing Task/Follow-up/TaskReminder structures. New regression tests were added for reminder title fallback and title-only edits preserving stable Reminder ID and schedule. Commit: `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`; Build/Device Smoke validation was pending at the checkpoint and must be read from terminal runs before assigning a verified status.
 
 Calendar Provider CI uses an Android API 35 stock/default emulator. The provider component is present but no writable calendar row is discoverable; run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) failed acceptance and published diagnostics [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078). No real-provider acceptance is established.
+
+
+## Wave 4.17 project knowledge update — 2026-10-19
+
+- Reminder identity/reconciliation remains canonical in `FollowUpRepository` and the Task/FollowUp persistence contract. Notification due calculation is a separate runtime layer; all relevant lifecycle states must be filtered there too.
+- Found and fixed a state-filter mismatch: `FollowUpReminderProjection.pending` and `FollowUpReminderAlarmPlanner.nextAlarmAt` already skip completed FollowUps, but `FollowUpReminderDeliveryService.due` did not. The due-delivery guard and regression test are in commit `9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b`; pending actual CI validation.
+- Existing repository tests use `FollowUpRepository` and `TaskStore().load()` to inspect persisted Task/FollowUp/TaskReminder state, including stable ID/time, Person IDs, repeated saves and scoped clearing. These are test assertions, not proof of the complete notification/Calendar/backup golden flow.
+- The Calendar Provider test explicitly reports the stock-emulator no-writable-calendar limitation rather than fabricating success; current diagnostic evidence remains the failed older run 39241395995 and artifact 12182310078.

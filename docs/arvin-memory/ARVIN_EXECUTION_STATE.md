@@ -1223,3 +1223,16 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 
 
 Wave 4.16 documentation batch commit: `d1dc44be39c118551374c6e5a1cc1330adc5134d`. This follow-up touch is intentionally a new PR-head commit so GitHub's normal PR synchronization can schedule candidate-specific validation; no test result is inferred from the earlier SHA.
+
+
+## Wave 4.17 — Live continuation update (2026-10-19)
+
+- Actual PR #2833 remains OPEN / DRAFT / UNMERGED. Base is `fix/follow-up-record-authority-20261019` at `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; head before the Wave 4.17 fix was `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7`.
+- Build [39243593152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593152) tests SHA `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7`; last inspected nonterminal: Analyze and shards test-1 through test-5 succeeded; test-0 and Debug/Release APK jobs remained in progress. This is not a final Build pass and does not validate later commits.
+- Device Smoke [39243593281](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593281) targets that same old SHA; last inspected: Home and Quick Capture in progress; SQL Persistence, SQL Migration, People, Backup/Restore and Calendar queued. No 7/7 result.
+- Lifecycle defect found in `FollowUpReminderDeliveryService.due`: unlike the alarm planner/projection, the due-delivery loop did not skip completed FollowUps, so a completed FollowUp with a past reminderDate could still produce a notification. Fixed by skipping completed FollowUps and adding a regression test in `test/follow_up_reminder_projection_test.dart`. Commit `9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b`. Test/build validation pending on the post-fix candidate.
+- Existing repository tests exercise canonical TaskStore load after repository writes, stable linked Reminder ID/time, Person ID preservation, idempotent saves, scoped clearing, and generic title fallback. These tests are present but are not marked verified until their actual test shard completes successfully.
+- Calendar Provider run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) concluded FAILURE on older SHA `094c43f1f92de263d26950915b13df7380e69244`; diagnostic artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) remains available. The integration test requires a real writable calendar and does not fabricate CREATE/NO-OP/UPDATE/DELETE success. Provider acceptance remains BLOCKED.
+- Exact-SHA workflow has a `target_sha` input and compares `git rev-parse HEAD` to it, but current connected GitHub actions do not expose an authorized workflow-dispatch operation. PR-triggered jobs do not execute the dispatch-only assertion.
+- `main:android/app/build.gradle.kts` still configures Release with the debug signing config. Approved release credentials and independently approved certificate fingerprint are not available. No merge, tag or release is authorized.
+- Release decision remains **BLOCKED — RELEASE: NO-GO**. Next action: obtain terminal CI evidence for the latest post-fix candidate, inspect any failed shard logs, then continue the real writable Calendar Provider investigation.

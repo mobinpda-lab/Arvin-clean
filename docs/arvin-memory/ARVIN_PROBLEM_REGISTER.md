@@ -378,3 +378,13 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - **Writable Calendar Provider unavailable:** Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) fails the real-provider acceptance with `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. API 35 stock emulator has CalendarProvider2 but no writable calendar row. Diagnostic artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) was uploaded successfully. Status: `BLOCKED_NO_WRITABLE_CALENDAR_PROVIDER`; next authorized alternative is a CI emulator image/configuration or isolated provider environment with a real writable calendar and explicit credentials/configuration, none currently exposed by this interface.
 - **Exact-SHA execution:** workflow supports target_sha and assertion, but connected integration has no workflow_dispatch action. Authorized dispatch is required.
 - **Official signing:** main still uses Debug signing for Release; approved key/fingerprint are unavailable.
+
+
+## Wave 4.17 problem update — 2026-10-19
+
+- **Defect fixed, pending CI:** `FollowUpReminderDeliveryService.due` could include a completed FollowUp if its reminder timestamp was due/past. Added a completed-state guard and a regression test in commit `9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b`. Do not mark resolved/verified until the actual post-fix test run passes.
+- **CI evidence lag:** Build and Device Smoke runs `39243593152` and `39243593281` target the previous SHA `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7`; their last observed states were nonterminal. They do not validate the post-fix commit.
+- **Calendar Provider:** writable provider limitation remains open; previous failed run `39241395995` and unexpired artifact `12182310078` refer to SHA `094c43f1f92de263d26950915b13df7380e69244`.
+- **Exact SHA:** authorized `workflow_dispatch` capability unavailable through current integration. Do not treat PR-triggered jobs as satisfying dispatch-only assertion.
+- **Signing:** main Release config still uses debug signing; approved release key and independent fingerprint remain an owner dependency.
+- Release remains **BLOCKED — RELEASE: NO-GO**.

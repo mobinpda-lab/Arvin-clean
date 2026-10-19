@@ -564,3 +564,14 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 | Build for previous code head | Run [39240952251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952251), source metadata SHA `273944bb6504c7d51fa4b5f8b869a5519591f682` | SUCCESS, 9/9 jobs; Exact-SHA assertion skipped | Debug Artifact [12181028571](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12181028571), digest `sha256:017b04a392cfbb3fe73cdeb53067b5053b557999b89e088ec2ac3574c9cd17cc`; Release Artifact [12180934054](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12180934054), digest `sha256:def49ff62e32839a2ab8c836b100841e5d9ee7f86e54dae28c99792a8b3639a9`. Artifact ZIP digests only. |
 | Real Calendar Provider | Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995), PR #2831 SHA `094c43f1f92de263d26950915b13df7380e69244` | FAILURE / BLOCKED | Exact-target assertion succeeded for that SHA; acceptance reports no writable calendar on stock API 35 emulator. Diagnostic Artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) successfully uploaded. |
 | Official Release signing | main `android/app/build.gradle.kts` | BLOCKED | Release uses Debug signing; authorized key and approved fingerprint unavailable. |
+
+
+## Wave 4.17 evidence delta — 2026-10-19
+
+| Evidence | SHA / Run | Result | Qualification |
+|---|---|---|---|
+| Completed-FollowUp notification guard + regression test | Commit [9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b](https://github.com/mobinpda-lab/Arvin-clean/commit/9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b) | Implemented; validation pending | Delivery loop now excludes completed FollowUps. CI on prior SHA is not evidence for this fix. |
+| Build before fix | [39243593152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593152), SHA `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7` | Nonterminal at last inspection | Analyze and test shards 1–5 passed; test-0 and APK builds in progress. Not a full pass. |
+| Device Smoke before fix | [39243593281](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593281), SHA `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7` | Nonterminal | Home and Quick Capture in progress; five lanes queued. |
+| Calendar Provider diagnostics | [Run 39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995), SHA `094c43f1f92de263d26950915b13df7380e69244` | FAILURE | [Artifact 12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) remains unexpired; real writable provider acceptance not established. |
+| Official Release signer | `main:android/app/build.gradle.kts` | BLOCKED | Release signing config still points to debug; no approved key/fingerprint. |

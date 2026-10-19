@@ -103,3 +103,14 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - Exact-SHA workflow dispatch is unavailable through the current connected GitHub action interface; an authorized workflow_dispatch with target_sha assertion is required.
 - Release configuration on main still uses Debug signing. Authorized keystore and independently approved certificate fingerprint are not available.
 - No merge, tag, or official APK publication is authorized.
+
+
+## Wave 4.17 release gate update — 2026-10-19
+
+**Decision: BLOCKED — RELEASE: NO-GO.** PR #2833 remains OPEN / DRAFT / UNMERGED.
+
+- Implemented a targeted notification lifecycle fix: completed FollowUps are now excluded by `FollowUpReminderDeliveryService.due`; a regression test was added. Commit: [9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b](https://github.com/mobinpda-lab/Arvin-clean/commit/9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b). Validation is pending on the new candidate.
+- Build [39243593152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593152) and Device Smoke [39243593281](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593281) are evidence for prior SHA `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7`, not the post-fix candidate. At last inspection Build was nonterminal and Device Smoke was queued/in progress; no final conclusions are allowed.
+- Provider acceptance remains blocked after [Run 39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995), whose unexpired diagnostic artifact is [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078). This was an older source SHA and is not a pass.
+- Exact-SHA dispatch remains blocked by lack of a workflow-dispatch action in the connected integration. Official Release signing remains blocked because `main` uses debug signing and approved signing credentials/fingerprint are unavailable.
+- No merge, tag, or release is authorized.

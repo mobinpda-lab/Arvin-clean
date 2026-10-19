@@ -106,3 +106,17 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 | CAL-ACCEPT-01 | Real writable Provider CREATE → NO-OP → UPDATE → DELETE | BLOCKED | Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995); explicit `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; diagnostics [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) | Provide authorized writable provider/account or supported isolated CI environment; do not relax acceptance. |
 | CI-EXACT-01 | Exact target SHA checkout and assertion | BLOCKED | Build run 39240952251 skipped assertion; Provider run's assertion only covers PR #2831 SHA | Authorized dispatch using `target_sha`, with actual checkout assertion and artifacts tied to same SHA. |
 | SIGN-01 | Official Release signer and approved certificate fingerprint | BLOCKED | main Gradle Release config uses Debug signing | Owner-authorized signing input and independently approved fingerprint; apksigner verification. |
+
+
+## Wave 4.17 traceability delta — 2026-10-19
+
+| ID | Requirement | Status | Evidence / limitation | Next action |
+|---|---|---|---|---|
+| FU-06 | Completed FollowUps never deliver stale due notifications | IMPLEMENTED_NOT_VERIFIED | Fixed missing completed-state guard in `FollowUpReminderDeliveryService.due`; regression test added to `test/follow_up_reminder_projection_test.dart`; commit [9b7386d](https://github.com/mobinpda-lab/Arvin-clean/commit/9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b). | Confirm the test shard passes on the latest candidate SHA. |
+| CI-01 | Build and six test shards on current candidate | IN_PROGRESS | Run [39243593152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593152) targets previous SHA `6287ecc...` and was nonterminal at last inspection; it cannot validate commit `9b7386d...`. | Inspect newly triggered run for the post-fix head. |
+| CI-02 | Seven Device Smoke lanes on current candidate | IN_PROGRESS | Run [39243593281](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243593281) targets previous SHA and was queued/nonterminal. | Confirm latest-head run lane-by-lane. |
+| CAL-02 | Real Provider CREATE → NO-OP → UPDATE → DELETE | BLOCKED | Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) failed on an older SHA; diagnostic artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078). | Establish an authorized writable Calendar Provider environment and run real operations. |
+| CI-03 | Exact target SHA dispatch and checkout assertion | BLOCKED | `build.yml` has a `workflow_dispatch.target_sha` input and checkout assertion; the connected integration exposes no dispatch action. | Authorized workflow dispatch and exact checkout log required. |
+| SIGN-01 | Official release signing with approved fingerprint | BLOCKED | `main` Release build uses debug signing; no approved keystore/fingerprint available. | Owner provisions authorized signing material and approved fingerprint. |
+
+Release remains **BLOCKED — RELEASE: NO-GO**.

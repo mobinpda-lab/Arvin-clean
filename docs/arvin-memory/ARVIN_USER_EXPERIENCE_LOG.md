@@ -83,3 +83,8 @@ No new owner installation, physical-device result, screenshot, or acceptance was
 ## Wave 4.16 — Follow-up Reminder contract regression coverage — 2026-10-19
 
 Added repository-level regression cases in PR #2833 for Persian Reminder title fallbacks and title-only Follow-up edits preserving the linked Reminder identity and scheduled time. This change is test coverage, not yet a verified user-facing acceptance result; wait for Build and Device Smoke runs on the resulting candidate SHA. Existing UI and ownership decisions remain unchanged.
+
+
+## Wave 4.17 UX regression note — 2026-10-19
+
+The Reminder runtime had a lifecycle mismatch: completed FollowUps were excluded from future alarm planning but could still be selected for delivery when their scheduled time had passed. A focused guard now prevents stale notifications while preserving the completed FollowUp and its history; a regression test was added in commit `9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b`. User-visible behavior is not marked verified until the post-fix CI test passes. Release remains **BLOCKED — RELEASE: NO-GO**.

@@ -297,3 +297,12 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - Calendar Provider is an environment blocker, not product PASS: [Run 39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) reports no writable calendar on the stock API 35 emulator and publishes diagnostics. Preserve CREATE → NO-OP → UPDATE → DELETE criteria.
 - Exact-SHA requires authorized workflow_dispatch with checked-out HEAD assertion; PR-triggered runs with skipped assertions are insufficient.
 - Official Release signing requires owner-authorized credentials and independent certificate fingerprint approval. Release remains NO-GO.
+
+
+## Wave 4.17 decision update — 2026-10-19
+
+- Continue on existing PR #2833 and its current branch; do not create a duplicate PR or merge.
+- A real lifecycle defect was found: due notification calculation did not exclude completed FollowUps even though the alarm planner and future projection do. Implemented the smallest safe fix and regression test in commit `9b7386dd32dc545b20a1b9a267cbbb1e8cc7490b`; wait for current-head CI before considering it verified.
+- Do not infer final Build/Device Smoke from prior SHA. Runs `39243593152` and `39243593281` target `6287eccfe7bd24d0412ae146bd8c6a11ca5a0ce7` and were nonterminal at last inspection.
+- Calendar Provider acceptance, authorized exact-SHA dispatch, and official Release signing remain independent mandatory blockers.
+- Decision unchanged: **BLOCKED — RELEASE: NO-GO**.
