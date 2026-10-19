@@ -34,7 +34,15 @@ void main() {
       return;
     }
 
-    final calendar = writable.first;
+    final calendar = writable.firstWhere(
+      (item) => item.displayName == 'ArvinAcceptance',
+      orElse: () => writable.first,
+    );
+    final destinations = writable
+        .where((item) => item.displayName == 'ArvinAcceptanceDestination')
+        .toList(growable: false);
+    final destinationCalendar =
+        destinations.isEmpty ? null : destinations.first;
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'arvin.calendar.externalLinks.acceptance',
     );
@@ -49,6 +57,46 @@ void main() {
     const planner = CalendarSyncPlanService();
 
     final start = DateTime.now().add(const Duration(hours: 3));
+
+    Future<String> verifyUnrelatedEvent(
+      String calendarId, {
+      String? expectedEventId,
+    }) async {
+      final providerEvents = await bridge.listDeviceCalendarEvents(
+        calendarIds: [calendarId],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      final sentinelTitle =
+          'ARVIN_UNRELATED_PRESERVATION_SENTINEL_$calendarId';
+      final matching = providerEvents
+          .where((event) => event.title == sentinelTitle)
+          .toList(growable: false);
+      expect(
+        matching,
+        hasLength(1),
+        reason: 'The unrelated sentinel must remain in calendar $calendarId',
+      );
+      if (expectedEventId != null) {
+        expect(
+          matching.single.eventId,
+          expectedEventId,
+          reason: 'Unrelated event identity must remain stable',
+        );
+      }
+      debugPrint(
+        'PROVIDER_QUERY_UNRELATED calendarId=$calendarId '
+        'count=${matching.length} '
+        'eventIds=${matching.map((event) => event.eventId).join(",")}',
+      );
+      return matching.single.eventId;
+    }
+
+    final unrelatedEventId = await verifyUnrelatedEvent(calendar.id);
+    final destinationUnrelatedEventId = destinationCalendar == null
+        ? null
+        : await verifyUnrelatedEvent(destinationCalendar.id);
+
     final reminder = CalendarReminder(
       id: 'followup:acceptance-task:acceptance-followup',
       title: 'ARVIN calendar provider acceptance',
@@ -82,6 +130,14 @@ void main() {
       reason: 'CREATE must insert exactly one matching real provider event',
     );
     expect(createdEvents.single.eventId, createdLink.eventId);
+    debugPrint(
+      'PROVIDER_QUERY_CREATE count=${createdEvents.length} '
+      'eventIds=${createdEvents.map((event) => event.eventId).join(",")}',
+    );
+    await verifyUnrelatedEvent(
+      calendar.id,
+      expectedEventId: unrelatedEventId,
+    );
     expect(
       createdEvents.any((event) => event.eventId == createdLink.eventId),
       isTrue,
@@ -114,6 +170,14 @@ void main() {
       createdLink.eventId,
       reason: 'NO-OP must preserve the real provider event identity',
     );
+    debugPrint(
+      'PROVIDER_QUERY_NOOP count=${afterNoOpEvents.length} '
+      'eventIds=${afterNoOpEvents.map((event) => event.eventId).join(",")}',
+    );
+    await verifyUnrelatedEvent(
+      calendar.id,
+      expectedEventId: unrelatedEventId,
+    );
 
     final updatedReminder = CalendarReminder(
       id: reminder.id,
@@ -136,16 +200,32 @@ void main() {
       start: start.subtract(const Duration(hours: 1)),
       end: start.add(const Duration(hours: 4)),
     );
-    final updatedEvent = events.where(
-      (event) => event.eventId == createdLink.eventId,
-    );
+    final updatedEvent = events
+        .where((event) => event.eventId == createdLink.eventId)
+        .toList(growable: false);
+    final updatedEvents = events
+        .where((event) => event.title == updatedReminder.title)
+        .toList(growable: false);
     expect(updatedEvent, hasLength(1));
     expect(updatedEvent.single.title, updatedReminder.title);
+    expect(updatedEvents, hasLength(1));
+    expect(updatedEvents.single.eventId, createdLink.eventId);
+    debugPrint(
+      'PROVIDER_QUERY_UPDATE count=${updatedEvents.length} '
+      'eventIds=${updatedEvents.map((event) => event.eventId).join(",")} '
+      'title=${updatedEvents.single.title}',
+    );
+    await verifyUnrelatedEvent(
+      calendar.id,
+      expectedEventId: unrelatedEventId,
+    );
 
-    if (writable.length >= 2) {
+    if (destinationCalendar != null) {
+      final secondCalendar = destinationCalendar;
+      final expectedDestinationUnrelatedEventId =
+          destinationUnrelatedEventId!;
       // Keep the original linked event alive until destination migration is exercised.
       // The canonical executor requires the existing link to produce an update/move plan.
-      final secondCalendar = writable.firstWhere((item) => item.id != calendar.id);
       final migrationRevision = CalendarReminder(
         id: reminder.id,
         title: updatedReminder.title,
@@ -179,18 +259,36 @@ void main() {
         isFalse,
         reason: 'destination migration must remove the old owned event',
       );
+      await verifyUnrelatedEvent(
+        calendar.id,
+        expectedEventId: unrelatedEventId,
+      );
 
       final newCalendarEvents = await bridge.listDeviceCalendarEvents(
         calendarIds: [secondCalendar.id],
         start: start.subtract(const Duration(hours: 1)),
         end: start.add(const Duration(hours: 4)),
       );
+      final migratedEvents = newCalendarEvents
+          .where((event) => event.title == updatedReminder.title)
+          .toList(growable: false);
       expect(
         newCalendarEvents.any(
           (event) => event.eventId == migratedLinks.single.eventId,
         ),
         isTrue,
         reason: 'destination migration must expose the replacement event',
+      );
+      expect(migratedEvents, hasLength(1));
+      expect(migratedEvents.single.eventId, migratedLinks.single.eventId);
+      await verifyUnrelatedEvent(
+        secondCalendar.id,
+        expectedEventId: expectedDestinationUnrelatedEventId,
+      );
+      debugPrint(
+        'PROVIDER_QUERY_MIGRATION destinationCalendarId=${secondCalendar.id} '
+        'count=${migratedEvents.length} '
+        'eventIds=${migratedEvents.map((event) => event.eventId).join(",")}',
       );
       debugPrint(
         'CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS from=${calendar.id} to=${secondCalendar.id}',
@@ -212,12 +310,25 @@ void main() {
         start: start.subtract(const Duration(hours: 1)),
         end: start.add(const Duration(hours: 4)),
       );
+      final migratedTargetPresent = eventsAfterMigrationDelete.any(
+        (event) => event.eventId == migratedLinks.single.eventId,
+      );
       expect(
-        eventsAfterMigrationDelete.any(
-          (event) => event.eventId == migratedLinks.single.eventId,
-        ),
+        migratedTargetPresent,
         isFalse,
         reason: 'DELETE must remove the migrated event from the real provider',
+      );
+      debugPrint(
+        'PROVIDER_QUERY_DELETE targetPresent=$migratedTargetPresent '
+        'calendarId=${secondCalendar.id}',
+      );
+      await verifyUnrelatedEvent(
+        calendar.id,
+        expectedEventId: unrelatedEventId,
+      );
+      await verifyUnrelatedEvent(
+        secondCalendar.id,
+        expectedEventId: expectedDestinationUnrelatedEventId,
       );
     } else {
       // With one writable calendar, finish the ordinary create/update/delete acceptance.
@@ -238,14 +349,26 @@ void main() {
         start: start.subtract(const Duration(hours: 1)),
         end: start.add(const Duration(hours: 4)),
       );
+      final deletedTargetPresent =
+          events.any((event) => event.eventId == createdLink.eventId);
       expect(
-        events.any((event) => event.eventId == createdLink.eventId),
+        deletedTargetPresent,
         isFalse,
         reason: 'deleted event must no longer be visible',
       );
+      debugPrint(
+        'PROVIDER_QUERY_DELETE targetPresent=$deletedTargetPresent '
+        'calendarId=${calendar.id}',
+      );
+      await verifyUnrelatedEvent(
+        calendar.id,
+        expectedEventId: unrelatedEventId,
+      );
 
       debugPrint(
-        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION writableCalendars=${writable.length}',
+        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION '
+        'writableCalendars=${writable.length} '
+        'seededDestination=${destinations.length}',
       );
     }
 

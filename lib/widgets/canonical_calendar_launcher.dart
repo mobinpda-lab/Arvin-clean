@@ -199,6 +199,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       'task-reminder-item:',
       'task-reminder:',
       'task-followup:',
+      'followup:',
     ]) {
       if (!reminder.id.startsWith(prefix)) continue;
       final suffix = reminder.id.substring(prefix.length);
