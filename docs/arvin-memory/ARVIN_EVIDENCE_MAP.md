@@ -755,4 +755,7 @@ Evidence binding rule: Build and Provider results are tied to merge SHA `bf4f1a9
 | APK file checksum / artifact identity | Workflow computes APK SHA-256 and records run/job/source/fingerprint in `release-evidence.txt` and job summary; artifact ID is emitted after upload | NOT GENERATED |
 | Official release approval | No official artifact or exact-SHA signing run observed | BLOCKED — RELEASE: NO-GO |
 
-| Existing signature-audit work | Open Draft PR #2824 was inspected; it verifies a historical artifact and uses an independently configured fingerprint, but is not the live signing build path | Reused conceptually; not treated as current candidate evidence |\n| Legacy release shortcut | `.github/workflows/release.yml` disabled by commit `556f9912840ec588e509ea1809d4da30677d5896` because it could create a release without signed APK evidence | FAIL-CLOSED CODE WRITTEN; CI not yet validated |\n\nHistorical artifact ZIP digests must not be represented as extracted APK checksums, and old Release APKs signed with the Debug key are not official-release evidence.
+| Existing signature-audit work | Open Draft PR #2824 was inspected; it verifies a historical artifact and uses an independently configured fingerprint, but is not the live signing build path | Reused conceptually; not treated as current candidate evidence |
+| Legacy release shortcut | `.github/workflows/release.yml` disabled by commit `556f9912840ec5889e509ea1809d4da30677d5896` because it could create a release without signed APK evidence | FAIL-CLOSED CODE WRITTEN; CI not yet validated |
+
+Historical artifact ZIP digests must not be represented as extracted APK checksums, and old Release APKs signed with the Debug key are not official-release evidence.
