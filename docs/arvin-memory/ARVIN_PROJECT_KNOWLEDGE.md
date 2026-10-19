@@ -158,3 +158,14 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Calendar projection must not emit both the Follow-up reminder and its TaskReminder mirror. Keep the existing followup:<taskId>:<followUpId> Calendar ID and skip linked mirrors in the generic TaskReminder projection.
 - A Backup/Restore integration regression now covers Task/Follow-up/Reminder IDs, date/title, Person association, Waiting for Response and unrelated reminders. Run it on the final PR head before claiming durability.
 - Build/Device Smoke run 39233581512 / 39233581540 on head 12ef171beef4533d12efe08f3bdacca5e2e03f36 was cancelled after later implementation commits; the next terminal evidence must match the final head.
+
+
+
+## Wave 4.12 live state — 2026-10-19
+
+- Current observed main SHA: d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- PR #2833 head at the start of this checkpoint: d06062fb19c3f3ad54051f3a682f69be4146dd91. Build Run 39234124721 was fully green (9/9); artifact metadata for both APKs names that exact SHA.
+- Device Smoke Run 39234124429 was still running at last poll; never infer completion from partial lane success.
+- A green Release APK build is not official release acceptance: android/app/build.gradle.kts uses debug signing on main. Do not publish that APK as a production release.
+- Exact-SHA acceptance requires the verification step to execute, not be SKIPPED. Calendar Provider acceptance requires a writable provider and explicit CREATE/NO-OP/UPDATE/DELETE evidence.
+- Canonical release status and requirement matrix files have now been created on the existing PR branch because both were absent from main and the working branch. Their commits changed the candidate SHA, requiring new CI evidence.
