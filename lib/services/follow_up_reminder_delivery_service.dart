@@ -57,6 +57,7 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final followUp in task.followUps) {
+        if (followUp.completed) continue;
         final linkedReminders = task.taskReminders.where(
           (reminder) => reminder.followUpId == followUp.id,
         ).toList(growable: false);
