@@ -192,3 +192,33 @@ void main() {
     expect(restored.taskReminders.single.isAllDay, isFalse);
   });
 }
+
+
+  test('TaskReminder preserves stable FollowUp identity through JSON round-trip', () {
+    final reminder = TaskReminder(
+      id: 'reminder-follow-up-1',
+      title: 'خرید موکت',
+      date: DateTime(2026, 10, 22, 14, 30),
+      sequence: 2,
+      followUpId: 'follow-up-1',
+    );
+
+    final restored = TaskReminder.fromJson(reminder.toJson());
+
+    expect(restored.id, reminder.id);
+    expect(restored.followUpId, 'follow-up-1');
+    expect(restored.date, reminder.date);
+    expect(restored.title, 'خرید موکت');
+  });
+
+  test('legacy TaskReminder JSON without FollowUp identity remains compatible', () {
+    final restored = TaskReminder.fromJson({
+      'id': 'legacy-task-reminder',
+      'title': 'یادآور کار',
+      'date': '2026-10-22T14:30:00.000',
+      'sequence': 1,
+    });
+
+    expect(restored.followUpId, isNull);
+    expect(restored.id, 'legacy-task-reminder');
+  });
