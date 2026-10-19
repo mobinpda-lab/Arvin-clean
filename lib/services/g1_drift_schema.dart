@@ -136,6 +136,112 @@ class G1DriftSchema implements QueryExecutorUser {
     }
   }
 
+  /// Recovers Follow-up metadata that older SQL imports omitted while the
+  /// canonical Task envelope still retains it. The marker makes this repair
+  /// one-time; current SQL values win, except absent title/relations and a
+  /// false waiting flag where the retained source explicitly says true.
+  static Future<void> migrateFollowUpMetadata(QueryExecutor executor) async {
+    final marker = await executor.runSelect(
+      "SELECT value FROM arvin_storage_meta WHERE key = 'follow_up_metadata_backfill_v1'",
+      const [],
+    );
+    if (marker.isNotEmpty && marker.single['value'] == '1') return;
+
+    await executor.runCustom('BEGIN');
+    try {
+      final taskRows = await executor.runSelect(
+        'SELECT id, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
+        const [],
+      );
+      for (final taskRow in taskRows) {
+        final taskId = taskRow['id'];
+        final rawPayload = taskRow['legacy_payload_json'];
+        if (taskId is! String || rawPayload is! String || rawPayload.trim().isEmpty) {
+          continue;
+        }
+
+        dynamic decoded;
+        try {
+          decoded = jsonDecode(rawPayload);
+        } on FormatException {
+          continue;
+        }
+        if (decoded is! Map || decoded['followUps'] is! List) continue;
+
+        for (final rawFollowUp in decoded['followUps'] as List) {
+          if (rawFollowUp is! Map) continue;
+          final source = Map<String, dynamic>.from(rawFollowUp);
+          final followUpId = source['id'];
+          if (followUpId is! String || followUpId.trim().isEmpty) continue;
+          final currentRows = await executor.runSelect(
+            'SELECT title, waiting_for_response FROM follow_ups WHERE id = ? AND task_id = ?',
+            <Object?>[followUpId, taskId],
+          );
+          if (currentRows.isEmpty) continue;
+          final current = currentRows.single;
+          final sourceTitle = source['title'];
+          final currentTitle = current['title'];
+          if (sourceTitle is String &&
+              sourceTitle.trim().isNotEmpty &&
+              (currentTitle == null ||
+                  (currentTitle is String && currentTitle.trim().isEmpty))) {
+            await executor.runCustom(
+              'UPDATE follow_ups SET title = ? WHERE id = ? AND task_id = ?',
+              <Object?>[sourceTitle.trim(), followUpId, taskId],
+            );
+          }
+
+          if (source['waitingForResponse'] == true &&
+              (current['waiting_for_response'] as num?)?.toInt() != 1) {
+            await executor.runCustom(
+              'UPDATE follow_ups SET waiting_for_response = 1 WHERE id = ? AND task_id = ?',
+              <Object?>[followUpId, taskId],
+            );
+          }
+
+          final rawPersonIds = source['personIds'];
+          if (rawPersonIds is List) {
+            final existingRows = await executor.runSelect(
+              'SELECT person_id FROM follow_up_people WHERE follow_up_id = ?',
+              <Object?>[followUpId],
+            );
+            final existingIds = existingRows
+                .map((row) => row['person_id'])
+                .whereType<String>()
+                .toSet();
+            final seen = <String>{};
+            for (var personOrdinal = 0;
+                personOrdinal < rawPersonIds.length;
+                personOrdinal++) {
+              final rawPersonId = rawPersonIds[personOrdinal];
+              if (rawPersonId is! String) continue;
+              final personId = rawPersonId.trim();
+              if (personId.isEmpty ||
+                  !seen.add(personId) ||
+                  existingIds.contains(personId)) {
+                continue;
+              }
+              await executor.runInsert(
+                'INSERT OR IGNORE INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
+                <Object?>[followUpId, personId, personOrdinal],
+              );
+            }
+          }
+        }
+      }
+      await executor.runCustom(
+        "INSERT INTO arvin_storage_meta (key, value) VALUES ('follow_up_metadata_backfill_v1', '1') "
+        "ON CONFLICT(key) DO UPDATE SET value = '1'",
+      );
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try {
+        await executor.runCustom('ROLLBACK');
+      } catch (_) {}
+      rethrow;
+    }
+  }
+
   static Future<bool> isLegacyMigrationComplete(QueryExecutor executor) async {
     final rows = await executor.runSelect(
       "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_tasks_migrated'",
