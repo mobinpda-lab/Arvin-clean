@@ -213,3 +213,15 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+
+## 2026-10-19 — Wave 4.11 Follow-up Reminder persistence contract
+
+- **Decision:** Keep the existing `FollowUp.reminderDate` as the Follow-up edit contract while mirroring a timed Follow-up into the existing `Task.taskReminders` collection with stable `followUpId`. Do not create a second reminder model, table, or scheduler.
+- **Stable identity:** New linked reminders use `follow-up-reminder:<followUpId>`; edits preserve the existing linked reminder ID and update its title/time. Clearing the Follow-up reminder time removes only reminders explicitly linked by `followUpId`.
+- **Title policy:** Use the Follow-up title; if blank, use `پیگیری — <Task title>`; if both are blank, use `پیگیری`. Follow-up result text is not used as title.
+- **Notification compatibility:** Generic TaskReminder scheduling skips linked mirrors; existing Follow-up projection remains the delivery path so the established Follow-up delivery identity is retained and duplicate notifications are avoided by design.
+- **Persistence/migration:** TaskStore's canonical Task JSON envelope already persists TaskReminder objects, and the existing SQL schema is version 6. No new schema migration was introduced. This is not yet proof of end-to-end SQLite reload or Backup/Restore correctness.
+- **Evidence:** implementation commits `2989741558cdc834787f38751469e91788cf42e7`, `e83229579d36108786f11393ca622de85c13b693`, `f6d34abe1b435530e72cc3ef0c8e90746dda4e90`, `dba7a12b55edb1ffc7981f5526a8c7c4330640c6`; regression tests commit `b4b14a2497c460b2bd8da1711b7a8663cb1c42d6`. All are **IMPLEMENTED_NOT_VERIFIED** until focused and CI tests pass.
+- **Release decision:** retain `BLOCKED — RELEASE: NO-GO`.
