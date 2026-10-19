@@ -134,3 +134,13 @@ After this documentation batch lands, read the new PR head, obtain fresh Build a
 - Run [39244802042](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042) failed after the shell-option issue was corrected. The actual emulator-runner contract executes each newline in its `script` input in a separate `/usr/bin/sh` process; therefore variables and control flow in the inline multiline script did not persist, and the test/output files were not produced. The artifact [12182643345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042/artifacts/12182643345) retained the preinitialized evidence file but did not prove Provider acceptance.
 - Replaced the inline multiline script with one invocation, `bash .github/scripts/calendar-provider-acceptance.sh`, so Bash variables, seed result, test result and fail-closed logic execute in a single process. Added the script to workflow path filters and records both actual checkout SHA and PR head SHA. Artifact upload remains `if: always()` with evidence initialized before emulator boot.
 - This is a CI harness correction, not a pass. The next run must show seed diagnostics, writable calendar rows, and the real CREATE → NO-OP → UPDATE → DELETE acceptance marker. Otherwise Calendar Provider remains BLOCKED.
+
+
+## Wave 4.18 live gate update — 2026-10-19
+
+- Build [39245131077](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131077): historical SUCCESS, 9/9 jobs; exact-SHA assertion skipped.
+- Device Smoke [39245131071](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131071): historical SUCCESS, all seven lanes.
+- Calendar Provider [39245131251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131251): FAILURE at UPDATE; artifact [12183547745](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131251/artifacts/12183547745).
+- Native fix commit [3cc2b4551ea5c30903a697cdff3b3450e6bf609f](https://github.com/mobinpda-lab/Arvin-clean/commit/3cc2b4551ea5c30903a697cdff3b3450e6bf609f) is IMPLEMENTED_NOT_VERIFIED until fresh exact-head CI and real provider acceptance.
+- Official signing remains BLOCKED: main `android/app/build.gradle.kts` uses the debug signing configuration for Release. No authorized release key and independently approved certificate fingerprint have been verified.
+- Release decision: **BLOCKED — RELEASE: NO-GO**. No merge, tag or release.
