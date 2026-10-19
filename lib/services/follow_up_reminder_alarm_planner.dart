@@ -46,9 +46,10 @@ class FollowUpReminderAlarmPlanner {
 
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;
-        final linkedReminder = task.taskReminders.where(
+        final linkedReminders = task.taskReminders.where(
           (reminder) => reminder.followUpId == followUp.id,
-        ).firstOrNull;
+        ).toList(growable: false);
+        final linkedReminder = linkedReminders.isEmpty ? null : linkedReminders.first;
         final at = linkedReminder?.date ?? followUp.reminderDate;
         if (at == null) continue;
         final identity =
