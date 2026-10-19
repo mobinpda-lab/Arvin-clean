@@ -327,6 +327,7 @@ class TaskStore {
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
+    await G1DriftSchema.migrateFollowUpMetadata(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
       await G1DriftSchema.migrateTaskPeople(executor);
       return;
