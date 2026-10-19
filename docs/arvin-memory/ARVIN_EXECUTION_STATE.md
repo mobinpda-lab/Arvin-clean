@@ -1235,3 +1235,10 @@ This checkpoint supersedes prior claims that Run 39211706224 and Run 39211706034
 - Archive contained app-release.apk, size 70,056,469 bytes. Independently calculated APK-file SHA-256: d1bf6ba6ed05b4cd5546dd4dc10de8c5e6016efda8d682d28466fda3102a38f7.
 - This is an observed artifact from a successful PR-triggered Release build, not a qualified official release. The exact-target verification step was skipped. The local inspection environment has no apksigner executable, so the APK certificate was not independently re-verified in this inspection. Main build.gradle.kts explicitly uses the Debug signing config; therefore the APK must not be distributed or presented as officially signed.
 - Artifact archive digest and APK-file SHA-256 are different values. Do not substitute one for the other. Official signing remains BLOCKED pending owner-authorized release credentials/fingerprint and apksigner verification on the qualified candidate.
+
+
+## Independent PDF artifact inspection — 2026-10-19
+- Downloaded [PDF preview artifact 12164731659](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164731659) from Build run 39203354122 and extracted arvin-report-preview.pdf (22,614 bytes).
+- PDF structural inspection: one page, A4, PDF 1.7, not encrypted. pdffonts confirms all four embedded fonts: Vazirmatn-UI-FD-Regular, Medium, SemiBold and Bold.
+- Raster inspection of page 1 shows Persian glyph shaping, right-to-left alignment, Persian numerals/dates, checklist bullets, tags, Reminder and Follow-up content, and long-text wrapping without visible clipping on this sample.
+- Limitations: this artifact represents a one-page sample with substantial unused whitespace; it does not demonstrate multi-page pagination or table layout, and there is no matching in-app preview screenshot available for visual comparison. Treat PDF/font acceptance as PARTIAL, not complete release acceptance. Artifact belongs to an older PR-triggered run/head, not the qualified candidate.
