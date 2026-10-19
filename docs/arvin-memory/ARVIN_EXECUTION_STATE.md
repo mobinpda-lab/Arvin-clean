@@ -1097,3 +1097,16 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+
+# WAVE 4.11 LIVE UPDATE — 2026-10-19 — Follow-up Reminder persistence slice
+
+- **PR:** [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), still OPEN / DRAFT / UNMERGED. Base: `fix/follow-up-record-authority-20261019`.
+- **Observed failing baseline:** PR head `91d5412dad2f80aeffc464434f693583f4180be2`; Build run [39232215264](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39232215264) failed in Analyze and test shards 3/4 because the two new model tests were outside `main()` (analyzer errors at lines 197 and 214). Debug and Release APK jobs succeeded on that historical SHA, but this is not a passing Build gate.
+- **Correction:** commit `44019c81b8ad394b7c4ce4496347004a79a519ad` moves the two tests inside `main()`. This is a source correction, not verified test evidence.
+- **Implementation commits:** `2989741558cdc834787f38751469e91788cf42e7` reconciles Follow-up writes with the existing `Task.taskReminders` collection; `e83229579d36108786f11393ca622de85c13b693`, `f6d34abe1b435530e72cc3ef0c8e90746dda4e90`, and `dba7a12b55edb1ffc7981f5526a8c7c4330640c6` keep linked reminders on the established Follow-up notification identity to avoid duplicate delivery; `b4b14a2497c460b2bd8da1711b7a8663cb1c42d6` adds repository lifecycle tests; `9dc9d9f3b9156ab1095b722ca7dbc89bdaf7eeee` aligns the UI label with the product contract.
+- **Persistence finding:** TaskStore stores TaskReminder data in the canonical Task JSON envelope `legacy_payload_json`; schema version 6 already has `follow_ups` and `follow_up_people`. No new SQL column/table migration was introduced for `followUpId`; persistence relies on the existing JSON envelope. The repository implementation now mirrors a timed Follow-up to a stable `TaskReminder` ID, updates the same ID on edit, and removes only the linked reminder when its time is cleared.
+- **Important limitation:** this lifecycle slice has not yet been run through focused tests, full Analyze/test, Build, or Device Smoke on its latest head. The only returned CI evidence is for the older SHA above; no workflow run was returned for the subsequent commits during this check.
+- **Release:** `BLOCKED — RELEASE: NO-GO`. Notification/calendar acceptance, Backup/Restore, full migration coverage, exact-SHA validation, official signing and other product gates remain open.
+- **Next:** obtain CI evidence on the final current PR head; inspect and fix any resulting failures before expanding the contract.
