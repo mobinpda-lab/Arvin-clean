@@ -8,9 +8,16 @@ import 'work_agenda_projection.dart';
 import 'work_agenda_report_adapter.dart';
 
 class TaskReportFonts {
-  const TaskReportFonts({required this.base, required this.bold});
+  const TaskReportFonts({
+    required this.base,
+    this.medium,
+    this.semiBold,
+    required this.bold,
+  });
 
   final pw.Font base;
+  final pw.Font? medium;
+  final pw.Font? semiBold;
   final pw.Font bold;
 }
 
@@ -23,6 +30,10 @@ class TaskReportPdfRenderer {
   static const _dateFormatter = PersianDateFormatter();
   static const _regularFontAsset =
       'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Regular.ttf';
+  static const _mediumFontAsset =
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Medium.ttf';
+  static const _semiBoldFontAsset =
+      'assets/fonts/vazirmatn/Vazirmatn-UI-FD-SemiBold.ttf';
   static const _boldFontAsset =
       'assets/fonts/vazirmatn/Vazirmatn-UI-FD-Bold.ttf';
 
@@ -30,9 +41,13 @@ class TaskReportPdfRenderer {
 
   static Future<TaskReportFonts> _loadPersianFonts() async {
     final regular = await rootBundle.load(_regularFontAsset);
+    final medium = await rootBundle.load(_mediumFontAsset);
+    final semiBold = await rootBundle.load(_semiBoldFontAsset);
     final bold = await rootBundle.load(_boldFontAsset);
     return TaskReportFonts(
       base: pw.Font.ttf(regular),
+      medium: pw.Font.ttf(medium),
+      semiBold: pw.Font.ttf(semiBold),
       bold: pw.Font.ttf(bold),
     );
   }
@@ -77,7 +92,7 @@ class TaskReportPdfRenderer {
         build: (_) => [
           pw.Text(
             'تاریخ تولید: ${formatDateTime(report.generatedAt)}',
-            style: const pw.TextStyle(fontSize: 9),
+            style: pw.TextStyle(font: fonts.medium ?? fonts.base, fontSize: 9),
           ),
           pw.SizedBox(height: 12),
           if (report.entries.isEmpty)
@@ -159,7 +174,7 @@ class TaskReportPdfRenderer {
       item.entry,
       fonts,
       leadingRows: [
-        pw.Text('دلایل حضور در برنامه:', style: pw.TextStyle(font: fonts.bold)),
+        pw.Text('دلایل حضور در برنامه:', style: pw.TextStyle(font: fonts.semiBold ?? fonts.bold)),
         ...eventRows,
         pw.SizedBox(height: 5),
       ],
@@ -179,18 +194,18 @@ class TaskReportPdfRenderer {
       ],
       pw.SizedBox(height: 6),
       ...leadingRows,
-      pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
+      pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}', style: pw.TextStyle(font: fonts.medium ?? fonts.base)),
       if (entry.reminderDate != null)
-        pw.Text('یادآوری: ${formatDateTime(entry.reminderDate!)}'),
-      if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}'),
+        pw.Text('یادآوری: ${formatDateTime(entry.reminderDate!)}', style: pw.TextStyle(font: fonts.medium ?? fonts.base)),
+      if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}', style: pw.TextStyle(font: fonts.medium ?? fonts.base)),
       if (entry.checklist.isNotEmpty) ...[
         pw.SizedBox(height: 4),
-        pw.Text('چک‌لیست:', style: pw.TextStyle(font: fonts.bold)),
+        pw.Text('چک‌لیست:', style: pw.TextStyle(font: fonts.semiBold ?? fonts.bold)),
         ...entry.checklist.map((item) => pw.Text('• $item')),
       ],
       if (entry.followUps.isNotEmpty) ...[
         pw.SizedBox(height: 4),
-        pw.Text('پیگیری‌ها:', style: pw.TextStyle(font: fonts.bold)),
+        pw.Text('پیگیری‌ها:', style: pw.TextStyle(font: fonts.semiBold ?? fonts.bold)),
         ...entry.followUps.map(
           (followUp) => pw.Text(
             '• ${formatDateTime(followUp.dateTime)} — ${followUp.note}${followUp.result == null ? '' : ' — ${followUp.result}'}',
