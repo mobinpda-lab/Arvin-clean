@@ -779,3 +779,19 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 | Legacy-base PR reconciliation | #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`; #2791 `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; #2796 `3ba0499403a405d92fc0440164b8c6ccc864eb5a`; each base `824ca8f17c92e76b3887001891d7d5b6f17974a6` | **IN_PROGRESS** | Inspect full diffs and merge-base against current main before safe update/rebase |
 
 Evidence limitations: latest observed mainline orchestrator/production-loop successes do not establish Build, all seven Device Smoke lanes, real-provider acceptance, or authorized Release signing on one candidate SHA. This entry supersedes no newer owner decision.
+
+
+## Wave 4.5 evidence delta — 2026-10-19
+
+| Gate / requirement | Freshly observed evidence | Status | Required closure |
+|---|---|---|---|
+| Main baseline | `refs/heads/main` returned `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `IMPLEMENTED_NOT_VERIFIED` for release qualification | Select and qualify one integrated candidate SHA |
+| Release signing | Main `android/app/build.gradle.kts`, blob `aaeea7506885814cc4c4a65ac6559872a80146a8`, Release still selects Debug signing | `BLOCKED` | Owner-authorized keystore plus approved certificate fingerprint; independently verify APK with apksigner |
+| Calendar Provider | Main workflow blob `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`; PR #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da` | `BLOCKED` | Demonstrate real writable provider and actual create/no-op/update/delete; retain failure artifacts; require explicit success marker |
+| Exact-SHA Device Smoke | Main workflow blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45` includes seven lanes; PR #2827 head `d437dbf6cc76bbb216916b94145a8ddae897e52b` adds target SHA controls | `IMPLEMENTED_NOT_VERIFIED` | Complete PR-head CI and authorized dispatch against exact candidate SHA |
+| Follow-up record integrity | PR #2828 head `50f1d26a8e4102f078e2f184771f98d521152dc4` changes repository, migration, projections, and tests | `IN_PROGRESS` | Verify reminder independence, SQL round-trip, notifications/calendar, reports and Backup/Restore on candidate SHA |
+| Backup/Restore | PR #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`; older-base branch | `IMPLEMENTED_NOT_VERIFIED` | Reconcile base safely and rerun isolated round-trip on candidate SHA |
+| PDF/font | PR #2791 head `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; prior PDF artifact is historical | `IMPLEMENTED_NOT_VERIFIED` | Candidate-bound PDF, embedded-font and in-app preview comparison |
+| Legacy-base PRs | #2790, #2791, #2796 target main but base snapshot is `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `IN_PROGRESS` | Review full diffs/merge-bases/dependencies before updating branches |
+
+Latest observed mainline Release Closure [39214476013](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214476013) and Final Head Release Validation [39214481131](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214481131) were skipped. Orchestrator/production-loop success does not replace mandatory gates. No qualified candidate SHA, no official APK, no release.
