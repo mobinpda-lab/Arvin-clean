@@ -46,7 +46,7 @@ void main() {
 
     expect(reminders, hasLength(2));
     expect(reminders.first.id, 'followup:task-1:fu-1');
-    expect(reminders.first.title, 'پیگیری تماس با مشتری');
+    expect(reminders.first.title, 'پیگیری — تماس با مشتری');
     expect(reminders.first.date, DateTime(2026, 8, 27, 9));
     expect(reminders.last.title, 'تماس مجدد');
     expect(reminders.last.description, 'پیگیری: تماس با مشتری');
