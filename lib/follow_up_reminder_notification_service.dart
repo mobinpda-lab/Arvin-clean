@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'services/follow_up_reminder_projection.dart';
+import 'services/reminder_notification_payload.dart';
 
 abstract interface class FollowUpReminderNotificationSink {
   Future<void> showDue(FollowUpReminderCandidate candidate);
@@ -60,7 +61,10 @@ class FollowUpReminderNotificationService
           priority: Priority.high,
         ),
       ),
-      payload: candidate.taskId,
+      payload: ReminderNotificationPayload.encode(
+        taskId: candidate.taskId,
+        followUpId: candidate.followUpId,
+      ),
     );
   }
 }

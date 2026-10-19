@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onComplete,
     this.onChecklistChanged,
     this.now,
+    this.initialFollowUpId,
   });
 
   final Task task;
@@ -35,6 +36,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task?> Function(Task task)? onComplete;
   final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
   final DateTime? now;
+  final String? initialFollowUpId;
 
   @override
   State<TaskDetailPage> createState() => _TaskDetailPageState();
@@ -430,6 +432,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             key: ValueKey('task-detail-followup-${followUp.id}'),
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.only(bottom: 8),
+            decoration: followUp.id == widget.initialFollowUpId
+                ? BoxDecoration(
+                    color: _brand.withValues(alpha: .08),
+                    borderRadius: BorderRadius.circular(8),
+                  )
+                : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

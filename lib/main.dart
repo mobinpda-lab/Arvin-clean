@@ -1,6 +1,9 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'arvin_colors.dart';
 
@@ -49,6 +52,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'services/reminder_notification_payload.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -101,7 +105,68 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
-void main() => runApp(const ArvinApp());
+final GlobalKey<NavigatorState> _arvinNavigatorKey =
+    GlobalKey<NavigatorState>();
+ReminderNotificationPayload? _pendingReminderNotificationPayload;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final notifications = FlutterLocalNotificationsPlugin();
+  await notifications.initialize(
+    settings: const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+    onDidReceiveNotificationResponse: _handleNotificationResponse,
+  );
+  final launchDetails = await notifications.getNotificationAppLaunchDetails();
+  if (launchDetails?.didNotificationLaunchApp ?? false) {
+    _pendingReminderNotificationPayload = ReminderNotificationPayload.decode(
+      launchDetails?.notificationResponse?.payload,
+    );
+  }
+  runApp(const ArvinApp());
+}
+
+void _handleNotificationResponse(NotificationResponse response) {
+  final payload = ReminderNotificationPayload.decode(response.payload);
+  if (payload != null) {
+    unawaited(_openTaskFromReminderNotification(payload));
+  }
+}
+
+Future<void> _openTaskFromReminderNotification(
+  ReminderNotificationPayload payload,
+) async {
+  final navigator = _arvinNavigatorKey.currentState;
+  if (navigator == null) {
+    _pendingReminderNotificationPayload = payload;
+    return;
+  }
+
+  try {
+    final tasks = await TaskStore().load();
+    Task? parentTask;
+    for (final task in tasks) {
+      if (task.id == payload.taskId) {
+        parentTask = task;
+        break;
+      }
+    }
+    if (parentTask == null || !navigator.mounted) return;
+
+    navigator.popUntil((route) => route.isFirst);
+    await navigator.push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(
+          task: parentTask!,
+          initialFollowUpId: payload.followUpId,
+        ),
+      ),
+    );
+  } catch (_) {
+    // A stale notification must not crash startup or mutate canonical data.
+  }
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
@@ -124,6 +189,11 @@ class _ArvinAppState extends State<ArvinApp> {
     super.initState();
     _loadSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pending = _pendingReminderNotificationPayload;
+      _pendingReminderNotificationPayload = null;
+      if (pending != null) {
+        unawaited(_openTaskFromReminderNotification(pending));
+      }
       StartupPermissionService().requestOnStartup();
     });
   }
@@ -170,6 +240,7 @@ class _ArvinAppState extends State<ArvinApp> {
       labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
+      navigatorKey: _arvinNavigatorKey,
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',
