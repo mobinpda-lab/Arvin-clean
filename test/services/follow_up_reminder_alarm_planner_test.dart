@@ -76,4 +76,49 @@ void main() {
       DateTime(2026, 9, 8, 14),
     );
   });
+  test('linked Reminder record drives the next alarm and retains stable identity on time edit', () {
+    final now = DateTime(2026, 10, 20, 8);
+    final oldAt = DateTime(2026, 10, 21, 10);
+    final taskRecord = Task(
+      id: 'linked-alarm',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'linked-alarm-fu',
+          dateTime: DateTime(2026, 10, 20, 9),
+          title: 'عنوان پیگیری',
+          reminderDate: oldAt,
+        ),
+      ],
+    );
+    taskRecord.syncFollowUpReminder(taskRecord.followUps.single);
+    final before = taskRecord.taskReminders.single;
+    expect(
+      planner.nextAlarmAt([taskRecord], deliveredState: const {}, now: now),
+      oldAt,
+    );
+
+    final newAt = DateTime(2026, 10, 22, 11);
+    final oldFollowUp = taskRecord.followUps.single;
+    final edited = FollowUp(
+      id: oldFollowUp.id,
+      dateTime: oldFollowUp.dateTime,
+      title: oldFollowUp.title,
+      reminderDate: newAt,
+      nextFollowUp: oldFollowUp.nextFollowUp,
+      note: oldFollowUp.note,
+      result: oldFollowUp.result,
+      waitingForResponse: oldFollowUp.waitingForResponse,
+      personIds: oldFollowUp.personIds,
+    );
+    taskRecord.syncFollowUpReminder(edited);
+    taskRecord.followUps = [edited];
+    expect(taskRecord.taskReminders, hasLength(1));
+    expect(taskRecord.taskReminders.single.id, before.id);
+    expect(
+      planner.nextAlarmAt([taskRecord], deliveredState: const {}, now: now),
+      newAt,
+    );
+  });
+
 }
