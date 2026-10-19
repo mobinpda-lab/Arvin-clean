@@ -94,3 +94,7 @@ A source read of main `d9fb7a247037762216662a20fb32028ecc8a0f6b` confirms `lib/f
 ## 2026-10-19 — Wave 4.9 Follow-up Reminder form
 
 The Follow-up editor now labels the notification controls `یادآور پیگیری بعدی` and describes the notification as independent. The next-action date remains a separate concept and must never automatically create a notification. The generic Task Reminder editor excludes Follow-up-owned Reminder records so generic editing cannot silently unlink a Follow-up; the Follow-up form remains the control for clearing its notification date/time. UI and persistence changes are in Draft [PR #2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832) and await current-head CI/device evidence.
+
+## 2026-10-19 — Wave 4.9 checkpoint
+
+The Follow-up form labels its notification controls «یادآور پیگیری بعدی». The next-action time remains semantically separate and must not auto-create a notification. Follow-up-owned Reminder records are excluded from the generic Task Reminder editor; clearing the Follow-up reminder preserves the Follow-up and its history. PR #2832 head acb06279e766142cc9cbc886259d6ab951df2036; Build 39226858516 IN_PROGRESS and Device Smoke 39226858634 QUEUED.
