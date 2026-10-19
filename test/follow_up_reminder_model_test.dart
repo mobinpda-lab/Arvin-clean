@@ -342,4 +342,21 @@ void main() {
     expect(task.followUps.single.personIds, ['person-keep']);
     expect(task.taskReminders.map((item) => item.id), ['unrelated-reminder']);
   });
+  test('legacy Follow-up Reminder migration respects the monotonic sequence counter', () {
+    final restored = Task.fromJson({
+      'id': 'sequence-owner',
+      'title': 'کار',
+      'nextReminderSequence': 9,
+      'followUps': [
+        {
+          'id': 'sequence-followup',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'reminderDate': '2026-10-21T11:00:00.000',
+        }
+      ],
+    });
+    expect(restored.taskReminders.single.sequence, 9);
+    expect(restored.nextReminderSequence, 10);
+  });
+
 }
