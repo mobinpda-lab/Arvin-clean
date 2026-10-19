@@ -216,3 +216,14 @@ This is an evidence update, not a declaration that all reminder or release requi
 | Full release qualification across Person/reports, recurrence, migrations, backup/restore, RTL/PDF, install and physical device | `IN_PROGRESS` / individual gates remain unverified | Current PR Build and Device Smoke are green | Need one integrated candidate SHA with all mandatory gates and complete handover. |
 
 Preserve the matrix's earlier requirement IDs and historical evidence. This addendum does not silently upgrade unrelated requirements.
+
+
+## LIVE TRACEABILITY GAP — 2026-10-19 — Persisted Follow-up reminder record
+
+| Requirement | Current status | Source evidence | Required next action / risk |
+|---|---|---|---|
+| Follow-up reminder is an independently persisted Reminder record linked to the parent Task | `BLOCKED` / not verified | On main `d9fb7a247037762216662a20fb32028ecc8a0f6b`, `FollowUp.reminderDate` is a field on the Follow-up model; the projection builds a candidate directly from it, while `TaskReminder` is a separate collection. | Implement explicit opt-in into the canonical Reminder collection without losing legacy data or producing duplicate delivery/calendar entries; test persistence, migration, restore and deletion independence. |
+| Follow-up editor exposes one coherent `یادآور پیگیری بعدی` input | `NOT_IMPLEMENTED` against V10.0 wording | `lib/follow_up_entry_page.dart` has separate next-action and `یادآور این پیگیری` controls. | Reconcile the UI to the latest V10.0 contract while preserving semantic independence between next-action time and notification schedule; no silent auto-create from `nextFollowUp`. |
+| Follow-up reminder label/title behavior | `IMPLEMENTED_AND_VERIFIED` for targeted projection tests only | PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) PASS. | Do not generalize this narrow pass to record persistence, notifications, Calendar or backup/restore. |
+
+This addendum preserves existing stable requirement IDs and prior decisions; it records the V10.0 contract gap rather than silently marking the full requirement complete.
