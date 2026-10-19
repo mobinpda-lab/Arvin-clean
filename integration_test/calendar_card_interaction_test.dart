@@ -8,6 +8,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+Future<void> _pumpUntil(
+  WidgetTester tester,
+  bool Function() ready, {
+  Duration step = const Duration(milliseconds: 100),
+  Duration limit = const Duration(seconds: 15),
+}) async {
+  final end = DateTime.now().add(limit);
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(step);
+    if (ready()) return;
+  }
+  await tester.pump();
+}
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -98,7 +112,11 @@ void main() {
         scrollable: selectedDayList,
         maxScrolls: 20,
       );
-      await tester.pumpAndSettle(timeout: const Duration(seconds: 3));
+      await _pumpUntil(
+        tester,
+        () => tester.any(card),
+        limit: const Duration(seconds: 3),
+      );
       expect(card, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
