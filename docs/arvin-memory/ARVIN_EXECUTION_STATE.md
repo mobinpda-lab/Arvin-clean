@@ -1382,3 +1382,11 @@ This checkpoint is based on a fresh live GitHub recheck. It supersedes earlier p
 - Last completed step: terminal Build + all seven Device Smoke lanes on PR #2828 head. Next executable action: record this evidence in all existing canonical memory docs, then verify exact-SHA dispatch workflow capability and continue independent non-signing product acceptance. Do not merge or release while mandatory gates remain unresolved.
 
 **Decision:** `BLOCKED — RELEASE: NO-GO`.
+
+
+## V10.0 exact-SHA dispatch blocker — 2026-10-19
+
+- Live source check on current `main` (`d9fb7a247037762216662a20fb32028ecc8a0f6b`) confirms `.github/workflows/device-smoke.yml` contains `workflow_dispatch` but does **not** accept `target_sha`; `.github/workflows/build.yml` does accept `target_sha`.
+- PR [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `d437dbf6cc76bbb216916b94145a8ddae897e52b`, adds exact-target input/checkout assertion for Device Smoke, but remains OPEN/DRAFT and unmerged. The required updated workflow is therefore not yet the default-branch workflow; no controlled manual exact-SHA Device Smoke run was found/proven for candidate `49910e585ee73afcf56a7f8d927b9c69e763c5c5`.
+- Execution boundary: the available GitHub connector does not expose a workflow-dispatch action, so I cannot start that run from this session. Do not call the PR-head Device Smoke success an exact-SHA dispatch acceptance.
+- Next action: obtain the required review/authorized integration of PR #2827 through the repository's normal governance; then dispatch Device Smoke against an explicit candidate SHA and verify each lane's checked-out SHA plus terminal artifacts. Keep release NO-GO until this and all other gates pass.
