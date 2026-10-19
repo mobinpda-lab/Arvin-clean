@@ -30,6 +30,24 @@ void main() {
     expect(task.updatedAt, isNotNull);
   });
 
+  test('legacy followUpEnabled serialization mirrors records and legacy date', () {
+    final recorded = Task(
+      id: 'recorded',
+      title: 'رکورد واقعی',
+      followUps: [
+        FollowUp(id: 'fu-recorded', dateTime: DateTime(2026, 10, 15, 10)),
+      ],
+    );
+    final legacyDate = Task(
+      id: 'legacy-date',
+      title: 'تاریخ قدیمی',
+      followUpDate: DateTime(2026, 10, 15, 10),
+    );
+
+    expect(recorded.toJson()['followUpEnabled'], isTrue);
+    expect(legacyDate.toJson()['followUpEnabled'], isTrue);
+  });
+
   test('converts a normal Task to FollowUp without changing identity', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
