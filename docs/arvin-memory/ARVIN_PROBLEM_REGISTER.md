@@ -300,3 +300,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | Integrated product acceptance and handover | Current green Build/Smoke are limited to PR #2828 head | IN_PROGRESS | Complete remaining Person/report, recurrence, migration, backup, RTL/PDF, physical install and handover gates on one candidate SHA. |
 
 Overall release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag or release action was performed.
+
+
+## LIVE SOURCE AUDIT — 2026-10-19 — Follow-up reminder record/UI contract gap
+
+- **Observed source on main SHA** `d9fb7a247037762216662a20fb32028ecc8a0f6b`: `lib/models/task.dart` defines `TaskReminder` records nested under Task and separately retains `FollowUp.reminderDate` as a nullable timestamp. `lib/services/follow_up_reminder_projection.dart` emits TaskReminder candidates and also directly emits candidates from each Follow-up's `reminderDate`; the latter uses the Follow-up ID as its stable key, but it is not itself a persisted TaskReminder record.
+- **UI evidence:** `lib/follow_up_entry_page.dart` currently presents a separate `پیگیری بعدی` action control and a `یادآور این پیگیری` date/time block with clear action. This differs from V10.0's required single coherent `یادآور پیگیری بعدی` input.
+- **Impact:** the latest PR #2828 passing projection regressions prove title selection and stable projected identity, not that the user-created follow-up reminder is an independently persisted TaskReminder linked to its parent Task. Full persistence/migration, notification, Calendar, history and Backup/Restore acceptance remains unproven.
+- **Compatibility boundary:** existing accepted decision docs require `nextFollowUp` and reminder timestamps to remain semantically independent and prohibit silent auto-creation or silent data loss. Preserve legacy `FollowUp.reminderDate` data during any transition; avoid double-scheduling when a persisted TaskReminder and legacy projection coexist.
+- **Status:** `IMPLEMENTED_NOT_VERIFIED` for current projection behavior; `BLOCKED` for the independent-record/UI unification contract pending a narrow, backward-compatible design and regression tests. Do not report the full Follow-up Reminder contract as complete.
+- **Next action:** define a single source-of-truth transition for explicit user opt-in, stable reminder ID, title refresh on Follow-up-title edits, legacy-field compatibility, clear/delete semantics and duplicate suppression. Then test JSON/SQL/backup round-trip, notification delivery, Calendar update/no-op/delete and history independence on the resulting exact SHA.
