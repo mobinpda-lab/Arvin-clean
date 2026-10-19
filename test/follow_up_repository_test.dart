@@ -276,4 +276,30 @@ void main() {
     expect(stored.taskReminders, isEmpty);
   });
 
+
+  test('re-saving the same FollowUp identity does not duplicate its reminder', () async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {'id': 't-idempotent', 'title': 'کار'},
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    final followUp = FollowUp(
+      id: 'f-idempotent',
+      dateTime: DateTime(2026, 10, 20, 10),
+      title: 'پیگیری تکرارپذیر',
+      reminderDate: DateTime(2026, 10, 22, 10),
+    );
+
+    await repository.add('t-idempotent', followUp);
+    await repository.add('t-idempotent', followUp);
+
+    final stored = (await TaskStore().load()).single;
+    expect(stored.followUps, hasLength(1));
+    expect(stored.taskReminders.where((item) => item.followUpId == 'f-idempotent'),
+        hasLength(1));
+  });
+
 }
