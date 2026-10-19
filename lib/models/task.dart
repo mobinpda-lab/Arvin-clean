@@ -239,7 +239,7 @@ class Task {
             : 'پیگیری';
     final existing = index >= 0 ? taskReminders[index] : null;
     final reminder = TaskReminder(
-      id: existing?.id ?? 'follow-up-${followUp.id}',
+      id: existing?.id ?? 'follow-up:${id}:${followUp.id}',
       title: reminderTitle,
       date: date,
       isAllDay: false,
@@ -408,6 +408,42 @@ class Task {
           );
         }
       }
+    }
+
+    // Backward-compatible migration: old backups stored the explicitly
+    // configured Follow-up reminder only on FollowUp.reminderDate. Materialize
+    // a linked TaskReminder deterministically on read; keep the legacy field
+    // intact until the user edits/clears it, so retries and old backups never
+    // lose the original date. Existing linked records always win.
+    final parentTaskId = json['id'] as String? ?? '';
+    final parentTaskTitle = (json['title'] as String? ?? '').trim();
+    var nextFollowUpReminderSequence = loadedTaskReminders.isEmpty
+        ? 1
+        : loadedTaskReminders
+                .map((item) => item.sequence)
+                .reduce((a, b) => a > b ? a : b) +
+            1;
+    for (final followUp in loadedFollowUps) {
+      if (followUp.reminderDate == null) continue;
+      final existing = loadedTaskReminders.where(
+        (item) => item.followUpId == followUp.id,
+      ).toList(growable: false);
+      if (existing.isNotEmpty) continue;
+      final followUpTitle = followUp.title?.trim() ?? '';
+      final reminderTitle = followUpTitle.isNotEmpty
+          ? followUpTitle
+          : parentTaskTitle.isNotEmpty
+              ? 'پیگیری — $parentTaskTitle'
+              : 'پیگیری';
+      loadedTaskReminders.add(
+        TaskReminder(
+          id: 'follow-up:$parentTaskId:${followUp.id}',
+          title: reminderTitle,
+          date: followUp.reminderDate!,
+          sequence: nextFollowUpReminderSequence++,
+          followUpId: followUp.id,
+        ),
+      );
     }
 
     final rawLegacyReminderDate = json['reminderDate'];
