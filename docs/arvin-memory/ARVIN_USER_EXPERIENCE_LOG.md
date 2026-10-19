@@ -78,3 +78,8 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+
+## Wave 4.16 — Follow-up Reminder contract regression coverage — 2026-10-19
+
+Added repository-level regression cases in PR #2833 for Persian Reminder title fallbacks and title-only Follow-up edits preserving the linked Reminder identity and scheduled time. This change is test coverage, not yet a verified user-facing acceptance result; wait for Build and Device Smoke runs on the resulting candidate SHA. Existing UI and ownership decisions remain unchanged.

@@ -211,3 +211,10 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## Wave 4.16 live-state note — 2026-10-19
+
+Follow-up Reminder implementation remains on PR #2833 and reuses the existing Task/Follow-up/TaskReminder structures. New regression tests were added for reminder title fallback and title-only edits preserving stable Reminder ID and schedule. Commit: `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`; Build/Device Smoke validation was pending at the checkpoint and must be read from terminal runs before assigning a verified status.
+
+Calendar Provider CI uses an Android API 35 stock/default emulator. The provider component is present but no writable calendar row is discoverable; run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) failed acceptance and published diagnostics [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078). No real-provider acceptance is established.

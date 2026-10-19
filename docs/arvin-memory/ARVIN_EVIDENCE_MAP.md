@@ -553,3 +553,14 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## WAVE 4.16 — EVIDENCE UPDATE — 2026-10-19
+
+| Requirement / gate | Source SHA / run | Result | Evidence and limitation |
+|---|---|---|---|
+| Follow-up title fallback + stable identity/time regression tests | PR #2833 code commit `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`; Build [39243365218](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365218) | IN_PROGRESS at last poll | Repository-level tests added; do not mark PASS until all required Build jobs terminate successfully. |
+| Device Smoke for previous code head | Run [39240952294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952294), source metadata SHA `273944bb6504c7d51fa4b5f8b869a5519591f682` | CANCELLED | Six lanes succeeded; Calendar lane cancelled. Not full acceptance. |
+| Build for previous code head | Run [39240952251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952251), source metadata SHA `273944bb6504c7d51fa4b5f8b869a5519591f682` | SUCCESS, 9/9 jobs; Exact-SHA assertion skipped | Debug Artifact [12181028571](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12181028571), digest `sha256:017b04a392cfbb3fe73cdeb53067b5053b557999b89e088ec2ac3574c9cd17cc`; Release Artifact [12180934054](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12180934054), digest `sha256:def49ff62e32839a2ab8c836b100841e5d9ee7f86e54dae28c99792a8b3639a9`. Artifact ZIP digests only. |
+| Real Calendar Provider | Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995), PR #2831 SHA `094c43f1f92de263d26950915b13df7380e69244` | FAILURE / BLOCKED | Exact-target assertion succeeded for that SHA; acceptance reports no writable calendar on stock API 35 emulator. Diagnostic Artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) successfully uploaded. |
+| Official Release signing | main `android/app/build.gradle.kts` | BLOCKED | Release uses Debug signing; authorized key and approved fingerprint unavailable. |

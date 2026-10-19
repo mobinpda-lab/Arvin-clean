@@ -369,3 +369,12 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## WAVE 4.16 — 2026-10-19
+
+- **Follow-up Reminder test gap:** Existing projection coverage exercised some title fallback behavior, but repository-level persistence coverage did not isolate title-only edits with stable reminder identity/time and repeated update idempotency. Regression tests were added in PR #2833 commit `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`. Status: IMPLEMENTED_NOT_VERIFIED pending terminal CI.
+- **Device Smoke cancellation:** Run [39240952294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952294) is CANCELLED; Calendar lane was cancelled after six successful lanes. It is not a 7/7 pass.
+- **Writable Calendar Provider unavailable:** Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) fails the real-provider acceptance with `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. API 35 stock emulator has CalendarProvider2 but no writable calendar row. Diagnostic artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) was uploaded successfully. Status: `BLOCKED_NO_WRITABLE_CALENDAR_PROVIDER`; next authorized alternative is a CI emulator image/configuration or isolated provider environment with a real writable calendar and explicit credentials/configuration, none currently exposed by this interface.
+- **Exact-SHA execution:** workflow supports target_sha and assertion, but connected integration has no workflow_dispatch action. Authorized dispatch is required.
+- **Official signing:** main still uses Debug signing for Release; approved key/fingerprint are unavailable.

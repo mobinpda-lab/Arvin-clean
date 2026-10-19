@@ -90,3 +90,16 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## Wave 4.16 release gate refresh — 2026-10-19
+
+**Decision: BLOCKED — RELEASE: NO-GO.**
+
+- PR #2833 remains Draft/Open/Unmerged; current code test commit is `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`. Repository-level Follow-up Reminder regression tests were added; Build run [39243365218](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365218) and Device Smoke [39243365263](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365263) were non-terminal at the recorded checkpoint. Any later documentation commit requires candidate-specific CI recheck.
+- Previous Build [39240952251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952251) succeeded 9/9 but its Exact-SHA assertion was skipped. Artifacts were Debug ID `12181028571` and Release ID `12180934054`; these are not official-release proof.
+- Previous Device Smoke [39240952294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952294) is CANCELLED; Calendar lane was cancelled, so it is not a complete pass.
+- Calendar Provider acceptance [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) failed because the stock API 35 emulator had no writable calendar row. Diagnostics were published in Artifact [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078).
+- Exact-SHA workflow dispatch is unavailable through the current connected GitHub action interface; an authorized workflow_dispatch with target_sha assertion is required.
+- Release configuration on main still uses Debug signing. Authorized keystore and independently approved certificate fingerprint are not available.
+- No merge, tag, or official APK publication is authorized.

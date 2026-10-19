@@ -287,3 +287,13 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## 2026-10-19 — Wave 4.16 Follow-up Reminder regression coverage
+
+- Existing Follow-up repository/projection architecture remains authoritative; no parallel Reminder store, scheduler, or Calendar sync engine was introduced.
+- Added repository-level tests for both blank-title fallback cases and title-only edit identity/time stability with repeated update idempotency in PR #2833, commit `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`.
+- Validation state at this checkpoint: Build run [39243365218](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365218) was IN_PROGRESS; Device Smoke [39243365263](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365263) was queued/starting. Do not claim tests passed before terminal results.
+- Calendar Provider is an environment blocker, not product PASS: [Run 39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995) reports no writable calendar on the stock API 35 emulator and publishes diagnostics. Preserve CREATE → NO-OP → UPDATE → DELETE criteria.
+- Exact-SHA requires authorized workflow_dispatch with checked-out HEAD assertion; PR-triggered runs with skipped assertions are insufficient.
+- Official Release signing requires owner-authorized credentials and independent certificate fingerprint approval. Release remains NO-GO.

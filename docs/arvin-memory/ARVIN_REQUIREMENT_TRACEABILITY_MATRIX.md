@@ -95,3 +95,14 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## WAVE 4.16 — REQUIREMENT STATUS UPDATE — 2026-10-19
+
+| ID | Requirement | Status | Evidence / tested SHA | Next action |
+|---|---|---|---|---|
+| FUP-REM-01 | Follow-up Reminder title fallback, stable identity and time on title-only edit, idempotent repository update | IMPLEMENTED_NOT_VERIFIED | Regression cases added at `91d75f5495c4f98514bf3c977a7d3e77b96a0b47`; Build [39243365218](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365218) was IN_PROGRESS at checkpoint | Verify terminal Build test shards; fix root cause if any test fails. |
+| CI-DEVICE-01 | Device Smoke all seven lanes | BLOCKED / IN_PROGRESS for new head | Previous run [39240952294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952294) is CANCELLED with Calendar lane cancelled; new run [39243365263](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39243365263) was queued/starting | Obtain terminal 7/7 evidence on current final head. |
+| CAL-ACCEPT-01 | Real writable Provider CREATE → NO-OP → UPDATE → DELETE | BLOCKED | Run [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995); explicit `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; diagnostics [12182310078](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995/artifacts/12182310078) | Provide authorized writable provider/account or supported isolated CI environment; do not relax acceptance. |
+| CI-EXACT-01 | Exact target SHA checkout and assertion | BLOCKED | Build run 39240952251 skipped assertion; Provider run's assertion only covers PR #2831 SHA | Authorized dispatch using `target_sha`, with actual checkout assertion and artifacts tied to same SHA. |
+| SIGN-01 | Official Release signer and approved certificate fingerprint | BLOCKED | main Gradle Release config uses Debug signing | Owner-authorized signing input and independently approved fingerprint; apksigner verification. |
