@@ -492,3 +492,18 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Latest complete Build / Device Smoke | Final PR #2833 head after these changes | PENDING | Older head 12ef171beef4533d12efe08f3bdacca5e2e03f36 had Analyze SUCCESS, but its Build and Device Smoke runs were cancelled by subsequent branch updates. Do not count them as full passes. |
 
 No new SQL schema migration was introduced; the current TaskStore JSON envelope is the persistence path for TaskReminder metadata. Actual migration and Backup/Restore behavior remain pending until the tests run on the final head.
+
+
+
+## Wave 4.12 live evidence checkpoint — 2026-10-19
+
+| Gate | SHA / Run | Result | Evidence |
+|---|---|---|---|
+| Build + Analyze + all test shards | PR #2833 head d06062fb19c3f3ad54051f3a682f69be4146dd91; [39234124721](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39234124721) | SUCCESS, 9/9 jobs | Analyze, six test shards, Debug APK, Release APK. Artifacts IDs 12178910414 and 12177339192 explicitly reference this SHA. |
+| Device Smoke | [39234124429](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39234124429) | IN PROGRESS at last poll | Home, Quick Capture, SQL Persistence, SQL Migration SUCCESS; People/Backup-Restore IN_PROGRESS; Calendar QUEUED. |
+| Exact SHA | PR #2827 [39211789444](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789444) | BLOCKED | Verify exact requested revision was SKIPPED on Device Smoke lanes. |
+| Release certificate | PR #2824 head ccc9f9b122420ef999828088f70a7aa950c5b979 | BLOCKED | android/app/build.gradle.kts still configures release with debug signing; no authorized fingerprint verified. |
+| Real Calendar Provider | PR #2831 [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | FAILURE / BLOCKED | No writable Calendar Provider in the stock emulator. |
+| Canonical release/matrix docs | Commits e2989ffa6b585368bfc4effaf4647ec53a792c46 / 0525f14a93f8d548e6b84cb70daa5d7e1177e6ed | Created | Both were absent on main and Wave 4.11 branch at inspection; now added to the existing PR branch. Their new head requires fresh CI. |
+
+Do not transfer green CI results from d06062fb19c3f3ad54051f3a682f69be4146dd91 to the later documentation commits.
