@@ -66,13 +66,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   String _dateTime(DateTime value) => '${_date(value)} • ${_time(value)}';
 
+  bool get _hasFollowUp =>
+      _task.followUps.isNotEmpty || _task.followUpDate != null;
+
   String _statusLabel() {
     if (_task.completed) return 'انجام شده';
     final latest = _task.lastFollowUp;
     if (latest != null && _waitingService.isWaitingResult(latest.result)) {
       return 'در انتظار پاسخ';
     }
-    return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
+    return _hasFollowUp ? 'کار پیگیری‌دار' : 'در انتظار انجام';
   }
 
   Color _statusColor() {
@@ -247,7 +250,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   _task.priority == TaskPriority.high ? _danger : _waiting,
                   icon: Icons.flag_outlined,
                 ),
-              if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
+              if (_hasFollowUp) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
               for (final tag in _task.tags.take(4))
                 _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
@@ -538,7 +541,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             children: [
-              if (_task.followUpEnabled && !(_task.completed))
+              if (_hasFollowUp && !(_task.completed))
                 Expanded(
                   child: FilledButton.icon(
                     key: const ValueKey('task-detail-add-followup'),
@@ -547,7 +550,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     label: const Text('افزودن پیگیری'),
                   ),
                 ),
-              if (_task.followUpEnabled && !_task.completed) const SizedBox(width: 10),
+              if (_hasFollowUp && !_task.completed) const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-complete'),
