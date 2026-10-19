@@ -229,6 +229,7 @@ jobs:
           test "$actual" = "$TARGET_SHA"
           test "$actual" = "$GITHUB_SHA"
           echo "EXACT_TARGET_SHA=$actual"
+          echo "ARVIN_REQUESTED_TARGET_SHA=$TARGET_SHA" >> "$GITHUB_ENV"
           echo "SOURCE_SHA=$actual"
           echo "WORKFLOW_EVENT=$GITHUB_EVENT_NAME"
           echo "SOURCE_BRANCH=$GITHUB_REF_NAME"
@@ -322,8 +323,13 @@ jobs:
           apk_sha="$(sha256sum "$apk" | awk '{print $1}')"
           {
             echo "repository=mobinpda-lab/Arvin-clean"
+            echo "workflow_name=$GITHUB_WORKFLOW"
             echo "branch=$GITHUB_REF_NAME"
+            echo "requested_target_sha=$ARVIN_REQUESTED_TARGET_SHA"
+            echo "checked_out_sha=$(git rev-parse HEAD)"
             echo "source_sha=$(git rev-parse HEAD)"
+            echo "source_pr_head_sha=not_applicable_workflow_dispatch_on_main"
+            echo "source_pr_base_sha=not_applicable_workflow_dispatch_on_main"
             echo "workflow_event=$GITHUB_EVENT_NAME"
             echo "workflow_run_id=$GITHUB_RUN_ID"
             echo "workflow_job_id=$GITHUB_JOB"
@@ -366,7 +372,7 @@ jobs:
         run: |
           {
             echo "- GitHub Artifact ID: ${ARTIFACT_ID:-not-created}"
-            echo "- Artifact archive digest: available from the GitHub Actions artifact metadata; distinct from the APK SHA-256 above."
+            echo "- Artifact archive digest: not computed inside this job; if recorded from GitHub artifact metadata, keep it distinct from the APK SHA-256 above."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove temporary production signing material
