@@ -99,6 +99,10 @@ class FollowUpCalendarProjection {
       }
 
       for (final reminder in task.taskReminders) {
+        // A Follow-up-linked TaskReminder is a persistence mirror. The
+        // canonical FollowUp projection above retains the existing Calendar
+        // identity and must remain the sole event for this reminder.
+        if (reminder.followUpId != null) continue;
         reminders.add(
           CalendarReminder(
             // The migrated legacy reminder keeps its old external identity so
