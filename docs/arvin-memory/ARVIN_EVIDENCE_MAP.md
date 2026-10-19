@@ -699,3 +699,12 @@ Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([co
 | Final status document | Added on this documentation branch | Not merged to main | Review PR #2826 and require CI on final doc head |
 | Overall | Multiple critical gates remain open | **RELEASE: NO-GO** | No tag or release until all critical gates close |
 
+
+
+## WAVE 4 CI POLL — 2026-10-19 (live status at latest query)
+
+- Calendar Provider workflow [Run 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224), triggered by workflow commit `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da): exact requested revision check **SUCCESS**; emulator acceptance step **IN_PROGRESS** at latest poll; no artifact published yet. This is not PASS.
+- Build [Run 39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), commit `6ff5b3c...`: Analyze SUCCESS; six test shards and Debug/Release APK jobs were still IN_PROGRESS at latest poll.
+- Device Smoke [Run 39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094), commit `6ff5b3c...`: two lanes IN_PROGRESS and five QUEUED at latest poll. No lane is yet a terminal pass.
+- Build [Run 39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523), commit `d437dbf6cc76bbb216916b94145a8ddae897e52b`: jobs QUEUED/IN_PROGRESS; no terminal conclusions at latest poll.
+- The above are PR-triggered runs. No `workflow_dispatch` exact-target run was performed. The available GitHub tools do not expose workflow dispatch or repository Actions secret/variable inspection.
