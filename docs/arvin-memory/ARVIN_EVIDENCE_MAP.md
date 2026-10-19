@@ -900,3 +900,11 @@ PR #2828 remains OPEN/DRAFT at the tested SHA; docs PR #2826 remains OPEN/DRAFT.
 - New contract implementation PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) IN_PROGRESS and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) QUEUED at documentation time. New-head tests remain unverified until these runs finish.
 - Migration strategy: add optional `followUpId` to existing Task-nested `TaskReminder`; materialize legacy `FollowUp.reminderDate` deterministically on read only when no linked record exists; retain legacy date/data; linked record wins for projection; preserve the existing Follow-up Calendar external identity and delivery stable key.
 - No real Calendar Provider operations, official signing certificate, or exact-SHA Device Smoke acceptance are established by this PR.
+
+## WAVE 4.9 CHECKPOINT — current SHA and CI state — 2026-10-19
+
+- Main baseline: d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- Current linked Follow-up Reminder PR #2832: head acb06279e766142cc9cbc886259d6ab951df2036, stacked on PR #2828 head 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
+- Current Build 39226858516 is IN_PROGRESS. Current Device Smoke 39226858634 is QUEUED.
+- Earlier implementation run 39225465707 failed because analyzer reported unused/format findings and legacy assertions expected the previous backup shape and calendar fallback title. Focused fixes updated assertions for linked Reminder migration and canonical title behavior; no valid assertions were deleted. Intermediate runs cancelled by subsequent commits do not count as passes.
+- Existing prior-SHA Build 39220016817 and Device Smoke 39220016763 remain successful only for 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
