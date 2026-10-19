@@ -137,3 +137,15 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - The current mainline Calendar Provider workflow uses API 35 `target: default`; its step can record a stock-emulator limitation but does not yet provision a separately verified writable provider. Artifact upload is not unconditional (`if: always()` absent). Real-provider create/no-op/update/delete: **BLOCKED / NOT VERIFIED**.
 - The current mainline Device Smoke workflow has seven lanes but no `target_sha` input or per-job checkout assertion. PR #2827 proposes these controls, but its PR-head CI must finish and the workflow must be validated on a single candidate SHA.
 - No qualified candidate SHA. Final decision remains **BLOCKED — RELEASE: NO-GO**. Required owner action: provide authorized release-signing credentials through the repository's approved secret mechanism and the independently approved certificate fingerprint.
+
+
+## Wave 4.5 execution delta — live GitHub recheck (2026-10-19)
+
+- Verified default branch `main` at `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Current Release configuration was fetched from main (blob `aaeea7506885814cc4c4a65ac6559872a80146a8`): `signingConfig = signingConfigs.getByName("debug")`. Official Release signing is `BLOCKED`; owner must supply authorized signing credentials through the approved repository secret mechanism and the independently approved certificate SHA-256 fingerprint. No fingerprint or credential was inferred.
+- PRs #2824, #2826, #2827, #2828, #2831, #2790, #2791 and #2796 were re-queried. All remain open Draft and unmerged. PRs #2790/#2791/#2796 still report old base SHA `824ca8f17c92e76b3887001891d7d5b6f17974a6`; they require dependency-aware reconciliation before integration.
+- Mainline latest observed run set includes Production Orchestrator / Production Loop successes but Release Closure run [39214476013](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214476013) and Final Head Release Validation run [39214481131](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214481131) were skipped. These are not release-gate passes.
+- Calendar Provider Acceptance remains `BLOCKED / NOT VERIFIED`: the current stock API 35 `target: default` environment has not demonstrated a writable real provider, and no `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` acceptance was verified in this execution. Historical failure attempts are not product correctness evidence.
+- Exact-SHA qualification remains open. PR #2827 adds target-SHA checkout/assertions, but the current evidence set does not establish all required Build jobs, all seven Device Smoke lanes, real-provider acceptance, and signing on one qualified candidate SHA.
+- No candidate SHA selected; no merge, tag, or release action performed. Final decision: **BLOCKED — RELEASE: NO-GO**.
+- Owner actions: provide authorized Release keystore/secret and approved certificate fingerprint; an authorized operator must run the exact-SHA Build and Device Smoke dispatch for the selected candidate; provision or approve a legitimate writable calendar-provider test environment and rerun actual CRUD/no-op acceptance.
