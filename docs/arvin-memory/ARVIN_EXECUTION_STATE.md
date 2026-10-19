@@ -1271,3 +1271,15 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - Current main Device Smoke workflow defines seven lanes but does not accept/verify an exact target SHA. PR #2827 adds a dispatch target and checkout assertions; its current head needs terminal validation and an exact-SHA run.
 - Latest observed mainline run set includes successes for Orchestrator/Production Loop and cancelled/skipped auxiliary runs; this is not evidence that all mandatory release gates passed. No qualified candidate SHA is selected.
 - No merge, tag, or release action performed. Release decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — Wave 4.5 execution delta — 2026-10-19
+
+- Re-queried GitHub default ref: `main = d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Re-fetched current `android/app/build.gradle.kts`: Release still selects `signingConfigs.getByName("debug")`. Official signing remains BLOCKED. Required owner action: provide authorized keystore material through the approved secret channel and the independently approved certificate SHA-256 fingerprint. Do not disclose secret values in logs.
+- Current PR snapshots: #2824 `ccc9f9b122420ef999828088f70a7aa950c5b979`; #2826 `f4dec87f26959b196ac8492445c4f7f43e03483d`; #2827 `d437dbf6cc76bbb216916b94145a8ddae897e52b`; #2828 `50f1d26a8e4102f078e2f184771f98d521152dc4`; #2831 `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`; #2790 `6ca1cff18f6631352995241b783b7b3bfcec55d5`; #2791 `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; #2796 `3ba0499403a405d92fc0440164b8c6ccc864eb5a`. All eight are open Draft, unmerged.
+- The old-base PRs #2790/#2791/#2796 still use base snapshot `824ca8f17c92e76b3887001891d7d5b6f17974a6`; no blind rebase performed.
+- Latest mainline orchestration did not close release gates: Release Closure run [39214476013](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214476013) and Final Head Release Validation [39214481131](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214481131) are `skipped`. A PR #2826 Build run [39214463241](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214463241) was observed `pending` and Device Smoke [39214463284](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214463284) `queued` at the snapshot; neither is a pass.
+- Calendar Provider acceptance is BLOCKED / NOT VERIFIED. The live main workflow uses API 35 stock/default emulator; the current run evidence did not establish a writable provider or real CRUD/no-op. Prior three independent correction attempts were documented; no further provider seed-path mutation is made in this continuation. Continue unrelated workstreams.
+- No single SHA has qualified Build + all seven Device Smoke lanes + real-provider acceptance + official signing + migration/backup + UI/PDF gates. Candidate remains unselected. No merge, tag, or release performed.
+- Release decision: **BLOCKED — RELEASE: NO-GO**.
