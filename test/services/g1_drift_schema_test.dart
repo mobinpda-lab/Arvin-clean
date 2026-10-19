@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,6 +66,69 @@ void main() {
       const [],
     );
     expect(foreignKeys.single['foreign_keys'], 1);
+  });
+
+  test('backfills Follow-up title waiting state and Person links from retained envelope', () async {
+    await G1DriftSchema.install(database);
+    await database.runInsert(
+      '''INSERT INTO tasks (
+        id, storage_ordinal, title, description, follow_up_enabled,
+        priority, archived, trashed, completed, legacy_payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'task-backfill',
+        0,
+        'کار',
+        '',
+        1,
+        'none',
+        0,
+        0,
+        0,
+        jsonEncode({
+          'id': 'task-backfill',
+          'followUps': [
+            {
+              'id': 'followup-backfill',
+              'dateTime': '2026-10-15T10:00:00.000',
+              'title': 'تماس با آنا',
+              'waitingForResponse': true,
+              'personIds': ['ana', 'reza'],
+            },
+          ],
+        }),
+      ],
+    );
+    await database.runInsert(
+      '''INSERT INTO follow_ups (
+        id, task_id, date_time, note, completed, waiting_for_response, ordinal
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'followup-backfill',
+        'task-backfill',
+        '2026-10-15T10:00:00.000',
+        '',
+        0,
+        0,
+        0,
+      ],
+    );
+
+    await G1DriftSchema.migrateFollowUpMetadata(database);
+    await G1DriftSchema.migrateFollowUpMetadata(database);
+
+    final followUp = await database.runSelect(
+      'SELECT title, waiting_for_response FROM follow_ups WHERE id = ?',
+      <Object?>['followup-backfill'],
+    );
+    expect(followUp.single['title'], 'تماس با آنا');
+    expect(followUp.single['waiting_for_response'], 1);
+
+    final people = await database.runSelect(
+      'SELECT person_id FROM follow_up_people WHERE follow_up_id = ? ORDER BY ordinal',
+      <Object?>['followup-backfill'],
+    );
+    expect(people.map((row) => row['person_id']), ['ana', 'reza']);
   });
 
   test('schema installation is idempotent', () async {
