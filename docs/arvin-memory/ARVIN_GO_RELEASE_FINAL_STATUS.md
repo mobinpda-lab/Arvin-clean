@@ -127,3 +127,13 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
 - Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
 - Final decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 4.5 live revalidation — 2026-10-19
+
+- Live `main` rechecked at `d9fb7a247037762216662a20fb32028ecc8a0f6b`; this confirms the prior baseline but does not qualify it as a release candidate.
+- Current `android/app/build.gradle.kts` still assigns Release to `signingConfigs.getByName("debug")`. Official Release signing: **BLOCKED** pending owner-authorized keystore credentials and approved SHA-256 certificate fingerprint. Do not use the historical APK as a candidate without provenance/signature revalidation.
+- PRs #2824, #2826, #2827, #2828, #2831, #2790, #2791 and #2796 remain open Draft in the live PR listing. #2790/#2791/#2796 still target `main` at old base `824ca8f17c92e76b3887001891d7d5b6f17974a6`; dependency-aware reconciliation remains required.
+- The current mainline Calendar Provider workflow uses API 35 `target: default`; its step can record a stock-emulator limitation but does not yet provision a separately verified writable provider. Artifact upload is not unconditional (`if: always()` absent). Real-provider create/no-op/update/delete: **BLOCKED / NOT VERIFIED**.
+- The current mainline Device Smoke workflow has seven lanes but no `target_sha` input or per-job checkout assertion. PR #2827 proposes these controls, but its PR-head CI must finish and the workflow must be validated on a single candidate SHA.
+- No qualified candidate SHA. Final decision remains **BLOCKED — RELEASE: NO-GO**. Required owner action: provide authorized release-signing credentials through the repository's approved secret mechanism and the independently approved certificate fingerprint.
