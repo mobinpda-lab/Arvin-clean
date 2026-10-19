@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   test('reads legacy followUpDate without rewriting it', () async {
@@ -97,6 +98,7 @@ void main() {
   });
 
   test('completion preserves Follow-up title, person links, waiting and reminder state', () async {
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
         {
