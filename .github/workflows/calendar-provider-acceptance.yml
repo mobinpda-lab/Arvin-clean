@@ -17,7 +17,7 @@ on:
       - 'lib/services/system_calendar_bridge.dart'
       - 'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt'
   pull_request:
-    branches: [main]
+    branches: [main, 'fix/follow-up-record-authority-20261019']
     paths:
       - 'integration_test/android_calendar_provider_acceptance_test.dart'
       - '.github/workflows/calendar-provider-acceptance.yml'
@@ -78,9 +78,63 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: mkdir -p .github/calendar-provider-evidence && echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt && echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt && echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt && (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true) && echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt && flutter build apk --debug -t lib/main.dart && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell pm grant com.example.arvin android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; rc=$?; cat .github/calendar-provider-evidence/test-output.txt 2>/dev/null || true; if [ "$rc" -ne 0 ]; then exit "$rc"; fi; if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > .github/calendar-provider-evidence/result.txt; elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' > .github/calendar-provider-evidence/result.txt; else echo 'No explicit provider acceptance result was emitted.' >&2; exit 1; fi
+          script: |
+            set -Eeuo pipefail
+            evidence_dir=".github/calendar-provider-evidence"
+            mkdir -p "$evidence_dir"
+            printf 'HEAD_SHA=%s\n' "$(git rev-parse HEAD)" > "$evidence_dir/environment.txt"
+            device="emulator-${EMULATOR_PORT}"
+            printf 'EMULATOR_DEVICE=%s\n' "$device" >> "$evidence_dir/environment.txt"
+            printf 'EMULATOR_API=%s\n' "$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d '\\r')" >> "$evidence_dir/environment.txt"
+            printf 'PROVIDER_DISCOVERY_BEGIN\n' >> "$evidence_dir/environment.txt"
+            (adb -s "$device" shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> "$evidence_dir/environment.txt" || true)
+            printf 'PROVIDER_DISCOVERY_END\n' >> "$evidence_dir/environment.txt"
+
+            flutter build apk --debug -t lib/main.dart
+            adb -s "$device" install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb -s "$device" shell pm grant com.example.arvin android.permission.READ_CALENDAR
+            adb -s "$device" shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+
+            # Quote the full remote shell command so URI query-string ampersands
+            # are not interpreted as background operators by the emulator shell.
+            seed_uri='content://com.android.calendar/calendars?caller_is_syncadapter=true&account_name=arvin-acceptance&account_type=LOCAL'
+            set +e
+            seed_output="$(adb -s "$device" shell "content insert --uri '$seed_uri' --bind account_name:s:arvin-acceptance --bind account_type:s:LOCAL --bind name:s:arvin-acceptance --bind calendar_displayName:s:ArvinAcceptance --bind calendar_color:i:-16776961 --bind calendar_access_level:i:700 --bind ownerAccount:s:arvin-acceptance --bind visible:i:1 --bind sync_events:i:1" 2>&1)"
+            seed_rc=$?
+            set -e
+            {
+              printf 'CALENDAR_SEED_EXIT=%s\n' "$seed_rc"
+              printf 'CALENDAR_SEED_OUTPUT_BEGIN\n%s\nCALENDAR_SEED_OUTPUT_END\n' "$seed_output"
+              printf 'CALENDAR_ROWS_BEGIN\n'
+              adb -s "$device" shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level 2>&1 || true
+              printf 'CALENDAR_ROWS_END\n'
+            } >> "$evidence_dir/environment.txt"
+
+            set +e
+            flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "$device" > "$evidence_dir/test-output.txt" 2>&1
+            test_rc=$?
+            set -e
+            cat "$evidence_dir/test-output.txt" 2>/dev/null || true
+
+            if [ "$test_rc" -ne 0 ]; then
+              printf 'RESULT=FAIL_PROVIDER_TEST_EXIT_%s\n' "$test_rc" > "$evidence_dir/result.txt"
+              exit "$test_rc"
+            fi
+            if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt"; then
+              echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$evidence_dir/result.txt"
+              exit 0
+            fi
+            if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' "$evidence_dir/test-output.txt"; then
+              echo 'RESULT=BLOCKED_NO_WRITABLE_CALENDAR_PROVIDER' > "$evidence_dir/result.txt"
+              echo "::error::Calendar Provider acceptance is blocked: no writable calendar was discovered. This is not a pass."
+              exit 1
+            fi
+            echo 'RESULT=FAIL_NO_EXPLICIT_ACCEPTANCE_MARKER' > "$evidence_dir/result.txt"
+            echo "::error::Provider test produced no explicit PASS marker."
+            exit 1
 
       - name: Publish exact-head provider evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: arvin-calendar-provider-acceptance-${{ github.event.pull_request.head.sha || github.sha }}
