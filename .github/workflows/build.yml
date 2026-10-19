@@ -46,6 +46,23 @@ jobs:
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
+      - name: Record source and workflow revisions
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          mkdir -p artifacts/ci-evidence
+          {
+            echo "SOURCE_SHA=$actual"
+            echo "WORKFLOW_SHA=$WORKFLOW_SHA"
+            echo "EVENT_NAME=$GITHUB_EVENT_NAME"
+            echo "RUN_ID=$GITHUB_RUN_ID"
+            echo "RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT"
+          } | tee artifacts/ci-evidence/revision.txt
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
@@ -134,6 +151,23 @@ jobs:
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
+      - name: Record source and workflow revisions
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          mkdir -p artifacts/ci-evidence
+          {
+            echo "SOURCE_SHA=$actual"
+            echo "WORKFLOW_SHA=$WORKFLOW_SHA"
+            echo "EVENT_NAME=$GITHUB_EVENT_NAME"
+            echo "RUN_ID=$GITHUB_RUN_ID"
+            echo "RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT"
+          } | tee artifacts/ci-evidence/revision.txt
 
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
@@ -175,9 +209,11 @@ jobs:
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
-      - name: Upload APK
+      - name: Upload APK and revision evidence
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          name: arvin-${{ matrix.variant }}-apk-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          path: |
+            build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+            artifacts/ci-evidence/revision.txt
           if-no-files-found: error
