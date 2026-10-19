@@ -463,3 +463,19 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+
+## 2026-10-19 — Wave 4.11 Follow-up Reminder evidence
+
+| Feature / Gate | SHA / Run | Result | Evidence / limitation |
+|---|---|---|---|
+| PR #2833 baseline Build | `91d5412dad2f80aeffc464434f693583f4180be2`; [Run 39232215264](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39232215264) | **FAILURE** | Analyze reports syntax/scope errors in `test/follow_up_reminder_model_test.dart` at lines 197 and 214; test-3 and test-4 also fail. |
+| APK jobs on baseline | Same Run 39232215264 | Debug and Release APK jobs SUCCESS | Artifacts exist: [Debug APK artifact](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12178256927), [Release APK artifact](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12178341746). These are not release-approved; Release signing is still configured to use the debug signing config. |
+| Test scope correction | `44019c81b8ad394b7c4ce4496347004a79a519ad` | IMPLEMENTED_NOT_VERIFIED | Two new tests moved inside `main()`; no subsequent run was returned at time of this update. |
+| Follow-up-to-TaskReminder reconciliation | `2989741558cdc834787f38751469e91788cf42e7` | IMPLEMENTED_NOT_VERIFIED | Repository mirrors date/title to linked TaskReminder, preserves linked ID on edits, and removes only linked reminder when cleared. Persistence is in canonical Task JSON envelope; no new SQL migration. |
+| Duplicate notification guard | `e83229579d36108786f11393ca622de85c13b693`, `f6d34abe1b435530e72cc3ef0c8e90746dda4e90`, `dba7a12b55edb1ffc7981f5526a8c7c4330640c6` | IMPLEMENTED_NOT_VERIFIED | Linked TaskReminder mirror is skipped by generic TaskReminder delivery projection so the established Follow-up delivery key remains authoritative. |
+| Repository lifecycle regression tests | `b4b14a2497c460b2bd8da1711b7a8663cb1c42d6` | IMPLEMENTED_NOT_VERIFIED | Tests cover stable ID across edit, scoped clear, preserving unrelated reminders/Person/waiting/result, and `nextFollowUp` alone. Tests have not been run. |
+| Latest UI label | `9dc9d9f3b9156ab1095b722ca7dbc89bdaf7eeee` | IMPLEMENTED_NOT_VERIFIED | UI label changed to `یادآور پیگیری بعدی`; not yet validated by widget test on this SHA. |
+
+**Evidence rule:** no result above establishes a passing gate on the latest PR head. Device Smoke, Backup/Restore integration, writable Calendar Provider acceptance, exact-SHA verification and official signing remain unproven.
