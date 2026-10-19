@@ -1178,3 +1178,32 @@ Candidate PR: [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833), br
 ### Next action
 
 After this documentation batch lands, read the new PR head, obtain fresh Build and all seven Device Smoke lanes for that head, and continue exact-SHA/provider/signing paths only through authorized workflows. Do not transfer the run evidence above to a newer SHA.
+
+
+## WAVE 4.15 LIVE EXECUTION CHECKPOINT — 2026-10-19
+
+### Repository and candidate identity
+- Default branch: `main`; live main HEAD observed during this checkpoint: `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Follow-up implementation PR [#2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833) remains OPEN/DRAFT/UNMERGED; current head observed: `273944bb6504c7d51fa4b5f8b869a5519591f682`, base `fix/follow-up-record-authority-20261019` at `49910e585ee73afcf56a7f8d927b9c69e763c5c5`.
+- No merge, tag, release, or branch-protection bypass performed.
+
+### Referenced Wave 4.14 runs — actual latest poll
+- Build [39240952251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952251): terminal SUCCESS; all 9 jobs succeeded and Debug/Release APK artifacts exist (Debug artifact ID `12181028571`, Release artifact ID `12180934054`). This is a PR-triggered run for head `273944bb6504c7d51fa4b5f8b869a5519591f682`; `Verify exact requested revision` was SKIPPED in every job. Analyze ran successfully, tests ran successfully in shards, but this is NOT Exact-SHA acceptance.
+- Device Smoke [39240952294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39240952294): six lanes SUCCESS (Home, Quick Capture, SQL Persistence, People, Backup/Restore, SQL Migration); Calendar lane was still IN_PROGRESS at this poll. Do not report 7/7 until the Calendar lane is terminal SUCCESS. Available screenshot artifacts are associated with the same PR head SHA; they do not prove Exact-SHA dispatch.
+- Calendar Provider Acceptance [39241395995](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39241395995): terminal FAILURE on PR #2831 head `094c43f1f92de263d26950915b13df7380e69244` (not main or PR #2833 candidate). The exact-revision assertion PASSED for that provider-workflow head. Real Provider acceptance FAILED; diagnostic artifact [12182310078](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12182310078) was successfully published by the always-run evidence step. Provider failure remains a blocker; exact checkout does not convert failed CREATE/NO-OP/UPDATE/DELETE into acceptance.
+- PRs [#2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831), [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), and [#2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824) remain the relevant Draft workstreams for Provider, exact-SHA Device Smoke, and signing audit respectively; keep them unmerged until their acceptance gates are met.
+
+### Release blockers reaffirmed from live source
+- Exact-SHA: BLOCKED. The Build run's exact-revision assertions were skipped because it was a PR-triggered run; no authorized workflow_dispatch execution was performed in this checkpoint.
+- Calendar Provider: BLOCKED. Provider acceptance failed despite publishing diagnostic evidence. Do not label it PASS or weaken the acceptance criteria.
+- Official signing: BLOCKED. Live `main` `android/app/build.gradle.kts` configures Release with `signingConfigs.getByName("debug")`. An authorized release key and independently approved certificate fingerprint remain required. The available connector does not expose repository secrets/variables for inspection.
+- Integrated product, migration/backup compatibility, PDF/font/RTL, and Golden Flow acceptance remain open until candidate-specific evidence is captured.
+
+### Next actions
+1. Poll Device Smoke run `39240952294` to terminal state, particularly `device-smoke (calendar)`; preserve its actual conclusion.
+2. Continue implementation on existing PR #2833 and update canonical traceability/evidence documents incrementally; any new head requires new candidate-specific validation.
+3. Use only an authorized exact-SHA workflow-dispatch path; do not count skipped assertions as success.
+4. Continue provider environment investigation only through supported, reproducible CI configuration; retain diagnostic artifact and `RESULT=BLOCKED_NO_WRITABLE_CALENDAR_PROVIDER` when applicable.
+5. Obtain owner-authorized release signing configuration and approved fingerprint before official APK qualification.
+
+**Release decision: BLOCKED — RELEASE: NO-GO.**
