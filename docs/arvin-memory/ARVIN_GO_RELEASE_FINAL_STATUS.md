@@ -250,3 +250,7 @@ Next: preserve the passing PR-head evidence; verify exact-SHA dispatch on a cont
 ## WAVE 4.9 STATUS UPDATE — 2026-10-19
 
 Release decision remains **`BLOCKED — RELEASE: NO-GO`**. PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832) (`e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`) introduces a staged, backward-compatible linked Reminder relationship and tests. Its Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) is in progress and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) is queued; no new-head PASS is established. Official signing, exact-SHA Device Smoke, real writable Calendar Provider acceptance and the other product gates remain unresolved. A successful Release build job is not proof of authorized signing.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19
+
+Release remains BLOCKED — RELEASE: NO-GO. Reminder implementation PR #2832 current head is acb06279e766142cc9cbc886259d6ab951df2036; Build 39226858516 is IN_PROGRESS and Device Smoke 39226858634 is QUEUED. Earlier run 39225465707 failed on analyzer findings and changed canonical backup/Calendar expectations; targeted fixes were committed, but intermediate runs were cancelled as later regression tests were added. No new-head acceptance is established. Signing, exact-SHA validation, writable Calendar Provider and remaining product gates remain open.
