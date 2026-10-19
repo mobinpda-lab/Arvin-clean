@@ -1,4 +1,5 @@
 name: Arvin Device Smoke
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
 
 on:
   push:
@@ -7,12 +8,17 @@ on:
     # Validate PRs targeting integration branches too; product code can live there before main integration.
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate (empty uses the selected ref)'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
+  group: arvin-device-smoke-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -45,6 +51,17 @@ jobs:
             test_file: integration_test/calendar_card_interaction_test.dart
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+      - name: Verify exact requested revision
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
@@ -127,7 +144,7 @@ jobs:
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
+          name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
           if-no-files-found: warn
 
@@ -135,7 +152,7 @@ jobs:
         if: always() && matrix.scenario == 'quick-capture'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-persian-time-picker-${{ github.sha }}
+          name: arvin-persian-time-picker-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/persian-time-picker.png
           if-no-files-found: warn
 
@@ -143,7 +160,7 @@ jobs:
         if: always() && matrix.scenario == 'calendar'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-calendar-${{ github.sha }}
+          name: arvin-device-smoke-calendar-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
           path: |
             artifacts/device-smoke/calendar-card-interaction.png
             artifacts/device-smoke/calendar-card-completed.png
