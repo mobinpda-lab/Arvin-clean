@@ -227,3 +227,13 @@ Preserve the matrix's earlier requirement IDs and historical evidence. This adde
 | Follow-up reminder label/title behavior | `IMPLEMENTED_AND_VERIFIED` for targeted projection tests only | PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) PASS. | Do not generalize this narrow pass to record persistence, notifications, Calendar or backup/restore. |
 
 This addendum preserves existing stable requirement IDs and prior decisions; it records the V10.0 contract gap rather than silently marking the full requirement complete.
+
+## WAVE 4.9 TRACEABILITY UPDATE — 2026-10-19
+
+| Requirement | Status | Current evidence | Remaining validation |
+|---|---|---|---|
+| Persist Follow-up reminder as independent TaskReminder with Follow-up relation | `IMPLEMENTED_NOT_VERIFIED` | PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; optional `followUpId`, JSON serialization and deterministic legacy materialization | Current Build; SQL persistence/reopen, migration retry, Backup/Restore and clear/delete behavior |
+| One coherent `یادآور پیگیری بعدی` input | `IMPLEMENTED_NOT_VERIFIED` | Follow-up editor label updated in PR #2832 | Widget CI and viewport check; keep next-action time semantically independent |
+| Follow-up title/fallback and stable identity | `IMPLEMENTED_NOT_VERIFIED` on new implementation; prior projection correction remains verified on prior SHA | Model and projection tests added in PR #2832 | Current Build/Smoke; notification delivery and Calendar no-op/update tests |
+| Preserve Person, waiting-response, result and Follow-up history on Reminder edits | `IMPLEMENTED_NOT_VERIFIED` | Model regression fixture checks preservation through Task JSON round-trip | Full persistence and Backup/Restore on one candidate SHA |
+| Release qualification | `BLOCKED` | New contract PR open/Draft; signing, exact-SHA and provider gates unresolved | All mandatory gates must pass for one explicit candidate SHA |
