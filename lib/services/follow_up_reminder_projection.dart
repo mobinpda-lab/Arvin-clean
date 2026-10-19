@@ -74,6 +74,9 @@ class FollowUpReminderProjection {
       }
 
       for (final reminder in task.taskReminders) {
+        // Linked reminders are scheduled from the FollowUp projection below,
+        // retaining its established stable delivery key.
+        if (reminder.followUpId != null) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
