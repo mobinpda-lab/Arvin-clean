@@ -230,3 +230,7 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 **Compatibility rationale:** legacy `FollowUp.reminderDate` remains intact and is mirrored on writes while legacy backups/installations are supported. `Task.fromJson` deterministically materializes a linked Reminder only when none exists; retries reuse the existing relation. Projection, alarm planning and Calendar use the linked record first and preserve the existing Follow-up stable key/external Calendar ID. This is an implementation proposal, not accepted behavior until current-head CI and end-to-end tests pass.
 
 PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) were not terminal when authored. Preserve ambiguous data if tests reveal unclear legacy associations.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19
+
+Decision remains to extend the existing TaskReminder record with optional followUpId and retain legacy FollowUp.reminderDate during compatibility transition. PR #2832 current head acb06279e766142cc9cbc886259d6ab951df2036 includes deterministic materialization, stable IDs, sequence preservation, and linked-record-first projections. Current Build 39226858516 is IN_PROGRESS and Device Smoke 39226858634 is QUEUED. This is not an accepted release decision until current-head tests and provider acceptance pass.
