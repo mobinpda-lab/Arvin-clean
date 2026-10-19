@@ -59,6 +59,13 @@ void main() {
       id: 'follow-up',
       title: 'پیگیری مشتری',
       followUpEnabled: true,
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'existing-fu',
+          dateTime: DateTime(2026, 8, 27, 10),
+          note: 'پیگیری قبلی',
+        ),
+      ],
     );
 
     await tester.pumpWidget(
@@ -75,7 +82,7 @@ void main() {
       ),
     );
 
-    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
+    expect(find.text('پیگیری قبلی'), findsOneWidget);
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
     expect(add, findsOneWidget);
     await tester.tap(add);
@@ -87,12 +94,35 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
     await tester.pumpAndSettle();
 
-    expect(task.followUps, hasLength(1));
-    expect(task.followUps.single.title, isNull);
-    expect(task.followUps.single.note, isEmpty);
-    expect(find.byKey(ValueKey('task-detail-followup-${task.followUps.single.id}')),
+    expect(task.followUps, hasLength(2));
+    expect(task.followUps.first.id, 'existing-fu');
+    expect(task.followUps.last.note, isEmpty);
+    expect(find.byKey(ValueKey('task-detail-followup-${task.followUps.last.id}')),
         findsOneWidget);
     expect(find.text('پیگیری'), findsWidgets);
+  });
+
+  testWidgets('legacy followUpEnabled flag alone does not create Follow-up status or actions',
+      (tester) async {
+    final task = Task(
+      id: 'flag-only-detail',
+      title: 'پرچم بدون رکورد',
+      followUpEnabled: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onEdit: (value) async => value,
+          onAddFollowUp: (value, followUp) async => value,
+        ),
+      ),
+    );
+
+    expect(find.text('پیگیری‌دار'), findsNothing);
+    expect(find.text('کار پیگیری‌دار'), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-add-followup')), findsNothing);
   });
 
   testWidgets('existing FollowUp edits in place from detail without duplication',
