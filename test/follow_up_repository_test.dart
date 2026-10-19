@@ -302,4 +302,100 @@ void main() {
         hasLength(1));
   });
 
+
+  test('FollowUp title fallback and title-only edit preserve linked reminder identity and time', () async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't-title-fallback',
+          'title': '  قرارداد مادر  ',
+          'followUps': [
+            {
+              'id': 'f-parent-fallback',
+              'dateTime': '2026-10-20T10:00:00.000',
+              'title': '   ',
+              'reminderDate': '2026-10-22T14:30:00.000',
+              'personIds': ['person-1'],
+            },
+            {
+              'id': 'f-empty-fallback',
+              'dateTime': '2026-10-20T11:00:00.000',
+              'title': '',
+              'reminderDate': '2026-10-23T14:30:00.000',
+            },
+          ],
+          'taskReminders': [],
+          'nextReminderSequence': 1,
+        },
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    var stored = (await TaskStore().load()).single;
+    var parentFallback = stored.taskReminders
+        .singleWhere((item) => item.followUpId == 'f-parent-fallback');
+    final stableId = parentFallback.id;
+    final stableTime = parentFallback.date;
+
+    expect(parentFallback.title, 'پیگیری — قرارداد مادر');
+    expect(
+      stored.taskReminders
+          .singleWhere((item) => item.followUpId == 'f-empty-fallback')
+          .title,
+      'پیگیری — قرارداد مادر',
+    );
+
+    final edited = FollowUp(
+      id: 'f-parent-fallback',
+      dateTime: DateTime(2026, 10, 20, 10),
+      title: 'عنوان تازه',
+      reminderDate: stableTime,
+      personIds: const ['person-1'],
+    );
+    await repository.update('t-title-fallback', edited);
+    await repository.update('t-title-fallback', edited);
+
+    stored = (await TaskStore().load()).single;
+    parentFallback = stored.taskReminders
+        .singleWhere((item) => item.followUpId == 'f-parent-fallback');
+    expect(parentFallback.id, stableId);
+    expect(parentFallback.title, 'عنوان تازه');
+    expect(parentFallback.date, stableTime);
+    expect(
+      stored.taskReminders.where((item) => item.followUpId == 'f-parent-fallback'),
+      hasLength(1),
+    );
+    expect(stored.followUps.singleWhere((item) => item.id == 'f-parent-fallback').personIds,
+        ['person-1']);
+  });
+
+  test('empty FollowUp and parent titles use generic reminder title', () async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't-empty-titles',
+          'title': '   ',
+          'followUps': [
+            {
+              'id': 'f-empty-titles',
+              'dateTime': '2026-10-20T10:00:00.000',
+              'title': '  ',
+              'reminderDate': '2026-10-22T14:30:00.000',
+            },
+          ],
+          'taskReminders': [],
+          'nextReminderSequence': 1,
+        },
+      ]),
+    });
+
+    final stored = (await TaskStore().load()).single;
+    expect(
+      stored.taskReminders.singleWhere((item) => item.followUpId == 'f-empty-titles').title,
+      'پیگیری',
+    );
+  });
+
 }
