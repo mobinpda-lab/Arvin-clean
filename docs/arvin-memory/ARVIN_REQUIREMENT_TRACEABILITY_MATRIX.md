@@ -171,3 +171,11 @@ No row above is a release pass. Documentation-head CI is not candidate release a
 | Physical-device acceptance | No current physical-device evidence. | BLOCKED | Owner/operator installs exact candidate and records core flows, Calendar, Backup/Restore, Persian RTL and compact-screen evidence. |
 
 This override supersedes stale Wave 4.6 pending labels where terminal results are now available. PR-event PASS does not equal exact-candidate release acceptance. Final status remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 4.7 execution delta — Follow-up Reminder title correction — 2026-10-19
+
+- Existing PR #2828 was extended by commit `4cdb6449f7b007e66e71b784738ffa5207ea3e26` (no new product PR). `FollowUpReminderCandidate.followUpLabel` now uses the explicit Follow-up title; when blank, it falls back to `پیگیری — <parent Task title>`. The future-reminder projection and due-delivery projection use the same rule. Notes/results remain metadata and are no longer used as the reminder label. Stable Follow-up ID, parent Task identity, scheduled timestamp and existing scheduler path are preserved; no second scheduler/store was introduced.
+- Regression expectations were updated in `test/follow_up_reminder_projection_test.dart` and `test/follow_up_reminder_delivery_service_test.dart` for explicit title and blank-title fallback.
+- Exact-head Build [39218125822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125822): latest observation has Analyze SUCCESS; test shards 0–5 and Debug/Release APK jobs are still IN_PROGRESS. Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) is QUEUED overall, with Home and Quick Capture lanes in progress and other lanes queued. **No final test verdict yet.** Do not mark this fix accepted until all jobs reach terminal status.
+- This entry is a live status checkpoint, not release acceptance. PR #2828 remains OPEN/DRAFT, no merge/tag/release occurred, exact-target verification remains skipped for PR-triggered workflows, and official signing / real Calendar Provider gates remain BLOCKED. Release decision remains `BLOCKED — RELEASE: NO-GO`.
