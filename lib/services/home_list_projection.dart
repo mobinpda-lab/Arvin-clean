@@ -36,9 +36,7 @@ class HomeListProjection {
         case HomeListScope.notes:
           return task.isNotebookItem;
         case HomeListScope.followUpEnabled:
-          return task.followUpEnabled ||
-              task.followUps.isNotEmpty ||
-              task.followUpDate != null;
+          return task.followUps.isNotEmpty || task.followUpDate != null;
         case HomeListScope.today:
           final date = _effectiveDate(task);
           return !task.completed &&
