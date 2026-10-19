@@ -323,3 +323,17 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | Calendar Provider acceptance | PR #2831 Run 39211706224 failed: no writable provider | BLOCKED | Use authorized writable provider environment for CREATE/NO-OP/UPDATE/DELETE. |
 | Canonical release docs absent | 404 for both files on main and Wave 4.11 branch | RESOLVED AS DOCUMENTATION SETUP | Created canonical files in existing PR branch; new head needs fresh CI. |
 | Wave 4.11 candidate verification | Build 39234124721 green on d06062fb19c3f3ad54051f3a682f69be4146dd91; Device Smoke not terminal at last poll | IN_PROGRESS | Recheck terminal results and rerun evidence on post-doc head. |
+
+
+## Wave 4.13 blocker register — 2026-10-19
+
+| Blocker | Evidence | Status | Next action |
+|---|---|---|---|
+| Current-head Device Smoke | [39235854812](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854812): only Home and Quick Capture terminal SUCCESS at latest poll; SQL Persistence and SQL Migration in progress; People, Backup/Restore and Calendar queued | IN_PROGRESS | Poll to terminal, then refresh after docs head changes. |
+| Exact-SHA checkout | [39235854952](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854952) exact-revision step SKIPPED; direct workflow_dispatch not exposed | BLOCKED | Authorized target SHA dispatch; inspect checkout assertion and artifact metadata. |
+| Writable Calendar Provider | [39203189292](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203189292), artifact [12165156149](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12165156149) proves Provider package exists but no writable row. Three seeding/control-flow attempts recorded in #2831. | BLOCKED | Authorized alternate writable-provider environment; execute identity-based CREATE → NO-OP → UPDATE → DELETE. |
+| Official signing | main Gradle Release variant uses Debug signing; Release APK hash is known but not signer-verified; approved key/fingerprint unavailable through connected tools | BLOCKED | Authorized keystore/secret setup + independently approved fingerprint; run `apksigner verify --verbose --print-certs` and compare. |
+| Follow-up Reminder lifecycle | Repository/model/editor and regression tests exist; current PR-triggered Build tests passed, but exact checkout and complete Device Smoke are not proven | IMPLEMENTED_NOT_VERIFIED | Verify all lifecycle, notification, calendar-link and backup tests on final candidate SHA. |
+| PDF/font and remaining product UX | No new final-candidate visual/PDF evidence produced in this wave | IMPLEMENTED_NOT_VERIFIED / BLOCKED where external assets or device proof required | Audit license, RTL/embedding/line-wrap and compare actual generated PDF preview; continue other lanes independently. |
+
+Release remains NO-GO.
