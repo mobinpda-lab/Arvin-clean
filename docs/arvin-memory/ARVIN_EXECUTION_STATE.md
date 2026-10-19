@@ -1283,3 +1283,18 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - Calendar Provider acceptance is BLOCKED / NOT VERIFIED. The live main workflow uses API 35 stock/default emulator; the current run evidence did not establish a writable provider or real CRUD/no-op. Prior three independent correction attempts were documented; no further provider seed-path mutation is made in this continuation. Continue unrelated workstreams.
 - No single SHA has qualified Build + all seven Device Smoke lanes + real-provider acceptance + official signing + migration/backup + UI/PDF gates. Candidate remains unselected. No merge, tag, or release performed.
 - Release decision: **BLOCKED — RELEASE: NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — WAVE 4.6 — 2026-10-19
+
+This checkpoint supplements earlier entries; it does not retroactively upgrade historical evidence.
+
+- Live GitHub ref confirms main = d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- PR metadata rechecked: #2824 head ccc9f9b122420ef999828088f70a7aa950c5b979; #2826 head 3f39b29df51aaa077b90938af74528644c0ea7f8; #2827 head d437dbf6cc76bbb216916b94145a8ddae897e52b; #2828 head 50f1d26a8e4102f078e2f184771f98d521152dc4; #2831 head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da; #2790 head 6ca1cff18f6631352995241b783b7b3bfcec55d5; #2791 head 9cf025b5a9678373d6b5a89a8a043ba49bf53243; #2796 head 3ba0499403a405d92fc0440164b8c6ccc864eb5a. All were open, unmerged, and Draft when queried.
+- Build run [39214701152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701152) on documentation head 3f39b29df51aaa077b90938af74528644c0ea7f8: Analyze and six test shards succeeded; Debug APK succeeded; Release APK was still in progress at the latest job query. Overall run remained in progress.
+- Device Smoke run [39214701198](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701198) on that same SHA: Home and Quick Capture succeeded; SQL Persistence and SQL Migration were in progress; People, Calendar, Backup/Restore were queued. Overall run remained queued at latest run-level query.
+- Successful Production Loop run [39214769312](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214769312) is on main and is not Build/Device acceptance.
+- android/app/build.gradle.kts inspected on the signing-audit branch still explicitly signs Release with the Debug config. Official signing remains BLOCKED pending owner-approved credentials and fingerprint.
+- Calendar Provider acceptance remains BLOCKED after the observed stock-emulator writable-provider limitation. No actual CRUD/no-op success artifact was established.
+- No product code commit was created in this checkpoint. Documentation-only updates are being recorded on the existing PR #2826 branch; no direct-main writes, merges, tags, or releases.
+- Candidate SHA remains unselected. Release decision: BLOCKED — RELEASE: NO-GO.
