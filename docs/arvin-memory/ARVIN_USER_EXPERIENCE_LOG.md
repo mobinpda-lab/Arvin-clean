@@ -108,3 +108,11 @@ The Reminder runtime had a lifecycle mismatch: completed FollowUps were excluded
 - Run [39244802042](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042) failed after the shell-option issue was corrected. The actual emulator-runner contract executes each newline in its `script` input in a separate `/usr/bin/sh` process; therefore variables and control flow in the inline multiline script did not persist, and the test/output files were not produced. The artifact [12182643345](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244802042/artifacts/12182643345) retained the preinitialized evidence file but did not prove Provider acceptance.
 - Replaced the inline multiline script with one invocation, `bash .github/scripts/calendar-provider-acceptance.sh`, so Bash variables, seed result, test result and fail-closed logic execute in a single process. Added the script to workflow path filters and records both actual checkout SHA and PR head SHA. Artifact upload remains `if: always()` with evidence initialized before emulator boot.
 - This is a CI harness correction, not a pass. The next run must show seed diagnostics, writable calendar rows, and the real CREATE → NO-OP → UPDATE → DELETE acceptance marker. Otherwise Calendar Provider remains BLOCKED.
+
+
+## 2026-10-19 — Wave 4.18 Calendar Provider acceptance failure
+
+- Evidence: [Provider run 39245131251](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39245131251) failed during event UPDATE with a native Calendar Provider write exception.
+- User impact: automatic Calendar synchronization cannot be considered accepted until update-by-stable-event-identity succeeds and the complete lifecycle is demonstrated.
+- Change: native update now verifies calendar ownership and targets the exact event URI without an extra selection, commit [3cc2b4551ea5c30903a697cdff3b3450e6bf609f](https://github.com/mobinpda-lab/Arvin-clean/commit/3cc2b4551ea5c30903a697cdff3b3450e6bf609f).
+- Status: IMPLEMENTED_NOT_VERIFIED; fresh CI and real Provider lifecycle evidence required. No claim of physical-device acceptance.
