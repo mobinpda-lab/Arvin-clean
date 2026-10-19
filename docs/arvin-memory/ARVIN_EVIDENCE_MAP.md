@@ -507,3 +507,17 @@ No new SQL schema migration was introduced; the current TaskStore JSON envelope 
 | Canonical release/matrix docs | Commits e2989ffa6b585368bfc4effaf4647ec53a792c46 / 0525f14a93f8d548e6b84cb70daa5d7e1177e6ed | Created | Both were absent on main and Wave 4.11 branch at inspection; now added to the existing PR branch. Their new head requires fresh CI. |
 
 Do not transfer green CI results from d06062fb19c3f3ad54051f3a682f69be4146dd91 to the later documentation commits.
+
+
+## Wave 4.13 evidence addendum — 2026-10-19
+
+| Evidence | Result | Scope / limitation |
+|---|---|---|
+| Build [39235854952](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854952) | SUCCESS, 9/9 jobs | PR event; exact requested revision step SKIPPED. Do not treat as exact-head proof. |
+| Debug artifact [12178863114](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12178863114) | Available; APK SHA-256 `c44abc1cd8c67b4737d8f01a95d28c15f67cc49bcbb3222eda28e256da58f0f0` | Extracted and hashed in this session; not release-signing evidence. |
+| Release artifact [12179281920](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12179281920) | Available; APK SHA-256 `6c6e38199c9d29ae26a4ff33e45082882ff05d0ee0bd8d276889148e78f2fabd` | Extracted and hashed in this session; `apksigner` unavailable locally and Gradle release config uses Debug signing. |
+| Device Smoke [39235854812](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854812) | Home + Quick Capture SUCCESS; SQL Persistence + SQL Migration IN_PROGRESS; People + Backup/Restore + Calendar QUEUED | Incomplete; no 7/7 claim. |
+| Provider diagnostic artifact [12165156149](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12165156149) | Provider package present; no writable calendar row | Limitation evidence only, not CREATE → NO-OP → UPDATE → DELETE PASS. |
+| Exact-SHA | SKIPPED on Build run | Authorized `workflow_dispatch(target_sha)` still unavailable. |
+
+When the docs-only head changes, old run evidence stays attached to the prior candidate and must not be transferred to the new SHA.
