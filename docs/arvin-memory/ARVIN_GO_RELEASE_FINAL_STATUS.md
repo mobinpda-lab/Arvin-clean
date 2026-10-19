@@ -228,3 +228,21 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - Prior exact-SHA Build evidence for `4cdb6449f7b007e66e71b784738ffa5207ea3e26` remains historical and valid only for that SHA. Its Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) remains IN_PROGRESS at last observation; Calendar lane has not produced a terminal result.
 - Documentation commit `a41ec7ba196f06891f8716bd3bce1d8769fb3877` already recorded the verified prior Build, artifact IDs/digests, passing test-shard evidence, official signing blocker, Calendar Provider limitation, and remaining regression gaps. This delta supersedes only the test-coverage status and current product SHA.
 - Current `main` release build still uses debug signing config. Calendar Provider real-writable acceptance, Exact-SHA dispatch, and final seven-lane Device Smoke remain open. Release remains `BLOCKED — RELEASE: NO-GO`; no merge/tag/release occurred.
+
+
+## LIVE RELEASE DECISION UPDATE — 2026-10-19 — V10.0
+
+**Decision: `BLOCKED — RELEASE: NO-GO`.** The following CI evidence is current for PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` only:
+
+- [Build 39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817): SUCCESS — Analyze, six test shards, Debug APK and Release APK.
+- [Device Smoke 39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763): SUCCESS — all seven lanes (Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore, Calendar).
+- Artifacts: Release APK ID `12171622074`; Debug APK ID `12171039370`. These are CI outputs and are not officially signed release artifacts.
+
+Blocking mandatory gates:
+1. `android/app/build.gradle.kts` still assigns Debug signing config to Release. No authorized release credential, independently approved certificate SHA-256 fingerprint, successful `apksigner verify --verbose --print-certs`, or signed-APK SHA-256 linkage to an approved candidate is proven.
+2. The terminal PR runs above do not prove a controlled manual exact-SHA workflow_dispatch checkout assertion for the final candidate.
+3. Real Calendar Provider create/no-op/update/delete remains unaccepted; the last known provider attempt documented stock-emulator lack of a writable calendar.
+4. Person/report, recurrence, migrations, physical-device installation, Persian RTL/UI, PDF visual output and full end-to-end product acceptance are not all proven for one integrated candidate SHA.
+5. PR #2828 and documentation PR #2826 remain Draft/open. No merge, tag or public release was performed.
+
+Next: preserve the passing PR-head evidence; verify exact-SHA dispatch on a controlled SHA, diagnose/obtain an authorized writable Calendar Provider environment, and request only the protected release credential/certificate approval when the repository's authorized design is ready. Do not treat a debug-signed APK as release-qualified.
