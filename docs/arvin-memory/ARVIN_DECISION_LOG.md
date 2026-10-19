@@ -246,3 +246,12 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - Exact-SHA remains blocked because Run 39211789444 skips Verify exact requested revision. Official signing remains blocked because release Gradle uses debug signing and no approved fingerprint is available. Calendar Provider acceptance remains blocked by Run 39211706224 (no writable provider).
 - Canonical files ARVIN_GO_RELEASE_FINAL_STATUS.md and ARVIN_REQUIREMENT_TRACEABILITY_MATRIX.md were missing on main and Wave 4.11 branch, so created them on the existing PR branch (commits e2989ffa6b585368bfc4effaf4647ec53a792c46 and 0525f14a93f8d548e6b84cb70daa5d7e1177e6ed). No parallel numbered docs created.
 - Because documentation commits advance the branch, CI evidence must be checked again on the resulting head.
+
+
+## Wave 4.13 decisions — 2026-10-19
+
+1. **Preserve evidence boundaries.** Build [39235854952](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39235854952) is 9/9 SUCCESS for a PR-triggered integration run, but its exact-revision assertion is SKIPPED. Record build success, not exact-head acceptance.
+2. **Calendar Provider diagnosis is environmental at the current evidence level.** Artifact [12165156149](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12165156149) proves the Calendar Provider package exists on API 35, while no writable calendar row is discoverable. Do not classify this as an Arvin product-code defect and do not call it accepted.
+3. **Stop speculative provider seeding after the documented three failed attempts.** The connected tools expose no alternate authorized writable-provider environment or direct workflow dispatch. Keep the Provider gate BLOCKED until such an environment exists.
+4. **Signing stays fail-closed.** Release artifact SHA-256 `6c6e38199c9d29ae26a4ff33e45082882ff05d0ee0bd8d276889148e78f2fabd` is recorded only for file identity. Since Gradle release signing is Debug and no approved key/fingerprint is available, it is not an official release candidate.
+5. **Any documentation commit creates a new candidate SHA.** Rerun the required gates on that resulting head; do not transfer prior results. No merge/tag/release.
