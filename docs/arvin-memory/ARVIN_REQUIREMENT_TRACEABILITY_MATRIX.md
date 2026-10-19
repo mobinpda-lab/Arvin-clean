@@ -58,3 +58,8 @@ This section is the newest evidence scope; earlier rows remain historical where 
 | PROD-01 | Home, Calendar UX, Reports, People, migration and Golden Flow | IMPLEMENTED_NOT_VERIFIED | Existing canonical implementations and prior tests are not equivalent to final-candidate integrated acceptance | Prioritize remaining contract rows by data-loss risk; retain exact links and screenshots. |
 
 No row is promoted to IMPLEMENTED_AND_VERIFIED based solely on code presence or a PR-triggered build whose exact checkout assertion was skipped.
+
+
+## CI refresh after Wave 4.13 documentation commit
+
+The Wave 4.13 memory updates above were committed as a documentation batch. Earlier intermediate documentation commits used a CI-skip marker to avoid repeatedly canceling active workflows; therefore, their existing run results do not validate the resulting batch head. A fresh Build and Device Smoke run on the current final head is required. At the time of this entry, no run for that resulting head has been returned by the connected GitHub Actions query. Exact-SHA assertion, writable Calendar Provider acceptance and approved release signing remain BLOCKED.
