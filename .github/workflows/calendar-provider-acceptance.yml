@@ -98,6 +98,7 @@ jobs:
           script: bash .github/scripts/calendar-provider-acceptance.sh
 
       - name: Publish exact-head provider evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: arvin-calendar-provider-acceptance-${{ inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
