@@ -1,4 +1,5 @@
 name: Arvin Calendar Provider Acceptance
+run-name: Calendar Provider Acceptance (${{ inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }})
 
 on:
   push:
@@ -30,6 +31,11 @@ on:
       - 'test/services/calendar_outbound_sync_service_test.dart'
       - 'test/services/calendar_integration_settings_contract_test.dart'
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate; defaults to the PR head or pushed commit'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -43,6 +49,17 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
 
       - name: Fetch pinned VazirHarf
         run: |
@@ -83,6 +100,6 @@ jobs:
       - name: Publish exact-head provider evidence
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-calendar-provider-acceptance-${{ github.event.pull_request.head.sha || github.sha }}
+          name: arvin-calendar-provider-acceptance-${{ inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
           path: .github/calendar-provider-evidence
           if-no-files-found: error
