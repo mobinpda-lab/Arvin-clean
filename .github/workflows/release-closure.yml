@@ -188,6 +188,11 @@ jobs:
                 sha
               );
 
+              core.setOutput(
+                'base_sha',
+                sha
+              );
+
               core.info(
                 `CANDIDATE_PR=main`
               );
@@ -232,6 +237,11 @@ jobs:
             core.setOutput(
               'merge_sha',
               pr.merge_commit_sha
+            );
+
+            core.setOutput(
+              'base_sha',
+              pr.base.sha
             );
 
             core.info(
@@ -416,6 +426,7 @@ jobs:
           COMMIT_SHA=${{ steps.verify.outputs.commit_sha }}
           MERGE_SHA=${{ steps.verify.outputs.merge_sha }}
           MAIN_SHA=${{ steps.verify.outputs.main_sha }}
+          PR_BASE_SHA_AT_VALIDATION=${{ steps.verify.outputs.base_sha }}
           FLUTTER_VERSION=${FLUTTER_VERSION}
           GRADLE_VERSION=9.3.1
           AGP_VERSION=9.1.0
