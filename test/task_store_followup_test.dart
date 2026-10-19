@@ -48,6 +48,20 @@ void main() {
     expect(task.followUps.single.note, isEmpty);
   });
 
+  test('legacy enablement flag alone does not block canonical conversion', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"t-legacy-flag","title":"پرچم قدیمی","followUpEnabled":true}]',
+    });
+    final store = TaskStore();
+
+    await store.convertToFollowUp('t-legacy-flag');
+    final task = (await store.load()).single;
+
+    expect(task.followUpEnabled, isTrue);
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, startsWith('follow-up-conversion:t-legacy-flag:'));
+  });
+
   test('converting an existing FollowUp task is idempotent', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-existing","title":"پیگیری","followUpEnabled":true,"followUps":[{"id":"f1","dateTime":"2026-08-15T10:15:00.000"}]}]',
