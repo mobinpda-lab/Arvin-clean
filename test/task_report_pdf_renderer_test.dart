@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_report_pdf_renderer.dart';
 import 'package:arvin/services/task_report_projection.dart';
@@ -66,6 +68,12 @@ void main() {
     );
 
     final bytes = await TaskReportPdfRenderer().build(report);
+    final previewPath = Platform.environment['ARVIN_PDF_PREVIEW_OUTPUT'];
+    if (previewPath != null && previewPath.isNotEmpty) {
+      final preview = File(previewPath);
+      await preview.parent.create(recursive: true);
+      await preview.writeAsBytes(bytes, flush: true);
+    }
     final pdfText = String.fromCharCodes(bytes);
 
     expect(bytes.length, greaterThan(1000));
