@@ -1142,3 +1142,7 @@ This entry supersedes older statements that the owner decision is pending or tha
 - PR [#2826](https://github.com/mobinpda-lab/Arvin-clean/pull/2826) updates this state record and `ARVIN_EVIDENCE_MAP.md`; it remains Draft/unmerged.
 - No PR has been merged; no release tag, public release or direct-main commit was created.
 - Final release gate remains **NO-GO** until candidate exact-SHA Build/Device Smoke, real Provider CRUD acceptance, approved Release certificate identity, current-head Backup/Restore and all relevant integration/visual checks are terminal and evidenced.
+
+
+## PR base-snapshot warning — 2026-10-19
+PRs [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791), and [#2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796) report base snapshot `824ca8f17c92e76b3887001891d7d5b6f17974a6`, while current `main` is `d9fb7a247037762216662a20fb32028ecc8a0f6b`. They remain OPEN/DRAFT and must be reconciled against current main before merge. Their passing CI is PR-checkout evidence, not proof of integration against the current base. No branch update, merge, or force push was performed. The full live Base SHA / Head SHA table is in [ARVIN_EVIDENCE_MAP.md](https://github.com/mobinpda-lab/Arvin-clean/blob/docs/arvin-v4-wave1-evidence-20261019/docs/arvin-memory/ARVIN_EVIDENCE_MAP.md).
