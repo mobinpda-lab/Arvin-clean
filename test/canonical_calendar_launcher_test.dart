@@ -182,8 +182,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
-    expect(find.text('پیگیری جلسه مشتری'), findsWidgets);
-    expect(find.text('پیگیری جلسه داخلی'), findsWidgets);
+    expect(find.text('پیگیری — جلسه مشتری'), findsWidgets);
+    expect(find.text('پیگیری — جلسه داخلی'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
     expect(
       find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'),
