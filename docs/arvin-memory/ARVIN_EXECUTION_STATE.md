@@ -1110,3 +1110,14 @@ This entry supersedes older statements that the owner decision is pending or tha
 - **Important limitation:** this lifecycle slice has not yet been run through focused tests, full Analyze/test, Build, or Device Smoke on its latest head. The only returned CI evidence is for the older SHA above; no workflow run was returned for the subsequent commits during this check.
 - **Release:** `BLOCKED — RELEASE: NO-GO`. Notification/calendar acceptance, Backup/Restore, full migration coverage, exact-SHA validation, official signing and other product gates remain open.
 - **Next:** obtain CI evidence on the final current PR head; inspect and fix any resulting failures before expanding the contract.
+
+
+
+## WAVE 4.11 IMPLEMENTATION DELTA — 2026-10-19
+
+- Added idempotent FollowUpRepository.add: a repeated write with the same Follow-up ID updates the existing Follow-up instead of appending a duplicate. Commit: 937361328d56bae7b1831e8366f570658826cb15.
+- Fixed a Calendar duplication path: FollowUpCalendarProjection now skips a linked TaskReminder mirror and preserves the existing Follow-up Calendar event identity. Added regression coverage in commit 1d820bf3e6f6eb4d5889a2bc4c2835c6e09d5f42; projection change commit a26189099c60985f88ea2500b55ae17c89af8ee3.
+- Added an integration test for SQL reload plus canonical Backup/Restore preserving Task ID, Follow-up ID, linked Reminder ID/time/title, Person association, Waiting for Response, and unrelated Reminder. Commit: 2253ef62f404ef064b4bf85d40a16cbf880ed554.
+- These commits extend the earlier repository and scheduler changes; they are not yet test-verified. The run previously launched on head 12ef171beef4533d12efe08f3bdacca5e2e03f36 was cancelled after further commits changed the branch. A new Build/Device Smoke run must finish on the final head after this documentation update.
+- Remaining known gap: the existing Follow-up UI write coordinator reschedules notifications but does not yet provide evidence that the outbound Calendar sync path performs the complete create/no-op/update/delete lifecycle for this newly linked reminder. Calendar Provider acceptance is separately blocked by the stock emulator lacking a writable calendar.
+- Release remains BLOCKED — RELEASE: NO-GO.
