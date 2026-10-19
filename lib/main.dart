@@ -2423,15 +2423,9 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).popUntil((route) => route.isFirst);
         return;
       case ArvinPrimaryDestination.calendar:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => CanonicalCalendarLauncher(
-              tasks: _searchSource,
-              onCreateTaskForDate: _addForDate,
-              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-            ),
-          ),
-        );
+        // Use the canonical entry point: reload SQL before opening so the
+        // Calendar cannot capture an empty/stale Home snapshot during startup.
+        unawaited(_openPrimaryCalendar());
         return;
       case ArvinPrimaryDestination.notebook:
         Navigator.of(context).pushReplacement<void, void>(
