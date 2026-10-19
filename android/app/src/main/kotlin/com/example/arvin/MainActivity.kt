@@ -238,7 +238,25 @@ class MainActivity : FlutterActivity() {
                     }
                     try {
                         val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val deleted = contentResolver.delete(uri, CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        // Verify ownership before deleting the exact item URI.
+                        // Calendar Provider rejects extra selections on item-URI deletes.
+                        var belongsToCalendar = false
+                        contentResolver.query(
+                            uri,
+                            arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
+                            null,
+                            null,
+                            null,
+                        )?.use { cursor ->
+                            belongsToCalendar = cursor.moveToFirst() &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) == eventId &&
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId
+                        }
+                        if (!belongsToCalendar) {
+                            result.success(false)
+                            return@setMethodCallHandler
+                        }
+                        val deleted = contentResolver.delete(uri, null, null)
                         result.success(deleted == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied delete", error.message)
