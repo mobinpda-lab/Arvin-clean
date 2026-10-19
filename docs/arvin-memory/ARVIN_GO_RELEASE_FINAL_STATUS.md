@@ -149,3 +149,15 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - Exact-SHA qualification remains open. PR #2827 adds target-SHA checkout/assertions, but the current evidence set does not establish all required Build jobs, all seven Device Smoke lanes, real-provider acceptance, and signing on one qualified candidate SHA.
 - No candidate SHA selected; no merge, tag, or release action performed. Final decision: **BLOCKED — RELEASE: NO-GO**.
 - Owner actions: provide authorized Release keystore/secret and approved certificate fingerprint; an authorized operator must run the exact-SHA Build and Device Smoke dispatch for the selected candidate; provision or approve a legitimate writable calendar-provider test environment and rerun actual CRUD/no-op acceptance.
+
+
+## Wave 4.6 live revalidation — 2026-10-19
+
+- Live main ref re-read from GitHub: d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- No qualified candidate SHA selected. PR #2826 documentation head is 3f39b29df51aaa077b90938af74528644c0ea7f8; it is not a product release candidate.
+- Latest observed Build for that documentation head: [39214701152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701152), in_progress at recheck. Analyze and six test-shard jobs had completed successfully, Debug APK job succeeded, Release APK job was still building. This is not a terminal Build pass.
+- Device Smoke [39214701198](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701198) was queued; individual jobs showed Quick Capture and Home succeeded, SQL Persistence and SQL Migration running, and People, Calendar, Backup/Restore queued. This is not a seven-lane pass.
+- Latest mainline orchestrator/production-loop success is not a release gate. Release Closure and Final Head Release Validation remained skipped in the observed run set.
+- Current Release Gradle configuration still sets signingConfig = signingConfigs.getByName("debug") on the inspected signing branch; official Release signing is BLOCKED pending owner-authorized credentials and approved fingerprint.
+- Calendar Provider acceptance remains BLOCKED: no verified writable provider and no artifact demonstrating actual create/no-op/update/delete.
+- No merge, tag, or release was performed. Decision remains BLOCKED — RELEASE: NO-GO.
