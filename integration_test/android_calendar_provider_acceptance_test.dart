@@ -73,8 +73,17 @@ void main() {
       start: start.subtract(const Duration(hours: 1)),
       end: start.add(const Duration(hours: 4)),
     );
+    final createdEvents = events
+        .where((event) => event.title == reminder.title)
+        .toList(growable: false);
     expect(
-      events.any((event) => event.eventId == createdLink.eventId),
+      createdEvents,
+      hasLength(1),
+      reason: 'CREATE must insert exactly one matching real provider event',
+    );
+    expect(createdEvents.single.eventId, createdLink.eventId);
+    expect(
+      createdEvents.any((event) => event.eventId == createdLink.eventId),
       isTrue,
       reason: 'created event must be visible through Android Calendar Provider',
     );
@@ -86,6 +95,25 @@ void main() {
     );
     expect(noOpResult.noOp, 1);
     expect(noOpResult.created, 0);
+
+    events = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    final afterNoOpEvents = events
+        .where((event) => event.title == reminder.title)
+        .toList(growable: false);
+    expect(
+      afterNoOpEvents,
+      hasLength(1),
+      reason: 'NO-OP must leave exactly one matching provider event',
+    );
+    expect(
+      afterNoOpEvents.single.eventId,
+      createdLink.eventId,
+      reason: 'NO-OP must preserve the real provider event identity',
+    );
 
     final updatedReminder = CalendarReminder(
       id: reminder.id,
@@ -178,6 +206,19 @@ void main() {
       );
       expect(cleanupResult.deleted, 1);
       expect(await store.load(), isEmpty);
+
+      final eventsAfterMigrationDelete = await bridge.listDeviceCalendarEvents(
+        calendarIds: [secondCalendar.id],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      expect(
+        eventsAfterMigrationDelete.any(
+          (event) => event.eventId == migratedLinks.single.eventId,
+        ),
+        isFalse,
+        reason: 'DELETE must remove the migrated event from the real provider',
+      );
     } else {
       // With one writable calendar, finish the ordinary create/update/delete acceptance.
       links = await store.load();
