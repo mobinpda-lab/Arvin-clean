@@ -235,3 +235,14 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - Verification status: implementation commits 937361328d56bae7b1831e8366f570658826cb15 and a26189099c60985f88ea2500b55ae17c89af8ee3; tests c24e7b4dfe81313b4c45a95960cc47e3e5458755 and 1d820bf3e6f6eb4d5889a2bc4c2835c6e09d5f42. All remain IMPLEMENTED_NOT_VERIFIED until current-head CI passes.
 - Backup/Restore: Added a SQL + canonical backup round-trip test in commit 2253ef62f404ef064b4bf85d40a16cbf880ed554. This is not evidence of success until executed.
 - Open contract: Notification rescheduling is wired through the existing coordinator, but full outbound Calendar Provider create/no-op/update/delete acceptance remains blocked; do not infer it from projection unit tests.
+
+
+
+## 2026-10-19 — Wave 4.12 release evidence and canonical docs
+
+- Decision: Keep PR #2833 OPEN/DRAFT; no merge/tag/release until every required gate passes on one fixed SHA.
+- Verified evidence: Build Run 39234124721 succeeded 9/9 on head d06062fb19c3f3ad54051f3a682f69be4146dd91. The debug and release build artifacts list that exact source SHA. This does not validate official release signing.
+- Non-terminal evidence: Device Smoke Run 39234124429 had People and Backup/Restore IN_PROGRESS and Calendar QUEUED at last poll; do not count as 7/7.
+- Exact-SHA remains blocked because Run 39211789444 skips Verify exact requested revision. Official signing remains blocked because release Gradle uses debug signing and no approved fingerprint is available. Calendar Provider acceptance remains blocked by Run 39211706224 (no writable provider).
+- Canonical files ARVIN_GO_RELEASE_FINAL_STATUS.md and ARVIN_REQUIREMENT_TRACEABILITY_MATRIX.md were missing on main and Wave 4.11 branch, so created them on the existing PR branch (commits e2989ffa6b585368bfc4effaf4647ec53a792c46 and 0525f14a93f8d548e6b84cb70daa5d7e1177e6ed). No parallel numbered docs created.
+- Because documentation commits advance the branch, CI evidence must be checked again on the resulting head.
