@@ -877,3 +877,18 @@ No qualified release candidate has been selected. Pending/queued runs and histor
 - Prior exact-SHA Build evidence for `4cdb6449f7b007e66e71b784738ffa5207ea3e26` remains historical and valid only for that SHA. Its Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) remains IN_PROGRESS at last observation; Calendar lane has not produced a terminal result.
 - Documentation commit `a41ec7ba196f06891f8716bd3bce1d8769fb3877` already recorded the verified prior Build, artifact IDs/digests, passing test-shard evidence, official signing blocker, Calendar Provider limitation, and remaining regression gaps. This delta supersedes only the test-coverage status and current product SHA.
 - Current `main` release build still uses debug signing config. Calendar Provider real-writable acceptance, Exact-SHA dispatch, and final seven-lane Device Smoke remain open. Release remains `BLOCKED — RELEASE: NO-GO`; no merge/tag/release occurred.
+
+
+## LIVE EVIDENCE — 2026-10-19 — V10.0 PR #2828 final runs
+
+| Gate | Exact SHA / run | Result | Evidence boundary / next action |
+|---|---|---|---|
+| Build (Analyze, six test shards, Debug + Release APK) | [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817); `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | PASS | Workflow/artifact metadata head SHA matches PR head. PR run evidence, not proof of manual exact-SHA dispatch or official signing. |
+| Device Smoke: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore, Calendar | [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763); same SHA | PASS | All seven jobs terminal success. Emulator CI, not physical-device acceptance or real-provider acceptance. |
+| Release APK artifact | Run 39220016817, artifact ID `12171622074` | Built, NOT release-qualified | Debug artifact ID `12171039370`. APK signature/certificate authorization has not been established; current Gradle Release config still uses Debug signing. |
+| Follow-up reminder regression | PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | Tests included in passing Build | Title-only edit preserves reminder identity/schedule; blank title fallback test preserves identity/time. Broader persistence/notifications/calendar/backup acceptance still requires integrated evidence. |
+| Exact-SHA manual dispatch | Candidate `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | NOT VERIFIED | PR runs report this head SHA, but no controlled workflow_dispatch proof is established here. |
+| Official signing | Current main source `android/app/build.gradle.kts` | BLOCKED | Release uses `signingConfigs.getByName("debug")`; owner-authorized credential and approved certificate fingerprint are absent. |
+| Real Calendar Provider | [Historical attempt 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | BLOCKED / not accepted | Reported `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; do not invent create/no-op/update/delete PASS. |
+
+PR #2828 remains OPEN/DRAFT at the tested SHA; docs PR #2826 remains OPEN/DRAFT. Overall release decision stays `BLOCKED — RELEASE: NO-GO`.
