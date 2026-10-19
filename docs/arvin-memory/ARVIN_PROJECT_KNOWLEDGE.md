@@ -148,3 +148,13 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - The reminder field in the form is labelled `یادآور پیگیری بعدی`. `nextFollowUp` remains a distinct scheduling concept and must not create a reminder by itself.
 - Wave 4.11 test additions and repository changes must be validated on the final exact PR head. Build run 39232215264 failed on older SHA `91d5412dad2f80aeffc464434f693583f4180be2` because new tests were outside `main()`; commit `44019c81b8ad394b7c4ce4496347004a79a519ad` corrected their scope, but no passing run has yet been established.
 - Do not infer a database migration is required solely because `followUpId` was added: the JSON envelope persists the full TaskReminder payload. Still require a real persistence reload and Backup/Restore regression test before marking the relationship verified.
+
+
+
+## 2026-10-19 — Follow-up Reminder identity and Calendar de-duplication
+
+- Repository add/update reconciles a single TaskReminder per explicit followUpId; repeated add with the same Follow-up ID updates the existing Follow-up rather than appending another record.
+- Clearing FollowUp.reminderDate removes only the linked TaskReminder; the Follow-up's next action, result, Person IDs, waiting state and history remain canonical data.
+- Calendar projection must not emit both the Follow-up reminder and its TaskReminder mirror. Keep the existing followup:<taskId>:<followUpId> Calendar ID and skip linked mirrors in the generic TaskReminder projection.
+- A Backup/Restore integration regression now covers Task/Follow-up/Reminder IDs, date/title, Person association, Waiting for Response and unrelated reminders. Run it on the final PR head before claiming durability.
+- Build/Device Smoke run 39233581512 / 39233581540 on head 12ef171beef4533d12efe08f3bdacca5e2e03f36 was cancelled after later implementation commits; the next terminal evidence must match the final head.
