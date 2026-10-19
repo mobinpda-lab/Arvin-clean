@@ -291,4 +291,55 @@ void main() {
     expect(restored.taskReminders.single.date, DateTime(2026, 10, 20));
     expect(restored.taskReminders.single.isAllDay, isFalse);
   });
+
+  test('clearing linked Reminder removes only the Reminder record', () {
+    final task = Task(
+      id: 'clear-owner',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'keep-followup',
+          dateTime: DateTime(2026, 10, 20, 10),
+          title: 'تماس',
+          result: 'نتیجه حفظ شود',
+          reminderDate: DateTime(2026, 10, 21, 11),
+          waitingForResponse: true,
+          personIds: ['person-keep'],
+        ),
+      ],
+      taskReminders: [
+        TaskReminder(
+          id: 'unrelated-reminder',
+          title: 'یادآور دیگر',
+          date: DateTime(2026, 10, 22, 9),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+    final existing = task.followUps.single;
+    task.syncFollowUpReminder(existing);
+    final cleared = FollowUp(
+      id: existing.id,
+      dateTime: existing.dateTime,
+      title: existing.title,
+      note: existing.note,
+      result: existing.result,
+      reminderDate: null,
+      nextFollowUp: existing.nextFollowUp,
+      completed: existing.completed,
+      waitingForResponse: existing.waitingForResponse,
+      personIds: existing.personIds,
+    );
+    task.syncFollowUpReminder(cleared);
+    task.followUps = [cleared];
+
+    expect(task.id, 'clear-owner');
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, 'keep-followup');
+    expect(task.followUps.single.result, 'نتیجه حفظ شود');
+    expect(task.followUps.single.waitingForResponse, isTrue);
+    expect(task.followUps.single.personIds, ['person-keep']);
+    expect(task.taskReminders.map((item) => item.id), ['unrelated-reminder']);
+  });
 }
