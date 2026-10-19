@@ -734,3 +734,10 @@ This update supersedes prior pending-state descriptions for the run IDs below. E
 | Documentation | [PR #2826](https://github.com/mobinpda-lab/Arvin-clean/pull/2826), head a96780af144b6912f4d7d00d88816e6da411b5d1 | Updated on Draft branch | Final status, evidence map, execution state and traceability matrix remain unmerged from main. |
 
 No result above authorizes public release. All listed PRs remain Draft/unmerged. PR-triggered CI is not equivalent to exact-target dispatch, physical-device acceptance, approved release signing, or real writable-provider CRUD evidence. Release remains NO-GO.
+
+
+## APK artifact inspection addendum — 2026-10-19
+- Downloaded the Release APK artifact archive [12168605271](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12168605271) from Build run [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), PR head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da.
+- Archive contained app-release.apk, size 70,056,469 bytes. Independently calculated APK-file SHA-256: d1bf6ba6ed05b4cd5546dd4dc10de8c5e6016efda8d682d28466fda3102a38f7.
+- This is an observed artifact from a successful PR-triggered Release build, not a qualified official release. The exact-target verification step was skipped. The local inspection environment has no apksigner executable, so the APK certificate was not independently re-verified in this inspection. Main build.gradle.kts explicitly uses the Debug signing config; therefore the APK must not be distributed or presented as officially signed.
+- Artifact archive digest and APK-file SHA-256 are different values. Do not substitute one for the other. Official signing remains BLOCKED pending owner-authorized release credentials/fingerprint and apksigner verification on the qualified candidate.
