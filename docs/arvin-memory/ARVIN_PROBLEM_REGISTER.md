@@ -298,3 +298,15 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | Initial Wave 4.10 tests were syntactically out of scope | Build run [39232215264](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39232215264) shows Analyze failure at lines 197 and 214; commit `44019c81b8ad394b7c4ce4496347004a79a519ad` moves them into `main()`. | IMPLEMENTED_NOT_VERIFIED | Obtain a fresh terminal CI result for current PR head; do not treat historical artifacts as gate closure. |
 | SQLite and Backup/Restore relationship durability is not yet proven | Existing TaskStore envelope persists TaskReminder JSON; no new schema migration was added; repository tests added but not run. | IN_PROGRESS | Execute SQL reload + Backup/Restore relationship cycle; add migration only if evidence shows envelope persistence insufficient. |
 | Release signing / exact SHA / real Calendar Provider gates | Prior canonical memory and current Gradle file show release signing configured with debug signing; real Provider acceptance and exact-head validation still lack current evidence. | BLOCKED | Continue independent PRs #2824, #2827 and #2831 with exact-SHA evidence. |
+
+
+
+## 2026-10-19 — Wave 4.11 follow-up lifecycle delta
+
+| Requirement / risk | Latest change | Status | Next action |
+|---|---|---|---|
+| Duplicate FollowUp writes for the same ID | Repository add now updates the matching Follow-up in place; tests added. | IMPLEMENTED_NOT_VERIFIED | Run repository tests on final head and confirm SQL relation row count stays one. |
+| Linked TaskReminder appears twice in Calendar projection | Generic TaskReminder projection skips linked mirrors; stable Follow-up Calendar ID retained; regression test added. | IMPLEMENTED_NOT_VERIFIED | Run Calendar projection tests and real Provider acceptance on writable provider. |
+| Backup/Restore could lose Follow-up reminder relation | Added canonical backup + TaskStore reload integration test. | IMPLEMENTED_NOT_VERIFIED | Run the test and inspect restored IDs/associations; do not infer from test presence. |
+| Latest-head Build/Smoke evidence invalidated by subsequent changes | Runs on 12ef171beef4533d12efe08f3bdacca5e2e03f36 were cancelled when the branch advanced. | IN_PROGRESS | Wait for terminal Build and Device Smoke results on the final head. |
+| Calendar Provider acceptance environment has no writable calendar | Run [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) explicitly reports LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR. | BLOCKED | Provision/authorize a writable provider environment; retain the failure until Create/No-op/Update/Delete are actually accepted. |
