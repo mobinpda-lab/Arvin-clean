@@ -97,3 +97,16 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
 - Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
 - Final decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 4.5 gate traceability update — 2026-10-19
+
+| Requirement ID | Exact behavior / canonical contract | Implementation / PR | Current status | Evidence / tested SHA | Remaining risk / required action |
+|---|---|---|---|---|---|
+| REL-SIGN-001 | Release APK must use owner-authorized official signing identity, never Debug signing | `android/app/build.gradle.kts`; PR #2824 signature audit proposal | `BLOCKED` | Main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`; Gradle blob `aaeea7506885814cc4c4a65ac6559872a80146a8` still sets Release signing to Debug | Owner supplies authorized keystore via approved secret mechanism and approved certificate SHA-256; verify candidate APK with apksigner |
+| CAL-PROV-001 | Real writable Calendar Provider create/no-op/update/delete, with explicit pass marker and preserved evidence | Workflow `.github/workflows/calendar-provider-acceptance.yml`; PR #2831 | `BLOCKED` | Main workflow blob `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`; previous reported run `39211706224` is historical and not re-run here | Provision legitimate writable provider; assert persisted provider rows after every operation; upload evidence on failure; run exact SHA |
+| CI-SHA-001 | Build and seven Device Smoke lanes must checkout and assert the same qualified source SHA | `.github/workflows/build.yml`, `.github/workflows/device-smoke.yml`; PR #2827 | `IMPLEMENTED_NOT_VERIFIED` | Main Device Smoke blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45` lacks target SHA input; PR #2827 head `d437dbf6cc76bbb216916b94145a8ddae897e52b` proposes exact-SHA controls | Finish PR-head CI; dispatch Build and Device Smoke with exact SHA; verify every job/artifact provenance |
+| FUP-REC-001 | Follow-up state is represented by actual Follow-up records, preserving title/result/history/People/waiting state | PR #2828 head `50f1d26a8e4102f078e2f184771f98d521152dc4` | `IN_PROGRESS` | Diff contains targeted record-preservation and SQL metadata backfill changes; full integration acceptance not yet established | Focused migration, persistence, Reminder, notification/calendar, reports, and Backup/Restore tests |
+| DOC-BASE-001 | Reconcile old-base PRs against actual current main without dropping valid changes | PRs #2790, #2791, #2796 | `IN_PROGRESS` | Current bases all `824ca8f17c92e76b3887001891d7d5b6f17974a6`; current main `d9fb7a247037762216662a20fb32028ecc8a0f6b` | Review complete diffs, dependencies, conflicts, migrations, fonts and tests before branch update |
+
+Status vocabulary follows the Wave 4.5 command. These entries record inspection results, not acceptance passes; all rows require refresh against the final candidate SHA.
