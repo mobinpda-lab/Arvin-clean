@@ -238,12 +238,18 @@ class Task {
             ? 'پیگیری — $parentTitle'
             : 'پیگیری';
     final existing = index >= 0 ? taskReminders[index] : null;
+    final highestSequence = taskReminders.isEmpty
+        ? 0
+        : taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+    final allocatedSequence = nextReminderSequence > highestSequence
+        ? nextReminderSequence
+        : highestSequence + 1;
     final reminder = TaskReminder(
       id: existing?.id ?? 'follow-up:$id:${followUp.id}',
       title: reminderTitle,
       date: date,
       isAllDay: false,
-      sequence: existing?.sequence ?? nextReminderSequence,
+      sequence: existing?.sequence ?? allocatedSequence,
       isLegacyTaskReminder: false,
       followUpId: followUp.id,
     );
@@ -251,7 +257,7 @@ class Task {
       taskReminders[index] = reminder;
     } else {
       taskReminders.add(reminder);
-      nextReminderSequence++;
+      nextReminderSequence = allocatedSequence + 1;
     }
   }
 
