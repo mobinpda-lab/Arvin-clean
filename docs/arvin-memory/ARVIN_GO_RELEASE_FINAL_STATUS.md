@@ -246,3 +246,7 @@ Blocking mandatory gates:
 5. PR #2828 and documentation PR #2826 remain Draft/open. No merge, tag or public release was performed.
 
 Next: preserve the passing PR-head evidence; verify exact-SHA dispatch on a controlled SHA, diagnose/obtain an authorized writable Calendar Provider environment, and request only the protected release credential/certificate approval when the repository's authorized design is ready. Do not treat a debug-signed APK as release-qualified.
+
+## WAVE 4.9 STATUS UPDATE — 2026-10-19
+
+Release decision remains **`BLOCKED — RELEASE: NO-GO`**. PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832) (`e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`) introduces a staged, backward-compatible linked Reminder relationship and tests. Its Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) is in progress and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) is queued; no new-head PASS is established. Official signing, exact-SHA Device Smoke, real writable Calendar Provider acceptance and the other product gates remain unresolved. A successful Release build job is not proof of authorized signing.
