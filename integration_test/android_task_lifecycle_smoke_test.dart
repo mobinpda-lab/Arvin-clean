@@ -22,6 +22,7 @@ void main() {
         for (var attempt = 0; attempt < attempts; attempt++) {
           if (finder.evaluate().isNotEmpty) return;
           await tester.pump(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
         }
       }
 
@@ -84,7 +85,7 @@ void main() {
       final created = matching.single;
       expect(created.id.trim(), isNotEmpty);
       expect(created.title, initialTitle);
-      print(
+      debugPrint(
         'ARVIN_LIFECYCLE_CREATED id=${created.id} title=${created.title} count=${matching.length}',
       );
 
@@ -93,6 +94,9 @@ void main() {
       await tester.tap(initialTitleFinder);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
+      await binding.convertFlutterSurfaceToImage();
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('task-lifecycle-created');
 
       await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
       await tester.pumpAndSettle();
@@ -100,6 +104,8 @@ void main() {
       final descriptionField = find.byKey(
         const ValueKey('task-editor-description'),
       );
+      await waitForFinder(titleField);
+      await waitForFinder(descriptionField);
       expect(titleField, findsOneWidget);
       expect(descriptionField, findsOneWidget);
       await tester.enterText(titleField, editedTitle);
@@ -116,11 +122,14 @@ void main() {
       expect(edited.title, editedTitle);
       expect(edited.description, editedDescription);
       expect(edited.completed, isFalse);
+      expect(find.text(editedTitle), findsOneWidget);
+      await binding.takeScreenshot('task-lifecycle-edited');
 
       final complete = find.byKey(const ValueKey('task-detail-complete'));
       expect(complete, findsOneWidget);
       await tester.tap(complete);
       await tester.pumpAndSettle();
+      await waitForFinder(find.text('بازگشت به انجام‌نشده'));
       expect(find.text('بازگشت به انجام‌نشده'), findsOneWidget);
 
       matching = await matchingTasks();
@@ -130,11 +139,10 @@ void main() {
       expect(edited.title, editedTitle);
       expect(edited.description, editedDescription);
       expect(edited.completed, isTrue);
-      print(
+      debugPrint(
         'ARVIN_LIFECYCLE_PRE_RESTART id=${edited.id} title=${edited.title} completed=${edited.completed} count=${matching.length}',
       );
 
-      await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
       await binding.takeScreenshot('task-lifecycle');
     },

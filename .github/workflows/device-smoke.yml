@@ -139,8 +139,11 @@ jobs:
         with:
           name: arvin-task-lifecycle-${{ github.sha }}
           path: |
+            artifacts/device-smoke/task-lifecycle-created.png
+            artifacts/device-smoke/task-lifecycle-edited.png
             artifacts/device-smoke/task-lifecycle.png
             artifacts/device-smoke/task-lifecycle-restarted.png
+            artifacts/device-smoke/task-lifecycle-reopened.png
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence

@@ -23,6 +23,7 @@ void main() {
         for (var attempt = 0; attempt < attempts; attempt++) {
           if (finder.evaluate().isNotEmpty) return;
           await tester.pump(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
         }
       }
 
@@ -51,7 +52,7 @@ void main() {
       expect(editedTitle, contains('ویرایش‌شده'));
       expect(restarted.description, editedDescription);
       expect(restarted.completed, isTrue);
-      print(
+      debugPrint(
         'ARVIN_LIFECYCLE_POST_RESTART id=${restarted.id} title=${restarted.title} completed=${restarted.completed} count=${matching.length}',
       );
 
@@ -70,6 +71,7 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('task-detail-complete')));
       await tester.pumpAndSettle();
+      await waitForFinder(find.text('انجام کار'));
       expect(find.text('انجام کار'), findsOneWidget);
 
       matching = await matchingTasks();
@@ -83,12 +85,17 @@ void main() {
       // Saving without editing must update the same canonical record, not add one.
       await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
-      expect(find.byKey(const ValueKey('task-editor-description')), findsOneWidget);
+      final titleField = find.byKey(const ValueKey('task-editor-title'));
+      final descriptionField = find.byKey(const ValueKey('task-editor-description'));
+      await waitForFinder(titleField);
+      await waitForFinder(descriptionField);
+      expect(titleField, findsOneWidget);
+      expect(descriptionField, findsOneWidget);
       final save = find.byKey(const ValueKey('task-editor-header-save'));
       await tester.ensureVisible(save);
       await tester.tap(save);
       await tester.pumpAndSettle();
+      await waitForFinder(find.text(editedTitle));
 
       matching = await matchingTasks();
       expect(matching, hasLength(1));
@@ -97,7 +104,7 @@ void main() {
       expect(reopened.title, editedTitle);
       expect(reopened.description, editedDescription);
       expect(reopened.completed, isFalse);
-      print(
+      debugPrint(
         'ARVIN_LIFECYCLE_REOPENED id=${reopened.id} title=${reopened.title} completed=${reopened.completed} count=${matching.length}',
       );
 
@@ -118,6 +125,7 @@ void main() {
       expect(matching.single.completed, isFalse);
       expect(matching.single.title, editedTitle);
       expect(matching.single.description, editedDescription);
+      await binding.takeScreenshot('task-lifecycle-reopened');
     },
   );
 }
