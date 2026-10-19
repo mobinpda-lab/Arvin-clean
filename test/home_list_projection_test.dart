@@ -37,7 +37,7 @@ void main() {
 
   test('all notes and follow-up scopes reuse canonical items', () {
     final note = task('note', notebookKind: NotebookItemKind.note);
-    final tracked = task('tracked', followUpEnabled: true);
+    final tracked = task('tracked', followUpEnabled: true); // Legacy flag without a record.
     final history = task(
       'history',
       followUps: [FollowUp(id: 'fu', dateTime: now)],
@@ -72,7 +72,7 @@ void main() {
             sort: HomeListSort.title,
           )
           .map((item) => item.id),
-      ['history', 'tracked'],
+      ['history'],
     );
   });
 
