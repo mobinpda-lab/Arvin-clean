@@ -122,7 +122,26 @@ void main() {
       expect(edited.title, editedTitle);
       expect(edited.description, editedDescription);
       expect(edited.completed, isFalse);
-      expect(find.text(editedTitle), findsOneWidget);
+
+      // Persistence and rendered detail state are separate acceptance checks.
+      final refreshStartedAt = DateTime.now();
+      await waitForFinder(find.text(editedTitle), attempts: 25);
+      final refreshMilliseconds =
+          DateTime.now().difference(refreshStartedAt).inMilliseconds;
+      final detailTitleFinder = find.byKey(
+        const ValueKey('task-detail-title'),
+      );
+      final renderedTitle = detailTitleFinder.evaluate().isEmpty
+          ? '<task-detail-title-not-rendered>'
+          : tester.widget<Text>(detailTitleFinder).data ?? '<null>';
+      debugPrint(
+        'ARVIN_LIFECYCLE_UI_REFRESH ms=$refreshMilliseconds renderedTitle=$renderedTitle',
+      );
+      expect(
+        find.text(editedTitle),
+        findsOneWidget,
+        reason: 'The detail UI must display the saved title after edit.',
+      );
       await binding.takeScreenshot('task-lifecycle-edited');
 
       final complete = find.byKey(const ValueKey('task-detail-complete'));
