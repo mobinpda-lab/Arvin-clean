@@ -650,3 +650,21 @@ Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([co
 - [PR #2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), latest head `6ca1cff18f6631352995241b783b7b3bfcec55d5`, extends the full-cycle test to assert checklist and external Calendar-link metadata in addition to multiple reminders, Follow-up history/next action and Person IDs. Build [39204622671](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622671) completed SUCCESS: Analyze, six shards, Debug/Release APK and expanded full-cycle test passed. Device Smoke [39204622845](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622845) remains QUEUED. Exact-target proof is still pending; no destructive test was run against real user data.
 
 **Wave 3 gate status at this poll:** Follow-up/Person migration fix CI IN PROGRESS; Calendar Provider on candidate `e80be91f...` BLOCKED (dispatch unavailable); candidate exact-SHA Build/Device Smoke NOT VERIFIED; APK checksum and cryptographic signature PASS but Release signer identity FAIL; PDF four-weight embedding and basic visual render PASS on earlier PR head, richer wrapping fixture NOT RUN to completion; Backup/Restore PASS only on older PR checkout; UI font PR remains separate. `RELEASE: NO-GO`.
+
+
+## Wave 3 PR dependency / SHA baseline (live check 2026-10-19)
+
+| PR | State | Base ref / SHA | Head SHA | Dependency / caution |
+|---|---|---|---|---|
+| [#2817](https://github.com/mobinpda-lab/Arvin-clean/pull/2817) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | Parent hardening gate; not merged |
+| [#2821](https://github.com/mobinpda-lab/Arvin-clean/pull/2821) | OPEN / DRAFT | `hardening/v5.09-release-approval-and-telemetry` / `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | `e80be91f4f461d0387d3b5b9349c217715bdba2e` | Stacked on #2817; current release candidate, exact-head gates not yet proven |
+| [#2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `ccc9f9b122420ef999828088f70a7aa950c5b979` | Signature workflow; release identity still FAIL |
+| [#2826](https://github.com/mobinpda-lab/Arvin-clean/pull/2826) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `fa693f1adacf306c5698a675d59832132f0e0f93` | Documentation-only evidence updates |
+| [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b` | Exact-SHA Device Smoke workflow support; dispatch itself not run |
+| [#2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `50f1d26a8e4102f078e2f184771f98d521152dc4` | Follow-up / SQL migration integrity fix; Build + Device Smoke pass on PR checkout |
+| [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `6ca1cff18f6631352995241b783b7b3bfcec55d5` | Base snapshot is older than current main; reconcile before merge |
+| [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `9cf025b5a9678373d6b5a89a8a043ba49bf53243` | PDF font + artifact; base snapshot older than current main |
+| [#2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `a85bd3ec13e09802ee35b382f4ab9d42b4c11a4d` | UI font picker; base snapshot older than current main |
+| [#2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `196eff68ce2c2db09eb37cad86b69435428d285c` | Provider exact-head workflow/test; latest run in progress |
+
+**Base warning:** PRs #2790, #2791 and #2796 still report base snapshot `824ca8f17c92e76b3887001891d7d5b6f17974a6`, older than current `main` `d9fb7a247037762216662a20fb32028ecc8a0f6b`. Their successful CI is useful PR-checkout evidence, but it must not be treated as proof of integration against current main until the branches are reconciled. No base changes, merges or force pushes were performed.
