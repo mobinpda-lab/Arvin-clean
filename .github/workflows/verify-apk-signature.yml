@@ -34,10 +34,20 @@ jobs:
             echo "::error::sdkmanager was not found under $ANDROID_HOME/cmdline-tools"
             exit 1
           fi
+          # sdkmanager closes stdin after accepting all licenses; suppress the
+          # expected SIGPIPE from yes while preserving sdkmanager's real status.
           set +o pipefail
-          yes | "$SDKMANAGER" --licenses >/dev/null
+          yes 2>/dev/null | "$SDKMANAGER" --licenses >/dev/null
+          license_status=$?
           set -o pipefail
-          "$SDKMANAGER" "build-tools;34.0.0"
+          if [[ "$license_status" -ne 0 ]]; then
+            echo "::error::sdkmanager --licenses failed with exit code $license_status"
+            exit "$license_status"
+          fi
+          # The legacy "tools" package is not published in current SDK repositories.
+          "$SDKMANAGER" --install "platform-tools" "build-tools;34.0.0"
+          test -x "$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" version
 
       - name: Download APK artifact from specified run
         uses: actions/download-artifact@v4
