@@ -286,3 +286,15 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+
+## 2026-10-19 — Wave 4.11 Follow-up Reminder contract status
+
+| Problem / requirement | Evidence / current status | Classification | Next action |
+|---|---|---|---|
+| `TaskReminder.followUpId` was only a model/JSON field | Repository now mirrors FollowUp reminder create/edit/clear to canonical `Task.taskReminders` through `FollowUpRepository`; commits `2989741558cdc834787f38751469e91788cf42e7`, `b4b14a2497c460b2bd8da1711b7a8663cb1c42d6`. | IMPLEMENTED_NOT_VERIFIED | Run focused repository/model tests and confirm persistence after TaskStore reload on latest SHA. |
+| Follow-up reminder mirror could be delivered twice through both TaskReminder and FollowUp projections | Generic TaskReminder planner/projection now skips linked mirrors, retaining the established FollowUp delivery identity; commits `e83229579d36108786f11393ca622de85c13b693`, `f6d34abe1b435530e72cc3ef0c8e90746dda4e90`, `dba7a12b55edb1ffc7981f5526a8c7c4330640c6`. | IMPLEMENTED_NOT_VERIFIED | Add/run tests proving create/no-op/update/clear notification behavior and calendar identity. |
+| Initial Wave 4.10 tests were syntactically out of scope | Build run [39232215264](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39232215264) shows Analyze failure at lines 197 and 214; commit `44019c81b8ad394b7c4ce4496347004a79a519ad` moves them into `main()`. | IMPLEMENTED_NOT_VERIFIED | Obtain a fresh terminal CI result for current PR head; do not treat historical artifacts as gate closure. |
+| SQLite and Backup/Restore relationship durability is not yet proven | Existing TaskStore envelope persists TaskReminder JSON; no new schema migration was added; repository tests added but not run. | IN_PROGRESS | Execute SQL reload + Backup/Restore relationship cycle; add migration only if evidence shows envelope persistence insufficient. |
+| Release signing / exact SHA / real Calendar Provider gates | Prior canonical memory and current Gradle file show release signing configured with debug signing; real Provider acceptance and exact-head validation still lack current evidence. | BLOCKED | Continue independent PRs #2824, #2827 and #2831 with exact-SHA evidence. |
