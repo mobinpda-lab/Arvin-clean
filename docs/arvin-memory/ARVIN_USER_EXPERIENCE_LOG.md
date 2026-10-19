@@ -78,3 +78,10 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+
+## 2026-10-19 — Follow-up reminder title regression validation
+
+On PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`, two focused tests cover reminder label behavior: title-only Follow-up edits update the visible label without changing stable reminder identity or scheduled time; blank Follow-up and parent Task titles fall back safely to Persian `پیگیری` while preserving identity/time. Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) passed all six test shards, and Device Smoke [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) passed all seven lanes.
+
+**UX validation boundary:** this establishes the targeted regression under CI, not a complete usability review of the Follow-up form, visible parent-task navigation, clearable date/time, notifications, calendar synchronization, multiple-reminder independence, Persian RTL on physical devices, or end-to-end Backup/Restore. Keep those as open acceptance items until direct evidence exists.
