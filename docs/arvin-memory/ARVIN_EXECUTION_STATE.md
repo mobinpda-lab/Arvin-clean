@@ -1160,3 +1160,25 @@ PRs [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), [#2791](http
 - Recurrence contracts were re-read from current main: [Recurring Tasks Contract](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/RECURRING_TASKS_CONTRACT_2026-08-15.md) requires recurrence on canonical Task/Unified Item and preserves history for Resume From Today; [Resume-From-Today Status](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/RECURRENCE_RESUME_TODAY_STATUS_2026-08-15.md) still gates UI integration on CI validation.
 - The canonical final-status path `docs/arvin-memory/ARVIN_GO_RELEASE_FINAL_STATUS.md` is absent on current main (404). This PR updates the existing execution-state/evidence-map documents rather than writing directly to main.
 - No merge, tag, public release, direct-main write, real-user-data deletion, or release-key fabrication was performed. **Release decision remains NO-GO.**
+
+
+# WAVE 4 LIVE EXECUTION UPDATE — 2026-10-19
+
+## Baseline reconciliation
+- Current `main` is still `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b)).
+- Previously named candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` exists as a historical commit ([commit](https://github.com/mobinpda-lab/Arvin-clean/commit/e80be91f4f461d0387d3b5b9349c217715bdba2e)); it is not treated as the current or qualified candidate. No exact-SHA dispatch was executed in this turn; no qualified release candidate is declared.
+- Current main still configures Android Release with `signingConfigs.getByName("debug")`. Official release keystore/authorized fingerprint and repository secret/variable state cannot be inspected by the connected GitHub tools. Gate: **BLOCKED — RELEASE CREDENTIAL REQUIRED**.
+- Canonical `docs/arvin-memory/ARVIN_GO_RELEASE_FINAL_STATUS.md` was absent from main (404). It is being added to this existing documentation PR, not written directly to main.
+
+## Wave 4 changes actually committed
+- Calendar Provider PR branch `fix/calendar-provider-exact-head-acceptance-20261019`: added `.github/scripts/calendar-provider-acceptance.sh` (commit `fe437117fe020bac7d0641e300958582c71415de`) and changed the emulator workflow to invoke one Bash script (commit `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`). The script records source/environment, uses the sync-adapter calendar URI for seeding, records test output/result, and exits nonzero for missing writable provider or absent PASS marker. This is a code-level remediation only; it is **not yet run/validated** and does not close real-provider acceptance.
+- Exact-SHA CI branch `ci/device-smoke-exact-sha-dispatch-20261019`: Device Smoke now records source SHA, workflow SHA, event, run ID/attempt and uploads a revision evidence artifact per lane (commits `23c325006b746e0137676546f6b97c16e1df96c1`, `967407bb3b9350e239c6111b14c0e69dc2a15137)). Build workflow now attaches revision metadata and uses SHA-qualified APK artifact names (commits `126d94c7e68d989bfc92d3efa87a97dcfbe209f5`, `d437dbf6cc76bbb216916b94145a8ddae897e52b`). These changes still require CI validation and a permitted workflow_dispatch run.
+- Existing prior CI remains limited to the SHA/run scope previously recorded. No new terminal Build, Device Smoke, Provider acceptance or APK signature verification is claimed for these new commits.
+- No official signing key/fingerprint was fabricated; no merge, tag, release or direct-main write occurred.
+
+## Gate status
+- Official APK signing: **BLOCKED — RELEASE CREDENTIAL REQUIRED**.
+- Real Calendar Provider: **BLOCKED — workflow/script change awaits CI; writable provider still unproven**.
+- Exact-SHA Build + Device Smoke: **IMPLEMENTATION UPDATED; dispatch and terminal exact-target proof pending**.
+- Backup/Restore, Migration, PDF/UI fonts, product integration: prior PR-checkout evidence only; revalidate after integration on a single exact candidate SHA.
+- Overall: **RELEASE: NO-GO**.
