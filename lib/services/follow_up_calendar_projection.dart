@@ -79,9 +79,6 @@ class FollowUpCalendarProjection {
       for (final followUp in task.followUps) {
         final customTitle = followUp.title?.trim();
         final hasCustomTitle = customTitle != null && customTitle.isNotEmpty;
-        final calendarTitle = hasCustomTitle
-            ? customTitle
-            : 'پیگیری ${task.title}';
         final parentSubtitle = hasCustomTitle ? 'پیگیری: ${task.title}' : null;
         final isCompleted = followUp.completed || task.completed;
 
