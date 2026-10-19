@@ -543,4 +543,41 @@ void main() {
     expect(reminders.single.date, DateTime(2026, 12, 5, 9, 30));
     expect(reminders.single.isAllDay, isFalse);
   });
+
+  test('linked Follow-up TaskReminder mirror does not duplicate Calendar event', () {
+    final reminderDate = DateTime(2026, 10, 25, 13, 30);
+    final task = Task(
+      id: 'linked-calendar-task',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'linked-follow-up',
+          dateTime: DateTime(2026, 10, 20, 10),
+          title: 'تماس نهایی',
+          reminderDate: reminderDate,
+        ),
+      ],
+      taskReminders: [
+        TaskReminder(
+          id: 'follow-up-reminder-linked-follow-up',
+          title: 'تماس نهایی',
+          date: reminderDate,
+          sequence: 1,
+          followUpId: 'linked-follow-up',
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    final reminders = projection.project([task]);
+
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'followup:linked-calendar-task:linked-follow-up');
+    expect(reminders.single.date, reminderDate);
+    expect(
+      projection.resolveTarget([task], reminders.single.id)?.followUp.id,
+      'linked-follow-up',
+    );
+  });
+
 }
