@@ -1019,9 +1019,16 @@ void main() {
 
       final backupService = _FakeBackupService();
       final manager = ArvinBackupManager(service: backupService);
+      final calendarLink = ExternalCalendarEventLink(
+        reminderId: 'followup:task-full:follow-up-contact-seller',
+        calendarId: 'calendar-acceptance',
+        eventId: 'event-acceptance',
+        lastSyncedFingerprint: 'fingerprint-acceptance-v1',
+      );
       final exportFile = await manager.backupCanonicalTasks(
         await store.load(),
         people: await store.loadPeopleDirectory(),
+        calendarLinks: [calendarLink],
       );
       expect(exportFile, 'canonical-backup.json');
       expect(backupService.writtenPayload, isNotNull);
@@ -1034,6 +1041,19 @@ void main() {
       expect(candidate!.tasks, hasLength(1));
       expect(candidate.people?.map((person) => person.id).toSet(),
           {'person-seller-stable', 'person-buyer-stable'});
+      expect(candidate.calendarLinks, hasLength(1));
+      expect(candidate.calendarLinks!.single.reminderId, calendarLink.reminderId);
+      expect(candidate.calendarLinks!.single.calendarId, calendarLink.calendarId);
+      expect(candidate.calendarLinks!.single.eventId, calendarLink.eventId);
+      expect(
+        candidate.calendarLinks!.single.lastSyncedFingerprint,
+        calendarLink.lastSyncedFingerprint,
+      );
+      final restoredLinkStore = ExternalCalendarLinkStore(
+        preferencesKey: 'arvin.calendar.externalLinks.backup-test',
+      );
+      await restoredLinkStore.save(candidate.calendarLinks!);
+      expect((await restoredLinkStore.load()).single.eventId, 'event-acceptance');
 
       final restoredStore = TaskStore();
       await restoredStore.save(candidate.tasks);
@@ -1041,6 +1061,9 @@ void main() {
 
       final restored = (await restoredStore.load()).single;
       expect(restored.id, 'task-full');
+      expect(restored.checklist, ['تماس', 'ارسال فایل']);
+      expect(restored.tags, ['مهم', 'مشتری']);
+      expect(restored.reminderDate, DateTime(2026, 8, 28, 10, 30));
       expect(restored.taskReminders.map((reminder) => reminder.id),
           containsAll(['reminder-before-action', 'reminder-second']));
       expect(restored.taskReminders.where((reminder) =>
