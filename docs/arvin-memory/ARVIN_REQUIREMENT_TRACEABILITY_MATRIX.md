@@ -237,3 +237,12 @@ This addendum preserves existing stable requirement IDs and prior decisions; it 
 | Follow-up title/fallback and stable identity | `IMPLEMENTED_NOT_VERIFIED` on new implementation; prior projection correction remains verified on prior SHA | Model and projection tests added in PR #2832 | Current Build/Smoke; notification delivery and Calendar no-op/update tests |
 | Preserve Person, waiting-response, result and Follow-up history on Reminder edits | `IMPLEMENTED_NOT_VERIFIED` | Model regression fixture checks preservation through Task JSON round-trip | Full persistence and Backup/Restore on one candidate SHA |
 | Release qualification | `BLOCKED` | New contract PR open/Draft; signing, exact-SHA and provider gates unresolved | All mandatory gates must pass for one explicit candidate SHA |
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19
+
+| Requirement | Status | Evidence at checkpoint | Next validation |
+|---|---|---|---|
+| Linked independent Follow-up Reminder persistence/lifecycle | IMPLEMENTED_NOT_VERIFIED | PR #2832, head acb06279e766142cc9cbc886259d6ab951df2036; model, repository, SQL reload, backup-shape, delivery/alarm and Calendar regressions added | Current Build 39226858516 and Device Smoke 39226858634, then provider operations and Backup/Restore acceptance |
+| Legacy migration idempotency and monotonic sequence | IMPLEMENTED_NOT_VERIFIED | Deterministic linked ID; preserve legacy date; persisted sequence respected; retry/round-trip tests added | Current-head test outcome and real SQL/restore evidence |
+| Notification and Calendar no-duplicate behavior | IMPLEMENTED_NOT_VERIFIED | Projections skip linked record in generic path and retain Follow-up stable key/external event ID | Current CI, alarm scheduling/cancellation and real Provider create/no-op/update/delete |
+| Overall release | BLOCKED | Signing, exact-SHA dispatch, real Provider and other product acceptance remain open | All gates must pass for one candidate SHA |
