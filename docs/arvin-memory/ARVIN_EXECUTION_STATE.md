@@ -1191,3 +1191,40 @@ PRs [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), [#2791](http
 - Device Smoke [Run 39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094), commit `6ff5b3c...`: two lanes IN_PROGRESS and five QUEUED at latest poll. No lane is yet a terminal pass.
 - Build [Run 39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523), commit `d437dbf6cc76bbb216916b94145a8ddae897e52b`: jobs QUEUED/IN_PROGRESS; no terminal conclusions at latest poll.
 - The above are PR-triggered runs. No `workflow_dispatch` exact-target run was performed. The available GitHub tools do not expose workflow dispatch or repository Actions secret/variable inspection.
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — WAVE 4.3 — 2026-10-19
+
+This checkpoint supersedes prior claims that Run 39211706224 and Run 39211706034 were still in progress.
+
+## Repository state
+- Default branch main; live SHA d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- Current Release build type still uses signingConfigs.getByName("debug") in android/app/build.gradle.kts.
+- Historical candidate e80be91f4f461d0387d3b5b9349c217715bdba2e is not qualified.
+
+## Exact observed workflow results
+1. Calendar Provider [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224), head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da: terminal FAILURE. Exact requested revision check succeeded, but provider acceptance reported LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR; job failed with no writable calendar. Evidence upload skipped; artifact list empty. Classification: environment/provider capability blocker, not product acceptance PASS. Three independent provider-seed/script correction attempts are documented in PR #2831; do not continue blind retries in this wave.
+2. Build [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), same PR head: terminal SUCCESS across Analyze, six test shards and Debug/Release APK jobs. Exact-target verification skipped because trigger was pull_request. Artifacts 12168605271 (Release archive) and 12168311253 (Debug archive) exist. Their digests are archive digests, not independently computed APK-file checksums.
+3. Device Smoke [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094), same PR head: not terminal at last query. Home, Quick Capture and SQL Persistence succeeded; Backup/Restore and SQL Migration were in progress; Calendar and People queued. Do not label the full suite PASS.
+4. Build [39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523), PR #2827 head d437dbf6cc76bbb216916b94145a8ddae897e52b: terminal SUCCESS for Analyze, six test shards and Debug/Release APK jobs. Exact-target assertion skipped; artifacts 12167844011 and 12168615463 exist with SHA-qualified names. This is PR CI, not exact-target dispatch or signing proof.
+
+## PR integration reconciliation
+- #2824 signature audit: OPEN/DRAFT, head ccc9f9b122420ef999828088f70a7aa950c5b979, base current main. Prior observed certificate was Android Debug, not approved release signer.
+- #2826 documentation: OPEN/DRAFT, head a96780af144b6912f4d7d00d88816e6da411b5d1, base current main. This update advances the docs head and needs fresh CI.
+- #2827 exact-SHA Device Smoke: OPEN/DRAFT, head d437dbf6cc76bbb216916b94145a8ddae897e52b, base current main.
+- #2828 Follow-up/Person/migration: OPEN/DRAFT, head 50f1d26a8e4102f078e2f184771f98d521152dc4, base current main.
+- #2831 Calendar Provider: OPEN/DRAFT, head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da, base current main; provider acceptance failed as above.
+- #2790 Backup/Restore: OPEN/DRAFT, head 6ca1cff18f6631352995241b783b7b3bfcec55d5; recorded base snapshot 824ca8f17c92e76b3887001891d7d5b6f17974a6 is stale.
+- #2791 PDF/UI-FD: OPEN/DRAFT, head 9cf025b5a9678373d6b5a89a8a043ba49bf53243; recorded base snapshot stale. Earlier PDF preview inspected and four weights embedded, but app-preview comparison is not verified.
+- #2796 UI font / legacy Follow-up flag removal: OPEN/DRAFT, head 3ba0499403a405d92fc0440164b8c6ccc864eb5a; recorded base snapshot stale and latest head needs fresh Build/Device Smoke.
+- No merge, tag, release, destructive production-data test or branch-protection bypass was performed.
+
+## Blockers and next steps
+- P0 official signing: requires approved release keystore through the repository owner’s secure mechanism and independently approved certificate fingerprint. The connector does not expose Actions secret/variable inspection.
+- P0 Calendar Provider: current stock emulator has no writable calendar; run failed and produced no evidence artifact. Use a runner/emulator image or approved test fixture that demonstrably exposes a writable provider, then collect create/no-op/update/delete state and explicit PASS evidence.
+- P0 exact-SHA: current connector does not expose an authorized workflow-dispatch action. PR-run source metadata does not prove exact candidate checkout because the exact-target step is skipped.
+- Poll Device Smoke 39211706094 to terminal and inspect failed lane logs. Reconcile stale-base PRs without merging; refresh documentation branch CI after this update.
+- Requirement matrix: [ARVIN_REQUIREMENT_TRACEABILITY_MATRIX.md](ARVIN_REQUIREMENT_TRACEABILITY_MATRIX.md).
+
+**Decision remains BLOCKED — RELEASE: NO-GO.**
