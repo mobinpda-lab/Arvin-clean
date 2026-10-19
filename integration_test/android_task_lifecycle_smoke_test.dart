@@ -64,6 +64,15 @@ void main() {
       await tester.tap(submit);
       await tester.pumpAndSettle();
 
+      // Quick Capture intentionally stays open after a successful submission;
+      // close only that sheet before opening the newly created Task.
+      final closeQuickCapture = find.byKey(
+        const ValueKey('quick-capture-cancel'),
+      );
+      await tester.ensureVisible(closeQuickCapture);
+      await tester.tap(closeQuickCapture);
+      await tester.pumpAndSettle();
+
       var matching = await matchingTasks();
       for (var attempt = 0; attempt < 50 && matching.isEmpty; attempt++) {
         await tester.pump(const Duration(milliseconds: 100));
