@@ -62,6 +62,8 @@ jobs:
 
       - name: Verify checksum and APK signature
         shell: bash
+        env:
+          ARVIN_RELEASE_CERT_SHA256: ${{ vars.ARVIN_RELEASE_CERT_SHA256 }}
         run: |
           set -euo pipefail
           APK_PATH="./apk-artifact/app-release.apk"
@@ -83,4 +85,36 @@ jobs:
           fi
           echo "CHECKSUM VERIFIED"
 
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK_PATH"
+          if SIGNATURE_OUTPUT="$("$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK_PATH" 2>&1)"; then
+            :
+          else
+            signature_status=$?
+            printf '%s\\n' "$SIGNATURE_OUTPUT"
+            echo "::error::APK_SIGNATURE_INVALID"
+            exit "$signature_status"
+          fi
+          printf '%s\\n' "$SIGNATURE_OUTPUT"
+
+          if grep -Eq 'Signer #[0-9]+ certificate DN: .*CN=Android Debug
+ <<< "$SIGNATURE_OUTPUT"; then
+            echo "::error::RELEASE_SIGNER_REJECTED: Android Debug certificate is not acceptable for a release APK"
+            exit 1
+          fi
+
+          EXPECTED_CERT_SHA="${ARVIN_RELEASE_CERT_SHA256//:/}"
+          EXPECTED_CERT_SHA="${EXPECTED_CERT_SHA,,}"
+          if [[ ! "$EXPECTED_CERT_SHA" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::ARVIN_RELEASE_CERT_SHA256 is unset or invalid; approved release certificate fingerprint is required"
+            exit 1
+          fi
+
+          ACTUAL_CERT_SHA="$(awk '/Signer #1 certificate SHA-256 digest:/ {print $NF; exit}' <<< "$SIGNATURE_OUTPUT")"
+          ACTUAL_CERT_SHA="${ACTUAL_CERT_SHA//:/}"
+          ACTUAL_CERT_SHA="${ACTUAL_CERT_SHA,,}"
+          echo "Expected certificate SHA-256: $EXPECTED_CERT_SHA"
+          echo "Actual certificate SHA-256:   $ACTUAL_CERT_SHA"
+          if [[ "$ACTUAL_CERT_SHA" != "$EXPECTED_CERT_SHA" ]]; then
+            echo "::error::RELEASE_CERTIFICATE_FINGERPRINT_MISMATCH"
+            exit 1
+          fi
+          echo "RELEASE_CERTIFICATE_FINGERPRINT_VERIFIED"
