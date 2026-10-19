@@ -606,3 +606,42 @@ Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([co
 - **Calendar Provider Acceptance:** still BLOCKED. No run on candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e`, no `result.txt`, `test-output.txt` or `environment.txt`, and no direct workflow-dispatch action is exposed by the connected GitHub interface.
 
 **Final gate status at this poll:** APK byte checksum PASS; APK cryptographic signature PASS; release signer identity FAIL; Calendar Provider Acceptance BLOCKED; exact-target Build/Device Smoke NOT VERIFIED; Backup/Restore PR regression test PASS on PR merge checkout but exact head NOT VERIFIED; PDF font embedding test PASS on PR merge checkout but visual production PDF NOT VERIFIED; Follow-up authority/data preservation fix PR CI PENDING. `RELEASE: NO-GO`.
+
+
+## 2026-10-19 — Wave 3 live evidence addendum
+
+### Baseline and candidate
+- Live `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b`; no direct-main writes.
+- Release candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` is still the head of Draft PR [#2821](https://github.com/mobinpda-lab/Arvin-clean/pull/2821), stacked on Draft [#2817](https://github.com/mobinpda-lab/Arvin-clean/pull/2817) (base head `77a6a1bec2d6d5e99d4eef0a737abc4d24130469)). It remains a candidate, not an accepted release SHA.
+- Direct workflow dispatch and the repository Actions variable endpoint are not exposed by the connected GitHub interface; attempts to inspect the variable endpoint were rejected with HTTP 400. Do not infer that `ARVIN_RELEASE_CERT_SHA256` exists or has an approved value.
+
+### P0 — Follow-up / Person data integrity
+- [PR #2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), current head `50f1d26a8e4102f078e2f184771f98d521152dc4`, addresses the old-flag behavior and a newly confirmed SQL migration defect.
+- Build [run 39201513099](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201513099) failed on test shard 4 because the completion round-trip returned null for Follow-up title. Root cause: `SqlTaskMigrationWriter` omitted title, `waiting_for_response`, and `follow_up_people` rows; `TaskStore` then reconstructed FollowUps from those incomplete SQL rows.
+- The current branch fixes the writer and adds an idempotent one-time backfill from the retained Task envelope for title, true waiting state, and missing Person links. Regression tests cover both new-import persistence and backfill. Latest Build [39203068667](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203068667) is IN PROGRESS; Device Smoke [39203068653](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203068653) is QUEUED. No PASS claim yet.
+
+### P0 — Build / Device Smoke exact SHA
+- [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b`, adds `target_sha` support, explicit checkout and fail-closed SHA assertion.
+- Build [run 39201576910](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576910) completed SUCCESS with Analyze, six test shards, Debug APK and Release APK all successful on the PR run. The exact-target assertion was SKIPPED because this was a pull-request event.
+- Device Smoke [run 39201576924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576924) has six lanes successful and Calendar lane IN PROGRESS at latest poll; overall run is not terminal. The exact-target assertion was SKIPPED. No dispatch against candidate `e80be91f...` has occurred.
+
+### P0 — Calendar Provider
+- [PR #2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831), head `78781ce52339e10b978dd4ee57a4ce3d6e9a07aa`, adds exact-SHA checkout/assertion to the Provider workflow and an explicit no-op duplicate-event assertion.
+- Provider run [39203189292](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203189292) has passed the exact-checkout step and is IN PROGRESS in the real Android emulator/provider test. It is a run on PR #2831's head, **not** candidate `e80be91f...`; result and artifact files are not yet available at this poll.
+- Acceptance still requires `RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` in `result.txt`, with matching `test-output.txt` and `environment.txt`. A stock-emulator limitation is not PASS.
+
+### P0 — APK signature
+- [PR #2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824), current workflow head `ccc9f9b122420ef999828088f70a7aa950c5b979`, now fails closed for Android Debug signing and requires `ARVIN_RELEASE_CERT_SHA256`.
+- Build [39200813493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813493) and Device Smoke [39200813437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813437) completed SUCCESS, but these are general PR CI, not a signature-gate run on the latest workflow head.
+- Signature audit [39200526227](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200526227) verified APK cryptography but found signer `C=US, O=Android, CN=Android Debug`, certificate SHA-256 `b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16`. Release signer identity remains FAIL; no approved fingerprint has been verified.
+
+### P1 — PDF font and actual rendering
+- Uploaded ZIP was opened and verified as Vazirmatn v33.003; `OFL.txt` states SIL Open Font License 1.1. The PDF PR [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791) now bundles the exact upstream UI-FD Regular, Medium, SemiBold and Bold TTF blobs, loads all four in the report renderer, and documents source/version/license in `assets/fonts/vazirmatn/README.md`.
+- A real PDF artifact was produced by the production renderer: [artifact 12164826241](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164826241), from [Build run 39202911429](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39202911429), head `03b105b26f502b257ac28e796a875e1ea711b3e4`. That run was later cancelled by a newer commit, but the completed PDF-preview job and artifact are available.
+- Local inspection of that artifact: one A4 page; `pdffonts` confirmed embedded `Vazirmatn-UI-FD-Regular`, `Medium`, `SemiBold`, and `Bold`; raster preview showed joined Persian glyphs, RTL layout and Persian digits without obvious clipping. This earlier sample does not stress long wrapping/table rendering. A richer fixture was added on latest head `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; Build [39203354122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354122) and Device Smoke [39203354193](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354193) are QUEUED at latest poll.
+- [PR #2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796) remains a separate Draft for optional UI font selection. The canonical default remains VazirHarf; no default change or claim of visual UI acceptance is made.
+
+### P1 — Backup/Restore
+- [PR #2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790) has a passing full export → clear database → import test in [Build run 39060931997](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060931997) for head `6ff42e4b48bdfd7410d621a4b9407324ce9980c3`. The Build exact-revision step was skipped for the PR event; this is NOT VERIFIED on the current release candidate. No destructive test was run against real user data.
+
+**Wave 3 gate status at this poll:** Follow-up/Person migration fix CI IN PROGRESS; Calendar Provider on candidate `e80be91f...` BLOCKED (dispatch unavailable); candidate exact-SHA Build/Device Smoke NOT VERIFIED; APK checksum and cryptographic signature PASS but Release signer identity FAIL; PDF four-weight embedding and basic visual render PASS on earlier PR head, richer wrapping fixture NOT RUN to completion; Backup/Restore PASS only on older PR checkout; UI font PR remains separate. `RELEASE: NO-GO`.
