@@ -186,4 +186,82 @@ void main() {
     expect(dueAfterRestore, isEmpty,
         reason: 'a previously delivered legacy alarm must not be reactivated');
   });
+
+  test('Follow-up Reminder IDs and relation survive SQL plus canonical Backup/Restore',
+      () async {
+    final executor = NativeDatabase.memory();
+    addTearDown(executor.close);
+    final store = TaskStore(executor: executor);
+    final reminderAt = DateTime(2026, 10, 22, 14, 30);
+    final task = Task(
+      id: 'task-follow-up-backup',
+      title: 'قرارداد آزمایشی',
+      people: <PersonReference>[
+        PersonReference(id: 'person-follow-up-backup', displayName: 'مخاطب آزمایشی'),
+      ],
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'follow-up-backup',
+          dateTime: DateTime(2026, 10, 20, 10),
+          title: 'تماس نهایی',
+          note: 'یادداشت حفظ شود',
+          result: 'منتظر پاسخ',
+          reminderDate: reminderAt,
+          nextFollowUp: DateTime(2026, 10, 24, 10),
+          waitingForResponse: true,
+          personIds: <String>['person-follow-up-backup'],
+        ),
+      ],
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'follow-up-reminder-follow-up-backup',
+          title: 'تماس نهایی',
+          date: reminderAt,
+          sequence: 1,
+          followUpId: 'follow-up-backup',
+        ),
+        TaskReminder(
+          id: 'unrelated-backup-reminder',
+          title: 'یادآور مستقل',
+          date: DateTime(2026, 10, 23, 9),
+          sequence: 2,
+        ),
+      ],
+      nextReminderSequence: 3,
+    );
+
+    await store.save(<Task>[task]);
+    final sqlReloaded = await TaskStore(executor: executor).load();
+    final sqlTask = sqlReloaded.single;
+    expect(sqlTask.taskReminders.singleWhere((item) => item.followUpId != null).id,
+        'follow-up-reminder-follow-up-backup');
+
+    final payload = <String, dynamic>{
+      'tasks': sqlReloaded.map((value) => value.toJson()).toList(growable: false),
+      'calendarLinks': <Map<String, dynamic>>[],
+    };
+    final bytes = ArvinBackupService.encodeBackupDocument(payload);
+    final decoded = ArvinBackupService.validateBackupDocument(
+      jsonDecode(utf8.decode(Uint8List.fromList(bytes))),
+    );
+    final restoredTasks = (decoded['tasks'] as List)
+        .map((value) => Task.fromJson(Map<String, dynamic>.from(value as Map)))
+        .toList(growable: false);
+
+    await store.save(restoredTasks);
+    final restored = (await TaskStore(executor: executor).load()).single;
+    final linked = restored.taskReminders.singleWhere(
+      (item) => item.followUpId == 'follow-up-backup',
+    );
+    expect(restored.id, 'task-follow-up-backup');
+    expect(restored.followUps.single.id, 'follow-up-backup');
+    expect(linked.id, 'follow-up-reminder-follow-up-backup');
+    expect(linked.date, reminderAt);
+    expect(linked.title, 'تماس نهایی');
+    expect(restored.followUps.single.waitingForResponse, isTrue);
+    expect(restored.followUps.single.personIds, <String>['person-follow-up-backup']);
+    expect(restored.taskReminders.any((item) => item.id == 'unrelated-backup-reminder'),
+        isTrue);
+  });
+
 }
