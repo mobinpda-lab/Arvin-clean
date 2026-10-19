@@ -56,13 +56,49 @@ void main() {
       await tester.tap(find.text('تقویم').last);
       await tester.pumpAndSettle();
 
-      final cardKey = const ValueKey(
+      // These production-owned anchors are present once the Calendar route
+      // has built its month header and view selector. Poll with a hard bound
+      // instead of relying on a single settle after navigation.
+      final calendarReady = find.byKey(
+        const ValueKey('calendar-month-year-header'),
+      );
+      final calendarViewMode = find.byKey(
+        const ValueKey('calendar-view-mode-control'),
+      );
+      for (var attempt = 0;
+          attempt < 75 &&
+              (calendarReady.evaluate().isEmpty ||
+                  calendarViewMode.evaluate().isEmpty);
+          attempt++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(calendarReady, findsOneWidget,
+          reason: 'Calendar month header did not become ready within 15 seconds');
+      expect(calendarViewMode, findsOneWidget,
+          reason: 'Calendar view selector did not become ready within 15 seconds');
+
+      // Production contract: _ReminderCard uses ValueKey('reminder-card-${item.id}')
+      // and FollowUpCalendarProjection.reminderIdFor() returns
+      // 'followup:<taskId>:<followUpId>'. Keep this exact semantic identity.
+      const cardKey = ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
       );
       final card = find.byKey(cardKey);
-      for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+
+      // The selected-day ListView can lazily build children outside the
+      // viewport. Scroll only within that list and cap the number of attempts.
+      final selectedDayList = find.byKey(
+        const ValueKey('calendar-selected-day-list'),
+      );
+      expect(selectedDayList, findsOneWidget,
+          reason: 'Seeded reminder should create the selected-day calendar list');
+      await tester.scrollUntilVisible(
+        card,
+        240,
+        scrollable: selectedDayList,
+        maxScrolls: 20,
+      );
+      await tester.pumpAndSettle(timeout: const Duration(seconds: 3));
       expect(card, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
