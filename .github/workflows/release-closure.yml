@@ -72,7 +72,13 @@ jobs:
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              const body = rel.data.body || '';
+              complete =
+                [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n)) &&
+                body.includes('ARVIN_SIGNED_RELEASE_VERIFIED=true') &&
+                body.includes('APK_SIGNATURE_V2=PASS') &&
+                body.includes('APK_SIGNATURE_V3=PASS') &&
+                body.includes('CERTIFICATE_FINGERPRINT_MATCH=PASS');
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
             core.setOutput('app_version', version);
@@ -560,6 +566,7 @@ jobs:
           PR_NUMBER: ${{ steps.verify.outputs.candidate_pr }}
           APP_VERSION: ${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER: ${{ steps.release_state.outputs.build_number }}
+          CERT_SHA256: ${{ env.ARVIN_VERIFIED_CERT_SHA256 }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -573,6 +580,22 @@ jobs:
             let rel;
             try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
             catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            const verificationMarker = [
+              'ARVIN_SIGNED_RELEASE_VERIFIED=true',
+              'SOURCE_SHA=' + sha,
+              'CERTIFICATE_SHA256=' + process.env.CERT_SHA256,
+              'APK_SIGNATURE_V2=PASS',
+              'APK_SIGNATURE_V3=PASS',
+              'CERTIFICATE_FINGERPRINT_MATCH=PASS'
+            ].join('\\n');
+            const existingBody = rel.data.body || '';
+            if (!existingBody.includes('CERTIFICATE_FINGERPRINT_MATCH=PASS')) {
+              const updated = await github.rest.repos.updateRelease({
+                owner, repo, release_id: rel.data.id,
+                body: existingBody + '\\n\\n' + verificationMarker
+              });
+              rel = {data: updated.data};
+            }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
