@@ -37,9 +37,10 @@ class FollowUpCalendarProjection {
     for (final task in tasks) {
       if (task.trashed) continue;
       for (final followUp in task.followUps) {
-        final linkedReminder = task.taskReminders.where(
+        final linkedReminders = task.taskReminders.where(
           (reminder) => reminder.followUpId == followUp.id,
-        ).firstOrNull;
+        ).toList(growable: false);
+        final linkedReminder = linkedReminders.isEmpty ? null : linkedReminders.first;
         if ((linkedReminder != null || followUp.reminderDate != null) &&
             reminderIdFor(task, followUp) == reminderId) {
           return FollowUpCalendarTarget(
@@ -86,9 +87,10 @@ class FollowUpCalendarProjection {
 
         // nextFollowUp is an internal planned action, not a calendar event.
         // Only the explicitly configured reminderDate is projected.
-        final linkedReminder = task.taskReminders.where(
+        final linkedReminders = task.taskReminders.where(
           (reminder) => reminder.followUpId == followUp.id,
-        ).firstOrNull;
+        ).toList(growable: false);
+        final linkedReminder = linkedReminders.isEmpty ? null : linkedReminders.first;
         final reminderDate = linkedReminder?.date ?? followUp.reminderDate;
         if (reminderDate != null) {
           reminders.add(
