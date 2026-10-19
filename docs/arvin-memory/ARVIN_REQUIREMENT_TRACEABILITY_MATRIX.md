@@ -34,3 +34,27 @@ Status vocabulary: `IMPLEMENTED_AND_VERIFIED`, `IMPLEMENTED_NOT_VERIFIED`, `PART
 
 ## Release rule
 No requirement is considered verified merely because code or a test exists. Release remains `BLOCKED — RELEASE: NO-GO` until every mandatory gate passes on one fixed candidate SHA.
+
+
+## Wave 4.13 traceability update — 2026-10-19
+
+This section is the newest evidence scope; earlier rows remain historical where they describe older heads.
+
+| ID | Requirement / gate | Status | Current evidence | Next action |
+|---|---|---|---|---|
+| FU-01 | Single “یادآور پیگیری بعدی” input | IMPLEMENTED_NOT_VERIFIED | Follow-up editor and tests are present on PR #2833; Build run 39235854952 tests passed on PR integration run, exact checkout skipped | Verify UI clear/edit and persisted relation on final head. |
+| FU-02 | Stable reminder ID, Follow-up and parent Task association | IMPLEMENTED_NOT_VERIFIED | FollowUpRepository reconciles linked TaskReminder by stable followUpId; test shards passed, but exact-head/device proof incomplete | Verify ID, parent Task navigation, repeated save and unrelated reminder isolation. |
+| FU-03 | Title fallback and title edit preserve ID/time | IMPLEMENTED_NOT_VERIFIED | Repository derives title from Follow-up, then parent Task, then safe “پیگیری” fallback | Confirm focused tests on exact candidate SHA. |
+| FU-04 | Clear time cancels only linked notification/reminder | IMPLEMENTED_NOT_VERIFIED | Repository removes only TaskReminder linked to Follow-up; notification cancellation and independent siblings still require full lifecycle proof | Verify alarm/notification schedule, reschedule and cancellation. |
+| FU-05 | nextFollowUp alone does not create reminder | IMPLEMENTED_NOT_VERIFIED | Existing projection/repository tests are present; full exact-candidate evidence pending | Confirm focused tests on final candidate. |
+| DATA-01 | Legacy serialization, SQL persistence and ID stability | IMPLEMENTED_NOT_VERIFIED | Build run 39235854952 test shards all SUCCESS; exact checkout step SKIPPED | Rerun/verify on final exact SHA. |
+| DATA-02 | Backup/Restore retains IDs, Persons, history and Calendar links | IMPLEMENTED_NOT_VERIFIED | Backup integration test exists; Device Smoke Backup/Restore queued at last poll | Confirm terminal lane and exact-head backup round-trip. |
+| CAL-01 | Real Provider CREATE → NO-OP → UPDATE → DELETE | BLOCKED | Artifact 12165156149: Provider installed, no writable calendar row | Authorized writable Provider; require explicit identity/count/result evidence. |
+| CI-01 | Analyze, six test shards, Debug and Release APK | IMPLEMENTED_NOT_VERIFIED for exact source head | Run 39235854952 9/9 SUCCESS; exact-revision step SKIPPED | Re-run after this docs commit; exact target path must execute assertion. |
+| CI-02 | Device Smoke all seven lanes | IN_PROGRESS | Run 39235854812: Home/Quick Capture SUCCESS; SQL Persistence/SQL Migration in progress; People/Backup/Restore/Calendar queued | Complete 7/7 and refresh after head advances. |
+| CI-03 | Exact requested SHA checkout and assertion | BLOCKED | PR Build assertion SKIPPED; no direct workflow_dispatch action exposed | Authorized target_sha dispatch; prove checkout and artifact source SHA. |
+| SIGN-01 | Approved official release signer | BLOCKED | Release APK SHA recorded, but Gradle uses Debug signing and approved fingerprint/key is not verified | Authorized keystore/fingerprint, apksigner output and independent comparison. |
+| PDF-01 | Persian font license, embedding, RTL shaping, page layout and preview | IMPLEMENTED_NOT_VERIFIED / BLOCKED where external authorization needed | No new candidate-specific PDF visual acceptance evidence in this wave | Audit license and compare actual generated PDF with in-app preview. |
+| PROD-01 | Home, Calendar UX, Reports, People, migration and Golden Flow | IMPLEMENTED_NOT_VERIFIED | Existing canonical implementations and prior tests are not equivalent to final-candidate integrated acceptance | Prioritize remaining contract rows by data-loss risk; retain exact links and screenshots. |
+
+No row is promoted to IMPLEMENTED_AND_VERIFIED based solely on code presence or a PR-triggered build whose exact checkout assertion was skipped.
