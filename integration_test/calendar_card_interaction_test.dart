@@ -106,10 +106,16 @@ void main() {
       );
       expect(selectedDayList, findsOneWidget,
           reason: 'Seeded reminder should create the selected-day calendar list');
+      final selectedDayScrollable = find.descendant(
+        of: selectedDayList,
+        matching: find.byType(Scrollable),
+      );
+      expect(selectedDayScrollable, findsOneWidget,
+          reason: 'Selected-day ListView must expose its Scrollable');
       await tester.scrollUntilVisible(
         card,
         240,
-        scrollable: selectedDayList,
+        scrollable: selectedDayScrollable,
         maxScrolls: 20,
       );
       await _pumpUntil(
