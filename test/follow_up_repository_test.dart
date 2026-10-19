@@ -166,4 +166,114 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+
+  test('FollowUp reminder mirrors to stable TaskReminder and clearing is scoped', () async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't-reminder',
+          'title': 'قرارداد فروش',
+          'taskReminders': [
+            {
+              'id': 'unrelated-reminder',
+              'title': 'یادآور مستقل',
+              'date': '2026-10-21T09:00:00.000',
+              'isAllDay': false,
+              'sequence': 1,
+            },
+          ],
+          'nextReminderSequence': 2,
+        },
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    final original = FollowUp(
+      id: 'f-reminder',
+      dateTime: DateTime(2026, 10, 20, 10),
+      title: 'بازبینی قرارداد',
+      note: 'یادداشت باید حفظ شود',
+      result: 'منتظر پاسخ',
+      reminderDate: DateTime(2026, 10, 22, 14, 30),
+      nextFollowUp: DateTime(2026, 10, 24, 10),
+      waitingForResponse: true,
+      personIds: const ['person-1'],
+    );
+
+    await repository.add('t-reminder', original);
+    var stored = (await TaskStore().load()).single;
+    var linked = stored.taskReminders
+        .where((item) => item.followUpId == 'f-reminder')
+        .single;
+    expect(linked.id, 'follow-up-reminder-f-reminder');
+    expect(linked.title, 'بازبینی قرارداد');
+    expect(linked.date, DateTime(2026, 10, 22, 14, 30));
+    expect(stored.taskReminders.any((item) => item.id == 'unrelated-reminder'), isTrue);
+
+    final edited = FollowUp(
+      id: original.id,
+      dateTime: original.dateTime,
+      title: 'بازبینی نهایی قرارداد',
+      note: original.note,
+      result: original.result,
+      reminderDate: DateTime(2026, 10, 23, 16),
+      nextFollowUp: original.nextFollowUp,
+      waitingForResponse: original.waitingForResponse,
+      personIds: original.personIds,
+    );
+    await repository.update('t-reminder', edited);
+    stored = (await TaskStore().load()).single;
+    linked = stored.taskReminders
+        .where((item) => item.followUpId == 'f-reminder')
+        .single;
+    expect(linked.id, 'follow-up-reminder-f-reminder');
+    expect(linked.title, 'بازبینی نهایی قرارداد');
+    expect(linked.date, DateTime(2026, 10, 23, 16));
+
+    final cleared = FollowUp(
+      id: edited.id,
+      dateTime: edited.dateTime,
+      title: edited.title,
+      note: edited.note,
+      result: edited.result,
+      reminderDate: null,
+      nextFollowUp: edited.nextFollowUp,
+      waitingForResponse: edited.waitingForResponse,
+      personIds: edited.personIds,
+    );
+    await repository.update('t-reminder', cleared);
+    stored = (await TaskStore().load()).single;
+    expect(stored.followUps.single.id, 'f-reminder');
+    expect(stored.followUps.single.result, 'منتظر پاسخ');
+    expect(stored.followUps.single.waitingForResponse, isTrue);
+    expect(stored.followUps.single.personIds, ['person-1']);
+    expect(stored.followUps.single.nextFollowUp, DateTime(2026, 10, 24, 10));
+    expect(stored.taskReminders.any((item) => item.followUpId == 'f-reminder'), isFalse);
+    expect(stored.taskReminders.single.id, 'unrelated-reminder');
+  });
+
+  test('nextFollowUp alone does not create an independent TaskReminder', () async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {'id': 't-next-only', 'title': 'کار مادر'},
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    await repository.add(
+      't-next-only',
+      FollowUp(
+        id: 'f-next-only',
+        dateTime: DateTime(2026, 10, 20, 10),
+        nextFollowUp: DateTime(2026, 10, 22, 10),
+      ),
+    );
+
+    final stored = (await TaskStore().load()).single;
+    expect(stored.followUps.single.nextFollowUp, DateTime(2026, 10, 22, 10));
+    expect(stored.taskReminders, isEmpty);
+  });
+
 }
