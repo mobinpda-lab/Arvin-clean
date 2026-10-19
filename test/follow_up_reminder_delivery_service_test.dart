@@ -231,4 +231,22 @@ void main() {
     );
   });
 
+  test('completed Follow-up linked Reminder is not delivered', () {
+    final at = DateTime(2026, 10, 21, 11, 30);
+    final completedTask = Task.fromJson({
+      'id': 'completed-linked-delivery',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'completed-linked-fu',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس انجام‌شده',
+          'reminderDate': at.toIso8601String(),
+          'completed': true,
+        }
+      ],
+    });
+    expect(service.due([completedTask], now: at), isEmpty);
+  });
+
 }
