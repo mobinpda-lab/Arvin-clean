@@ -248,4 +248,25 @@ void main() {
     expect(result.single.scheduledAt, now.add(const Duration(hours: 1)));
   });
 
+
+  test('projects migrated linked Follow-up Reminder once with persisted title and identity', () {
+    final task = Task.fromJson({
+      'id': 'migrated-owner',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'migrated-followup',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس مشتری',
+          'reminderDate': '2026-10-21T11:00:00.000',
+        }
+      ],
+    });
+    final result = projection.pending([task], now: DateTime(2026, 10, 20));
+    expect(result, hasLength(1));
+    expect(result.single.followUpId, 'migrated-followup');
+    expect(result.single.label, 'تماس مشتری');
+    expect(result.single.stableKey, 'migrated-owner:migrated-followup');
+    expect(result.single.scheduledAt, DateTime(2026, 10, 21, 11));
+  });
 }
