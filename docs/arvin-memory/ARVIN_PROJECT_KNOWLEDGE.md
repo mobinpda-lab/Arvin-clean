@@ -137,3 +137,14 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Preserve the legacy timestamp; midnight is not evidence of all-day intent. The migrated reminder keeps Calendar identity task-reminder:<taskId> and the existing scheduler key; the old field remains for compatibility but is not emitted/scheduled a second time after migration.
 - The owner reports that the current app DB is empty. Do not assume all backups, test fixtures or other installations are empty.
 - SQL, backup/restore, rollback/retry, Calendar no-duplicate, exact-head CI and physical-device acceptance remain required.
+
+
+
+## 2026-10-19 — Wave 4.11 Reminder persistence notes
+
+- FollowUps are embedded in the canonical Task model and also projected into the existing SQL `follow_ups` / `follow_up_people` relations by TaskStore. TaskReminder instances are serialized in the Task JSON envelope (`legacy_payload_json`); the current schema version is 6.
+- A linked Follow-up reminder is mirrored into the existing TaskReminder collection using `followUpId`, with a stable ID `follow-up-reminder:<followUpId>`. On edits the repository updates the linked record rather than adding another one; clearing the reminder time removes only the explicitly linked record.
+- The FollowUp reminder delivery projection remains the delivery identity source for linked reminders. Generic TaskReminder delivery skips linked mirrors to avoid double scheduling/delivery. This is an integration strategy, not yet validated by runtime tests.
+- The reminder field in the form is labelled `یادآور پیگیری بعدی`. `nextFollowUp` remains a distinct scheduling concept and must not create a reminder by itself.
+- Wave 4.11 test additions and repository changes must be validated on the final exact PR head. Build run 39232215264 failed on older SHA `91d5412dad2f80aeffc464434f693583f4180be2` because new tests were outside `main()`; commit `44019c81b8ad394b7c4ce4496347004a79a519ad` corrected their scope, but no passing run has yet been established.
+- Do not infer a database migration is required solely because `followUpId` was added: the JSON envelope persists the full TaskReminder payload. Still require a real persistence reload and Backup/Restore regression test before marking the relationship verified.
