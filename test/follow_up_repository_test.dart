@@ -96,6 +96,44 @@ void main() {
     expect(task['category'], 'فروش');
   });
 
+  test('completion preserves Follow-up title, person links, waiting and reminder state', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't-complete',
+          'title': 'تماس',
+          'followUps': [
+            {
+              'id': 'f-complete',
+              'dateTime': '2026-10-15T10:00:00.000',
+              'title': 'تماس با آنا',
+              'note': 'جزئیات تماس',
+              'result': 'منتظر پاسخ',
+              'reminderDate': '2026-10-15T18:00:00.000',
+              'nextFollowUp': '2026-10-16T10:00:00.000',
+              'completed': false,
+              'waitingForResponse': true,
+              'personIds': ['ana', 'reza'],
+            },
+          ],
+        },
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    await repository.setCompleted('t-complete', 'f-complete', true);
+
+    final updated = (await repository.loadForTask('t-complete')).single;
+    expect(updated.id, 'f-complete');
+    expect(updated.title, 'تماس با آنا');
+    expect(updated.note, 'جزئیات تماس');
+    expect(updated.completed, isTrue);
+    expect(updated.waitingForResponse, isTrue);
+    expect(updated.personIds, ['ana', 'reza']);
+    expect(updated.reminderDate, DateTime(2026, 10, 15, 18));
+    expect(updated.nextFollowUp, DateTime(2026, 10, 16, 10));
+  });
+
   test('update fails when the FollowUp id does not exist', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
