@@ -32,6 +32,7 @@ class FollowUpReminderAlarmPlanner {
       }
 
       for (final reminder in task.taskReminders) {
+        if (reminder.followUpId != null) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
@@ -45,7 +46,10 @@ class FollowUpReminderAlarmPlanner {
 
       for (final followUp in task.followUps) {
         if (followUp.completed) continue;
-        final at = followUp.reminderDate;
+        final linkedReminder = task.taskReminders.where(
+          (reminder) => reminder.followUpId == followUp.id,
+        ).firstOrNull;
+        final at = linkedReminder?.date ?? followUp.reminderDate;
         if (at == null) continue;
         final identity =
             '${task.id}:${followUp.id}@${at.toIso8601String()}';
