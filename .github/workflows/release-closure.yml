@@ -277,7 +277,21 @@ jobs:
           echo "SOURCE_BRANCH=$GITHUB_REF_NAME"
           echo "WORKFLOW_EVENT=$GITHUB_EVENT_NAME"
           echo "WORKFLOW_RUN_ID=$GITHUB_RUN_ID"
-          echo "WORKFLOW_JOB_ID=$GITHUB_JOB"
+          echo "WORKFLOW_JOB_KEY=$GITHUB_JOB"
+
+      - name: Resolve numeric GitHub Actions job ID
+        if: steps.release_state.outputs.already_released != 'true'
+        id: job_identity
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { owner, repo, run_id: context.runId, per_page: 100 });
+            const job = jobs.find(item => item.name === 'release-closure' || item.name.endsWith('/ release-closure'));
+            if (!job) throw new Error('Could not resolve the numeric GitHub Actions job ID.');
+            core.setOutput('job_id', String(job.id));
+            core.info('WORKFLOW_JOB_ID=' + job.id);
 
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
@@ -442,7 +456,8 @@ jobs:
           WORKFLOW_NAME=${GITHUB_WORKFLOW}
           WORKFLOW_EVENT=${GITHUB_EVENT_NAME}
           WORKFLOW_RUN_ID=${GITHUB_RUN_ID}
-          WORKFLOW_JOB_ID=${GITHUB_JOB}
+          WORKFLOW_JOB_ID=${{ steps.job_identity.outputs.job_id }}
+          WORKFLOW_JOB_KEY=${GITHUB_JOB}
           SOURCE_BRANCH=${GITHUB_REF_NAME}
           REQUESTED_TARGET_SHA=${{ steps.verify.outputs.main_sha }}
           CHECKED_OUT_SHA=$(git rev-parse HEAD)
