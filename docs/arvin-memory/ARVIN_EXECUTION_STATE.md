@@ -1121,3 +1121,17 @@ This entry supersedes older statements that the owner decision is pending or tha
 - These commits extend the earlier repository and scheduler changes; they are not yet test-verified. The run previously launched on head 12ef171beef4533d12efe08f3bdacca5e2e03f36 was cancelled after further commits changed the branch. A new Build/Device Smoke run must finish on the final head after this documentation update.
 - Remaining known gap: the existing Follow-up UI write coordinator reschedules notifications but does not yet provide evidence that the outbound Calendar sync path performs the complete create/no-op/update/delete lifecycle for this newly linked reminder. Calendar Provider acceptance is separately blocked by the stock emulator lacking a writable calendar.
 - Release remains BLOCKED — RELEASE: NO-GO.
+
+
+
+## WAVE 4.12 LIVE CHECKPOINT — 2026-10-19
+
+- Live PR #2833 is OPEN/DRAFT/UNMERGED. Base SHA: 49910e585ee73afcf56a7f8d927b9c69e763c5c5. Head at this checkpoint before canonical status docs: d06062fb19c3f3ad54051f3a682f69be4146dd91. main remains d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- Build Run [39234124721](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39234124721) on d06062fb19c3f3ad54051f3a682f69be4146dd91: 9/9 jobs SUCCESS (Analyze, six test shards, Debug APK, Release APK). Artifacts: arvin-debug-apk ID 12178910414 and arvin-release-apk ID 12177339192; both metadata records name the same head SHA.
+- Device Smoke Run [39234124429](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39234124429) was still non-terminal at the last poll: Home, Quick Capture, SQL Persistence, SQL Migration SUCCESS; People and Backup/Restore IN_PROGRESS; Calendar QUEUED. No 7/7 claim.
+- PR #2827 Run [39211789444](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789444) has Verify exact requested revision SKIPPED in Device Smoke jobs; exact-SHA remains BLOCKED.
+- PR #2824 head ccc9f9b122420ef999828088f70a7aa950c5b979; main's android/app/build.gradle.kts still uses debug signing for release. Official signing remains BLOCKED.
+- PR #2831 Provider acceptance Run [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) failed due to lack of a writable Calendar Provider.
+- Canonical docs ARVIN_GO_RELEASE_FINAL_STATUS.md and ARVIN_REQUIREMENT_TRACEABILITY_MATRIX.md were absent from both main and the Wave 4.11 branch at inspection. Created as canonical files on this PR branch in commits e2989ffa6b585368bfc4effaf4647ec53a792c46 and 0525f14a93f8d548e6b84cb70daa5d7e1177e6ed; no numbered duplicate was created.
+- These docs commits change the head, so their CI must be checked separately; prior Build evidence does not transfer to the new head.
+- Release remains BLOCKED — RELEASE: NO-GO.
