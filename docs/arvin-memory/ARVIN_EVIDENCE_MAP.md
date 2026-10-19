@@ -739,3 +739,20 @@ Evidence binding rule: Build and Provider results are tied to merge SHA `bf4f1a9
 - **Official signing:** BLOCKED. `android/app/build.gradle.kts` still sets Release signing to `signingConfigs.getByName("debug")`. Neither the historical APK nor the current PR artifact is official-release evidence. Require owner-provided authorized signing configuration through a secure channel, independently confirmed expected certificate fingerprint, `apksigner verify --verbose --print-certs`, fingerprint comparison, and a separately recorded APK file SHA-256.
 - **Product acceptance gates:** notification tap/cold-start/payload restoration/deduplication/deleted Follow-up and cancel behavior; real multi-page Persian PDF with embedded official font and visual review; end-to-end Task → Checklist → Reminder → Follow-up → Person → Calendar → Notification → Report → Backup → Restore → Restart → Integrity; physical-device acceptance; and owner release approval remain NOT VERIFIED / BLOCKED. Emulator lanes and component tests do not close these gates.
 - **Release decision:** retain PR #2833 OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO`; no merge, official tag, or release publication.
+
+## Wave 4.42 — Android signing evidence map (2026-10-20)
+
+| Gate | Current evidence | Status / limitation |
+|---|---|---|
+| Previous Release signing config | `android/app/build.gradle.kts` at the inspected PR branch used `signingConfigs.getByName("debug")` | CONFIRMED; not official signing |
+| Exact-SHA mechanism | Existing `.github/workflows/build.yml` checks `git rev-parse HEAD == inputs.target_sha` and prints `EXACT_TARGET_SHA` for `workflow_dispatch` | IMPLEMENTED; no dispatch executed from this session |
+| Production Gradle signing | Commit `2ab94473ae61b6d1d99565e889116e55d101acb1`; explicit `ARVIN_OFFICIAL_RELEASE=true`, required env config, v2/v3 enabled | CODE WRITTEN; build not yet validated |
+| Secret-bearing workflow | Commit `e7c030f166e9a95daa32ba0f2fc269341f741177`; separate official job gated to trusted `main` exact tip | CODE WRITTEN; workflow syntax/runtime not yet validated |
+| Keystore ignore rules | Commit `015edef211ff9a0c45050359ce6e9ff6d5fca15a`; ignores `android/key.properties`, JKS/keystore files and signing directories | CODE WRITTEN; tracked-file scan not yet run |
+| GitHub secrets | Five required secret names are consumed by the official job | UNKNOWN; connected tools cannot inspect repository secret settings; owner action required |
+| `apksigner` v2/v3 | Workflow requires verbose v2 and v3 true assertions | NOT RUN |
+| Independent certificate fingerprint | Workflow normalizes and compares APK certificate SHA-256 against `ARVIN_RELEASE_CERT_SHA256` | NOT RUN; expected value must be independently owner-authorized |
+| APK file checksum / artifact identity | Workflow computes APK SHA-256 and records run/job/source/fingerprint in `release-evidence.txt` and job summary; artifact ID is emitted after upload | NOT GENERATED |
+| Official release approval | No official artifact or exact-SHA signing run observed | BLOCKED — RELEASE: NO-GO |
+
+Historical artifact ZIP digests must not be represented as extracted APK checksums, and old Release APKs signed with the Debug key are not official-release evidence.
