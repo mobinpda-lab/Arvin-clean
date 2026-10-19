@@ -392,3 +392,41 @@ Decision: Provider lifecycle is PASS only for the single writable-calendar path 
 - Exact-SHA remains BLOCKED: existing `.github/workflows/build.yml` supports `workflow_dispatch.target_sha`, but no dispatch action is exposed in the connected GitHub tools. The PR-triggered run skipped `Verify exact requested revision`; the owner must dispatch the existing workflow for the final SHA and preserve `git rev-parse HEAD` / `EXACT_TARGET_SHA` logs.
 - Reminder/notification tap, cold-start destination, deleted/missing record handling and full end-to-end product acceptance remain NOT VERIFIED. Existing service classes initialize local-notification plugins without a tap callback; inspect/test callback ownership rather than assuming it is a confirmed defect. PDF visual acceptance remains NOT VERIFIED: the current renderer uses VazirHarf and RTL MultiPage, but the existing test substitutes Helvetica and checks only PDF bytes; no reviewed multi-page PDF artifact exists. Release signing remains BLOCKED because `android/app/build.gradle.kts` still selects the Debug signing config for Release and no authorized keystore/approved fingerprint is available.
 - Decision: `BLOCKED — RELEASE: NO-GO`. Keep PR Draft; no merge, tag or release. Next: reconcile/poll run/job conclusions, rerun only failed infrastructure lanes if GitHub permits, then dispatch exact SHA and complete notification-tap, PDF visual, and signing gates.
+
+
+## Wave 4.37 — final reconciliation of existing Device Smoke and Calendar Provider evidence (2026-10-19)
+
+### Source revision and scope
+- PR #2833: https://github.com/mobinpda-lab/Arvin-clean/pull/2833
+- Device Smoke run: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553
+- Run metadata `head_sha`: `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf`.
+- The actual repository checkout in the seven Device Smoke job logs is synthetic PR merge commit `4852fa1069862dc397717652823028f585053285`, merging PR head `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf` into base `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. These are distinct identities. The run is valid integration evidence for that merge checkout, not proof of the standalone exact-head assertion.
+- Job states are terminal: all seven jobs have `status=completed`, `conclusion=success`. No lane was cancelled, skipped, or failed at job level.
+- The earlier 404 BlobNotFound while retrieving Calendar logs was transient/access-to-log retrieval trouble, not a product failure. The later log retrieval succeeded and contains test completion plus uploaded screenshot evidence.
+
+### Seven-lane Device Smoke ledger
+| Requirement/lane | Existing test or behavior | Verified source / checkout | Run and Job | Evidence | Status | Next action |
+|---|---|---|---|---|---|---|
+| Home | Existing Android Home smoke | PR head `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf`; checkout merge `4852fa1069862dc397717652823028f585053285` | Run `39300092553`; Job `118222713386` | [Home artifact 12211916540](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553/artifacts/12211916540), not expired | PASS | Reuse evidence; no rerun required for this tested merge |
+| Quick Capture | Existing Android Quick Capture smoke | Same run checkout | Run `39300092553`; Job `118222713328` | [Quick Capture artifact 12210501483](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553/artifacts/12210501483), not expired; Persian time-picker artifact `12212245974` | PASS | Reuse evidence |
+| SQL Persistence | Existing SQL persistence integration smoke; log says all tests passed | Same run checkout | Run `39300092553`; Job `118222713333` | [Run/job logs](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553) | PASS | Reuse evidence |
+| SQL Migration | Existing legacy-to-canonical SQL migration smoke; log says all tests passed | Same run checkout | Run `39300092553`; Job `118222713304` | [Run/job logs](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553) | PASS | Reuse evidence |
+| People | Existing Android People smoke; log says all tests passed | Same run checkout | Run `39300092553`; Job `118222713427` | [People artifact 12211712598](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553/artifacts/12211712598), not expired | PASS | Reuse evidence |
+| Backup/Restore | Existing portable-backup round-trip test; log says Task and Calendar-link metadata round-trip and all tests passed | Same run checkout | Run `39300092553`; Job `118222712968` | [Run/job logs](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553) | PASS for automated smoke only | Keep real-file-provider/owner-device restore and rollback acceptance separate; do not infer them from this smoke |
+| Calendar | Existing `integration_test/calendar_card_interaction_test.dart`; log confirms seeded SQLite record, Follow-up editor opened, Persian time picker rendered, long-press completion persisted `completed=true`, no Flutter framework exception, and `All tests passed` | Same run checkout; tested merge includes prior test-only Scrollable finder correction | Run `39300092553`; Job `118222713216` | [Calendar screenshot artifact 12211918196](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092553/artifacts/12211918196), not expired; SHA-256 ZIP digest `c560d572465df5f56cbf8a7960886345515103c2acf829ecc6df2acc28a333c2` | PASS | Reuse evidence; no code change or repeated test is warranted for this tested checkout |
+
+### Calendar Provider Acceptance — independent gate
+- Run: [39300092611](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092611)
+- Job: `118222713369`, `android-calendar-provider`, terminal `completed / success`.
+- Run metadata head SHA: `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf`; checkout in the job log is merge commit `4852fa1069862dc397717652823028f585053285`.
+- Log assertions: `CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS from=1 to=2`; `PROVIDER_QUERY_DELETE targetPresent=false calendarId=2`; unrelated event IDs 1 and 2 remain present; `CALENDAR_PROVIDER_ACCEPTANCE=PASS calendarId=1`; `1 test passed`.
+- Artifact: [12212001868](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39300092611/artifacts/12212001868), not expired; ZIP digest `sha256:8fe24ef95afc10926c97b849d6de5d1fadaf9e0c3c3583485eae43167dda4563`.
+- Status: PASS for this automated writable-provider acceptance run. This is separate from Calendar Device Smoke and does not establish physical-device acceptance.
+
+### Revision and release qualification
+- Commit `ee2239ca5d41037ec0de0cd94a67cc0c84eeacaf` fixes the Calendar test's scrollable finder by finding the descendant `Scrollable` inside the selected-day list and passing that finder to `scrollUntilVisible`. The passing Calendar log is the first verified result for that correction in the existing Device Smoke workflow; no new implementation or test was added in Wave 4.37.
+- No code or test changes were made in Wave 4.37. Documentation reconciliation only.
+- Exact-SHA gate remains BLOCKED because the run checks out synthetic merge SHA `4852fa1...` and the PR-triggered Build skipped `Verify exact requested revision`. The repository owner must use the existing authorized `workflow_dispatch.target_sha` path for the final candidate and retain `git rev-parse HEAD` plus `EXACT_TARGET_SHA` assertion output.
+- Official release signing remains BLOCKED: current `android/app/build.gradle.kts` selects the Debug signing config for Release; authorized keystore/signing credentials and independently approved certificate fingerprint are still required.
+- Notification tap/cold-start/deduplication/deleted Follow-up behavior, reviewed multi-page Persian PDF output, full Golden Flow, real file-provider restore/rollback, physical-device acceptance and final owner approval remain NOT VERIFIED.
+- Release decision remains `BLOCKED — RELEASE: NO-GO`. Keep PR #2833 open and Draft; do not merge, tag or publish an official APK until mandatory gates pass on a properly verified release candidate.
