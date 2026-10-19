@@ -37,8 +37,11 @@ jobs:
           # sdkmanager closes stdin after accepting all licenses; suppress the
           # expected SIGPIPE from yes while preserving sdkmanager's real status.
           set +o pipefail
-          yes 2>/dev/null | "$SDKMANAGER" --licenses >/dev/null
-          license_status=$?
+          if yes 2>/dev/null | "$SDKMANAGER" --licenses >/dev/null; then
+            license_status=0
+          else
+            license_status=$?
+          fi
           set -o pipefail
           if [[ "$license_status" -ne 0 ]]; then
             echo "::error::sdkmanager --licenses failed with exit code $license_status"
