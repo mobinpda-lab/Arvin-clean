@@ -16,6 +16,9 @@ void main() {
         tags: ['مهم'],
         priority: TaskPriority.high,
         followUpEnabled: true,
+        followUps: [
+          FollowUp(id: 'fu-a', dateTime: DateTime(2026, 10, 7, 9)),
+        ],
         checklist: ['یک'],
       ),
       Task(
@@ -34,6 +37,9 @@ void main() {
         tags: ['مهم'],
         priority: TaskPriority.high,
         followUpEnabled: true,
+        followUps: [
+          FollowUp(id: 'fu-c', dateTime: DateTime(2026, 10, 7, 9)),
+        ],
         checklist: ['یک'],
       ),
     ];
@@ -55,6 +61,33 @@ void main() {
 
     expect(result.map((task) => task.id), ['a']);
     expect(tasks.map((task) => task.id), ['a', 'b', 'c']);
+  });
+
+  test('hasFollowUp ignores the legacy flag and recognizes records and legacy dates', () {
+    final tasks = [
+      Task(id: 'flag-only', title: 'پرچم قدیمی', followUpEnabled: true),
+      Task(
+        id: 'record',
+        title: 'رکورد واقعی',
+        followUps: [
+          FollowUp(id: 'real-fu', dateTime: DateTime(2026, 10, 7, 9)),
+        ],
+      ),
+      Task(
+        id: 'legacy-date',
+        title: 'سازگاری قدیمی',
+        followUpDate: DateTime(2026, 10, 7, 9),
+      ),
+    ];
+
+    expect(
+      const TaskReportFilter(hasFollowUp: true).apply(tasks, now: now).map((t) => t.id),
+      ['record', 'legacy-date'],
+    );
+    expect(
+      const TaskReportFilter(hasFollowUp: false).apply(tasks, now: now).map((t) => t.id),
+      ['flag-only'],
+    );
   });
 
   test('time presets handle undated and future tasks', () {
