@@ -58,7 +58,16 @@ void main() {
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
     expect(workflow, contains('actions/upload-artifact@v5'));
-    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
+    expect(
+      workflow,
+      contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha != \'\' && inputs.target_sha || github.sha }}'),
+    );
+    expect(workflow, contains('target_sha:'));
+    expect(workflow, contains('echo "EXACT_TARGET_SHA=$actual"'));
+    expect(
+      workflow,
+      contains(r'ref: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha != \'\' && inputs.target_sha || github.sha }}'),
+    );
 
     final matrixScenarios = RegExp(
       r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
