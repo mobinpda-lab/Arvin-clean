@@ -87,6 +87,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.followUpId,
   });
 
   final String id;
@@ -99,6 +100,10 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Non-null only for a Reminder explicitly owned by one Follow-up.
+  /// The Reminder remains in the canonical Task reminder collection.
+  final String? followUpId;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
@@ -110,6 +115,7 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        followUpId: followUpId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -119,6 +125,7 @@ class TaskReminder {
         'isAllDay': isAllDay,
         'sequence': sequence,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
+        if (followUpId != null) 'followUpId': followUpId,
       };
 
   factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
@@ -128,6 +135,9 @@ class TaskReminder {
         isAllDay: json['isAllDay'] as bool? ?? false,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+        followUpId: (json['followUpId'] as String?)?.trim().isNotEmpty == true
+            ? (json['followUpId'] as String).trim()
+            : null,
       );
 }
 
@@ -205,6 +215,45 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+
+  /// Reconciles the explicitly configured Follow-up reminder into the
+  /// canonical independent Reminder collection. The legacy FollowUp field is
+  /// retained as a compatibility mirror until old backups/installations have
+  /// been migrated; projections must prefer this linked record to avoid double
+  /// delivery or duplicate Calendar events.
+  void syncFollowUpReminder(FollowUp followUp) {
+    final index = taskReminders.indexWhere(
+      (item) => item.followUpId == followUp.id,
+    );
+    final date = followUp.reminderDate;
+    if (date == null) {
+      if (index >= 0) taskReminders.removeAt(index);
+      return;
+    }
+    final followUpTitle = followUp.title?.trim() ?? '';
+    final parentTitle = title.trim();
+    final reminderTitle = followUpTitle.isNotEmpty
+        ? followUpTitle
+        : parentTitle.isNotEmpty
+            ? 'پیگیری — $parentTitle'
+            : 'پیگیری';
+    final existing = index >= 0 ? taskReminders[index] : null;
+    final reminder = TaskReminder(
+      id: existing?.id ?? 'follow-up-${followUp.id}',
+      title: reminderTitle,
+      date: date,
+      isAllDay: false,
+      sequence: existing?.sequence ?? nextReminderSequence,
+      isLegacyTaskReminder: false,
+      followUpId: followUp.id,
+    );
+    if (index >= 0) {
+      taskReminders[index] = reminder;
+    } else {
+      taskReminders.add(reminder);
+      nextReminderSequence++;
+    }
+  }
 
   /// True only for an item explicitly created as a Notebook simple note.
   /// Notebook membership is independent from follow-up state: adding a
