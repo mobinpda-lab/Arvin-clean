@@ -191,7 +191,7 @@ void main() {
     expect(restored.taskReminders.single.date, DateTime(2026, 10, 20));
     expect(restored.taskReminders.single.isAllDay, isFalse);
   });
-}
+
 
 
   test('TaskReminder preserves stable FollowUp identity through JSON round-trip', () {
@@ -222,3 +222,5 @@ void main() {
     expect(restored.followUpId, isNull);
     expect(restored.id, 'legacy-task-reminder');
   });
+
+}
