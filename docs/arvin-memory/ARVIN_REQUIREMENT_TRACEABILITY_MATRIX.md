@@ -129,3 +129,9 @@ Release remains **BLOCKED — RELEASE: NO-GO**.
 - This is a candidate CI/workflow correction, **not** proof that the provider accepts a writable calendar. The actual CREATE → NO-OP → UPDATE → DELETE sequence must pass on the new workflow run; otherwise the gate remains BLOCKED. The fix is not validated until its run and artifact are inspected.
 
 | CAL-03 | Provider seed and failure evidence are reliable | IMPLEMENTED_NOT_VERIFIED | Workflow now quotes the remote adb command, records seed output/calendar rows, fails closed on limitation and uploads evidence with `if: always()`; actual writable-provider result is pending. | Inspect new run and artifact; require real CREATE/NO-OP/UPDATE/DELETE PASS. |
+
+
+## Wave 4.17 Calendar Provider runner compatibility correction — 2026-10-19
+
+- New candidate run [39244544605](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39244544605) failed before executing provider setup: the emulator runner invokes its script using `/usr/bin/sh`, which rejected Bash-only `set -o pipefail` (`set: Illegal option -o pipefail`). Because failure occurred before `mkdir -p`, the artifact step ran with `if: always()` but had no evidence directory to upload. This is an orchestration failure, not a Calendar Provider acceptance result.
+- Corrected the script to POSIX-compatible `set -eu` and added a host-side evidence-directory initialization step before emulator boot. This makes minimal source SHA/started evidence available even if the emulator script fails before reaching its own setup. Artifact upload remains unconditional. Re-run and inspect its terminal result/artifact; writable provider and CREATE → NO-OP → UPDATE → DELETE remain unproven until the integration test emits PASS.

@@ -71,6 +71,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Initialize Calendar Provider evidence directory
+        run: |
+          mkdir -p .github/calendar-provider-evidence
+          printf 'HEAD_SHA=%s\\n' "$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt
+          printf 'PROVIDER_ACCEPTANCE=STARTED\\n' >> .github/calendar-provider-evidence/environment.txt
+
       - name: Run real Calendar Provider acceptance or prove stock-emulator limitation
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -79,7 +85,7 @@ jobs:
           target: default
           disable-animations: true
           script: |
-            set -Eeuo pipefail
+            set -eu
             evidence_dir=".github/calendar-provider-evidence"
             mkdir -p "$evidence_dir"
             printf 'HEAD_SHA=%s\n' "$(git rev-parse HEAD)" > "$evidence_dir/environment.txt"
