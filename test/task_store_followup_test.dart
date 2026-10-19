@@ -138,4 +138,99 @@ void main() {
     }
   });
 
+  test('linked Follow-up Reminder persists through canonical SQL reload and can be cleared independently', () async {
+    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final scheduledAt = DateTime(2026, 10, 21, 11, 30);
+      final task = Task(
+        id: 'followup-reminder-sql',
+        title: 'ارسال قرارداد',
+        taskReminders: [
+          TaskReminder(
+            id: 'unrelated-reminder-sql',
+            title: 'یادآور دیگر',
+            date: DateTime(2026, 10, 22, 9),
+            sequence: 1,
+          ),
+        ],
+        nextReminderSequence: 2,
+        followUps: [
+          FollowUp(
+            id: 'followup-reminder-sql-id',
+            dateTime: DateTime(2026, 10, 20, 10),
+            title: 'تماس با مشتری',
+            result: 'در انتظار پاسخ',
+            waitingForResponse: true,
+            personIds: const ['person-sql'],
+            nextFollowUp: DateTime(2026, 10, 23, 10),
+            reminderDate: scheduledAt,
+          ),
+        ],
+      );
+
+      await store.save([task]);
+      var restored = (await store.load()).single;
+      expect(restored.taskReminders.where((item) => item.followUpId != null), hasLength(1));
+      final linkedBefore = restored.taskReminders.singleWhere(
+        (item) => item.followUpId == 'followup-reminder-sql-id',
+      );
+      expect(linkedBefore.title, 'تماس با مشتری');
+      expect(linkedBefore.date, scheduledAt);
+      expect(restored.followUps.single.personIds, ['person-sql']);
+      expect(restored.followUps.single.waitingForResponse, isTrue);
+      expect(restored.followUps.single.result, 'در انتظار پاسخ');
+      expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 23, 10));
+
+      final originalFollowUp = restored.followUps.single;
+      final titleEdited = FollowUp(
+        id: originalFollowUp.id,
+        dateTime: originalFollowUp.dateTime,
+        title: 'عنوان اصلاح‌شده',
+        note: originalFollowUp.note,
+        result: originalFollowUp.result,
+        reminderDate: originalFollowUp.reminderDate,
+        nextFollowUp: originalFollowUp.nextFollowUp,
+        completed: originalFollowUp.completed,
+        waitingForResponse: originalFollowUp.waitingForResponse,
+        personIds: originalFollowUp.personIds,
+      );
+      restored.syncFollowUpReminder(titleEdited);
+      restored.followUps = [titleEdited];
+      await store.save([restored]);
+      restored = (await store.load()).single;
+      final linkedAfter = restored.taskReminders.singleWhere(
+        (item) => item.followUpId == 'followup-reminder-sql-id',
+      );
+      expect(linkedAfter.id, linkedBefore.id);
+      expect(linkedAfter.date, scheduledAt);
+      expect(linkedAfter.title, 'عنوان اصلاح‌شده');
+
+      final current = restored.followUps.single;
+      final cleared = FollowUp(
+        id: current.id,
+        dateTime: current.dateTime,
+        title: current.title,
+        note: current.note,
+        result: current.result,
+        reminderDate: null,
+        nextFollowUp: current.nextFollowUp,
+        completed: current.completed,
+        waitingForResponse: current.waitingForResponse,
+        personIds: current.personIds,
+      );
+      restored.syncFollowUpReminder(cleared);
+      restored.followUps = [cleared];
+      await store.save([restored]);
+      restored = (await store.load()).single;
+      expect(restored.followUps, hasLength(1));
+      expect(restored.followUps.single.id, 'followup-reminder-sql-id');
+      expect(restored.followUps.single.reminderDate, isNull);
+      expect(restored.taskReminders.map((item) => item.id), ['unrelated-reminder-sql']);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }
