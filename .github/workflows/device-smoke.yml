@@ -33,6 +33,8 @@ jobs:
             test_file: integration_test/android_home_smoke_test.dart
           - scenario: quick-capture
             test_file: integration_test/android_quick_capture_smoke_test.dart
+          - scenario: task-lifecycle
+            test_file: integration_test/android_task_lifecycle_smoke_test.dart
           - scenario: sql-persistence
             test_file: integration_test/android_sql_persistence_smoke_test.dart
           - scenario: sql-migration
@@ -121,7 +123,7 @@ jobs:
           script: |
             # android-emulator-runner executes script lines in separate /usr/bin/sh processes.
             # Discover the ready device instead of relying on EMULATOR_PORT being exported.
-            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
+            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device" && { if [ "${{ matrix.scenario }}" = "task-lifecycle" ]; then echo "ARVIN_LIFECYCLE_RESTART_BEGIN"; adb -s "$device" shell am force-stop com.example.arvin && adb -s "$device" shell monkey -p com.example.arvin 1 && sleep 3 && flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"; fi; }
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
@@ -129,6 +131,16 @@ jobs:
         with:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
+          if-no-files-found: warn
+
+      - name: Upload Task lifecycle screenshots
+        if: always() && matrix.scenario == 'task-lifecycle'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-task-lifecycle-${{ github.sha }}
+          path: |
+            artifacts/device-smoke/task-lifecycle.png
+            artifacts/device-smoke/task-lifecycle-restarted.png
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence
