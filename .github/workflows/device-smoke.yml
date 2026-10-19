@@ -79,6 +79,13 @@ jobs:
             echo "RUN_ID=$GITHUB_RUN_ID"
             echo "RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT"
           } | tee artifacts/ci-evidence/revision.txt
+      - name: Upload source/workflow revision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-device-smoke-revision-${{ matrix.scenario }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          path: artifacts/ci-evidence/revision.txt
+          if-no-files-found: error
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
