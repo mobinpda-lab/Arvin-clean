@@ -59,12 +59,14 @@ class FollowUpReminderDeliveryService {
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
 
-        final note = followUp.note.trim();
         final candidate = FollowUpReminderCandidate(
           taskId: task.id,
           taskTitle: task.title,
           followUpId: followUp.id,
-          label: note.isEmpty ? 'پیگیری' : note,
+          label: FollowUpReminderCandidate.followUpLabel(
+            title: followUp.title,
+            taskTitle: task.title,
+          ),
           scheduledAt: reminderDate,
         );
 

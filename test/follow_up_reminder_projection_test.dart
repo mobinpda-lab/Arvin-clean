@@ -14,7 +14,8 @@ void main() {
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 12),
-          note: 'تماس با مشتری',
+          title: 'پیگیری قرارداد',
+          note: 'نتیجه تماس با مشتری',
           reminderDate: DateTime(2026, 8, 28, 17, 30),
         ),
       ],
@@ -26,7 +27,7 @@ void main() {
     expect(result.single.taskId, 'task-1');
     expect(result.single.taskTitle, 'قرارداد');
     expect(result.single.followUpId, 'fu-1');
-    expect(result.single.label, 'تماس با مشتری');
+    expect(result.single.label, 'پیگیری قرارداد');
     expect(result.single.scheduledAt, DateTime(2026, 8, 28, 17, 30));
     expect(result.single.stableKey, 'task-1:fu-1');
   });
@@ -40,6 +41,8 @@ void main() {
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 15),
+          title: '   ',
+          note: 'نتیجه پیگیری؛ نباید عنوان Reminder شود',
           reminderDate: DateTime(2026, 8, 28, 18),
         ),
       ],
@@ -72,7 +75,7 @@ void main() {
     expect(result, hasLength(2));
     final followUpReminder = result.singleWhere((item) => item.isTaskReminder == false);
     expect(followUpReminder.scheduledAt, DateTime(2026, 8, 28, 18));
-    expect(followUpReminder.label, 'پیگیری');
+    expect(followUpReminder.label, 'پیگیری — کار');
   });
 
   test('ignores disabled, expired, completed, archived, and trashed work', () {

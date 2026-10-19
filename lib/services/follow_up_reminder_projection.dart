@@ -29,6 +29,13 @@ class FollowUpReminderCandidate {
 
   bool get isTaskReminder => followUpId == null;
 
+  static String followUpLabel({String? title, required String taskTitle}) {
+    final followUpTitle = title?.trim() ?? '';
+    if (followUpTitle.isNotEmpty) return followUpTitle;
+    final parentTitle = taskTitle.trim();
+    return parentTitle.isEmpty ? 'پیگیری' : 'پیگیری — $parentTitle';
+  }
+
   String get stableKey => followUpId != null
       ? '$taskId:$followUpId'
       : taskReminderId == null
@@ -89,13 +96,15 @@ class FollowUpReminderProjection {
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isBefore(now)) continue;
 
-        final note = followUp.note.trim();
         result.add(
           FollowUpReminderCandidate(
             taskId: task.id,
             taskTitle: task.title,
             followUpId: followUp.id,
-            label: note.isEmpty ? 'پیگیری' : note,
+            label: FollowUpReminderCandidate.followUpLabel(
+              title: followUp.title,
+              taskTitle: task.title,
+            ),
             scheduledAt: reminderDate,
           ),
         );
