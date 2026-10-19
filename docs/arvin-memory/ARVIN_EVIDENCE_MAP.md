@@ -752,3 +752,16 @@ No result above authorizes public release. All listed PRs remain Draft/unmerged.
 
 ## Device Smoke latest poll — 2026-10-19
 Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094) remains IN_PROGRESS on PR head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da. Backup/Restore, SQL Persistence, Home, Quick Capture, SQL Migration and People lanes have completed SUCCESS; Calendar lane remains IN_PROGRESS. The run is not terminal and the full suite is not PASS. This remains a pull_request run, not exact-target dispatch.
+
+
+## WAVE 4.4 LIVE RECONCILIATION — 2026-10-19 (latest authoritative poll)
+
+- Current main remains `d9fb7a247037762216662a20fb32028ecc8a0f6b`; no qualified release candidate is declared.
+- Relevant PRs #2824, #2826, #2827, #2828, #2831, #2790, #2791 and #2796 are open, Draft, and unmerged. PRs #2790/#2791/#2796 retain stale base SHA `824ca8f17c92e76b3887001891d7d5b6f17974a6`; reconcile before integration.
+- Build run [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034): terminal SUCCESS for Analyze, six test shards, Debug APK and Release APK. Trigger was pull_request against PR #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`; exact-target verification was SKIPPED.
+- Device Smoke run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094): latest query shows all seven lanes terminal SUCCESS (Backup/Restore, SQL Persistence, Home, Quick Capture, SQL Migration, Calendar, People). This is PR-head evidence only; no workflow_dispatch/exact-target execution occurred, so it does not qualify a release candidate.
+- Calendar Provider run [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224): terminal FAILURE at real acceptance; output `CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. No evidence artifact was published because the acceptance job failed before the artifact-publication step. This is not a product pass and not proof of provider CRUD.
+- Release build config on main still sets `signingConfig = signingConfigs.getByName("debug")`. The inspected APK from artifact 12168605271 has SHA-256 `d1bf6ba6ed05b4cd5546dd4dc10de8c5e6016efda8d682d28466fda3102a38f7`, but apksigner verification and approved certificate fingerprint comparison were not performed; it is not an authorized release APK.
+- PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
+- Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
+- Final decision remains **BLOCKED — RELEASE: NO-GO**.
