@@ -795,3 +795,18 @@ Evidence limitations: latest observed mainline orchestrator/production-loop succ
 | Legacy-base PRs | #2790, #2791, #2796 target main but base snapshot is `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `IN_PROGRESS` | Review full diffs/merge-bases/dependencies before updating branches |
 
 Latest observed mainline Release Closure [39214476013](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214476013) and Final Head Release Validation [39214481131](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214481131) were skipped. Orchestrator/production-loop success does not replace mandatory gates. No qualified candidate SHA, no official APK, no release.
+
+
+## Wave 4.6 live revalidation — 2026-10-19
+
+| Gate / surface | Current live evidence | Result | Next action |
+|---|---|---|---|
+| Main baseline | GitHub refs/heads/main → d9fb7a247037762216662a20fb32028ecc8a0f6b | Revalidated | Do not treat docs PR head as candidate |
+| PR #2826 docs CI | Build [39214701152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701152), source 3f39b29df51aaa077b90938af74528644c0ea7f8 | IN PROGRESS; Analyze and six shards success, Debug APK success, Release APK running at last poll | Poll terminal result; inspect artifacts and exact job outcomes |
+| Device Smoke | [39214701198](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701198), same source SHA | QUEUED overall; Home and Quick Capture passed; SQL Persistence and SQL Migration running; People, Calendar and Backup/Restore queued | Poll all seven lane conclusions and artifact uploads |
+| Release signing | android/app/build.gradle.kts on inspected signing branch still binds Release to debug | BLOCKED | Owner must supply approved secret mechanism and independently approved fingerprint |
+| Calendar Provider | PR #2831 latest head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da; historical run 39203189292 records no writable stock-emulator provider | BLOCKED / NOT VERIFIED | Use legitimate writable provider environment; retain result/test/environment logs |
+| Product integration | PR #2828 head 50f1d26a8e4102f078e2f184771f98d521152dc4; code diff includes Follow-up metadata preservation and SQL backfill | IMPLEMENTED_NOT_VERIFIED | Run focused lifecycle/migration/Reminder tests on a qualified integrated SHA |
+| PR governance | #2824, #2826, #2827, #2828, #2831, #2790, #2791, #2796 remain open Draft in latest metadata read | IN PROGRESS | Preserve PRs; no blind rebase or merge |
+
+No qualified release candidate has been selected. Pending/queued runs and historical artifacts do not satisfy release gates.
