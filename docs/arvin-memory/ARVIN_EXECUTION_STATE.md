@@ -1259,3 +1259,15 @@ Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211
 - PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
 - Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
 - Final decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+# AUTHORITATIVE LIVE UPDATE — Wave 4.5 repository recheck — 2026-10-19
+
+- Current `main`: `d9fb7a247037762216662a20fb32028ecc8a0f6b` (queried from `refs/heads/main`).
+- PR state rechecked from GitHub: #2824, #2826, #2827, #2828, #2831, #2790, #2791, #2796 are open Draft. PR #2827 head `d437dbf6cc76bbb216916b94145a8ddae897e52b`; #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`; #2828 head `50f1d26a8e4102f078e2f184771f98d521152dc4`.
+- #2790/#2791/#2796 base remains the stale SHA `824ca8f17c92e76b3887001891d7d5b6f17974a6`; do not rebase blindly before reviewing overlap and merge-base.
+- Current Release Gradle config uses Debug signing. Gate **BLOCKED** until authorized signing credentials and owner-approved certificate SHA-256 are available; never infer the fingerprint.
+- Current Calendar Provider acceptance workflow uses Android API 35 `target: default`, with no verified alternate writable-provider provisioning and no unconditional evidence upload. The workflow may report the stock-emulator limitation, which is not a product pass or product defect. Acceptance remains **BLOCKED / NOT VERIFIED**.
+- Current main Device Smoke workflow defines seven lanes but does not accept/verify an exact target SHA. PR #2827 adds a dispatch target and checkout assertions; its current head needs terminal validation and an exact-SHA run.
+- Latest observed mainline run set includes successes for Orchestrator/Production Loop and cancelled/skipped auxiliary runs; this is not evidence that all mandatory release gates passed. No qualified candidate SHA is selected.
+- No merge, tag, or release action performed. Release decision remains **BLOCKED — RELEASE: NO-GO**.
