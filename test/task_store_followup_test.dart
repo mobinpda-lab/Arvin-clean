@@ -43,7 +43,9 @@ void main() {
     expect(task.category, 'مشتریان');
     expect(task.tags, ['فوری']);
     expect(task.followUpEnabled, isTrue);
-    expect(task.followUps, isEmpty);
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, startsWith('follow-up-conversion:t-convert:'));
+    expect(task.followUps.single.note, isEmpty);
   });
 
   test('converting an existing FollowUp task is idempotent', () async {
