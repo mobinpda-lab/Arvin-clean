@@ -310,3 +310,16 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | Backup/Restore could lose Follow-up reminder relation | Added canonical backup + TaskStore reload integration test. | IMPLEMENTED_NOT_VERIFIED | Run the test and inspect restored IDs/associations; do not infer from test presence. |
 | Latest-head Build/Smoke evidence invalidated by subsequent changes | Runs on 12ef171beef4533d12efe08f3bdacca5e2e03f36 were cancelled when the branch advanced. | IN_PROGRESS | Wait for terminal Build and Device Smoke results on the final head. |
 | Calendar Provider acceptance environment has no writable calendar | Run [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) explicitly reports LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR. | BLOCKED | Provision/authorize a writable provider environment; retain the failure until Create/No-op/Update/Delete are actually accepted. |
+
+
+
+## Wave 4.12 live blocker checkpoint — 2026-10-19
+
+| Risk / gate | Evidence | Status | Next action |
+|---|---|---|---|
+| Device Smoke final lanes | Run 39234124429; People and Backup/Restore IN_PROGRESS, Calendar QUEUED at last poll | IN_PROGRESS | Poll to terminal; don't report 7/7 before completion. |
+| Exact-SHA checkout assertion | PR #2827 Run 39211789444, Verify exact requested revision SKIPPED | BLOCKED | Authorized target_sha dispatch and inspect checkout/log/artifact evidence. |
+| Official Release signing | main android/app/build.gradle.kts sets release signingConfig to debug | BLOCKED | Owner supplies approved keystore/secret setup and independently approved certificate fingerprint; run apksigner and SHA-256. |
+| Calendar Provider acceptance | PR #2831 Run 39211706224 failed: no writable provider | BLOCKED | Use authorized writable provider environment for CREATE/NO-OP/UPDATE/DELETE. |
+| Canonical release docs absent | 404 for both files on main and Wave 4.11 branch | RESOLVED AS DOCUMENTATION SETUP | Created canonical files in existing PR branch; new head needs fresh CI. |
+| Wave 4.11 candidate verification | Build 39234124721 green on d06062fb19c3f3ad54051f3a682f69be4146dd91; Device Smoke not terminal at last poll | IN_PROGRESS | Recheck terminal results and rerun evidence on post-doc head. |
