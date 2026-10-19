@@ -90,3 +90,7 @@ On PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`, two focused tests c
 ## 2026-10-19 — Follow-up form consistency gap against V10.0
 
 A source read of main `d9fb7a247037762216662a20fb32028ecc8a0f6b` confirms `lib/follow_up_entry_page.dart` still presents `انتخاب پیگیری بعدی` separately from a card labeled `یادآور این پیگیری` with independent date/time and clear controls. V10.0 requires one coherent `یادآور پیگیری بعدی` input. The current form preserves independent stored values, which must remain true; a UI unification must not silently turn `nextFollowUp` into a notification or destroy legacy `reminderDate` data. The independent Reminder record relationship and duplicate-scheduling behavior are not proven by the passing projection tests. Mark the UI/data contract as open until a focused implementation and end-to-end regressions exist.
+
+## 2026-10-19 — Wave 4.9 Follow-up Reminder form
+
+The Follow-up editor now labels the notification controls `یادآور پیگیری بعدی` and describes the notification as independent. The next-action date remains a separate concept and must never automatically create a notification. The generic Task Reminder editor excludes Follow-up-owned Reminder records so generic editing cannot silently unlink a Follow-up; the Follow-up form remains the control for clearing its notification date/time. UI and persistence changes are in Draft [PR #2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832) and await current-head CI/device evidence.
