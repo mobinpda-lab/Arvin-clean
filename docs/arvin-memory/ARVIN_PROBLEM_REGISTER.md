@@ -327,3 +327,10 @@ Overall release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag or release a
 - **Changes:** optional `TaskReminder.followUpId`; stable linked Reminder ID; title fallback `Follow-up title → پیگیری — parent Task title → پیگیری`; deterministic legacy materialization; linked-record-first delivery/alarm/Calendar; generic projection suppression; delivery-state reconciliation using the Follow-up stable key; Follow-up-owned records excluded from generic Task Reminder editing.
 - **CI:** Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) was IN_PROGRESS and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) QUEUED when recorded. Do not claim current-head tests pass until terminal evidence exists.
 - **Residual gates:** SQL envelope round-trip, migration retry, title-only edit, clear date/time, unrelated Reminder preservation, notification idempotency, Calendar create/no-op/update/delete, Backup/Restore, Person/waiting-response/history preservation, real writable Provider, exact-SHA dispatch and official signing.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19 — current CI
+
+- Requirement status: IMPLEMENTED_NOT_VERIFIED for linked Follow-up Reminder; release remains BLOCKED.
+- PR #2832 current head: acb06279e766142cc9cbc886259d6ab951df2036, stacked on PR #2828 head 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
+- Current Build 39226858516 is IN_PROGRESS; current Device Smoke 39226858634 is QUEUED. Earlier run 39225465707 failed on analyzer findings and outdated backup/Calendar assertions; targeted corrections were made and subsequent runs were cancelled by later commits.
+- Still required: current-head full tests, SQL/backup round-trip, notification cancellation/idempotency, real Calendar Provider create/no-op/update/delete, exact-SHA dispatch, authorized official signing, and remaining People/Reports/recurrence/PDF acceptance.
