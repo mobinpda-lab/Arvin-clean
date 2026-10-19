@@ -423,12 +423,19 @@ class Task {
     // lose the original date. Existing linked records always win.
     final parentTaskId = json['id'] as String? ?? '';
     final parentTaskTitle = (json['title'] as String? ?? '').trim();
-    var nextFollowUpReminderSequence = loadedTaskReminders.isEmpty
-        ? 1
+    final storedNextFollowUpSequence =
+        (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final safeNextFollowUpSequence =
+        storedNextFollowUpSequence < 1 ? 1 : storedNextFollowUpSequence;
+    final highestExistingReminderSequence = loadedTaskReminders.isEmpty
+        ? 0
         : loadedTaskReminders
-                .map((item) => item.sequence)
-                .reduce((a, b) => a > b ? a : b) +
-            1;
+            .map((item) => item.sequence)
+            .reduce((a, b) => a > b ? a : b);
+    var nextFollowUpReminderSequence =
+        safeNextFollowUpSequence > highestExistingReminderSequence
+            ? safeNextFollowUpSequence
+            : highestExistingReminderSequence + 1;
     for (final followUp in loadedFollowUps) {
       if (followUp.reminderDate == null) continue;
       final existing = loadedTaskReminders.where(
