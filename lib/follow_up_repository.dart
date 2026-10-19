@@ -22,6 +22,7 @@ class FollowUpRepository {
   Future<void> add(String taskId, FollowUp followUp) async {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
+      task.syncFollowUpReminder(followUp);
       task.followUps = [..._decodeFollowUps(task), followUp];
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
@@ -37,6 +38,7 @@ class FollowUpRepository {
         throw StateError('FollowUp not found: ${followUp.id}');
       }
 
+      task.syncFollowUpReminder(followUp);
       final updated = List<FollowUp>.of(existing)..[index] = followUp;
       task.followUps = updated;
       task.followUpEnabled = true;
@@ -70,6 +72,7 @@ class FollowUpRepository {
         waitingForResponse: current.waitingForResponse,
         personIds: List<String>.of(current.personIds),
       );
+      task.syncFollowUpReminder(updatedFollowUp);
       final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
       task.followUps = updated;
       task.followUpEnabled = true;
