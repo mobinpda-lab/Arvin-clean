@@ -22,7 +22,13 @@ echo "ANDROID_API=$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d 
 echo "ANDROID_BOOT_COMPLETED=$(adb -s "$device" shell getprop sys.boot_completed | tr -d '\r')"
 test "$(adb -s "$device" shell getprop sys.boot_completed | tr -d '\r')" = "1"
 
-flutter drive --driver=test_driver/integration_test.dart --target="$test_file" -d "$device"
+if [[ "$scenario" == "task-lifecycle" ]]; then
+  # Flutter drive normally stops the app on completion; keep it installed and running
+  # so the next steps can prove a real force-stop/restart against the same data.
+  flutter drive --driver=test_driver/integration_test.dart --target="$test_file" -d "$device" --keep-app-running
+else
+  flutter drive --driver=test_driver/integration_test.dart --target="$test_file" -d "$device"
+fi
 
 if [[ "$scenario" == "task-lifecycle" ]]; then
   echo "ARVIN_LIFECYCLE_RESTART_BEGIN"

@@ -43,9 +43,10 @@ void main() {
     expect(workflow, contains('timeout-minutes: 30'));
 
     // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
-    expect(workflow, isNot(contains('adb exec-out screencap -p')));
-    expect(workflow, isNot(contains('uiautomator dump')));
+    expect(deviceSmokeScript, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(deviceSmokeScript, contains('--keep-app-running'));
+    expect(deviceSmokeScript, isNot(contains('adb exec-out screencap -p')));
+    expect(deviceSmokeScript, isNot(contains('uiautomator dump')));
 
     final driver = File('test_driver/integration_test.dart').readAsStringSync();
     expect(driver, contains('integrationDriver('));
