@@ -103,7 +103,7 @@ jobs:
             core.setOutput('build_number', buildNumber);
             core.info(`MAIN_SHA=${sha}`);
             core.info(`RELEASE_TAG=${tag}`);
-            core.info(`ALREADY_RELEASED=${complete}`);
+            core.info('ALREADY_RELEASED=false');
 
       - name: Validate candidate and exact main
         if: steps.release_state.outputs.already_released != 'true'
