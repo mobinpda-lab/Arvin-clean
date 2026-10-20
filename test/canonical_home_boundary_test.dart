@@ -43,7 +43,7 @@ void main() {
       contains('final TaskEditApplyService taskEditApplyService = TaskEditApplyService();'),
     );
     expect(source, contains('Future<void> _edit(Task old)'));
-    expect(source, contains('taskEditApplyService.apply(old, edited)'));
+    expect(source, contains('taskEditApplyService.apply(candidate, edited)'));
     expect(source, contains('await _save();'));
     expect(source, isNot(contains('tasks.map(_canonicalSnapshotOf)')));
     expect(source, isNot(contains('tasks[tasks.indexOf(old)] = edited')));
