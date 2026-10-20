@@ -36,6 +36,8 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   DateTime? _nextOccurrence;
   DateTime? _lastOccurrence;
   List<MapEntry<DateTime, Map<String, dynamic>>> _history = const [];
+  DateTime? _checklistOccurrence;
+  List<String> _occurrenceChecklist = const [];
 
   @override
   void initState() {
@@ -121,6 +123,128 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
       _lastOccurrence = last;
       _history = history;
     });
+  }
+
+
+  List<DateTime> _checklistOccurrenceChoices(Task? task) {
+    if (task == null || task.recurrence == null) return const [];
+    final values = <String, DateTime>{};
+    for (final entry in _history) {
+      values[entry.key.toIso8601String()] = entry.key;
+    }
+    final rule = task.recurrence!;
+    var cursor = rule.startDate ?? task.reminderDate ?? widget.repository.now();
+    final now = widget.repository.now();
+    var guard = 0;
+    while (guard++ < 400 && values.length < 400) {
+      if (rule.endDate != null && !cursor.isBefore(rule.endDate!)) break;
+      values[cursor.toIso8601String()] = cursor;
+      if (cursor.isAfter(now.add(const Duration(days: 90)))) break;
+      cursor = rule.nextOccurrence(cursor);
+    }
+    return values.values.toList()..sort((a, b) => a.compareTo(b));
+  }
+
+  Future<void> _loadOccurrenceChecklist(DateTime occurrence) async {
+    final task = _selectedTask;
+    if (task == null) return;
+    setState(() => _saving = true);
+    try {
+      final checklist = await widget.repository.checklistForOccurrence(task.id, occurrence);
+      if (!mounted) return;
+      setState(() {
+        _checklistOccurrence = occurrence;
+        _occurrenceChecklist = List<String>.of(checklist);
+      });
+    } catch (_) {
+      _message('خواندن چک‌لیست این نوبت انجام نشد');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _saveOccurrenceChecklist() async {
+    final task = _selectedTask;
+    final occurrence = _checklistOccurrence;
+    if (task == null || occurrence == null || _saving) return;
+    setState(() => _saving = true);
+    try {
+      await widget.repository.setChecklistForOccurrence(
+        task.id,
+        occurrence,
+        _occurrenceChecklist,
+      );
+      await _reload(keepSelected: task.id);
+      await _loadOccurrenceChecklist(occurrence);
+      _message('چک‌لیست همین نوبت ذخیره شد');
+    } catch (_) {
+      _message('ذخیره چک‌لیست نوبت انجام نشد');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Widget _occurrenceChecklistCard(Task? task) {
+    final choices = _checklistOccurrenceChoices(task);
+    if (task == null || task.recurrence == null) return const SizedBox.shrink();
+    final selected = _checklistOccurrence;
+    return Card(
+      key: const ValueKey('occurrence-checklist-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('چک‌لیست مستقل هر نوبت', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            if (choices.isEmpty)
+              const Text('برای این کار نوبت تکرار قابل انتخابی پیدا نشد.')
+            else
+              DropdownButtonFormField<String>(
+                key: ValueKey('occurrence-checklist-picker-${task.id}'),
+                initialValue: selected != null && choices.any((d) => d.toIso8601String() == selected.toIso8601String())
+                    ? selected.toIso8601String()
+                    : null,
+                decoration: const InputDecoration(labelText: 'نوبت موردنظر'),
+                items: [
+                  for (final date in choices)
+                    DropdownMenuItem(
+                      value: date.toIso8601String(),
+                      child: Text(_date(date)),
+                    ),
+                ],
+                onChanged: _saving ? null : (key) {
+                  final date = choices.where((d) => d.toIso8601String() == key).firstOrNull;
+                  if (date != null) _loadOccurrenceChecklist(date);
+                },
+              ),
+            if (selected != null) ...[
+              const SizedBox(height: 8),
+              for (var i = 0; i < _occurrenceChecklist.length; i++)
+                CheckboxListTile(
+                  key: ValueKey('occurrence-checklist-item-${task.id}-${selected.toIso8601String()}-$i'),
+                  contentPadding: EdgeInsets.zero,
+                  value: _occurrenceChecklist[i].startsWith('[x]'),
+                  title: Text(_occurrenceChecklist[i].replaceFirst(RegExp(r'^\\[(x| )\\]\\s*'), '')),
+                  onChanged: _saving ? null : (checked) {
+                    setState(() {
+                      final label = _occurrenceChecklist[i].replaceFirst(RegExp(r'^\\[(x| )\\]\\s*'), '');
+                      _occurrenceChecklist = List<String>.of(_occurrenceChecklist)
+                        ..[i] = '${checked == true ? '[x]' : '[ ]'} $label';
+                    });
+                  },
+                ),
+              FilledButton.icon(
+                key: const ValueKey('occurrence-checklist-save'),
+                onPressed: _saving ? null : _saveOccurrenceChecklist,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('ذخیره چک‌لیست این نوبت'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Task? get _selectedTask => _selectedTaskState;
@@ -475,6 +599,8 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         ),
                       ],
                       const SizedBox(height: 16),
+                      _occurrenceChecklistCard(task),
+                      const SizedBox(height: 12),
                       _lifecycleCard(task),
                     ],
                   ),
