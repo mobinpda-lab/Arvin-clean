@@ -1,3 +1,13 @@
+## 2026-10-20 — Product concept / implementation status separation
+
+- **Problem:** A concept document can be mistaken for evidence that a feature exists or has passed acceptance.
+- **Risk:** Proposed behaviors could be implemented without owner approval; CI or documentation could be misreported as product acceptance.
+- **Mitigation proposal:** Link [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) as the candidate vocabulary and acceptance reference. Keep `Implemented`, `Partially implemented`, `Not verified`, `Not implemented`, `Proposed` and `Accepted` distinct.
+- **Status:** DOCUMENTATION PROPOSAL; review/merge pending. No product code, test result or release status is changed by this entry.
+- **Closure criteria:** reread all six documents from GitHub; confirm links; review conflicts/open decisions; approve and merge the reference; then map each capability to current code and SHA-specific test/device evidence. Release remains NO-GO until independent gates pass.
+
+---
+
 ## AUTHORITATIVE UPDATE — 2026-10-14 — Exact-head CI false-positive
 
 - **Problem:** The recovery dispatcher could treat a normal PR-triggered Build as exact-head evidence when run metadata named the PR head, even though the Build checkout uses the synthetic merge SHA for `pull_request`.
