@@ -298,3 +298,12 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - **Checklist evolution:** NOT VERIFIED until one actual daily Task with seven Occurrences is edited A/B/C → A/B/D and canonical before/after snapshots prove historical occurrences and checkmarks are preserved, new/current/future checklist behavior is correct, Repeat creates no duplicate, and relationships/history remain stable.
 - **Restart and backup/restore:** BLOCKED pending real Android process/PID evidence and a supported backup/restore round-trip on the same accepted Task. Generic emulator success is not a substitute.
 - **Release:** BLOCKED — RELEASE: NO-GO.
+
+
+## Wave 5.36 — User-experience acceptance checkpoint (2026-10-20)
+
+- CI workflow changes improve revision traceability but do not demonstrate user-visible acceptance.
+- Checklist evolution is still unverified: no same-Task evidence proves that changing A/B/C to A/B/D preserves the four historical occurrences and checkmarks, applies new options only to intended occurrences, and prevents duplicate occurrences on Repeat.
+- Restart and restore are still blocked without an authorized device session and before/after canonical storage snapshots. No PID or Task-identity preservation claim is made.
+- Persian RTL/date display, notification routing, PDF output and regression acceptance remain NOT VERIFIED for the current final revision until SHA-bound artifacts are reviewed.
+- **Release:** BLOCKED — RELEASE: NO-GO.

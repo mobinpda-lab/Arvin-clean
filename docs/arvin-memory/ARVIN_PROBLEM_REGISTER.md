@@ -717,3 +717,17 @@ Do not mark any row PASS because the concept is documented or a model class exis
 - **Execution blocker:** no workflow-dispatch action is available in the connected tool surface and no physical-device control channel was available. Emulator artifacts and standalone storage tests do not replace product E2E acceptance.
 - **Required closure:** run Build workflow_dispatch with `target_sha=16c567290ec8fd41c56c323613a41fbc92c39d5f`; assert checkout SHA; run Device Smoke against the fixed SHA; obtain same-Task Checklist before/after snapshots, repeat/duplicate check, real force-stop/relaunch PID evidence, supported backup/restore round-trip, and APK hash/certificate fingerprint verification against trusted reference.
 - **Status:** OPEN / BLOCKED. **Release: NO-GO.**
+
+
+## Wave 5.36 — Problem register checkpoint (2026-10-20)
+
+| Problem | Current status | Direct evidence / next closure action |
+|---|---|---|
+| Exact-SHA Build dispatch | BLOCKED / NOT RUN | Build workflow now requires `target_sha` and checks checkout in each job ([4b0f916](https://github.com/mobinpda-lab/Arvin-clean/commit/4b0f91620e0d865ea7e3cb029dc5ca57ac41b950)); run `gh workflow run build.yml --repo mobinpda-lab/Arvin-clean --ref wave-4-10/follow-up-reminder-contract -f target_sha=FINAL_HEAD_SHA` from authorized GitHub CLI environment, then record run/job IDs and logs. |
+| Exact-SHA Device Smoke | BLOCKED / NOT RUN | Device Smoke now requires target SHA and checks every scenario ([d4c90a4](https://github.com/mobinpda-lab/Arvin-clean/commit/d4c90a461c6b876f246f62d33817d93cebfdbe17)); dispatch against the same final SHA and collect all nine terminal results. |
+| Checklist evolution on same Task | BLOCKED — DEVICE EXECUTION REQUIRED | Need seven-occurrence snapshot, A/B/C → A/B/D mutation, history/checkmark preservation, current/future template behavior and duplicate-prevention proof. |
+| Process restart and backup/restore | BLOCKED — DEVICE EXECUTION REQUIRED | Need real PID/Activity lifecycle evidence and restore comparison for the same accepted Task. |
+| APK signing/certificate trust | NOT VERIFIED | Obtain APK from the exact-SHA Build, calculate extracted APK SHA-256, run `apksigner verify --verbose --print-certs`, compare to approved trusted fingerprint. |
+| Other product gates | NOT VERIFIED | Calendar Provider lifecycle, notification tap/cold-start, Persian PDF, Golden Flow and P0/P1 regression must be independently evidenced on a fixed candidate. |
+
+**Release:** BLOCKED — RELEASE: NO-GO.

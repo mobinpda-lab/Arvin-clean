@@ -381,3 +381,11 @@ Task/Reminder موجودیت آروین است؛ occurrence اجرای برنا�
 - **Checklist invariant:** template evolution must preserve past occurrence snapshots and user checkmarks while applying new template values only where contractually expected; Repeat must not duplicate occurrences. NOT VERIFIED without same-Task UI E2E and canonical-storage before/after evidence.
 - **Lifecycle invariant:** process restart and backup/restore must preserve Task identity, occurrence keys/dates, checklist state, history and relationships. BLOCKED pending real device execution.
 - **Release:** BLOCKED — RELEASE: NO-GO.
+
+
+## Wave 5.36 — Product acceptance boundary (2026-10-20)
+
+- Exact revision is part of acceptance: Build and Device Smoke now expose a required manual `target_sha` path and log the expected and actual checkout SHA, but this path has not yet been executed.
+- A passing workflow syntax/change review is not evidence that a user flow works. Checklist template evolution must preserve historical occurrence snapshots and checkmarks; Repeat must not duplicate; restart and backup/restore must preserve Task identity, occurrence keys/dates, checklist state, history and relationships.
+- Calendar Provider lifecycle, notification tap/cold-start, Persian PDF, Golden Flow and P0/P1 regressions remain separate gates. Each requires direct evidence bound to the candidate SHA.
+- **Release:** BLOCKED — RELEASE: NO-GO. No merge, tag or release.

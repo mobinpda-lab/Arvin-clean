@@ -598,3 +598,11 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - Build [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) passed 9/9 jobs against synthetic merge checkout `2494062c1a1219276a3d97c799d1996990506716`; exact-revision step skipped. This is not exact-head evidence for `16c567290ec8fd41c56c323613a41fbc92c39d5f`.
 - Device Smoke [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) had seven successful scenarios and two cancelled scenarios. Logs prove cancellation at the smoke step but not its initiator; cause remains NOT VERIFIED.
 - Decision: keep release gate closed. Real Task Checklist evolution, restart PID proof, same-Task backup/restore, extracted APK hash and trusted signing fingerprint remain BLOCKED/NOT VERIFIED. No merge, tag, or release.
+
+
+## Wave 5.36 — Decision log (2026-10-20)
+
+- **Decision:** repair both CI entry points before retrying exact-SHA acceptance. Build now requires the target SHA on manual dispatch and verifies actual checkout in both job families; Device Smoke now accepts the same required input and checks out/verifies it in every scenario.
+- **Evidence:** [Build workflow commit](https://github.com/mobinpda-lab/Arvin-clean/commit/4b0f91620e0d865ea7e3cb029dc5ca57ac41b950); [Device Smoke workflow commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d4c90a461c6b876f246f62d33817d93cebfdbe17). Both files were read back from GitHub.
+- **Execution boundary:** no dispatch was performed because the available connected GitHub tool surface has no workflow-dispatch action. The exact-target run query returned zero. Therefore no claim is made that the modified workflows have executed or passed.
+- **Release gate:** keep PR #2833 OPEN / DRAFT / UNMERGED; no merge, official tag, or release. Same-Task Checklist, restart, backup/restore, official certificate fingerprint, PDF, notifications and P0/P1 acceptance remain open until direct evidence is attached to a fixed SHA.

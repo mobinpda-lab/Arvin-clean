@@ -929,3 +929,18 @@ The artifact proves a real writable-provider lifecycle for the older PR integrat
 | Dispatch path | Workflows declare `workflow_dispatch`; connected tool surface has no dispatch action; no dispatch performed | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` | N/A | N/A | BLOCKED |
 
 **Release:** BLOCKED — RELEASE: NO-GO. Green build jobs or artifact existence do not equal product acceptance.
+
+
+## Wave 5.36 — Evidence map checkpoint (2026-10-20)
+
+| Claim | Direct source | Target / checkout | Run / Job | Acceptance | Limitation |
+|---|---|---|---|---|---|
+| PR identity | [PR #2833](https://github.com/mobinpda-lab/Arvin-clean/pull/2833) | Start head `9a438b6d5f165631a1381ca6082b0ef251149021`; base `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | N/A | Metadata verified | OPEN / DRAFT / UNMERGED |
+| Build workflow target pinning | [Commit 4b0f916](https://github.com/mobinpda-lab/Arvin-clean/commit/4b0f91620e0d865ea7e3cb029dc5ca57ac41b950) and GitHub read-back of `.github/workflows/build.yml` | Final pre-doc target `d4c90a461c6b876f246f62d33817d93cebfdbe17` | No exact-SHA run | Workflow edit verified | Execution not verified |
+| Device Smoke target pinning | [Commit d4c90a4](https://github.com/mobinpda-lab/Arvin-clean/commit/d4c90a461c6b876f246f62d33817d93cebfdbe17) and GitHub read-back of `.github/workflows/device-smoke.yml` | Final pre-doc target `d4c90a461c6b876f246f62d33817d93cebfdbe17` | No exact-SHA run | Workflow edit verified | Execution not verified |
+| Exact-SHA dispatch | Actions run query filtered by target SHA | `d4c90a461c6b876f246f62d33817d93cebfdbe17` | `total_count=0` | BLOCKED / NOT RUN | No dispatch operation exposed by connected tool surface |
+| Active/queued run conflict check | Branch Actions queries with `status=queued` and `status=in_progress` | Branch `wave-4-10/follow-up-reminder-contract` | Both returned zero | No active/queued runs observed | Query is point-in-time |
+| Product Checklist / restart / restore | No authorized physical-device session or same-Task storage transcript | N/A | N/A | BLOCKED — DEVICE EXECUTION REQUIRED | Generic emulator runs do not substitute |
+| APK certificate acceptance | No current-run APK from exact-SHA Build and no trusted fingerprint comparison | N/A | N/A | NOT VERIFIED | Workflow change is not signature proof |
+
+**Release:** BLOCKED — RELEASE: NO-GO. No merge, tag, or release.
