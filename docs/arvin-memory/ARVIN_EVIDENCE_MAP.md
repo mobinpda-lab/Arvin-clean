@@ -866,3 +866,26 @@ External design review:
 - [Persian Calendar](https://github.com/persian-calendar/persian-calendar) describes itself as an Android Persian Calendar and is GPL-3.0. Reuse/copying code into Arvin is not authorized by this checkpoint; keep as behavior/UX reference unless legal compatibility is explicitly approved.
 - [Joplin Repeating To-Dos](https://github.com/TheScriptingGuy/Joplin-Repeating-Todos-Plugin) documents repeat intervals, weekday/month-day rules, stop conditions, overdue handling and a startup safety sweep. Its completion behavior resets the same to-do and sub-tasks, so it must not be copied blindly into Arvin's independent-occurrence contract. The repository identifies GPL-3.0.
 - [TimeJot Help](https://timejot.app/help/) distinguishes Android device backup (with limitations such as omitted entry photos) from daily export/import intended to preserve data and photos. [TimeJot changelog](https://timejot.app/changelog/) notes ZIP export with database/photos and backup/restore improvements. This is a useful UX distinction, not proof of Arvin's restore correctness.
+
+
+## Wave 5.21 — evidence map update (2026-10-20)
+
+| Gate | Evidence | Status |
+|---|---|---|
+| Live PR / revision | PR #2833 OPEN/DRAFT; HEAD `3ce1d46b80d4842890b6759583dbf685deaeafde`; base SHA `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; parent `036dc407d54aea5fd7f7ed1fa54adf924651647f` | PASS (metadata only) |
+| Exact-SHA Build | Run [39445690981](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39445690981); 9/9 jobs success; exact target assertion succeeded in all jobs | PASS for Build/test only |
+| Analyze / six test shards | Run #39445690981; Analyze clean; all six shards succeeded | PASS on `3ce1d46b80d4842890b6759583dbf685deaeafde` |
+| Debug / Release APK build | Both APK jobs built and uploaded artifacts in Run #39445690981 | PASS for artifact creation; signing NOT VERIFIED |
+| Current-head Device Smoke | No run found for `3ce1d46b80d4842890b6759583dbf685deaeafde`; latest branch smoke #39416899883 cancelled on older SHA `6d78b1cba4d0ec829fe26325c9233cd30100d766` | BLOCKED |
+| Device Smoke dispatch | Connector has no workflow_dispatch action; no run started in this session | BLOCKED — owner CLI required |
+| Seven-occurrence UI/storage comparison | No actual Task ID, seven occurrence keys, snapshots or record counts | BLOCKED — DEVICE EXECUTION REQUIRED |
+| Same-task Restart | No Activity/PID before-after evidence | BLOCKED — DEVICE EXECUTION REQUIRED |
+| Same-task Backup/Restore | No official in-app archive and restored Task snapshot | BLOCKED — DEVICE EXECUTION REQUIRED |
+| Calendar Provider | Workflow available; no accepted current-head writable-provider lifecycle evidence | NOT VERIFIED |
+| Jalali/timezone, notification cold-start, PDF, Golden Flow/P0/P1 | No current-head empirical artifacts reviewed in this wave | NOT RUN / NOT VERIFIED |
+| Official APK signing | No `apksigner verify --verbose --print-certs`, trusted fingerprint comparison or APK-file SHA-256 bound to approved certificate | NOT VERIFIED |
+| PR #2817 / Issue #2102 / PR #1901 | #2817 OPEN/DRAFT; #2102 OPEN; #1901 OPEN and not mergeable | OPEN / BLOCKED |
+| Wave 5.20 | No issue search hit and no Wave 5.20 commit in recent branch history | NOT VERIFIED / no execution record found |
+| Five canonical docs | This atomic checkpoint commit; must re-read from GitHub after ref update | PENDING RE-READ |
+
+No gate is closed by workflow presence, stale PR runs, or APK file existence alone.

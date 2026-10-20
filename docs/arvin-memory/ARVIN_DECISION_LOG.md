@@ -562,3 +562,14 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 5. **External references are design-only:** Joplin's reset-on-completion model differs from Arvin's per-occurrence state contract; TimeJot illustrates the distinction between device backup and export/import; Persian Calendar is GPL-3.0 and no source code was copied.
 6. **Wave 5.11 history:** 938bb05cf7e6337ad244a3cca16e482a242aea22 is verified as an ancestor of current HEAD by compare metadata, but the full seven-commit chain was not independently enumerated. Do not mark the seven-commit requirement PASS.
 7. **No merge, tag or release.** Required next evidence is exact-SHA Build with all Analyze/test shards/APK jobs, full Device Smoke, seven-occurrence storage comparison, same-task Restart and Backup/Restore, writable Calendar Provider lifecycle, official signing verification, and final canonical-document re-read.
+
+
+## Wave 5.21 — decision log (2026-10-20)
+
+1. Re-read live PR #2833 before editing: HEAD `3ce1d46b80d4842890b6759583dbf685deaeafde`, base SHA `49910e585ee73afcf56a7f8d927b9c69e763c5c5`, parent `036dc407d54aea5fd7f7ed1fa54adf924651647f`; PR remains OPEN/DRAFT/UNMERGED.
+2. Reuse exact-source Build Run [39445690981](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39445690981); do not repeat Build on the same SHA. All 9 jobs verified exact target and succeeded.
+3. Do not attribute Device Smoke Run #39416899883 to current HEAD; it was cancelled and used older SHA `6d78b1cba4d0ec829fe26325c9233cd30100d766`. No current-head Device Smoke run was found, and no direct dispatch operation is exposed by the connected GitHub tool surface.
+4. No Wave 5.20 run/issue/commit record was found; status is “no execution record found”, not a claim that no human action occurred elsewhere.
+5. No code patch was made because there is no reproducible current-head Device Smoke failure log. Do not weaken tests or guess at a root cause.
+6. Do not claim seven-occurrence UI acceptance, same-task Restart, real Backup/Restore, writable Calendar Provider lifecycle, official signing, or release readiness without empirical evidence.
+7. No merge, tag, or release. **BLOCKED — RELEASE: NO-GO.**

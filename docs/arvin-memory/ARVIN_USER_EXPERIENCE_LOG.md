@@ -260,3 +260,16 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - No real writable Calendar Provider CREATE → NO-OP → UPDATE → calendar transfer → DELETE sequence was executed on this HEAD. Mock/provider harness success is not user-facing acceptance.
 - No Restart/PID test or real Backup/Restore of the same Task was executed because this environment has no attached Android/ADB device.
 - No new UX behavior is accepted in Wave 5.17. Do not change the product contract or mark the release ready based on these reference comparisons.
+
+
+## Wave 5.21 — user-facing acceptance status (2026-10-20)
+
+- Build evidence is strong but narrow: exact target `3ce1d46b80d4842890b6759583dbf685deaeafde` passed all 9 jobs in Run [39445690981](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39445690981). This does not mean the UI flow, persisted occurrence history, or restore path was exercised on a device.
+- No current-head Device Smoke was found. The latest returned PR-branch smoke run #39416899883 was cancelled on an older SHA. Do not present its partial lane results as current acceptance.
+- The required A/B/C → A/B/D Checklist scenario was not driven through the real UI. No seven occurrence keys, checkmark snapshots or duplicate counts were captured; product behavior remains unaccepted.
+- Restart and Backup/Restore were not run against the same real Task. No PID transition or post-restore snapshot exists.
+- Calendar Provider lifecycle is not accepted without a writable provider and observed CREATE, NO-OP, UPDATE, calendar transfer and DELETE while preserving unrelated events. A green workflow harness alone is insufficient.
+- Official signing is not verified. APK build/upload success is not proof of trusted signing; ZIP digest must not be represented as APK SHA-256.
+- Design reference review: [Persian Calendar](https://github.com/persian-calendar/persian-calendar) declares GPL-3.0-or-later, so use only as behavior/UX reference unless license compatibility is approved. [Joplin Repeating To-Dos](https://joplinapp.org/plugins/plugin/com.github.TheScriptingGuy.joplin-plugin-repeating-todos/) resets the same to-do on completion and clears subtasks, unlike Arvin's independent occurrence history; do not copy that state model. [TimeJot Help](https://timejot.app/help/) distinguishes OS device backup from daily export/import that includes entry photos; Arvin's own restore still requires empirical acceptance.
+- Wave 5.20: no corresponding issue or commit record found in queried GitHub surfaces. No external execution is inferred.
+- Release remains **BLOCKED — RELEASE: NO-GO**.

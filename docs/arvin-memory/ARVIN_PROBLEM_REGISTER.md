@@ -659,3 +659,24 @@ Run 39416899830 and Run 39416899883 used source commit `6d78b1cba4d0ec829fe26325
 | Wave 5.11 seven-commit ancestry | NOT VERIFIED | Enumerate all seven expected SHAs and verify each is in current HEAD ancestry, not merely present in search results. |
 
 No problem in this table is closed by static code inspection or workflow-file presence alone.
+
+
+## Wave 5.21 — problem register refresh (2026-10-20)
+
+| Problem | Status | Next required evidence |
+|---|---|---|
+| Current-head Device Smoke | BLOCKED | Owner checks auth and active runs, dispatches `device-smoke.yml` only if safe, waits for all 9 lanes, reads artifacts and proves checkout SHA from logs. |
+| Checklist seven-occurrence acceptance | BLOCKED — DEVICE EXECUTION REQUIRED | Real UI creation/edit; capture Task ID, seven actual occurrence keys, A/B/C→A/B/D, four past checklists/ticks, current/future unchecked items, history and record counts. |
+| Restart same Task | BLOCKED — DEVICE EXECUTION REQUIRED | Capture Activity/PID, force-stop, confirm process exit, relaunch, capture new PID and compare full canonical snapshot. |
+| Backup/Restore same Task | BLOCKED — DEVICE EXECUTION REQUIRED | Use official supported in-app backup/restore; compare identity mapping, occurrences, checklist state, history, links and duplicate counts. |
+| Calendar Provider | NOT VERIFIED | Writable provider evidence for CREATE → NO-OP → UPDATE → move target calendar → DELETE; verify Event/Calendar IDs and unrelated sentinel retention. |
+| Jalali/local-day/timezone | NOT RUN | Validate both-direction conversion, leap year, month edges, local midnight/timezone changes and occurrence key alignment. |
+| Notification tap/cold-start | NOT RUN | Demonstrate correct Task/event opens from cold process and no stale/wrong target. |
+| PDF Persian multi-page / Golden Flow / P0-P1 | NOT VERIFIED | Current-head integration artifacts, screenshots/logs and product-owner review. |
+| Official APK signature and provenance | NOT VERIFIED | Approved certificate fingerprint, `apksigner verify --verbose --print-certs`, SHA-256 of extracted APK (not ZIP), artifact/run/job linkage, temporary keystore cleanup. |
+| Security PR #2817 | OPEN/DRAFT | Complete security and telemetry gates with owner-approved signing policy. |
+| Release Issue #2102 | OPEN | Preserve NO-GO until all product and security gates pass. |
+| Regression PR #1901 | OPEN / not mergeable | Reconcile P0/P1 and collect current-device evidence. |
+| Wave 5.20 | NOT VERIFIED | No issue or commit execution record found in the queried GitHub surfaces. |
+
+Do not mark any row PASS based solely on static inspection or generic CI success.
