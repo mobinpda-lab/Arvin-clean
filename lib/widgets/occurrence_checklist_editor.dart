@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
+import '../services/persian_date_formatter.dart';
 import '../services/task_recurrence_repository.dart';
 
 /// Shared UI for the canonical checklist snapshot belonging to one recurrence
@@ -56,14 +57,8 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
     return result;
   }
 
-  String _date(DateTime value) {
-    final local = value.toLocal();
-    return '${local.year.toString().padLeft(4, '0')}/'
-        '${local.month.toString().padLeft(2, '0')}/'
-        '${local.day.toString().padLeft(2, '0')} '
-        '${local.hour.toString().padLeft(2, '0')}:'
-        '${local.minute.toString().padLeft(2, '0')}';
-  }
+  String _date(DateTime value) =>
+      const PersianDateFormatter().format(value, usePersianDate: true);
 
   Future<void> _selectOccurrence(String key) async {
     if (_busy) return;
