@@ -88,14 +88,17 @@ jobs:
             const [appVersion, buildNumber] = version.split('+');
             if (!appVersion || !buildNumber) core.setFailed(`Invalid semantic Flutter version: ${version}`);
             const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;
-            let complete = false;
+            // Never let tag/asset names bypass the release build, signing,
+            // product gates, or provenance checks. We currently have no trusted
+            // immutable artifact identity contract to independently verify reuse.
             try {
-              const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
-              const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
-              const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
-            } catch (_) {}
-            core.setOutput('already_released', complete ? 'true' : 'false');
+              await github.rest.repos.getReleaseByTag({owner, repo, tag});
+              core.setFailed(`RELEASE BLOCKED: existing release ${tag} requires independent provenance, APK SHA-256, and signing-certificate verification; asset filenames are not proof.`);
+              return;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            core.setOutput('already_released', 'false');
             core.setOutput('app_version', version);
             core.setOutput('build_number', buildNumber);
             core.info(`MAIN_SHA=${sha}`);
