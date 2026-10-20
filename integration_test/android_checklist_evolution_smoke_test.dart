@@ -250,8 +250,19 @@ void main() {
       await tester.enterText(checklistInput, 'D');
       await tester.tap(checklistAdd);
       await tester.pump();
-      expect(find.text('C'), findsNothing);
-      expect(find.text('D'), findsOneWidget);
+      final checklistSection =
+          find.byKey(const ValueKey('task-editor-checklist-section'));
+      expect(checklistSection, findsOneWidget);
+      expect(
+        find.descendant(of: checklistSection, matching: find.text('C')),
+        findsNothing,
+        reason: 'Removed option C must not remain in the editor Checklist.',
+      );
+      expect(
+        find.descendant(of: checklistSection, matching: find.text('D')),
+        findsOneWidget,
+        reason: 'New option D must appear in the editor Checklist.',
+      );
       await tester.ensureVisible(save);
       await tester.tap(save);
       await tester.pumpAndSettle();
