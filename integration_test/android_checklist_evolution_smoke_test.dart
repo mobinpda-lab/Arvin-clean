@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
@@ -12,12 +14,14 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-class _ChecklistRuntimeBackupService extends ArvinBackupService {
-  Map<String, dynamic>? document;
+class _ChecklistFileBackedBackupService extends ArvinBackupService {
+  _ChecklistFileBackedBackupService(this.file);
+
+  final File file;
   int writes = 0;
 
   @override
-  String createBackupFileName(DateTime dateTime) => 'checklist-wave-5-00.json';
+  String createBackupFileName(DateTime dateTime) => file.uri.pathSegments.last;
 
   @override
   Future<void> writeBackup({
@@ -28,15 +32,21 @@ class _ChecklistRuntimeBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writes += 1;
-    document = <String, dynamic>{
-      'type': ArvinBackupService.backupType,
-      'formatVersion': ArvinBackupService.backupFormatVersion,
-      ...Map<String, dynamic>.from(payload),
-    };
+    final bytes = await prepareBackupBytes(
+      payload,
+      passphrase: encryptionPassphrase,
+    );
+    await file.writeAsBytes(bytes, flush: true);
   }
 
   @override
-  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async => document;
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async {
+    if (!await file.exists()) return null;
+    return decodeBackupBytes(
+      await file.readAsBytes(),
+      passphrase: passphrase,
+    );
+  }
 }
 
 void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
@@ -286,7 +296,17 @@ void main() {
         ArvinBackupManager.directoryKey,
         'content://arvin-checklist-wave-5-00',
       );
-      final backupService = _ChecklistRuntimeBackupService();
+      final backupDirectory =
+          await Directory.systemTemp.createTemp('arvin-checklist-backup-');
+      addTearDown(() async {
+        if (await backupDirectory.exists()) {
+          await backupDirectory.delete(recursive: true);
+        }
+      });
+      final backupFile = File(
+        '${backupDirectory.path}/checklist-wave-5-00.json',
+      );
+      final backupService = _ChecklistFileBackedBackupService(backupFile);
       final backupManager = ArvinBackupManager(service: backupService);
       await tester.pumpWidget(
         MaterialApp(
@@ -309,8 +329,9 @@ void main() {
       await tester.tap(createBackupButton);
       await tester.pumpAndSettle();
       expect(backupService.writes, 1);
-      expect(backupService.document, isNotNull);
-      final rawBackupTasks = (backupService.document!['tasks'] as List)
+      final backupDocument = await backupService.readBackup();
+      expect(backupDocument, isNotNull);
+      final rawBackupTasks = (backupDocument!['tasks'] as List)
           .whereType<Map>()
           .map((raw) => Map<String, dynamic>.from(raw))
           .toList(growable: false);
