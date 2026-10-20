@@ -88,13 +88,14 @@ void main() {
 
     // Assert both the current lane count and the complete inventory so an
     // accidental duplicate cannot hide a missing product scenario.
-    expect(matrixScenarios, hasLength(8));
+    expect(matrixScenarios, hasLength(9));
     expect(
       scenarioNames,
       containsAll(<String>[
         'home',
         'quick-capture',
         'task-lifecycle',
+        'checklist-evolution',
         'sql-persistence',
         'sql-migration',
         'backup-restore',
@@ -108,6 +109,7 @@ void main() {
         'integration_test/android_home_smoke_test.dart',
         'integration_test/android_quick_capture_smoke_test.dart',
         'integration_test/android_task_lifecycle_smoke_test.dart',
+        'integration_test/android_checklist_evolution_smoke_test.dart',
         'integration_test/android_sql_persistence_smoke_test.dart',
         'integration_test/android_upgrade_migration_smoke_test.dart',
         'integration_test/android_backup_restore_sql_smoke_test.dart',

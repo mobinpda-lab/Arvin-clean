@@ -1,4 +1,7 @@
 import 'package:arvin/main.dart' as app;
+import 'package:arvin/backup_manager.dart';
+import 'package:arvin/backup_page.dart';
+import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_recurrence_repository.dart';
@@ -6,6 +9,42 @@ import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
+class _ChecklistRuntimeBackupService extends ArvinBackupService {
+  Map<String, dynamic>? document;
+  int writes = 0;
+
+  @override
+  String createBackupFileName(DateTime dateTime) => 'checklist-wave-5-00.json';
+
+  @override
+  Future<void> writeBackup({
+    required String directoryUri,
+    required Map<String, dynamic> payload,
+    required String fileName,
+    bool uploadToCloud = true,
+    String? encryptionPassphrase,
+  }) async {
+    writes += 1;
+    document = Map<String, dynamic>.from(payload);
+  }
+
+  @override
+  Future<Map<String, dynamic>?> readBackup({String? passphrase}) async => document;
+}
+
+void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
+  for (var index = 0; index < dates.length; index++) {
+    final key = dates[index].toIso8601String();
+    final snapshot = task.checklistOccurrences[key];
+    final lifecycle = task.occurrenceHistory[key]?['status'] ?? 'unset';
+    debugPrint(
+      'ARVIN_CHECKLIST_OCCURRENCE phase=$phase day=${index + 1} task_id=${task.id} key=$key snapshot=$snapshot lifecycle=$lifecycle task_completed=${task.completed} occurrence_count=${task.checklistOccurrences.length}',
+    );
+  }
+}
 
 const _prefix = 'ARVIN-CHECKLIST-WAVE-5-00-';
 
@@ -157,6 +196,8 @@ void main() {
           entry.key: Map<String, dynamic>.from(entry.value),
       };
       expect(before.checklistOccurrences, hasLength(7));
+      debugPrint('ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} checklist_enabled=${before.checklistEnabled}');
+      _logOccurrenceSnapshots('pre-edit', before, dates);
       debugPrint(
         'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} occurrence_keys=${before.checklistOccurrences.keys.toList()..sort()}',
       );
@@ -181,7 +222,18 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
       await tester.pumpAndSettle();
 
+      // A saved Task may retain its checklist rows while the editor's display
+      // toggle is off. Enable the canonical editor section before editing rows.
+      final checklistBlock = find.byKey(const ValueKey('task-editor-checklist-block'));
+      if (checklistBlock.evaluate().isEmpty) {
+        final editChecklistToggle = find.byKey(const ValueKey('task-editor-checklist-toggle'));
+        await tester.ensureVisible(editChecklistToggle);
+        await tester.tap(editChecklistToggle);
+        await tester.pumpAndSettle();
+      }
+      expect(checklistBlock, findsOneWidget);
       final deleteC = find.byKey(const ValueKey('task-editor-checklist-delete-2'));
+      expect(deleteC, findsOneWidget);
       await tester.ensureVisible(deleteC);
       await tester.tap(deleteC);
       await tester.pump();
@@ -209,12 +261,93 @@ void main() {
             const ['[ ] A', '[ ] B', '[ ] D']);
       }
       expect(after.occurrenceHistory, occurrenceHistory);
+      expect(after.completed, isFalse);
+      _logOccurrenceSnapshots('post-edit', after, dates);
       debugPrint(
         'ARVIN_CHECKLIST_POST_EDIT task_id=${after.id} occurrence_keys=${after.checklistOccurrences.keys.toList()..sort()} count=${matches.length}',
       );
       await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
       await binding.takeScreenshot('checklist-evolution-after-edit');
+
+      // Exercise the existing BackupPage UI against the same canonical Task.
+      // The injected service keeps CI independent of Android's external file
+      // picker; physical SAF/provider acceptance remains a separate gate.
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(
+        ArvinBackupManager.directoryKey,
+        'content://arvin-checklist-wave-5-00',
+      );
+      final backupService = _ChecklistRuntimeBackupService();
+      final backupManager = ArvinBackupManager(service: backupService);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BackupPage(
+            manager: backupManager,
+            loadTasks: () async => (await store.load())
+                .map((task) => task.toJson())
+                .toList(growable: false),
+            replaceTasks: (rawTasks) async {
+              await store.save(
+                rawTasks.map((raw) => Task.fromJson(raw)).toList(growable: false),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('create_backup_button')));
+      await tester.pumpAndSettle();
+      expect(backupService.writes, 1);
+      expect(backupService.document, isNotNull);
+      final rawBackupTasks = (backupService.document!['tasks'] as List)
+          .whereType<Map>()
+          .map((raw) => Map<String, dynamic>.from(raw))
+          .toList(growable: false);
+      final backedUp = Task.fromJson(
+        rawBackupTasks.singleWhere((raw) => raw['id'] == createdId),
+      );
+      expect(backedUp.id, createdId);
+      expect(backedUp.checklist, after.checklist);
+      expect(backedUp.checklistOccurrences, after.checklistOccurrences);
+      expect(backedUp.occurrenceHistory, occurrenceHistory);
+      _logOccurrenceSnapshots('pre-backup', backedUp, dates);
+
+      // Deliberately change only this test Task after backup so Restore must
+      // recover the exact seven-occurrence snapshot rather than re-read memory.
+      await store.mutate<void>((tasks) {
+        final task = tasks.singleWhere((item) => item.id == createdId);
+        task.title = '${_prefix} corrupted-after-backup';
+        task.checklist = const ['[ ] CORRUPTED'];
+        task.checklistOccurrences = <String, List<String>>{};
+        task.occurrenceHistory = <String, Map<String, dynamic>>{};
+      });
+      final restoreButton = find.byKey(const Key('restore_plain_backup_button'));
+      await tester.ensureVisible(restoreButton);
+      await tester.tap(restoreButton);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('تأیید بازیابی'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.pump(const Duration(seconds: 1));
+
+      final restored = (await TaskStore().load())
+          .singleWhere((task) => task.id == createdId);
+      expect(restored.id, createdId);
+      expect(restored.title, after.title);
+      expect(restored.checklist, const ['[ ] A', '[ ] B', '[ ] D']);
+      expect(restored.checklistOccurrences, after.checklistOccurrences);
+      expect(restored.occurrenceHistory, occurrenceHistory);
+      expect(restored.completed, isFalse);
+      expect(
+        (await store.load()).where((task) => task.title.startsWith(_prefix)),
+        hasLength(1),
+      );
+      expect(backupService.writes, greaterThanOrEqualTo(2),
+          reason: 'Restore must create its emergency pre-restore backup.');
+      _logOccurrenceSnapshots('post-restore', restored, dates);
+      debugPrint(
+        'ARVIN_CHECKLIST_BACKUP_RESTORE task_id=${restored.id} occurrence_keys=${restored.checklistOccurrences.keys.toList()..sort()} backup_writes=${backupService.writes}',
+      );
     },
   );
 }

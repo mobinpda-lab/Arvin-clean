@@ -534,13 +534,13 @@ class _HomePageState extends State<HomePage> {
       .map((task) => task.id)
       .toSet();
 
-  Future<void> _save() async {
+  Future<void> _save({List<Task>? snapshotOverride}) async {
     if (loadFailure != null) {
       throw StateError(
         'Canonical task storage is unreadable; refusing Home write.',
       );
     }
-    final snapshot = List<Task>.of(tasks);
+    final snapshot = snapshotOverride ?? List<Task>.of(tasks);
     await taskStore.save(snapshot);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
@@ -1442,10 +1442,20 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (edited == null) return;
-    setState(() => taskEditApplyService.apply(old, edited));
-    await _save();
+
+    // Build the edit on a detached copy and persist it before publishing it to
+    // Home state. A failed SQL transaction must not leave an in-memory half-edit.
+    final candidate = Task.fromJson(old.toJson());
+    taskEditApplyService.apply(candidate, edited);
+    final nextTasks = List<Task>.of(tasks);
+    final taskIndex = nextTasks.indexWhere((task) => task.id == old.id);
+    if (taskIndex < 0) throw StateError('Task not found while applying edit: ${old.id}');
+    nextTasks[taskIndex] = candidate;
+    await _save(snapshotOverride: nextTasks);
+    if (!mounted) return;
+    setState(() => tasks = nextTasks);
     await wave2ProductFastTrack.persistProjectSelection(
-      taskId: edited.id,
+      taskId: candidate.id,
       projectId: selectedProjectId,
     );
   }
@@ -1476,11 +1486,12 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     if (!mounted) return task;
+    final updated = tasks.where((item) => item.id == task.id).firstOrNull ?? task;
     // Ordinary auto-sync may be disabled even though this Task was explicitly
     // linked to the phone calendar earlier. Reconcile only existing links so
     // editing one Task cannot create events for unrelated Tasks.
     await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
-    return task;
+    return updated;
   }
 
   Future<Task?> _checklistChangedFromDetail(

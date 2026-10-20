@@ -330,4 +330,41 @@ void main() {
     expect(target.taskReminders.single.id, 'r1');
     expect(target.nextReminderSequence, 2);
   });
+
+  test('preserves unclassifiable occurrence keys while rebuilding valid current and future snapshots', () {
+    final effectiveAt = DateTime(2026, 10, 5, 12);
+    final malformedKey = 'legacy-occurrence-key';
+    final past = DateTime(2026, 10, 4, 6).toIso8601String();
+    final current = DateTime(2026, 10, 5, 6).toIso8601String();
+    final future = DateTime(2026, 10, 6, 6).toIso8601String();
+    const malformedSnapshot = <String>['[x] legacy'];
+    const pastSnapshot = <String>['[x] A', '[ ] B', '[x] C'];
+    final target = Task(
+      id: 'malformed-key-task',
+      title: 'Malformed key boundary',
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      checklist: const ['[ ] A', '[ ] B', '[ ] C'],
+      checklistOccurrences: <String, List<String>>{
+        malformedKey: malformedSnapshot,
+        past: pastSnapshot,
+        current: const ['[x] A', '[x] B', '[x] C'],
+        future: const ['[x] A', '[ ] B', '[x] C'],
+      },
+    );
+    final edited = Task(
+      id: 'editor-copy',
+      title: 'Malformed key boundary',
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      checklist: const ['[ ] A', '[ ] B', '[ ] D'],
+    );
+
+    TaskEditApplyService(now: () => effectiveAt).apply(target, edited);
+
+    expect(target.checklistOccurrences.keys.toSet(), {malformedKey, past, current, future});
+    expect(target.checklistOccurrences[malformedKey], malformedSnapshot);
+    expect(target.checklistOccurrences[past], pastSnapshot);
+    expect(target.checklistOccurrences[current], const ['[ ] A', '[ ] B', '[ ] D']);
+    expect(target.checklistOccurrences[future], const ['[ ] A', '[ ] B', '[ ] D']);
+  });
+
 }

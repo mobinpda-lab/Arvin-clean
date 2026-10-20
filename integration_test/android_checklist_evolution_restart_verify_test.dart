@@ -7,6 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
+  for (var index = 0; index < dates.length; index++) {
+    final key = dates[index].toIso8601String();
+    final snapshot = task.checklistOccurrences[key];
+    final lifecycle = task.occurrenceHistory[key]?['status'] ?? 'unset';
+    debugPrint(
+      'ARVIN_CHECKLIST_OCCURRENCE phase=$phase day=${index + 1} task_id=${task.id} key=$key snapshot=$snapshot lifecycle=$lifecycle task_completed=${task.completed} occurrence_count=${task.checklistOccurrences.length}',
+    );
+  }
+}
+
 const _prefix = 'ARVIN-CHECKLIST-WAVE-5-00-';
 
 void main() {
@@ -68,6 +79,7 @@ void main() {
       expect(task.occurrenceHistory[keys[4]]?['status'], 'completed');
       expect(task.occurrenceHistory[keys[5]]?['status'], 'cancelled');
       expect(keys.toSet(), hasLength(7));
+      expect(task.completed, isFalse);
       expect(task.checklistOccurrences.values.every((items) => items.toSet().length == items.length), isTrue);
 
       final recurrence = TaskRecurrenceRepository(store: store);
@@ -78,6 +90,7 @@ void main() {
           const ['[ ] A', '[ ] B', '[ ] D']);
       expect((await store.load()).where((item) => item.title.startsWith(_prefix)), hasLength(1));
 
+      _logOccurrenceSnapshots('post-restart', task, keys.map(DateTime.parse).toList(growable: false));
       debugPrint(
         'ARVIN_CHECKLIST_POST_RESTART task_id=${task.id} occurrence_keys=$keys count=${matches.length}',
       );
