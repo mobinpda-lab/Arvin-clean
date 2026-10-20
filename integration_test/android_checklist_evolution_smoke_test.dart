@@ -214,7 +214,7 @@ void main() {
       await waitForFinder(card);
       expect(card, findsOneWidget);
       final cardTapTarget = find.byKey(
-        ValueKey('task-card-open-${createdId}'),
+        ValueKey('task-card-open-$createdId'),
       );
       expect(cardTapTarget, findsOneWidget);
       await tester.ensureVisible(cardTapTarget);
@@ -222,6 +222,15 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
       await tester.pumpAndSettle();
+      // The detail callback awaits canonical editor preparation before showing
+      // the dialog. pumpAndSettle alone can return while that future is pending.
+      final editDialog = find.byKey(const ValueKey('arvin-task-editor-dialog'));
+      await waitForFinder(editDialog);
+      expect(
+        editDialog,
+        findsOneWidget,
+        reason: 'The real Task Detail edit action must open ArvinTaskEditorDialog.',
+      );
 
       // A saved Task may retain its checklist rows while the editor's display
       // toggle is off. Enable the canonical editor section before editing rows.
