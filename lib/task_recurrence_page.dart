@@ -225,10 +225,10 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                   key: ValueKey('occurrence-checklist-item-${task.id}-${selected.toIso8601String()}-$i'),
                   contentPadding: EdgeInsets.zero,
                   value: _occurrenceChecklist[i].startsWith('[x]'),
-                  title: Text(_occurrenceChecklist[i].replaceFirst(RegExp(r'^\\[(x| )\\]\\s*'), '')),
+                  title: Text(_occurrenceChecklist[i].replaceFirst(RegExp(r'^\[(x| )\]\s*'), '')),
                   onChanged: _saving ? null : (checked) {
                     setState(() {
-                      final label = _occurrenceChecklist[i].replaceFirst(RegExp(r'^\\[(x| )\\]\\s*'), '');
+                      final label = _occurrenceChecklist[i].replaceFirst(RegExp(r'^\[(x| )\]\s*'), '');
                       _occurrenceChecklist = List<String>.of(_occurrenceChecklist)
                         ..[i] = '${checked == true ? '[x]' : '[ ]'} $label';
                     });
