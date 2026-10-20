@@ -369,6 +369,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(card, 400, scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
+    final reopenedPicker = find.byKey(const ValueKey('occurrence-checklist-picker-occurrence-checklist-ui'));
+    await tester.ensureVisible(reopenedPicker);
+    await tester.tap(reopenedPicker);
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('۱۴۰۵').first);
+    await tester.pumpAndSettle();
     expect(find.text('کیف'), findsOneWidget);
     final reloaded = (await store.load()).single;
     expect(reloaded.checklistOccurrences[occurrence.toIso8601String()]?.first, '[x] کیف');
