@@ -203,3 +203,10 @@ User-facing contract status: Follow-up Reminder Repository/Projection/model/migr
 
 - Live `main` workflow `.github/workflows/release.yml` (blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`) still has `contents: write` and invokes `softprops/action-gh-release@v2` with caller-provided `inputs.version`. The fail-closed replacement exists only in draft PR #2817 head `5b5d83e75499cd3b890c06835d1c90220c2b65de`; it is not merged. This legacy mainline path is an independent release-governance blocker.
 - Do not run or promote the legacy release workflow. Keep PR #2817 draft/unmerged until its hardening and independent owner approval are reviewed. **RELEASE: NO-GO.**
+
+## ARVIN WAVE 5.11 — Checklist UX checkpoint (2026-10-20)
+- The repeating Task Checklist is now presented by the same `OccurrenceChecklistEditor` in Task Details and Repeat. The user explicitly selects the occurrence date before its checklist is loaded, avoiding a guessed date/key. Dates use the existing Persian/Jalali formatter.
+- Saving a tick goes through the canonical TaskRecurrenceRepository and reloads that occurrence's persisted checklist. The shared generic checklist template is not changed by the repeating Task detail interaction.
+- Implemented commits: `8f1efd1de21c0954fa14bd66ce5a487814dec891`, `2780e8902a4fddf444c2135f537b821e32d3e73a`, `7eb93299cb425597aab1ebb227e898c32793b327`, `ba206df93f57846179291be81efbffdc0f6b0023`, `202639c132a50ea3b0025b82b68562e395c55f61`; test commits `f8fabc8aba08aa54ce146851e17853326880c794`, `08f610f5442aa9c822e0645458d0ef438f7321ef`.
+- UX status: implementation recorded; runtime behavior, screen-reader/RTL overflow, selected-date reopen, independent sibling occurrence state and actual storage round-trip are NOT PROVEN until current-head tests/device acceptance run.
+- No product release or approval was made. **BLOCKED — RELEASE: NO-GO**.
