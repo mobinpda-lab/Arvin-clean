@@ -5,6 +5,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_recurrence_repository.dart';
 import 'widgets/persian_date_picker.dart';
+import 'widgets/occurrence_checklist_editor.dart';
 
 class TaskRecurrencePage extends StatefulWidget {
   TaskRecurrencePage({super.key, this.initialTaskId, TaskRecurrenceRepository? repository})
@@ -475,6 +476,8 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         ),
                       ],
                       const SizedBox(height: 16),
+                      OccurrenceChecklistEditor(task: task!, repository: widget.repository),
+                      const SizedBox(height: 12),
                       _lifecycleCard(task),
                     ],
                   ),
