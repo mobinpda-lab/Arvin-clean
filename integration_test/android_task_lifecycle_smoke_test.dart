@@ -67,12 +67,28 @@ void main() {
 
       // Quick Capture intentionally stays open after a successful submission;
       // close only that sheet before opening the newly created Task.
-      final closeQuickCapture = find.byKey(
-        const ValueKey('quick-capture-cancel'),
+      final captureDialog = find.byKey(
+        const ValueKey('quick-capture-dialog'),
       );
-      await tester.ensureVisible(closeQuickCapture);
-      await tester.tap(closeQuickCapture);
-      await tester.pumpAndSettle();
+      // Full-form save can return to the still-open Quick Capture sheet.
+      // Close visible capture routes until the real card tap target is exposed;
+      // do not let a TextField/overlay intercept the subsequent hit test.
+      for (var attempt = 0;
+          attempt < 10 && captureDialog.evaluate().isNotEmpty;
+          attempt++) {
+        final closeQuickCapture = find.byKey(
+          const ValueKey('quick-capture-cancel'),
+        );
+        if (closeQuickCapture.evaluate().isEmpty) break;
+        await tester.ensureVisible(closeQuickCapture);
+        await tester.tap(closeQuickCapture);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        captureDialog,
+        findsNothing,
+        reason: 'Quick Capture must be dismissed before opening the created Task.',
+      );
 
       var matching = await matchingTasks();
       for (var attempt = 0; attempt < 50 && matching.isEmpty; attempt++) {
