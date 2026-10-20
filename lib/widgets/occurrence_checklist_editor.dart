@@ -136,9 +136,9 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
         widget.task.id,
         occurrence,
       );
+      await widget.onTaskUpdated?.call(updated);
       if (!mounted) return;
       setState(() => _items = List<String>.of(persisted));
-      await widget.onTaskUpdated?.call(updated);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('چک‌لیست همین نوبت ذخیره شد')),
       );
@@ -195,7 +195,7 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
               const SizedBox(height: 8),
               for (var index = 0; index < _items.length; index++)
                 CheckboxListTile(
-                  key: ValueKey('occurrence-checklist-item-${task.id}-${selected}-$index'),
+                  key: ValueKey('occurrence-checklist-item-${task.id}-$selected-$index'),
                   contentPadding: EdgeInsets.zero,
                   value: _items[index].startsWith('[x]'),
                   title: Text(_items[index].replaceFirst(RegExp(r'^\[(x| )\]\s*'), '')),

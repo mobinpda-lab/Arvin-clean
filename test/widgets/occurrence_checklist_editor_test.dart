@@ -50,7 +50,7 @@ void main() {
         const ValueKey('occurrence-checklist-picker-occurrence-editor-test'),
       ));
       await tester.pumpAndSettle();
-      final label = '${const PersianDateFormatter().format(date, usePersianDate: true)}';
+      final label = const PersianDateFormatter().format(date, usePersianDate: true);
       await tester.tap(find.text(label).last);
       await tester.pumpAndSettle();
     }
