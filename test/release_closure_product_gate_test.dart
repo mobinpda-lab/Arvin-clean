@@ -122,15 +122,16 @@ printf 'Signer #1 certificate SHA-256 digest: %s\\n' "${FAKE_CERT_SHA256:-}"
     final chmod = Process.runSync('chmod', <String>['+x', signer.path]);
     expect(chmod.exitCode, 0);
     final helper = File('scripts/ci/verify-official-apk-signature.sh').absolute.path;
-    const trusted = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    final trusted = List<String>.filled(64, 'A').join();
+    final untrusted = List<String>.filled(64, 'B').join();
 
     ProcessResult runGate({
       String expected = trusted,
       String actual = trusted,
       bool signerFails = false,
     }) {
-      final log = File('${temp.path}/verify-${DateTime.now().microsecondsSinceEpoch}.log');
-      final evidence = File('${temp.path}/evidence-${DateTime.now().microsecondsSinceEpoch}.txt');
+      final log = File('${temp.path}/verify.log');
+      final evidence = File('${temp.path}/evidence.txt');
       return Process.runSync(
         'bash',
         <String>[helper, apk.path, expected, signer.path, log.path, evidence.path],
@@ -144,9 +145,10 @@ printf 'Signer #1 certificate SHA-256 digest: %s\\n' "${FAKE_CERT_SHA256:-}"
 
     final valid = runGate();
     expect(valid.exitCode, 0, reason: valid.stderr.toString());
-    expect(Directory(temp.path).listSync().whereType<File>().any((f) => f.path.endsWith('.txt')), isTrue);
+    expect(File('${temp.path}/evidence.txt').readAsStringSync(), contains('SIGNATURE_VERIFICATION=apksigner-verified'));
+    expect(File('${temp.path}/evidence.txt').readAsStringSync(), contains('SIGNING_CERT_SHA256=$trusted'));
     expect(runGate(expected: '').exitCode, isNot(0));
-    expect(runGate(actual: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB').exitCode, isNot(0));
+    expect(runGate(actual: untrusted).exitCode, isNot(0));
     expect(runGate(signerFails: true).exitCode, isNot(0));
   });
 
