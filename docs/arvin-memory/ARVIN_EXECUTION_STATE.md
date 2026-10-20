@@ -1471,3 +1471,31 @@ Status: **IN PROGRESS — BLOCKED — RELEASE: NO-GO**. This note records implem
 - Seven-occurrence A/B/C → A/B/D acceptance, lifecycle preservation, repeat idempotency, local-day/timezone boundaries, actual Android process restart, real backup/restore, exact-SHA, official APK signing, Calendar Provider, notification cold-start, Persian PDF, Golden Flow and P0/P1 regressions remain open.
 - Design reference only: Joplin Repeating To-Dos separates recurrence configuration from scheduling, but completion can reopen a to-do and reset subtasks; Arvin must not copy that behavior without explicit compatibility. TimeJot documents device backup limitations separately from daily export/import; this informs test design only, not Arvin acceptance. References: https://joplinapp.org/plugins/plugin/com.github.TheScriptingGuy.joplin-plugin-repeating-todos/ ; https://github.com/TheScriptingGuy/Joplin-Repeating-Todos-Plugin ; https://timejot.app/help/ ; https://timejot.app/changelog/ .
 - Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag, or release.
+
+
+## Wave 5.14 — Live execution checkpoint
+**Checkpoint timestamp:** 2026-10-20 13:42 UTC / ۱۴۰۵/۰۷/۲۸، حدود ساعت ۱۷:۱۲ ایران  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**PR:** #2833 — OPEN / DRAFT / UNMERGED  
+**Branch:** `wave-4-10/follow-up-reminder-contract`  
+**Base branch / SHA:** `fix/follow-up-record-authority-20261019` / `49910e585ee73afcf56a7f8d927b9c69e763c5c5`  
+**HEAD before this documentation-only commit:** `b15b0c09ec718459b3702e63b2c38701f0291293`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Verified changes
+- `c16d234ec132d627566869a174f60e00c413d28c`: canonical occurrence Checklist saves now propagate the updated Task to Detail and Home state; expanded the Android acceptance test to create a past-anchored daily recurrence and save seven occurrence checklists through the UI.
+- `c7a60da3268669dde159b85e6a53f2176e67959a`: fixed the three Analyze findings surfaced by the exact-SHA run.
+- `0b42e588426cc07cea5d4d3563081f3dfbb09160`: aligned the seven occurrence tick pattern with the existing restart-verifier contract.
+- `b15b0c09ec718459b3702e63b2c38701f0291293`: stores the accepted Task ID and full canonical-store snapshot outside TaskStore; the restart verifier compares Task identity, every Task JSON field, record count, checklist snapshots, history, and relationships. Fixed the creator/verifier fixture-prefix mismatch.
+- The seven Wave 5.11 commits were rechecked against this source HEAD: each is an ancestor (`behind_by=0`); no divergence was found.
+
+### CI checkpoint — do not promote stale evidence
+- Build Run [39431510949](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39431510949), exact target `c16d234...`: exact-checkout gate succeeded; six Test shards and Debug/Release APK jobs passed, but Analyze failed on three findings. Run conclusion: FAILURE. Its Release artifact is debug-key signed, not official.
+- Build Run [39431989516](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39431989516), exact target `c7a60da...`: Analyze and all six Test shards passed; Release APK job failed while downloading NDK with `Error on ZipFile unknown archive`; Debug APK was still IN PROGRESS at this checkpoint. This is an environment/toolchain failure, not evidence of a product-code failure.
+- Build Run [39432344723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432344723), target `0b42e588...`: queued; it is not the current source HEAD.
+- The recovery-dispatcher rerun is queued. No exact-SHA Build result for `b15b0c0...` was confirmed at this checkpoint.
+- Device Smoke Run [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) checked out synthetic Merge Candidate `6d78b1cba4d0ec829fe26325c9233cd30100d766`, which predates the Wave 5.11 source commits. Checklist Evolution was CANCELLED; Task Lifecycle was still running at this checkpoint. It is not current-HEAD acceptance evidence.
+- Calendar Provider Run [39416899861](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861) passed CREATE / NO-OP / UPDATE / DELETE / destination migration on that same stale Merge Candidate only. Artifact ID: `12262580173`.
+
+### Release/security state
+No Merge, Tag, official APK publication, or security-PR promotion. PR #2817 remains OPEN/DRAFT; PR #1901 remains OPEN; Issue #2102 remains OPEN. Exact current-head Build, current-head Device Smoke, real SAF Backup/Restore of the accepted Task, official signing/fingerprint verification, and `apksigner verify --verbose --print-certs` remain unverified.

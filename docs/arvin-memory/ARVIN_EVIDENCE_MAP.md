@@ -799,3 +799,26 @@ Historical artifact ZIP digests must not be represented as extracted APK checksu
 
 ### Wave 5.10 ancestry correction
 GitHub compare on 2026-10-20 shows the Wave 5.10 commits are **not ancestors of the live PR #2833 source head**: comparing `7c4b2c5b0d64aa0a9852f650e1ddb24cd6712361` to current source head `9adbb87b59fedfa0013ee9082c33f69f08c124c7` returns `diverged` (`ahead_by=176`, `behind_by=1)); comparing `708fa0840a11e5f71cc751414d8166cc612a8100` returns `diverged` (`ahead_by=176`, `behind_by=4`). Therefore those commits are not counted as current PR source evidence. Wave 5.11 reimplemented the shared occurrence editor and test directly on the live PR branch. Code/test candidate before the final documentation-only commits was `08f610f5442aa9c822e0645458d0ef438f7321ef`; later documentation commits advanced the branch again, so always read live PR metadata before dispatching validation.
+
+
+## Wave 5.14 evidence map — 2026-10-20
+| Gate / evidence | Run / SHA | Status at checkpoint | Scope and limitation |
+|---|---|---|---|
+| GitHub Read | Live PR/files/commits read | PASS | Read verified in this session. |
+| GitHub Push | Commits `c16d234`, `c7a60da`, `0b42e588`, `b15b0c0` | PASS | Actual branch writes succeeded. Admin was reported by repository permissions; no admin-only operation was exercised. |
+| Wave 5.11 ancestry | Seven commits compared to `b15b0c0...` | PASS | All seven are ancestors; `behind_by=0`. |
+| Exact Build — `c16d234...` | [Run 39431510949](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39431510949) | FAIL | Exact checkout confirmed; six Test shards + Debug/Release APK jobs PASS, Analyze FAIL. |
+| Exact Build — `c7a60da...` | [Run 39431989516](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39431989516) | IN PROGRESS / PARTIAL | Analyze PASS; six Test shards PASS; Release APK FAIL due NDK archive/download error; Debug APK IN PROGRESS at checkpoint. |
+| Exact Build — `0b42e588...` | [Run 39432344723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432344723) | NOT RUN (QUEUED) | Stale target; current source HEAD is newer. |
+| Exact Build — `b15b0c0...` | Recovery dispatcher rerun | BLOCKED / QUEUED | Dispatcher job was queued; no Run ID for this target was confirmed at checkpoint. |
+| Device Smoke | [Run 39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883), checkout `6d78b1...` | BLOCKED for current HEAD | Stale Merge Candidate; Checklist Evolution CANCELLED. Existing workflow script contains real force-stop/PID/relaunch and separate restart-verifier steps, but they have not run on current HEAD. |
+| Calendar Provider CRUD + destination migration | [Run 39416899861](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861), checkout `6d78b1...`, artifact `12262580173` | PASS for that checkout; NOT VERIFIED for current HEAD | Logs show CREATE count=1, NO-OP count=1, UPDATE count=1, destination migration calendar 1→2, DELETE target absent. |
+| Checklist/Repeat UI acceptance | New integration scenario on branch HEAD `b15b0c0...` | NOT RUN | Task is created in UI, seven occurrence snapshots are saved via UI, past ticks/history are checked, and full pre-restart snapshot is persisted for the existing restart-verifier. No current-head Device Smoke result yet. |
+| Real process restart | `scripts/ci/run-device-smoke.sh` + `android_checklist_evolution_restart_verify_test.dart` | BLOCKED | Existing path performs real force-stop, PID checks, launcher start, then a second integration invocation; must run on current HEAD. |
+| Backup/Restore same Task | Current integration test | NOT VERIFIED | It injects `_ChecklistFileBackedBackupService` and a temporary file. This is not official SAF/provider Backup/Restore acceptance. |
+| SQL Persistence/Migration | Prior Device Smoke run 39416899883 | NOT VERIFIED for current HEAD | Generic jobs passed on stale checkout only. |
+| Official signing / fingerprint / apksigner | Build workflow + artifact `12268044570` | BLOCKED | Release variant was built with Debug signing configuration; no official release environment or apksigner verification evidence. Artifact SHA-256 for this non-official APK: `c7d58816a6b822080e11c4e846c2d60ac2eae81c52573d839769fab128a623b1`. |
+| Notification cold-start, Persian multi-page PDF, Golden Flow, P0/P1 | No current-head evidence | NOT VERIFIED | PR #1901 remains OPEN; no current-head acceptance artifacts found. |
+
+### Artifact provenance
+Artifact `12268044570` (`arvin-release-apk`) belongs to Run `39431510949`, target `c16d234...`; it is not a current-head official release. `apksigner` is not installed in this execution environment and the workflow has no `apksigner verify --verbose --print-certs` step.

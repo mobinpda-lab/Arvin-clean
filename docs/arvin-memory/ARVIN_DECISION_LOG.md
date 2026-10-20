@@ -506,3 +506,27 @@ Decision: recurring Task checklist state must be accessed through the existing `
 
 ### Branch ancestry reconciliation — 2026-10-20
 The live PR #2833 head and the listed Wave 5.10 commits are on divergent histories; do not treat Wave 5.10 code commits as part of the PR branch merely because their SHAs exist. Compare evidence: base `7c4b2c5b0d64aa0a9852f650e1ddb24cd6712361` versus head `9adbb87b59fedfa0013ee9082c33f69f08c124c7` = `diverged`, ahead 176 / behind 1; base `708fa0840a11e5f71cc751414d8166cc612a8100` versus that head = `diverged`, ahead 176 / behind 4. Decision: integrate the required behavior in the current PR branch, not by assuming the other branch's commits are inherited. The Wave 5.11 shared editor is the current branch implementation; the code/test candidate before final documentation-only commits was `08f610f5442aa9c822e0645458d0ef438f7321ef`. Read live PR metadata again before dispatching; it remains unvalidated until Actions and device evidence run on the final head.
+
+
+## Wave 5.14 decisions — 2026-10-20
+### D-W514-01 — Occurrence Checklist state is canonical data
+Occurrence checklist writes must return the updated canonical Task to the mounted Detail page and Home state. A later generic Task edit must not serialize an older in-memory Task over the occurrence snapshots. The selected occurrence must reload after Task replacement so the visible checklist matches the canonical store. This is a focused change to the existing TaskStore / TaskRecurrenceRepository path; no parallel repository or storage engine was added.
+
+### D-W514-02 — Acceptance must use the real occurrence UI
+The Android scenario now chooses a reminder date four local calendar days in the past, creates the daily Task through the UI, selects all seven generated occurrence keys, saves different checklist ticks through the occurrence editor, then changes the shared template through the UI. The four past snapshots are expected to retain their exact ticks; today and future are expected to contain A/B/D unchecked. Lifecycle history is preserved and checked independently. This scenario remains NOT RUN until Device Smoke executes on the current HEAD.
+
+### D-W514-03 — Restart proof compares identity and complete store snapshot
+The existing device-smoke script already force-stops the Android package, checks that the prior PID disappears, relaunches the actual Launcher Activity, and runs a separate restart-verifier integration test. Wave 5.14 now persists the accepted Task ID and complete canonical-store JSON snapshot outside TaskStore, then compares it after restart. The verifier fixture prefix was corrected to match the creator. This is still NOT VERIFIED until the workflow runs on the current HEAD.
+
+### D-W514-04 — Backup/Restore remains a separate gate
+The Checklist Evolution integration test uses an injected file-backed backup service and temporary file. That proves a test harness path only; it does not prove official SAF/provider Backup/Restore of the same accepted Task. Do not promote this result to PASS. Keep release blocked until the supported in-app backup file is produced, restored through the real provider path, and compared against the same canonical Task snapshot.
+
+### D-W514-05 — External recurrence/backup patterns are references, not code to copy
+- Joplin Repeating Todos plugin: https://joplinapp.org/plugins/plugin/com.github.TheScriptingGuy.joplin-plugin-repeating-todos/
+- Plugin source and license: https://github.com/TheScriptingGuy/Joplin-Repeating-Todos-Plugin
+- TimeJot help: https://timejot.app/help/
+- TimeJot changelog: https://timejot.app/changelog/
+No external code was copied. Joplin's recurrence/subtask completion behavior is not imported wholesale because Arvin must preserve independent occurrence checklist snapshots and lifecycle history. TimeJot's distinction between device-level backup and user-driven export/import is used only as a design reminder; Arvin's own supported backup format and restore path remain authoritative.
+
+### D-W514-06 — Release remains NO-GO
+No Merge, Tag, official APK publication, or security-PR promotion. The Release APK artifact from Run 39431510949 is Debug-key signed, and no trusted official fingerprint or apksigner evidence exists. NDK archive failure in Run 39431989516 is treated as environment/toolchain evidence, not a reason to change the pinned NDK without further reproduction.

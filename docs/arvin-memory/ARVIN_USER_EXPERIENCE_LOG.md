@@ -210,3 +210,18 @@ User-facing contract status: Follow-up Reminder Repository/Projection/model/migr
 - Implemented commits: `8f1efd1de21c0954fa14bd66ce5a487814dec891`, `2780e8902a4fddf444c2135f537b821e32d3e73a`, `7eb93299cb425597aab1ebb227e898c32793b327`, `ba206df93f57846179291be81efbffdc0f6b0023`, `202639c132a50ea3b0025b82b68562e395c55f61`; test commits `f8fabc8aba08aa54ce146851e17853326880c794`, `08f610f5442aa9c822e0645458d0ef438f7321ef`.
 - UX status: implementation recorded; runtime behavior, screen-reader/RTL overflow, selected-date reopen, independent sibling occurrence state and actual storage round-trip are NOT PROVEN until current-head tests/device acceptance run.
 - No product release or approval was made. **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 5.14 user-experience acceptance checkpoint — 2026-10-20
+### Product behavior being verified
+- A Checklist tick belongs to one selected Repeat occurrence and must not mutate the shared Task template.
+- Saving an occurrence updates the canonical Task in the Detail and Home in-memory states. This prevents a later template edit from overwriting occurrence-specific snapshots with stale Task state.
+- After changing the shared template from A/B/C to A/B/D, the mounted occurrence editor reloads the selected occurrence from canonical storage.
+- The Android acceptance scenario creates the Task through UI, anchors it four local days in the past, saves seven snapshots through the UI, gives four past occurrences distinct tick patterns, and checks that those four snapshots remain unchanged while today/future become unchecked A/B/D.
+- Lifecycle history is tested separately from checklist state; the same Task ID, full Task JSON, relationships, record count and occurrence history are saved before process restart and compared by the second integration test after force-stop and relaunch.
+
+### Evidence state
+The new scenario and restart-snapshot comparison are committed, but they are NOT RUN on the current HEAD. Existing Device Smoke evidence belongs to a stale Merge Candidate and cannot be used as current product acceptance. The official backup/restore test is still NOT VERIFIED because the current harness injects a file-backed service rather than using the real SAF/provider path.
+
+### User-facing outcome
+Do not mark Checklist/Repeat as accepted until the current-head Device Smoke run passes, all seven occurrence rows show the expected before/after data, no duplicate records appear, and the real restart verifier proves the same Task ID and full store snapshot survived. Do not describe the temporary-file backup harness as official backup/restore.

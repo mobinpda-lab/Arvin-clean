@@ -598,3 +598,22 @@ Open blockers: (1) Exact-SHA dispatch needs authorized Actions write/dispatch ac
 6. **P1 — Release controls: BLOCKED.** PR #2817, Issue #2102 and PR #1901 remain open until freshly audited; Exact-SHA, official certificate/fingerprint, apksigner verification, extracted APK SHA-256 and artifact/revision binding are not proven. Calendar Provider, notification cold-start, Persian PDF, Golden Flow and P0/P1 regression closure are also open.
 7. **P1 — external design references only.** Joplin's scheduling/reset behavior and TimeJot's export/restore approach inform design, not acceptance evidence. No third-party code was copied.
 No item above is closed by commits alone. **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 5.14 open problem register — 2026-10-20
+| ID | Problem / gate | Status | Evidence / next action |
+|---|---|---|---|
+| W514-P1 | Exact Build on current source HEAD `b15b0c0...` | BLOCKED / QUEUED | Rerun of existing recovery dispatcher is queued; confirm it dispatches `build.yml` with `target_sha` equal to the live PR head and verify checkout in every required Job. |
+| W514-P2 | Analyze on earlier exact SHA `c16d234...` | FAIL (resolved in newer source) | Run 39431510949 found three analyzer infos; fixes are in `c7a60da...`. Run 39431989516 reports Analyze PASS. Confirm on the current head. |
+| W514-P3 | Release APK job on `c7a60da...` | FAIL — environment/toolchain | Run 39431989516 failed downloading NDK with `Error on ZipFile unknown archive`. Retry the current-head Release job once; do not alter pinned toolchain absent repeatable evidence. |
+| W514-P4 | Seven-occurrence UI acceptance | NOT RUN | Dispatch Arvin Device Smoke on `wave-4-10/follow-up-reminder-contract`; inspect artifact/logs for the seven real keys, before/after snapshots, tick preservation, no duplicates, Task ID and history. |
+| W514-P5 | Real Android process restart of the same Task | BLOCKED | Existing script uses force-stop, PID absence, Launcher Activity, new PID and a separate verifier. Run it on current HEAD; compare saved full store snapshot and Task ID. |
+| W514-P6 | Official Backup/Restore of the same accepted Task | NOT VERIFIED | Current test injects a file-backed fake service. Use the official in-app export/restore path and a real SAF/provider file; compare full canonical store snapshot and record counts. |
+| W514-P7 | Calendar Provider current-head acceptance | NOT VERIFIED | Prior CREATE/NO-OP/UPDATE/DELETE/destination migration pass is from stale Merge Candidate `6d78b1...`. Run Calendar Provider Acceptance on current branch SHA. |
+| W514-P8 | SQL Persistence and Migration current-head acceptance | NOT VERIFIED | Existing smoke jobs passed only on stale checkout; rerun current-head Device Smoke. |
+| W514-P9 | Official signing / fingerprint / APK verification | BLOCKED | No official signing env was used. APK `12268044570` SHA-256 is `c7d58816a6b822080e11c4e846c2d60ac2eae81c52573d839769fab128a623b1` but it is Debug-key signed. Verify official APK with `apksigner verify --verbose --print-certs` and trusted fingerprint only after authorized signing. |
+| W514-P10 | Notification tap/cold-start, Persian multi-page PDF, Golden Flow, P0/P1 regression suite | NOT VERIFIED | No current-head artifacts. PR #1901 remains OPEN; collect exact-SHA logs and device evidence. |
+| W514-P11 | Security/Release closure | BLOCKED | PR #2817 OPEN/DRAFT, Issue #2102 OPEN, PR #1901 OPEN. No merge/tag/release until every required gate passes and owner approval is recorded. |
+
+### Current execution constraint
+GitHub read and push were verified. The repository API reports read/push/admin permission; an actual push succeeded. The connector does not expose a direct manual workflow-dispatch operation for Device Smoke or Calendar Provider. The existing PR CI Recovery Dispatcher can dispatch exact-SHA Build only; manual owner action is required to run the other two workflows on the current branch.
