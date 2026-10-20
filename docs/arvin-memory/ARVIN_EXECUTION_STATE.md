@@ -1566,3 +1566,12 @@ The GitHub Actions API identifies Runs 39416899830 and 39416899883 as `pull_requ
 - Open decisions include checklist item identity for rename/reorder/delete, canonical occurrence key/timezone semantics, missed-occurrence policy, precedence of Task.followUpDate vs FollowUp.nextFollowUp, notification tap/Snooze behavior, and restore conflict policy.
 - Documentation-only change: no production code, schema, recurrence, checklist, notification, calendar, or signing configuration changed. Product acceptance remains NOT VERIFIED where current-head empirical evidence is missing.
 - Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag or release.
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+- **Live PR state (GitHub API, 2026-10-20):** PR #2833 OPEN / DRAFT / UNMERGED. Head `16c567290ec8fd41c56c323613a41fbc92c39d5f`; base `fix/follow-up-record-authority-20261019` at `49910e585ee73afcf56a7f8d927b9c69e763c5c5`.
+- **Exact-SHA Build:** BLOCKED / NOT RUN. Runs filtered by target SHA returned `total_count=0`. PR Build [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) passed 9/9 jobs, but event SHA was `6d78b1cba4d0ec829fe26325c9233cd30100d766`, actual checkout was synthetic merge `2494062c1a1219276a3d97c799d1996990506716`, and exact-revision step was SKIPPED.
+- **Device Smoke:** [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) attempt 2 concluded CANCELLED. Seven scenarios succeeded; `task-lifecycle` and `checklist-evolution` were cancelled. Logs show `The operation was canceled` during the smoke step but do not establish the initiating cause. Actual checkout was synthetic merge SHA `2494062c1a1219276a3d97c799d1996990506716`, not target SHA.
+- **Execution capability:** connected GitHub APIs permit read/write, but no workflow-dispatch action is exposed in the available tool surface; no dispatch was sent. No physical Android device or authorized device-control channel was available. Same-Task Checklist, restart PID, and real backup/restore acceptance are BLOCKED — DEVICE EXECUTION REQUIRED.
+- **Artifacts:** Build ZIP artifacts [12261968911](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12261968911) and [12262350247](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12262350247) have GitHub-reported archive digests, not extracted APK hashes. APK signature certificate/fingerprint acceptance remains NOT VERIFIED.
+- **Release:** BLOCKED — RELEASE: NO-GO. No merge, tag, or release.

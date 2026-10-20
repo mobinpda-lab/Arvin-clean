@@ -372,3 +372,12 @@ Task/Reminder موجودیت آروین است؛ occurrence اجرای برنا�
 
 **وضعیت انتشار:** **BLOCKED — RELEASE: NO-GO**  
 **هیچ merge، Tag رسمی یا انتشار APK با این سند مجاز نمی‌شود.**
+
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+- **Live engineering evidence is not product acceptance:** PR #2833 head `16c567290ec8fd41c56c323613a41fbc92c39d5f`, base `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; OPEN / DRAFT / UNMERGED.
+- Build [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) passed 9/9 jobs but tested synthetic merge checkout `2494062c1a1219276a3d97c799d1996990506716`, not exact PR head. Device Smoke [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) cancelled two of nine scenarios. Exact-head behavior remains NOT VERIFIED.
+- **Checklist invariant:** template evolution must preserve past occurrence snapshots and user checkmarks while applying new template values only where contractually expected; Repeat must not duplicate occurrences. NOT VERIFIED without same-Task UI E2E and canonical-storage before/after evidence.
+- **Lifecycle invariant:** process restart and backup/restore must preserve Task identity, occurrence keys/dates, checklist state, history and relationships. BLOCKED pending real device execution.
+- **Release:** BLOCKED — RELEASE: NO-GO.

@@ -914,3 +914,18 @@ The artifact proves a real writable-provider lifecycle for the older PR integrat
 - Historical Calendar Provider artifacts remain bound to their recorded older checkout/head SHA and must not be transferred to the current candidate SHA.
 - Documentation/read-back gate must be recorded separately from product acceptance; no product gate is closed by this reference alone.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+| Gate / Claim | Direct source and observed value | Class | Target SHA | Actual checkout SHA | Run / Job | Acceptance |
+|---|---|---|---|---|---|---|
+| PR identity | [PR #2833 API](https://api.github.com/repos/mobinpda-lab/Arvin-clean/pulls/2833): OPEN, draft=true, merged=false; head `16c567290ec8fd41c56c323613a41fbc92c39d5f`; base `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` | N/A | N/A | PASS for metadata only |
+| Exact-head Build | [Run query](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/runs?head_sha=16c567290ec8fd41c56c323613a41fbc92c39d5f&per_page=100&page=1): `total_count=0` | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` | None | No run | BLOCKED / NOT RUN |
+| PR Build | [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830): 9/9 jobs success; analyze, six test shards, Debug and Release-variant build passed; exact-SHA step skipped | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` desired | `2494062c1a1219276a3d97c799d1996990506716` | Analyze job 118608011073; Release job 118608011206 | PASS for synthetic merge only; NOT exact-head |
+| Device Smoke | [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883): home, quick-capture, sql-persistence, sql-migration, backup-restore, people, calendar SUCCESS; task-lifecycle and checklist-evolution CANCELLED | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` desired | `2494062c1a1219276a3d97c799d1996990506716` | cancelled jobs 118653108689, 118653109535 | FAIL for complete smoke; exact-head NOT VERIFIED |
+| Cancellation cause | Job logs contain `##[error]The operation was canceled.`; no direct event/log identifies initiator | D | Same as run | Synthetic merge SHA | Jobs above | Cause NOT VERIFIED |
+| Build artifacts | [12261968911](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12261968911) ZIP digest `sha256:27bb4ba7d775caab2b54d766ddc13fc0534995c8365b4149b9610106d57b1635`; [12262350247](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12262350247) ZIP digest `sha256:e4e74b0a3ac0a7be60b92fcb65e9fea6a157172a84efc7e75e6ecb828cfbc851` | D | Synthetic merge run | `2494062c1a1219276a3d97c799d1996990506716` | Run 39416899830 | ZIP digests reported; extracted APK SHA/signing fingerprint NOT VERIFIED |
+| Same-Task Checklist, restart and restore | No device-session transcript, canonical before/after Task snapshots, PID evidence, or same-Task restore evidence available | U | `16c567290ec8fd41c56c323613a41fbc92c39d5f` | N/A | N/A | BLOCKED — DEVICE EXECUTION REQUIRED |
+| Dispatch path | Workflows declare `workflow_dispatch`; connected tool surface has no dispatch action; no dispatch performed | D | `16c567290ec8fd41c56c323613a41fbc92c39d5f` | N/A | N/A | BLOCKED |
+
+**Release:** BLOCKED — RELEASE: NO-GO. Green build jobs or artifact existence do not equal product acceptance.

@@ -706,3 +706,14 @@ Canonical reference: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEP
 | Search/filters/widgets/attachments/accessibility full coverage | NOT VERIFIED | Feature-by-feature source audit and acceptance evidence; do not infer presence from README or model fields |
 
 Do not mark any row PASS because the concept is documented or a model class exists. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+### P0 — Exact-head execution and product acceptance remain open
+
+- **Observed:** live PR #2833 head `16c567290ec8fd41c56c323613a41fbc92c39d5f`, base `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Actions run-list filtered by exact target SHA returned zero runs.
+- **Build evidence boundary:** PR Build [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) passed 9/9 jobs but checked out synthetic merge SHA `2494062c1a1219276a3d97c799d1996990506716`; Verify exact requested revision was skipped. Exact-head acceptance is BLOCKED.
+- **Device Smoke:** [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) is CANCELLED; task-lifecycle and checklist-evolution cancelled. Logs say `The operation was canceled`; initiator is unproven. The other seven scenarios ran on the synthetic merge checkout.
+- **Execution blocker:** no workflow-dispatch action is available in the connected tool surface and no physical-device control channel was available. Emulator artifacts and standalone storage tests do not replace product E2E acceptance.
+- **Required closure:** run Build workflow_dispatch with `target_sha=16c567290ec8fd41c56c323613a41fbc92c39d5f`; assert checkout SHA; run Device Smoke against the fixed SHA; obtain same-Task Checklist before/after snapshots, repeat/duplicate check, real force-stop/relaunch PID evidence, supported backup/restore round-trip, and APK hash/certificate fingerprint verification against trusted reference.
+- **Status:** OPEN / BLOCKED. **Release: NO-GO.**

@@ -590,3 +590,11 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - **Open decisions intentionally not guessed:** stable checklist item IDs and edit semantics; occurrence-key timezone canonicalization; missed-occurrence policy; follow-up date precedence; notification standalone/Snooze/tap lifecycle; restore replace/merge and ID conflict policy; reopen transitions; calendar partial-failure policy; and whether independent subtasks/multi-step tasks are needed.
 - **Status distinction:** document establishment is not implementation acceptance and does not satisfy release gates. Final commit/read-back status must be taken from the final GitHub state.
 - Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag or release.
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+- Live PR #2833: head `16c567290ec8fd41c56c323613a41fbc92c39d5f`, base `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; OPEN / DRAFT / UNMERGED.
+- Exact-target run query returned zero runs. The available GitHub tool surface has no workflow-dispatch action; no new Build or Device Smoke dispatch was executed. Missing execution must not be called PASS.
+- Build [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) passed 9/9 jobs against synthetic merge checkout `2494062c1a1219276a3d97c799d1996990506716`; exact-revision step skipped. This is not exact-head evidence for `16c567290ec8fd41c56c323613a41fbc92c39d5f`.
+- Device Smoke [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) had seven successful scenarios and two cancelled scenarios. Logs prove cancellation at the smoke step but not its initiator; cause remains NOT VERIFIED.
+- Decision: keep release gate closed. Real Task Checklist evolution, restart PID proof, same-Task backup/restore, extracted APK hash and trusted signing fingerprint remain BLOCKED/NOT VERIFIED. No merge, tag, or release.

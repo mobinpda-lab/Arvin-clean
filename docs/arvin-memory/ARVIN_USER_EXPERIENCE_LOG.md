@@ -291,3 +291,10 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Reference review notes: Joplin recurrence behavior is not to be copied because it reopens the same todo and resets subtasks; TimeJot documents a distinction between device backup and daily export/import; Persian Calendar is a behavioral reference only and no code/assets were copied. See the canonical document for access date and license caveats.
 - No product UI/runtime change was made in this documentation task. RTL/device acceptance, notification routing, seven-occurrence checklist behavior, restore, PDF visual quality and Golden Flow remain NOT VERIFIED unless separate SHA-bound artifacts prove them.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+## Wave 5.35 — Live evidence checkpoint (2026-10-20)
+
+- No new physical-device evidence was collected in this execution. The two cancelled emulator smoke scenarios do not establish whether Task lifecycle or Checklist evolution passes or fails on a physical device.
+- **Checklist evolution:** NOT VERIFIED until one actual daily Task with seven Occurrences is edited A/B/C → A/B/D and canonical before/after snapshots prove historical occurrences and checkmarks are preserved, new/current/future checklist behavior is correct, Repeat creates no duplicate, and relationships/history remain stable.
+- **Restart and backup/restore:** BLOCKED pending real Android process/PID evidence and a supported backup/restore round-trip on the same accepted Task. Generic emulator success is not a substitute.
+- **Release:** BLOCKED — RELEASE: NO-GO.
