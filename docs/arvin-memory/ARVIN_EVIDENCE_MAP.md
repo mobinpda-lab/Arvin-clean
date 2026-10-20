@@ -904,3 +904,13 @@ After commit [42bdfd0](https://github.com/mobinpda-lab/Arvin-clean/commit/42bdfd
 | Calendar Provider on final Wave 5.21 HEAD | Historical artifact provenance is checkout `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`; not current HEAD | NOT VERIFIED |
 
 The artifact proves a real writable-provider lifecycle for the older PR integration revision, not the current documentation head. Re-run on the final SHA before closing the current-head gate.
+
+
+## Wave 5.22 — Canonical product-contract evidence map (2026-10-20)
+
+- Canonical concept/behavior reference: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md). It contains the product concept matrix, acceptance scenarios, external reference notes and open decisions.
+- Code inspection anchors: `lib/models/task.dart`, `lib/models/recurrence.dart`, `lib/services/task_store.dart`, `lib/services/task_recurrence_repository.dart`, `lib/services/task_edit_apply_service.dart`, `lib/widgets/occurrence_checklist_editor.dart`, `lib/services/persian_date_formatter.dart`, and `lib/services/backup_service.dart`.
+- Evidence boundary: these reads establish current code/model structure only. They do not prove current-head UI acceptance, notification delivery/tap routing, seven real occurrences, restart persistence, complete restore, all calendar-provider scenarios, PDF visual quality, Golden Flow, or official signing.
+- Historical Calendar Provider artifacts remain bound to their recorded older checkout/head SHA and must not be transferred to the current candidate SHA.
+- Documentation/read-back gate must be recorded separately from product acceptance; no product gate is closed by this reference alone.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
