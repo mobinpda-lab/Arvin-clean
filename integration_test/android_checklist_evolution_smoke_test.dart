@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:arvin/main.dart' as app;
@@ -70,6 +71,10 @@ void main() {
     'creates a real Task, edits its recurring checklist through UI and persists seven occurrences',
     (tester) async {
       final store = TaskStore();
+      final acceptancePreferences = await SharedPreferences.getInstance();
+      await acceptancePreferences.remove('arvin-checklist-wave-5-14-task-id');
+      await acceptancePreferences.remove('arvin-checklist-wave-5-14-store-snapshot');
+      await acceptancePreferences.remove('arvin-checklist-wave-5-14-store-count');
       // The emulator is disposable CI state. Remove only this test's own
       // namespaced fixtures so retries cannot create ambiguous evidence.
       await store.mutate<void>((tasks) {
@@ -533,6 +538,20 @@ void main() {
       _logOccurrenceStates('post-restore', restored, dates);
       debugPrint(
         'ARVIN_CHECKLIST_BACKUP_RESTORE task_id=${restored.id} schedule_count=${dates.length} stored_snapshot_count=${restored.checklistOccurrences.length} history_count=${restored.occurrenceHistory.length} backup_writes=${backupService.writes}',
+      );
+
+      // Preserve the accepted identity and the full canonical-store snapshot
+      // outside TaskStore so the next integration invocation can compare the
+      // same records after a real force-stop and launcher restart.
+      final acceptedTasks = await store.load();
+      await preferences.setString('arvin-checklist-wave-5-14-task-id', restored.id);
+      await preferences.setString(
+        'arvin-checklist-wave-5-14-store-snapshot',
+        jsonEncode(acceptedTasks.map((task) => task.toJson()).toList(growable: false)),
+      );
+      await preferences.setInt('arvin-checklist-wave-5-14-store-count', acceptedTasks.length);
+      debugPrint(
+        'ARVIN_CHECKLIST_PRE_RESTART task_id=${restored.id} store_count=${acceptedTasks.length} snapshot_saved=true',
       );
     },
   );

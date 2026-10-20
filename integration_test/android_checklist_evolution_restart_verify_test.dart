@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
@@ -6,6 +8,7 @@ import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
   for (var index = 0; index < dates.length; index++) {
@@ -18,7 +21,7 @@ void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
   }
 }
 
-const _prefix = 'ARVIN-CHECKLIST-WAVE-5-00-';
+const _prefix = 'ARVIN-CHECKLIST-WAVE-5-01-';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +30,13 @@ void main() {
     'verifies checklist snapshots after a real Android process restart',
     (tester) async {
       final store = TaskStore();
+      final acceptancePreferences = await SharedPreferences.getInstance();
+      final expectedTaskId =
+          acceptancePreferences.getString('arvin-checklist-wave-5-14-task-id');
+      final expectedSnapshotJson =
+          acceptancePreferences.getString('arvin-checklist-wave-5-14-store-snapshot');
+      final expectedStoreCount =
+          acceptancePreferences.getInt('arvin-checklist-wave-5-14-store-count');
       app.main();
       await tester.pumpAndSettle();
 
@@ -57,6 +67,25 @@ void main() {
       expect(matches, hasLength(1),
           reason: 'Exactly one UI-created Checklist Task must survive process restart.');
       final task = matches.single;
+      expect(expectedTaskId, isNotNull,
+          reason: 'The UI run must save the accepted Task ID before restart.');
+      expect(expectedSnapshotJson, isNotNull,
+          reason: 'The UI run must save the full canonical-store snapshot before restart.');
+      expect(expectedStoreCount, isNotNull);
+      expect(task.id, expectedTaskId,
+          reason: 'Restart must recover the same Task ID, not a replacement Task.');
+      final expectedTasks = (jsonDecode(expectedSnapshotJson!) as List)
+          .map((raw) => Map<String, dynamic>.from(raw as Map))
+          .toList(growable: false)
+        ..sort((a, b) => (a['id'] as String).compareTo(b['id'] as String));
+      final actualTasks = (await store.load())
+          .map((item) => item.toJson())
+          .toList(growable: false)
+        ..sort((a, b) => (a['id'] as String).compareTo(b['id'] as String));
+      expect(actualTasks, expectedTasks,
+          reason: 'All canonical Task fields, relationships, occurrence snapshots, and history must survive restart.');
+      expect(actualTasks.length, expectedStoreCount,
+          reason: 'Canonical record count must be unchanged after restart.');
       expect(task.id, isNotEmpty);
       expect(task.recurrence, isNotNull);
       expect(task.recurrence!.frequency, RecurrenceFrequency.daily);
