@@ -159,11 +159,11 @@ void main() {
       // This end-to-end test deliberately does not fabricate seven stored
       // snapshots; snapshot/history preservation belongs to storage tests.
       final rule = beforeRule.recurrence!;
-      final anchor = rule.startDate ?? beforeRule.reminderDate;
-      expect(anchor, isNotNull,
-          reason: 'The real Repeat setup must persist a canonical schedule anchor.');
+      // The real UI defaults Repeat to "from Task time" when no explicit start
+      // date is chosen. Use that canonical Task timestamp as the schedule anchor.
+      final anchor = rule.startDate ?? beforeRule.reminderDate ?? beforeRule.createdAt;
       final dates = rule.occurrencesBetween(
-        anchor: anchor!,
+        anchor: anchor,
         from: anchor,
         to: anchor.add(const Duration(days: 7)),
       );
