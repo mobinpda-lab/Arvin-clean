@@ -688,3 +688,21 @@ Do not mark any row PASS based solely on static inspection or generic CI success
 |---|---|---|
 | Calendar Provider lifecycle on historical integration revision | PASS — artifact inspected | Keep historical provenance bound to checkout SHA `2494062c1a1219276a3d97c799d1996990506716` / PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`; do not transfer this PASS to current HEAD. |
 | Calendar Provider lifecycle on final Wave 5.21 HEAD | NOT VERIFIED | Rerun current-head workflow, inspect artifact, prove CREATE → NO-OP → UPDATE → calendar transfer → DELETE and unrelated sentinel retention. |
+
+
+## Wave 5.22 — Product contract gaps and canonical reference (2026-10-20)
+
+Canonical reference: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md). The reference formalizes definitions, invariants and acceptance scenarios; it does not close implementation problems.
+
+| Gap / decision | Status | Required next evidence or decision |
+|---|---|---|
+| Stable checklist item identity across rename/delete/reorder | NOT VERIFIED / open decision | Decide migration-compatible identity model; tests proving no checked-state transfer |
+| Occurrence key and timezone/day-boundary contract | NOT VERIFIED | Canonicalize only after explicit decision; local-midnight, timezone-change and DST tests |
+| Missed occurrence behavior | Open product decision | Product-owner approval plus tests for missed/skipped/completed separation |
+| Follow-up date precedence and lifecycle | NOT VERIFIED / open decision | Define precedence for Task.followUpDate and FollowUp.nextFollowUp; test multiple actions and history |
+| Notification delivery, Snooze and tap/cold-start routing | NOT VERIFIED | Real-device permission, scheduling, delivery, tap destination, restart and deleted-target evidence |
+| Full backup/restore of SQL data, occurrence history and relationships | NOT VERIFIED | Restore same task and compare IDs, snapshots, taxonomy and linked data in target environment |
+| Calendar Provider on current candidate SHA | NOT VERIFIED | Current-SHA artifact showing CREATE/NO-OP/UPDATE/migration/DELETE and unrelated-event preservation |
+| Search/filters/widgets/attachments/accessibility full coverage | NOT VERIFIED | Feature-by-feature source audit and acceptance evidence; do not infer presence from README or model fields |
+
+Do not mark any row PASS because the concept is documented or a model class exists. Release remains **BLOCKED — RELEASE: NO-GO**.
