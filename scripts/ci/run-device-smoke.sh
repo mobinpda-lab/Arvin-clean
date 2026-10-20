@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-test_file="\${1:?usage: run-device-smoke.sh <integration-test-file> <scenario>}"
-scenario="\${2:?usage: run-device-smoke.sh <integration-test-file> <scenario>}"
+test_file="$1"
+scenario="$2"
 
 dump_android_diagnostics() {
   echo "=== ADB devices ==="
@@ -34,7 +34,7 @@ if [[ "$scenario" == "task-lifecycle" ]]; then
     dump_android_diagnostics
     exit 1
   }
-  launcher_component="$(printf '%s\n' "$launcher_output" | tr -d '\r' | grep -E "^\${package_id}/" | tail -n 1)"
+  launcher_component="$(printf '%s\n' "$launcher_output" | tr -d '\r' | grep -E "^com\\.example\\.arvin/" | tail -n 1)"
   test -n "$launcher_component" || { printf '%s\n' "$launcher_output"; dump_android_diagnostics; exit 1; }
   case "$launcher_component" in "$package_id/"*) ;; *) printf '%s\n' "$launcher_output"; dump_android_diagnostics; exit 1 ;; esac
   echo "ARVIN_LIFECYCLE_PACKAGE=$package_id"
